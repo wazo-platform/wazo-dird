@@ -1,7 +1,9 @@
 # -*- coding: UTF-8 -*-
 
+from __future__ import absolute_import
+
 import logging
-from time import sleep
+from xivo_dird.agi.agi_server import AgiServer
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +15,6 @@ class DirdServer(object):
 
     def run(self):
         logger.info('directory server starting ....')
-        while True:
-            sleep(1)
+        agi_server = AgiServer()
+        agi_server.run()
         logger.info('directory server stopped .....')
