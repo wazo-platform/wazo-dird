@@ -23,7 +23,7 @@ import SocketServer
 from xivo_dird.agi.agi_request_handler import AgiRequestHandler
 
 LISTEN_ADDRESS_DEFAULT = "127.0.0.1"
-LISTEN_PORT_DEFAULT = 5002
+LISTEN_PORT_DEFAULT = 5999
 
 
 logger = logging.getLogger(__name__)
