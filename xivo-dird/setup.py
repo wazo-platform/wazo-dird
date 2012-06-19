@@ -12,6 +12,7 @@ setup(
     url='http://git.xivo.fr/',
     packages=['xivo_dird',
               'xivo_dird.bin',
+              'xivo_dird.agi',
              ],
     scripts=['bin/xivo-dird'],
 )
