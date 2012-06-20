@@ -11,5 +11,4 @@ setup(
     author_email='dev@avencall.com',
     url='http://git.xivo.fr/',
     packages=['xivo_dird'],
-    scripts=['bin/xivo-dird'],
 )
