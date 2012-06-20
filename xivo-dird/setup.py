@@ -10,8 +10,6 @@ setup(
     author='Avencall',
     author_email='dev@avencall.com',
     url='http://git.xivo.fr/',
-    packages=['xivo_dird',
-              'xivo_dird.bin',
-             ],
+    packages=['xivo_dird'],
     scripts=['bin/xivo-dird'],
 )

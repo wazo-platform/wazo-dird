@@ -1,3 +1,0 @@
-#!/bin/sh
-
-python -m xivo_dird.bin.xivo_dird "$@"
