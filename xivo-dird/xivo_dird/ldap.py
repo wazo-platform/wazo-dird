@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import ldap
 import logging
 from urllib import unquote
-from xivo import urisup
+from urlparse import urlparse
 
 logger = logging.getLogger('ldap')
 
@@ -36,44 +36,40 @@ class XivoLDAP(object):
             logger.info('LDAP URI requested: %r', iuri)
 
             if isinstance(iuri, unicode):
-                ldapuri = urisup.uri_help_split(iuri.encode('utf8'))
+                parsed_uri = urlparse(iuri.encode('utf8'))
             else:
-                ldapuri = urisup.uri_help_split(iuri)
+                parsed_uri = urlparse(iuri)
 
-            uri_scheme = ldapuri[0]
+            uri_scheme = parsed_uri.scheme
             if uri_scheme not in ('ldap', 'ldaps'):
                 raise NotImplementedError('Unknown URI scheme: %r' % uri_scheme)
 
             # user, pass, host, port
-            if ldapuri[1][0] is None:
+            if parsed_uri.username is None:
                 ldapuser = ''
             else:
-                ldapuser = ldapuri[1][0]
+                # Need to escape backslashes in order for ldap to correctly bind. Related bug #3617.
+                ldapuser = parsed_uri.username.replace('\\','\\\\')
 
-            if ldapuri[1][1] is None:
+            if parsed_uri.password is None:
                 ldappass = ''
             else:
-                ldappass = ldapuri[1][1]
+                ldappass = parsed_uri.password
 
-            if ldapuri[1][2] is None:
+            if parsed_uri.hostname is None:
                 ldaphost = 'localhost'
             else:
-                ldaphost = ldapuri[1][2]
+                ldaphost = parsed_uri.hostname
 
-            if ldapuri[1][3] is None:
+            if parsed_uri.port is None:
                 if uri_scheme == 'ldaps':
                     ldapport = '636'
                 else:
                     ldapport = '389'
             else:
-                ldapport = ldapuri[1][3]
+                ldapport = parsed_uri.port
 
-            # dbname
-            if ldapuri[2] is not None:
-                if ldapuri[2].startswith('/'):
-                    self.dbname = ldapuri[2][1:]
-                else:
-                    self.dbname = ldapuri[2]
+            self.dbname = parsed_uri.path.lstrip('/').rstrip('?')
 
             dbpos = iuri.rfind(self.dbname)
             # ?attributes?scope?filter?extensions = 'asfe'
