@@ -49,7 +49,7 @@ class XivoLDAP(object):
                 ldapuser = ''
             else:
                 # Need to escape backslashes in order for ldap to correctly bind. Related bug #3617.
-                ldapuser = parsed_uri.username.replace('\\','\\\\')
+                ldapuser = parsed_uri.username.replace('\\', '\\\\')
 
             if parsed_uri.password is None:
                 ldappass = ''
