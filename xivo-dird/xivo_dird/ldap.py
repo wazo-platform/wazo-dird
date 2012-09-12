@@ -69,15 +69,14 @@ class XivoLDAP(object):
             else:
                 ldapport = parsed_uri.port
 
-            self.dbname = parsed_uri.path.lstrip('/').rstrip('?')
+            split_path = parsed_uri.path.split('?')
+            self.dbname = split_path.pop(0).lstrip('/')
 
-            dbpos = iuri.rfind(self.dbname)
             # ?attributes?scope?filter?extensions = 'asfe'
-            asfe = iuri[dbpos + len(self.dbname):].split('?', 4)
-            while len(asfe) < 5:
-                asfe.append('')
+            while len(split_path) < 4:
+                split_path.append('')
             (self.base_attributes, self.base_scope,
-             self.base_filter, self.base_extensions) = asfe[1:]
+             self.base_filter, self.base_extensions) = split_path 
             self.base_filter = unquote(self.base_filter)
 
             self.uri = "%s://%s:%s" % (uri_scheme, ldaphost, ldapport)
