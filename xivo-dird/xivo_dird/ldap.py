@@ -76,7 +76,7 @@ class XivoLDAP(object):
             while len(split_path) < 4:
                 split_path.append('')
             (self.base_attributes, self.base_scope,
-             self.base_filter, self.base_extensions) = split_path 
+             self.base_filter, self.base_extensions) = split_path
             self.base_filter = unquote(self.base_filter)
 
             self.uri = "%s://%s:%s" % (uri_scheme, ldaphost, ldapport)
