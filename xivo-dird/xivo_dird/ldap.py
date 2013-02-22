@@ -91,8 +91,11 @@ class XivoLDAP(object):
                 self.ldapobj = None
                 return
 
-            self.ldapobj.simple_bind_s(ldapuser, ldappass)
-            logger.info('LDAP : simple bind done on %r', ldapuser)
+            try:
+                self.ldapobj.simple_bind_s(ldapuser, ldappass)
+                logger.info('LDAP : simple bind done on %r', ldapuser)
+            except ldap.INVALID_CREDENTIALS:
+                logger.info('LDAP : simple bind failed on %r : invalid credentials!', ldapuser)
 
             usetls = False
             if usetls:
