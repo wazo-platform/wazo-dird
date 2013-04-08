@@ -84,6 +84,7 @@ class XivoLDAP(object):
             self.ldapobj = ldap.initialize(self.uri, debuglevel)
             logger.info('LDAP URI understood: %r / filter: %r', self.uri, self.base_filter)
 
+            self.ldapobj.set_option(ldap.OPT_REFERRALS, 0)
             self.ldapobj.set_option(ldap.OPT_NETWORK_TIMEOUT, 0.1)
 
             if not self.ldapobj:
