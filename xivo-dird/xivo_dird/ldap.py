@@ -86,6 +86,7 @@ class XivoLDAP(object):
 
             self.ldapobj.set_option(ldap.OPT_REFERRALS, 0)
             self.ldapobj.set_option(ldap.OPT_NETWORK_TIMEOUT, 0.1)
+            self.ldapobj.set_option(ldap.OPT_TIMEOUT, 1)
 
             if not self.ldapobj:
                 logger.warning('LDAP SERVER not responding')
