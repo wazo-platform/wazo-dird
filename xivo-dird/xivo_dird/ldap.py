@@ -19,97 +19,59 @@ from __future__ import absolute_import
 
 import ldap
 import logging
-from urllib import unquote
-from urlparse import urlparse
 
 logger = logging.getLogger('ldap')
 
 
 class XivoLDAP(object):
-    def __init__(self, iuri):
-        self.iuri = iuri
+
+    def __init__(self, config):
+        self.config = config
         self.ldapobj = None
-        self.uri = None
         self.dbname = None
 
         try:
-            logger.info('LDAP URI requested: %r', iuri)
-
-            if isinstance(iuri, unicode):
-                parsed_uri = urlparse(iuri.encode('utf8'))
-            else:
-                parsed_uri = urlparse(iuri)
-
-            uri_scheme = parsed_uri.scheme
-            if uri_scheme not in ('ldap', 'ldaps'):
-                raise NotImplementedError('Unknown URI scheme: %r' % uri_scheme)
-
-            # user, pass, host, port
-            if parsed_uri.username is None:
-                ldapuser = ''
-            else:
-                # Need to escape backslashes in order for ldap to correctly bind. Related bug #3617.
-                ldapuser = parsed_uri.username.replace('\\', '\\\\')
-
-            if parsed_uri.password is None:
-                ldappass = ''
-            else:
-                ldappass = parsed_uri.password
-
-            if parsed_uri.hostname is None:
-                ldaphost = 'localhost'
-            else:
-                ldaphost = parsed_uri.hostname
-
-            if parsed_uri.port is None:
-                if uri_scheme == 'ldaps':
-                    ldapport = '636'
-                else:
-                    ldapport = '389'
-            else:
-                ldapport = parsed_uri.port
-
-            split_path = parsed_uri.path.split('?')
-            self.dbname = split_path.pop(0).lstrip('/')
-
-            # ?attributes?scope?filter?extensions = 'asfe'
-            while len(split_path) < 4:
-                split_path.append('')
-            (self.base_attributes, self.base_scope,
-             self.base_filter, self.base_extensions) = split_path
-            self.base_filter = unquote(self.base_filter)
-
-            self.uri = "%s://%s:%s" % (uri_scheme, ldaphost, ldapport)
-            debuglevel = 0
-            self.ldapobj = ldap.initialize(self.uri, debuglevel)
-            logger.info('LDAP URI understood: %r / filter: %r', self.uri, self.base_filter)
-
-            self.ldapobj.set_option(ldap.OPT_REFERRALS, 0)
-            self.ldapobj.set_option(ldap.OPT_NETWORK_TIMEOUT, 0.1)
-            self.ldapobj.set_option(ldap.OPT_TIMEOUT, 1)
-
-            if not self.ldapobj:
-                logger.warning('LDAP SERVER not responding')
-                self.ldapobj = None
-                return
-
-            try:
-                self.ldapobj.simple_bind_s(ldapuser, ldappass)
-                logger.info('LDAP : simple bind done on %r', ldapuser)
-            except ldap.INVALID_CREDENTIALS:
-                logger.info('LDAP : simple bind failed on %r : invalid credentials!', ldapuser)
-
-            usetls = False
-            if usetls:
-                self.ldapobj.set_option(ldap.OPT_X_TLS, 1)
-
+            logger.info('LDAP config requested: %s', self.config)
+            self.ldapobj = self._create_ldap_obj(self.config)
+            self._set_filter_properties(config)
+            self._perform_bind()
         except ldap.LDAPError, exc:
-            logger.exception('__init__: ldap.LDAPError (%r, %r, %r)', self.ldapobj, iuri, exc)
+            logger.exception('__init__: ldap.LDAPError (%r, %r, %r)', self.ldapobj, self.config, exc)
             self.ldapobj = None
+
+    def _create_ldap_obj(self, config):
+        ldapobj = ldap.initialize(config['uri'], 0)
+        ldapobj.set_option(ldap.OPT_REFERRALS, 0)
+        ldapobj.set_option(ldap.OPT_NETWORK_TIMEOUT, 0.1)
+        ldapobj.set_option(ldap.OPT_TIMEOUT, 1)
+        return ldapobj
+
+    def _set_filter_properties(self, config):
+        self.dbname = config['basedn']
+        self.base_attributes = None
+        self.base_scope = None
+        self.base_extensions = None
+        self.base_filter = config['filter']
+
+    def _perform_bind(self):
+        if not self.ldapobj:
+            logger.warning('LDAP SERVER not responding')
+            self.ldapobj = None
+            return
+
+        try:
+            self.ldapobj.simple_bind_s(self.config['username'], self.config['password'])
+            logger.info('LDAP : simple bind done with %(username)s on %(uri)s', self.config)
+        except ldap.INVALID_CREDENTIALS:
+            logger.info('LDAP : simple bind failed with %(username)s on %(uri)s : invalid credentials!', self.config)
+
+        usetls = False
+        if usetls:
+            self.ldapobj.set_option(ldap.OPT_X_TLS, 1)
 
     def getldap(self, search_filter, search_attributes, searchpattern):
         if self.ldapobj is None:
-            self.__init__(self.iuri)
+            self.__init__(self.config)
 
         if self.base_filter:
             actual_filter = '(&(%s)%s)' % (self.base_filter.replace('%Q', searchpattern),
@@ -137,8 +99,8 @@ class XivoLDAP(object):
         except (AttributeError, ldap.LDAPError), exc1:
             # display exc1 since sometimes the error stack looks too long for the logfile
             logger.exception('getldap: ldap.LDAPError (%r, %r, %r) retrying to connect',
-                             self.ldapobj, self.uri, exc1)
-            self.__init__(self.iuri)
+                             self.ldapobj, self.config, exc1)
+            self.__init__(self.config)
             result = []
             try:
                 if self.ldapobj is not None:
@@ -148,6 +110,6 @@ class XivoLDAP(object):
                                                    search_attributes)
             except ldap.LDAPError, exc2:
                 logger.exception('getldap: ldap.LDAPError (%r, %r, %r) could not reconnect',
-                                 self.ldapobj, self.uri, exc2)
+                                 self.ldapobj, self.config, exc2)
             finally:
                 return result
