@@ -1,0 +1,23 @@
+xivo-dird (12.22~20120914.180644.1b6b0ae-2) squeeze-xivo-skaro-dev; urgency=low
+
+  * fix depends, now on xivo-lib-python
+
+ -- Nicolas HICHER (atarakt) <nhicher@proformatique.com>  Wed, 07 Nov 2012 11:27:19 -0500
+
+xivo-dird (1.2.11~20120617.202346.5e41943-1) squeeze-xivo-skaro-dev; urgency=low
+
+  * fix version 
+
+ -- Nicolas HICHER (atarakt) <nhicher@proformatique.com>  Wed, 20 Jun 2012 14:51:35 -0400
+
+xivo-dird (1.2.11~20120618.202346.5e41943-2) squeeze-xivo-skaro-dev; urgency=low
+
+  * fix pre-depends on xivo-libdird
+
+ -- Nicolas HICHER (atarakt) <nhicher@proformatique.com>  Mon, 18 Jun 2012 17:42:46 -0400
+
+xivo-dird (1.2.11~20120618.202346.5e41943-1) squeeze-xivo-skaro-dev; urgency=low
+
+  * Initial Release.
+
+ -- Nicolas HICHER (atarakt) <nhicher@proformatique.com>  Mon, 18 Jun 2012 13:22:27 -0400

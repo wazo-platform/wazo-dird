@@ -1,0 +1,17 @@
+Source: xivo-dird
+Section: python
+Priority: extra
+Maintainer: XiVO Dev Team <dev@avencall.com>
+Uploaders: XiVO Builder Team <release@xivo.fr>
+Build-Depends: debhelper (>= 8), dh-python, python-all (>= 2.7), python-setuptools
+Standards-Version: 3.9.4
+X-Python-Version: >= 2.7
+Homepage: http://wiki.xivo.fr
+
+Package: xivo-libdird
+Architecture: all
+Depends: ${python:Depends}, ${misc:Depends}, xivo-lib-python, python-ldap
+Description: XIVO telephony systems library for directories manager
+ XIVO is a system based on a powerful IPBX, to bring an easy to
+ install solution for telephony and related services.
+ .
