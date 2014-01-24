@@ -86,9 +86,6 @@ class CSVFileDirectoryDataSource(DirectoryDataSource):
 
     @classmethod
     def new_from_contents(cls, contents):
-        """Return a new instance of this class from "configuration contents"
-        and a ctiserver instance.
-        """
         csv_file = contents['uri']
         delimiter = contents.get('delimiter', ',')
         key_mapping = cls._get_key_mapping(contents)
