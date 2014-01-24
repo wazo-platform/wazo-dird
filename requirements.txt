@@ -2,3 +2,6 @@ nose
 mock
 pyhamcrest
 python-ldap
+svn+https://github.com/xivo-pbx/xivo-dao/trunk/xivo-dao
+sqlalchemy
+psycopg2
