@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class DirdServer(object):
+
     def run(self):
         logger.info('directory server starting ....')
         logger.info('directory server stopped .....')

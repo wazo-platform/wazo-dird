@@ -32,12 +32,13 @@ class TestMain(TestCase):
 
         main._init_logger.assert_called_once_with()
 
-    def test_that_main_calls_run(self):
-        main._run = Mock()
+    def test_that_main_runs_the_server(self):
+        with patch('xivo_dird.dird_server.DirdServer') as MockDirdServer:
+            instance = MockDirdServer.return_value
 
-        main.main()
+            main.main()
 
-        main._run.assert_called_once_with()
+            instance.run.assert_called_once_with()
 
 
 @patch('logging.getLogger')

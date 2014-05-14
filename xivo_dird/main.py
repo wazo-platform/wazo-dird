@@ -17,14 +17,15 @@
 
 import logging
 
+from xivo_dird import dird_server
+
 logger = logging.getLogger(__name__)
 
 
 def main():
     _init_logger()
-    logger.info('Starting xivo-dird')
-    _run()
-    logger.info('Stopping xivo-dird')
+    server = dird_server.DirdServer()
+    server.run()
 
 
 def _init_logger():
@@ -32,7 +33,3 @@ def _init_logger():
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     logger.addHandler(handler)
-
-
-def _run():
-    pass
