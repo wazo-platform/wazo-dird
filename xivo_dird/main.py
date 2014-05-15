@@ -17,15 +17,25 @@
 
 import logging
 
+from xivo import daemonize
 from xivo_dird import dird_server
 
 logger = logging.getLogger(__name__)
+
+_PID_FILENAME = '/var/run/xivo-dird.pid'
 
 
 def main():
     _init_logger()
     server = dird_server.DirdServer()
-    server.run()
+    daemonize.daemonize()
+    daemonize.lock_pidfile_or_die(_PID_FILENAME)
+    try:
+        server.run()
+    except Exception:
+        logger.exception('Unexpected error:')
+
+    daemonize.unlock_pidfile(_PID_FILENAME)
 
 
 def _init_logger():

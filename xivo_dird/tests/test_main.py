@@ -25,6 +25,9 @@ from xivo_dird import main
 
 class TestMain(TestCase):
 
+    def setUp(self):
+        main.daemonize = Mock()
+
     def test_that_main_inititlize_the_logger(self):
         main._init_logger = Mock()
 
@@ -39,6 +42,25 @@ class TestMain(TestCase):
             main.main()
 
             instance.run.assert_called_once_with()
+
+    def test_that_dird_is_daemonized(self):
+        main.main()
+
+        main.daemonize.daemonize.assert_called_once_with()
+
+    def test_that_dird_has_a_pid_file(self):
+        main.main()
+
+        main.daemonize.lock_pidfile_or_die.assert_called_once_with(main._PID_FILENAME)
+        main.daemonize.unlock_pidfile.assert_called_once_with(main._PID_FILENAME)
+
+    def test_that_the_pid_file_is_unlocked_on_exception(self):
+        with patch('xivo_dird.dird_server.DirdServer',
+                   Mock(return_value=Mock(run=Mock(side_effect=AssertionError)))):
+            main.main()
+
+            main.daemonize.lock_pidfile_or_die.assert_called_once_with(main._PID_FILENAME)
+            main.daemonize.unlock_pidfile.assert_called_once_with(main._PID_FILENAME)
 
 
 @patch('logging.getLogger')
