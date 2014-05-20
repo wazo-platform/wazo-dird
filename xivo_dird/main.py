@@ -32,8 +32,8 @@ def main():
     daemonize.lock_pidfile_or_die(_PID_FILENAME)
     try:
         server.run()
-    except Exception:
-        logger.exception('Unexpected error:')
+    except Exception as e:
+        logger.warning('Unexpected error: %s', e)
 
     daemonize.unlock_pidfile(_PID_FILENAME)
 
