@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2012-2014 Avencall
+# Copyright (C) 2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,11 +17,29 @@
 
 import logging
 
+from xivo import daemonize
+from xivo_dird import dird_server
+
 logger = logging.getLogger(__name__)
 
+_PID_FILENAME = '/var/run/xivo-dird.pid'
 
-class DirdServer(object):
 
-    def run(self):
-        logger.info('directory server starting ....')
-        logger.info('directory server stopped .....')
+def main():
+    _init_logger()
+    server = dird_server.DirdServer()
+    daemonize.daemonize()
+    daemonize.lock_pidfile_or_die(_PID_FILENAME)
+    try:
+        server.run()
+    except Exception as e:
+        logger.warning('Unexpected error: %s', e)
+
+    daemonize.unlock_pidfile(_PID_FILENAME)
+
+
+def _init_logger():
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    logger.addHandler(handler)
