@@ -1,7 +1,7 @@
 mock
 pyhamcrest
 python-ldap
-git+https://github.com/xivo-pbx/xivo.git
+git+https://github.com/xivo-pbx/xivo-lib-python.git
 git+https://github.com/xivo-pbx/xivo-dao.git
 sqlalchemy
 psycopg2
