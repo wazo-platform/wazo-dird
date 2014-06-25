@@ -15,9 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import logging
-
-from mock import Mock
 from mock import patch
 from unittest import TestCase
 from xivo_dird import main
@@ -26,65 +23,51 @@ from xivo_dird import main
 class TestMain(TestCase):
 
     def setUp(self):
-        main.daemonize = Mock()
+        self.argparse_patch = patch('argparse.ArgumentParser')
+        self.daemon_patch = patch('xivo.daemonize.daemonize')
+        self.daemon_lock_patch = patch('xivo.daemonize.lock_pidfile_or_die')
+        self.daemon_unlock_patch = patch('xivo.daemonize.unlock_pidfile')
+        self.log_patch = patch('xivo_dird.main.setup_logging')
+        self.wsgi_patch = patch('xivo_dird.main.WSGIServer')
 
-    @patch('xivo_dird.dird_server.DirdServer', Mock(return_value=Mock()))
-    def test_that_main_inititlize_the_logger(self):
-        main._init_logger = Mock()
+        self.argparse = self.argparse_patch.start()
+        self.daemonize = self.daemon_patch.start()
+        self.daemon_lock = self.daemon_lock_patch.start()
+        self.daemon_unlock = self.daemon_unlock_patch.start()
+        self.log = self.log_patch.start()
+        self.wsgi = self.wsgi_patch.start()
 
+        self.args = self.argparse.return_value.parse_args.return_value
+        self.args.foreground = False
+
+    def tearDown(self):
+        self.argparse_patch.stop()
+        self.daemon_patch.stop()
+        self.daemon_lock_patch.stop()
+        self.daemon_unlock_patch.stop()
+        self.log_patch.stop()
+        self.wsgi_patch.stop()
+
+    def test_that_main_initialize_the_logger(self):
         main.main()
 
-        main._init_logger.assert_called_once_with()
+        self.log.assert_called_once_with(main._LOG_FILENAME, self.args.foreground, self.args.debug)
 
-    def test_that_main_runs_the_server(self):
-        with patch('xivo_dird.dird_server.DirdServer') as MockDirdServer:
-            instance = MockDirdServer.return_value
-
-            main.main()
-
-            instance.run.assert_called_once_with()
-
-    @patch('xivo_dird.dird_server.DirdServer', Mock(return_value=Mock()))
     def test_that_dird_is_daemonized(self):
         main.main()
 
-        main.daemonize.daemonize.assert_called_once_with()
+        self.daemonize.assert_called_once_with()
 
-    @patch('xivo_dird.dird_server.DirdServer', Mock(return_value=Mock()))
     def test_that_dird_has_a_pid_file(self):
         main.main()
 
-        main.daemonize.lock_pidfile_or_die.assert_called_once_with(main._PID_FILENAME)
-        main.daemonize.unlock_pidfile.assert_called_once_with(main._PID_FILENAME)
+        self.daemon_lock.assert_called_once_with(main._PID_FILENAME)
+        self.daemon_unlock.asssert_called_once_with(main._PID_FILENAME)
 
     def test_that_the_pid_file_is_unlocked_on_exception(self):
-        with patch('xivo_dird.dird_server.DirdServer',
-                   Mock(return_value=Mock(run=Mock(side_effect=AssertionError('Unexpected'))))):
+        self.wsgi.run.side_effect = AssertionError('Unexpected')
 
-            main.main()
+        main.main()
 
-            main.daemonize.lock_pidfile_or_die.assert_called_once_with(main._PID_FILENAME)
-            main.daemonize.unlock_pidfile.assert_called_once_with(main._PID_FILENAME)
-
-
-@patch('logging.getLogger')
-class TestInitLogger(TestCase):
-
-    def test_that_init_logger_sets_the_level_to_debug(self, get_logger_mock):
-        logger = Mock()
-        get_logger_mock.return_value = logger
-
-        main._init_logger()
-
-        logger.setLevel.assert_called_once_with(logging.DEBUG)
-
-    @patch('logging.StreamHandler')
-    def test_that_a_stream_handler_is_set(self, stream_handler_mock, get_logger_mock):
-        handler = Mock()
-        logger = Mock()
-        get_logger_mock.return_value = logger
-        stream_handler_mock.return_value = handler
-
-        main._init_logger()
-
-        logger.addHandler.assert_called_once_with(handler)
+        self.daemon_lock.assert_called_once_with(main._PID_FILENAME)
+        self.daemon_unlock.assert_called_once_with(main._PID_FILENAME)
