@@ -17,8 +17,11 @@
 
 import argparse
 import logging
+import os
+import sys
 
 from flup.server.fcgi import WSGIServer
+from pwd import getpwnam
 
 from xivo.daemonize import daemon_context
 from xivo.xivo_logging import setup_logging
@@ -28,13 +31,25 @@ logger = logging.getLogger(__name__)
 
 _DAEMONNAME = 'xivo-dird'
 _LOG_FILENAME = '/var/log/{}.log'.format(_DAEMONNAME)
-_PID_FILENAME = '/var/run/{}.pid'.format(_DAEMONNAME)
+_PID_FILENAME = '/var/run/{daemon}/{daemon}.pid'.format(daemon=_DAEMONNAME)
 
 
 def main():
     parsed_args = _parse_args()
 
     setup_logging(_LOG_FILENAME, parsed_args.foreground, parsed_args.debug)
+    if parsed_args.user:
+        try:
+            uid = getpwnam(parsed_args.user).pw_uid
+        except KeyError:
+            logger.error('Unknown user %s' % parsed_args.user)
+            sys.exit(1)
+
+        try:
+            os.setuid(uid)
+        except OSError as e:
+            logger.error('Could not change owner to user %s: %s', parsed_args.user, e)
+            sys.exit(2)
 
     if parsed_args.foreground:
         _run(parsed_args.debug)
@@ -55,12 +70,17 @@ def _parse_args():
                         action='store_true',
                         default=False,
                         help="Enable debug messages. Default: %(default)s")
+    parser.add_argument('-u',
+                        '--user',
+                        action='store',
+                        help='The owner of the process.')
     return parser.parse_args()
 
 
 def _run(debug=False):
+    logger.debug('WSGIServer starting with uid %s', os.getuid())
     WSGIServer(dird_server.app,
-               bindAddress='/var/www/{}.sock'.format(_DAEMONNAME),
+               bindAddress='/var/www/{daemon}/{daemon}.sock'.format(daemon=_DAEMONNAME),
                multithreaded=False,
                multiprocess=True,
                debug=debug).run()

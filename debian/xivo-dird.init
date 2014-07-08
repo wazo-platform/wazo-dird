@@ -16,7 +16,7 @@ set -e
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 DAEMONNAME=xivo-dird
 DAEMON=/usr/bin/$DAEMONNAME
-PIDFILE=/var/run/$DAEMONNAME.pid
+PIDFILE=/var/run/$DAEMONNAME/$DAEMONNAME.pid
 XIVO_DEFAULT_FILE="/etc/default/xivo"
 
 . /lib/lsb/init-functions
@@ -38,7 +38,7 @@ case "$1" in
   start)
     is_enabled
     log_daemon_msg "Starting" "$DAEMONNAME"
-    if start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON;
+    if start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON -- --user www-data;
     then
         log_end_msg 0
     else
