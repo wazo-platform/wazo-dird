@@ -5,3 +5,5 @@ git+https://github.com/xivo-pbx/xivo-lib-python.git
 git+https://github.com/xivo-pbx/xivo-dao.git
 sqlalchemy
 psycopg2
+flup
+Flask
