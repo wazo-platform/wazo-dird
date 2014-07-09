@@ -41,12 +41,12 @@ class TestMain(TestCase):
         self.args.foreground = False
 
     def tearDown(self):
-        self.argparse_patch.stop()
-        self.daemon_patch.stop()
-        self.daemon_lock_patch.stop()
-        self.daemon_unlock_patch.stop()
-        self.log_patch.stop()
         self.wsgi_patch.stop()
+        self.log_patch.stop()
+        self.daemon_unlock_patch.stop()
+        self.daemon_lock_patch.stop()
+        self.daemon_patch.stop()
+        self.argparse_patch.stop()
 
     def test_that_main_initialize_the_logger(self):
         main.main()
