@@ -18,12 +18,11 @@
 import argparse
 import logging
 import os
-import sys
 
 from flup.server.fcgi import WSGIServer
-from pwd import getpwnam
 
 from xivo.daemonize import daemon_context
+from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging
 from xivo_dird import dird_server
 
@@ -39,17 +38,7 @@ def main():
 
     setup_logging(_LOG_FILENAME, parsed_args.foreground, parsed_args.debug)
     if parsed_args.user:
-        try:
-            uid = getpwnam(parsed_args.user).pw_uid
-        except KeyError:
-            logger.error('Unknown user %s' % parsed_args.user)
-            sys.exit(1)
-
-        try:
-            os.setuid(uid)
-        except OSError as e:
-            logger.error('Could not change owner to user %s: %s', parsed_args.user, e)
-            sys.exit(2)
+        change_user(parsed_args.user)
 
     if parsed_args.foreground:
         _run(parsed_args.debug)

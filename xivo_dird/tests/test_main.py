@@ -20,6 +20,9 @@ from unittest import TestCase
 from xivo_dird import main
 
 
+USER = 'www-data'
+
+
 class TestMain(TestCase):
 
     def setUp(self):
@@ -28,6 +31,7 @@ class TestMain(TestCase):
         self.daemon_lock_patch = patch('xivo.daemonize.lock_pidfile_or_die')
         self.daemon_unlock_patch = patch('xivo.daemonize.unlock_pidfile')
         self.log_patch = patch('xivo_dird.main.setup_logging')
+        self.user_patch = patch('xivo_dird.main.change_user')
         self.wsgi_patch = patch('xivo_dird.main.WSGIServer')
 
         self.argparse = self.argparse_patch.start()
@@ -35,6 +39,7 @@ class TestMain(TestCase):
         self.daemon_lock = self.daemon_lock_patch.start()
         self.daemon_unlock = self.daemon_unlock_patch.start()
         self.log = self.log_patch.start()
+        self.change_user = self.user_patch.start()
         self.wsgi = self.wsgi_patch.start()
 
         self.args = self.argparse.return_value.parse_args.return_value
@@ -42,6 +47,7 @@ class TestMain(TestCase):
 
     def tearDown(self):
         self.wsgi_patch.stop()
+        self.user_patch.stop()
         self.log_patch.stop()
         self.daemon_unlock_patch.stop()
         self.daemon_lock_patch.stop()
@@ -71,3 +77,10 @@ class TestMain(TestCase):
 
         self.daemon_lock.assert_called_once_with(main._PID_FILENAME)
         self.daemon_unlock.assert_called_once_with(main._PID_FILENAME)
+
+    def test_when_arg_user_is_given_then_change_user(self):
+        self.args.user = USER
+
+        main.main()
+
+        self.change_user.assert_called_once_with(USER)
