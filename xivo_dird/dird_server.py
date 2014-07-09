@@ -15,13 +15,35 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import json
 import logging
 
+from flask import Flask
+from flask.helpers import make_response
+
 logger = logging.getLogger(__name__)
+app = Flask(__name__)
+
+VERSION = 0.1
 
 
-class DirdServer(object):
+@app.route('/{version}/directories/lookup/<profile>/headers'.format(version=VERSION))
+def headers(profile):
+    logger.info('profile {} headers'.format(profile))
+    dummy = json.dumps(
+        {'column_headers': ['Firstname', 'Lastname', 'Phone number'],
+         'column_types': [None, None, 'office']}
+    )
+    return make_response(dummy, 200)
 
-    def run(self):
-        logger.info('directory server starting ....')
-        logger.info('directory server stopped .....')
+
+@app.route('/{version}/directories/lookup/<profile>'.format(version=VERSION))
+def lookup(profile):
+    logger.info('profile {} lookup'.format(profile))
+    return make_response('', 201)
+
+
+@app.route('/{version}/directories/reverse_lookup'.format(version=VERSION))
+def reverse_lookup():
+    logger.info('reverse lookup')
+    return make_response('', 201)

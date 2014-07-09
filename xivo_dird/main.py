@@ -15,31 +15,52 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import argparse
 import logging
 
-from xivo import daemonize
+from flup.server.fcgi import WSGIServer
+
+from xivo.daemonize import daemon_context
+from xivo.xivo_logging import setup_logging
 from xivo_dird import dird_server
 
 logger = logging.getLogger(__name__)
 
-_PID_FILENAME = '/var/run/xivo-dird.pid'
+_DAEMONNAME = 'xivo-dird'
+_LOG_FILENAME = '/var/log/{}.log'.format(_DAEMONNAME)
+_PID_FILENAME = '/var/run/{}.pid'.format(_DAEMONNAME)
 
 
 def main():
-    _init_logger()
-    server = dird_server.DirdServer()
-    daemonize.daemonize()
-    daemonize.lock_pidfile_or_die(_PID_FILENAME)
-    try:
-        server.run()
-    except Exception as e:
-        logger.warning('Unexpected error: %s', e)
+    parsed_args = _parse_args()
 
-    daemonize.unlock_pidfile(_PID_FILENAME)
+    setup_logging(_LOG_FILENAME, parsed_args.foreground, parsed_args.debug)
+
+    if parsed_args.foreground:
+        _run(parsed_args.debug)
+    else:
+        with daemon_context(_PID_FILENAME):
+            _run(parsed_args.debug)
 
 
-def _init_logger():
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    logger.addHandler(handler)
+def _parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f',
+                        '--foreground',
+                        action='store_true',
+                        default=False,
+                        help="Foreground, don't daemonize. Default: %(default)s")
+    parser.add_argument('-d',
+                        '--debug',
+                        action='store_true',
+                        default=False,
+                        help="Enable debug messages. Default: %(default)s")
+    return parser.parse_args()
+
+
+def _run(debug=False):
+    WSGIServer(dird_server.app,
+               bindAddress='/var/www/{}.sock'.format(_DAEMONNAME),
+               multithreaded=False,
+               multiprocess=True,
+               debug=debug).run()
