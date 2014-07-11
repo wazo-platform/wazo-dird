@@ -17,10 +17,12 @@
 
 import argparse
 import logging
+import os
 
 from flup.server.fcgi import WSGIServer
 
 from xivo.daemonize import daemon_context
+from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging
 from xivo_dird import dird_server
 
@@ -28,13 +30,16 @@ logger = logging.getLogger(__name__)
 
 _DAEMONNAME = 'xivo-dird'
 _LOG_FILENAME = '/var/log/{}.log'.format(_DAEMONNAME)
-_PID_FILENAME = '/var/run/{}.pid'.format(_DAEMONNAME)
+_PID_FILENAME = '/var/run/{daemon}/{daemon}.pid'.format(daemon=_DAEMONNAME)
+_SOCKET_FILENAME = '/tmp/{daemon}.sock'.format(daemon=_DAEMONNAME)
 
 
 def main():
     parsed_args = _parse_args()
 
     setup_logging(_LOG_FILENAME, parsed_args.foreground, parsed_args.debug)
+    if parsed_args.user:
+        change_user(parsed_args.user)
 
     if parsed_args.foreground:
         _run(parsed_args.debug)
@@ -55,12 +60,17 @@ def _parse_args():
                         action='store_true',
                         default=False,
                         help="Enable debug messages. Default: %(default)s")
+    parser.add_argument('-u',
+                        '--user',
+                        action='store',
+                        help='The owner of the process.')
     return parser.parse_args()
 
 
 def _run(debug=False):
+    logger.debug('WSGIServer starting with uid %s', os.getuid())
     WSGIServer(dird_server.app,
-               bindAddress='/var/www/{}.sock'.format(_DAEMONNAME),
+               bindAddress=_SOCKET_FILENAME,
                multithreaded=False,
                multiprocess=True,
                debug=debug).run()

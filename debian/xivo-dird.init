@@ -14,9 +14,12 @@
 set -e
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
+USER=www-data
+GROUP=$USER
 DAEMONNAME=xivo-dird
 DAEMON=/usr/bin/$DAEMONNAME
-PIDFILE=/var/run/$DAEMONNAME.pid
+PIDDIR=/var/run/$DAEMONNAME
+PIDFILE=$PIDDIR/$DAEMONNAME.pid
 XIVO_DEFAULT_FILE="/etc/default/xivo"
 
 . /lib/lsb/init-functions
@@ -34,11 +37,16 @@ is_enabled() {
     fi
 }
 
+for dir in "$PIDDIR" ; do
+    [ -d "$dir" ] || install -d -o "$USER" -g "$GROUP" "$dir"
+done
+
 case "$1" in
   start)
     is_enabled
     log_daemon_msg "Starting" "$DAEMONNAME"
-    if start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON;
+
+    if start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON -- --user $USER;
     then
         log_end_msg 0
     else
@@ -55,7 +63,7 @@ case "$1" in
     fi
     rm -f $PIDFILE
     ;;
-  restart)
+  force-reload|restart)
     $0 stop
     $0 start
     ;;
@@ -63,7 +71,7 @@ case "$1" in
     status_of_proc -p $PIDFILE $DAEMON "$DAEMONNAME" && exit 0 || exit $?
     ;;
   *)
-    echo "Usage: $0 {start|stop|restart|status}"
+    echo "Usage: $0 {start|stop|restart|force-reload|status}"
     exit 1
     ;;
 esac
