@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 _DAEMONNAME = 'xivo-dird'
 _LOG_FILENAME = '/var/log/{}.log'.format(_DAEMONNAME)
 _PID_FILENAME = '/var/run/{daemon}/{daemon}.pid'.format(daemon=_DAEMONNAME)
+_SOCKET_FILENAME = '/tmp/{daemon}.sock'.format(daemon=_DAEMONNAME)
 
 
 def main():
@@ -69,7 +70,7 @@ def _parse_args():
 def _run(debug=False):
     logger.debug('WSGIServer starting with uid %s', os.getuid())
     WSGIServer(dird_server.app,
-               bindAddress='/var/www/{daemon}/{daemon}.sock'.format(daemon=_DAEMONNAME),
+               bindAddress=_SOCKET_FILENAME,
                multithreaded=False,
                multiprocess=True,
                debug=debug).run()
