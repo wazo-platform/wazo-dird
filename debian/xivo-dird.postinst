@@ -3,8 +3,6 @@
 set -e
 
 LOG_FILENAME='/var/log/xivo-dird.log'
-SOCKET_DIRNAME='/var/www/xivo-dird'
-PID_DIRNAME='/var/run/xivo-dird'
 
 case "$1" in
 	configure)
@@ -21,10 +19,6 @@ case "$1" in
 		touch "$LOG_FILENAME"
 	fi
 	chown www-data: "$LOG_FILENAME"
-
-	chown www-data: "$SOCKET_DIRNAME"
-	chown www-data: "$PID_DIRNAME"
-
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
