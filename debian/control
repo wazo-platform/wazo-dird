@@ -10,7 +10,7 @@ Homepage: http://wiki.xivo.io
 
 Package: xivo-dird
 Architecture: all
-Pre-Depends: xivo-libdird (= ${binary:Version})
+Pre-Depends: xivo-libdird (= ${binary:Version}), nginx
 Depends: ${python:Depends}, adduser
 Description: XIVO PBX's directory server
  XIVO is a system based on a powerful IPBX, to bring an easy to
