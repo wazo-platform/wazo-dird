@@ -1,0 +1,11 @@
+server {
+    listen 127.0.0.1:50060 default_server;
+    server_name $domain;
+    location / { try_files $uri @xivo-dird; }
+    location @xivo-dird {
+         include fastcgi_params;
+         fastcgi_param PATH_INFO $fastcgi_script_name;
+         fastcgi_param SCRIPT_NAME "";
+         fastcgi_pass unix:/tmp/xivo-dird.sock;
+    }
+}
