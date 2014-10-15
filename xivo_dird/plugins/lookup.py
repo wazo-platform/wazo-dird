@@ -36,9 +36,10 @@ class LookupServicePlugin(BaseServicePlugin):
         if not args:
             args = {}
 
-        _assert_has_args(args, 'http_app', 'api_namespace', 'rest_api')
+        _assert_has_args(args, 'http_app', 'api_namespace', 'rest_api', 'config')
 
         self._setup_http_app(args['http_app'], args['api_namespace'], args['rest_api'])
+        self._service = _LookupService(args['config'])
 
     def unload(self, args=None):
         pass
@@ -52,7 +53,33 @@ class LookupServicePlugin(BaseServicePlugin):
             parser = rest_api.parser()
             parser.add_argument('term', type=str, required=True,
                                 help='Search a given term in all configured sources')
+            parser.add_argument('user_id', type=str, required=False,
+                                help='The user doing the query')
 
             @rest_api.doc(parser=parser)
             def get(cls, profile):
-                pass
+                args = cls.parser.parse_args()
+                return self._service.lookup(args['term'], profile, args.get('user_id'))
+
+
+class _LookupService(object):
+
+    def __init__(self, config):
+        self._config = config
+        self._source_manager = _SourceManager()
+
+    def lookup(self, term, profile, user_id):
+        args = {'user_id': user_id}
+
+        for source, columns in self._source_manager.get_by_profile(profile):
+            for result in source.search(term, args, columns):
+                yield result
+
+
+class _SourceManager(object):
+
+    def get_by_profile(self):
+        '''
+        generates a list of source, column pairs
+        '''
+        return
