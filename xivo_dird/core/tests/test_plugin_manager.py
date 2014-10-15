@@ -46,3 +46,38 @@ class TestPluginManager(TestCase):
                 'http_api': rest_api.api,
                 'config': s.config
             }])
+
+    def test_services_filter_when_service_not_in_config_then_false(self):
+        config = {}
+        extension = Mock()
+
+        result = plugin_manager.services_filter(config, extension)
+
+        assert_that(result, equal_to(False))
+
+    def test_services_filter_when_service_in_config_then_not_enabled_by_default(self):
+        config = {'my_plugin': {}}
+        extension = Mock()
+        extension.name = 'my_plugin'
+
+        result = plugin_manager.services_filter(config, extension)
+
+        assert_that(result, equal_to(False))
+
+    def test_services_filter_when_service_in_config_and_not_enabled_then_not_enabled(self):
+        config = {'my_plugin': {'enabled': False}}
+        extension = Mock()
+        extension.name = 'my_plugin'
+
+        result = plugin_manager.services_filter(config, extension)
+
+        assert_that(result, equal_to(False))
+
+    def test_services_filter_when_service_in_config_and_enabled_then_enabled(self):
+        config = {'my_plugin': {'enabled': True}}
+        extension = Mock()
+        extension.name = 'my_plugin'
+
+        result = plugin_manager.services_filter(config, extension)
+
+        assert_that(result, equal_to(True))

@@ -35,4 +35,4 @@ def load_services(config, rest_api):
 
 
 def services_filter(config, extension):
-    return False
+    return config.get(extension.name, {}).get('enabled', False)
