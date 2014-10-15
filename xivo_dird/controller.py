@@ -26,16 +26,22 @@ logger = logging.getLogger(__name__)
 class Controller(object):
     def __init__(self):
         self.config = {
+            'debug': False,
             'log_filename': '/var/log/xivo-dird.log',
             'foreground': True,
-            'user': 'www-data',
             'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
             'rest_api': {
                 'static_folder': '/usr/share/xivo-dird/static'
-            }
+            },
+            'user': 'www-data',
+            'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
         }
         self.rest_api = CoreRestApi(self.config['rest_api'])
 
     def run(self):
         logger.info('xivo-dird running...')
-        wsgi.run(self.rest_api.app)
+        wsgi.run(self.rest_api.app,
+                 bindAddress=self.config['wsgi_socket'],
+                 multithreaded=True,
+                 multiprocess=False,
+                 debug=self.config['debug'])

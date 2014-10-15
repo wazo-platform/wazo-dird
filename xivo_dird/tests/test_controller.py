@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 
-from mock import patch
+from mock import patch, sentinel as s
 from unittest import TestCase
 
 from xivo_dird.controller import Controller
@@ -33,8 +33,15 @@ class TestController(TestCase):
     @patch('xivo.wsgi.run')
     def test_run_starts_rest_api(self, wsgi_run, rest_api_init):
         rest_api = rest_api_init.return_value
-
         controller = Controller()
+        controller.config = {
+            'wsgi_socket': s.socket,
+            'debug': s.debug,
+        }
         controller.run()
 
-        wsgi_run.assert_called_once_with(rest_api.app)
+        wsgi_run.assert_called_once_with(rest_api.app,
+                                         bindAddress=s.socket,
+                                         multithreaded=True,
+                                         multiprocess=False,
+                                         debug=s.debug)
