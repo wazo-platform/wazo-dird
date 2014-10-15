@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#
+
 # Copyright (C) 2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,24 +15,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import logging
 
-from xivo import wsgi
-from xivo_dird.core.rest_api import CoreRestApi
+from mock import patch
+from unittest import TestCase
 
-logger = logging.getLogger(__name__)
+from xivo_dird.controller import Controller
 
 
-class Controller(object):
-    def __init__(self):
-        self.config = {
-            'log_filename': '/var/log/xivo-dird.log',
-            'foreground': True,
-            'user': 'www-data',
-            'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
-        }
-        self.rest_api = CoreRestApi()
+class TestController(TestCase):
+    def setUp(self):
+        pass
 
-    def run(self):
-        logger.info('xivo-dird running...')
-        wsgi.run(self.rest_api.app)
+    def tearDown(self):
+        pass
+
+    @patch('xivo_dird.controller.CoreRestApi')
+    @patch('xivo.wsgi.run')
+    def test_run_starts_rest_api(self, wsgi_run, rest_api_init):
+        rest_api = rest_api_init.return_value
+
+        controller = Controller()
+        controller.run()
+
+        wsgi_run.assert_called_once_with(rest_api.app)
