@@ -45,3 +45,12 @@ class TestController(TestCase):
                                          multithreaded=True,
                                          multiprocess=False,
                                          debug=s.debug)
+
+    @patch('xivo_dird.controller.CoreRestApi')
+    @patch('xivo_dird.core.plugin_manager.load_services')
+    def test_init_loads_plugins(self, load_services, rest_api_init):
+        rest_api = rest_api_init.return_value
+
+        Controller()
+
+        load_services.assert_called_once_with({}, rest_api)

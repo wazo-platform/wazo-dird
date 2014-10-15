@@ -19,6 +19,7 @@ import logging
 
 from xivo import wsgi
 from xivo_dird.core.rest_api import CoreRestApi
+from xivo_dird.core import plugin_manager
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +34,12 @@ class Controller(object):
             'rest_api': {
                 'static_folder': '/usr/share/xivo-dird/static'
             },
+            'services': {},
             'user': 'www-data',
             'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
         }
         self.rest_api = CoreRestApi(self.config['rest_api'])
+        plugin_manager.load_services(self.config['services'], self.rest_api)
 
     def run(self):
         logger.info('xivo-dird running...')
