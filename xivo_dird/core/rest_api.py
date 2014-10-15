@@ -15,6 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from flask import Flask
+from flask_restplus.api import Api
+
+VERSION = 0.1
+
 
 class CoreRestApi(object):
-    app = None
+
+    def __init__(self, config):
+        self.app = Flask('xivo_dird', static_folder=config['static_folder'])
+        self.api = Api(self.app, version=VERSION, prefix='/{}'.format(VERSION))
+        self.namespace = self.api.namespace('directories', description='directories operations')

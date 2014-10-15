@@ -30,8 +30,11 @@ class Controller(object):
             'foreground': True,
             'user': 'www-data',
             'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
+            'rest_api': {
+                'static_folder': '/usr/share/xivo-dird/static'
+            }
         }
-        self.rest_api = CoreRestApi()
+        self.rest_api = CoreRestApi(self.config['rest_api'])
 
     def run(self):
         logger.info('xivo-dird running...')
