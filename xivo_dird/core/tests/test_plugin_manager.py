@@ -33,19 +33,34 @@ class TestPluginManager(TestCase):
     @patch('stevedore.enabled.EnabledExtensionManager')
     def test_load_services_loads_service_extensions(self, extension_manager_init):
         rest_api = Mock()
+        extension_manager = extension_manager_init.return_value
 
         plugin_manager.load_services(s.config, rest_api)
 
         extension_manager_init.assert_called_once_with(
             namespace='xivo-dird.services',
-            check_fun=ANY,
-            invoke_on_load=True,
-            invoke_args=[{
-                'http_app': rest_api.app,
-                'http_namespace': rest_api.namespace,
-                'http_api': rest_api.api,
-                'config': s.config
-            }])
+            check_func=ANY,
+            invoke_on_load=True)
+        extension_manager.map.assert_called_once_with(plugin_manager.load_service_extension,
+                                                      s.config,
+                                                      rest_api)
+
+    def test_load_service_extension_passes_right_plugin_arguments(self):
+        extension = Mock()
+        extension.name = 'my_plugin'
+        rest_api = Mock()
+        config = {
+            'my_plugin': s.plugin_config
+        }
+
+        plugin_manager.load_service_extension(extension, config, rest_api)
+
+        extension.load.assert_called_once_with({
+            'http_app': rest_api.app,
+            'http_namespace': rest_api.namespace,
+            'http_api': rest_api.api,
+            'config': s.plugin_config
+        })
 
     def test_services_filter_when_service_not_in_config_then_false(self):
         config = {}

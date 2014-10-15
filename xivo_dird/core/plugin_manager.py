@@ -22,16 +22,22 @@ from stevedore import enabled
 
 def load_services(config, rest_api):
     check_func = functools.partial(services_filter, config)
-    enabled.EnabledExtensionManager(
+    manager = enabled.EnabledExtensionManager(
         namespace='xivo-dird.services',
-        check_fun=check_func,
-        invoke_on_load=True,
-        invoke_args=[{
-            'http_app': rest_api.app,
-            'http_namespace': rest_api.namespace,
-            'http_api': rest_api.api,
-            'config': config
-        }])
+        check_func=check_func,
+        invoke_on_load=True)
+
+    manager.map(load_service_extension, config, rest_api)
+
+
+def load_service_extension(extension, config, rest_api):
+    args = {
+        'http_app': rest_api.app,
+        'http_namespace': rest_api.namespace,
+        'http_api': rest_api.api,
+        'config': config.get(extension.name, {})
+    }
+    extension.load(args)
 
 
 def services_filter(config, extension):
