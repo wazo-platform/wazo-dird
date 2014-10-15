@@ -15,13 +15,44 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+from flask_restful.utils.cors import crossdomain
+from flask_restplus.resource import Resource
 from xivo_dird import BaseServicePlugin
 
+API_VERSION = '0.1'
 
-class LookupService(BaseServicePlugin):
+
+def _assert_has_args(args, *expected_args):
+    for arg in expected_args:
+        if arg not in args:
+            raise ValueError('Missing %s argument in %s' % (arg, args))
+
+
+class LookupServicePlugin(BaseServicePlugin):
+
+    lookup_url = '/lookup/<profile>'
 
     def load(self, args=None):
-        pass
+        if not args:
+            args = {}
+
+        _assert_has_args(args, 'http_app', 'api_namespace', 'rest_api')
+
+        self._setup_http_app(args['http_app'], args['api_namespace'], args['rest_api'])
 
     def unload(self, args=None):
         pass
+
+    def _setup_http_app(self, http_app, api_namespace, rest_api):
+
+        @crossdomain(origin='*')
+        @api_namespace.route(self.lookup_url)
+        class Lookup(Resource):
+
+            parser = rest_api.parser()
+            parser.add_argument('term', type=str, required=True,
+                                help='Search a given term in all configured sources')
+
+            @rest_api.doc(parser=parser)
+            def get(cls, profile):
+                pass
