@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
 # Copyright (C) 2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,7 +15,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dird.bin.daemon import main
+import logging
+
+from xivo.daemonize import pidfile_context
+from xivo.user_rights import change_user
+from xivo.xivo_logging import setup_logging
+from xivo_dird.controller import Controller
+
+logger = logging.getLogger(__name__)
 
 
-main()
+def main():
+    controller = Controller()
+    config = controller.config
+
+    setup_logging(config['log_filename'], config['foreground'])
+    if config['user']:
+        change_user(config['user'])
+
+    with pidfile_context(config['pid_filename'], config['foreground']):
+        controller.run()
+
+
+if __name__ == '__main__':
+    main()

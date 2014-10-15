@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
 # Copyright (C) 2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,7 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dird.bin.daemon import main
+import logging
+import time
+
+logger = logging.getLogger(__name__)
 
 
-main()
+class Controller(object):
+    def __init__(self):
+        self.config = {
+            'log_filename': '/var/log/xivo-dird.log',
+            'foreground': True,
+            'user': 'www-data',
+            'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
+        }
+
+    def run(self):
+        while True:
+            time.sleep(1)
