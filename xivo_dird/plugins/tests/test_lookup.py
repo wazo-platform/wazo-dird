@@ -69,11 +69,10 @@ class TestLookupService(unittest.TestCase):
         s._source_manager = self._source_manager
         args = {'user_id': sentinel.user_id}
 
-        results = list(s.lookup(sentinel.term, sentinel.profile, sentinel.user_id))
+        results = list(s.execute(sentinel.term, sentinel.profile, sentinel.user_id))
 
         expected_results = self._result_1 + self._result_2
 
-        print results, expected_results
         assert_that(results, contains_inanyorder(*expected_results))
 
         self._source_1.search.assert_called_once_with(sentinel.term, args, self._columns_1)

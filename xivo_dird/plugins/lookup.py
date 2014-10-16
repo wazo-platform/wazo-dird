@@ -21,6 +21,9 @@ import yaml
 
 from collections import defaultdict
 from stevedore import enabled
+from concurrent.futures import ALL_COMPLETED
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import wait
 from xivo_dird import BaseServicePlugin
 
 logger = logging.getLogger(__name__)
@@ -46,12 +49,30 @@ class _LookupService(object):
     def __init__(self, config):
         self._config = config
         self._source_manager = _SourceManager(config)
+        self._executor = ThreadPoolExecutor(max_workers=10)
 
-    def lookup(self, term, profile, user_id):
+    def __delete__(self):
+        self._executor.shutdown()
+
+    def _async_search(self, source, term, args, columns):
+        future = self._executor.submit(source.search, term, args, columns)
+        future.name = source.name
+        return future
+
+    def execute(self, term, profile, user_id):
         args = {'user_id': user_id}
 
+        futures = []
         for source, columns in self._source_manager.get_by_profile(profile):
-            for result in source.search(term, args, columns):
+            futures.append(self._async_search(source, term, args, columns))
+
+        params = {'return_when': ALL_COMPLETED}
+        if 'lookup_timeout' in self._config:
+            params['timeout'] = self._config['lookup_timeout']
+
+        done, _ = wait(futures, **params)
+        for future in done:
+            for result in future.result():
                 yield result
 
 
@@ -76,10 +97,16 @@ class _SourceManager(object):
         self._load_all_configs()
         manager.man(self._load_source)
 
-    def get_by_profile(self):
-        '''
-        generates a list of source, column pairs
-        '''
+    def get_by_profile(self, profile):
+        lookup_config = self._config.get('profile', {}).get('lookup', {})
+        if not lookup_config:
+            logger.warning('No lookup configuration on profile %s', profile)
+            return
+
+        for source_name, source_config in lookup_config:
+            for source in self._sources:
+                if source.name == source_name:
+                    yield source, source_config.get('search_columns', [])
 
     def _load_all_configs(self):
         if 'plugin_config_dir' not in self._config:
@@ -104,5 +131,6 @@ class _SourceManager(object):
         backend = extension.name
         for config in self._configs_by_backens[backend]:
             source = extension.plugin()
+            source.name = config.get('name')
             source.load(config)
             self._sources.append(source)

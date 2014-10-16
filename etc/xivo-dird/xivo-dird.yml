@@ -4,7 +4,13 @@ plugins:
 profiles:
   default:
     lookup:
-      - csv_client
-      - phonebook_qc
+      csv_client:
+        unique:
+          - number
+        search_columns:
+          - firstname
+          - lastname
+      phonebook_qc:
+        ...
     reverse:
       - csv_client
