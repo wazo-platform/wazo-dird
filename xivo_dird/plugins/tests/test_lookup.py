@@ -18,15 +18,12 @@
 import unittest
 
 from copy import copy
-from flask import Flask
-from flask_restplus.api import Api
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from hamcrest import is_
 from mock import Mock
 from mock import patch
 from mock import sentinel
-from xivo_dird.plugins.lookup import API_VERSION
 from xivo_dird.plugins.lookup import LookupServicePlugin
 from xivo_dird.plugins.lookup import _LookupService
 from xivo_dird.plugins.lookup import _SourceManager
@@ -35,39 +32,10 @@ from xivo_dird.plugins.lookup import _SourceManager
 class TestLookupServicePlugin(unittest.TestCase):
 
     def setUp(self):
-        self._http_app = Flask(__name__)
-        self._api = Api(self._http_app,
-                        version='{}'.format(API_VERSION),
-                        prefix='/{}'.format(API_VERSION))
-        self._namespace = self._api.namespace('directories', description='XiVO directory services')
-        self._args = {'config': {},
-                      'http_app': self._http_app,
-                      'api_namespace': self._namespace,
-                      'rest_api': self._api}
+        self._args = {'config': {}}
 
     def test_instantiation(self):
         LookupServicePlugin()
-
-    def test_load_no_http_app(self):
-        p = LookupServicePlugin()
-        args = copy(self._args)
-        args.pop('http_app')
-
-        self.assertRaises(ValueError, p.load)
-
-    def test_load_no_api_namespace(self):
-        p = LookupServicePlugin()
-        args = copy(self._args)
-        args.pop('api_namespace')
-
-        self.assertRaises(ValueError, p.load, args)
-
-    def test_load_no_rest_api(self):
-        p = LookupServicePlugin()
-        args = copy(self._args)
-        args.pop('rest_api')
-
-        self.assertRaises(ValueError, p.load, args)
 
     def test_load_no_config(self):
         p = LookupServicePlugin()
@@ -75,19 +43,6 @@ class TestLookupServicePlugin(unittest.TestCase):
         args.pop('config')
 
         self.assertRaises(ValueError, p.load, args)
-
-    def test_that_load_setup_the_http_app(self):
-        p = LookupServicePlugin()
-        setup_http_app = p._setup_http_app = Mock()
-
-        p.load(self._args)
-
-        setup_http_app.assert_called_once_with(self._http_app, self._namespace, self._api)
-
-    def test_that_load_instanciate_the_service_with_a_config(self):
-        p = LookupServicePlugin()
-
-        p.load(self._args)
 
 
 class TestLookupService(unittest.TestCase):
