@@ -25,6 +25,7 @@ from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from xivo_dird import BaseServicePlugin
+from xivo_dird import BaseService
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class LookupServicePlugin(BaseServicePlugin):
         pass
 
 
-class _LookupService(object):
+class _LookupService(BaseService):
 
     def __init__(self, config):
         self._config = config
