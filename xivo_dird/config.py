@@ -15,18 +15,55 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from __future__ import print_function
+
+import argparse
+import sys
+import yaml
+
 
 def load(argv):
-    config = {
+    default_config = {
+        'config_file': '/etc/xivo/xivo-dird/xivo-dird.yml',
         'debug': False,
         'log_filename': '/var/log/xivo-dird.log',
-        'foreground': True,
+        'foreground': False,
         'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
         'rest_api': {
             'static_folder': '/usr/share/xivo-dird/static'
         },
-        'services': {'dummy': {'enabled': False}},
+        'services': {},
         'user': 'www-data',
         'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
     }
+    config = dict(default_config)
+
+    config.update(_parse_cli_args(argv, default_config))
+    try:
+        with open(config['config_file']) as config_file:
+            config.update(yaml.load(config_file))
+    except IOError as e:
+        print('Could not read config file {}: {}'.format(config['config_file'], e), file=sys.stderr)
+
     return config
+
+
+def _parse_cli_args(argv, default_config):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c',
+                        '--config-file',
+                        action='store',
+                        default=default_config['config_file'],
+                        help="The path where is the config file. Default: %(default)s")
+    parser.add_argument('-f',
+                        '--foreground',
+                        action='store_true',
+                        default=default_config['foreground'],
+                        help="Foreground, don't daemonize. Default: %(default)s")
+    parser.add_argument('-u',
+                        '--user',
+                        action='store',
+                        default=default_config['user'],
+                        help="The owner of the process.")
+    parsed_args = parser.parse_args(argv)
+    return vars(parsed_args)
