@@ -111,19 +111,14 @@ class _SourceManager(object):
             logger.warning('No configured "plugin_config_dir"')
             return
 
-        source_config_files = []
-        for dir_path, _, file_names in os.walk(self._config['plugin_config_dir']):
-            for file_name in file_names:
-                full_filename = os.path.join(dir_path, file_name)
-                source_config_files.append(full_filename)
+        source_config_files = _list_files(self._config['plugin_config_dir'])
 
         for config_file in source_config_files:
-            try:
-                with open(config_file) as f:
-                    config = yaml.load(f)
-                    self._configs_by_backens[config['type']].append(config)
-            except Exception:
-                logger.warning('Failed to load %s', config_file)
+            config = _load_yaml_content(config_file)
+            if not config or 'type' not in config:
+                continue
+
+            self._configs_by_backend[config['type']].append(config)
 
     def _load_source(self, extension):
         backend = extension.name
@@ -132,3 +127,24 @@ class _SourceManager(object):
             source.name = config.get('name')
             source.load(config)
             self._sources.append(source)
+
+
+def _list_files(directory):
+    result = []
+
+    for dir_path, _, file_names in os.walk(directory):
+        for file_name in file_names:
+            full_filename = os.path.join(dir_path, file_name)
+            result.append(full_filename)
+
+    return result
+
+
+def _load_yaml_content(full_filename):
+    with open(full_filename) as f:
+        try:
+            return yaml.load(f)
+        except AttributeError:
+            logger.warning('Failed to load yaml config from %s', full_filename)
+
+    return {}
