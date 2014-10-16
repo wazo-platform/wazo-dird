@@ -15,8 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import logging
+import os
+import yaml
+
+from collections import defaultdict
 from stevedore import enabled
 from xivo_dird import BaseServicePlugin
+
+logger = logging.getLogger(__name__)
 
 
 class LookupServicePlugin(BaseServicePlugin):
@@ -54,6 +61,8 @@ class _SourceManager(object):
 
     def __init__(self, config):
         self._config = config
+        self._configs_by_backend = defaultdict(list)
+        self._sources = []
 
     def should_load_backend(self, extension):
         return extension.name in self._config.get('source_plugins', [])
@@ -64,9 +73,36 @@ class _SourceManager(object):
             check_func=self.should_load_backend,
             invoke_on_load=False,
         )
+        self._load_all_configs()
+        manager.man(self._load_source)
 
     def get_by_profile(self):
         '''
         generates a list of source, column pairs
         '''
-        return
+
+    def _load_all_configs(self):
+        if 'plugin_config_dir' not in self._config:
+            logger.warning('No configured "plugin_config_dir"')
+            return
+
+        source_config_files = []
+        for dir_path, _, file_names in os.walk(self._config['plugin_config_dir']):
+            for file_name in file_names:
+                full_filename = os.path.join(dir_path, file_name)
+                source_config_files.append(full_filename)
+
+        for config_file in source_config_files:
+            try:
+                with open(config_file) as f:
+                    config = yaml.load(f)
+                    self._configs_by_backens[config['type']].append(config)
+            except Exception:
+                logger.warning('Failed to load %s', config_file)
+
+    def _load_source(self, extension):
+        backend = extension.name
+        for config in self._configs_by_backens[backend]:
+            source = extension.plugin()
+            source.load(config)
+            self._sources.append(source)
