@@ -56,8 +56,7 @@ class TestLookupService(unittest.TestCase):
         self._source_3 = Mock()
         self._columns_1 = ['firstname', 'lastname', 'number']
         self._columns_2 = ['firstname', 'lastname', 'number', 'email']
-        self._source_manager.get_by_profile.return_value = [(self._source_1, self._columns_1),
-                                                            (self._source_2, self._columns_2)]
+        self._source_manager.get_by_profile.return_value = [self._source_1, self._source_2]
         self._result_1 = [dict(zip(self._columns_1, ['Alice', 'AAA', '5555551234'])),
                           dict(zip(self._columns_1, ['Bob', 'BBB', '5555555678']))]
         self._result_2 = [dict(zip(self._columns_2, ['Charles', 'CCC', '1234', 'charles@example.org']))]
@@ -69,14 +68,14 @@ class TestLookupService(unittest.TestCase):
         s._source_manager = self._source_manager
         args = {'user_id': sentinel.user_id}
 
-        results = list(s.execute(sentinel.term, sentinel.profile, sentinel.user_id))
+        results = list(s.execute(sentinel.term, sentinel.profile, {'user_id': sentinel.user_id}))
 
         expected_results = self._result_1 + self._result_2
 
-        assert_that(results, contains_inanyorder(*expected_results))
+        self._source_1.search.assert_called_once_with(sentinel.term, args)
+        self._source_2.search.assert_called_once_with(sentinel.term, args)
 
-        self._source_1.search.assert_called_once_with(sentinel.term, args, self._columns_1)
-        self._source_2.search.assert_called_once_with(sentinel.term, args, self._columns_2)
+        assert_that(results, contains_inanyorder(*expected_results))
 
 
 class TestSourceManager(unittest.TestCase):

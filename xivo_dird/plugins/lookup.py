@@ -38,7 +38,7 @@ class LookupServicePlugin(BaseServicePlugin):
         if 'config' not in args:
             raise ValueError('Missing config in %s' % args)
 
-        self._service = _LookupService(args['config'])
+        self.service = _LookupService(args['config'])
 
     def unload(self, args=None):
         pass
@@ -54,17 +54,15 @@ class _LookupService(object):
     def __delete__(self):
         self._executor.shutdown()
 
-    def _async_search(self, source, term, args, columns):
-        future = self._executor.submit(source.search, term, args, columns)
+    def _async_search(self, source, term, args):
+        future = self._executor.submit(source.search, term, args)
         future.name = source.name
         return future
 
-    def execute(self, term, profile, user_id):
-        args = {'user_id': user_id}
-
+    def execute(self, term, profile, args):
         futures = []
-        for source, columns in self._source_manager.get_by_profile(profile):
-            futures.append(self._async_search(source, term, args, columns))
+        for source in self._source_manager.get_by_profile(profile):
+            futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}
         if 'lookup_timeout' in self._config:
@@ -106,7 +104,7 @@ class _SourceManager(object):
         for source_name, source_config in lookup_config:
             for source in self._sources:
                 if source.name == source_name:
-                    yield source, source_config.get('search_columns', [])
+                    yield source
 
     def _load_all_configs(self):
         if 'plugin_config_dir' not in self._config:
