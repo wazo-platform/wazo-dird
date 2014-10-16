@@ -98,6 +98,26 @@ class TestSourceManager(unittest.TestCase):
             check_func=s.should_load_backend,
             invoke_on_load=False)
 
+    def test_get_by_profile(self):
+        config = {'profile': {
+            'test': {
+                'lookup': ['my_ldap', 'csv_1'],
+            },
+        }}
+        my_ldap_source = Mock()
+        my_ldap_source.name = 'my_ldap'
+        csv_1_source = Mock()
+        csv_1_source.name = 'csv_1'
+        phonebook_source = Mock()
+        phonebook_source.name = 'my_phonebook'
+
+        s = _SourceManager(config)
+        s._sources = [my_ldap_source, csv_1_source, phonebook_source]
+
+        result = s.get_by_profile('test')
+
+        assert_that(result, contains_inanyorder(my_ldap_source, csv_1_source))
+
     def test_should_load_backend(self):
         config = {
             'source_plugins': [

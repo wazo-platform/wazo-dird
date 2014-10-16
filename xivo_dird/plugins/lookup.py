@@ -96,12 +96,13 @@ class _SourceManager(object):
         manager.man(self._load_source)
 
     def get_by_profile(self, profile):
-        lookup_config = self._config.get('profile', {}).get('lookup', {})
-        if not lookup_config:
+        try:
+            lookup_config = self._config['profile'][profile]['lookup']
+        except KeyError:
             logger.warning('No lookup configuration on profile %s', profile)
             return
 
-        for source_name, source_config in lookup_config:
+        for source_name in lookup_config:
             for source in self._sources:
                 if source.name == source_name:
                     yield source
