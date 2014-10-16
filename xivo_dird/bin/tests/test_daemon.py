@@ -26,11 +26,18 @@ from xivo_dird.bin import daemon
 @patch('xivo_dird.bin.daemon.change_user')
 @patch('xivo_dird.bin.daemon.setup_logging')
 @patch('xivo_dird.bin.daemon.Controller')
+@patch('xivo_dird.bin.daemon.load_config')
 class TestXivoDird(TestCase):
 
-    def test_main_setup_logging(self, controller_init, setup_logging, change_user, pidfile_context):
-        controller = controller_init.return_value
-        controller.config = {
+    def test_main_injects_config_in_controller(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
+        config = load_config.return_value
+
+        daemon.main()
+
+        controller_init.assert_called_once_with(config)
+
+    def test_main_setup_logging(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
+        load_config.return_value = {
             'log_filename': s.log_filename,
             'foreground': s.foreground,
             'user': s.user,
@@ -41,9 +48,8 @@ class TestXivoDird(TestCase):
 
         setup_logging.assert_called_once_with(s.log_filename, s.foreground)
 
-    def test_main_when_config_user_then_change_user(self, controller_init, setup_logging, change_user, pidfile_context):
-        controller = controller_init.return_value
-        controller.config = {
+    def test_main_when_config_user_then_change_user(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
+        load_config.return_value = {
             'log_filename': s.log_filename,
             'foreground': s.foreground,
             'user': s.user,
@@ -54,9 +60,8 @@ class TestXivoDird(TestCase):
 
         change_user.assert_called_once_with(s.user)
 
-    def test_main_when_no_config_user_then_dont_change_user(self, controller_init, setup_logging, change_user, pidfile_context):
-        controller = controller_init.return_value
-        controller.config = {
+    def test_main_when_no_config_user_then_dont_change_user(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
+        load_config.return_value = {
             'log_filename': s.log_filename,
             'foreground': s.foreground,
             'user': None,
@@ -67,9 +72,9 @@ class TestXivoDird(TestCase):
 
         assert_that(change_user.call_count, equal_to(0))
 
-    def test_main_calls_controller_run(self, controller_init, setup_logging, change_user, pidfile_context):
+    def test_main_calls_controller_run(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
         controller = controller_init.return_value
-        controller.config = {
+        load_config.return_value = {
             'log_filename': s.log_filename,
             'foreground': s.foreground,
             'user': None,

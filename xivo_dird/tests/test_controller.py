@@ -16,12 +16,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 
-from mock import patch, sentinel as s
+from mock import Mock, patch, sentinel as s
 from unittest import TestCase
 
 from xivo_dird.controller import Controller
 
 
+@patch('xivo_dird.controller.CoreRestApi')
+@patch('xivo_dird.core.plugin_manager.load_services')
 class TestController(TestCase):
     def setUp(self):
         pass
@@ -29,15 +31,14 @@ class TestController(TestCase):
     def tearDown(self):
         pass
 
-    @patch('xivo_dird.controller.CoreRestApi')
     @patch('xivo.wsgi.run')
-    def test_run_starts_rest_api(self, wsgi_run, rest_api_init):
+    def test_run_starts_rest_api(self, wsgi_run, _load_services, rest_api_init):
         rest_api = rest_api_init.return_value
-        controller = Controller()
-        controller.config = {
+        config = self._create_config(**{
             'wsgi_socket': s.socket,
             'debug': s.debug,
-        }
+        })
+        controller = Controller(config)
         controller.run()
 
         wsgi_run.assert_called_once_with(rest_api.app,
@@ -46,11 +47,18 @@ class TestController(TestCase):
                                          multiprocess=False,
                                          debug=s.debug)
 
-    @patch('xivo_dird.controller.CoreRestApi')
-    @patch('xivo_dird.core.plugin_manager.load_services')
     def test_init_loads_plugins(self, load_services, rest_api_init):
         rest_api = rest_api_init.return_value
+        config = self._create_config(**{
+            'services': s.config
+        })
 
-        Controller()
+        Controller(config)
 
-        load_services.assert_called_once_with({}, rest_api)
+        load_services.assert_called_once_with(s.config, rest_api)
+
+    def _create_config(self, **kwargs):
+        config = dict(kwargs)
+        config.setdefault('rest_api', Mock())
+        config.setdefault('services', Mock())
+        return config

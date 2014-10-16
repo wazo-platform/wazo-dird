@@ -25,19 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 class Controller(object):
-    def __init__(self):
-        self.config = {
-            'debug': False,
-            'log_filename': '/var/log/xivo-dird.log',
-            'foreground': True,
-            'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
-            'rest_api': {
-                'static_folder': '/usr/share/xivo-dird/static'
-            },
-            'services': {},
-            'user': 'www-data',
-            'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
-        }
+    def __init__(self, config):
+        self.config = config
         self.rest_api = CoreRestApi(self.config['rest_api'])
         plugin_manager.load_services(self.config['services'], self.rest_api)
 
