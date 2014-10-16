@@ -17,6 +17,7 @@
 
 from flask_restful.utils.cors import crossdomain
 from flask_restplus.resource import Resource
+from stevedore import enabled
 from xivo_dird import BaseServicePlugin
 
 API_VERSION = '0.1'
@@ -66,7 +67,7 @@ class _LookupService(object):
 
     def __init__(self, config):
         self._config = config
-        self._source_manager = _SourceManager()
+        self._source_manager = _SourceManager(config)
 
     def lookup(self, term, profile, user_id):
         args = {'user_id': user_id}
@@ -77,6 +78,21 @@ class _LookupService(object):
 
 
 class _SourceManager(object):
+
+    _namespace = 'xivo-dird.backends'
+
+    def __init__(self, config):
+        self._config = config
+
+    def should_load_backend(self, extension):
+        return extension.name in self._config.get('source_plugins', [])
+
+    def load_backends(self):
+        manager = enabled.EnabledExtensionManager(
+            namespace=self._namespace,
+            check_func=self.should_load_backend,
+            invoke_on_load=False,
+        )
 
     def get_by_profile(self):
         '''

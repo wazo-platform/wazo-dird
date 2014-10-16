@@ -22,7 +22,9 @@ from flask import Flask
 from flask_restplus.api import Api
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
+from hamcrest import is_
 from mock import Mock
+from mock import patch
 from mock import sentinel
 from xivo_dird.plugins.lookup import API_VERSION
 from xivo_dird.plugins.lookup import LookupServicePlugin
@@ -125,4 +127,47 @@ class TestLookupService(unittest.TestCase):
 
 class TestSourceManager(unittest.TestCase):
 
-    pass
+    @patch('stevedore.enabled.EnabledExtensionManager')
+    def test_load_backends(self, mock_enabled_extension_manager):
+        config = {
+            'source_plugins': [
+                'ldap',
+                'xivo_phonebook',
+            ],
+        }
+
+        s = _SourceManager(config)
+
+        s.load_backends()
+
+        mock_enabled_extension_manager.assert_called_once_with(
+            namespace='xivo-dird.backends',
+            check_func=s.should_load_backend,
+            invoke_on_load=False)
+
+    def test_should_load_backend(self):
+        config = {
+            'source_plugins': [
+                'ldap',
+            ]
+        }
+        backend_1 = Mock()
+        backend_1.name = 'ldap'
+        backend_2 = Mock()
+        backend_2.name = 'xivo_phonebook'
+
+        s = _SourceManager(config)
+
+        assert_that(s.should_load_backend(backend_1), is_(True))
+        assert_that(s.should_load_backend(backend_2), is_(False))
+
+    def test_should_load_backend_missing_configs(self):
+        backend_1 = Mock()
+        backend_1.name = 'ldap'
+        backend_2 = Mock()
+        backend_2.name = 'xivo_phonebook'
+
+        s = _SourceManager({})
+
+        assert_that(s.should_load_backend(backend_1), is_(False))
+        assert_that(s.should_load_backend(backend_2), is_(False))
