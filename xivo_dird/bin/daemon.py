@@ -28,11 +28,12 @@ logger = logging.getLogger(__name__)
 
 def main():
     config = load_config()
-    controller = Controller(config)
 
     setup_logging(config['log_filename'], config['foreground'])
     if config['user']:
         change_user(config['user'])
+
+    controller = Controller(config)
 
     with pidfile_context(config['pid_filename'], config['foreground']):
         controller.run()
