@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import sys
 
 from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
@@ -26,8 +27,8 @@ from xivo_dird.config import load as load_config
 logger = logging.getLogger(__name__)
 
 
-def main():
-    config = load_config()
+def main(argv):
+    config = load_config(argv)
 
     setup_logging(config['log_filename'], config['foreground'])
     if config['user']:
@@ -40,4 +41,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

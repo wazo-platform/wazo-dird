@@ -29,10 +29,15 @@ from xivo_dird.bin import daemon
 @patch('xivo_dird.bin.daemon.load_config')
 class TestXivoDird(TestCase):
 
+    def test_main_injects_argv_into_config_loading(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
+        daemon.main(s.argv)
+
+        load_config.assert_called_once_with(s.argv)
+
     def test_main_injects_config_in_controller(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
         config = load_config.return_value
 
-        daemon.main()
+        daemon.main(s.argv)
 
         controller_init.assert_called_once_with(config)
 
@@ -44,7 +49,7 @@ class TestXivoDird(TestCase):
             'pid_filename': s.pid_filename,
         }
 
-        daemon.main()
+        daemon.main(s.argv)
 
         setup_logging.assert_called_once_with(s.log_filename, s.foreground)
 
@@ -56,7 +61,7 @@ class TestXivoDird(TestCase):
             'pid_filename': s.pid_filename,
         }
 
-        daemon.main()
+        daemon.main(s.argv)
 
         change_user.assert_called_once_with(s.user)
 
@@ -68,7 +73,7 @@ class TestXivoDird(TestCase):
             'pid_filename': s.pid_filename,
         }
 
-        daemon.main()
+        daemon.main(s.argv)
 
         assert_that(change_user.call_count, equal_to(0))
 
@@ -81,6 +86,6 @@ class TestXivoDird(TestCase):
             'pid_filename': s.pid_filename,
         }
 
-        daemon.main()
+        daemon.main(s.argv)
 
         controller.run.assert_called_once_with()
