@@ -38,7 +38,7 @@ class TestPluginManager(TestCase):
         plugin_manager.load_services(s.config, rest_api)
 
         extension_manager_init.assert_called_once_with(
-            namespace='xivo-dird.services',
+            namespace='xivo_dird.services',
             check_func=ANY,
             invoke_on_load=True)
         extension_manager.map.assert_called_once_with(plugin_manager.load_service_extension,
@@ -55,7 +55,7 @@ class TestPluginManager(TestCase):
 
         plugin_manager.load_service_extension(extension, config, rest_api)
 
-        extension.load.assert_called_once_with({
+        extension.obj.load.assert_called_once_with({
             'http_app': rest_api.app,
             'http_namespace': rest_api.namespace,
             'http_api': rest_api.api,

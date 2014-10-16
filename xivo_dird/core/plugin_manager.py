@@ -16,14 +16,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import functools
+import logging
 
 from stevedore import enabled
+
+logger = logging.getLogger(__name__)
 
 
 def load_services(config, rest_api):
     check_func = functools.partial(services_filter, config)
     manager = enabled.EnabledExtensionManager(
-        namespace='xivo-dird.services',
+        namespace='xivo_dird.services',
         check_func=check_func,
         invoke_on_load=True)
 
@@ -31,13 +34,14 @@ def load_services(config, rest_api):
 
 
 def load_service_extension(extension, config, rest_api):
+    logger.info('loading extension {}...'.format(extension.name))
     args = {
         'http_app': rest_api.app,
         'http_namespace': rest_api.namespace,
         'http_api': rest_api.api,
         'config': config.get(extension.name, {})
     }
-    extension.load(args)
+    extension.obj.load(args)
 
 
 def services_filter(config, extension):
