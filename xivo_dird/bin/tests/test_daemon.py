@@ -43,6 +43,7 @@ class TestXivoDird(TestCase):
 
     def test_main_setup_logging(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
         load_config.return_value = {
+            'debug': s.debug,
             'log_filename': s.log_filename,
             'foreground': s.foreground,
             'user': s.user,
@@ -51,10 +52,11 @@ class TestXivoDird(TestCase):
 
         daemon.main(s.argv)
 
-        setup_logging.assert_called_once_with(s.log_filename, s.foreground)
+        setup_logging.assert_called_once_with(s.log_filename, s.foreground, s.debug)
 
     def test_main_when_config_user_then_change_user(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
         load_config.return_value = {
+            'debug': s.debug,
             'log_filename': s.log_filename,
             'foreground': s.foreground,
             'user': s.user,
@@ -67,6 +69,7 @@ class TestXivoDird(TestCase):
 
     def test_main_when_no_config_user_then_dont_change_user(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
         load_config.return_value = {
+            'debug': s.debug,
             'log_filename': s.log_filename,
             'foreground': s.foreground,
             'user': None,
@@ -80,6 +83,7 @@ class TestXivoDird(TestCase):
     def test_main_calls_controller_run(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
         controller = controller_init.return_value
         load_config.return_value = {
+            'debug': s.debug,
             'log_filename': s.log_filename,
             'foreground': s.foreground,
             'user': None,

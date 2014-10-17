@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 def main(argv):
     config = load_config(argv)
 
-    setup_logging(config['log_filename'], config['foreground'])
+    setup_logging(config['log_filename'], config['foreground'], config['debug'])
     if config['user']:
         change_user(config['user'])
 
