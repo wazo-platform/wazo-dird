@@ -41,11 +41,7 @@ def load(argv):
     config = dict(default_config)
 
     config.update(_parse_cli_args(argv, default_config))
-    try:
-        with open(config['config_file']) as config_file:
-            config.update(yaml.load(config_file))
-    except IOError as e:
-        print('Could not read config file {}: {}'.format(config['config_file'], e), file=sys.stderr)
+    config.update(_parse_config_file(config['config_file']))
     _interpret_raw_values(config)
 
     return config
@@ -81,6 +77,15 @@ def _parse_cli_args(argv, default_config):
                         help="The owner of the process.")
     parsed_args = parser.parse_args(argv)
     return vars(parsed_args)
+
+
+def _parse_config_file(config_file_name):
+    try:
+        with open(config_file_name) as config_file:
+            return yaml.load(config_file)
+    except IOError as e:
+        print('Could not read config file {}: {}'.format(config_file_name, e), file=sys.stderr)
+        return {}
 
 
 def _interpret_raw_values(config):
