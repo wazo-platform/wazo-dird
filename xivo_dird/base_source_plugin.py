@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
-# Copyright (C) 2013-2014 Avencall
+#
+# Copyright (C) 2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -9,12 +9,22 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>
+# along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dird.base_plugins import BaseServicePlugin
-from xivo_dird.base_service import BaseService
-from xivo_dird.base_source_plugin import BaseSourcePlugin
+import abc
+
+
+class BaseSourcePlugin(object):
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def search(self, *args, **kwargs):
+        '''
+        The search method should return a list of dict containaing the search
+        results
+        '''

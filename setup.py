@@ -21,7 +21,10 @@ setup(
 
     entry_points={
         'xivo-dird.services': [
-            'lookup = xivo-dird.plugins.lookup:LookupServicePlugin',
-        ]
+            'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
+        ],
+        'xivo-dird.backends': [
+            'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
+        ],
     }
 )
