@@ -28,7 +28,7 @@ def load(argv):
     default_config = {
         'config_file': '/etc/xivo/xivo-dird/xivo-dird.yml',
         'debug': False,
-        'log_level': 'INFO',
+        'log_level': 'info',
         'log_filename': '/var/log/xivo-dird.log',
         'foreground': False,
         'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
@@ -72,7 +72,7 @@ def _parse_cli_args(argv, default_config):
                         '--log-level',
                         action='store',
                         default='INFO',
-                        help="Logs messages with LOGLEVEL details. Must be one of:\n"
+                        help="Logs messages with LOG_LEVEL details. Must be one of:\n"
                              "critical, error, warning, info, debug. Default: %(default)s")
     parser.add_argument('-u',
                         '--user',
