@@ -56,9 +56,6 @@ class TestPluginManager(TestCase):
         plugin_manager.load_service_extension(extension, config, rest_api)
 
         extension.obj.load.assert_called_once_with({
-            'http_app': rest_api.app,
-            'http_namespace': rest_api.namespace,
-            'http_api': rest_api.api,
             'config': s.plugin_config
         })
 
