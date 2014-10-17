@@ -30,6 +30,9 @@ class Controller(object):
         self.rest_api = CoreRestApi(self.config['rest_api'])
         plugin_manager.load_services(self.config['services'], self.rest_api)
 
+    def __del__(self):
+        plugin_manager.unload_services()
+
     def run(self):
         logger.info('xivo-dird running...')
         wsgi.run(self.rest_api.app,

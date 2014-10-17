@@ -21,16 +21,18 @@ import logging
 from stevedore import enabled
 
 logger = logging.getLogger(__name__)
+extension_manager = None
 
 
 def load_services(config, rest_api):
+    global extension_manager
     check_func = functools.partial(services_filter, config)
-    manager = enabled.EnabledExtensionManager(
+    extension_manager = enabled.EnabledExtensionManager(
         namespace='xivo_dird.services',
         check_func=check_func,
         invoke_on_load=True)
 
-    manager.map(load_service_extension, config, rest_api)
+    extension_manager.map(load_service_extension, config, rest_api)
 
 
 def load_service_extension(extension, config, rest_api):
@@ -43,3 +45,7 @@ def load_service_extension(extension, config, rest_api):
 
 def services_filter(config, extension):
     return config.get(extension.name, {}).get('enabled', False)
+
+
+def unload_services():
+    extension_manager.map_method('unload')

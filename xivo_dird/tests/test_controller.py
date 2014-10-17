@@ -23,6 +23,7 @@ from xivo_dird.controller import Controller
 
 
 @patch('xivo_dird.controller.CoreRestApi')
+@patch('xivo_dird.core.plugin_manager.unload_services')
 @patch('xivo_dird.core.plugin_manager.load_services')
 class TestController(TestCase):
     def setUp(self):
@@ -32,7 +33,7 @@ class TestController(TestCase):
         pass
 
     @patch('xivo.wsgi.run')
-    def test_run_starts_rest_api(self, wsgi_run, _load_services, rest_api_init):
+    def test_run_starts_rest_api(self, wsgi_run, _load_services, _unload_services, rest_api_init):
         rest_api = rest_api_init.return_value
         config = self._create_config(**{
             'rest_api': {'wsgi_socket': s.socket},
@@ -47,7 +48,7 @@ class TestController(TestCase):
                                          multiprocess=False,
                                          debug=s.debug)
 
-    def test_init_loads_plugins(self, load_services, rest_api_init):
+    def test_init_loads_plugins(self, load_services, _unload_services, rest_api_init):
         rest_api = rest_api_init.return_value
         config = self._create_config(**{
             'services': s.config
@@ -56,6 +57,14 @@ class TestController(TestCase):
         Controller(config)
 
         load_services.assert_called_once_with(s.config, rest_api)
+
+    def test_del_unloads_plugins(self, _load_services, unload_services, rest_api_init):
+        config = self._create_config()
+        controller = Controller(config)
+
+        del(controller)
+
+        unload_services.assert_called_once_with()
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)
