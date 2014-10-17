@@ -18,6 +18,9 @@
 import csv
 import logging
 
+from itertools import ifilter
+from itertools import izip
+from functools import partial
 from xivo_dird import BaseSourcePlugin
 
 logger = logging.getLogger(__name__)
@@ -51,38 +54,39 @@ class CSVPlugin(BaseSourcePlugin):
             with open(self._args['file'], 'r') as f:
                 csvreader = csv.reader(f)
                 keys = next(csvreader)
-                self._content = [dict(zip(keys, entry)) for entry in csvreader]
+                self._content = [self._row_to_dict(keys, row) for row in csvreader]
         except IOError:
             logger.exception('Could not load CSV file content')
 
     def search(self, term, args=None):
-        lowered_term = term.lower()
         if 'searched_columns' not in self._args:
             return []
 
-        def filter_fn(entry):
-            for col in self._args[self.SEARCHED_COLUMNS]:
-                if col in entry and lowered_term in entry[col]:
-                    return True
-            return False
-
         results = []
-        for entry in self._content:
-            if filter_fn(entry):
-                results.append(self._add_unique(entry))
-
+        fn = partial(self._low_case_match_entry, term.lower(), self._args[self.SEARCHED_COLUMNS])
+        for entry in ifilter(fn, self._content):
+            results.append(self._add_unique(entry))
         return results
 
     def list(self, unique_ids):
-        results = []
         if not self._has_unique_id:
-            return results
+            return []
 
-        for entry in self._content:
-            if self._make_unique(entry) in unique_ids:
-                results.append(entry)
+        return ifilter(partial(self._is_in_unique_ids, unique_ids), self._content)
 
-        return results
+    def _is_in_unique_ids(self, unique_ids, entry):
+        return self._make_unique(entry) in unique_ids
+
+    def _low_case_match_entry(self, term, columns, entry):
+        values = (entry[col].lower() for col in columns)
+        for value in values:
+            if term in value:
+                return True
+        return False
+
+    @staticmethod
+    def _row_to_dict(keys, values):
+        return dict(izip(keys, values))
 
     def _add_unique(self, entry):
         if self._has_unique_id:

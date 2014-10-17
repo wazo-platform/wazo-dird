@@ -25,6 +25,7 @@ import tempfile
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from hamcrest import contains
+from hamcrest import equal_to
 from xivo_dird.plugins.csv_plugin import CSVPlugin
 
 coma_separated_content = '''\
@@ -189,6 +190,45 @@ class TestCsvDirectorySource(unittest.TestCase):
         results = s.list([('Alice', 'AAA'), ('Charles', 'CCC')])
 
         assert_that(results, contains(self.alice, self.charles))
+
+    def test_row_to_dict(self):
+        keys = ['one', 'two', 'three']
+        values = [1, 2, 3]
+
+        result = CSVPlugin._row_to_dict(keys, values)
+
+        assert_that(result, equal_to({'one': 1, 'two': 2, 'three': 3}))
+
+    def test_is_in_unique_ids(self):
+        config = {
+            'file': self.fname,
+            'unique_columns': ['firstname', 'lastname'],
+        }
+
+        s = CSVPlugin(config)
+
+        result = s._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Alice', 'lastname': 'AAA'})
+
+        assert_that(result, equal_to(True))
+
+        result = s._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Bob', 'lastname': 'BBB'})
+
+        assert_that(result, equal_to(False))
+
+    def test_low_case_match_entry(self):
+        config = {
+            'file': self.fname,
+            'unique_columns': ['firstname', 'lastname'],
+        }
+
+        term = 'ice'
+        columns = ['firstname', 'lastname']
+
+        s = CSVPlugin(config)
+
+        result = s._low_case_match_entry(term, columns, self.alice)
+
+        assert_that(result, equal_to(True))
 
     def _generate_random_non_existent_filename(self):
         while True:
