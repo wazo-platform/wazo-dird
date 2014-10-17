@@ -61,10 +61,8 @@ class CSVPlugin(BaseSourcePlugin):
             return []
 
         def filter_fn(entry):
-            for column, value in entry.iteritems():
-                if column not in self._args['searched_columns']:
-                    continue
-                if lowered_term in value.lower():
+            for col in self._args['searched_columns']:
+                if col in entry and lowered_term in entry[col]:
                     return True
             return False
 
