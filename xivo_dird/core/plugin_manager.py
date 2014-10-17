@@ -36,7 +36,7 @@ def load_services(config, rest_api):
 
 
 def load_service_extension(extension, config, rest_api):
-    logger.info('loading extension {}...'.format(extension.name))
+    logger.debug('loading extension {}...'.format(extension.name))
     args = {
         'config': config.get(extension.name, {})
     }

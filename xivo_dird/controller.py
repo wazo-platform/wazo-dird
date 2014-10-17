@@ -34,7 +34,7 @@ class Controller(object):
         plugin_manager.unload_services()
 
     def run(self):
-        logger.info('xivo-dird running...')
+        logger.debug('xivo-dird running...')
         wsgi.run(self.rest_api.app,
                  bindAddress=self.config['rest_api']['wsgi_socket'],
                  multithreaded=True,
