@@ -18,7 +18,6 @@
 import csv
 import logging
 
-from itertools import ifilter
 from xivo_dird import BaseSourcePlugin
 
 logger = logging.getLogger(__name__)
@@ -40,6 +39,7 @@ class CSVPlugin(BaseSourcePlugin):
     def __init__(self, args):
         self._args = args
         self._content = []
+        self._has_unique_id = not len(self._args.get(self.UNIQUE_COLUMNS, [])) == 0
         self._load_file()
 
     def _load_file(self):
@@ -61,9 +61,33 @@ class CSVPlugin(BaseSourcePlugin):
             return []
 
         def filter_fn(entry):
-            for col in self._args['searched_columns']:
+            for col in self._args[self.SEARCHED_COLUMNS]:
                 if col in entry and lowered_term in entry[col]:
                     return True
             return False
 
-        return ifilter(filter_fn, self._content)
+        results = []
+        for entry in self._content:
+            if filter_fn(entry):
+                results.append(self._add_unique(entry))
+
+        return results
+
+    def list(self, unique_ids):
+        results = []
+        if not self._has_unique_id:
+            return results
+
+        for entry in self._content:
+            if self._make_unique(entry) in unique_ids:
+                results.append(entry)
+
+        return results
+
+    def _add_unique(self, entry):
+        if self._has_unique_id:
+            entry[self.UNIQUE_COLUMN_HEADER] = self._make_unique(entry)
+        return entry
+
+    def _make_unique(self, entry):
+        return tuple(entry[col] for col in self._args[self.UNIQUE_COLUMNS])

@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import copy
 import unittest
 import os
 import random
@@ -126,6 +127,68 @@ class TestCsvDirectorySource(unittest.TestCase):
         results = s.search('ice')
 
         assert_that(results, contains())
+
+    def test_search_with_unique_defined(self):
+        config = {
+            'file': self.fname,
+            'unique_columns': ['clientno'],
+            'searched_columns': ['firstname'],
+        }
+
+        s = CSVPlugin(config)
+
+        results = s.search('ice')
+
+        alice_with_unique = copy.copy(self.alice)
+        alice_with_unique.update({'__unique_id': ('1',)})
+        assert_that(results, contains(alice_with_unique))
+
+    def test_list_no_unique(self):
+        config = {
+            'file': self.fname,
+        }
+
+        s = CSVPlugin(config)
+
+        results = s.list(['1', '3'])
+
+        assert_that(results, contains())
+
+    def test_list_empty_unique(self):
+        config = {
+            'file': self.fname,
+            'unique_columns': [],
+        }
+
+        s = CSVPlugin(config)
+
+        results = s.list(['1', '3'])
+
+        assert_that(results, contains())
+
+    def test_list_one_field(self):
+        config = {
+            'file': self.fname,
+            'unique_columns': ['clientno'],
+        }
+
+        s = CSVPlugin(config)
+
+        results = s.list([('1',), ('3',)])
+
+        assert_that(results, contains(self.alice, self.charles))
+
+    def test_list_many_field(self):
+        config = {
+            'file': self.fname,
+            'unique_columns': ['firstname', 'lastname'],
+        }
+
+        s = CSVPlugin(config)
+
+        results = s.list([('Alice', 'AAA'), ('Charles', 'CCC')])
+
+        assert_that(results, contains(self.alice, self.charles))
 
     def _generate_random_non_existent_filename(self):
         while True:
