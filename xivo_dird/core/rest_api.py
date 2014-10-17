@@ -24,6 +24,6 @@ VERSION = 0.1
 class CoreRestApi(object):
 
     def __init__(self, config):
-        self.app = Flask('xivo_dird', static_folder=config['static_folder'])
+        self.app = Flask('xivo_dird')
         self.api = Api(self.app, version=VERSION, prefix='/{}'.format(VERSION))
         self.namespace = self.api.namespace('directories', description='directories operations')

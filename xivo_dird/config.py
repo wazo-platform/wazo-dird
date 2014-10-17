@@ -30,11 +30,10 @@ def load(argv):
         'foreground': False,
         'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
         'rest_api': {
-            'static_folder': '/usr/share/xivo-dird/static'
+            'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
         },
         'services': {},
         'user': 'www-data',
-        'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
     }
     config = dict(default_config)
 

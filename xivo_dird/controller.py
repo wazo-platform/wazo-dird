@@ -33,7 +33,7 @@ class Controller(object):
     def run(self):
         logger.info('xivo-dird running...')
         wsgi.run(self.rest_api.app,
-                 bindAddress=self.config['wsgi_socket'],
+                 bindAddress=self.config['rest_api']['wsgi_socket'],
                  multithreaded=True,
                  multiprocess=False,
                  debug=self.config['debug'])

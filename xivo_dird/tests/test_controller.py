@@ -35,7 +35,7 @@ class TestController(TestCase):
     def test_run_starts_rest_api(self, wsgi_run, _load_services, rest_api_init):
         rest_api = rest_api_init.return_value
         config = self._create_config(**{
-            'wsgi_socket': s.socket,
+            'rest_api': {'wsgi_socket': s.socket},
             'debug': s.debug,
         })
         controller = Controller(config)
