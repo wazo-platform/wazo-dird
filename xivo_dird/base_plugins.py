@@ -33,8 +33,8 @@ class BaseServicePlugin(object):
         handles will be passed through the args dictionary
         '''
 
-    @abc.abstractmethod
-    def unload(self, args=None):
+    def unload(self):
         '''
         Does the cleanup before the service can be deleted
         '''
+        return
