@@ -21,11 +21,14 @@ import argparse
 import sys
 import yaml
 
+from xivo.xivo_logging import get_log_level_by_name
+
 
 def load(argv):
     default_config = {
         'config_file': '/etc/xivo/xivo-dird/xivo-dird.yml',
         'debug': False,
+        'log_level': 'INFO',
         'log_filename': '/var/log/xivo-dird.log',
         'foreground': False,
         'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
@@ -43,6 +46,7 @@ def load(argv):
             config.update(yaml.load(config_file))
     except IOError as e:
         print('Could not read config file {}: {}'.format(config['config_file'], e), file=sys.stderr)
+    _interpret_raw_values(config)
 
     return config
 
@@ -58,12 +62,18 @@ def _parse_cli_args(argv, default_config):
                         '--debug',
                         action='store_true',
                         default=default_config['debug'],
-                        help="Log debug messages. Default: %(default)s")
+                        help="Log debug messages. Overrides log_level. Default: %(default)s")
     parser.add_argument('-f',
                         '--foreground',
                         action='store_true',
                         default=default_config['foreground'],
                         help="Foreground, don't daemonize. Default: %(default)s")
+    parser.add_argument('-l',
+                        '--log-level',
+                        action='store',
+                        default='INFO',
+                        help="Logs messages with LOGLEVEL details. Must be one of:\n"
+                             "critical, error, warning, info, debug. Default: %(default)s")
     parser.add_argument('-u',
                         '--user',
                         action='store',
@@ -71,3 +81,7 @@ def _parse_cli_args(argv, default_config):
                         help="The owner of the process.")
     parsed_args = parser.parse_args(argv)
     return vars(parsed_args)
+
+
+def _interpret_raw_values(config):
+    config['log_level'] = get_log_level_by_name(config['log_level'])

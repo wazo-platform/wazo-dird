@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import yaml
+import logging
 
 from hamcrest import assert_that, has_entries, equal_to
-from mock import mock_open, patch, sentinel as s
+from mock import patch
 from unittest import TestCase
 
 from xivo_dird import config
@@ -35,6 +35,7 @@ class TestConfig(TestCase):
         assert_that(result, has_entries({
             'debug': False,
             'log_filename': '/var/log/xivo-dird.log',
+            'log_level': logging.INFO,
             'foreground': False,
             'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
             'rest_api': {
@@ -73,3 +74,10 @@ class TestConfig(TestCase):
         result = config.load(['-d'])
 
         assert_that(result['debug'], equal_to(True))
+
+    def test_load_when_log_level_in_argv_then_ignore_default_value(self, mock_open):
+        mock_open.side_effect = IOError('no such file')
+
+        result = config.load(['-l', 'ERROR'])
+
+        assert_that(result['log_level'], equal_to(logging.ERROR))
