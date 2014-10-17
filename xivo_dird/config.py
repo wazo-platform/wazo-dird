@@ -54,6 +54,11 @@ def _parse_cli_args(argv, default_config):
                         action='store',
                         default=default_config['config_file'],
                         help="The path where is the config file. Default: %(default)s")
+    parser.add_argument('-d',
+                        '--debug',
+                        action='store_true',
+                        default=default_config['debug'],
+                        help="Log debug messages. Default: %(default)s")
     parser.add_argument('-f',
                         '--foreground',
                         action='store_true',

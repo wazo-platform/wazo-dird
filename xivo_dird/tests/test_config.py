@@ -66,3 +66,10 @@ class TestConfig(TestCase):
         result = config.load(['-u', 'my_user'])
 
         assert_that(result['user'], equal_to('my_user'))
+
+    def test_load_when_debug_in_argv_then_ignore_default_value(self, mock_open):
+        mock_open.side_effect = IOError('no such file')
+
+        result = config.load(['-d'])
+
+        assert_that(result['debug'], equal_to(True))
