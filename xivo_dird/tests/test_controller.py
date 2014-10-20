@@ -43,8 +43,7 @@ class TestController(TestCase):
                                          multiprocess=False,
                                          debug=s.debug)
 
-    def test_init_loads_plugins(self, load_services, _unload_services, rest_api_init):
-        rest_api = rest_api_init.return_value
+    def test_init_loads_plugins(self, load_services, _unload_services, _rest_api_init):
         config = self._create_config(**{
             'enabled_plugins': {
                 'services': s.enabled,
@@ -54,9 +53,9 @@ class TestController(TestCase):
 
         Controller(config)
 
-        load_services.assert_called_once_with(s.config, rest_api, s.enabled)
+        load_services.assert_called_once_with(s.config, s.enabled)
 
-    def test_del_unloads_plugins(self, _load_services, unload_services, rest_api_init):
+    def test_del_unloads_plugins(self, _load_services, unload_services, _rest_api_init):
         config = self._create_config()
         controller = Controller(config)
 

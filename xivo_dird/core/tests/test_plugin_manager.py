@@ -31,28 +31,25 @@ class TestPluginManager(TestCase):
 
     @patch('stevedore.enabled.EnabledExtensionManager')
     def test_load_services_loads_service_extensions(self, extension_manager_init):
-        rest_api = Mock()
         extension_manager = extension_manager_init.return_value
 
-        plugin_manager.load_services(s.config, rest_api, enabled_services=[])
+        plugin_manager.load_services(s.config, enabled_services=[])
 
         extension_manager_init.assert_called_once_with(
             namespace='xivo_dird.services',
             check_func=ANY,
             invoke_on_load=True)
         extension_manager.map.assert_called_once_with(plugin_manager.load_service_extension,
-                                                      s.config,
-                                                      rest_api)
+                                                      s.config)
 
     def test_load_service_extension_passes_right_plugin_arguments(self):
         extension = Mock()
         extension.name = 'my_plugin'
-        rest_api = Mock()
         config = {
             'my_plugin': s.plugin_config
         }
 
-        plugin_manager.load_service_extension(extension, config, rest_api)
+        plugin_manager.load_service_extension(extension, config)
 
         extension.obj.load.assert_called_once_with({
             'config': s.plugin_config

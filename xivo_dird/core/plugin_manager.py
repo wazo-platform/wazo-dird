@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 extension_manager = None
 
 
-def load_services(config, rest_api, enabled_services):
+def load_services(config, enabled_services):
     global extension_manager
     check_func = lambda extension: extension.name in enabled_services
     extension_manager = enabled.EnabledExtensionManager(
@@ -31,10 +31,10 @@ def load_services(config, rest_api, enabled_services):
         check_func=check_func,
         invoke_on_load=True)
 
-    extension_manager.map(load_service_extension, config, rest_api)
+    extension_manager.map(load_service_extension, config)
 
 
-def load_service_extension(extension, config, rest_api):
+def load_service_extension(extension, config):
     logger.debug('loading extension {}...'.format(extension.name))
     args = {
         'config': config.get(extension.name, {})
