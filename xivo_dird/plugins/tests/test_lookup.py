@@ -91,7 +91,7 @@ class TestLookupService(unittest.TestCase):
 
         s = _LookupService(config, sources)
 
-        results = s.execute(sentinel.term, 'my_profile', sentinel.args)
+        results = s(sentinel.term, 'my_profile', sentinel.args)
 
         expected_results = [{'f': 1}, {'f': 3}]
 
@@ -106,7 +106,7 @@ class TestLookupService(unittest.TestCase):
     def test_when_the_profile_is_not_configured(self):
         s = _LookupService({}, {})
 
-        result = s.execute(sentinel.term, 'my_profile', sentinel.args)
+        result = s(sentinel.term, 'my_profile', sentinel.args)
 
         assert_that(result, contains())
 
@@ -115,7 +115,7 @@ class TestLookupService(unittest.TestCase):
     def test_when_the_sources_are_not_configured(self):
         s = _LookupService({'my_profile': {}}, {})
 
-        result = s.execute(sentinel.term, 'my_profile', sentinel.args)
+        result = s(sentinel.term, 'my_profile', sentinel.args)
 
         assert_that(result, contains())
 
