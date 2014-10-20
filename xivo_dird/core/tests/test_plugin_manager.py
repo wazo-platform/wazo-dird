@@ -23,24 +23,20 @@ from xivo_dird.core import plugin_manager
 
 
 class TestPluginManager(TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
 
     @patch('stevedore.enabled.EnabledExtensionManager')
     def test_load_services_loads_service_extensions(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
 
-        plugin_manager.load_services(s.config, enabled_services=[])
+        plugin_manager.load_services(s.config, enabled_services=[], sources=s.backends)
 
         extension_manager_init.assert_called_once_with(
             namespace='xivo_dird.services',
             check_func=ANY,
             invoke_on_load=True)
         extension_manager.map.assert_called_once_with(plugin_manager.load_service_extension,
-                                                      s.config)
+                                                      s.config,
+                                                      s.backends)
 
     def test_load_service_extension_passes_right_plugin_arguments(self):
         extension = Mock()
@@ -49,10 +45,11 @@ class TestPluginManager(TestCase):
             'my_plugin': s.plugin_config
         }
 
-        plugin_manager.load_service_extension(extension, config)
+        plugin_manager.load_service_extension(extension, config, s.sources)
 
         extension.obj.load.assert_called_once_with({
-            'config': s.plugin_config
+            'config': s.plugin_config,
+            'sources': s.sources
         })
 
     def test_unload_services_calls_unload_on_services(self):

@@ -37,6 +37,7 @@ class TestConfig(TestCase):
             'log_filename': '/var/log/xivo-dird.log',
             'log_level': logging.INFO,
             'enabled_plugins': {
+                'backends': [],
                 'services': [],
             },
             'foreground': False,

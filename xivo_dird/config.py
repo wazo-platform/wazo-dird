@@ -29,6 +29,7 @@ def load(argv):
         'config_file': '/etc/xivo/xivo-dird/xivo-dird.yml',
         'debug': False,
         'enabled_plugins': {
+            'backends': [],
             'services': [],
         },
         'log_level': 'info',

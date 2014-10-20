@@ -28,10 +28,14 @@ class Controller(object):
     def __init__(self, config):
         self.config = config
         self.rest_api = CoreRestApi(self.config['rest_api'])
-        plugin_manager.load_services(self.config['services'], self.config['enabled_plugins']['services'])
+        self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'])
+        plugin_manager.load_services(self.config['services'],
+                                     self.config['enabled_plugins']['services'],
+                                     self.sources)
 
     def __del__(self):
         plugin_manager.unload_services()
+        plugin_manager.unload_sources()
 
     def run(self):
         logger.debug('xivo-dird running...')
