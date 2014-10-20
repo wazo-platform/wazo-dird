@@ -65,7 +65,7 @@ class _LookupService(BaseService):
         future.name = source.name
         return future
 
-    def execute(self, term, profile, args):
+    def __call__(self, term, profile, args):
         futures = []
         for source in self._source_by_profile(profile):
             futures.append(self._async_search(source, term, args))
