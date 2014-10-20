@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from hamcrest import assert_that, equal_to
+from collections import defaultdict
+from hamcrest import assert_that, equal_to, has_entries
 from mock import ANY, Mock, patch, sentinel as s
 from unittest import TestCase
 
@@ -38,6 +39,15 @@ class TestPluginManagerServices(TestCase):
                                                       s.config,
                                                       s.backends)
 
+    @patch('stevedore.enabled.EnabledExtensionManager')
+    def test_load_services_returns_dict_of_callables(self, extension_manager_init):
+        extension_manager = extension_manager_init.return_value
+        extension_manager.map.return_value = [(s.name1, s.callable1), (s.name2, s.callable2)]
+
+        result = plugin_manager.load_services(s.config, enabled_services=[], sources=s.backends)
+
+        assert_that(result, has_entries({s.name1: s.callable1, s.name2: s.callable2}))
+
     def test_load_service_extension_passes_right_plugin_arguments(self):
         extension = Mock()
         extension.name = 'my_plugin'
@@ -51,6 +61,16 @@ class TestPluginManagerServices(TestCase):
             'config': s.plugin_config,
             'sources': s.sources
         })
+
+    def test_load_service_extension_returns_extension_name_and_result_from_load(self):
+        extension = Mock()
+        extension.name = s.name
+        extension.obj.load.return_value = s.callable
+        config = defaultdict(Mock)
+
+        result = plugin_manager.load_service_extension(extension, config, s.sources)
+
+        assert_that(result, equal_to((extension.name, s.callable)))
 
     def test_unload_services_calls_unload_on_services(self):
         plugin_manager.extension_manager = Mock()

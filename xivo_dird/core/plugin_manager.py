@@ -33,7 +33,7 @@ def load_services(config, enabled_services, sources):
         check_func=check_func,
         invoke_on_load=True)
 
-    extension_manager.map(load_service_extension, config, sources)
+    return dict(extension_manager.map(load_service_extension, config, sources))
 
 
 def load_service_extension(extension, config, sources):
@@ -42,7 +42,7 @@ def load_service_extension(extension, config, sources):
         'config': config.get(extension.name, {}),
         'sources': sources,
     }
-    extension.obj.load(args)
+    return extension.name, extension.obj.load(args)
 
 
 def unload_services():
