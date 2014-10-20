@@ -72,7 +72,7 @@ class CSVPlugin(BaseSourcePlugin):
         if not self._has_unique_id:
             return []
 
-        return ifilter(partial(self._is_in_unique_ids, unique_ids), self._content)
+        return filter(partial(self._is_in_unique_ids, unique_ids), self._content)
 
     def _is_in_unique_ids(self, unique_ids, entry):
         return self._make_unique(entry) in unique_ids
