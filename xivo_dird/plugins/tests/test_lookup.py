@@ -17,141 +17,121 @@
 
 import unittest
 
-from copy import copy
 from hamcrest import assert_that
+from hamcrest import contains
 from hamcrest import contains_inanyorder
-from hamcrest import is_
+from hamcrest import equal_to
 from mock import Mock
 from mock import patch
 from mock import sentinel
+from xivo_dird import BaseService
 from xivo_dird.plugins.lookup import LookupServicePlugin
 from xivo_dird.plugins.lookup import _LookupService
-from xivo_dird.plugins.lookup import _SourceManager
 
 
 class TestLookupServicePlugin(unittest.TestCase):
 
-    def setUp(self):
-        self._args = {'config': {}}
-
-    def test_instantiation(self):
-        LookupServicePlugin()
-
     def test_load_no_config(self):
-        p = LookupServicePlugin()
-        args = copy(self._args)
-        args.pop('config')
+        plugin = LookupServicePlugin()
 
-        self.assertRaises(ValueError, p.load, args)
+        self.assertRaises(ValueError, plugin.load, {'sources': sentinel.sources})
+
+    def test_load_no_sources(self):
+        plugin = LookupServicePlugin()
+
+        self.assertRaises(ValueError, plugin.load, {'config': sentinel.sources})
+
+    def test_that_load_returns_a_service(self):
+        plugin = LookupServicePlugin()
+
+        service = plugin.load({'sources': sentinel.sources,
+                               'config': sentinel.config})
+
+        assert_that(isinstance(service, BaseService))
+
+    @patch('xivo_dird.plugins.lookup._LookupService')
+    def test_that_load_injects_config_to_the_service(self, MockedLookupService):
+        plugin = LookupServicePlugin()
+
+        service = plugin.load({'config': sentinel.config,
+                               'sources': sentinel.sources})
+
+        MockedLookupService.assert_called_once_with(sentinel.config, sentinel.sources)
+        assert_that(service, equal_to(MockedLookupService.return_value))
+
+    def test_no_error_on_unload_not_loaded(self):
+        plugin = LookupServicePlugin()
+
+        plugin.unload()
+
+    @patch('xivo_dird.plugins.lookup._LookupService')
+    def test_that_unload_stops_the_services(self, MockedLookupService):
+        plugin = LookupServicePlugin()
+        plugin.load({'config': sentinel.config, 'sources': sentinel.sources})
+
+        plugin.unload()
+
+        MockedLookupService.return_value.stop.assert_called_once_with()
 
 
 class TestLookupService(unittest.TestCase):
 
-    def setUp(self):
-        self._config = {}
-        self._profile = 'my_profile'
-        self._source_manager = Mock(_SourceManager)
-        self._source_1 = Mock()
-        self._source_2 = Mock()
-        self._source_3 = Mock()
-        self._columns_1 = ['firstname', 'lastname', 'number']
-        self._columns_2 = ['firstname', 'lastname', 'number', 'email']
-        self._source_manager.get_by_profile.return_value = [self._source_1, self._source_2]
-        self._result_1 = [dict(zip(self._columns_1, ['Alice', 'AAA', '5555551234'])),
-                          dict(zip(self._columns_1, ['Bob', 'BBB', '5555555678']))]
-        self._result_2 = [dict(zip(self._columns_2, ['Charles', 'CCC', '1234', 'charles@example.org']))]
-        self._source_1.search.return_value = self._result_1
-        self._source_2.search.return_value = self._result_2
+    def test_that_lookup_searches_only_the_configured_sources(self):
+        sources = {
+            'source_1': Mock(name='source_1', search=Mock(return_value=[{'f': 1}])),
+            'source_2': Mock(name='source_2', search=Mock(return_value=[{'f': 2}])),
+            'source_3': Mock(name='source_3', search=Mock(return_value=[{'f': 3}])),
+        }
+        config = {
+            'my_profile': {
+                'sources': ['source_1', 'source_3'],
+                'timeout': '1',
+            }
+        }
 
-    def test_lookup(self):
-        s = _LookupService(self._config)
-        s._source_manager = self._source_manager
-        args = {'user_id': sentinel.user_id}
+        s = _LookupService(config, sources)
 
-        results = list(s.execute(sentinel.term, sentinel.profile, {'user_id': sentinel.user_id}))
+        results = s.execute(sentinel.term, 'my_profile', sentinel.args)
 
-        expected_results = self._result_1 + self._result_2
+        expected_results = [{'f': 1}, {'f': 3}]
 
-        self._source_1.search.assert_called_once_with(sentinel.term, args)
-        self._source_2.search.assert_called_once_with(sentinel.term, args)
+        sources['source_1'].search.assert_called_once_with(sentinel.term, sentinel.args)
+        assert_that(sources['source_2'].call_count, equal_to(0))
+        sources['source_3'].search.assert_called_once_with(sentinel.term, sentinel.args)
 
         assert_that(results, contains_inanyorder(*expected_results))
 
+        s.stop()
 
-class TestSourceManager(unittest.TestCase):
+    def test_when_the_profile_is_not_configured(self):
+        s = _LookupService({}, {})
 
-    @patch('stevedore.enabled.EnabledExtensionManager')
-    def test_load_backends(self, mock_enabled_extension_manager):
-        config = {
-            'source_plugins': [
-                'ldap',
-                'xivo_phonebook',
-            ],
-        }
+        result = s.execute(sentinel.term, 'my_profile', sentinel.args)
 
-        s = _SourceManager(config)
+        assert_that(result, contains())
 
-        s.load_backends()
+        s.stop()
 
-        mock_enabled_extension_manager.assert_called_once_with(
-            namespace='xivo-dird.backends',
-            check_func=s.should_load_backend,
-            invoke_on_load=False)
+    def test_when_the_sources_are_not_configured(self):
+        s = _LookupService({'my_profile': {}}, {})
 
-    def test_get_by_profile(self):
-        config = {'profile': {
-            'test': {
-                'lookup': ['my_ldap', 'csv_1'],
-            },
-        }}
-        my_ldap_source = Mock()
-        my_ldap_source.name = 'my_ldap'
-        csv_1_source = Mock()
-        csv_1_source.name = 'csv_1'
-        phonebook_source = Mock()
-        phonebook_source.name = 'my_phonebook'
+        result = s.execute(sentinel.term, 'my_profile', sentinel.args)
 
-        s = _SourceManager(config)
-        s._sources = [my_ldap_source, csv_1_source, phonebook_source]
+        assert_that(result, contains())
 
-        result = s.get_by_profile('test')
+        s.stop()
 
-        assert_that(result, contains_inanyorder(my_ldap_source, csv_1_source))
+    @patch('xivo_dird.plugins.lookup.ThreadPoolExecutor')
+    def test_that_the_service_starts_the_thread_pool(self, MockedThreadPoolExecutor):
+        print MockedThreadPoolExecutor
+        _LookupService({}, {})
 
-    def test_should_load_backend(self):
-        config = {
-            'source_plugins': [
-                'ldap',
-            ]
-        }
-        backend_1 = Mock()
-        backend_1.name = 'ldap'
-        backend_2 = Mock()
-        backend_2.name = 'xivo_phonebook'
+        MockedThreadPoolExecutor.assert_called_once_with(max_workers=10)
 
-        s = _SourceManager(config)
+    @patch('xivo_dird.plugins.lookup.ThreadPoolExecutor')
+    def test_that_stop_shuts_down_the_thread_pool(self, MockedThreadPoolExecutor):
+        s = _LookupService({}, {})
 
-        assert_that(s.should_load_backend(backend_1), is_(True))
-        assert_that(s.should_load_backend(backend_2), is_(False))
+        s.stop()
 
-    def test_should_load_backend_missing_configs(self):
-        backend_1 = Mock()
-        backend_1.name = 'ldap'
-        backend_2 = Mock()
-        backend_2.name = 'xivo_phonebook'
-
-        s = _SourceManager({})
-
-        assert_that(s.should_load_backend(backend_1), is_(False))
-        assert_that(s.should_load_backend(backend_2), is_(False))
-
-    @patch('xivo_dird.plugins.lookup._list_files')
-    @patch('xivo_dird.plugins.lookup._load_yaml_content')
-    def test_load_all_configs(self, mock_load_yaml_content, mock_list_files):
-        mock_list_files.return_value = files = ['file1']
-
-        s = _SourceManager({'plugin_config_dir': 'foo'})
-
-        s._load_all_configs()
-
-        mock_load_yaml_content.assert_called_once_with(files[0])
+        MockedThreadPoolExecutor.return_value.shutdown.assert_called_once_with()
