@@ -26,11 +26,6 @@ from xivo_dird.controller import Controller
 @patch('xivo_dird.core.plugin_manager.unload_services')
 @patch('xivo_dird.core.plugin_manager.load_services')
 class TestController(TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
 
     @patch('xivo.wsgi.run')
     def test_run_starts_rest_api(self, wsgi_run, _load_services, _unload_services, rest_api_init):
@@ -51,12 +46,15 @@ class TestController(TestCase):
     def test_init_loads_plugins(self, load_services, _unload_services, rest_api_init):
         rest_api = rest_api_init.return_value
         config = self._create_config(**{
-            'services': s.config
+            'enabled_plugins': {
+                'services': s.enabled,
+            },
+            'services': s.config,
         })
 
         Controller(config)
 
-        load_services.assert_called_once_with(s.config, rest_api)
+        load_services.assert_called_once_with(s.config, rest_api, s.enabled)
 
     def test_del_unloads_plugins(self, _load_services, unload_services, rest_api_init):
         config = self._create_config()
@@ -68,6 +66,9 @@ class TestController(TestCase):
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)
+        config.setdefault('enabled_plugins', {
+            'services': [],
+        })
         config.setdefault('rest_api', Mock())
         config.setdefault('services', Mock())
         return config

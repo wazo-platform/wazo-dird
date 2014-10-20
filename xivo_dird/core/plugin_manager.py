@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import functools
 import logging
 
 from stevedore import enabled
@@ -24,9 +23,9 @@ logger = logging.getLogger(__name__)
 extension_manager = None
 
 
-def load_services(config, rest_api):
+def load_services(config, rest_api, enabled_services):
     global extension_manager
-    check_func = functools.partial(services_filter, config)
+    check_func = lambda extension: extension.name in enabled_services
     extension_manager = enabled.EnabledExtensionManager(
         namespace='xivo_dird.services',
         check_func=check_func,
@@ -41,10 +40,6 @@ def load_service_extension(extension, config, rest_api):
         'config': config.get(extension.name, {})
     }
     extension.obj.load(args)
-
-
-def services_filter(config, extension):
-    return config.get(extension.name, {}).get('enabled', False)
 
 
 def unload_services():

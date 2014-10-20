@@ -28,7 +28,7 @@ class Controller(object):
     def __init__(self, config):
         self.config = config
         self.rest_api = CoreRestApi(self.config['rest_api'])
-        plugin_manager.load_services(self.config['services'], self.rest_api)
+        plugin_manager.load_services(self.config['services'], self.rest_api, self.config['enabled_plugins']['services'])
 
     def __del__(self):
         plugin_manager.unload_services()

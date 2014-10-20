@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 
-from hamcrest import assert_that, equal_to
 from mock import ANY, Mock, patch, sentinel as s
 from unittest import TestCase
 
@@ -35,7 +34,7 @@ class TestPluginManager(TestCase):
         rest_api = Mock()
         extension_manager = extension_manager_init.return_value
 
-        plugin_manager.load_services(s.config, rest_api)
+        plugin_manager.load_services(s.config, rest_api, enabled_services=[])
 
         extension_manager_init.assert_called_once_with(
             namespace='xivo_dird.services',
@@ -58,41 +57,6 @@ class TestPluginManager(TestCase):
         extension.obj.load.assert_called_once_with({
             'config': s.plugin_config
         })
-
-    def test_services_filter_when_service_not_in_config_then_false(self):
-        config = {}
-        extension = Mock()
-
-        result = plugin_manager.services_filter(config, extension)
-
-        assert_that(result, equal_to(False))
-
-    def test_services_filter_when_service_in_config_then_not_enabled_by_default(self):
-        config = {'my_plugin': {}}
-        extension = Mock()
-        extension.name = 'my_plugin'
-
-        result = plugin_manager.services_filter(config, extension)
-
-        assert_that(result, equal_to(False))
-
-    def test_services_filter_when_service_in_config_and_not_enabled_then_not_enabled(self):
-        config = {'my_plugin': {'enabled': False}}
-        extension = Mock()
-        extension.name = 'my_plugin'
-
-        result = plugin_manager.services_filter(config, extension)
-
-        assert_that(result, equal_to(False))
-
-    def test_services_filter_when_service_in_config_and_enabled_then_enabled(self):
-        config = {'my_plugin': {'enabled': True}}
-        extension = Mock()
-        extension.name = 'my_plugin'
-
-        result = plugin_manager.services_filter(config, extension)
-
-        assert_that(result, equal_to(True))
 
     def test_unload_services_calls_unload_on_services(self):
         plugin_manager.extension_manager = Mock()

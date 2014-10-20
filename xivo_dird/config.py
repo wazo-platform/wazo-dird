@@ -28,6 +28,9 @@ def load(argv):
     default_config = {
         'config_file': '/etc/xivo/xivo-dird/xivo-dird.yml',
         'debug': False,
+        'enabled_plugins': {
+            'services': [],
+        },
         'log_level': 'info',
         'log_filename': '/var/log/xivo-dird.log',
         'foreground': False,

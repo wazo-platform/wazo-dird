@@ -36,6 +36,9 @@ class TestConfig(TestCase):
             'debug': False,
             'log_filename': '/var/log/xivo-dird.log',
             'log_level': logging.INFO,
+            'enabled_plugins': {
+                'services': [],
+            },
             'foreground': False,
             'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
             'rest_api': {
