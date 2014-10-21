@@ -31,7 +31,7 @@ def load_services(config, enabled_services, sources):
         check_func=check_func,
         invoke_on_load=True)
 
-    return extension_manager.map(load_service_extension, config, sources)
+    extension_manager.map(load_service_extension, config, sources)
 
 
 def load_service_extension(extension, config, sources):
