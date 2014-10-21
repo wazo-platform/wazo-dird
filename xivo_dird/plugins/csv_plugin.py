@@ -22,6 +22,7 @@ from itertools import ifilter
 from itertools import izip
 from functools import partial
 from xivo_dird import BaseSourcePlugin
+from xivo_dird import SourceResult
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +45,13 @@ class CSVPlugin(BaseSourcePlugin):
             logger.warning('Missing config in startup arguments: %s', args)
 
         self._config = args.get('config', {})
+        self._name = self._config.get('name', '')
         self._content = []
         self._has_unique_id = not len(self._config.get(self.UNIQUE_COLUMNS, [])) == 0
         self._load_file()
+
+    def name(self):
+        return self._name
 
     def search(self, term, args=None):
         if 'searched_columns' not in self._config:
@@ -79,7 +84,7 @@ class CSVPlugin(BaseSourcePlugin):
         return map(self._post_search_entry_transformation, ifilter(predicate, self._content))
 
     def _post_search_entry_transformation(self, entry):
-        return self._add_unique(self._add_display_columns(entry))
+        return SourceResult(self._add_unique(self._add_display_columns(entry)), self.name())
 
     def _add_display_columns(self, entry):
         for display, source in self._config.get('source_to_display_columns', {}).iteritems():

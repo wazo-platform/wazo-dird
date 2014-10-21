@@ -36,3 +36,15 @@ class SourceResult(object):
         if endpoint_id:
             self.relations['endpoint'] = {'id': endpoint_id,
                                           'xivo_id': xivo_id}
+
+    def __eq__(self, other):
+        return (self.source == other.source
+                and self.fields == other.fields
+                and self.relations == other.relations)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        fields = ', '.join(repr(v) for v in self.fields.values())
+        return '<%s(%s)>' % (self.__class__.__name__, fields)

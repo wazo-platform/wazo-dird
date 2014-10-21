@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import copy
 import unittest
 import os
 import random
@@ -28,6 +27,7 @@ from hamcrest import contains
 from hamcrest import equal_to
 from hamcrest import has_entries
 from xivo_dird.plugins.csv_plugin import CSVPlugin
+from xivo_dird import SourceResult
 
 coma_separated_content = '''\
 clientno,firstname,lastname,number,age
@@ -52,6 +52,7 @@ class TestCsvDirectorySource(unittest.TestCase):
         os.remove(cls.fname)
 
     def setUp(self):
+        self.name = 'my_directory'
         self.alice = {'clientno': '1',
                       'firstname': 'Alice',
                       'lastname': 'AAA',
@@ -67,10 +68,15 @@ class TestCsvDirectorySource(unittest.TestCase):
                         'lastname': 'CCC',
                         'number': '5555556666',
                         'age': '22'}
-        self.alice_result = copy.copy(self.alice)
-        self.alice_result['__unique_id'] = ('1',)
-        self.charles_result = copy.copy(self.charles)
-        self.charles_result['__unique_id'] = ('3',)
+
+        augmented_alice = dict(self.alice)
+        augmented_alice['__unique_id'] = ('1',)
+        self.alice_result = SourceResult(augmented_alice, self.name)
+
+        augmented_charles = dict(self.charles)
+        augmented_charles['__unique_id'] = ('3',)
+        self.charles_result = SourceResult(augmented_charles, self.name)
+
         self.source = CSVPlugin()
 
     def test_load_empty_config(self):
@@ -82,7 +88,8 @@ class TestCsvDirectorySource(unittest.TestCase):
 
     def test_load_invalid_file_does_not_crash(self):
         config = {
-            'file': self._generate_random_non_existent_filename()
+            'file': self._generate_random_non_existent_filename(),
+            'name': self.name,
         }
 
         self.source.load({'config': config})
@@ -94,6 +101,7 @@ class TestCsvDirectorySource(unittest.TestCase):
     def test_load_file(self):
         config = {
             'file': self.fname,
+            'name': self.name,
         }
 
         self.source.load({'config': config})
@@ -104,18 +112,21 @@ class TestCsvDirectorySource(unittest.TestCase):
         config = {
             'file': self.fname,
             'searched_columns': ['firstname', 'lastname'],
+            'name': self.name,
+            'unique_columns': ['clientno'],
         }
 
         self.source.load({'config': config})
 
         results = self.source.search('ice')
 
-        assert_that(results, contains(self.alice))
+        assert_that(results, contains(self.alice_result))
 
     def test_search_not_search_column(self):
         config = {
             'file': self.fname,
             'searched_columns': ['lastname'],
+            'name': 'my_dir',
         }
 
         self.source.load({'config': config})
@@ -127,6 +138,7 @@ class TestCsvDirectorySource(unittest.TestCase):
     def test_search_no_search_column(self):
         config = {
             'file': self.fname,
+            'name': 'my_dir',
         }
 
         self.source.load({'config': config})
@@ -140,6 +152,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self.fname,
             'unique_columns': ['clientno'],
             'searched_columns': ['firstname'],
+            'name': self.name,
         }
 
         self.source.load({'config': config})
@@ -151,6 +164,7 @@ class TestCsvDirectorySource(unittest.TestCase):
     def test_list_no_unique(self):
         config = {
             'file': self.fname,
+            'name': 'my_dir',
         }
 
         self.source.load({'config': config})
@@ -163,6 +177,7 @@ class TestCsvDirectorySource(unittest.TestCase):
         config = {
             'file': self.fname,
             'unique_columns': [],
+            'name': self.name,
         }
 
         self.source.load({'config': config})
@@ -175,6 +190,7 @@ class TestCsvDirectorySource(unittest.TestCase):
         config = {
             'file': self.fname,
             'unique_columns': ['clientno'],
+            'name': self.name,
         }
 
         self.source.load({'config': config})
@@ -187,18 +203,19 @@ class TestCsvDirectorySource(unittest.TestCase):
         config = {
             'file': self.fname,
             'unique_columns': ['firstname', 'lastname'],
+            'name': self.name,
         }
 
         self.source.load({'config': config})
 
         results = self.source.list([('Alice', 'AAA'), ('Charles', 'CCC')])
 
-        alice = copy.copy(self.alice)
-        charles = copy.copy(self.charles)
-        alice['__unique_id'] = ('Alice', 'AAA')
-        charles['__unique_id'] = ('Charles', 'CCC')
+        self.alice['__unique_id'] = ('Alice', 'AAA')
+        self.charles['__unique_id'] = ('Charles', 'CCC')
+        result_alice = SourceResult(self.alice, self.name)
+        result_charles = SourceResult(self.charles, self.name)
 
-        assert_that(results, contains(alice, charles))
+        assert_that(results, contains(result_alice, result_charles))
 
     def test_row_to_dict(self):
         keys = ['one', 'two', 'three']
@@ -212,6 +229,7 @@ class TestCsvDirectorySource(unittest.TestCase):
         config = {
             'file': self.fname,
             'unique_columns': ['firstname', 'lastname'],
+            'name': 'my_dir',
         }
 
         self.source.load({'config': config})
@@ -228,6 +246,7 @@ class TestCsvDirectorySource(unittest.TestCase):
         config = {
             'file': self.fname,
             'unique_columns': ['firstname', 'lastname'],
+            'name': 'my_dir',
         }
 
         term = 'ice'
@@ -242,6 +261,7 @@ class TestCsvDirectorySource(unittest.TestCase):
     def test_add_display_fields_on_searches(self):
         config = {
             'file': self.fname,
+            'name': 'my_dir',
             'source_to_display_columns': {
                 'fn': 'firstname',
                 'ln': 'lastname',
@@ -254,7 +274,7 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         results = self.source.search('ali')
 
-        assert_that(results[0], has_entries(
+        assert_that(results[0].fields, has_entries(
             'fn', 'Alice',
             'ln', 'AAA',
             'num', '5555555555',
@@ -263,6 +283,7 @@ class TestCsvDirectorySource(unittest.TestCase):
     def test_add_display_fields_on_list(self):
         config = {
             'file': self.fname,
+            'name': 'my_dir',
             'source_to_display_columns': {
                 'fn': 'firstname',
                 'ln': 'lastname',
@@ -276,7 +297,7 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         results = self.source.list([('1',)])
 
-        assert_that(results[0], has_entries(
+        assert_that(results[0].fields, has_entries(
             'fn', 'Alice',
             'ln', 'AAA',
             'num', '5555555555',
