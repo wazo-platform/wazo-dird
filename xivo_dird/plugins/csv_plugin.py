@@ -39,7 +39,7 @@ class CSVPlugin(BaseSourcePlugin):
     The `searched_columns` are the columns used to search for a term
     '''
 
-    def __init__(self, args):
+    def load(self, args):
         if 'config' not in args:
             logger.warning('Missing config in startup arguments: %s', args)
 
@@ -47,6 +47,9 @@ class CSVPlugin(BaseSourcePlugin):
         self._content = []
         self._has_unique_id = not len(self._config.get(self.UNIQUE_COLUMNS, [])) == 0
         self._load_file()
+
+    def unload(self):
+        pass
 
     def _load_file(self):
         if 'file' not in self._config:

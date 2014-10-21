@@ -71,11 +71,12 @@ class TestCsvDirectorySource(unittest.TestCase):
         self.alice_result['__unique_id'] = ('1',)
         self.charles_result = copy.copy(self.charles)
         self.charles_result['__unique_id'] = ('3',)
+        self.source = CSVPlugin()
 
     def test_load_empty_config(self):
-        source = CSVPlugin({})
+        self.source.load({})
 
-        result = source.search('foo')
+        result = self.source.search('foo')
 
         assert_that(result, contains())
 
@@ -84,9 +85,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self._generate_random_non_existent_filename()
         }
 
-        source = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        result = source.search('foo')
+        result = self.source.search('foo')
 
         assert_that(result, contains())
 
@@ -95,9 +96,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self.fname,
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        assert_that(s._content, contains_inanyorder(self.alice, self.bob, self.charles))
+        assert_that(self.source._content, contains_inanyorder(self.alice, self.bob, self.charles))
 
     def test_search(self):
         config = {
@@ -105,9 +106,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'searched_columns': ['firstname', 'lastname'],
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.search('ice')
+        results = self.source.search('ice')
 
         assert_that(results, contains(self.alice))
 
@@ -117,9 +118,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'searched_columns': ['lastname'],
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.search('ice')
+        results = self.source.search('ice')
 
         assert_that(results, contains())
 
@@ -128,9 +129,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self.fname,
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.search('ice')
+        results = self.source.search('ice')
 
         assert_that(results, contains())
 
@@ -141,9 +142,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'searched_columns': ['firstname'],
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.search('ice')
+        results = self.source.search('ice')
 
         assert_that(results, contains(self.alice_result))
 
@@ -152,9 +153,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self.fname,
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.list(['1', '3'])
+        results = self.source.list(['1', '3'])
 
         assert_that(results, contains())
 
@@ -164,9 +165,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': [],
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.list(['1', '3'])
+        results = self.source.list(['1', '3'])
 
         assert_that(results, contains())
 
@@ -176,9 +177,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': ['clientno'],
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.list([('1',), ('3',)])
+        results = self.source.list([('1',), ('3',)])
 
         assert_that(results, contains(self.alice_result, self.charles_result))
 
@@ -188,9 +189,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': ['firstname', 'lastname'],
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.list([('Alice', 'AAA'), ('Charles', 'CCC')])
+        results = self.source.list([('Alice', 'AAA'), ('Charles', 'CCC')])
 
         alice = copy.copy(self.alice)
         charles = copy.copy(self.charles)
@@ -213,13 +214,13 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': ['firstname', 'lastname'],
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        result = s._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Alice', 'lastname': 'AAA'})
+        result = self.source._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Alice', 'lastname': 'AAA'})
 
         assert_that(result, equal_to(True))
 
-        result = s._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Bob', 'lastname': 'BBB'})
+        result = self.source._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Bob', 'lastname': 'BBB'})
 
         assert_that(result, equal_to(False))
 
@@ -232,9 +233,9 @@ class TestCsvDirectorySource(unittest.TestCase):
         term = 'ice'
         columns = ['firstname', 'lastname']
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        result = s._low_case_match_entry(term, columns, self.alice)
+        result = self.source._low_case_match_entry(term, columns, self.alice)
 
         assert_that(result, equal_to(True))
 
@@ -249,9 +250,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'searched_columns': ['firstname']
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.search('ali')
+        results = self.source.search('ali')
 
         assert_that(results[0], has_entries(
             'fn', 'Alice',
@@ -271,9 +272,9 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': ['clientno'],
         }
 
-        s = CSVPlugin({'config': config})
+        self.source.load({'config': config})
 
-        results = s.list([('1',)])
+        results = self.source.list([('1',)])
 
         assert_that(results[0], has_entries(
             'fn', 'Alice',
