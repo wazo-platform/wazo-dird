@@ -17,7 +17,7 @@
 
 import unittest
 
-from hamcrest import assert_that, contains_inanyorder, is_
+from hamcrest import assert_that, is_
 from mock import patch, Mock
 
 from xivo_dird.core.source_manager import SourceManager
@@ -26,7 +26,7 @@ from xivo_dird.core.source_manager import SourceManager
 class TestSourceManager(unittest.TestCase):
 
     @patch('stevedore.enabled.EnabledExtensionManager')
-    def test_load_backends(self, mock_enabled_extension_manager):
+    def test_load_sources(self, mock_enabled_extension_manager):
         config = {
             'source_plugins': [
                 'ldap',
@@ -36,7 +36,7 @@ class TestSourceManager(unittest.TestCase):
 
         s = SourceManager(config)
 
-        s.load_backends()
+        s.load_sources()
 
         mock_enabled_extension_manager.assert_called_once_with(
             namespace='xivo-dird.backends',

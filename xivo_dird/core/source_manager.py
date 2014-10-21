@@ -36,7 +36,7 @@ class SourceManager(object):
     def should_load_backend(self, extension):
         return extension.name in self._config.get('source_plugins', [])
 
-    def load_backends(self):
+    def load_sources(self):
         manager = enabled.EnabledExtensionManager(
             namespace=self._namespace,
             check_func=self.should_load_backend,
