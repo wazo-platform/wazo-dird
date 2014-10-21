@@ -34,12 +34,26 @@ class BaseSourcePlugin(object):
     UNIQUE_COLUMN_HEADER = '__unique_id'
 
     @abc.abstractmethod
+    def load(self, args):
+        '''
+        The load function is responsible for setting up the source and acquiring
+        any resources necessary.
+        '''
+
+    def unload(self):
+        '''
+        The unload method is used to release any resources that are under the
+        responsibility of this instance.
+        '''
+        return
+
+    @abc.abstractmethod
     def search(self, *args, **kwargs):
         '''
-        The search method should return a list of dict containaing the search
+        The search method should return a list of dict containing the search
         results.
 
-        The results should include the columns that are exepcted by the display.
+        The results should include the columns that are expected by the display.
         When columns from the source do not match the columns from the display,
         the `source_to_display_columns` dictionary can be used by the administrator
         to add new mapping.
@@ -53,7 +67,7 @@ class BaseSourcePlugin(object):
         Returns a list of results based on the unique column for this backend.
         This function is not mandatory as some backends make it harder than
         others to query for specific ids. If a backend does not provide the list
-        function, it will not be possible to set a favorite from this backend.
+        function, it will not be possible to set a favourite from this backend.
 
         Results returned from list should be formatted in the same way than
         results from search. Meaning that the `__unique_id` column should be

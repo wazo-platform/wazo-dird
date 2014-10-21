@@ -48,9 +48,6 @@ class CSVPlugin(BaseSourcePlugin):
         self._has_unique_id = not len(self._config.get(self.UNIQUE_COLUMNS, [])) == 0
         self._load_file()
 
-    def unload(self):
-        pass
-
     def _load_file(self):
         if 'file' not in self._config:
             logger.warning('Could not initialize missing file configuration')
