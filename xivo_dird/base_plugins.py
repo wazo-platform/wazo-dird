@@ -38,3 +38,18 @@ class BaseServicePlugin(object):
         Does the cleanup before the service can be deleted
         '''
         return
+
+
+class BaseViewPlugin(object):
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def load(self, args):
+        '''
+        The load method is responsible of acquiring resources for the plugin and
+        add the routes to the http_app.
+        '''
+
+    def unload(self):
+        return
