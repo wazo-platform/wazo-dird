@@ -19,6 +19,7 @@ import copy
 import json
 import logging
 
+from collections import namedtuple
 from flask import request
 from flask.helpers import make_response
 from functools import partial
@@ -26,6 +27,9 @@ from time import time
 from xivo_dird import BaseViewPlugin
 
 logger = logging.getLogger(__name__)
+
+
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'default', 'field'])
 
 
 class JsonViewPlugin(BaseViewPlugin):
@@ -38,29 +42,51 @@ class JsonViewPlugin(BaseViewPlugin):
             args = {}
 
         if 'http_app' not in args:
-            logger.error('HTTP view loaded with an http_app')
+            logger.error('HTTP view loaded without an http_app')
+            return
+        if 'config' not in args:
+            logger.error('HTTP view loaded without a config')
+            return
+        if 'displays' not in args['config']:
+            logger.error('HTTP view loaded without a display')
             return
 
-        lookup_fn = partial(_lookup_wrapper, args.get('services', {}))
+        lookup_fn = partial(_lookup_wrapper, args.get('services', {}), args['config'])
         args['http_app'].add_url_rule(self.ROUTE, __name__, lookup_fn)
 
 
-def _lookup_wrapper(services, profile):
+def _lookup_wrapper(services, view_config, profile):
+    def make_error(msg, code):
+        return make_response(json.dumps({'reason': [msg],
+                                         'timestamp': [time()],
+                                         'status_code': code}), code)
+
+    if 'lookup' not in services:
+        return make_error('no lookup service available', 500)
+
     args = copy.copy(request.args)
 
     if 'term' not in args:
-        error_msg = {'reason': ['term is missing'],
-                     'timestamp': [time()],
-                     'status_code': 400}
-        return make_response(json.dumps(error_msg), 400)
+        return make_error('term is missing', 400)
 
     term = args.pop('term')
 
     logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
 
-    if 'lookup' not in services:
-        return make_response('[]', 200)
+    display = view_config['displays'][view_config['profile_to_display'][profile]]
+    result = _lookup(services['lookup'], display, term, profile, args)
+    json_result = json.dumps(result)
 
-    result = json.dumps(services['lookup'](term, profile, args))
+    return make_response(json_result, 200)
 
-    return make_response(result, 200)
+
+def _lookup(lookup_service, display, term, profile, args):
+    raw_results = lookup_service(term, profile, args)
+    return map(partial(_format_for_display, display), raw_results)
+
+
+def _format_for_display(display, entry):
+    result = {}
+    for title, default, field in display:
+        result[title] = entry.get(field, default)
+    return result
