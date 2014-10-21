@@ -18,3 +18,4 @@
 from xivo_dird.base_plugins import BaseServicePlugin
 from xivo_dird.base_service import BaseService
 from xivo_dird.base_source_plugin import BaseSourcePlugin
+from xivo_dird.source_result import SourceResult
