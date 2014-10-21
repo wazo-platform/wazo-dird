@@ -54,12 +54,12 @@ def _lookup(services, profile):
                      'status_code': 400}
         return make_response(json.dumps(error_msg), 400)
 
-    if 'lookup' not in services:
-        return make_response('[]', 200)
-
     term = args.pop('term')
 
     logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
+
+    if 'lookup' not in services:
+        return make_response('[]', 200)
 
     result = json.dumps(services['lookup'](term, profile, args))
 
