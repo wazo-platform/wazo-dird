@@ -19,6 +19,8 @@ import logging
 
 from stevedore import enabled
 
+from xivo_dird.core.source_manager import SourceManager
+
 logger = logging.getLogger(__name__)
 extension_manager = None
 
@@ -47,8 +49,12 @@ def unload_services():
     extension_manager.map_method('unload')
 
 
-def load_sources(enabled_backends):
-    pass
+def load_sources(enabled_backends, source_config_dir):
+    config = {
+        'source_plugins': enabled_backends,
+        'plugin_config_dir': source_config_dir,
+    }
+    return SourceManager(config).load_sources()
 
 
 def unload_sources():

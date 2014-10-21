@@ -15,14 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-
+from hamcrest import assert_that, equal_to
 from mock import ANY, Mock, patch, sentinel as s
 from unittest import TestCase
 
 from xivo_dird.core import plugin_manager
 
 
-class TestPluginManager(TestCase):
+class TestPluginManagerServices(TestCase):
 
     @patch('stevedore.enabled.EnabledExtensionManager')
     def test_load_services_loads_service_extensions(self, extension_manager_init):
@@ -58,3 +58,28 @@ class TestPluginManager(TestCase):
         plugin_manager.unload_services()
 
         plugin_manager.extension_manager.map_method.assert_called_once_with('unload')
+
+
+class TestPluginManagerSources(TestCase):
+
+    @patch('xivo_dird.core.plugin_manager.SourceManager')
+    def test_load_sources_calls_source_manager(self, source_manager_init):
+        source_manager = source_manager_init.return_value
+        expected_config = {
+            'source_plugins': s.enabled,
+            'plugin_config_dir': s.source_config_dir,
+        }
+
+        plugin_manager.load_sources(s.enabled, s.source_config_dir)
+
+        source_manager_init.assert_called_once_with(expected_config)
+        source_manager.load_sources.assert_called_once_with()
+
+    @patch('xivo_dird.core.plugin_manager.SourceManager')
+    def test_load_sources_returns_result_from_source_manager_load(self, source_manager_init):
+        source_manager = source_manager_init.return_value
+        source_manager.load_sources.return_value = s.result
+
+        result = plugin_manager.load_sources(s.enabled, s.source_config_dir)
+
+        assert_that(result, equal_to(s.result))

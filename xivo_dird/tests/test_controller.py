@@ -75,11 +75,12 @@ class TestController(TestCase):
                 'backends': s.enabled,
                 'services': []
             },
+            'source_config_dir': s.source_config_dir,
         })
 
         Controller(config)
 
-        self.load_sources.assert_called_once_with(s.enabled)
+        self.load_sources.assert_called_once_with(s.enabled, s.source_config_dir)
 
     def test_del_unloads_sources(self):
         config = self._create_config()
@@ -96,4 +97,5 @@ class TestController(TestCase):
         config['enabled_plugins'].setdefault('services', [])
         config.setdefault('rest_api', Mock())
         config.setdefault('services', Mock())
+        config.setdefault('source_config_dir', Mock())
         return config

@@ -40,6 +40,7 @@ def load(argv):
             'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
         },
         'services': {},
+        'source_config_dir': '/etc/xivo/xivo-dird/sources.d',
         'user': 'www-data',
     }
     config = dict(default_config)

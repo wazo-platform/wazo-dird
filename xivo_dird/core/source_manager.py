@@ -17,6 +17,7 @@
 
 import logging
 import os
+import yaml
 
 from collections import defaultdict
 from stevedore import enabled
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 class SourceManager(object):
 
-    _namespace = 'xivo-dird.backends'
+    _namespace = 'xivo_dird.backends'
 
     def __init__(self, config):
         self._config = config

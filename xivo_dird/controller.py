@@ -28,7 +28,8 @@ class Controller(object):
     def __init__(self, config):
         self.config = config
         self.rest_api = CoreRestApi(self.config['rest_api'])
-        self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'])
+        self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
+                                                   self.config['source_config_dir'])
         plugin_manager.load_services(self.config['services'],
                                      self.config['enabled_plugins']['services'],
                                      self.sources)
