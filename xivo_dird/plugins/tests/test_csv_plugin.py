@@ -26,6 +26,7 @@ from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from hamcrest import contains
 from hamcrest import equal_to
+from hamcrest import has_entries
 from xivo_dird.plugins.csv_plugin import CSVPlugin
 
 coma_separated_content = '''\
@@ -66,6 +67,10 @@ class TestCsvDirectorySource(unittest.TestCase):
                         'lastname': 'CCC',
                         'number': '5555556666',
                         'age': '22'}
+        self.alice_result = copy.copy(self.alice)
+        self.alice_result['__unique_id'] = ('1',)
+        self.charles_result = copy.copy(self.charles)
+        self.charles_result['__unique_id'] = ('3',)
 
     def test_load_empty_config(self):
         source = CSVPlugin({})
@@ -140,9 +145,7 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         results = s.search('ice')
 
-        alice_with_unique = copy.copy(self.alice)
-        alice_with_unique.update({'__unique_id': ('1',)})
-        assert_that(results, contains(alice_with_unique))
+        assert_that(results, contains(self.alice_result))
 
     def test_list_no_unique(self):
         config = {
@@ -177,7 +180,7 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         results = s.list([('1',), ('3',)])
 
-        assert_that(results, contains(self.alice, self.charles))
+        assert_that(results, contains(self.alice_result, self.charles_result))
 
     def test_list_many_field(self):
         config = {
@@ -189,7 +192,12 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         results = s.list([('Alice', 'AAA'), ('Charles', 'CCC')])
 
-        assert_that(results, contains(self.alice, self.charles))
+        alice = copy.copy(self.alice)
+        charles = copy.copy(self.charles)
+        alice['__unique_id'] = ('Alice', 'AAA')
+        charles['__unique_id'] = ('Charles', 'CCC')
+
+        assert_that(results, contains(alice, charles))
 
     def test_row_to_dict(self):
         keys = ['one', 'two', 'three']
@@ -229,6 +237,49 @@ class TestCsvDirectorySource(unittest.TestCase):
         result = s._low_case_match_entry(term, columns, self.alice)
 
         assert_that(result, equal_to(True))
+
+    def test_add_display_fields_on_searches(self):
+        config = {
+            'file': self.fname,
+            'source_to_display_columns': {
+                'fn': 'firstname',
+                'ln': 'lastname',
+                'num': 'number',
+            },
+            'searched_columns': ['firstname']
+        }
+
+        s = CSVPlugin(config)
+
+        results = s.search('ali')
+
+        assert_that(results[0], has_entries(
+            'fn', 'Alice',
+            'ln', 'AAA',
+            'num', '5555555555',
+        ))
+
+    def test_add_display_fields_on_list(self):
+        config = {
+            'file': self.fname,
+            'source_to_display_columns': {
+                'fn': 'firstname',
+                'ln': 'lastname',
+                'num': 'number',
+            },
+            'searched_columns': ['firstname'],
+            'unique_columns': ['clientno'],
+        }
+
+        s = CSVPlugin(config)
+
+        results = s.list([('1',)])
+
+        assert_that(results[0], has_entries(
+            'fn', 'Alice',
+            'ln', 'AAA',
+            'num', '5555555555',
+        ))
 
     def _generate_random_non_existent_filename(self):
         while True:

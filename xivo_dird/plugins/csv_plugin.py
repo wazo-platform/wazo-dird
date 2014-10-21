@@ -39,19 +39,19 @@ class CSVPlugin(BaseSourcePlugin):
     The `searched_columns` are the columns used to search for a term
     '''
 
-    def __init__(self, args):
-        self._args = args
+    def __init__(self, config):
+        self._config = config
         self._content = []
-        self._has_unique_id = not len(self._args.get(self.UNIQUE_COLUMNS, [])) == 0
+        self._has_unique_id = not len(self._config.get(self.UNIQUE_COLUMNS, [])) == 0
         self._load_file()
 
     def _load_file(self):
-        if 'file' not in self._args:
+        if 'file' not in self._config:
             logger.warning('Could not initialize missing file configuration')
             return
 
         try:
-            with open(self._args['file'], 'r') as f:
+            with open(self._config['file'], 'r') as f:
                 csvreader = csv.reader(f)
                 keys = next(csvreader)
                 self._content = [self._row_to_dict(keys, row) for row in csvreader]
@@ -59,20 +59,29 @@ class CSVPlugin(BaseSourcePlugin):
             logger.exception('Could not load CSV file content')
 
     def search(self, term, args=None):
-        if 'searched_columns' not in self._args:
+        if 'searched_columns' not in self._config:
             return []
 
         results = []
-        fn = partial(self._low_case_match_entry, term.lower(), self._args[self.SEARCHED_COLUMNS])
+        fn = partial(self._low_case_match_entry, term.lower(), self._config[self.SEARCHED_COLUMNS])
         for entry in ifilter(fn, self._content):
-            results.append(self._add_unique(entry))
+            results.append(self._post_search_entry_transformation(entry))
         return results
 
     def list(self, unique_ids):
         if not self._has_unique_id:
             return []
 
-        return filter(partial(self._is_in_unique_ids, unique_ids), self._content)
+        return map(self._post_search_entry_transformation,
+                   filter(partial(self._is_in_unique_ids, unique_ids), self._content))
+
+    def _post_search_entry_transformation(self, entry):
+        return self._add_unique(self._add_display_columns(entry))
+
+    def _add_display_columns(self, entry):
+        for display, source in self._config.get('source_to_display_columns', {}).iteritems():
+            entry[display] = entry.get(source)
+        return entry
 
     def _is_in_unique_ids(self, unique_ids, entry):
         return self._make_unique(entry) in unique_ids
@@ -94,4 +103,4 @@ class CSVPlugin(BaseSourcePlugin):
         return entry
 
     def _make_unique(self, entry):
-        return tuple(entry[col] for col in self._args[self.UNIQUE_COLUMNS])
+        return tuple(entry[col] for col in self._config[self.UNIQUE_COLUMNS])
