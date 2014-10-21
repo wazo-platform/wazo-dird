@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import os
 
 from collections import defaultdict
 from stevedore import enabled
@@ -43,7 +44,7 @@ class SourceManager(object):
             invoke_on_load=False,
         )
         self._load_all_configs()
-        manager.man(self._load_source)
+        manager.map(self._load_sources_using_backend, self._configs_by_backend)
 
     def _load_all_configs(self):
         if 'plugin_config_dir' not in self._config:
@@ -59,9 +60,9 @@ class SourceManager(object):
 
             self._configs_by_backend[config['type']].append(config)
 
-    def _load_source(self, extension):
+    def _load_sources_using_backend(self, extension, configs_by_backend):
         backend = extension.name
-        for config in self._configs_by_backens[backend]:
+        for config in configs_by_backend[backend]:
             source = extension.plugin()
             source.name = config.get('name')
             source.load(config)
