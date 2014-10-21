@@ -40,7 +40,7 @@ class TestSourceManager(unittest.TestCase):
         manager.load_sources()
 
         extension_manager_init.assert_called_once_with(
-            namespace='xivo-dird.backends',
+            namespace='xivo_dird.backends',
             check_func=manager.should_load_backend,
             invoke_on_load=False)
         extension_manager.map.assert_called_once_with(ANY, ANY)
