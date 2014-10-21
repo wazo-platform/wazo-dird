@@ -20,7 +20,7 @@ import unittest
 
 from hamcrest import assert_that
 from hamcrest import is_in
-from xivo_dird.plugins.default_json_view.default_json_view import JsonViewPlugin
+from xivo_dird.plugins.default_json_view import JsonViewPlugin
 
 
 class TestJsonViewPlugin(unittest.TestCase):
