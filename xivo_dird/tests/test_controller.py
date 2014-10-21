@@ -29,7 +29,6 @@ class TestController(TestCase):
         self.load_services = patch('xivo_dird.core.plugin_manager.load_services').start()
         self.unload_services = patch('xivo_dird.core.plugin_manager.unload_services').start()
         self.load_sources = patch('xivo_dird.core.plugin_manager.load_sources').start()
-        self.unload_sources = patch('xivo_dird.core.plugin_manager.unload_sources').start()
         self.load_views = patch('xivo_dird.core.plugin_manager.load_views').start()
 
     def tearDown(self):
@@ -82,14 +81,6 @@ class TestController(TestCase):
         Controller(config)
 
         self.load_sources.assert_called_once_with(s.enabled, s.source_config_dir)
-
-    def test_del_unloads_sources(self):
-        config = self._create_config()
-        controller = Controller(config)
-
-        del(controller)
-
-        self.unload_sources.assert_called_once_with()
 
     def test_init_loads_views(self):
         config = self._create_config(**{

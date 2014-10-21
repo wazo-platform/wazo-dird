@@ -57,10 +57,6 @@ def load_sources(enabled_backends, source_config_dir):
     return SourceManager(config).load_sources()
 
 
-def unload_sources():
-    pass
-
-
 def load_views(config, enabled_views, services, rest_api):
     global views_manager
     check_func = lambda extension: extension.name in enabled_views

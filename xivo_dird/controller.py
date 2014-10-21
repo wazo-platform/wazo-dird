@@ -40,7 +40,6 @@ class Controller(object):
 
     def __del__(self):
         plugin_manager.unload_services()
-        plugin_manager.unload_sources()
 
     def run(self):
         logger.debug('xivo-dird running...')
