@@ -39,8 +39,11 @@ class CSVPlugin(BaseSourcePlugin):
     The `searched_columns` are the columns used to search for a term
     '''
 
-    def __init__(self, config):
-        self._config = config
+    def __init__(self, args):
+        if 'config' not in args:
+            logger.warning('Missing config in startup arguments: %s', args)
+
+        self._config = args.get('config', {})
         self._content = []
         self._has_unique_id = not len(self._config.get(self.UNIQUE_COLUMNS, [])) == 0
         self._load_file()

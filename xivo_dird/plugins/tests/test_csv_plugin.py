@@ -84,7 +84,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self._generate_random_non_existent_filename()
         }
 
-        source = CSVPlugin(config)
+        source = CSVPlugin({'config': config})
 
         result = source.search('foo')
 
@@ -95,7 +95,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self.fname,
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         assert_that(s._content, contains_inanyorder(self.alice, self.bob, self.charles))
 
@@ -105,7 +105,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'searched_columns': ['firstname', 'lastname'],
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.search('ice')
 
@@ -117,7 +117,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'searched_columns': ['lastname'],
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.search('ice')
 
@@ -128,7 +128,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self.fname,
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.search('ice')
 
@@ -141,7 +141,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'searched_columns': ['firstname'],
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.search('ice')
 
@@ -152,7 +152,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'file': self.fname,
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.list(['1', '3'])
 
@@ -164,7 +164,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': [],
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.list(['1', '3'])
 
@@ -176,7 +176,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': ['clientno'],
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.list([('1',), ('3',)])
 
@@ -188,7 +188,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': ['firstname', 'lastname'],
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.list([('Alice', 'AAA'), ('Charles', 'CCC')])
 
@@ -213,7 +213,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': ['firstname', 'lastname'],
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         result = s._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Alice', 'lastname': 'AAA'})
 
@@ -232,7 +232,7 @@ class TestCsvDirectorySource(unittest.TestCase):
         term = 'ice'
         columns = ['firstname', 'lastname']
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         result = s._low_case_match_entry(term, columns, self.alice)
 
@@ -249,7 +249,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'searched_columns': ['firstname']
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.search('ali')
 
@@ -271,7 +271,7 @@ class TestCsvDirectorySource(unittest.TestCase):
             'unique_columns': ['clientno'],
         }
 
-        s = CSVPlugin(config)
+        s = CSVPlugin({'config': config})
 
         results = s.list([('1',)])
 
