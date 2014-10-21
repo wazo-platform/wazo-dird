@@ -33,7 +33,7 @@ class SourceManager(object):
     def __init__(self, config):
         self._config = config
         self._configs_by_backend = defaultdict(list)
-        self._sources = []
+        self._sources = {}
 
     def should_load_backend(self, extension):
         return extension.name in self._config.get('source_plugins', [])
@@ -46,6 +46,7 @@ class SourceManager(object):
         )
         self._load_all_configs()
         manager.map(self._load_sources_using_backend, self._configs_by_backend)
+        return self._sources
 
     def _load_all_configs(self):
         if 'plugin_config_dir' not in self._config:
@@ -67,7 +68,7 @@ class SourceManager(object):
             source = extension.plugin()
             source.name = config.get('name')
             source.load(config)
-            self._sources.append(source)
+            self._sources[source.name] = source
 
 
 def _list_files(directory):

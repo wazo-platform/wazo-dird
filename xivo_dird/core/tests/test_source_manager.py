@@ -18,7 +18,7 @@
 import unittest
 
 from hamcrest import assert_that, equal_to, is_
-from mock import ANY, patch, Mock
+from mock import ANY, patch, Mock, sentinel as s
 
 from xivo_dird.core.source_manager import SourceManager
 
@@ -44,6 +44,22 @@ class TestSourceManager(unittest.TestCase):
             check_func=manager.should_load_backend,
             invoke_on_load=False)
         extension_manager.map.assert_called_once_with(ANY, ANY)
+
+    @patch('stevedore.enabled.EnabledExtensionManager')
+    def test_load_sources_returns_dict_of_sources(self, extension_manager_init):
+        config = {
+            'source_plugins': [
+                'ldap',
+                'xivo_phonebook',
+            ],
+        }
+
+        manager = SourceManager(config)
+        manager._sources = s.sources
+
+        result = manager.load_sources()
+
+        assert_that(result, equal_to(s.sources))
 
     def test_should_load_backend(self):
         config = {
