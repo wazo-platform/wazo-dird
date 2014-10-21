@@ -41,11 +41,11 @@ class JsonViewPlugin(BaseViewPlugin):
             logger.error('HTTP view loaded with an http_app')
             return
 
-        lookup_fn = partial(_lookup, args.get('services', {}))
+        lookup_fn = partial(_lookup_wrapper, args.get('services', {}))
         args['http_app'].add_url_rule(self.ROUTE, __name__, lookup_fn)
 
 
-def _lookup(services, profile):
+def _lookup_wrapper(services, profile):
     args = copy.copy(request.args)
 
     if 'term' not in args:

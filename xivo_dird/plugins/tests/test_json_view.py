@@ -29,7 +29,7 @@ from mock import Mock
 from mock import patch
 from mock import sentinel
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
-from xivo_dird.plugins.default_json_view import _lookup
+from xivo_dird.plugins.default_json_view import _lookup_wrapper
 
 
 class TestJsonViewPlugin(unittest.TestCase):
@@ -71,7 +71,7 @@ class TestLookup(unittest.TestCase):
     @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': sentinel.term}))
     def test_that_lookup_forwards_the_profile_and_term_to_the_service(self, mocked_make_response):
         self.lookup_service.return_value = [{'a': 'result'}]
-        result = _lookup(self.services, sentinel.profile)
+        result = _lookup_wrapper(self.services, sentinel.profile)
 
         self.lookup_service.assert_called_once_with(sentinel.term, sentinel.profile, {})
 
@@ -83,7 +83,7 @@ class TestLookup(unittest.TestCase):
            Mock(args={'term': sentinel.term, 'user_id': sentinel.user_id}))
     def test_that_lookup_forwards_extra_args_to_the_service(self, mocked_make_response):
         self.lookup_service.return_value = [{'a': 'result'}]
-        result = _lookup(self.services, sentinel.profile)
+        result = _lookup_wrapper(self.services, sentinel.profile)
 
         self.lookup_service.assert_called_once_with(sentinel.term, sentinel.profile,
                                                     {'user_id': sentinel.user_id})
@@ -96,7 +96,7 @@ class TestLookup(unittest.TestCase):
     @patch('xivo_dird.plugins.default_json_view.time')
     def test_that_lookup_with_no_term_return_a_400(self, mocked_time, mocked_make_response):
         mocked_time.return_value = t = '123455.343'
-        results = _lookup(self.services, sentinel.profile)
+        results = _lookup_wrapper(self.services, sentinel.profile)
 
         expected_json = json.dumps({'reason': ['term is missing'],
                                     'timestamp': [t],
@@ -107,7 +107,7 @@ class TestLookup(unittest.TestCase):
 
     @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': sentinel.term}))
     def test_that_lookup_with_no_service_return_an_empty_result(self, mocked_make_response):
-        results = _lookup({}, sentinel.profile)
+        results = _lookup_wrapper({}, sentinel.profile)
 
         assert_that(results, equal_to(mocked_make_response.return_value))
         mocked_make_response.assert_called_once_with(json.dumps([]), 200)
