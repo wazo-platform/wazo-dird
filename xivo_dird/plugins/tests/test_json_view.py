@@ -49,7 +49,4 @@ class TestJsonViewPlugin(unittest.TestCase):
         assert_that(route, is_in(routes))
 
     def _list_routes(self, http_app):
-        routes = []
-        for rule in http_app.url_map.iter_rules():
-            routes.append(rule.rule)
-        return routes
+        return (rule.rule for rule in http_app.url_map.iter_rules())
