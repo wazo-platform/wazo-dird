@@ -39,6 +39,7 @@ class TestConfig(TestCase):
             'enabled_plugins': {
                 'backends': [],
                 'services': [],
+                'views': [],
             },
             'foreground': False,
             'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
@@ -48,6 +49,7 @@ class TestConfig(TestCase):
             'services': {},
             'source_config_dir': '/etc/xivo/xivo-dird/sources.d',
             'user': 'www-data',
+            'views': {},
         }))
 
     @patch('yaml.load')

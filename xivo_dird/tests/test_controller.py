@@ -30,6 +30,7 @@ class TestController(TestCase):
         self.unload_services = patch('xivo_dird.core.plugin_manager.unload_services').start()
         self.load_sources = patch('xivo_dird.core.plugin_manager.load_sources').start()
         self.unload_sources = patch('xivo_dird.core.plugin_manager.unload_sources').start()
+        self.load_views = patch('xivo_dird.core.plugin_manager.load_views').start()
 
     def tearDown(self):
         patch.stopall()
@@ -90,12 +91,26 @@ class TestController(TestCase):
 
         self.unload_sources.assert_called_once_with()
 
+    def test_init_loads_views(self):
+        config = self._create_config(**{
+            'enabled_plugins': {
+                'views': s.enabled,
+            },
+            'views': s.config,
+        })
+
+        Controller(config)
+
+        self.load_views.assert_called_once_with(s.config, s.enabled, ANY, self.rest_api)
+
     def _create_config(self, **kwargs):
         config = dict(kwargs)
         config.setdefault('enabled_plugins', {})
         config['enabled_plugins'].setdefault('backends', [])
         config['enabled_plugins'].setdefault('services', [])
+        config['enabled_plugins'].setdefault('views', [])
         config.setdefault('rest_api', Mock())
         config.setdefault('services', Mock())
         config.setdefault('source_config_dir', Mock())
+        config.setdefault('views', Mock())
         return config

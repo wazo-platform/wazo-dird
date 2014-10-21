@@ -30,9 +30,13 @@ class Controller(object):
         self.rest_api = CoreRestApi(self.config['rest_api'])
         self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
                                                    self.config['source_config_dir'])
-        plugin_manager.load_services(self.config['services'],
-                                     self.config['enabled_plugins']['services'],
-                                     self.sources)
+        self.services = plugin_manager.load_services(self.config['services'],
+                                                     self.config['enabled_plugins']['services'],
+                                                     self.sources)
+        plugin_manager.load_views(self.config['views'],
+                                  self.config['enabled_plugins']['views'],
+                                  self.services,
+                                  self.rest_api)
 
     def __del__(self):
         plugin_manager.unload_services()

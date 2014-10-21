@@ -83,3 +83,34 @@ class TestPluginManagerSources(TestCase):
         result = plugin_manager.load_sources(s.enabled, s.source_config_dir)
 
         assert_that(result, equal_to(s.result))
+
+
+class TestPluginManagerViews(TestCase):
+
+    @patch('stevedore.enabled.EnabledExtensionManager')
+    def test_load_views_loads_view_extensions(self, extension_manager_init):
+        extension_manager = extension_manager_init.return_value
+
+        plugin_manager.load_views(s.config, enabled_views=[], services=s.services, rest_api=s.rest_api)
+
+        extension_manager_init.assert_called_once_with(
+            namespace='xivo_dird.views',
+            check_func=ANY,
+            invoke_on_load=True)
+        extension_manager.map.assert_called_once_with(plugin_manager.load_view_extension,
+                                                      s.config,
+                                                      s.services,
+                                                      s.rest_api)
+
+    def test_load_view_extension_passes_right_plugin_arguments(self):
+        extension = Mock()
+        extension.name = 'my_plugin'
+        rest_api = Mock()
+
+        plugin_manager.load_view_extension(extension, s.config, s.services, rest_api)
+
+        extension.obj.load.assert_called_once_with({
+            'config': s.config,
+            'http_app': rest_api.app,
+            'services': s.services,
+        })

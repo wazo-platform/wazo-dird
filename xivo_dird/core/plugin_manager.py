@@ -59,3 +59,24 @@ def load_sources(enabled_backends, source_config_dir):
 
 def unload_sources():
     pass
+
+
+def load_views(config, enabled_views, services, rest_api):
+    global views_manager
+    check_func = lambda extension: extension.name in enabled_views
+    extension_manager = enabled.EnabledExtensionManager(
+        namespace='xivo_dird.views',
+        check_func=check_func,
+        invoke_on_load=True)
+
+    extension_manager.map(load_view_extension, config, services, rest_api)
+
+
+def load_view_extension(extension, config, services, rest_api):
+    logger.debug('loading extension {}...'.format(extension.name))
+    args = {
+        'config': config,
+        'http_app': rest_api.app,
+        'services': services,
+    }
+    extension.obj.load(args)

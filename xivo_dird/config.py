@@ -31,6 +31,7 @@ def load(argv):
         'enabled_plugins': {
             'backends': [],
             'services': [],
+            'views': [],
         },
         'log_level': 'info',
         'log_filename': '/var/log/xivo-dird.log',
@@ -42,6 +43,7 @@ def load(argv):
         'services': {},
         'source_config_dir': '/etc/xivo/xivo-dird/sources.d',
         'user': 'www-data',
+        'views': {},
     }
     config = dict(default_config)
 
