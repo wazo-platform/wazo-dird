@@ -16,11 +16,20 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import flask
+import json
+import time
 import unittest
 
+from flask.helpers import make_response
 from hamcrest import assert_that
+from hamcrest import contains
+from hamcrest import equal_to
 from hamcrest import is_in
+from mock import Mock
+from mock import patch
+from mock import sentinel
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
+from xivo_dird.plugins.default_json_view import _lookup
 
 
 class TestJsonViewPlugin(unittest.TestCase):
@@ -50,3 +59,55 @@ class TestJsonViewPlugin(unittest.TestCase):
 
     def _list_routes(self, http_app):
         return (rule.rule for rule in http_app.url_map.iter_rules())
+
+
+@patch('xivo_dird.plugins.default_json_view.make_response')
+class TestLookup(unittest.TestCase):
+
+    def setUp(self):
+        self.lookup_service = Mock()
+        self.services = {'lookup': self.lookup_service}
+
+    @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': sentinel.term}))
+    def test_that_lookup_forwards_the_profile_and_term_to_the_service(self, mocked_make_response):
+        self.lookup_service.return_value = [{'a': 'result'}]
+        result = _lookup(self.services, sentinel.profile)
+
+        self.lookup_service.assert_called_once_with(sentinel.term, sentinel.profile, {})
+
+        assert_that(result, equal_to(mocked_make_response.return_value))
+        mocked_make_response.assert_called_once_with(
+            json.dumps(self.lookup_service.return_value), 200)
+
+    @patch('xivo_dird.plugins.default_json_view.request',
+           Mock(args={'term': sentinel.term, 'user_id': sentinel.user_id}))
+    def test_that_lookup_forwards_extra_args_to_the_service(self, mocked_make_response):
+        self.lookup_service.return_value = [{'a': 'result'}]
+        result = _lookup(self.services, sentinel.profile)
+
+        self.lookup_service.assert_called_once_with(sentinel.term, sentinel.profile,
+                                                    {'user_id': sentinel.user_id})
+
+        assert_that(result, equal_to(mocked_make_response.return_value))
+        mocked_make_response.assert_called_once_with(
+            json.dumps(self.lookup_service.return_value), 200)
+
+    @patch('xivo_dird.plugins.default_json_view.request', Mock(args={}))
+    @patch('xivo_dird.plugins.default_json_view.time')
+    def test_that_lookup_with_no_term_return_a_400(self, mocked_time, mocked_make_response):
+        mocked_time.return_value = t = '123455.343'
+        results = _lookup(self.services, sentinel.profile)
+
+        expected_json = json.dumps({'reason': ['term is missing'],
+                                    'timestamp': [t],
+                                    'status_code': 400})
+
+        assert_that(results, equal_to(mocked_make_response.return_value))
+        mocked_make_response.assert_called_once_with(expected_json, 400)
+
+    @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': sentinel.term}))
+    def test_that_lookup_with_no_service_return_an_empty_result(self, mocked_make_response):
+        results = _lookup({}, sentinel.profile)
+
+        assert_that(results, equal_to(mocked_make_response.return_value))
+        mocked_make_response.assert_called_once_with(json.dumps([]), 200)

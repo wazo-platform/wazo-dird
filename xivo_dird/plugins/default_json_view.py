@@ -15,9 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import copy
+import json
 import logging
 
+from flask import request
+from flask.helpers import make_response
 from functools import partial
+from time import time
 from xivo_dird import BaseViewPlugin
 
 logger = logging.getLogger(__name__)
@@ -41,4 +46,21 @@ class JsonViewPlugin(BaseViewPlugin):
 
 
 def _lookup(services, profile):
-    pass
+    args = copy.copy(request.args)
+
+    if 'term' not in args:
+        error_msg = {'reason': ['term is missing'],
+                     'timestamp': [time()],
+                     'status_code': 400}
+        return make_response(json.dumps(error_msg), 400)
+
+    if 'lookup' not in services:
+        return make_response('[]', 200)
+
+    term = args.pop('term')
+
+    logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
+
+    result = json.dumps(services['lookup'](term, profile, args))
+
+    return make_response(result, 200)
