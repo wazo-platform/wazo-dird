@@ -37,17 +37,26 @@ class BaseSourcePlugin(object):
     def search(self, *args, **kwargs):
         '''
         The search method should return a list of dict containaing the search
-        results
+        results.
 
-        If the backend has a unique column, the columns will be added with a
-        `__unique_id` header
+        The results should include the columns that are exepcted by the display.
+        When columns from the source do not match the columns from the display,
+        the `source_to_display_columns` dictionary can be used by the administrator
+        to add new mapping.
+
+        If the backend has a `unique_columns` configuration, a new column will be
+        added with a `__unique_id` header containing the unique key.
         '''
 
     def list(self, uids):
         '''
         Returns a list of results based on the unique column for this backend.
-        This function is not mandatory as some backends make it harder that other
-        to query for specific ids. If a backend does not profide the list
+        This function is not mandatory as some backends make it harder than
+        others to query for specific ids. If a backend does not provide the list
         function, it will not be possible to set a favorite from this backend.
+
+        Results returned from list should be formatted in the same way than
+        results from search. Meaning that the `__unique_id` column should be
+        added and display columns should be present.
         '''
         return []
