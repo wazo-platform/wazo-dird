@@ -62,18 +62,15 @@ class CSVPlugin(BaseSourcePlugin):
         if 'searched_columns' not in self._config:
             return []
 
-        results = []
         fn = partial(self._low_case_match_entry, term.lower(), self._config[self.SEARCHED_COLUMNS])
-        for entry in ifilter(fn, self._content):
-            results.append(self._post_search_entry_transformation(entry))
-        return results
+        return map(self._post_search_entry_transformation, ifilter(fn, self._content))
 
     def list(self, unique_ids):
         if not self._has_unique_id:
             return []
 
-        return map(self._post_search_entry_transformation,
-                   filter(partial(self._is_in_unique_ids, unique_ids), self._content))
+        fn = partial(self._is_in_unique_ids, unique_ids)
+        return map(self._post_search_entry_transformation, ifilter(fn, self._content))
 
     def _post_search_entry_transformation(self, entry):
         return self._add_unique(self._add_display_columns(entry))
