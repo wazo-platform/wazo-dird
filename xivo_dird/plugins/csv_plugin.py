@@ -48,19 +48,6 @@ class CSVPlugin(BaseSourcePlugin):
         self._has_unique_id = not len(self._config.get(self.UNIQUE_COLUMNS, [])) == 0
         self._load_file()
 
-    def _load_file(self):
-        if 'file' not in self._config:
-            logger.warning('Could not initialize missing file configuration')
-            return
-
-        try:
-            with open(self._config['file'], 'r') as f:
-                csvreader = csv.reader(f)
-                keys = next(csvreader)
-                self._content = [self._row_to_dict(keys, row) for row in csvreader]
-        except IOError:
-            logger.exception('Could not load CSV file content')
-
     def search(self, term, args=None):
         if 'searched_columns' not in self._config:
             return []
@@ -74,6 +61,19 @@ class CSVPlugin(BaseSourcePlugin):
 
         fn = partial(self._is_in_unique_ids, unique_ids)
         return self._list_from_predicate(fn)
+
+    def _load_file(self):
+        if 'file' not in self._config:
+            logger.warning('Could not initialize missing file configuration')
+            return
+
+        try:
+            with open(self._config['file'], 'r') as f:
+                csvreader = csv.reader(f)
+                keys = next(csvreader)
+                self._content = [self._row_to_dict(keys, row) for row in csvreader]
+        except IOError:
+            logger.exception('Could not load CSV file content')
 
     def _list_from_predicate(self, predicate):
         return map(self._post_search_entry_transformation, ifilter(predicate, self._content))
