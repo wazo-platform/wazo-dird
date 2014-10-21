@@ -17,12 +17,9 @@
 
 import flask
 import json
-import time
 import unittest
 
-from flask.helpers import make_response
 from hamcrest import assert_that
-from hamcrest import contains
 from hamcrest import equal_to
 from hamcrest import is_in
 from mock import Mock
