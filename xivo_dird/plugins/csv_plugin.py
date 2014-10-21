@@ -63,14 +63,17 @@ class CSVPlugin(BaseSourcePlugin):
             return []
 
         fn = partial(self._low_case_match_entry, term.lower(), self._config[self.SEARCHED_COLUMNS])
-        return map(self._post_search_entry_transformation, ifilter(fn, self._content))
+        return self._list_from_predicate(fn)
 
     def list(self, unique_ids):
         if not self._has_unique_id:
             return []
 
         fn = partial(self._is_in_unique_ids, unique_ids)
-        return map(self._post_search_entry_transformation, ifilter(fn, self._content))
+        return self._list_from_predicate(fn)
+
+    def _list_from_predicate(self, predicate):
+        return map(self._post_search_entry_transformation, ifilter(predicate, self._content))
 
     def _post_search_entry_transformation(self, entry):
         return self._add_unique(self._add_display_columns(entry))
