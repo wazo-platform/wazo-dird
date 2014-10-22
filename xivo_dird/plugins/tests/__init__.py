@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2014 Avencall
+# Copyright (C) 2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,9 +14,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-
-from xivo_dird.base_plugins import BaseServicePlugin
-from xivo_dird.base_plugins import BaseViewPlugin
-from xivo_dird.base_service import BaseService
-from xivo_dird.base_source_plugin import BaseSourcePlugin
-from xivo_dird.source_result import make_result_class

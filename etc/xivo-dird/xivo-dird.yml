@@ -1,0 +1,10 @@
+plugin_config_dir: /etc/xivo/xivo-dird/plugins.d
+plugins:
+  - csv
+profiles:
+  default:
+    lookup:
+      - csv_client
+      - phonebook_qc
+    reverse:
+      - csv_client

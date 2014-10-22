@@ -7,3 +7,4 @@ sqlalchemy
 psycopg2
 flup
 Flask
+flask-restplus
