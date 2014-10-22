@@ -121,6 +121,6 @@ class TestSourceManager(unittest.TestCase):
         manager._load_sources_using_backend(extension, configs_by_backend)
 
         assert_that(source1.name, equal_to('source1'))
-        source1.load.assert_called_once_with(config1)
+        source1.load.assert_called_once_with({'config': config1})
         assert_that(source2.name, equal_to('source2'))
-        source2.load.assert_called_once_with(config2)
+        source2.load.assert_called_once_with({'config': config2})
