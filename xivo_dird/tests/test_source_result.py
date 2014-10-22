@@ -37,9 +37,9 @@ class TestSourceResult(unittest.TestCase):
 
     def test_source(self):
         r = _SourceResult(self.fields)
-        r._source = sentinel.source
+        r.source = sentinel.source
 
-        assert_that(r._source, equal_to(sentinel.source))
+        assert_that(r.source, equal_to(sentinel.source))
 
     def test_fields(self):
         r = _SourceResult(self.fields)
@@ -99,7 +99,7 @@ class TestMakeResultClass(unittest.TestCase):
 
         s = SourceResult(sentinel.fields)
 
-        assert_that(s._source, equal_to(sentinel.source_name))
+        assert_that(s.source, equal_to(sentinel.source_name))
 
     def test_source_unique_columns(self):
         SourceResult = make_result_class(sentinel.source_name, sentinel.unique_columns)

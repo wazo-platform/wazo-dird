@@ -44,37 +44,43 @@ class JsonViewPlugin(BaseViewPlugin):
         if 'http_app' not in args:
             logger.error('HTTP view loaded without an http_app')
             return
+        if 'services' not in args or 'lookup' not in args['services']:
+            logger.error('HTTP view loaded without a lookup service')
+            return
         if 'config' not in args:
             logger.error('HTTP view loaded without a config')
             return
         if 'displays' not in args['config']:
             logger.error('HTTP view loaded without a display')
             return
+        if 'profile_to_display' not in args['config']:
+            logger.error('HTTP view loaded without a profile to display configuration')
+            return
 
-        lookup_fn = partial(_lookup_wrapper, args.get('services', {}), args['config'])
+        lookup_fn = partial(_lookup_wrapper, args['services']['lookup'],
+                            self._get_display_dict(args['config']))
         args['http_app'].add_url_rule(self.ROUTE, __name__, lookup_fn)
 
+    def _get_display_dict(self, view_config):
+        result = {}
+        for profile, display_name in view_config['profile_to_display'].iteritems():
+            result[profile] = view_config['displays'][display_name]
+        return result
 
-def _lookup_wrapper(services, view_config, profile):
-    def make_error(msg, code):
-        return make_response(json.dumps({'reason': [msg],
-                                         'timestamp': [time()],
-                                         'status_code': code}), code)
 
-    if 'lookup' not in services:
-        return make_error('no lookup service available', 500)
-
+def _lookup_wrapper(lookup_service, displays, profile):
     args = copy.copy(request.args)
 
     if 'term' not in args:
-        return make_error('term is missing', 400)
+        return make_response(json.dumps({'reason': ['term is missing'],
+                                         'timestamp': [time()],
+                                         'status_code': 400}), 400)
 
     term = args.pop('term')
 
     logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
 
-    display = view_config['displays'][view_config['profile_to_display'][profile]]
-    result = _lookup(services['lookup'], display, term, profile, args)
+    result = _lookup(lookup_service, displays[profile], term, profile, args)
     json_result = json.dumps(result)
 
     return make_response(json_result, 200)
@@ -82,11 +88,23 @@ def _lookup_wrapper(services, view_config, profile):
 
 def _lookup(lookup_service, display, term, profile, args):
     raw_results = lookup_service(term, profile, args)
-    return map(partial(_format_for_display, display), raw_results)
+    return {
+        'term': term,
+        'column_headers': [d.title for d in display],
+        'column_types': [d.type for d in display],
+        'results': [r.to_dict() for r in raw_results]
+    }
 
 
-def _format_for_display(display, entry):
-    result = {}
-    for title, type_, default, field in display:
-        result[title] = entry.get(field, default)
-    return result
+class DisplayAwareResult(object):
+
+    def __init__(self, display, result):
+        self._display = display
+        self._result = result
+
+    def to_dict(self):
+        return {
+            'column_values': [self._result.fields.get(d.field, d.default) for d in self._display],
+            'relations': self._result.relations,
+            'source': self._result.source,
+        }

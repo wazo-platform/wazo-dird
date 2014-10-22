@@ -19,7 +19,7 @@
 class _SourceResult(object):
 
     _unique_columns = []
-    _source = None
+    source = None
     _source_to_dest_map = {}
 
     def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
@@ -50,7 +50,7 @@ class _SourceResult(object):
             self.fields[destination] = self.fields.get(source)
 
     def __eq__(self, other):
-        return (self._source == other._source
+        return (self.source == other.source
                 and self.fields == other.fields
                 and self.relations == other.relations)
 
@@ -69,7 +69,7 @@ def make_result_class(source_name, unique_columns=None, source_to_dest_map=None)
         source_to_dest_map = _SourceResult._source_to_dest_map
 
     class SourceResult(_SourceResult):
-        _source = source_name
+        source = source_name
         _unique_columns = unique_columns
         _source_to_dest_map = source_to_dest_map
 
