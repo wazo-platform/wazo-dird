@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import copy
 import json
 import logging
 
@@ -70,14 +69,14 @@ class JsonViewPlugin(BaseViewPlugin):
         return result
 
     def _lookup_wrapper(self, profile):
-        args = copy.copy(request.args)
+        args = dict(request.args)
 
-        if 'term' not in args:
+        if not args.get('term'):
             return make_response(json.dumps({'reason': ['term is missing'],
                                              'timestamp': [time()],
                                              'status_code': 400}), 400)
 
-        term = args.pop('term')
+        term = args.pop('term')[0]
 
         logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
 

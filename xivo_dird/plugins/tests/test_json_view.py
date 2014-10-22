@@ -101,7 +101,7 @@ class TestJsonViewPlugin(unittest.TestCase):
 
         assert_that(display_dict, equal_to(expected))
 
-    @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': sentinel.term,
+    @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': [sentinel.term],
                                                                      'user_id': 42}))
     @patch('xivo_dird.plugins.default_json_view.make_response', Mock())
     @patch('xivo_dird.plugins.default_json_view.json', Mock())
