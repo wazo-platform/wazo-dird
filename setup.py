@@ -26,5 +26,8 @@ setup(
         'xivo-dird.backends': [
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
         ],
+        'xivo-dird.views': [
+            'default_json_view = xivo_dird.plugins.default_json_view:JSonViewPlugin',
+        ],
     }
 )
