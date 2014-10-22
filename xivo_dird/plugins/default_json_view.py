@@ -29,7 +29,7 @@ from xivo_dird import BaseViewPlugin
 logger = logging.getLogger(__name__)
 
 
-DisplayColumn = namedtuple('DisplayColumn', ['title', 'default', 'field'])
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
 
 
 class JsonViewPlugin(BaseViewPlugin):
@@ -87,6 +87,6 @@ def _lookup(lookup_service, display, term, profile, args):
 
 def _format_for_display(display, entry):
     result = {}
-    for title, default, field in display:
+    for title, type_, default, field in display:
         result[title] = entry.get(field, default)
     return result

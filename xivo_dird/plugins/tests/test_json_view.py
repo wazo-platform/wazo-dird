@@ -144,8 +144,8 @@ class TestLookup(unittest.TestCase):
 
     def test_that_lookup_renames_return_the_expected_columns_headers(self):
         display = [
-            DisplayColumn('Firstname', 'Unknown', 'firstname'),
-            DisplayColumn('Lastname', '', 'lastname'),
+            DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
+            DisplayColumn('Lastname', None, '', 'lastname'),
         ]
 
         self.lookup_service.return_value = [{'firstname': 'Alice', 'lastname': 'AAA'}]
@@ -158,8 +158,8 @@ class TestLookup(unittest.TestCase):
 
     def test_that_lookup_removes_unwanted_columns(self):
         display = [
-            DisplayColumn('Firstname', 'Unknown', 'firstname'),
-            DisplayColumn('Lastname', '', 'lastname'),
+            DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
+            DisplayColumn('Lastname', None, '', 'lastname'),
         ]
 
         self.lookup_service.return_value = [{'firstname': 'Alice',
@@ -174,9 +174,9 @@ class TestLookup(unittest.TestCase):
 
     def test_that_lookup_adds_default_value_to_missing_columns(self):
         display = [
-            DisplayColumn('Firstname', 'Unknown', 'firstname'),
-            DisplayColumn('Lastname', '', 'lastname'),
-            DisplayColumn('agent-id', 0, 'agent-id'),
+            DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
+            DisplayColumn('Lastname', None, '', 'lastname'),
+            DisplayColumn('agent-id', None, 0, 'agent-id'),
         ]
 
         self.lookup_service.return_value = [{'firstname': 'Alice',
