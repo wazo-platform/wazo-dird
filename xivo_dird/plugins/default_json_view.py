@@ -38,28 +38,30 @@ class JsonViewPlugin(BaseViewPlugin):
     ROUTE = '/{version}/directories/lookup/<profile>'.format(version=API_VERSION)
 
     def load(self, args=None):
+        try:
+            self._parse_args(args)
+        except ValueError as e:
+            logger.error('HTTP view loaded without %s', e)
+            return
+
+        self.http_app.add_url_rule(self.ROUTE, __name__, self._lookup_wrapper)
+
+    def _parse_args(self, args):
         if not args:
             args = {}
 
         if 'http_app' not in args:
-            logger.error('HTTP view loaded without an http_app')
-            return
-        if 'services' not in args or 'lookup' not in args['services']:
-            logger.error('HTTP view loaded without a lookup service')
-            return
+            raise ValueError('http_app')
+        if 'services' not in args:
+            raise ValueError('services')
+        if 'lookup' not in args['services']:
+            raise ValueError('lookup')
         if 'config' not in args:
-            logger.error('HTTP view loaded without a config')
-            return
-        if 'displays' not in args['config']:
-            logger.error('HTTP view loaded without a display')
-            return
-        if 'profile_to_display' not in args['config']:
-            logger.error('HTTP view loaded without a profile to display configuration')
-            return
+            raise ValueError('config')
 
-        lookup_fn = partial(_lookup_wrapper, args['services']['lookup'],
-                            self._get_display_dict(args['config']))
-        args['http_app'].add_url_rule(self.ROUTE, __name__, lookup_fn)
+        self.http_app = args['http_app']
+        self.lookup_service = args['services']['lookup']
+        self.displays = self._get_display_dict(args['config'])
 
     def _get_display_dict(self, view_config):
         result = {}
@@ -67,23 +69,22 @@ class JsonViewPlugin(BaseViewPlugin):
             result[profile] = view_config['displays'][display_name]
         return result
 
+    def _lookup_wrapper(self, profile):
+        args = copy.copy(request.args)
 
-def _lookup_wrapper(lookup_service, displays, profile):
-    args = copy.copy(request.args)
+        if 'term' not in args:
+            return make_response(json.dumps({'reason': ['term is missing'],
+                                             'timestamp': [time()],
+                                             'status_code': 400}), 400)
 
-    if 'term' not in args:
-        return make_response(json.dumps({'reason': ['term is missing'],
-                                         'timestamp': [time()],
-                                         'status_code': 400}), 400)
+        term = args.pop('term')
 
-    term = args.pop('term')
+        logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
 
-    logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
+        result = _lookup(self.lookup_service, self.displays[profile], term, profile, args)
+        json_result = json.dumps(result)
 
-    result = _lookup(lookup_service, displays[profile], term, profile, args)
-    json_result = json.dumps(result)
-
-    return make_response(json_result, 200)
+        return make_response(json_result, 200)
 
 
 def _lookup(lookup_service, display, term, profile, args):
