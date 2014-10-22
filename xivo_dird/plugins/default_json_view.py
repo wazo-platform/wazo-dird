@@ -65,8 +65,15 @@ class JsonViewPlugin(BaseViewPlugin):
     def _get_display_dict(self, view_config):
         result = {}
         for profile, display_name in view_config['profile_to_display'].iteritems():
-            result[profile] = view_config['displays'][display_name]
+            result[profile] = self._display_from_name(view_config, display_name)
         return result
+
+    def _display_from_name(self, view_config, display_name):
+        return [
+            DisplayColumn(display.get('title'), display.get('type'),
+                          display.get('default'), display.get('field'))
+            for display in view_config['displays'][display_name]
+        ]
 
     def _lookup_wrapper(self, profile):
         args = dict(request.args)

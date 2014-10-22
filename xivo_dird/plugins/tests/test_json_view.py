@@ -44,19 +44,14 @@ class TestJsonViewPlugin(unittest.TestCase):
         http_app = Mock()
         self.plugin.load({'http_app': http_app,
                           'services': {'lookup': sentinel.lookup_service},
-                          'config': {'displays': {'display_1': sentinel.display_1,
-                                                  'display_2': sentinel.display_2},
+                          'config': {'displays': {'display_1': [],
+                                                  'display_2': []},
                                      'profile_to_display': {'profile_1': 'display_1',
                                                             'profile_2': 'display_2',
                                                             'profile_3': 'display_1'}}})
 
         assert_that(self.plugin.http_app, equal_to(http_app))
         assert_that(self.plugin.lookup_service, equal_to(sentinel.lookup_service))
-        assert_that(self.plugin.displays, equal_to({
-            'profile_1': sentinel.display_1,
-            'profile_2': sentinel.display_2,
-            'profile_3': sentinel.display_1,
-        }))
 
     def test_default_view_load_no_args(self):
         self.plugin.load()
@@ -84,8 +79,31 @@ class TestJsonViewPlugin(unittest.TestCase):
         self.assert_has_route(self.http_app, route)
 
     def test_get_display_dict(self):
-        args = {'displays': {'first_display': sentinel.display_1,
-                             'second_display': sentinel.display_2},
+        first_display = [
+            DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
+            DisplayColumn('Lastname', None, 'ln', 'lastname'),
+        ]
+        second_display = [
+            DisplayColumn('fn', 'some_type', 'N/A', 'firstname'),
+            DisplayColumn('ln', None, 'N/A', 'LAST'),
+        ]
+
+        args = {'displays': {'first_display': [{'title': 'Firstname',
+                                                'type': None,
+                                                'default': 'Unknown',
+                                                'field': 'firstname'},
+                                               {'title': 'Lastname',
+                                                'type': None,
+                                                'default': 'ln',
+                                                'field': 'lastname'}],
+                             'second_display': [{'title': 'fn',
+                                                 'type': 'some_type',
+                                                 'default': 'N/A',
+                                                 'field': 'firstname'},
+                                                {'title': 'ln',
+                                                 'type': None,
+                                                 'default': 'N/A',
+                                                 'field': 'LAST'}]},
                 'profile_to_display': {'profile_1': 'first_display',
                                        'profile_2': 'second_display',
                                        'profile_3': 'first_display'}}
@@ -94,9 +112,9 @@ class TestJsonViewPlugin(unittest.TestCase):
         display_dict = self.plugin._get_display_dict(args)
 
         expected = {
-            'profile_1': sentinel.display_1,
-            'profile_2': sentinel.display_2,
-            'profile_3': sentinel.display_1,
+            'profile_1': first_display,
+            'profile_2': second_display,
+            'profile_3': first_display,
         }
 
         assert_that(display_dict, equal_to(expected))
