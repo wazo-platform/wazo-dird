@@ -16,11 +16,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 
-class SourceResult(object):
+class _SourceResult(object):
 
-    def __init__(self, fields, source, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
+    _unique_columns = []
+    _source = None
+    _source_to_dest_map = {}
+
+    def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
         self.fields = fields
-        self.source = source
         self.relations = {'agent': None,
                           'user': None,
                           'endpoint': None}
@@ -37,8 +40,17 @@ class SourceResult(object):
             self.relations['endpoint'] = {'id': endpoint_id,
                                           'xivo_id': xivo_id}
 
+        self._add_destination_columns()
+
+    def get_unique(self):
+        return tuple(self.fields.get(k) for k in self._unique_columns)
+
+    def _add_destination_columns(self):
+        for source, destination in self._source_to_dest_map.iteritems():
+            self.fields[destination] = self.fields.get(source)
+
     def __eq__(self, other):
-        return (self.source == other.source
+        return (self._source == other._source
                 and self.fields == other.fields
                 and self.relations == other.relations)
 
@@ -48,3 +60,17 @@ class SourceResult(object):
     def __repr__(self):
         fields = ', '.join(repr(v) for v in self.fields.values())
         return '<%s(%s)>' % (self.__class__.__name__, fields)
+
+
+def make_result_class(source_name, unique_columns=None, source_to_dest_map=None):
+    if not unique_columns:
+        unique_columns = _SourceResult._unique_columns
+    if not source_to_dest_map:
+        source_to_dest_map = _SourceResult._source_to_dest_map
+
+    class SourceResult(_SourceResult):
+        _source = source_name
+        _unique_columns = unique_columns
+        _source_to_dest_map = source_to_dest_map
+
+    return SourceResult

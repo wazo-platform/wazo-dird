@@ -19,14 +19,16 @@ import unittest
 
 from hamcrest import assert_that
 from hamcrest import equal_to
+from hamcrest import has_entries
 from mock import sentinel
-from xivo_dird import SourceResult
+from xivo_dird.source_result import _SourceResult
+from xivo_dird.source_result import make_result_class
 
 
 class TestSourceResult(unittest.TestCase):
 
     def setUp(self):
-        self.fields = {'firstname': 'fn', 'lastname': 'ln'}
+        self.fields = {'client_no': 1, 'firstname': 'fn', 'lastname': 'ln'}
         self.empty_relations = {
             'agent': None,
             'user': None,
@@ -34,18 +36,19 @@ class TestSourceResult(unittest.TestCase):
         }
 
     def test_source(self):
-        r = SourceResult(self.fields, sentinel.source)
+        r = _SourceResult(self.fields)
+        r._source = sentinel.source
 
-        assert_that(r.source, equal_to(sentinel.source))
+        assert_that(r._source, equal_to(sentinel.source))
 
     def test_fields(self):
-        r = SourceResult(self.fields, sentinel.source)
+        r = _SourceResult(self.fields)
 
         assert_that(r.fields, equal_to(self.fields))
         assert_that(r.relations, equal_to(self.empty_relations))
 
     def test_agent_relation(self):
-        r = SourceResult(self.fields, sentinel.source, sentinel.xivo_id, agent_id=sentinel.agent_id)
+        r = _SourceResult(self.fields, sentinel.xivo_id, agent_id=sentinel.agent_id)
 
         assert_that(r.relations, equal_to({'agent': {'id': sentinel.agent_id,
                                                      'xivo_id': sentinel.xivo_id},
@@ -53,7 +56,7 @@ class TestSourceResult(unittest.TestCase):
                                            'endpoint': None}))
 
     def test_user_relation(self):
-        r = SourceResult(self.fields, sentinel.source, sentinel.xivo_id, user_id=sentinel.user_id)
+        r = _SourceResult(self.fields, sentinel.xivo_id, user_id=sentinel.user_id)
 
         assert_that(r.relations, equal_to({'agent': None,
                                            'user': {'id': sentinel.user_id,
@@ -61,10 +64,56 @@ class TestSourceResult(unittest.TestCase):
                                            'endpoint': None}))
 
     def test_endpoint_relation(self):
-        r = SourceResult(self.fields, sentinel.source,
-                         sentinel.xivo_id, endpoint_id=sentinel.endpoint_id)
+        r = _SourceResult(self.fields, sentinel.xivo_id, endpoint_id=sentinel.endpoint_id)
 
         assert_that(r.relations, equal_to({'agent': None,
                                            'user': None,
                                            'endpoint': {'id': sentinel.endpoint_id,
                                                         'xivo_id': sentinel.xivo_id}}))
+
+    def test_get_unique_one_column(self):
+        r = _SourceResult(self.fields)
+        r._unique_columns = ['client_no']
+
+        assert_that(r.get_unique(), equal_to((1,)))
+
+    def test_get_unique_many_columns(self):
+        r = _SourceResult(self.fields)
+        r._unique_columns = ['firstname', 'lastname']
+
+        assert_that(r.get_unique(), equal_to(('fn', 'ln')))
+
+    def test_that_source_to_dest_transformation_are_applied(self):
+        SourceResult = make_result_class(sentinel.name, source_to_dest_map={'firstname': 'fn',
+                                                                            'lastname': 'ln'})
+
+        r = SourceResult(self.fields)
+
+        assert_that(r.fields, has_entries('fn', 'fn', 'ln', 'ln'))
+
+
+class TestMakeResultClass(unittest.TestCase):
+
+    def test_source_name(self):
+        SourceResult = make_result_class(sentinel.source_name)
+
+        s = SourceResult(sentinel.fields)
+
+        assert_that(s._source, equal_to(sentinel.source_name))
+
+    def test_source_unique_columns(self):
+        SourceResult = make_result_class(sentinel.source_name, sentinel.unique_columns)
+
+        s = SourceResult(sentinel.fields)
+
+        assert_that(s._unique_columns, equal_to(sentinel.unique_columns))
+        assert_that(s._source_to_dest_map, equal_to({}))
+
+    def test_source_to_destination(self):
+        SourceResult = make_result_class(sentinel.source_name,
+                                         source_to_dest_map={'from': 'to'})
+
+        s = SourceResult({})
+
+        assert_that(s._source_to_dest_map, equal_to({'from': 'to'}))
+        assert_that(s._unique_columns, equal_to([]))

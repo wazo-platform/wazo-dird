@@ -25,9 +25,8 @@ from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from hamcrest import contains
 from hamcrest import equal_to
-from hamcrest import has_entries
 from xivo_dird.plugins.csv_plugin import CSVPlugin
-from xivo_dird import SourceResult
+from xivo_dird import make_result_class
 
 coma_separated_content = '''\
 clientno,firstname,lastname,number,age
@@ -35,6 +34,8 @@ clientno,firstname,lastname,number,age
 2,Bob,BBB,5555551234,21
 3,Charles,CCC,5555556666,22
 '''
+
+SourceResult = make_result_class('my_directory', 'client_no')
 
 
 class TestCsvDirectorySource(unittest.TestCase):
@@ -68,16 +69,9 @@ class TestCsvDirectorySource(unittest.TestCase):
                         'lastname': 'CCC',
                         'number': '5555556666',
                         'age': '22'}
-
-        augmented_alice = dict(self.alice)
-        augmented_alice['__unique_id'] = ('1',)
-        self.alice_result = SourceResult(augmented_alice, self.name)
-
-        augmented_charles = dict(self.charles)
-        augmented_charles['__unique_id'] = ('3',)
-        self.charles_result = SourceResult(augmented_charles, self.name)
-
         self.source = CSVPlugin()
+        self.alice_result = SourceResult(self.alice)
+        self.charles_result = SourceResult(self.charles)
 
     def test_load_empty_config(self):
         self.source.load({})
@@ -210,12 +204,7 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         results = self.source.list([('Alice', 'AAA'), ('Charles', 'CCC')])
 
-        self.alice['__unique_id'] = ('Alice', 'AAA')
-        self.charles['__unique_id'] = ('Charles', 'CCC')
-        result_alice = SourceResult(self.alice, self.name)
-        result_charles = SourceResult(self.charles, self.name)
-
-        assert_that(results, contains(result_alice, result_charles))
+        assert_that(results, contains(self.alice_result, self.charles_result))
 
     def test_row_to_dict(self):
         keys = ['one', 'two', 'three']
@@ -257,51 +246,6 @@ class TestCsvDirectorySource(unittest.TestCase):
         result = self.source._low_case_match_entry(term, columns, self.alice)
 
         assert_that(result, equal_to(True))
-
-    def test_add_display_fields_on_searches(self):
-        config = {
-            'file': self.fname,
-            'name': 'my_dir',
-            'source_to_display_columns': {
-                'fn': 'firstname',
-                'ln': 'lastname',
-                'num': 'number',
-            },
-            'searched_columns': ['firstname']
-        }
-
-        self.source.load({'config': config})
-
-        results = self.source.search('ali')
-
-        assert_that(results[0].fields, has_entries(
-            'fn', 'Alice',
-            'ln', 'AAA',
-            'num', '5555555555',
-        ))
-
-    def test_add_display_fields_on_list(self):
-        config = {
-            'file': self.fname,
-            'name': 'my_dir',
-            'source_to_display_columns': {
-                'fn': 'firstname',
-                'ln': 'lastname',
-                'num': 'number',
-            },
-            'searched_columns': ['firstname'],
-            'unique_columns': ['clientno'],
-        }
-
-        self.source.load({'config': config})
-
-        results = self.source.list([('1',)])
-
-        assert_that(results[0].fields, has_entries(
-            'fn', 'Alice',
-            'ln', 'AAA',
-            'num', '5555555555',
-        ))
 
     def _generate_random_non_existent_filename(self):
         while True:

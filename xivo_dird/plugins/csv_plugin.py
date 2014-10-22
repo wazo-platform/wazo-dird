@@ -22,7 +22,7 @@ from itertools import ifilter
 from itertools import izip
 from functools import partial
 from xivo_dird import BaseSourcePlugin
-from xivo_dird import SourceResult
+from xivo_dird import make_result_class
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +49,9 @@ class CSVPlugin(BaseSourcePlugin):
         self._content = []
         self._has_unique_id = not len(self._config.get(self.UNIQUE_COLUMNS, [])) == 0
         self._load_file()
+        self._SourceResult = make_result_class(self._name,
+                                               self._config.get(self.UNIQUE_COLUMNS, []),
+                                               self._config.get('source_to_display_columns', {}))
 
     def name(self):
         return self._name
@@ -81,15 +84,7 @@ class CSVPlugin(BaseSourcePlugin):
             logger.exception('Could not load CSV file content')
 
     def _list_from_predicate(self, predicate):
-        return map(self._post_search_entry_transformation, ifilter(predicate, self._content))
-
-    def _post_search_entry_transformation(self, entry):
-        return SourceResult(self._add_unique(self._add_display_columns(entry)), self.name())
-
-    def _add_display_columns(self, entry):
-        for display, source in self._config.get('source_to_display_columns', {}).iteritems():
-            entry[display] = entry.get(source)
-        return entry
+        return map(self._SourceResult, ifilter(predicate, self._content))
 
     def _is_in_unique_ids(self, unique_ids, entry):
         return self._make_unique(entry) in unique_ids
@@ -104,11 +99,6 @@ class CSVPlugin(BaseSourcePlugin):
     @staticmethod
     def _row_to_dict(keys, values):
         return dict(izip(keys, values))
-
-    def _add_unique(self, entry):
-        if self._has_unique_id:
-            entry[self.UNIQUE_COLUMN_HEADER] = self._make_unique(entry)
-        return entry
 
     def _make_unique(self, entry):
         return tuple(entry[col] for col in self._config[self.UNIQUE_COLUMNS])
