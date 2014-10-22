@@ -20,14 +20,14 @@ setup(
     scripts=['bin/xivo-dird'],
 
     entry_points={
-        'xivo-dird.services': [
+        'xivo_dird.services': [
             'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
         ],
-        'xivo-dird.backends': [
+        'xivo_dird.backends': [
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
         ],
-        'xivo-dird.views': [
-            'default_json_view = xivo_dird.plugins.default_json_view:JSonViewPlugin',
+        'xivo_dird.views': [
+            'default_json = xivo_dird.plugins.default_json_view:JsonViewPlugin',
         ],
     }
 )
