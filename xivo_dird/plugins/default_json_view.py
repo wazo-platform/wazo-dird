@@ -98,7 +98,7 @@ def _lookup(lookup_service, display, term, profile, args):
         'term': term,
         'column_headers': [d.title for d in display],
         'column_types': [d.type for d in display],
-        'results': [r.to_dict() for r in raw_results]
+        'results': [DisplayAwareResult(display, r).to_dict() for r in raw_results]
     }
 
 

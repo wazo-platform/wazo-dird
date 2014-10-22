@@ -206,14 +206,17 @@ class TestLookup(unittest.TestCase):
         expected_types = [None, None, 'status', 'office_number', None]
         assert_that(result, has_entries('column_types', expected_types))
 
-    def test_that_lookup_adds_results(self):
-        self.service.return_value = r1, r2 = Mock(DisplayAwareResult), Mock(DisplayAwareResult)
+    @patch('xivo_dird.plugins.default_json_view.DisplayAwareResult')
+    def test_that_lookup_adds_results(self, MockedDisplayAwareResult):
+        self.service.return_value = r1, r2 = Mock(), Mock()
+        display = []
 
-        result = _lookup(self.service, {}, sentinel.term,
+        result = _lookup(self.service, display, sentinel.term,
                          sentinel.profile, sentinel.args)
 
-        assert_that(result, has_entries('results', [r1.to_dict.return_value,
-                                                    r2.to_dict.return_value]))
+        assert_that(result, has_entries('results', [
+            MockedDisplayAwareResult(display, r1).to_dict.return_value,
+            MockedDisplayAwareResult(display, r2).to_dict.return_value]))
 
 
 class TestDisplayAwareResult(unittest.TestCase):
