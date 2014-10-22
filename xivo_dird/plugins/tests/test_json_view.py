@@ -16,7 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import flask
-import json
 import unittest
 
 from hamcrest import assert_that

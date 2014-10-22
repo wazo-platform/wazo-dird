@@ -21,7 +21,6 @@ import logging
 from collections import namedtuple
 from flask import request
 from flask.helpers import make_response
-from functools import partial
 from time import time
 from xivo_dird import BaseViewPlugin
 
