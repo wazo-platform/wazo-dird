@@ -52,7 +52,6 @@ class LookupServicePlugin(BaseServicePlugin):
 class _LookupService(BaseService):
 
     def __init__(self, config, sources):
-        print ThreadPoolExecutor
         self._config = config
         self._sources = sources
         self._executor = ThreadPoolExecutor(max_workers=10)

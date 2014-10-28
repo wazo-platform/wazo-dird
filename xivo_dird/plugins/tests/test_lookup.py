@@ -123,7 +123,6 @@ class TestLookupService(unittest.TestCase):
 
     @patch('xivo_dird.plugins.lookup.ThreadPoolExecutor')
     def test_that_the_service_starts_the_thread_pool(self, MockedThreadPoolExecutor):
-        print MockedThreadPoolExecutor
         _LookupService({}, {})
 
         MockedThreadPoolExecutor.assert_called_once_with(max_workers=10)
