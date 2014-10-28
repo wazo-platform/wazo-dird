@@ -1,8 +1,7 @@
 server {
-    listen 127.0.0.1:9489 default_server;
-    server_name $domain;
-    location / { try_files $uri @xivo-dird; }
-    location @xivo-dird {
+    listen 127.0.0.1:9489;
+
+    location / {
          include fastcgi_params;
          fastcgi_param PATH_INFO $fastcgi_script_name;
          fastcgi_param SCRIPT_NAME "";
