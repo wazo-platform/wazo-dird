@@ -36,30 +36,15 @@ class JsonViewPlugin(BaseViewPlugin):
     ROUTE = '/{version}/directories/lookup/<profile>'.format(version=API_VERSION)
 
     def load(self, args=None):
-        try:
-            self._parse_args(args)
-        except ValueError as e:
-            logger.error('HTTP view loaded without %s', e)
-            return
-
-        self.http_app.add_url_rule(self.ROUTE, __name__, self._lookup_wrapper)
-
-    def _parse_args(self, args):
-        if not args:
-            args = {}
-
-        if 'http_app' not in args:
-            raise ValueError('http_app')
-        if 'services' not in args:
-            raise ValueError('services')
         if 'lookup' not in args['services']:
-            raise ValueError('lookup')
-        if 'config' not in args:
-            raise ValueError('config')
+            logger.error('HTTP view loaded without a lookup service')
+            return
 
         self.http_app = args['http_app']
         self.lookup_service = args['services']['lookup']
         self.displays = self._get_display_dict(args['config'])
+
+        self.http_app.add_url_rule(self.ROUTE, __name__, self._lookup_wrapper)
 
     def _get_display_dict(self, view_config):
         result = {}

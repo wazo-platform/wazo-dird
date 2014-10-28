@@ -39,30 +39,9 @@ class TestJsonViewPlugin(unittest.TestCase):
         self.http_app = flask.Flask(__name__)
         self.plugin = JsonViewPlugin()
 
-    def test_parse_args(self):
-        http_app = Mock()
-        self.plugin.load({'http_app': http_app,
-                          'services': {'lookup': sentinel.lookup_service},
-                          'config': {'displays': {'display_1': [],
-                                                  'display_2': []},
-                                     'profile_to_display': {'profile_1': 'display_1',
-                                                            'profile_2': 'display_2',
-                                                            'profile_3': 'display_1'}}})
-
-        assert_that(self.plugin.http_app, equal_to(http_app))
-        assert_that(self.plugin.lookup_service, equal_to(sentinel.lookup_service))
-
-    def test_default_view_load_no_args(self):
-        self.plugin.load()
-
-    def test_default_view_load_no_config(self):
-        self.plugin.load({'http_app': Mock()})
-
-    def test_default_view_load_no_displays(self):
-        self.plugin.load({'http_app': Mock()})
-
     def test_default_view_load_no_lookup_service(self):
-        self.plugin.load({'http_app': Mock()})
+        self.plugin.load({'http_app': Mock(),
+                          'services': {}})
 
     def test_that_load_adds_the_route(self):
         args = {
@@ -87,28 +66,30 @@ class TestJsonViewPlugin(unittest.TestCase):
             DisplayColumn('ln', None, 'N/A', 'LAST'),
         ]
 
-        args = {'displays': {'first_display': [{'title': 'Firstname',
-                                                'type': None,
-                                                'default': 'Unknown',
-                                                'field': 'firstname'},
-                                               {'title': 'Lastname',
-                                                'type': None,
-                                                'default': 'ln',
-                                                'field': 'lastname'}],
-                             'second_display': [{'title': 'fn',
-                                                 'type': 'some_type',
-                                                 'default': 'N/A',
-                                                 'field': 'firstname'},
-                                                {'title': 'ln',
-                                                 'type': None,
-                                                 'default': 'N/A',
-                                                 'field': 'LAST'}]},
-                'profile_to_display': {'profile_1': 'first_display',
-                                       'profile_2': 'second_display',
-                                       'profile_3': 'first_display'}}
+        args = {'config': {'displays': {'first_display': [{'title': 'Firstname',
+                                                           'type': None,
+                                                           'default': 'Unknown',
+                                                           'field': 'firstname'},
+                                                          {'title': 'Lastname',
+                                                           'type': None,
+                                                           'default': 'ln',
+                                                           'field': 'lastname'}],
+                                        'second_display': [{'title': 'fn',
+                                                            'type': 'some_type',
+                                                            'default': 'N/A',
+                                                            'field': 'firstname'},
+                                                           {'title': 'ln',
+                                                            'type': None,
+                                                            'default': 'N/A',
+                                                            'field': 'LAST'}]},
+                           'profile_to_display': {'profile_1': 'first_display',
+                                                  'profile_2': 'second_display',
+                                                  'profile_3': 'first_display'}},
+                'services': {'lookup': Mock()},
+                'http_app': Mock()}
         self.plugin.load(args)
 
-        display_dict = self.plugin._get_display_dict(args)
+        display_dict = self.plugin._get_display_dict(args['config'])
 
         expected = {
             'profile_1': first_display,
