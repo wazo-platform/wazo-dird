@@ -22,6 +22,7 @@ from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
 from hamcrest import is_in
+from hamcrest import is_not
 from mock import ANY
 from mock import Mock
 from mock import patch
@@ -43,6 +44,9 @@ class TestJsonViewPlugin(unittest.TestCase):
         self.plugin.load({'http_app': Mock(),
                           'services': {}})
 
+        route = '/{version}/directories/lookup/<profile>'.format(version=JsonViewPlugin.API_VERSION)
+        assert_that(route, is_not(self.is_route_of_app(self.http_app)))
+
     def test_that_load_adds_the_route(self):
         args = {
             'http_app': self.http_app,
@@ -54,7 +58,7 @@ class TestJsonViewPlugin(unittest.TestCase):
         self.plugin.load(args)
 
         route = '/{version}/directories/lookup/<profile>'.format(version=JsonViewPlugin.API_VERSION)
-        self.assert_has_route(self.http_app, route)
+        assert_that(route, self.is_route_of_app(self.http_app))
 
     def test_get_display_dict(self):
         first_display = [
@@ -128,9 +132,8 @@ class TestJsonViewPlugin(unittest.TestCase):
         make_response.assert_called_once_with(ANY, 400)
         assert_that(result, equal_to(make_response.return_value))
 
-    def assert_has_route(self, http_app, route):
-        routes = self._list_routes(http_app)
-        assert_that(route, is_in(routes))
+    def is_route_of_app(self, http_app):
+        return is_in(self._list_routes(http_app))
 
     def _list_routes(self, http_app):
         return (rule.rule for rule in http_app.url_map.iter_rules())
