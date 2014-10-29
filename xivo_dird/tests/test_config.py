@@ -18,12 +18,14 @@
 import logging
 
 from hamcrest import assert_that, has_entries, equal_to
+from mock import Mock
 from mock import patch
 from unittest import TestCase
 
 from xivo_dird import config
 
 
+@patch('__builtin__.print', Mock())
 @patch('xivo_dird.config.open', create=True)
 class TestConfig(TestCase):
 
