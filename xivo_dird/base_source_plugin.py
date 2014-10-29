@@ -30,9 +30,6 @@ class BaseSourcePlugin(object):
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in
     UNIQUE_COLUMNS = 'unique_columns'  # These are the columns that make an entry unique
 
-    # This is the column header of the unique id of a given result
-    UNIQUE_COLUMN_HEADER = '__unique_id'
-
     @abc.abstractmethod
     def load(self, args):
         '''
