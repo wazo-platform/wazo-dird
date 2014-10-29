@@ -28,7 +28,7 @@ from hamcrest import equal_to
 from xivo_dird.plugins.csv_plugin import CSVPlugin
 from xivo_dird import make_result_class
 
-coma_separated_content = '''\
+comma_separated_content = '''\
 clientno,firstname,lastname,number,age
 1,Alice,AAA,5555555555,20
 2,Bob,BBB,5555551234,21
@@ -46,7 +46,7 @@ class TestCsvDirectorySource(unittest.TestCase):
         cls.tmp_file = os.fdopen(cls.fd)
 
         with open(cls.fname, 'w') as f:
-            f.write(coma_separated_content)
+            f.write(comma_separated_content)
 
     @classmethod
     def teardownClass(cls):

@@ -31,10 +31,10 @@ class CSVPlugin(BaseSourcePlugin):
     '''The CSVPlugin sources will load a file containing CSV entries
     and search through the entries according to the configuration file.
 
-    The following values are required in the configuration file:
+    The following values are required in the configuration:
 
-    - file: <path/to/the/csv/file>
-    - searched_columns: ['column_1', 'column_2', ..., 'column_n']
+       {'file': <path/to/the/csv/file>,
+        'searched_columns': ['column_1', 'column_2', ..., 'column_n']}
 
     The `file` is the file that should be read by the plugin
     The `searched_columns` are the columns used to search for a term
