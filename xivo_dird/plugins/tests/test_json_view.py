@@ -32,9 +32,10 @@ from xivo_dird.plugins.default_json_view import DisplayAwareResult
 from xivo_dird.plugins.default_json_view import DisplayColumn
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
 from xivo_dird.plugins.default_json_view import _lookup
+from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
 
-class TestJsonViewPlugin(unittest.TestCase):
+class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def setUp(self):
         self.http_app = flask.Flask(__name__)
@@ -131,12 +132,6 @@ class TestJsonViewPlugin(unittest.TestCase):
 
         make_response.assert_called_once_with(ANY, 400)
         assert_that(result, equal_to(make_response.return_value))
-
-    def is_route_of_app(self, http_app):
-        return is_in(self._list_routes(http_app))
-
-    def _list_routes(self, http_app):
-        return (rule.rule for rule in http_app.url_map.iter_rules())
 
 
 class TestLookup(unittest.TestCase):
