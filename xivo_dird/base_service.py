@@ -18,10 +18,3 @@
 import abc
 
 
-class BaseService(object):
-
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def __call__(self, *args, **kwargs):
-        pass
