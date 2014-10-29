@@ -41,7 +41,7 @@ class HeadersViewPlugin(BaseViewPlugin):
             display_name = self.config.get('profile_to_display', {})[profile]
             display_configuration = self.config.get('displays', {})[display_name]
         except KeyError:
-            logger.debug('Returning a 404')
+            logger.warning('profile %s does not exist, or associated display does not exist', profile)
             return make_response(json.dumps({
                 'reason': ['The lookup profile does not exist'],
                 'timestamp': [time()],
