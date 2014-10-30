@@ -63,7 +63,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
 class TestCSVBackend(BaseDirdIntegrationTest):
 
-    asset = 'test_csv_backend'
+    asset = 'csv_with_multiple_displays'
 
     def test_that_searching_for_lice_return_Alice(self):
         result = self.lookup('lice', 'default')
@@ -74,7 +74,7 @@ class TestCSVBackend(BaseDirdIntegrationTest):
 
 class TestDisplay(BaseDirdIntegrationTest):
 
-    asset = 'test_csv_backend'
+    asset = 'csv_with_multiple_displays'
 
     def test_that_the_display_is_really_applied_to_lookup(self):
         result = self.lookup('lice', 'default')
