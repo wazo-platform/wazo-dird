@@ -26,7 +26,7 @@ RUN chown www-data: /var/log/xivo-dird.log
 WORKDIR /root
 RUN git clone "git://github.com/xivo-pbx/xivo-dird"
 WORKDIR xivo-dird
-RUN git checkout dird-daemon
+RUN git checkout 5027-dird-daemon
 RUN pip install -r requirements.txt
 RUN rsync -av etc/nginx/ /etc/nginx
 RUN ln -s /etc/nginx/sites-available/xivo-dird /etc/nginx/sites-enabled/xivo-dird
