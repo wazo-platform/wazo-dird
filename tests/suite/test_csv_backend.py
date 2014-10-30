@@ -24,6 +24,7 @@ import time
 
 from hamcrest import assert_that
 from hamcrest import contains
+from hamcrest import contains_inanyorder
 
 
 class BaseDirdIntegrationTest(unittest.TestCase):
@@ -33,7 +34,8 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         asset_path = os.path.abspath(os.path.curdir) + '/tests/assets/%s' % cls.asset
         volumes = '%s:/etc/xivo/xivo-dird' % asset_path
         cmd = ['docker', 'run', '--name', __name__,
-               '-v', volumes, '-p', '9489:9489', '-d', 'dird-test']
+               '-v', volumes,
+               '-d', '-p', '9489:9489', 'dird-test']
         subprocess.call(cmd)
         time.sleep(0.5)
 
@@ -70,6 +72,27 @@ class TestCSVBackend(BaseDirdIntegrationTest):
 
         assert_that(result['results'][0]['column_values'],
                     contains('Alice', 'AAA', '5555555555'))
+
+
+class TestCoreSourceManagement(BaseDirdIntegrationTest):
+
+    asset = 'multiple_sources'
+
+    def test_multiple_source_from_the_same_backend(self):
+        result = self.lookup('lice', 'default')
+
+        # second_csv does not search in column firstname
+        expected_results = [
+            {'column_values': ['Alice', 'AAA', '5555555555'],
+             'source': 'my_csv',
+             'relations': {'user': None, 'endpoint': None, 'agent': None}},
+            {'column_values': ['Alice', 'Alan', '1111'],
+             'source': 'third_csv',
+             'relations': {'user': None, 'endpoint': None, 'agent': None}},
+        ]
+
+        assert_that(result['results'],
+                    contains_inanyorder(*expected_results))
 
 
 class TestDisplay(BaseDirdIntegrationTest):

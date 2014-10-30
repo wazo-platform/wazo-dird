@@ -1,0 +1,13 @@
+type: csv
+name: my_csv
+file: /etc/xivo/xivo-dird/test.csv
+unique_columns:
+    - fn
+    - ln
+searched_columns:
+    - ln
+    - fn
+source_to_display:
+    ln: lastname
+    fn: firstname
+    num: number
