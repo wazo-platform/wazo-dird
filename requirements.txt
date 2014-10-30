@@ -8,3 +8,5 @@ psycopg2
 flup
 Flask
 flask-restplus
+stevedore
+pyaml
