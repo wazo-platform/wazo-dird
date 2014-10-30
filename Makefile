@@ -1,4 +1,7 @@
-.PHONY: test-image test-setup test-csv
+.PHONY: test-image test-setup test-csv test
+
+test:
+	nosetests tests/suite
 
 test-setup:
 	docker build -t xivo/dird_base contribs/docker/base_test_image
