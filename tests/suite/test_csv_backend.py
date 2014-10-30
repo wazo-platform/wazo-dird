@@ -20,6 +20,7 @@ import unittest
 import requests
 import time
 import json
+import os
 
 from hamcrest import assert_that
 from hamcrest import contains
@@ -29,7 +30,8 @@ class TestCSVBackend(unittest.TestCase):
 
     @classmethod
     def launch_dird_with_asset(cls):
-        volumes = '%s:/etc/xivo/xivo-dird' % '/home/pcm/d/xivo-dird/tests/assets/%s' % cls.asset
+        asset_path = os.path.abspath(os.path.curdir) + '/tests/assets/%s' % cls.asset
+        volumes = '%s:/etc/xivo/xivo-dird' % asset_path
         cmd = ['docker', 'run', '--name', __name__,
                '-v', volumes, '-p', '9489:9489', '-d', 'dird-test']
         subprocess.call(cmd)
