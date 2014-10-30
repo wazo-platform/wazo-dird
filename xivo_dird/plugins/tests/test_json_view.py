@@ -21,7 +21,6 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
-from hamcrest import is_in
 from mock import ANY
 from mock import Mock
 from mock import patch
@@ -31,9 +30,10 @@ from xivo_dird.plugins.default_json_view import DisplayAwareResult
 from xivo_dird.plugins.default_json_view import DisplayColumn
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
 from xivo_dird.plugins.default_json_view import _lookup
+from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
 
-class TestJsonViewPlugin(unittest.TestCase):
+class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def setUp(self):
         self.http_app = flask.Flask(__name__)
@@ -127,13 +127,6 @@ class TestJsonViewPlugin(unittest.TestCase):
 
         make_response.assert_called_once_with(ANY, 400)
         assert_that(result, equal_to(make_response.return_value))
-
-    def assert_has_route(self, http_app, route):
-        routes = self._list_routes(http_app)
-        assert_that(route, is_in(routes))
-
-    def _list_routes(self, http_app):
-        return (rule.rule for rule in http_app.url_map.iter_rules())
 
 
 class TestLookup(unittest.TestCase):

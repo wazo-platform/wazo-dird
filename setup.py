@@ -27,6 +27,7 @@ setup(
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
         ],
         'xivo_dird.views': [
+            'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
             'default_json = xivo_dird.plugins.default_json_view:JsonViewPlugin',
         ],
     }
