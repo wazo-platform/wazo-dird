@@ -18,15 +18,15 @@
 import subprocess
 import unittest
 import requests
-import time
 import json
 import os
+import time
 
 from hamcrest import assert_that
 from hamcrest import contains
 
 
-class TestCSVBackend(unittest.TestCase):
+class BaseDirdIntegrationTest(unittest.TestCase):
 
     @classmethod
     def launch_dird_with_asset(cls):
@@ -44,19 +44,62 @@ class TestCSVBackend(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):
-        cls.asset = 'test_csv_backend'
         cls.launch_dird_with_asset()
 
     @classmethod
     def teardownClass(cls):
         cls.stop_dird_with_asset()
 
-    def test_that_searching_for_lice_return_Alice(self):
-        result = self._look_for('lice', 'default')
-
-        assert_that(result['results'][0]['column_values'], contains('Alice', 'AAA', '5555555555'))
-
-    def _look_for(self, term, profile):
+    def lookup(self, term, profile):
         url = 'http://localhost:9489/0.1/directories/lookup/{profile}?term={term}'
         result = requests.get(url.format(profile=profile, term=term))
         return json.loads(result.text)
+
+    def headers(self, profile):
+        url = 'http://localhost:9489/0.1/directories/lookup/{profile}/headers'
+        result = requests.get(url.format(profile=profile))
+        return json.loads(result.text)
+
+
+class TestCSVBackend(BaseDirdIntegrationTest):
+
+    asset = 'test_csv_backend'
+
+    def test_that_searching_for_lice_return_Alice(self):
+        result = self.lookup('lice', 'default')
+
+        assert_that(result['results'][0]['column_values'],
+                    contains('Alice', 'AAA', '5555555555'))
+
+
+class TestDisplay(BaseDirdIntegrationTest):
+
+    asset = 'test_csv_backend'
+
+    def test_that_the_display_is_really_applied_to_lookup(self):
+        result = self.lookup('lice', 'default')
+
+        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
+        assert_that(result['column_types'], contains(None, None, None))
+
+    def test_display_with_a_type_only(self):
+        result = self.lookup('lice', 'test')
+
+        assert_that(result['column_headers'], contains('fn', 'ln', 'Empty', None, 'Default'))
+        assert_that(result['column_types'], contains('firstname', None, None, 'status', None))
+        assert_that(result['results'][0]['column_values'],
+                    contains('Alice', 'AAA', None, None, 'Default'))
+
+    def test_that_the_display_is_applied_to_headers(self):
+        result = self.headers('default')
+
+        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
+        assert_that(result['column_types'], contains(None, None, None))
+
+    def test_display_on_headers_with_no_title(self):
+        result = self.headers('test')
+
+        assert_that(result['column_headers'],
+                    contains('fn', 'ln', 'Empty', None, 'Default'))
+        assert_that(result['column_types'],
+                    contains('firstname', None, None, 'status', None))
