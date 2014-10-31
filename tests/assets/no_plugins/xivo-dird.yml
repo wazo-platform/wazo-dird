@@ -1,0 +1,32 @@
+source_config_dir: /etc/xivo/xivo-dird/sources.d
+rest_api:
+       wsgi_socket: /tmp/xivo-dird.sock
+
+enabled_plugins:
+    backends:
+    services:
+    views:
+
+views:
+    displays:
+        default_display:
+            -
+                title: Firstname
+                default: Unknown
+                field: firstname
+            -
+                title: Lastname
+                default: Unknown
+                field: lastname
+            -
+                title: Number
+                default:
+                field: number
+    profile_to_display:
+        default: default_display
+
+services:
+    lookup:
+        default:
+            sources:
+                - my_csv

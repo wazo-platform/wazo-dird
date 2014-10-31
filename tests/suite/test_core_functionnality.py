@@ -15,11 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import sh
+
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
+from hamcrest import is_in
+from hamcrest import is_not
 
 
 class TestCoreSourceManagement(BaseDirdIntegrationTest):
@@ -91,3 +95,14 @@ class TestDisplay(BaseDirdIntegrationTest):
                     contains('fn', 'ln', 'Empty', None, 'Default'))
         assert_that(result['column_types'],
                     contains('firstname', None, None, 'status', None))
+
+
+class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
+
+    asset = 'no_plugins'
+
+    def test_that_dird_does_not_run_when_not_configured(self):
+        self._assert_no_docker_image_running(self.image_name)
+
+    def _assert_no_docker_image_running(self, name):
+        assert_that(name, is_not(is_in(sh.docker('ps'))))
