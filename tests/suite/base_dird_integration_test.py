@@ -27,7 +27,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
     @classmethod
     def launch_dird_with_asset(cls):
-        cls.image_name = __name__
+        cls.image_name = cls.asset
         asset_path = os.path.abspath(os.path.curdir) + '/tests/assets/%s' % cls.asset
         volumes = '%s:/etc/xivo/xivo-dird' % asset_path
         cmd = ['docker', 'run', '--name', cls.image_name,

@@ -106,3 +106,20 @@ class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
 
     def _assert_no_docker_image_running(self, name):
         assert_that(name, is_not(is_in(sh.docker('ps'))))
+
+
+class TestWithAnotherConfigDir(BaseDirdIntegrationTest):
+
+    asset = 'in_plugins_d'
+
+    def test_that_dird_does_not_run_when_not_configured(self):
+        result = self.lookup('lice', 'default')
+
+        expected_results = [
+            {'column_values': ['Alice', 'AAA', '5555555555'],
+             'source': 'my_csv',
+             'relations': {'user': None, 'endpoint': None, 'agent': None}},
+        ]
+
+        assert_that(result['results'],
+                    contains_inanyorder(*expected_results))
