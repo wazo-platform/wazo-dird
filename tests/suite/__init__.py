@@ -14,19 +14,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-
-from .base_dird_integration_test import BaseDirdIntegrationTest
-
-from hamcrest import assert_that
-from hamcrest import contains
-
-
-class TestCSVBackend(BaseDirdIntegrationTest):
-
-    asset = 'csv_with_multiple_displays'
-
-    def test_that_searching_for_lice_return_Alice(self):
-        result = self.lookup('lice', 'default')
-
-        assert_that(result['results'][0]['column_values'],
-                    contains('Alice', 'AAA', '5555555555'))
