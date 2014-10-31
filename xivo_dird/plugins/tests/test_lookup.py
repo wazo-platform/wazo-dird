@@ -103,6 +103,32 @@ class TestLookupService(unittest.TestCase):
 
         s.stop()
 
+    def test_that_lookup_does_not_fail_if_one_config_is_not_correct(self):
+        sources = {
+            'source_1': Mock(name='source_1', search=Mock(return_value=[{'f': 1}])),
+            'source_2': Mock(name='source_2', search=Mock(return_value=[{'f': 2}])),
+            # 'source_3': Mock(name='source_3', search=Mock(return_value=[{'f': 3}])),  # ERROR in yaml config
+        }
+        config = {
+            'my_profile': {
+                'sources': ['source_1', 'source_3'],
+                'timeout': '1',
+            }
+        }
+
+        s = _LookupService(config, sources)
+
+        results = s(sentinel.term, 'my_profile', sentinel.args)
+
+        expected_results = [{'f': 1}]
+
+        sources['source_1'].search.assert_called_once_with(sentinel.term, sentinel.args)
+        assert_that(sources['source_2'].call_count, equal_to(0))
+
+        assert_that(results, contains_inanyorder(*expected_results))
+
+        s.stop()
+
     def test_when_the_profile_is_not_configured(self):
         s = _LookupService({}, {})
 

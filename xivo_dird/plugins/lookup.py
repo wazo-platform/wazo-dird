@@ -87,4 +87,4 @@ class _LookupService(BaseService):
             logger.warning('Cannot find retrieve lookup sources for profile %s', profile)
             return []
         else:
-            return [self._sources[name] for name in source_names]
+            return [self._sources[name] for name in source_names if name in self._sources]

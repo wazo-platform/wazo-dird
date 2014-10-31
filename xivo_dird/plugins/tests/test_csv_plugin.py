@@ -247,6 +247,22 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         assert_that(result, equal_to(True))
 
+    def test_low_case_match_entry_broken_config(self):
+        config = {
+            'file': self.fname,
+            'unique_columns': ['firstname', 'lastname'],
+            'name': 'my_dir',
+        }
+
+        term = 'ice'
+        columns = [None, 'firstname', 'lastname']
+
+        self.source.load({'config': config})
+
+        result = self.source._low_case_match_entry(term, columns, self.alice)
+
+        assert_that(result, equal_to(True))
+
     def _generate_random_non_existent_filename(self):
         while True:
             name = ''.join(random.choice(string.lowercase) for _ in xrange(10))

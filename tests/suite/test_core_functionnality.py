@@ -43,6 +43,23 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
                     contains_inanyorder(*expected_results))
 
 
+class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):
+
+    asset = 'broken_source_config'
+
+    def test_multiple_source_from_the_same_backend(self):
+        result = self.lookup('lice', 'default')
+
+        expected_results = [
+            {'column_values': ['Alice', 'AAA', '5555555555'],
+             'source': 'my_csv',
+             'relations': {'user': None, 'endpoint': None, 'agent': None}},
+        ]
+
+        assert_that(result['results'],
+                    contains_inanyorder(*expected_results))
+
+
 class TestDisplay(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'
