@@ -107,7 +107,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
     @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': [sentinel.term],
                                                                      'user_id': 42}))
     @patch('xivo_dird.plugins.default_json_view.make_response', Mock())
-    @patch('xivo_dird.plugins.default_json_view.json', Mock())
+    @patch('xivo_dird.plugins.default_json_view.jsonify', Mock())
     @patch('xivo_dird.plugins.default_json_view._lookup')
     def test_that_lookup_wrapper_calls_lookup(self, lookup):
         lookup.return_value([])
@@ -124,14 +124,13 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                                        {'user_id': 42})
 
     @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'user_id': 42}))
-    @patch('xivo_dird.plugins.default_json_view.make_response')
-    @patch('xivo_dird.plugins.default_json_view.json', Mock())
+    @patch('xivo_dird.plugins.default_json_view.jsonify')
     @patch('xivo_dird.plugins.default_json_view._lookup', Mock())
-    def test_that_lookup_wrapper_no_term_returns_400(self, make_response):
+    def test_that_lookup_wrapper_no_term_returns_400(self, jsonify):
         result = self.plugin._lookup_wrapper(sentinel.profile)
 
-        make_response.assert_called_once_with(ANY, 400)
-        assert_that(result, equal_to(make_response.return_value))
+        assert_that(result[0], equal_to(jsonify.return_value))
+        assert_that(result[1], equal_to(400))
 
 
 class TestLookup(unittest.TestCase):

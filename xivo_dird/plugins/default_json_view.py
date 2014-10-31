@@ -15,12 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import json
 import logging
 
 from collections import namedtuple
-from flask import request
-from flask.helpers import make_response
+from flask import jsonify, request
 from time import time
 from xivo_dird import BaseViewPlugin
 
@@ -63,18 +61,18 @@ class JsonViewPlugin(BaseViewPlugin):
         args = dict(request.args)
 
         if not args.get('term'):
-            return make_response(json.dumps({'reason': ['term is missing'],
-                                             'timestamp': [time()],
-                                             'status_code': 400}), 400)
+            error = {'reason': ['term is missing'],
+                     'timestamp': [time()],
+                     'status_code': 400}
+            return jsonify(error), 400
 
         term = args.pop('term')[0]
 
         logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
 
         result = _lookup(self.lookup_service, self.displays[profile], term, profile, args)
-        json_result = json.dumps(result)
 
-        return make_response(json_result, 200)
+        return jsonify(result)
 
 
 def _lookup(lookup_service, display, term, profile, args):
