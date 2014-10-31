@@ -30,3 +30,14 @@ class TestCSVBackend(BaseDirdIntegrationTest):
 
         assert_that(result['results'][0]['column_values'],
                     contains('Alice', 'AAA', '5555555555'))
+
+
+class TestCSVNoUnique(BaseDirdIntegrationTest):
+
+    asset = 'csv_with_no_unique_columns'
+
+    def test_lookup_should_work_without_unique_columns(self):
+        result = self.lookup('lice', 'default')
+
+        assert_that(result['results'][0]['column_values'],
+                    contains('Alice', 'AAA', '5555555555'))
