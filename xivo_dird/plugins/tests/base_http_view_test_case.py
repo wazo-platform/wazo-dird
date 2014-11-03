@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
-# Copyright (C) 2013-2014 Avencall
+#
+# Copyright (C) 2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -9,14 +9,21 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>
+# along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dird.plugins.base_plugins import BaseServicePlugin
-from xivo_dird.plugins.base_plugins import BaseViewPlugin
-from xivo_dird.plugins.base_plugins import BaseService
-from xivo_dird.plugins.base_plugins import BaseSourcePlugin
-from xivo_dird.plugins.source_result import make_result_class
+import unittest
+
+from hamcrest import is_in
+
+
+class BaseHTTPViewTestCase(unittest.TestCase):
+
+    def is_route_of_app(self, http_app):
+        return is_in(self._list_routes(http_app))
+
+    def _list_routes(self, http_app):
+        return (rule.rule for rule in http_app.url_map.iter_rules())
