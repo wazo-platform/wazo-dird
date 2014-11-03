@@ -21,9 +21,7 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
-from hamcrest import is_in
 from hamcrest import is_not
-from mock import ANY
 from mock import Mock
 from mock import patch
 from mock import sentinel
