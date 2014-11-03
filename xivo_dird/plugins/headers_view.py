@@ -19,7 +19,6 @@ import logging
 
 from time import time
 from xivo_dird import BaseViewPlugin
-from flask import jsonify
 from flask_restplus import Resource
 
 logger = logging.getLogger(__name__)
@@ -63,10 +62,10 @@ def make_api_class(config, namespace, api):
                     'timestamp': [time()],
                     'status_code': 404,
                 }
-                return jsonify(error), 404
+                return error, 404
 
             response = {'column_headers': [column.get('title') for column in display_configuration],
                         'column_types': [column.get('type') for column in display_configuration]}
-            return jsonify(response)
+            return response
 
     return Headers

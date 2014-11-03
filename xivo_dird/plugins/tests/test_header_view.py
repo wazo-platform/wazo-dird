@@ -66,12 +66,10 @@ class TestHeadersView(BaseHTTPViewTestCase):
             'column_headers': ['fn', 'ln'],
             'column_types': ['some_type', None],
         }
-        assert_that(result, equal_to(jsonify.return_value))
-        jsonify.assert_called_once_with(expected_result)
+        assert_that(result, equal_to(expected_result))
 
     @patch('xivo_dird.plugins.headers_view.time', Mock(return_value='now'))
-    @patch('xivo_dird.plugins.headers_view.jsonify')
-    def test_result_with_a_bad_profile(self, jsonify):
+    def test_result_with_a_bad_profile(self):
         config = {'displays': {'display_1': [{'title': 'Firstname',
                                               'type': None,
                                               'default': 'Unknown',
@@ -93,13 +91,12 @@ class TestHeadersView(BaseHTTPViewTestCase):
                                          'profile_3': 'display_1'}}
         api_class = make_api_class(config, namespace=Mock(), api=Mock())
 
-        result = api_class().get('profile_XXX')
+        result, code = api_class().get('profile_XXX')
 
         expected_result = {
             'reason': ['The lookup profile does not exist'],
             'timestamp': ['now'],
             'status_code': 404,
         }
-        assert_that(result[0], equal_to(jsonify.return_value))
-        assert_that(result[1], equal_to(404))
-        jsonify.assert_called_once_with(expected_result)
+        assert_that(result, equal_to(expected_result))
+        assert_that(code, equal_to(404))
