@@ -17,6 +17,7 @@
 
 from hamcrest import assert_that
 from hamcrest import equal_to
+from mock import ANY
 from mock import Mock
 from mock import patch
 from xivo_dird.plugins.headers_view import HeadersViewPlugin
@@ -34,7 +35,7 @@ class TestHeadersView(BaseHTTPViewTestCase):
 
         HeadersViewPlugin().load(args)
 
-        http_namespace.route.assert_called_once_with('/lookup/<profile>/headers')
+        http_namespace.route.assert_called_once_with('/lookup/<profile>/headers', doc=ANY)
 
     @patch('xivo_dird.plugins.headers_view.jsonify')
     def test_result(self, jsonify):

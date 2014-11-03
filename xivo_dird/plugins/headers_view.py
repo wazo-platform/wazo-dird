@@ -28,10 +28,23 @@ logger = logging.getLogger(__name__)
 class HeadersViewPlugin(BaseViewPlugin):
 
     def load(self, args):
-        api_class = make_api_class(args['config'],
-                                   args['http_namespace'],
-                                   args['rest_api'])
-        args['http_namespace'].route('/lookup/<profile>/headers')(api_class)
+        api = args['rest_api']
+        config = args['config']
+        namespace = args['http_namespace']
+
+        api_class = make_api_class(config, namespace, api)
+
+        route = '/lookup/<profile>/headers'
+        doc = {
+            'params': {
+                'profile': 'The profile identifies the list of contact sources and the display format',
+            },
+            'responses': {
+                404: 'Invalid profile'
+            }
+        }
+
+        api_class = namespace.route(route, doc=doc)(api_class)
 
 
 def make_api_class(config, namespace, api):
