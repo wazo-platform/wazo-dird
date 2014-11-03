@@ -20,6 +20,7 @@ import logging
 from time import time
 from xivo_dird import BaseViewPlugin
 from flask_restplus import Resource
+from flask_restplus import fields
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,12 @@ class HeadersViewPlugin(BaseViewPlugin):
 
         route = '/lookup/<profile>/headers'
         doc = {
+            'model': api.model('Headers', {
+                'column_headers': fields.List(fields.String,
+                                              description='The labels for the result header'),
+                'column_types': fields.List(fields.String,
+                                            description='The types for the result header'),
+            }),
             'params': {
                 'profile': 'The profile identifies the list of contact sources and the display format',
             },
