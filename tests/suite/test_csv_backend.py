@@ -41,3 +41,20 @@ class TestCSVNoUnique(BaseDirdIntegrationTest):
 
         assert_that(result['results'][0]['column_values'],
                     contains('Alice', 'AAA', '5555555555'))
+
+
+class TestCSVWithAccents(BaseDirdIntegrationTest):
+
+    asset = 'csv_with_no_unique_columns'
+
+    def test_lookup_with_accents_in_term(self):
+        result = self.lookup('pép', 'default')
+
+        assert_that(result['results'][0]['column_values'],
+                    contains(u'Pépé', u'lol', u'555'))
+
+    def test_lookup_with_accents_in_the_result(self):
+        result = self.lookup('lol', 'default')
+
+        assert_that(result['results'][0]['column_values'],
+                    contains(u'Pépé', u'lol', u'555'))
