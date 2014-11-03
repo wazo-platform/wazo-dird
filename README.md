@@ -21,7 +21,7 @@ To run the unittests
 
 ### Integration tests
 
-docker is required to execute integration tests as well as the content of `test_requirement.txt`
+docker is required to execute integration tests as well as the content of `test_requirements.txt`
 
     % pip install -r requirements.txt
 
