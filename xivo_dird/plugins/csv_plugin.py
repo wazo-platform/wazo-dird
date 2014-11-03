@@ -78,7 +78,7 @@ class CSVPlugin(BaseSourcePlugin):
         try:
             with open(self._config['file'], 'r') as f:
                 csvreader = csv.reader(f)
-                keys = next(csvreader)
+                keys = [key.decode('utf-8') for key in next(csvreader)]
                 self._content = [self._row_to_dict(keys, row) for row in csvreader]
         except IOError:
             logger.exception('Could not load CSV file content')
@@ -98,7 +98,8 @@ class CSVPlugin(BaseSourcePlugin):
 
     @staticmethod
     def _row_to_dict(keys, values):
-        return dict(izip(keys, values))
+        return dict(izip(
+            keys, [value.decode('utf-8') if type(value) == str else value for value in values]))
 
     def _make_unique(self, entry):
         return tuple(entry[col] for col in self._config[self.UNIQUE_COLUMNS])
