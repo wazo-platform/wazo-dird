@@ -1,0 +1,11 @@
+type: csv
+name: my_csv
+file: /etc/xivo/xivo-dird/test.csv
+separator: "|"
+searched_columns:
+    - fn
+    - ln
+source_to_display:
+    ln: lastname
+    fn: firstname
+    num: number

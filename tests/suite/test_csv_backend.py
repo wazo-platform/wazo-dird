@@ -58,3 +58,14 @@ class TestCSVWithAccents(BaseDirdIntegrationTest):
 
         assert_that(result['results'][0]['column_values'],
                     contains(u'Pépé', u'lol', u'555'))
+
+
+class TestCSVSeperator(BaseDirdIntegrationTest):
+
+    asset = 'csv_with_pipes'
+
+    def test_lookup_with_pipe(self):
+        result = self.lookup('al', 'default')
+
+        assert_that(result['results'][0]['column_values'],
+                    contains(u'Alice', u'AAA', u'5555555555'))

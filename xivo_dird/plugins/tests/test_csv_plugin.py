@@ -35,10 +35,18 @@ clientno,firstname,lastname,number,age
 3,Charles,CCC,5555556666,22
 '''
 
+pipe_separated_content = coma_separated_content.replace(',', '|')
+
 SourceResult = make_result_class('my_directory', 'client_no')
 
+alice = {'clientno': '1',
+         'firstname': 'Alice',
+         'lastname': 'AAA',
+         'number': '5555555555',
+         'age': '20'}
 
-class TestCsvDirectorySource(unittest.TestCase):
+
+class BaseCSVTestDirectory(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):
@@ -46,19 +54,40 @@ class TestCsvDirectorySource(unittest.TestCase):
         cls.tmp_file = os.fdopen(cls.fd)
 
         with open(cls.fname, 'w') as f:
-            f.write(coma_separated_content)
+            f.write(cls.content)
 
     @classmethod
     def teardownClass(cls):
         os.remove(cls.fname)
 
+
+class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
+
+    content = pipe_separated_content
+
+    def test_search_with_diferent_separator(self):
+        self.source = CSVPlugin()
+        config = {
+            'file': self.fname,
+            'unique_columns': ['clientno'],
+            'searched_columns': ['firstname'],
+            'name': 'my_directory',
+            'separator': '|',
+        }
+
+        self.source.load({'config': config})
+
+        results = self.source.search('ice')
+
+        assert_that(results, contains(SourceResult(alice)))
+
+
+class TestCsvDirectorySource(BaseCSVTestDirectory):
+
+    content = coma_separated_content
+
     def setUp(self):
         self.name = 'my_directory'
-        self.alice = {'clientno': '1',
-                      'firstname': 'Alice',
-                      'lastname': 'AAA',
-                      'number': '5555555555',
-                      'age': '20'}
         self.bob = {'clientno': '2',
                     'firstname': 'Bob',
                     'lastname': 'BBB',
@@ -70,7 +99,7 @@ class TestCsvDirectorySource(unittest.TestCase):
                         'number': '5555556666',
                         'age': '22'}
         self.source = CSVPlugin()
-        self.alice_result = SourceResult(self.alice)
+        self.alice_result = SourceResult(alice)
         self.charles_result = SourceResult(self.charles)
 
     def test_load_empty_config(self):
@@ -100,7 +129,7 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         self.source.load({'config': config})
 
-        assert_that(self.source._content, contains_inanyorder(self.alice, self.bob, self.charles))
+        assert_that(self.source._content, contains_inanyorder(alice, self.bob, self.charles))
 
     def test_search(self):
         config = {
@@ -243,7 +272,7 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         self.source.load({'config': config})
 
-        result = self.source._low_case_match_entry(term, columns, self.alice)
+        result = self.source._low_case_match_entry(term, columns, alice)
 
         assert_that(result, equal_to(True))
 
@@ -259,7 +288,7 @@ class TestCsvDirectorySource(unittest.TestCase):
 
         self.source.load({'config': config})
 
-        result = self.source._low_case_match_entry(term, columns, self.alice)
+        result = self.source._low_case_match_entry(term, columns, alice)
 
         assert_that(result, equal_to(True))
 

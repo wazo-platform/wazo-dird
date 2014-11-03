@@ -77,7 +77,7 @@ class CSVPlugin(BaseSourcePlugin):
 
         try:
             with open(self._config['file'], 'r') as f:
-                csvreader = csv.reader(f)
+                csvreader = csv.reader(f, delimiter=self._config.get('separator', ','))
                 keys = [key.decode('utf-8') for key in next(csvreader)]
                 self._content = [self._row_to_dict(keys, row) for row in csvreader]
         except IOError:
