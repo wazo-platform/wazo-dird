@@ -20,34 +20,40 @@ import logging
 from time import time
 from xivo_dird import BaseViewPlugin
 from flask import jsonify
+from flask_restplus import Resource
 
 logger = logging.getLogger(__name__)
 
 
 class HeadersViewPlugin(BaseViewPlugin):
 
-    API_VERSION = '0.1'
-    ROUTE = '/{version}/directories/lookup/<profile>/headers'.format(version=API_VERSION)
-
     def load(self, args):
-        self.config = args['config']
-        self.http_app = args['http_app']
-        self.http_app.add_url_rule(self.ROUTE, __name__, self._header)
+        api_class = make_api_class(args['config'],
+                                   args['http_namespace'],
+                                   args['rest_api'])
+        args['http_namespace'].route('/lookup/<profile>/headers')(api_class)
 
-    def _header(self, profile):
-        logger.debug('header request on profile %s', profile)
-        try:
-            display_name = self.config.get('profile_to_display', {})[profile]
-            display_configuration = self.config.get('displays', {})[display_name]
-        except KeyError:
-            logger.warning('profile %s does not exist, or associated display does not exist', profile)
-            error = {
-                'reason': ['The lookup profile does not exist'],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
-            return jsonify(error), 404
 
-        response = {'column_headers': [column.get('title') for column in display_configuration],
-                    'column_types': [column.get('type') for column in display_configuration]}
-        return jsonify(response)
+def make_api_class(config, namespace, api):
+
+    class Headers(Resource):
+
+        def get(self, profile):
+            logger.debug('header request on profile %s', profile)
+            try:
+                display_name = config.get('profile_to_display', {})[profile]
+                display_configuration = config.get('displays', {})[display_name]
+            except KeyError:
+                logger.warning('profile %s does not exist, or associated display does not exist', profile)
+                error = {
+                    'reason': ['The lookup profile does not exist'],
+                    'timestamp': [time()],
+                    'status_code': 404,
+                }
+                return jsonify(error), 404
+
+            response = {'column_headers': [column.get('title') for column in display_configuration],
+                        'column_types': [column.get('type') for column in display_configuration]}
+            return jsonify(response)
+
+    return Headers
