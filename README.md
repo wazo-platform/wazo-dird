@@ -23,7 +23,7 @@ To run the unittests
 
 docker is required to execute integration tests as well as the content of `test_requirements.txt`
 
-    % pip install -r requirements.txt
+    % pip install -r test_requirements.txt
 
 A docker image named `dird-test` is required to execute the test suite.
 To build this image execute:
