@@ -26,15 +26,11 @@ RUN chown www-data: /var/log/xivo-dird.log
 WORKDIR /root
 RUN git clone "git://github.com/xivo-pbx/xivo-dird"
 WORKDIR xivo-dird
-RUN git checkout 5027-dird-daemon
 RUN pip install -r requirements.txt
 RUN rsync -av etc/nginx/ /etc/nginx
 RUN ln -s /etc/nginx/sites-available/xivo-dird /etc/nginx/sites-enabled/xivo-dird
 RUN sed -i 's#/var/run/xivo-dird#/tmp#' /etc/nginx/sites-available/xivo-dird
 RUN sed -i 's#127.0.0.1#0.0.0.0#' /etc/nginx/sites-available/xivo-dird
-
-# to be removed after the merge
-RUN pip install pyaml stevedore futures
 
 RUN python setup.py install
 WORKDIR /root
