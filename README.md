@@ -28,8 +28,8 @@ docker is required to execute integration tests as well as the content of `test_
 A docker image named `dird-test` is required to execute the test suite.
 To build this image execute:
 
-    % make test-setup
-    % make test-image
+    % make -f tests/Makefile test-setup
+    % make -f tests/Makefile test-image
 
 The `make test-setup` step is time consuming and should rarelly be required. It creates a base image that is going to be used as the base for dird-test image that is build from the local source using `make test-image`.
 
