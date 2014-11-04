@@ -37,8 +37,7 @@ class TestHeadersView(BaseHTTPViewTestCase):
 
         http_namespace.route.assert_called_once_with('/lookup/<profile>/headers', doc=ANY)
 
-    @patch('xivo_dird.plugins.headers_view.jsonify')
-    def test_result(self, jsonify):
+    def test_result(self):
         config = {'displays': {'display_1': [{'title': 'Firstname',
                                               'type': None,
                                               'default': 'Unknown',

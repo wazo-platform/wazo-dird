@@ -18,8 +18,8 @@
 import logging
 
 from collections import namedtuple
-from flask import jsonify, request
-from time import time
+from flask_restplus import Resource
+from flask_restplus import fields
 from xivo_dird import BaseViewPlugin
 
 logger = logging.getLogger(__name__)
@@ -30,19 +30,38 @@ DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'
 
 class JsonViewPlugin(BaseViewPlugin):
 
-    API_VERSION = '0.1'
-    ROUTE = '/{version}/directories/lookup/<profile>'.format(version=API_VERSION)
-
     def load(self, args=None):
         if 'lookup' not in args['services']:
             logger.error('HTTP view loaded without a lookup service')
             return
 
-        self.http_app = args['http_app']
-        self.lookup_service = args['services']['lookup']
-        self.displays = self._get_display_dict(args['config'])
+        api = args['rest_api']
+        config = args['config']
+        namespace = args['http_namespace']
 
-        self.http_app.add_url_rule(self.ROUTE, __name__, self._lookup_wrapper)
+        lookup_service = args['services']['lookup']
+        displays = self._get_display_dict(config)
+
+        route = '/lookup/<profile>'
+        doc = {
+            'model': api.model('Lookup', {
+                'column_headers': fields.List(fields.String, description='The labels of the result header'),
+                'column_types': fields.List(fields.String, description='The types of the result header'),
+                'results': fields.List(fields.List(fields.String), description='The values of the results'),
+                'term': fields.String(description='The string to look for'),
+            }),
+            'params': {
+                'term': {
+                    'description': 'The string to look for',
+                    'required': False,
+                    'type': 'string',
+                    'paramType': 'query',
+                }
+            }
+        }
+
+        api_class = make_api_class(lookup_service, displays, api)
+        namespace.route(route, doc=doc)(api_class)
 
     def _get_display_dict(self, view_config):
         result = {}
@@ -57,26 +76,28 @@ class JsonViewPlugin(BaseViewPlugin):
             for display in view_config['displays'][display_name]
         ]
 
-    def _lookup_wrapper(self, profile):
-        args = dict(request.args)
 
-        if not args.get('term'):
-            error = {'reason': ['term is missing'],
-                     'timestamp': [time()],
-                     'status_code': 400}
-            return jsonify(error), 400
+def make_api_class(lookup_service, displays, api):
 
-        term = args.pop('term')[0]
+    parser = api.parser()
+    parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
-        logger.info('Lookup for %s with profile %s and args %s', term, profile, args)
+    class Lookup(Resource):
 
-        result = _lookup(self.lookup_service, self.displays[profile], term, profile, args)
+        def get(self, profile):
+            args = parser.parse_args()
+            term = args['term']
 
-        return jsonify(result)
+            logger.info('Lookup for %s with profile %s', term, profile)
+            display = displays[profile]
+
+            return _lookup(lookup_service, display, term, profile)
+
+    return Lookup
 
 
-def _lookup(lookup_service, display, term, profile, args):
-    raw_results = lookup_service(term, profile, args)
+def _lookup(lookup_service, display, term, profile):
+    raw_results = lookup_service(term, profile, args={})
     return {
         'term': term,
         'column_headers': [d.title for d in display],

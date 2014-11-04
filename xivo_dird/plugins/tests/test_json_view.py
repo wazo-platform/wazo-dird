@@ -21,14 +21,16 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
-from hamcrest import is_not
+from mock import ANY
 from mock import Mock
 from mock import patch
 from mock import sentinel
+from werkzeug.exceptions import HTTPException
 from xivo_dird import make_result_class
 from xivo_dird.plugins.default_json_view import DisplayAwareResult
 from xivo_dird.plugins.default_json_view import DisplayColumn
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
+from xivo_dird.plugins.default_json_view import make_api_class
 from xivo_dird.plugins.default_json_view import _lookup
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
@@ -40,24 +42,28 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         self.plugin = JsonViewPlugin()
 
     def test_default_view_load_no_lookup_service(self):
-        self.plugin.load({'http_app': Mock(),
+        namespace = Mock()
+
+        self.plugin.load({'http_namespace': namespace,
+                          'rest_api': Mock(),
                           'services': {}})
 
-        route = '/{version}/directories/lookup/<profile>'.format(version=JsonViewPlugin.API_VERSION)
-        assert_that(route, is_not(self.is_route_of_app(self.http_app)))
+        assert_that(namespace.route.call_count, equal_to(0))
 
     def test_that_load_adds_the_route(self):
+        namespace = Mock()
         args = {
-            'http_app': self.http_app,
             'config': {'displays': {},
                        'profile_to_display': {}},
+            'http_app': self.http_app,
+            'http_namespace': namespace,
+            'rest_api': Mock(),
             'services': {'lookup': Mock()},
         }
 
         self.plugin.load(args)
 
-        route = '/{version}/directories/lookup/<profile>'.format(version=JsonViewPlugin.API_VERSION)
-        assert_that(route, self.is_route_of_app(self.http_app))
+        namespace.route.assert_called_once_with('/lookup/<profile>', doc=ANY)
 
     def test_get_display_dict(self):
         first_display = [
@@ -88,8 +94,10 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                            'profile_to_display': {'profile_1': 'first_display',
                                                   'profile_2': 'second_display',
                                                   'profile_3': 'first_display'}},
-                'services': {'lookup': Mock()},
-                'http_app': Mock()}
+                'http_app': Mock(),
+                'http_namespace': Mock(),
+                'rest_api': Mock(),
+                'services': {'lookup': Mock()}}
         self.plugin.load(args)
 
         display_dict = self.plugin._get_display_dict(args['config'])
@@ -102,32 +110,33 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
         assert_that(display_dict, equal_to(expected))
 
-    @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': [sentinel.term],
-                                                                     'user_id': 42}))
-    @patch('xivo_dird.plugins.default_json_view.jsonify', Mock())
     @patch('xivo_dird.plugins.default_json_view._lookup')
     def test_that_lookup_wrapper_calls_lookup(self, lookup):
-        lookup.return_value([])
-        self.plugin.lookup_service = Mock()
+        lookup.return_value = sentinel.result
         profile = 'test'
-        self.plugin.displays = {profile: sentinel.display}
+        displays = {profile: sentinel.display}
+        api = Mock()
+        api.parser.return_value.parse_args.return_value = {'term': sentinel.term}
+        api_class = make_api_class(sentinel.lookup_service,
+                                   displays,
+                                   api=api)
 
-        self.plugin._lookup_wrapper(profile)
+        result = api_class().get(profile)
 
-        lookup.assert_called_once_with(self.plugin.lookup_service,
+        lookup.assert_called_once_with(sentinel.lookup_service,
                                        sentinel.display,
                                        sentinel.term,
-                                       profile,
-                                       {'user_id': 42})
+                                       profile)
+        assert_that(result, equal_to(sentinel.result))
 
-    @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'user_id': 42}))
-    @patch('xivo_dird.plugins.default_json_view.jsonify')
-    @patch('xivo_dird.plugins.default_json_view._lookup', Mock())
-    def test_that_lookup_wrapper_no_term_returns_400(self, jsonify):
-        result = self.plugin._lookup_wrapper(sentinel.profile)
+    def test_lookup_when_no_term_then_exception(self):
+        api = Mock()
+        api.parser.return_value.parse_args.side_effect = HTTPException
+        api_class = make_api_class(sentinel.lookup_service,
+                                   sentinel.displays,
+                                   api=api)
 
-        assert_that(result[0], equal_to(jsonify.return_value))
-        assert_that(result[1], equal_to(400))
+        self.assertRaises(HTTPException, api_class().get, sentinel.profile)
 
 
 class TestLookup(unittest.TestCase):
@@ -137,15 +146,17 @@ class TestLookup(unittest.TestCase):
 
     def test_that_lookup_forwards_term_to_the_service(self):
         self.service.return_value = []
-        _lookup(self.service, [], sentinel.term, sentinel.profile, sentinel.args)
+        _lookup(self.service, [], sentinel.term, sentinel.profile)
 
-        self.service.assert_called_once_with(sentinel.term, sentinel.profile, sentinel.args)
+        self.service.assert_called_once_with(sentinel.term, sentinel.profile, args={})
 
     def test_that_lookup_adds_the_term_to_its_result(self):
         self.service.return_value = []
 
-        result = _lookup(self.service, [], sentinel.term,
-                         sentinel.profile, sentinel.args)
+        result = _lookup(self.service,
+                         [],
+                         sentinel.term,
+                         sentinel.profile)
 
         assert_that(result, has_entries('term', sentinel.term))
 
@@ -159,8 +170,10 @@ class TestLookup(unittest.TestCase):
             DisplayColumn('Country', None, 'Canada', 'country'),
         ]
 
-        result = _lookup(self.service, display, sentinel.term,
-                         sentinel.profile, sentinel.args)
+        result = _lookup(self.service,
+                         display,
+                         sentinel.term,
+                         sentinel.profile)
 
         expected_headers = ['Firstname', 'Lastname', None, 'Number', 'Country']
         assert_that(result, has_entries('column_headers', expected_headers))
@@ -175,8 +188,10 @@ class TestLookup(unittest.TestCase):
             DisplayColumn('Country', None, 'Canada', 'country'),
         ]
 
-        result = _lookup(self.service, display, sentinel.term,
-                         sentinel.profile, sentinel.args)
+        result = _lookup(self.service,
+                         display,
+                         sentinel.term,
+                         sentinel.profile)
 
         expected_types = [None, None, 'status', 'office_number', None]
         assert_that(result, has_entries('column_types', expected_types))
@@ -186,8 +201,10 @@ class TestLookup(unittest.TestCase):
         self.service.return_value = r1, r2 = Mock(), Mock()
         display = []
 
-        result = _lookup(self.service, display, sentinel.term,
-                         sentinel.profile, sentinel.args)
+        result = _lookup(self.service,
+                         display,
+                         sentinel.term,
+                         sentinel.profile)
 
         assert_that(result, has_entries('results', [
             MockedDisplayAwareResult(display, r1).to_dict.return_value,
