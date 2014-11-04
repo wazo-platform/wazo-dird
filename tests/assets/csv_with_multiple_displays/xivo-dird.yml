@@ -1,0 +1,59 @@
+source_config_dir: /etc/xivo/xivo-dird/sources.d
+rest_api:
+       wsgi_socket: /tmp/xivo-dird.sock
+
+enabled_plugins:
+    backends:
+        - csv
+    services:
+        - lookup
+    views:
+        - default_json
+        - headers_view
+
+views:
+    displays:
+        default_display:
+            -
+                title: Firstname
+                default: Unknown
+                field: firstname
+            -
+                title: Lastname
+                default: Unknown
+                field: lastname
+            -
+                title: Number
+                default:
+                field: number
+        second_display:
+            -
+                title: fn
+                default: Unknown
+                field: firstname
+                type: firstname
+            -
+                title: ln
+                default: Unknown
+                field: lastname
+            -
+                title: Empty
+                field: not_there
+            -
+                type: status
+            -
+                title: Default
+                default: Default
+    profile_to_display:
+        default: default_display
+        test: second_display
+
+services:
+    lookup:
+        test:
+            sources:
+                - my_csv
+        default:
+            sources:
+                - my_csv
+            timeout: 0.5
