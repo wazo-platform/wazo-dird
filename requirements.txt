@@ -10,3 +10,4 @@ Flask
 flask-restplus
 stevedore
 pyaml
+futures
