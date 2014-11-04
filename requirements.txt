@@ -9,3 +9,4 @@ flup
 Flask
 flask-restplus
 stevedore
+pyaml
