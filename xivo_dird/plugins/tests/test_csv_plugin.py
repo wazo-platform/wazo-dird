@@ -28,14 +28,14 @@ from hamcrest import equal_to
 from xivo_dird.plugins.csv_plugin import CSVPlugin
 from xivo_dird import make_result_class
 
-coma_separated_content = '''\
+comma_separated_content = '''\
 clientno,firstname,lastname,number,age
 1,Alice,AAA,5555555555,20
 2,Bob,BBB,5555551234,21
 3,Charles,CCC,5555556666,22
 '''
 
-pipe_separated_content = coma_separated_content.replace(',', '|')
+pipe_separated_content = comma_separated_content.replace(',', '|')
 
 SourceResult = make_result_class('my_directory', 'client_no')
 
@@ -84,7 +84,7 @@ class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
 
 class TestCsvDirectorySource(BaseCSVTestDirectory):
 
-    content = coma_separated_content
+    content = comma_separated_content
 
     def setUp(self):
         self.name = 'my_directory'

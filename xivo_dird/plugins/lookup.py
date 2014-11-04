@@ -84,7 +84,7 @@ class _LookupService(BaseService):
         try:
             source_names = self._config[profile]['sources']
         except KeyError:
-            logger.warning('Cannot find retrieve lookup sources for profile %s', profile)
+            logger.warning('Cannot find lookup sources for profile %s', profile)
             return []
         else:
             return [self._sources[name] for name in source_names if name in self._sources]

@@ -21,8 +21,8 @@ from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
 from mock import sentinel
-from xivo_dird.source_result import _SourceResult
-from xivo_dird.source_result import make_result_class
+from xivo_dird.plugins.source_result import _SourceResult
+from xivo_dird.plugins.source_result import make_result_class
 
 
 class TestSourceResult(unittest.TestCase):

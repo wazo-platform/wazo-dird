@@ -16,11 +16,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import logging
-import json
 
 from time import time
 from xivo_dird import BaseViewPlugin
-from flask.helpers import make_response
+from flask import jsonify
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +40,14 @@ class HeadersViewPlugin(BaseViewPlugin):
             display_name = self.config.get('profile_to_display', {})[profile]
             display_configuration = self.config.get('displays', {})[display_name]
         except KeyError:
-            logger.debug('Returning a 404')
-            return make_response(json.dumps({
+            logger.warning('profile %s does not exist, or associated display does not exist', profile)
+            error = {
                 'reason': ['The lookup profile does not exist'],
                 'timestamp': [time()],
                 'status_code': 404,
-            }), 404)
+            }
+            return jsonify(error), 404
 
         response = {'column_headers': [column.get('title') for column in display_configuration],
                     'column_types': [column.get('type') for column in display_configuration]}
-        return make_response(json.dumps(response), 200)
+        return jsonify(response)

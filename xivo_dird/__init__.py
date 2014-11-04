@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dird.base_plugins import BaseServicePlugin
-from xivo_dird.base_plugins import BaseViewPlugin
-from xivo_dird.base_service import BaseService
-from xivo_dird.base_source_plugin import BaseSourcePlugin
-from xivo_dird.source_result import make_result_class
+from xivo_dird.plugins.base_plugins import BaseServicePlugin
+from xivo_dird.plugins.base_plugins import BaseViewPlugin
+from xivo_dird.plugins.base_plugins import BaseService
+from xivo_dird.plugins.base_plugins import BaseSourcePlugin
+from xivo_dird.plugins.source_result import make_result_class

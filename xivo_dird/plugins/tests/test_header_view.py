@@ -16,7 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import flask
-import json
 
 from hamcrest import assert_that
 from hamcrest import equal_to
@@ -41,10 +40,10 @@ class TestHeadersView(BaseHTTPViewTestCase):
         route = '/{version}/directories/lookup/<profile>/headers'.format(
             version=HeadersViewPlugin.API_VERSION)
 
-        self.assert_has_route(self.http_app, route)
+        assert_that(route, self.is_route_of_app(self.http_app))
 
-    @patch('xivo_dird.plugins.headers_view.make_response')
-    def test_result(self, make_response):
+    @patch('xivo_dird.plugins.headers_view.jsonify')
+    def test_result(self, jsonify):
         args = {
             'http_app': Mock(),
             'config': {'displays': {'display_1': [{'title': 'Firstname',
@@ -71,16 +70,16 @@ class TestHeadersView(BaseHTTPViewTestCase):
 
         result = self.plugin._header('profile_2')
 
-        expected_result = json.dumps({
+        expected_result = {
             'column_headers': ['fn', 'ln'],
             'column_types': ['some_type', None],
-        })
-        assert_that(result, equal_to(make_response.return_value))
-        make_response.assert_called_once_with(expected_result, 200)
+        }
+        assert_that(result, equal_to(jsonify.return_value))
+        jsonify.assert_called_once_with(expected_result)
 
     @patch('xivo_dird.plugins.headers_view.time', Mock(return_value='now'))
-    @patch('xivo_dird.plugins.headers_view.make_response')
-    def test_result_with_a_bad_profile(self, make_response):
+    @patch('xivo_dird.plugins.headers_view.jsonify')
+    def test_result_with_a_bad_profile(self, jsonify):
         args = {
             'http_app': Mock(),
             'config': {'displays': {'display_1': [{'title': 'Firstname',
@@ -107,10 +106,11 @@ class TestHeadersView(BaseHTTPViewTestCase):
 
         result = self.plugin._header('profile_XXX')
 
-        expected_result = json.dumps({
+        expected_result = {
             'reason': ['The lookup profile does not exist'],
             'timestamp': ['now'],
             'status_code': 404,
-        })
-        assert_that(result, equal_to(make_response.return_value))
-        make_response.assert_called_once_with(expected_result, 404)
+        }
+        assert_that(result[0], equal_to(jsonify.return_value))
+        assert_that(result[1], equal_to(404))
+        jsonify.assert_called_once_with(expected_result)

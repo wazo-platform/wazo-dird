@@ -17,15 +17,13 @@
 
 import unittest
 
-from hamcrest import assert_that
 from hamcrest import is_in
 
 
 class BaseHTTPViewTestCase(unittest.TestCase):
 
-    def assert_has_route(self, http_app, route):
-        routes = self._list_routes(http_app)
-        assert_that(route, is_in(routes))
+    def is_route_of_app(self, http_app):
+        return is_in(self._list_routes(http_app))
 
     def _list_routes(self, http_app):
         return (rule.rule for rule in http_app.url_map.iter_rules())

@@ -21,7 +21,7 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
-from mock import ANY
+from hamcrest import is_not
 from mock import Mock
 from mock import patch
 from mock import sentinel
@@ -43,6 +43,9 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         self.plugin.load({'http_app': Mock(),
                           'services': {}})
 
+        route = '/{version}/directories/lookup/<profile>'.format(version=JsonViewPlugin.API_VERSION)
+        assert_that(route, is_not(self.is_route_of_app(self.http_app)))
+
     def test_that_load_adds_the_route(self):
         args = {
             'http_app': self.http_app,
@@ -54,7 +57,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         self.plugin.load(args)
 
         route = '/{version}/directories/lookup/<profile>'.format(version=JsonViewPlugin.API_VERSION)
-        self.assert_has_route(self.http_app, route)
+        assert_that(route, self.is_route_of_app(self.http_app))
 
     def test_get_display_dict(self):
         first_display = [
@@ -101,8 +104,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'term': [sentinel.term],
                                                                      'user_id': 42}))
-    @patch('xivo_dird.plugins.default_json_view.make_response', Mock())
-    @patch('xivo_dird.plugins.default_json_view.json', Mock())
+    @patch('xivo_dird.plugins.default_json_view.jsonify', Mock())
     @patch('xivo_dird.plugins.default_json_view._lookup')
     def test_that_lookup_wrapper_calls_lookup(self, lookup):
         lookup.return_value([])
@@ -119,14 +121,13 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                                        {'user_id': 42})
 
     @patch('xivo_dird.plugins.default_json_view.request', Mock(args={'user_id': 42}))
-    @patch('xivo_dird.plugins.default_json_view.make_response')
-    @patch('xivo_dird.plugins.default_json_view.json', Mock())
+    @patch('xivo_dird.plugins.default_json_view.jsonify')
     @patch('xivo_dird.plugins.default_json_view._lookup', Mock())
-    def test_that_lookup_wrapper_no_term_returns_400(self, make_response):
+    def test_that_lookup_wrapper_no_term_returns_400(self, jsonify):
         result = self.plugin._lookup_wrapper(sentinel.profile)
 
-        make_response.assert_called_once_with(ANY, 400)
-        assert_that(result, equal_to(make_response.return_value))
+        assert_that(result[0], equal_to(jsonify.return_value))
+        assert_that(result[1], equal_to(400))
 
 
 class TestLookup(unittest.TestCase):

@@ -18,6 +18,52 @@
 import abc
 
 
+class BaseServicePlugin(object):
+    '''
+    This is the base class of a dird service. The service is responsible of
+    it's directory sources
+    '''
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def load(self, args=None):
+        '''
+        Bootstraps the plugin instance the flask app, bus connection and other
+        handles will be passed through the args dictionary
+        '''
+
+    def unload(self):
+        '''
+        Does the cleanup before the service can be deleted
+        '''
+        return
+
+
+class BaseService(object):
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def __call__(self, *args, **kwargs):
+        pass
+
+
+class BaseViewPlugin(object):
+
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def load(self, args):
+        '''
+        The load method is responsible of acquiring resources for the plugin and
+        add the routes to the http_app.
+        '''
+
+    def unload(self):
+        return
+
+
 class BaseSourcePlugin(object):
     '''
     A backend plugin in xivo should implement this base class implicitly or
@@ -29,9 +75,6 @@ class BaseSourcePlugin(object):
     # These string are expected in the configuration
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in
     UNIQUE_COLUMNS = 'unique_columns'  # These are the columns that make an entry unique
-
-    # This is the column header of the unique id of a given result
-    UNIQUE_COLUMN_HEADER = '__unique_id'
 
     @abc.abstractmethod
     def load(self, args):
