@@ -19,35 +19,60 @@ import logging
 
 from time import time
 from xivo_dird import BaseViewPlugin
-from flask import jsonify
+from flask_restplus import Resource
+from flask_restplus import fields
 
 logger = logging.getLogger(__name__)
 
 
 class HeadersViewPlugin(BaseViewPlugin):
 
-    API_VERSION = '0.1'
-    ROUTE = '/{version}/directories/lookup/<profile>/headers'.format(version=API_VERSION)
-
     def load(self, args):
-        self.config = args['config']
-        self.http_app = args['http_app']
-        self.http_app.add_url_rule(self.ROUTE, __name__, self._header)
+        api = args['rest_api']
+        config = args['config']
+        namespace = args['http_namespace']
 
-    def _header(self, profile):
-        logger.debug('header request on profile %s', profile)
-        try:
-            display_name = self.config.get('profile_to_display', {})[profile]
-            display_configuration = self.config.get('displays', {})[display_name]
-        except KeyError:
-            logger.warning('profile %s does not exist, or associated display does not exist', profile)
-            error = {
-                'reason': ['The lookup profile does not exist'],
-                'timestamp': [time()],
-                'status_code': 404,
+        api_class = make_api_class(config, namespace, api)
+
+        route = '/lookup/<profile>/headers'
+        doc = {
+            'model': api.model('Headers', {
+                'column_headers': fields.List(fields.String,
+                                              description='The labels for the result header'),
+                'column_types': fields.List(fields.String,
+                                            description='The types for the result header'),
+            }),
+            'params': {
+                'profile': 'The profile identifies the list of contact sources and the display format',
+            },
+            'responses': {
+                404: 'Invalid profile'
             }
-            return jsonify(error), 404
+        }
 
-        response = {'column_headers': [column.get('title') for column in display_configuration],
-                    'column_types': [column.get('type') for column in display_configuration]}
-        return jsonify(response)
+        api_class = namespace.route(route, doc=doc)(api_class)
+
+
+def make_api_class(config, namespace, api):
+
+    class Headers(Resource):
+
+        def get(self, profile):
+            logger.debug('header request on profile %s', profile)
+            try:
+                display_name = config.get('profile_to_display', {})[profile]
+                display_configuration = config.get('displays', {})[display_name]
+            except KeyError:
+                logger.warning('profile %s does not exist, or associated display does not exist', profile)
+                error = {
+                    'reason': ['The lookup profile does not exist'],
+                    'timestamp': [time()],
+                    'status_code': 404,
+                }
+                return error, 404
+
+            response = {'column_headers': [column.get('title') for column in display_configuration],
+                        'column_types': [column.get('type') for column in display_configuration]}
+            return response
+
+    return Headers

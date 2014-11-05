@@ -15,102 +15,87 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import flask
-
 from hamcrest import assert_that
 from hamcrest import equal_to
+from mock import ANY
 from mock import Mock
 from mock import patch
 from xivo_dird.plugins.headers_view import HeadersViewPlugin
+from xivo_dird.plugins.headers_view import make_api_class
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
 
 class TestHeadersView(BaseHTTPViewTestCase):
 
-    def setUp(self):
-        self.http_app = flask.Flask(__name__)
-        self.plugin = HeadersViewPlugin()
-
     def test_that_load_add_the_route(self):
-        args = {'http_app': self.http_app,
+        http_namespace = Mock()
+        args = {'http_namespace': http_namespace,
+                'rest_api': Mock(),
                 'config': {}}
 
-        self.plugin.load(args)
+        HeadersViewPlugin().load(args)
 
-        route = '/{version}/directories/lookup/<profile>/headers'.format(
-            version=HeadersViewPlugin.API_VERSION)
+        http_namespace.route.assert_called_once_with('/lookup/<profile>/headers', doc=ANY)
 
-        assert_that(route, self.is_route_of_app(self.http_app))
+    def test_result(self):
+        config = {'displays': {'display_1': [{'title': 'Firstname',
+                                              'type': None,
+                                              'default': 'Unknown',
+                                              'field': 'firstname'},
+                                             {'title': 'Lastname',
+                                              'type': None,
+                                              'default': 'ln',
+                                              'field': 'lastname'}],
+                               'display_2': [{'title': 'fn',
+                                              'type': 'some_type',
+                                              'default': 'N/A',
+                                              'field': 'firstname'},
+                                             {'title': 'ln',
+                                              'type': None,
+                                              'default': 'N/A',
+                                              'field': 'LAST'}]},
+                  'profile_to_display': {'profile_1': 'display_1',
+                                         'profile_2': 'display_2',
+                                         'profile_3': 'display_1'}}
+        api_class = make_api_class(config, namespace=Mock(), api=Mock())
 
-    @patch('xivo_dird.plugins.headers_view.jsonify')
-    def test_result(self, jsonify):
-        args = {
-            'http_app': Mock(),
-            'config': {'displays': {'display_1': [{'title': 'Firstname',
-                                                   'type': None,
-                                                   'default': 'Unknown',
-                                                   'field': 'firstname'},
-                                                  {'title': 'Lastname',
-                                                   'type': None,
-                                                   'default': 'ln',
-                                                   'field': 'lastname'}],
-                                    'display_2': [{'title': 'fn',
-                                                   'type': 'some_type',
-                                                   'default': 'N/A',
-                                                   'field': 'firstname'},
-                                                  {'title': 'ln',
-                                                   'type': None,
-                                                   'default': 'N/A',
-                                                   'field': 'LAST'}]},
-                       'profile_to_display': {'profile_1': 'display_1',
-                                              'profile_2': 'display_2',
-                                              'profile_3': 'display_1'}}
-        }
-        self.plugin.load(args)
-
-        result = self.plugin._header('profile_2')
+        result = api_class().get('profile_2')
 
         expected_result = {
             'column_headers': ['fn', 'ln'],
             'column_types': ['some_type', None],
         }
-        assert_that(result, equal_to(jsonify.return_value))
-        jsonify.assert_called_once_with(expected_result)
+        assert_that(result, equal_to(expected_result))
 
     @patch('xivo_dird.plugins.headers_view.time', Mock(return_value='now'))
-    @patch('xivo_dird.plugins.headers_view.jsonify')
-    def test_result_with_a_bad_profile(self, jsonify):
-        args = {
-            'http_app': Mock(),
-            'config': {'displays': {'display_1': [{'title': 'Firstname',
-                                                   'type': None,
-                                                   'default': 'Unknown',
-                                                   'field': 'firstname'},
-                                                  {'title': 'Lastname',
-                                                   'type': None,
-                                                   'default': 'ln',
-                                                   'field': 'lastname'}],
-                                    'display_2': [{'title': 'fn',
-                                                   'type': 'some_type',
-                                                   'default': 'N/A',
-                                                   'field': 'firstname'},
-                                                  {'title': 'ln',
-                                                   'type': None,
-                                                   'default': 'N/A',
-                                                   'field': 'LAST'}]},
-                       'profile_to_display': {'profile_1': 'display_1',
-                                              'profile_2': 'display_2',
-                                              'profile_3': 'display_1'}}
-        }
-        self.plugin.load(args)
+    def test_result_with_a_bad_profile(self):
+        config = {'displays': {'display_1': [{'title': 'Firstname',
+                                              'type': None,
+                                              'default': 'Unknown',
+                                              'field': 'firstname'},
+                                             {'title': 'Lastname',
+                                              'type': None,
+                                              'default': 'ln',
+                                              'field': 'lastname'}],
+                               'display_2': [{'title': 'fn',
+                                              'type': 'some_type',
+                                              'default': 'N/A',
+                                              'field': 'firstname'},
+                                             {'title': 'ln',
+                                              'type': None,
+                                              'default': 'N/A',
+                                              'field': 'LAST'}]},
+                  'profile_to_display': {'profile_1': 'display_1',
+                                         'profile_2': 'display_2',
+                                         'profile_3': 'display_1'}}
+        api_class = make_api_class(config, namespace=Mock(), api=Mock())
 
-        result = self.plugin._header('profile_XXX')
+        result, code = api_class().get('profile_XXX')
 
         expected_result = {
             'reason': ['The lookup profile does not exist'],
             'timestamp': ['now'],
             'status_code': 404,
         }
-        assert_that(result[0], equal_to(jsonify.return_value))
-        assert_that(result[1], equal_to(404))
-        jsonify.assert_called_once_with(expected_result)
+        assert_that(result, equal_to(expected_result))
+        assert_that(code, equal_to(404))
