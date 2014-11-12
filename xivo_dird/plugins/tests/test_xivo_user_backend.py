@@ -33,7 +33,8 @@ DEFAULT_ARGS = {'config': {'confd_url': CONFD_URL,
                            'searched_columns': ['firstname', 'lastname']}}
 UUID = 'my-xivo-uuid'
 
-SourceResult = make_result_class(DEFAULT_ARGS['config']['name'])
+SourceResult = make_result_class(DEFAULT_ARGS['config']['name'],
+                                 unique_columns=['id'])
 
 CONFD_USER_1 = {
     "agent_id": 42,
@@ -57,7 +58,8 @@ CONFD_USER_1 = {
 }
 
 SOURCE_1 = SourceResult(
-    {'exten': '666',
+    {'id': 226,
+     'exten': '666',
      'firstname': 'Louis-Jean',
      'lastname': '',
      'mobile_phone_number': '5555551234'},
@@ -88,7 +90,8 @@ CONFD_USER_2 = {
 }
 
 SOURCE_2 = SourceResult(
-    {'exten': '1234',
+    {'id': 227,
+     'exten': '1234',
      'firstname': 'Paul',
      'lastname': '',
      'mobile_phone_number': ''},
@@ -110,9 +113,10 @@ class TestXivoUserBackendSearch(_BaseTest):
 
     def setUp(self):
         super(TestXivoUserBackendSearch, self).setUp()
+        self._source._entries = [SOURCE_1, SOURCE_2]
+        self._source._unique_columns = ['id']
 
     def test_search_on_excluded_column(self):
-        self._source._entries = [SOURCE_1, SOURCE_2]
         self._source._searched_columns = ['lastname']
 
         result = self._source.search(term='paul')
@@ -120,12 +124,21 @@ class TestXivoUserBackendSearch(_BaseTest):
         assert_that(result, empty())
 
     def test_search_on_included_column(self):
-        self._source._entries = [SOURCE_1, SOURCE_2]
         self._source._searched_columns = ['firstname', 'lastname']
 
         result = self._source.search(term='paul')
 
         assert_that(result, contains(SOURCE_2))
+
+    def test_list_with_unknown_id(self):
+        result = self._source.list(unique_ids=[(42,)])
+
+        assert_that(result, empty())
+
+    def test_list_with_known_id(self):
+        result = self._source.list(unique_ids=[(226,)])
+
+        assert_that(result, contains(SOURCE_1))
 
 
 class TestXivoUserBackendInitialisation(_BaseTest):
@@ -175,7 +188,8 @@ class TestXivoUserBackendInitialisation(_BaseTest):
 
         result = self._source._source_result_from_entry(entry)
 
-        expected = SourceResult({'exten': '1234',
+        expected = SourceResult({'id': 227,
+                                 'exten': '1234',
                                  'firstname': 'Paul',
                                  'lastname': '',
                                  'mobile_phone_number': ''},

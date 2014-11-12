@@ -27,7 +27,7 @@ class XivoUserPlugin(BaseSourcePlugin):
 
     def load(self, args):
         self._confd_url = args['config']['confd_url']
-        self._searched_columns = args['config'].get('searched_columns', [])
+        self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
         self.name = args['config']['name']
         self._entries = []
         self._SourceResult = make_result_class(
@@ -50,6 +50,15 @@ class XivoUserPlugin(BaseSourcePlugin):
 
         return [entry for entry in self._entries if match_fn(entry)]
 
+    def list(self, unique_ids):
+        def match_fn(entry):
+            for unique_id in unique_ids:
+                if unique_id == entry.get_unique():
+                    return True
+            return False
+
+        return [entry for entry in self._entries if match_fn(entry)]
+
     def _fetch_content(self):
         self._uuid = self._fetch_uuid()
         users = self._fetch_users()
@@ -67,6 +76,7 @@ class XivoUserPlugin(BaseSourcePlugin):
 
     def _source_result_from_entry(self, entry):
         fields = {
+            'id': entry['id'],
             'exten': entry.get('exten', ''),
             'firstname': entry.get('firstname', ''),
             'lastname': entry.get('lastname', ''),
