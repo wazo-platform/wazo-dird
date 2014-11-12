@@ -114,7 +114,6 @@ class TestXivoUserBackendSearch(_BaseTest):
     def setUp(self):
         super(TestXivoUserBackendSearch, self).setUp()
         self._source._entries = [SOURCE_1, SOURCE_2]
-        self._source._unique_columns = ['id']
 
     def test_search_on_excluded_column(self):
         self._source._searched_columns = ['lastname']
