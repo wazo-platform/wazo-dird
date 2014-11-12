@@ -17,18 +17,148 @@
 
 import unittest
 
+from hamcrest import assert_that
+from hamcrest import contains_inanyorder
+from hamcrest import equal_to
+from mock import Mock
+from mock import sentinel
 from ..xivo_user_plugin import XivoUserPlugin
+from xivo_dird import make_result_class
+
+CONFD_URL = 'http://xivo.example.com:9487'
+DEFAULT_ARGS = {'config': {'confd_url': CONFD_URL,
+                           'name': 'my_test_xivo'}}
+UUID = 'my-xivo-uuid'
+
+SourceResult = make_result_class(DEFAULT_ARGS['config']['name'])
+
+CONFD_USER_1 = {
+    "agent_id": 42,
+    "exten": '666',
+    "firstname": "Louis-Jean",
+    "id": 226,
+    "lastname": "",
+    "line_id": 123,
+    "links": [
+        {
+            "href": "http://localhost:9487/1.1/users/226",
+            "rel": "users"
+        },
+        {
+            "href": "http://localhost:9487/1.1/lines/123",
+            "rel": "lines"
+        }
+
+    ],
+    "mobile_phone_number": "5555551234"
+}
+
+SOURCE_1 = SourceResult(
+    {'exten': '666',
+     'firstname': 'Louis-Jean',
+     'lastname': '',
+     'mobile_phone_number': '5555551234'},
+    xivo_id=UUID,
+    agent_id=42,
+    user_id=226,
+    endpoint_id=123,
+)
+
+CONFD_USER_2 = {
+    "agent_id": None,
+    "exten": '1234',
+    "firstname": "Paul",
+    "id": 227,
+    "lastname": "",
+    "line_id": 320,
+    "links": [
+        {
+            "href": "http://localhost:9487/1.1/users/227",
+            "rel": "users"
+        },
+        {
+            "href": "http://localhost:9487/1.1/lines/320",
+            "rel": "lines"
+        },
+    ],
+    "mobile_phone_number": ""
+}
+
+SOURCE_2 = SourceResult(
+    {'exten': '1234',
+     'firstname': 'Paul',
+     'lastname': '',
+     'mobile_phone_number': ''},
+    xivo_id=UUID,
+    user_id=227,
+    endpoint_id=320,
+)
 
 
 class TestXivoUserBackend(unittest.TestCase):
 
     def setUp(self):
-        self._source = XivoUserPlugin()
+        self._FakedConfdClient = Mock()
+        self._confd_client = self._FakedConfdClient.return_value
+        self._source = XivoUserPlugin(self._FakedConfdClient)
 
-    def test_that_the_xivo_host_is_used(self):
-        config = {
-            'host': 'https://xivo.example.com',
-            'port': '9487',
+    def test_load(self):
+        self._source.load(DEFAULT_ARGS)
+
+    def test_fetch_uuid(self):
+        self._confd_client.get_infos.return_value = {'uuid': sentinel.uuid}
+        self._source.load(DEFAULT_ARGS)
+
+        result = self._source._fetch_uuid()
+
+        self._FakedConfdClient.assert_called_once_with(CONFD_URL)
+        self._confd_client.get_infos.assert_called_once_with()
+
+        assert_that(result, equal_to(sentinel.uuid))
+
+    def test_fetch_users(self):
+        confd_result = {
+            "items": [
+                CONFD_USER_1,
+                CONFD_USER_2,
+            ],
+            'total': 2,
         }
+        self._confd_client.get_users.return_value = confd_result
+        self._source.load(DEFAULT_ARGS)
 
-        self._source.load({'config': config})
+        result = self._source._fetch_users()
+
+        self._FakedConfdClient.assert_called_once_with(CONFD_URL)
+        assert_that(result, contains_inanyorder(confd_result['items'][0],
+                                                confd_result['items'][1]))
+
+    def test_make_source_result_from_entry(self):
+        entry = CONFD_USER_2
+        SourceResult = make_result_class('my_test_xivo')
+
+        self._source.load(DEFAULT_ARGS)
+        self._source._SourceResult = SourceResult
+        self._source._uuid = UUID
+
+        result = self._source._source_result_from_entry(entry)
+
+        expected = SourceResult({'exten': '1234',
+                                 'firstname': 'Paul',
+                                 'lastname': '',
+                                 'mobile_phone_number': ''},
+                                xivo_id=UUID, user_id=227, endpoint_id=320)
+
+        assert_that(result, equal_to(expected))
+
+    def test_refresh_content(self):
+        self._source.load(DEFAULT_ARGS)
+        self._source._fetch_uuid = Mock(return_value=UUID)
+        self._source._fetch_users = Mock(return_value=[CONFD_USER_1, CONFD_USER_2])
+
+        self._source._fetch_content()
+
+        self._source._fetch_uuid.assert_called_once_with()
+        self._source._fetch_users.assert_called_once_with()
+
+        assert_that(self._source._entries, contains_inanyorder(SOURCE_1, SOURCE_2))

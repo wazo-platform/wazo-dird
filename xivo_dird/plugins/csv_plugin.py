@@ -51,7 +51,7 @@ class CSVPlugin(BaseSourcePlugin):
         self._load_file()
         self._SourceResult = make_result_class(self._name,
                                                self._config.get(self.UNIQUE_COLUMNS, []),
-                                               self._config.get('source_to_display', {}))
+                                               self._config.get(self.SOURCE_TO_DISPLAY, {}))
 
     def name(self):
         return self._name
