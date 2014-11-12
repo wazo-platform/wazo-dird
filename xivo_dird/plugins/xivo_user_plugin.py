@@ -32,6 +32,7 @@ class XivoUserPlugin(BaseSourcePlugin):
             args['config']['name'],
             unique_columns=args['config'].get(self.UNIQUE_COLUMNS),
             source_to_dest_map=args['config'].get(self.SOURCE_TO_DISPLAY))
+        self._fetch_content()
 
     def search(self, term):
         pass

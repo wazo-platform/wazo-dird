@@ -95,25 +95,39 @@ SOURCE_2 = SourceResult(
 )
 
 
-class TestXivoUserBackend(unittest.TestCase):
+class _BaseTest(unittest.TestCase):
 
     def setUp(self):
         self._FakedConfdClient = Mock()
         self._confd_client = self._FakedConfdClient.return_value
         self._source = XivoUserPlugin(self._FakedConfdClient)
 
+
+class TestXivoUserBackendSearch(_BaseTest):
+
+    def setUp(self):
+        super(TestXivoUserBackendSearch, self).setUp()
+
+    def test_search_on_excluded_column(self):
+        self._source._entries = [SOURCE_1, SOURCE_2]
+
+
+class TestXivoUserBackendInitialisation(_BaseTest):
+
     def test_load(self):
+        self._source._fetch_content = Mock()
+
         self._source.load(DEFAULT_ARGS)
+
+        self._source._fetch_content.assert_called_once_with()
 
     def test_fetch_uuid(self):
         self._confd_client.get_infos.return_value = {'uuid': sentinel.uuid}
-        self._source.load(DEFAULT_ARGS)
+        self._source._confd_url = CONFD_URL
 
         result = self._source._fetch_uuid()
 
-        self._FakedConfdClient.assert_called_once_with(CONFD_URL)
         self._confd_client.get_infos.assert_called_once_with()
-
         assert_that(result, equal_to(sentinel.uuid))
 
     def test_fetch_users(self):
@@ -124,12 +138,12 @@ class TestXivoUserBackend(unittest.TestCase):
             ],
             'total': 2,
         }
+        self._source._confd_url = CONFD_URL
         self._confd_client.get_users.return_value = confd_result
-        self._source.load(DEFAULT_ARGS)
+        self._source._fetch_uuid = Mock(return_value={'uuid': 'test'})
 
         result = self._source._fetch_users()
 
-        self._FakedConfdClient.assert_called_once_with(CONFD_URL)
         assert_that(result, contains_inanyorder(confd_result['items'][0],
                                                 confd_result['items'][1]))
 
@@ -137,7 +151,6 @@ class TestXivoUserBackend(unittest.TestCase):
         entry = CONFD_USER_2
         SourceResult = make_result_class('my_test_xivo')
 
-        self._source.load(DEFAULT_ARGS)
         self._source._SourceResult = SourceResult
         self._source._uuid = UUID
 
@@ -152,9 +165,9 @@ class TestXivoUserBackend(unittest.TestCase):
         assert_that(result, equal_to(expected))
 
     def test_refresh_content(self):
-        self._source.load(DEFAULT_ARGS)
         self._source._fetch_uuid = Mock(return_value=UUID)
         self._source._fetch_users = Mock(return_value=[CONFD_USER_1, CONFD_USER_2])
+        self._source._SourceResult = SourceResult
 
         self._source._fetch_content()
 
