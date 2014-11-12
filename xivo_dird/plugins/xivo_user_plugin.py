@@ -27,15 +27,28 @@ class XivoUserPlugin(BaseSourcePlugin):
 
     def load(self, args):
         self._confd_url = args['config']['confd_url']
+        self._searched_columns = args['config'].get('searched_columns', [])
+        self.name = args['config']['name']
         self._entries = []
         self._SourceResult = make_result_class(
-            args['config']['name'],
+            self.name,
             unique_columns=args['config'].get(self.UNIQUE_COLUMNS),
             source_to_dest_map=args['config'].get(self.SOURCE_TO_DISPLAY))
         self._fetch_content()
 
+    def name(self):
+        return self.name
+
     def search(self, term):
-        pass
+        lowered_term = term.lower()
+
+        def match_fn(entry):
+            for column in self._searched_columns:
+                if lowered_term in unicode(entry.fields.get(column, '')).lower():
+                    return True
+            return False
+
+        return [entry for entry in self._entries if match_fn(entry)]
 
     def _fetch_content(self):
         self._uuid = self._fetch_uuid()

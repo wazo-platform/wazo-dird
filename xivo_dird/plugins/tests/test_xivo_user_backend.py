@@ -18,8 +18,10 @@
 import unittest
 
 from hamcrest import assert_that
+from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
+from hamcrest import empty
 from mock import Mock
 from mock import sentinel
 from ..xivo_user_plugin import XivoUserPlugin
@@ -27,7 +29,8 @@ from xivo_dird import make_result_class
 
 CONFD_URL = 'http://xivo.example.com:9487'
 DEFAULT_ARGS = {'config': {'confd_url': CONFD_URL,
-                           'name': 'my_test_xivo'}}
+                           'name': 'my_test_xivo',
+                           'searched_columns': ['firstname', 'lastname']}}
 UUID = 'my-xivo-uuid'
 
 SourceResult = make_result_class(DEFAULT_ARGS['config']['name'])
@@ -110,6 +113,19 @@ class TestXivoUserBackendSearch(_BaseTest):
 
     def test_search_on_excluded_column(self):
         self._source._entries = [SOURCE_1, SOURCE_2]
+        self._source._searched_columns = ['lastname']
+
+        result = self._source.search(term='paul')
+
+        assert_that(result, empty())
+
+    def test_search_on_included_column(self):
+        self._source._entries = [SOURCE_1, SOURCE_2]
+        self._source._searched_columns = ['firstname', 'lastname']
+
+        result = self._source.search(term='paul')
+
+        assert_that(result, contains(SOURCE_2))
 
 
 class TestXivoUserBackendInitialisation(_BaseTest):
@@ -120,6 +136,9 @@ class TestXivoUserBackendInitialisation(_BaseTest):
         self._source.load(DEFAULT_ARGS)
 
         self._source._fetch_content.assert_called_once_with()
+
+        assert_that(self._source._searched_columns,
+                    equal_to(DEFAULT_ARGS['config']['searched_columns']))
 
     def test_fetch_uuid(self):
         self._confd_client.get_infos.return_value = {'uuid': sentinel.uuid}
