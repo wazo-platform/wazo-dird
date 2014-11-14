@@ -17,16 +17,16 @@
 
 from xivo_dird import BaseSourcePlugin
 from xivo_dird import make_result_class
+from xivo_confd_client import Client
 
 
 class XivoUserPlugin(BaseSourcePlugin):
 
-    def __init__(self, ConfdClientClass):
-        # XXX add a default value to ConfdClientClass when the real client exists
+    def __init__(self, ConfdClientClass=Client):
         self._ConfdClientClass = ConfdClientClass
 
     def load(self, args):
-        self._confd_url = args['config']['confd_url']
+        self._confd_config = args['config']['confd_config']
         self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
         self.name = args['config']['name']
         self._entries = []
@@ -64,13 +64,13 @@ class XivoUserPlugin(BaseSourcePlugin):
         self._entries = [self._source_result_from_entry(user) for user in users]
 
     def _fetch_uuid(self):
-        client = self._ConfdClientClass(self._confd_url)
-        infos = client.get_infos()
+        client = self._ConfdClientClass(**self._confd_config)
+        infos = client.infos()
         return infos['uuid']
 
     def _fetch_users(self):
-        client = self._ConfdClientClass(self._confd_url)
-        users = client.get_users(view='directory')
+        client = self._ConfdClientClass(**self._confd_config)
+        users = client.users.list(view='directory')
         return (user for user in users['items'])
 
     def _source_result_from_entry(self, entry):

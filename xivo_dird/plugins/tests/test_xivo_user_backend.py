@@ -27,8 +27,12 @@ from mock import sentinel
 from ..xivo_user_plugin import XivoUserPlugin
 from xivo_dird import make_result_class
 
-CONFD_URL = 'http://xivo.example.com:9487'
-DEFAULT_ARGS = {'config': {'confd_url': CONFD_URL,
+CONFD_CONFIG = {'host': 'xivo.example.com',
+                'username': 'admin',
+                'password': 'secret',
+                'port': 9487,
+                'version': '1.1'}
+DEFAULT_ARGS = {'config': {'confd_config': CONFD_CONFIG,
                            'name': 'my_test_xivo',
                            'searched_columns': ['firstname', 'lastname']}}
 UUID = 'my-xivo-uuid'
@@ -104,7 +108,7 @@ SOURCE_2 = SourceResult(
 class _BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self._FakedConfdClient = Mock()
+        self._FakedConfdClient = Mock(return_value=Mock())
         self._confd_client = self._FakedConfdClient.return_value
         self._source = XivoUserPlugin(self._FakedConfdClient)
 
@@ -153,12 +157,12 @@ class TestXivoUserBackendInitialisation(_BaseTest):
                     equal_to(DEFAULT_ARGS['config']['searched_columns']))
 
     def test_fetch_uuid(self):
-        self._confd_client.get_infos.return_value = {'uuid': sentinel.uuid}
-        self._source._confd_url = CONFD_URL
+        self._confd_client.infos.return_value = {'uuid': sentinel.uuid}
+        self._source._confd_config = CONFD_CONFIG
 
         result = self._source._fetch_uuid()
 
-        self._confd_client.get_infos.assert_called_once_with()
+        self._confd_client.infos.assert_called_once_with()
         assert_that(result, equal_to(sentinel.uuid))
 
     def test_fetch_users(self):
@@ -169,8 +173,8 @@ class TestXivoUserBackendInitialisation(_BaseTest):
             ],
             'total': 2,
         }
-        self._source._confd_url = CONFD_URL
-        self._confd_client.get_users.return_value = confd_result
+        self._source._confd_config = CONFD_CONFIG
+        self._confd_client.users.list.return_value = confd_result
         self._source._fetch_uuid = Mock(return_value={'uuid': 'test'})
 
         result = self._source._fetch_users()
