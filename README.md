@@ -28,7 +28,7 @@ docker is required to execute integration tests as well as the content of `test_
 A docker image named `dird-test` is required to execute the test suite.
 To build this image execute:
 
-    % cd tests
+    % cd integration_tests
     % make test-setup
     % make test-image
 
@@ -38,4 +38,4 @@ that is build from the local source using `make test-image`.
 
 To execute the integration tests execute:
 
-    % nosetests tests
+    % nosetests integration_tests

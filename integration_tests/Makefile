@@ -7,7 +7,7 @@ test-image:
 	rsync -av \
 	--exclude '.git' \
 	--exclude 'debian' \
-	--exclude 'tests' \
+	--exclude 'integration_tests' \
 	--exclude 'contribs' \
 	--exclude '*.pyc' \
 	--exclude 'README.md' \
