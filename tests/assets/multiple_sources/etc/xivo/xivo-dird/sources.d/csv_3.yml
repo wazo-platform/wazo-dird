@@ -1,6 +1,6 @@
 type: csv
 name: third_csv
-file: /etc/xivo/xivo-dird/other.csv
+file: /tmp/data/other.csv
 unique_columns:
     - clientno
 searched_columns:

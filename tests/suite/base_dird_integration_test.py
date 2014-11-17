@@ -27,19 +27,19 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
     @classmethod
     def launch_dird_with_asset(cls):
-        cls.image_name = cls.asset
+        cls.container_name = cls.asset
         asset_path = os.path.abspath(os.path.curdir) + '/tests/assets/%s' % cls.asset
-        volumes = '%s:/etc/xivo/xivo-dird' % asset_path
-        cmd = ['docker', 'run', '--name', cls.image_name,
-               '-v', volumes,
-               '-d', '-p', '9489:9489', 'dird-test']
+        cls.cur_dir = os.getcwd()
+        os.chdir(asset_path)
+        cmd = ['fig', 'up', '-d']
         subprocess.call(cmd)
-        time.sleep(0.5)
+        time.sleep(1)
 
     @classmethod
     def stop_dird_with_asset(cls):
-        subprocess.call(['docker', 'kill', cls.image_name])
-        subprocess.call(['docker', 'rm', cls.image_name])
+        subprocess.call(['fig', 'kill'])
+        subprocess.call(['fig', 'rm', '--force'])
+        os.chdir(cls.cur_dir)
 
     @classmethod
     def setupClass(cls):

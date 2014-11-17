@@ -1,13 +1,9 @@
 type: csv
 name: my_csv
-file: /etc/xivo/xivo-dird/test.csv
-unique_columns:
-    - fn
-    - ln
+file: /tmp/data/test.csv
 searched_columns:
     - fn
     - ln
-    -
 source_to_display:
     ln: lastname
     fn: firstname

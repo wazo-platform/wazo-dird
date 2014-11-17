@@ -102,7 +102,7 @@ class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
     asset = 'no_plugins'
 
     def test_that_dird_does_not_run_when_not_configured(self):
-        self._assert_no_docker_image_running(self.image_name)
+        self._assert_no_docker_image_running(self.container_name)
 
     def _assert_no_docker_image_running(self, name):
         assert_that(name, is_not(is_in(sh.docker('ps'))))
@@ -112,7 +112,7 @@ class TestWithAnotherConfigDir(BaseDirdIntegrationTest):
 
     asset = 'in_plugins_d'
 
-    def test_that_dird_does_not_run_when_not_configured(self):
+    def test_that_dird_can_load_source_plugins_in_another_dir(self):
         result = self.lookup('lice', 'default')
 
         expected_results = [
