@@ -28,7 +28,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
     @classmethod
     def launch_dird_with_asset(cls):
         cls.container_name = cls.asset
-        asset_path = os.path.abspath(os.path.curdir) + '/tests/assets/%s' % cls.asset
+        asset_path = os.path.join(os.path.dirname(__file__), '..', 'assets', cls.asset)
         cls.cur_dir = os.getcwd()
         os.chdir(asset_path)
         cmd = ['fig', 'up', '-d']

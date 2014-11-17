@@ -1,6 +1,6 @@
 FROM xivo/dird_base:latest
 
-ADD . /dird
+ADD ./_context /dird
 WORKDIR /dird
 RUN python setup.py install
 
