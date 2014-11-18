@@ -11,3 +11,4 @@ flask-restplus
 stevedore
 pyaml
 futures
+requests
