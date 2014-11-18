@@ -15,9 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import logging
+
 from xivo_dird import BaseSourcePlugin
 from xivo_dird import make_result_class
 from xivo_confd_client import Client
+
+logger = logging.getLogger(__name__)
 
 
 class XivoUserPlugin(BaseSourcePlugin):
@@ -27,6 +31,7 @@ class XivoUserPlugin(BaseSourcePlugin):
 
     def load(self, args):
         self._confd_config = args['config']['confd_config']
+        logger.debug('confd config %s', self._confd_config)
         self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
         self.name = args['config']['name']
         self._entries = []
@@ -34,6 +39,7 @@ class XivoUserPlugin(BaseSourcePlugin):
             self.name, ['id'],
             source_to_dest_map=args['config'].get(self.SOURCE_TO_DISPLAY))
         self._fetch_content()
+        logger.info('XiVO %s successfully loaded.', self._uuid)
 
     def name(self):
         return self.name
