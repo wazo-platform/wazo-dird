@@ -1,0 +1,11 @@
+type: csv
+name: third_csv
+file: /tmp/data/other.csv
+unique_columns:
+    - clientno
+searched_columns:
+    - firstname
+    - lastname
+    - number
+source_to_display:
+    lastname: lastname

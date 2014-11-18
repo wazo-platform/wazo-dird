@@ -1,0 +1,7 @@
+dird:
+  image: dird-test
+  ports:
+    - "9489:9489"
+  volumes:
+    - "./etc/xivo/xivo-dird:/etc/xivo/xivo-dird"
+    - "./tmp/data/:/tmp/data"

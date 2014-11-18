@@ -1,3 +1,4 @@
 *.pyc
 .coverage
 cover/
+integration_tests/_context

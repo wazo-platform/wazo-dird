@@ -23,16 +23,19 @@ To run the unittests
 
 docker is required to execute integration tests as well as the content of `test_requirements.txt`
 
-    % pip install -r test_requirements.txt
+    % pip install -r test-requirements.txt
 
 A docker image named `dird-test` is required to execute the test suite.
 To build this image execute:
 
-    % make -f tests/Makefile test-setup
-    % make -f tests/Makefile test-image
+    % cd integration_tests
+    % make test-setup
+    % make test-image
 
-The `make test-setup` step is time consuming and should rarelly be required. It creates a base image that is going to be used as the base for dird-test image that is build from the local source using `make test-image`.
+The `make test-setup` step is time consuming and should rarelly be required. It
+creates a base image that is going to be used as the base for dird-test image
+that is build from the local source using `make test-image`.
 
 To execute the integration tests execute:
 
-    % nosetests tests
+    % nosetests integration_tests
