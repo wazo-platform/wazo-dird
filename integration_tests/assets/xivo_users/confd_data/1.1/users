@@ -1,0 +1,42 @@
+{
+    "total": 3,
+    "items":
+    [
+        {
+             "id": 1,
+             "line_id": 1,
+             "agent_id": 1,
+             "firstname": "John",
+             "lastname": "Doe",
+             "exten": "1234",
+             "mobile_phone_number": "+14184765458"
+        },
+        {
+             "id": 2,
+             "line_id": 2,
+             "agent_id": null,
+             "firstname": "Mary",
+             "lastname": "Sue",
+             "exten": "1465",
+             "mobile_phone_number": ""
+        },
+        {
+             "id": 42,
+             "line_id": 3,
+             "agent_id": 2,
+             "firstname": "Bob",
+             "lastname": "Dylan",
+             "exten": "1000",
+             "mobile_phone_number": ""
+        },
+        {
+             "id": 100,
+             "line_id": null,
+             "agent_id": null,
+             "firstname": "Charles",
+             "lastname": "Kenedy",
+             "exten": "",
+             "mobile_phone_number": ""
+        }
+    ]
+}

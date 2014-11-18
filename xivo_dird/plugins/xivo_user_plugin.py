@@ -44,7 +44,7 @@ class XivoUserPlugin(BaseSourcePlugin):
     def name(self):
         return self.name
 
-    def search(self, term):
+    def search(self, term, args=None):
         lowered_term = term.lower()
 
         def match_fn(entry):
