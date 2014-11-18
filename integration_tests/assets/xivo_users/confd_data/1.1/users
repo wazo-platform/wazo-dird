@@ -4,8 +4,8 @@
     [
         {
              "id": 1,
-             "line_id": 1,
-             "agent_id": 1,
+             "line_id": 2,
+             "agent_id": 3,
              "firstname": "John",
              "lastname": "Doe",
              "exten": "1234",

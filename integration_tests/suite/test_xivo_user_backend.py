@@ -19,14 +19,27 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
 from hamcrest import contains
+from hamcrest import equal_to
 
 
 class TestXivoUser(BaseDirdIntegrationTest):
 
     asset = 'xivo_users'
+    uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
 
-    def test_that_the_lookup_information_is_complete(self):
+    def test_that_the_lookup_returns_the_expected_result(self):
         result = self.lookup('dyl', 'default')
 
         assert_that(result['results'][0]['column_values'],
                     contains('Bob', 'Dylan', '1000', None))
+
+    def test_that_relations_are_present(self):
+        result = self.lookup('john', 'default')
+
+        relations = result['results'][0]['relations']
+        assert_that(relations, equal_to({'agent': {'id': 3,
+                                                   'xivo_id': self.uuid},
+                                         'endpoint': {'id': 2,
+                                                      'xivo_id': self.uuid},
+                                         'user': {'id': 1,
+                                                  'xivo_id': self.uuid}}))
