@@ -16,7 +16,9 @@ test-image:
 	--exclude 'test_requirements.txt' \
 	--exclude 'requirements.txt' \
 	../ ./_context/
+	mv Dockerfile_test_image Dockerfile
 	docker build -t dird-test .
+	mv Dockerfile Dockerfile_test_image
 
 clean:
 	rm -fr _context
