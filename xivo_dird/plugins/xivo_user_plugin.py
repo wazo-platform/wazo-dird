@@ -28,6 +28,7 @@ class XivoUserPlugin(BaseSourcePlugin):
 
     def __init__(self, ConfdClientClass=Client):
         self._ConfdClientClass = ConfdClientClass
+        self._uuid = None
 
     def load(self, args):
         self._confd_config = args['config']['confd_config']
