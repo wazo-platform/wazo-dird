@@ -88,3 +88,63 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
         ]
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
+
+
+class TestXivoUserMultipleXivoOneUnknownHost(BaseDirdIntegrationTest):
+
+    asset = 'xivo_users_two_working_one_cannot_resolv'
+
+    def test_lookup_multiple_xivo(self):
+        result = self.lookup('ar', 'default')
+
+        expected_result = [
+            {
+                'column_values': ['Mary', 'Sue', '1465', None],
+                'relations': {'agent': None,
+                              'endpoint': {'id': 2,
+                                           'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'},
+                              'user': {'id': 2,
+                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'source': 'xivo_america',
+            },
+            {
+                'column_values': ['Charles', 'Kenedy', '', None],
+                'relations': {'agent': None,
+                              'endpoint': None,
+                              'user': {'id': 100,
+                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'source': 'xivo_america',
+            }
+        ]
+
+        assert_that(result['results'], contains_inanyorder(*expected_result))
+
+
+class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
+
+    asset = 'xivo_users_two_working_one_404'
+
+    def test_lookup_multiple_xivo(self):
+        result = self.lookup('ar', 'default')
+
+        expected_result = [
+            {
+                'column_values': ['Mary', 'Sue', '1465', None],
+                'relations': {'agent': None,
+                              'endpoint': {'id': 2,
+                                           'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'},
+                              'user': {'id': 2,
+                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'source': 'xivo_america',
+            },
+            {
+                'column_values': ['Charles', 'Kenedy', '', None],
+                'relations': {'agent': None,
+                              'endpoint': None,
+                              'user': {'id': 100,
+                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'source': 'xivo_america',
+            }
+        ]
+
+        assert_that(result['results'], contains_inanyorder(*expected_result))
