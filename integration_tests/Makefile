@@ -15,7 +15,7 @@ sync-context:
 test-setup: sync-context
 	docker pull python:2.7
 	cp Dockerfile_base_image Dockerfile
-	docker build -t xivo/dird_base .
+	docker build -t xivo/dird_test_base .
 	rm Dockerfile -fr
 
 test-image: sync-context
