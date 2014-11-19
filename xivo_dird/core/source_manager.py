@@ -67,8 +67,11 @@ class SourceManager(object):
         for config in configs_by_backend[backend]:
             source = extension.plugin()
             source.name = config.get('name')
-            source.load({'config': config})
-            self._sources[source.name] = source
+            try:
+                source.load({'config': config})
+                self._sources[source.name] = source
+            except Exception:
+                logger.exception('Failed to load %s', source.name)
 
 
 def _list_files(directory):

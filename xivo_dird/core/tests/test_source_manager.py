@@ -17,7 +17,7 @@
 
 import unittest
 
-from hamcrest import assert_that, equal_to, is_
+from hamcrest import assert_that, equal_to, is_, contains
 from mock import ANY, patch, Mock, sentinel as s
 
 from xivo_dird.core.source_manager import SourceManager
@@ -122,5 +122,31 @@ class TestSourceManager(unittest.TestCase):
 
         assert_that(source1.name, equal_to('source1'))
         source1.load.assert_called_once_with({'config': config1})
+        assert_that(source2.name, equal_to('source2'))
+        source2.load.assert_called_once_with({'config': config2})
+
+    def test_load_sources_using_backend_calls_load_on_all_sources_with_exceptions(self):
+        configs = config1, config2 = [
+            {
+                'type': 'backend',
+                'name': 'source1'
+            },
+            {
+                'type': 'backend',
+                'name': 'source2'
+            }
+        ]
+        configs_by_backend = {
+            'backend': configs
+        }
+        extension = Mock()
+        extension.name = 'backend'
+        source1, source2 = extension.plugin.side_effect = Mock(), Mock()
+        source1.load.side_effect = RuntimeError
+        manager = SourceManager({})
+
+        manager._load_sources_using_backend(extension, configs_by_backend)
+
+        assert_that(manager._sources.keys(), contains('source2'))
         assert_that(source2.name, equal_to('source2'))
         source2.load.assert_called_once_with({'config': config2})
