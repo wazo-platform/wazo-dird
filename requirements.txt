@@ -1,8 +1,8 @@
-mock
-pyhamcrest
 python-ldap
 git+https://github.com/xivo-pbx/xivo-lib-python.git
 git+https://github.com/xivo-pbx/xivo-dao.git
+git+https://github.com/xivo-pbx/xivo-confd-client.git
+git+https://github.com/xivo-pbx/xivo-lib-rest-client.git
 sqlalchemy
 psycopg2
 flup
@@ -11,3 +11,4 @@ flask-restplus
 stevedore
 pyaml
 futures
+requests

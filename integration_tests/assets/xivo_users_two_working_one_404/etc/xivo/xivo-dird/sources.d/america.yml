@@ -1,0 +1,9 @@
+type: xivo
+name: xivo_america
+searched_columns:
+  - firstname
+  - lastname
+confd_config:
+  host: america
+  port: 8000
+  version: 1.1

@@ -1,0 +1,24 @@
+{
+    "total": 2,
+    "items":
+    [
+        {
+             "id": 42,
+             "line_id": 3,
+             "agent_id": 2,
+             "firstname": "Bob",
+             "lastname": "Dylan",
+             "exten": "1632",
+             "mobile_phone_number": "0634321243"
+        },
+        {
+             "id": 100,
+             "line_id": 42,
+             "agent_id": null,
+             "firstname": "Charles",
+             "lastname": "European",
+             "exten": "9012",
+             "mobile_phone_number": ""
+        }
+    ]
+}

@@ -192,7 +192,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         self.source.load({'config': config})
 
-        results = self.source.list(['1', '3'])
+        results = self.source.list([('1',), ('3',)])
 
         assert_that(results, contains())
 
@@ -205,7 +205,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         self.source.load({'config': config})
 
-        results = self.source.list(['1', '3'])
+        results = self.source.list([('1',), ('3',)])
 
         assert_that(results, contains())
 

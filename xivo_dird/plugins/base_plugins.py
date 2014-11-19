@@ -75,6 +75,7 @@ class BaseSourcePlugin(object):
     # These string are expected in the configuration
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in
     UNIQUE_COLUMNS = 'unique_columns'  # These are the columns that make an entry unique
+    SOURCE_TO_DISPLAY = 'source_to_display'
 
     @abc.abstractmethod
     def load(self, args):

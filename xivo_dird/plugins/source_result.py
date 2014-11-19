@@ -59,7 +59,7 @@ class _SourceResult(object):
 
     def __repr__(self):
         fields = ', '.join(repr(v) for v in self.fields.values())
-        return '<%s(%s)>' % (self.__class__.__name__, fields)
+        return '<%s(%s)%s>' % (self.__class__.__name__, fields, self.relations)
 
 
 def make_result_class(source_name, unique_columns=None, source_to_dest_map=None):

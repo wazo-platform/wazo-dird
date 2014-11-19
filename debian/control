@@ -19,7 +19,7 @@ Description: XIVO PBX's directory server
 
 Package: xivo-libdird
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, xivo-lib-python, python-ldap, python-flask, python-flup, python-stevedore, python-concurrent.futures, python-flask-restplus
+Depends: ${python:Depends}, ${misc:Depends}, xivo-lib-python, python-ldap, python-flask, python-flup, python-stevedore, python-concurrent.futures, python-flask-restplus, xivo-confd-client
 Description: XIVO telephony systems library for directories manager
  XIVO is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.

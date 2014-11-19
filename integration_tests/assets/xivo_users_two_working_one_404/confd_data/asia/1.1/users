@@ -1,0 +1,15 @@
+{
+    "total": 1,
+    "items":
+    [
+        {
+             "id": 1,
+             "line_id": 2,
+             "agent_id": 3,
+             "firstname": "Alice",
+             "lastname": null,
+             "exten": "6543",
+             "mobile_phone_number": ""
+        }
+    ]
+}
