@@ -1,4 +1,4 @@
-FROM xivo/dird_base:latest
+FROM xivo/dird_test_base:latest
 
 ADD ./_context /dird
 WORKDIR /dird
