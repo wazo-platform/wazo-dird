@@ -14,14 +14,14 @@ sync-context:
 
 test-setup: sync-context
 	docker pull python:2.7
-	mv Dockerfile_base_image Dockerfile
+	cp Dockerfile_base_image Dockerfile
 	docker build -t xivo/dird_base .
-	mv Dockerfile Dockerfile_base_image
+	rm Dockerfile -fr
 
 test-image: sync-context
-	mv Dockerfile_test_image Dockerfile
+	cp Dockerfile_test_image Dockerfile
 	docker build -t dird-test .
-	mv Dockerfile Dockerfile_test_image
+	rm Dockerfile -fr
 
 clean:
 	rm -fr _context
