@@ -118,6 +118,7 @@ class TestXivoUserBackendSearch(_BaseTest):
     def setUp(self):
         super(TestXivoUserBackendSearch, self).setUp()
         self._source._entries = [SOURCE_1, SOURCE_2]
+        self._source._initialized = True
 
     def test_search_on_excluded_column(self):
         self._source._searched_columns = ['lastname']
@@ -211,3 +212,10 @@ class TestXivoUserBackendInitialisation(_BaseTest):
         self._source._fetch_users.assert_called_once_with()
 
         assert_that(self._source._entries, contains_inanyorder(SOURCE_1, SOURCE_2))
+
+    def test_that_fetch_content_will_leave_the_source_uninitialized_on_error(self):
+        self._source._fetch_uuid = Mock(side_effect=RuntimeError)
+
+        self._source._fetch_content()
+
+        assert_that(self._source._initialized, equal_to(False))

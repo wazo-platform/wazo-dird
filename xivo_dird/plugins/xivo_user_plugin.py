@@ -29,6 +29,7 @@ class XivoUserPlugin(BaseSourcePlugin):
     def __init__(self, ConfdClientClass=Client):
         self._ConfdClientClass = ConfdClientClass
         self._uuid = None
+        self._initialized = False
 
     def load(self, args):
         self._confd_config = args['config']['confd_config']
@@ -46,6 +47,7 @@ class XivoUserPlugin(BaseSourcePlugin):
         return self.name
 
     def search(self, term, args=None):
+        self._fetch_content()
         lowered_term = term.lower()
 
         def match_fn(entry):
@@ -57,6 +59,8 @@ class XivoUserPlugin(BaseSourcePlugin):
         return [entry for entry in self._entries if match_fn(entry)]
 
     def list(self, unique_ids):
+        self._fetch_content()
+
         def match_fn(entry):
             for unique_id in unique_ids:
                 if unique_id == entry.get_unique():
@@ -66,9 +70,16 @@ class XivoUserPlugin(BaseSourcePlugin):
         return [entry for entry in self._entries if match_fn(entry)]
 
     def _fetch_content(self):
-        self._uuid = self._fetch_uuid()
-        users = self._fetch_users()
-        self._entries = [self._source_result_from_entry(user) for user in users]
+        if self._initialized:
+            return
+
+        try:
+            self._uuid = self._fetch_uuid()
+            users = self._fetch_users()
+            self._entries = [self._source_result_from_entry(user) for user in users]
+            self._initialized = True
+        except Exception:
+            logger.debug('%s failed to load content, will retry later', self.name)
 
     def _fetch_uuid(self):
         client = self._ConfdClientClass(**self._confd_config)

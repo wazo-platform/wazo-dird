@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import time
+
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
@@ -49,6 +51,24 @@ class TestXivoUser(BaseDirdIntegrationTest):
         result = self.lookup('frack', 'default')
 
         assert_that(result['results'], contains())
+
+
+class TestXivoUserSlowConfd(BaseDirdIntegrationTest):
+
+    asset = 'xivo_users_slow_confd'
+    uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
+
+    def test_that_the_lookup_returns_the_expected_result(self):
+        # dird is not stuck on a slow confd
+        result = self.lookup('dyl', 'default')
+        assert_that(result['results'], contains())
+
+        time.sleep(3)
+
+        # once confd is started we can retrieve it's results
+        result = self.lookup('dyl', 'default')
+        assert_that(result['results'][0]['column_values'],
+                    contains('Bob', 'Dylan', '1000', None))
 
 
 class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
