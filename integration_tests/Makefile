@@ -20,7 +20,7 @@ test-setup: sync-context
 
 test-image: sync-context
 	cp Dockerfile_test_image Dockerfile
-	docker build -t dird-test .
+	docker build --no-cache -t dird-test .
 	rm Dockerfile -fr
 
 clean:
