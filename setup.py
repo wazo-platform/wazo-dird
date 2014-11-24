@@ -26,6 +26,7 @@ setup(
         'xivo_dird.backends': [
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
             'xivo = xivo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
+            'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
         ],
         'xivo_dird.views': [
             'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
