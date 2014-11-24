@@ -31,15 +31,19 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         asset_path = os.path.join(os.path.dirname(__file__), '..', 'assets', cls.asset)
         cls.cur_dir = os.getcwd()
         os.chdir(asset_path)
-        cmd = ['fig', 'up', '-d']
-        subprocess.call(cmd)
+        cls._run_cmd('fig up -d')
         time.sleep(1)
 
     @classmethod
     def stop_dird_with_asset(cls):
-        subprocess.call(['fig', 'kill'])
-        subprocess.call(['fig', 'rm', '--force'])
+        cls._run_cmd('fig kill')
+        cls._run_cmd('fig rm --force')
         os.chdir(cls.cur_dir)
+
+    @staticmethod
+    def _run_cmd(cmd):
+        with open('/dev/null', 'w') as dev_null:
+            subprocess.call(cmd.split(' '), stdout=dev_null, stderr=dev_null)
 
     @classmethod
     def setupClass(cls):
