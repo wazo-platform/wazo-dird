@@ -21,6 +21,9 @@ import requests
 import json
 import os
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BaseDirdIntegrationTest(unittest.TestCase):
@@ -42,8 +45,9 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
     @staticmethod
     def _run_cmd(cmd):
-        with open('/dev/null', 'w') as dev_null:
-            subprocess.call(cmd.split(' '), stdout=dev_null, stderr=dev_null)
+        process = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out, _ = process.communicate()
+        logger.info(out)
 
     @classmethod
     def setupClass(cls):
