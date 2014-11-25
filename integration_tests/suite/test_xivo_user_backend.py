@@ -23,6 +23,7 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
+from hamcrest import has_entry
 
 
 class TestXivoUser(BaseDirdIntegrationTest):
@@ -53,22 +54,37 @@ class TestXivoUser(BaseDirdIntegrationTest):
         assert_that(result['results'], contains())
 
 
+class TestXivoUserNoConfd(BaseDirdIntegrationTest):
+
+    asset = 'xivo_users_no_confd'
+
+    def test_given_no_confd_when_lookup_then_returns_no_results(self):
+        result = self.lookup('dyl', 'default')
+        assert_that(result['results'], contains())
+
+
 class TestXivoUserSlowConfd(BaseDirdIntegrationTest):
-
     asset = 'xivo_users_slow_confd'
-    uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
 
-    def test_that_the_lookup_returns_the_expected_result(self):
+    def test_given_confd_slow_to_start_when_lookup_then_first_returns_no_results_then_return_right_result(self):
         # dird is not stuck on a slow confd
         result = self.lookup('dyl', 'default')
         assert_that(result['results'], contains())
 
-        time.sleep(3)
+        # once confd is started we can retrieve its results
+        max_tries = 10
+        for _ in xrange(max_tries):
+            try:
+                result = self.lookup('dyl', 'default')
+                assert_that(result['results'],
+                            contains(has_entry('column_values',
+                                               contains('Bob', 'Dylan', '1000', None))))
+                return
+            except AssertionError as e:
+                time.sleep(1)
+                exception = e
 
-        # once confd is started we can retrieve it's results
-        result = self.lookup('dyl', 'default')
-        assert_that(result['results'][0]['column_values'],
-                    contains('Bob', 'Dylan', '1000', None))
+        raise exception
 
 
 class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
