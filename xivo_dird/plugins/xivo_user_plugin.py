@@ -41,7 +41,6 @@ class XivoUserPlugin(BaseSourcePlugin):
             self.name, ['id'],
             source_to_dest_map=args['config'].get(self.SOURCE_TO_DISPLAY))
         self._fetch_content()
-        logger.info('XiVO %s successfully loaded.', self._uuid)
 
     def name(self):
         return self.name
@@ -78,6 +77,7 @@ class XivoUserPlugin(BaseSourcePlugin):
             users = self._fetch_users()
             self._entries = [self._source_result_from_entry(user) for user in users]
             self._initialized = True
+            logger.info('XiVO %s successfully loaded.', self._uuid)
         except Exception:
             logger.debug('%s failed to load content, will retry later', self.name)
 
