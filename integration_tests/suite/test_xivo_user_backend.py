@@ -64,6 +64,7 @@ class TestXivoUserNoConfd(BaseDirdIntegrationTest):
 
 
 class TestXivoUserSlowConfd(BaseDirdIntegrationTest):
+
     asset = 'xivo_users_slow_confd'
 
     def test_given_confd_slow_to_start_when_lookup_then_first_returns_no_results_then_return_right_result(self):
