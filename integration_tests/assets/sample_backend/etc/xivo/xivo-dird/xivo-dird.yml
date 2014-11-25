@@ -1,6 +1,3 @@
-rest_api:
-       wsgi_socket: /tmp/xivo-dird.sock
-
 enabled_plugins:
     backends:
         - sample

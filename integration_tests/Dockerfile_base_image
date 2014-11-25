@@ -26,7 +26,6 @@ WORKDIR /root/dird
 RUN pip install -r requirements.txt
 RUN rsync -av etc/nginx/ /etc/nginx
 RUN ln -s /etc/nginx/sites-available/xivo-dird /etc/nginx/sites-enabled/xivo-dird
-RUN sed -i 's#/var/run/xivo-dird#/tmp#' /etc/nginx/sites-available/xivo-dird
 RUN sed -i 's#127.0.0.1#0.0.0.0#' /etc/nginx/sites-available/xivo-dird
 
 RUN python setup.py install
