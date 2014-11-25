@@ -21,6 +21,9 @@ import requests
 import json
 import os
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BaseDirdIntegrationTest(unittest.TestCase):
@@ -31,15 +34,20 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         asset_path = os.path.join(os.path.dirname(__file__), '..', 'assets', cls.asset)
         cls.cur_dir = os.getcwd()
         os.chdir(asset_path)
-        cmd = ['fig', 'up', '-d']
-        subprocess.call(cmd)
+        cls._run_cmd('fig up -d')
         time.sleep(1)
 
     @classmethod
     def stop_dird_with_asset(cls):
-        subprocess.call(['fig', 'kill'])
-        subprocess.call(['fig', 'rm', '--force'])
+        cls._run_cmd('fig kill')
+        cls._run_cmd('fig rm --force')
         os.chdir(cls.cur_dir)
+
+    @staticmethod
+    def _run_cmd(cmd):
+        process = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out, _ = process.communicate()
+        logger.info(out)
 
     @classmethod
     def setupClass(cls):
