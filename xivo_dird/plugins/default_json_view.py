@@ -89,6 +89,8 @@ def make_api_class(lookup_service, displays, api):
             term = args['term']
 
             logger.info('Lookup for %s with profile %s', term, profile)
+            if profile not in displays:
+                return 'Profile not found', 404
             display = displays[profile]
 
             return _lookup(lookup_service, display, term, profile)

@@ -62,6 +62,11 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         result = requests.get(url.format(profile=profile, term=term))
         return json.loads(result.text)
 
+    def lookup_with_error(self, term, profile):
+        url = 'http://localhost:9489/0.1/directories/lookup/{profile}?term={term}'
+        result = requests.get(url.format(profile=profile, term=term))
+        return result
+
     def headers(self, profile):
         url = 'http://localhost:9489/0.1/directories/lookup/{profile}/headers'
         result = requests.get(url.format(profile=profile))
