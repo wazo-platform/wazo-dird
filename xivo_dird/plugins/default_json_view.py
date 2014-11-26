@@ -20,6 +20,7 @@ import logging
 from collections import namedtuple
 from flask_restplus import Resource
 from flask_restplus import fields
+from time import time
 from xivo_dird import BaseViewPlugin
 
 logger = logging.getLogger(__name__)
@@ -90,7 +91,13 @@ def make_api_class(lookup_service, displays, api):
 
             logger.info('Lookup for %s with profile %s', term, profile)
             if profile not in displays:
-                return 'Profile not found', 404
+                error = {
+                    'reason': ['The lookup profile does not exist'],
+                    'timestamp': [time()],
+                    'status_code': 404,
+                }
+                return error, 404
+
             display = displays[profile]
 
             return _lookup(lookup_service, display, term, profile)

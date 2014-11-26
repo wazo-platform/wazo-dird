@@ -131,7 +131,17 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
     asset = 'sample_backend'
 
     def test_that_lookup_returns_404(self):
-        result = self.lookup_with_error('lice', 'unknown')
+        result = self.get_lookup_result('lice', 'unknown')
 
-        assert_that(result.status_code, equal_to(404)),
-        assert_that(result.json(), equal_to('Profile not found'))
+        error = result.json()
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(error['reason'], contains('The lookup profile does not exist'))
+
+    def test_that_headers_returns_404(self):
+        result = self.get_headers_result('unknown')
+
+        error = result.json()
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(error['reason'], contains('The lookup profile does not exist'))
