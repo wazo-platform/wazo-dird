@@ -22,6 +22,7 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
+from hamcrest import equal_to
 from hamcrest import is_in
 from hamcrest import is_not
 
@@ -123,3 +124,24 @@ class TestWithAnotherConfigDir(BaseDirdIntegrationTest):
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
+
+
+class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
+
+    asset = 'sample_backend'
+
+    def test_that_lookup_returns_404(self):
+        result = self.get_lookup_result('lice', 'unknown')
+
+        error = result.json()
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(error['reason'], contains('The lookup profile does not exist'))
+
+    def test_that_headers_returns_404(self):
+        result = self.get_headers_result('unknown')
+
+        error = result.json()
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(error['reason'], contains('The lookup profile does not exist'))

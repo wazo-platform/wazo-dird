@@ -5,6 +5,7 @@ enabled_plugins:
         - lookup
     views:
         - default_json
+        - headers_view
 
 views:
     displays:

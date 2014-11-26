@@ -57,12 +57,18 @@ class BaseDirdIntegrationTest(unittest.TestCase):
     def teardownClass(cls):
         cls.stop_dird_with_asset()
 
-    def lookup(self, term, profile):
+    def get_lookup_result(self, term, profile):
         url = 'http://localhost:9489/0.1/directories/lookup/{profile}?term={term}'
         result = requests.get(url.format(profile=profile, term=term))
-        return json.loads(result.text)
+        return result
 
-    def headers(self, profile):
+    def lookup(self, term, profile):
+        return json.loads(self.get_lookup_result(term, profile).text)
+
+    def get_headers_result(self, profile):
         url = 'http://localhost:9489/0.1/directories/lookup/{profile}/headers'
         result = requests.get(url.format(profile=profile))
-        return json.loads(result.text)
+        return result
+
+    def headers(self, profile):
+        return json.loads(self.get_headers_result(profile).text)
