@@ -58,6 +58,9 @@ class JsonViewPlugin(BaseViewPlugin):
                     'type': 'string',
                     'paramType': 'query',
                 }
+            },
+            'responses': {
+                404: 'Invalid profile'
             }
         }
 
