@@ -6,7 +6,7 @@ unique_columns:
     - ln
 searched_columns:
     - ln
-source_to_display:
+source_to_display_columns:
     ln: lastname
     fn: firstname
     num: number

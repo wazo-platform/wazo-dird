@@ -7,5 +7,5 @@ searched_columns:
     - firstname
     - lastname
     - number
-source_to_display:
+source_to_display_columns:
     lastname: lastname
