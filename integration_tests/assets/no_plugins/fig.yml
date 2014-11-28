@@ -3,4 +3,4 @@ dird:
   ports:
     - "9489:9489"
   volumes:
-    - "./etc/xivo/xivo-dird:/etc/xivo/xivo-dird"
+    - "./etc/xivo-dird:/etc/xivo-dird"
