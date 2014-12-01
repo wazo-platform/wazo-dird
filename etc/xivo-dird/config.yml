@@ -1,4 +1,4 @@
-source_config_dir: /etc/xivo/xivo-dird/sources.d
+source_config_dir: /etc/xivo-dird/sources.d
 rest_api:
        wsgi_socket: /tmp/xivo-dird.sock
 
