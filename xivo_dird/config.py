@@ -26,7 +26,7 @@ from xivo.xivo_logging import get_log_level_by_name
 
 def load(argv):
     default_config = {
-        'config_file': '/etc/xivo/xivo-dird/xivo-dird.yml',
+        'config_file': '/etc/xivo-dird/config.yml',
         'debug': False,
         'enabled_plugins': {
             'backends': [],
@@ -41,7 +41,7 @@ def load(argv):
             'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
         },
         'services': {},
-        'source_config_dir': '/etc/xivo/xivo-dird/sources.d',
+        'source_config_dir': '/etc/xivo-dird/sources.d',
         'user': 'www-data',
         'views': {},
     }
