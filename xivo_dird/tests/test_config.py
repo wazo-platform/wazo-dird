@@ -54,13 +54,13 @@ class TestConfig(TestCase):
             'views': {},
         }))
 
-    @patch('yaml.load')
-    def test_load_when_config_file_in_argv_then_read_config_from_file(self, yaml_load, mock_open):
-        yaml_load.return_value = {'debug': True}
+    @patch('xivo_dird.config.parse_config_file')
+    def test_load_when_config_file_in_argv_then_read_config_from_file(self, parse_config_file, _):
+        parse_config_file.return_value = {'debug': True}
 
         result = config.load(['-c', 'my_file'])
 
-        mock_open.assert_called_once_with('my_file')
+        parse_config_file.assert_called_once_with('my_file')
         assert_that(result['debug'], equal_to(True))
 
     def test_load_when_foreground_in_argv_then_ignore_default_value(self, mock_open):
