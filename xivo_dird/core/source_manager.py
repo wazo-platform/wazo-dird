@@ -16,11 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
-import os
-import yaml
 
 from collections import defaultdict
 from stevedore import enabled
+from xivo.config_helper import parse_config_dir
 
 
 logger = logging.getLogger(__name__)
@@ -53,14 +52,13 @@ class SourceManager(object):
             logger.warning('No configured "plugin_config_dir"')
             return
 
-        source_config_files = _list_files(self._config['plugin_config_dir'])
+        source_configs = parse_config_dir(self._config['plugin_config_dir'])
 
-        for config_file in source_config_files:
-            config = _load_yaml_content(config_file)
-            if not config or 'type' not in config:
+        for source_config in source_configs:
+            if 'type' not in source_config:
                 continue
 
-            self._configs_by_backend[config['type']].append(config)
+            self._configs_by_backend[source_config['type']].append(source_config)
 
     def _load_sources_using_backend(self, extension, configs_by_backend):
         backend = extension.name
@@ -72,24 +70,3 @@ class SourceManager(object):
                 self._sources[source.name] = source
             except Exception:
                 logger.exception('Failed to load %s', source.name)
-
-
-def _list_files(directory):
-    result = []
-
-    for dir_path, _, file_names in os.walk(directory):
-        for file_name in file_names:
-            full_filename = os.path.join(dir_path, file_name)
-            result.append(full_filename)
-
-    return result
-
-
-def _load_yaml_content(full_filename):
-    with open(full_filename) as f:
-        try:
-            return yaml.load(f)
-        except AttributeError:
-            logger.warning('Failed to load yaml config from %s', full_filename)
-
-    return {}

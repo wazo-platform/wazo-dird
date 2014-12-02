@@ -88,16 +88,13 @@ class TestSourceManager(unittest.TestCase):
         assert_that(manager.should_load_backend(backend_1), is_(False))
         assert_that(manager.should_load_backend(backend_2), is_(False))
 
-    @patch('xivo_dird.core.source_manager._list_files')
-    @patch('xivo_dird.core.source_manager._load_yaml_content')
-    def test_load_all_configs(self, mock_load_yaml_content, mock_list_files):
-        mock_list_files.return_value = files = ['file1']
-
+    @patch('xivo_dird.core.source_manager.parse_config_dir')
+    def test_load_all_configs(self, mock_parse_config_dir):
         manager = SourceManager({'plugin_config_dir': 'foo'})
 
         manager._load_all_configs()
 
-        mock_load_yaml_content.assert_called_once_with(files[0])
+        mock_parse_config_dir.assert_called_once_with('foo')
 
     def test_load_sources_using_backend_calls_load_on_all_sources_using_this_backend(self):
         configs = config1, config2 = [
