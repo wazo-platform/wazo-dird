@@ -1,2 +1,1 @@
-#  Disable xivo-dird by default: the config must be right before starting xivo-dird
-startup=no
+startup=yes
