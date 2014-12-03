@@ -4,7 +4,7 @@ rest_api:
 
 enabled_plugins:
     backends:
-        - csv
+        - sample
     services:
         - lookup
     views:
@@ -23,9 +23,9 @@ views:
                 default: Unknown
                 field: lastname
             -
-                title: Number
+                title: Description
                 default:
-                field: number
+                field: description
     profile_to_display:
         default: default_display
 
@@ -33,5 +33,5 @@ services:
     lookup:
         default:
             sources:
-                - my_csv
+                - my_sample
             timeout: 0.5
