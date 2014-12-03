@@ -1,4 +1,4 @@
-FROM xivo/dird_test_base:latest
+FROM xivo/dird
 
 ADD ./_context /dird
 WORKDIR /dird
@@ -6,4 +6,4 @@ RUN python setup.py install
 
 EXPOSE 9489
 
-CMD /root/start
+CMD /root/run.sh

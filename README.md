@@ -2,7 +2,15 @@ xivo-dird
 =========
 [![Build Status](https://travis-ci.org/xivo-pbx/xivo-dird.png?branch=master)](https://travis-ci.org/xivo-pbx/xivo-dird)
 
-xivo-dird is a library for accessing remote directories in XiVO
+xivo-dird is a service to query many directory sources simultaneously using a
+simple REST API.
+
+
+## Docker
+
+The xivo/dird image can be build using the following command:
+
+   % docker build -t xivo/dird .
 
 
 ## Testing
@@ -33,8 +41,8 @@ To build this image execute:
     % make test-image
 
 The `make test-setup` step is time consuming and should rarelly be required. It
-creates a base image that is going to be used as the base for dird-test image
-that is build from the local source using `make test-image`.
+pulls the required images that are going to be used for the dird-test image
+that is built from the local source using `make test-image`.
 
 To execute the integration tests execute:
 

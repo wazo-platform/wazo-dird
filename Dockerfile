@@ -15,19 +15,23 @@ RUN apt-get -qq -y install \
      python-dev \
      nginx
 
-ADD start /root/start
-ADD ./_context /root/dird
+ADD . /root/dird
 RUN mkdir -p /var/run/xivo-dird
 RUN chmod a+w /var/run/xivo-dird
 RUN touch /var/log/xivo-dird.log
 RUN chown www-data: /var/log/xivo-dird.log
 
 WORKDIR /root/dird
+RUN cp run.sh /root/run.sh
 RUN pip install -r requirements.txt
-RUN rsync -av etc/nginx/ /etc/nginx
+RUN rsync -av etc/ /etc
 RUN ln -s /etc/nginx/sites-available/xivo-dird /etc/nginx/sites-enabled/xivo-dird
 RUN sed -i 's#127.0.0.1#0.0.0.0#' /etc/nginx/sites-available/xivo-dird
 
 RUN python setup.py install
 WORKDIR /root
 RUN rm -fr /root/dird
+
+EXPOSE 9489
+
+CMD /root/run.sh
