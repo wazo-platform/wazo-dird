@@ -30,14 +30,18 @@ test -x $DAEMON || exit 0
 is_enabled() {
     # Check if startup variable is set to 1, if not we exit.
     startup=yes
-    if [ -r $XIVO_DEFAULT_FILE ]; then
-        . $XIVO_DEFAULT_FILE
-    fi
     if [ -r $XIVO_DIRD_DEFAULT_FILE ]; then
         . $XIVO_DIRD_DEFAULT_FILE
     fi
     if [ "$startup" != "yes" ]; then
-        echo "$DAEMONNAME startup is disabled in $XIVO_DEFAULT_FILE or $XIVO_DIRD_DEFAULT_FILE"
+        echo "$DAEMONNAME startup is disabled in $XIVO_DIRD_DEFAULT_FILE"
+        exit 0
+    fi
+    if [ -r $XIVO_DEFAULT_FILE ]; then
+        . $XIVO_DEFAULT_FILE
+    fi
+    if [ "$startup" != "yes" ]; then
+        echo "$DAEMONNAME startup is disabled in $XIVO_DEFAULT_FILE"
         exit 0
     fi
 }
