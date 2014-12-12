@@ -54,9 +54,10 @@ class JsonViewPlugin(BaseViewPlugin):
             'params': {
                 'term': {
                     'description': 'The string to look for',
-                    'required': False,
-                    'type': 'string',
-                    'paramType': 'query',
+                    'required': True,
+                },
+                'profile': {
+                    'description': 'The profile to look for'
                 }
             },
             'responses': {
