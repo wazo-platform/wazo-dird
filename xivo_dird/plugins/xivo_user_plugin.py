@@ -45,7 +45,7 @@ class XivoUserPlugin(BaseSourcePlugin):
     def name(self):
         return self.name
 
-    def search(self, term, args=None):
+    def search(self, term, profile=None, args=None):
         self._fetch_content()
         lowered_term = term.lower()
 

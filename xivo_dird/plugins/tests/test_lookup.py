@@ -95,9 +95,9 @@ class TestLookupService(unittest.TestCase):
 
         expected_results = [{'f': 1}, {'f': 3}]
 
-        sources['source_1'].search.assert_called_once_with(sentinel.term, sentinel.args)
+        sources['source_1'].search.assert_called_once_with(sentinel.term, 'my_profile', sentinel.args)
         assert_that(sources['source_2'].call_count, equal_to(0))
-        sources['source_3'].search.assert_called_once_with(sentinel.term, sentinel.args)
+        sources['source_3'].search.assert_called_once_with(sentinel.term, 'my_profile', sentinel.args)
 
         assert_that(results, contains_inanyorder(*expected_results))
 
@@ -122,7 +122,7 @@ class TestLookupService(unittest.TestCase):
 
         expected_results = [{'f': 1}]
 
-        sources['source_1'].search.assert_called_once_with(sentinel.term, sentinel.args)
+        sources['source_1'].search.assert_called_once_with(sentinel.term, 'my_profile', sentinel.args)
         assert_that(sources['source_2'].call_count, equal_to(0))
 
         assert_that(results, contains_inanyorder(*expected_results))
