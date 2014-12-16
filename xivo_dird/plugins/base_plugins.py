@@ -92,7 +92,7 @@ class BaseSourcePlugin(object):
         return
 
     @abc.abstractmethod
-    def search(self, *args, **kwargs):
+    def search(self, term, profile, *args, **kwargs):
         '''
         The search method should return a list of dict containing the search
         results.
