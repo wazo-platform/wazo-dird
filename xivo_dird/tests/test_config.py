@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ class TestConfig(TestCase):
             'views': {},
         }))
 
-    @patch('xivo_dird.config.parse_config_file')
+    @patch('xivo.config_helper.parse_config_file')
     def test_load_when_config_file_in_argv_then_read_config_from_file(self, parse_config_file, _):
         parse_config_file.return_value = {'debug': True}
 
