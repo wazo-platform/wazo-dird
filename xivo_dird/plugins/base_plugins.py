@@ -21,7 +21,7 @@ import abc
 class BaseServicePlugin(object):
     '''
     This is the base class of a dird service. The service is responsible of
-    it's directory sources
+    its directory sources
     '''
 
     __metaclass__ = abc.ABCMeta
@@ -29,7 +29,7 @@ class BaseServicePlugin(object):
     @abc.abstractmethod
     def load(self, args=None):
         '''
-        Bootstraps the plugin instance the flask app, bus connection and other
+        Bootstraps the plugin instance. The flask app, bus connection and other
         handles will be passed through the args dictionary
         '''
 
