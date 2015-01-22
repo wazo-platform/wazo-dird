@@ -1,6 +1,7 @@
 source_config_dir: /etc/xivo-dird/sources.d
 rest_api:
-       wsgi_socket: /var/run/xivo-dird/xivo-dird.sock
+       listen: 127.0.0.1
+       port: 9489
 
 enabled_plugins:
     backends:

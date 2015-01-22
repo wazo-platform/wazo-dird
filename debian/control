@@ -10,7 +10,7 @@ Homepage: http://wiki.xivo.io
 
 Package: xivo-dird
 Architecture: all
-Pre-Depends: xivo-libdird (= ${binary:Version}), nginx
+Pre-Depends: xivo-libdird (= ${binary:Version})
 Depends: ${python:Depends}, adduser
 Description: XIVO PBX's directory server
  XIVO is a system based on a powerful IPBX, to bring an easy to
@@ -19,7 +19,17 @@ Description: XIVO PBX's directory server
 
 Package: xivo-libdird
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, xivo-lib-python, python-ldap, python-flask, python-flup, python-stevedore, python-concurrent.futures, python-flask-restplus, xivo-confd-client
+Depends: ${python:Depends},
+         ${misc:Depends},
+         xivo-lib-python,
+         python-ldap,
+         python-flask,
+         python-flup,
+         python-stevedore,
+         python-cherrypy3,
+         python-concurrent.futures,
+         python-flask-restplus,
+         xivo-confd-client
 Description: XIVO telephony systems library for directories manager
  XIVO is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.

@@ -12,3 +12,4 @@ stevedore
 pyaml
 futures
 requests
+cherrypy

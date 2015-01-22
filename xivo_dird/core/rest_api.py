@@ -15,15 +15,42 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from datetime import timedelta
+
+import logging
+import os
+from cherrypy import wsgiserver
 from flask import Flask
 from flask_restplus.api import Api
+from werkzeug.contrib.fixers import ProxyFix
+
 
 VERSION = 0.1
+
+logger = logging.getLogger(__name__)
 
 
 class CoreRestApi(object):
 
     def __init__(self, config):
         self.app = Flask('xivo_dird')
+        self.app.wsgi_app = ProxyFix(self.app.wsgi_app)
+        self.app.secret_key = os.urandom(24)
+        self.app.permanent_session_lifetime = timedelta(minutes=5)
         self.api = Api(self.app, version=VERSION, prefix='/{}'.format(VERSION))
+        self.config = config
         self.namespace = self.api.namespace('directories', description='directories operations')
+
+    def run(self):
+        bind_addr = (self.config['listen'], self.config['port'])
+
+        wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': self.app})
+        server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr,
+                                               wsgi_app=wsgi_app)
+
+        logger.debug('WSGIServer starting... uid: %s, listen: %s:%s', os.getuid(), bind_addr[0], bind_addr[1])
+
+        try:
+            server.start()
+        except KeyboardInterrupt:
+            server.stop()

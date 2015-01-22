@@ -31,3 +31,7 @@ services:
         default:
             sources:
                 - xivo_america
+
+rest_api:
+       listen: 0.0.0.0
+       port: 9489

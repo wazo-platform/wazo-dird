@@ -35,7 +35,8 @@ _DEFAULT_CONFIG = {
     'foreground': False,
     'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
     'rest_api': {
-        'wsgi_socket': '/var/run/xivo-dird/xivo-dird.sock',
+        'listen': '127.0.0.1',
+        'port': '9489',
     },
     'services': {},
     'source_config_dir': '/etc/xivo-dird/sources.d',

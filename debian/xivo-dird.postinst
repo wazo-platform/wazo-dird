@@ -14,13 +14,11 @@ case "$1" in
 				--no-create-home --disabled-login \
 				www-data
 		fi
-	
+
 		if [ ! -e "$LOG_FILENAME" ]; then
 			touch "$LOG_FILENAME"
 		fi
 		chown www-data: "$LOG_FILENAME"
-
-		invoke-rc.d nginx reload
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)

@@ -33,3 +33,7 @@ services:
                 - xivo_america
                 - xivo_asia
                 - xivo_europe
+
+rest_api:
+       listen: 0.0.0.0
+       port: 9489

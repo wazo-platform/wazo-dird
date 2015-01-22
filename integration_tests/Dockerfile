@@ -6,4 +6,4 @@ RUN python setup.py install
 
 EXPOSE 9489
 
-CMD /root/run.sh
+CMD xivo-dird -d -f
