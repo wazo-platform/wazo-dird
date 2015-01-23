@@ -24,21 +24,10 @@ class _SourceResult(object):
 
     def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
         self.fields = fields
-        self.relations = {'agent': None,
-                          'user': None,
-                          'endpoint': None}
-
-        if agent_id:
-            self.relations['agent'] = {'id': agent_id,
-                                       'xivo_id': xivo_id}
-
-        if user_id:
-            self.relations['user'] = {'id': user_id,
-                                      'xivo_id': xivo_id}
-
-        if endpoint_id:
-            self.relations['endpoint'] = {'id': endpoint_id,
-                                          'xivo_id': xivo_id}
+        self.relations = {'xivo_id': xivo_id,
+                          'agent_id': agent_id,
+                          'user_id': user_id,
+                          'endpoint_id': endpoint_id}
 
         self._add_destination_columns()
 

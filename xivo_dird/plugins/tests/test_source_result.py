@@ -28,48 +28,50 @@ from xivo_dird.plugins.source_result import make_result_class
 class TestSourceResult(unittest.TestCase):
 
     def setUp(self):
+        self.xivo_id = sentinel.xivo_id
         self.fields = {'client_no': 1, 'firstname': 'fn', 'lastname': 'ln'}
         self.empty_relations = {
-            'agent': None,
-            'user': None,
-            'endpoint': None,
+            'xivo_id': self.xivo_id,
+            'agent_id': None,
+            'user_id': None,
+            'endpoint_id': None,
         }
 
     def test_source(self):
-        r = _SourceResult(self.fields)
+        r = _SourceResult(self.fields, self.xivo_id)
         r.source = sentinel.source
 
         assert_that(r.source, equal_to(sentinel.source))
 
     def test_fields(self):
-        r = _SourceResult(self.fields)
+        r = _SourceResult(self.fields, self.xivo_id)
 
         assert_that(r.fields, equal_to(self.fields))
         assert_that(r.relations, equal_to(self.empty_relations))
 
     def test_agent_relation(self):
-        r = _SourceResult(self.fields, sentinel.xivo_id, agent_id=sentinel.agent_id)
+        r = _SourceResult(self.fields, self.xivo_id, agent_id=sentinel.agent_id)
 
-        assert_that(r.relations, equal_to({'agent': {'id': sentinel.agent_id,
-                                                     'xivo_id': sentinel.xivo_id},
-                                           'user': None,
-                                           'endpoint': None}))
+        assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
+                                           'agent_id': sentinel.agent_id,
+                                           'user_id': None,
+                                           'endpoint_id': None}))
 
     def test_user_relation(self):
         r = _SourceResult(self.fields, sentinel.xivo_id, user_id=sentinel.user_id)
 
-        assert_that(r.relations, equal_to({'agent': None,
-                                           'user': {'id': sentinel.user_id,
-                                                    'xivo_id': sentinel.xivo_id},
-                                           'endpoint': None}))
+        assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
+                                           'agent_id': None,
+                                           'user_id': sentinel.user_id,
+                                           'endpoint_id': None}))
 
     def test_endpoint_relation(self):
         r = _SourceResult(self.fields, sentinel.xivo_id, endpoint_id=sentinel.endpoint_id)
 
-        assert_that(r.relations, equal_to({'agent': None,
-                                           'user': None,
-                                           'endpoint': {'id': sentinel.endpoint_id,
-                                                        'xivo_id': sentinel.xivo_id}}))
+        assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
+                                           'agent_id': None,
+                                           'user_id': None,
+                                           'endpoint_id': sentinel.endpoint_id}))
 
     def test_get_unique_one_column(self):
         r = _SourceResult(self.fields)
