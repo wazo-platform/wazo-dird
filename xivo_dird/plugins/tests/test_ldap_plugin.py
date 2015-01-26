@@ -15,14 +15,103 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import ldap
 import unittest
 
 from ldap.ldapobject import LDAPObject
-from mock import Mock, ANY
+from mock import Mock, ANY, sentinel
 from xivo_dird.plugins.base_plugins import BaseSourcePlugin
 from xivo_dird.plugins.ldap_plugin import _LDAPConfig, \
-    _LDAPResultFormatter, _LDAPClient
+    _LDAPResultFormatter, _LDAPClient, LDAPPlugin, _LDAPFactory
 from xivo_dird.plugins.source_result import make_result_class
+
+
+class TestLDAPPlugin(unittest.TestCase):
+
+    def setUp(self):
+        self.config = {'config': sentinel}
+        self.ldap_config = Mock(_LDAPConfig)
+        self.ldap_result_formatter = Mock(_LDAPResultFormatter)
+        self.ldap_client = Mock(_LDAPClient)
+        self.ldap_factory = Mock(_LDAPFactory)
+        self.ldap_factory.new_ldap_config.return_value = self.ldap_config
+        self.ldap_factory.new_ldap_result_formatter.return_value = self.ldap_result_formatter
+        self.ldap_factory.new_ldap_client.return_value = self.ldap_client
+        self.ldap_plugin = LDAPPlugin()
+        self.ldap_plugin.ldap_factory = self.ldap_factory
+
+    def test_load(self):
+        self.ldap_plugin.load(self.config)
+
+        self.ldap_factory.new_ldap_config.assert_called_once_with(self.config['config'])
+        self.ldap_factory.new_ldap_result_formatter.assert_called_once_with(self.ldap_config)
+        self.ldap_factory.new_ldap_client.assert_called_once_with(self.ldap_config)
+        self.ldap_client.set_up.assert_called_once_with()
+
+    def test_unload(self):
+        self.ldap_plugin.load(self.config)
+        self.ldap_plugin.unload()
+
+        self.ldap_client.close.assert_called_once_with()
+
+    def test_search(self):
+        term = u'foobar'
+        self.ldap_config.build_search_filter.return_value = sentinel.filter
+        self.ldap_client.search.return_value = sentinel.search_result
+        self.ldap_result_formatter.format.return_value = sentinel.format_result
+
+        self.ldap_plugin.load(self.config)
+        result = self.ldap_plugin.search(term, '')
+
+        self.ldap_config.build_search_filter.assert_called_once_with(term.encode('UTF-8'))
+        self.ldap_client.search.assert_called_once_with(sentinel.filter)
+        self.ldap_result_formatter.format.assert_called_once_with(sentinel.search_result)
+        self.assertIs(result, sentinel.format_result)
+
+    def test_list(self):
+        uids = [('123',), ('456',)]
+        self.ldap_config.build_list_filter.return_value = sentinel.filter
+        self.ldap_client.search.return_value = sentinel.search_result
+        self.ldap_result_formatter.format.return_value = sentinel.format_result
+
+        self.ldap_plugin.load(self.config)
+        result = self.ldap_plugin.list(uids)
+
+        self.ldap_config.build_list_filter.assert_called_once_with(uids)
+        self.ldap_client.search.assert_called_once_with(sentinel.filter)
+        self.ldap_result_formatter.format.assert_called_once_with(sentinel.search_result)
+        self.assertIs(result, sentinel.format_result)
+
+    def test_list_no_unique_columns(self):
+        uids = [('123',), ('456',)]
+        self.ldap_config.unique_columns.return_value = None
+
+        self.ldap_plugin.load(self.config)
+        result = self.ldap_plugin.list(uids)
+
+        self.assertFalse(self.ldap_config.build_list_filter.called)
+        self.assertEqual([], result)
+
+
+class _TestLDAPFactory(unittest.TestCase):
+
+    def setUp(self):
+        self.ldap_factory = _LDAPFactory()
+
+    def test_ldap_config(self):
+        ldap_config = self.ldap_factory.new_ldap_config({})
+
+        self.assertIsInstance(ldap_config, _LDAPConfig)
+
+    def test_ldap_client(self):
+        ldap_client = self.ldap_factory.new_ldap_client(sentinel.ldap_config)
+
+        self.assertIsInstance(ldap_client, _LDAPClient)
+
+    def test_ldap_result_formatter(self):
+        ldap_result_formatter = self.ldap_factory.new_ldap_result_formatter(sentinel.ldap_config)
+
+        self.assertIsInstance(ldap_result_formatter, _LDAPResultFormatter)
 
 
 class TestLDAPConfig(unittest.TestCase):
@@ -272,32 +361,85 @@ class TestLDAPConfig(unittest.TestCase):
 class TestLDAPClient(unittest.TestCase):
 
     def setUp(self):
+        self.uri = 'ldap://example.org'
         self.base_dn = 'ou=people,dc=foobar'
         self.attributes = ['entryUUID', 'givenName']
         self.username = 'cn=admin,dc=foobar'
         self.password = 'fol'
         self.ldap_config = Mock(_LDAPConfig)
+        self.ldap_config.ldap_uri.return_value = self.uri
         self.ldap_config.ldap_base_dn.return_value = self.base_dn
         self.ldap_config.attributes.return_value = self.attributes
         self.ldap_config.ldap_username.return_value = self.username
         self.ldap_config.ldap_password.return_value = self.password
         self.ldap_obj = Mock(LDAPObject)
-        self.ldap_client = _LDAPClient(self.ldap_config, self.ldap_obj)
+        self.ldap_obj_factory = Mock()
+        self.ldap_obj_factory.return_value = self.ldap_obj
+        self.ldap_client = _LDAPClient(self.ldap_config, self.ldap_obj_factory)
 
-    def test_bind(self):
-        self.ldap_client.bind()
+    def test_set_up(self):
+        self.ldap_client.set_up()
 
+        self.ldap_obj_factory.assert_called_once_with(self.uri)
         self.ldap_obj.simple_bind_s.assert_called_once_with(self.username, self.password)
 
-    def test_unbind(self):
-        self.ldap_client.unbind()
+    def test_set_up_when_already_set_up(self):
+        self.ldap_client.set_up()
+        self.ldap_client.set_up()
+
+        self.ldap_obj_factory.assert_called_once_with(self.uri)
+
+    def test_close(self):
+        self.ldap_client.set_up()
+
+        self.ldap_client.close()
+
+        self.ldap_obj.unbind_s.assert_called_once_with()
+
+    def test_close_when_already_closed(self):
+        self.ldap_client.set_up()
+
+        self.ldap_client.close()
+        self.ldap_client.close()
 
         self.ldap_obj.unbind_s.assert_called_once_with()
 
     def test_search(self):
-        self.ldap_client.search('foo')
+        self.ldap_obj.search_s.return_value = sentinel
+
+        result = self.ldap_client.search('foo')
 
         self.ldap_obj.search_s.assert_called_once_with(self.base_dn, ANY, 'foo', self.attributes)
+        self.assertEqual(1, self.ldap_obj_factory.call_count)
+        self.assertIs(result, sentinel)
+
+    def test_search_on_filter_error(self):
+        self.ldap_obj.search_s.side_effect = ldap.FILTER_ERROR('moo')
+
+        self.ldap_client.set_up()
+        result = self.ldap_client.search('foo')
+
+        self.assertEqual(result, [])
+        self.assertEqual(1, self.ldap_obj_factory.call_count)
+        self.assertEqual(1, self.ldap_obj.search_s.call_count)
+
+    def test_search_on_server_down_error(self):
+        self.ldap_obj.search_s.side_effect = ldap.SERVER_DOWN('moo')
+
+        self.ldap_client.set_up()
+        result = self.ldap_client.search('foo')
+
+        self.assertEqual(result, [])
+        self.assertEqual(2, self.ldap_obj_factory.call_count)
+        self.assertEqual(2, self.ldap_obj.search_s.call_count)
+
+    def test_multiple_search(self):
+        self.ldap_client.search('foo')
+        self.ldap_client.search('bar')
+        self.ldap_client.search('foobar')
+
+        self.assertEqual(1, self.ldap_obj.simple_bind_s.call_count)
+        self.assertEqual(3, self.ldap_obj.search_s.call_count)
 
 
 class TestLDAPResultFormatter(unittest.TestCase):

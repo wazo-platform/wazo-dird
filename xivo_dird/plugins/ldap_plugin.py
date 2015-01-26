@@ -31,20 +31,16 @@ class LDAPPlugin(BaseSourcePlugin):
     def __init__(self, *args, **kwargs):
         super(LDAPPlugin, self).__init__(*args, **kwargs)
         self.ldap_factory = _LDAPFactory()
-        self._ldap_client = None
         self._lock = threading.Lock()
 
     def load(self, args):
         self._ldap_config = self.ldap_factory.new_ldap_config(args['config'])
         self._ldap_result_formatter = self.ldap_factory.new_ldap_result_formatter(self._ldap_config)
-
-        self._init_ldap_client()
+        self._ldap_client = self.ldap_factory.new_ldap_client(self._ldap_config)
+        self._ldap_client.set_up()
 
     def unload(self):
-        if self._ldap_client is None:
-            return
-
-        self._deinit_ldap_client()
+        self._ldap_client.close()
 
     def search(self, term, profile, *args, **kwargs):
         term = term.encode('UTF-8')
@@ -63,52 +59,10 @@ class LDAPPlugin(BaseSourcePlugin):
         return self._search_and_format(filter_str)
 
     def _search_and_format(self, filter_str):
-        # thread safe
         with self._lock:
-            raw_results = self._search(filter_str)
+            raw_results = self._ldap_client.search(filter_str)
 
         return self._ldap_result_formatter.format(raw_results)
-
-    def _search(self, filter_str, retry=True):
-        # not thread safe
-        raw_results = []
-
-        if self._ldap_client is None:
-            if not self._init_ldap_client():
-                return raw_results
-
-        try:
-            raw_results = self._ldap_client.search(filter_str)
-        except ldap.FILTER_ERROR:
-            logger.warning('LDAP source "%s": search error: invalid filter "%s"', self.name, filter_str)
-        except ldap.NO_SUCH_OBJECT:
-            logger.warning('LDAP source "%s": search error: no such object "%s"', self.name, self._ldap_config.ldap_base_dn())
-        except ldap.TIMEOUT:
-            logger.warning('LDAP source "%s": search error: timeout')
-        except ldap.LDAPError as e:
-            logger.error('LDAP source "%s": search error: %r', self.name, e)
-            self._deinit_ldap_client()
-            if retry and self._init_ldap_client():
-                return self._search(filter_str, retry=False)
-
-        return raw_results
-
-    def _init_ldap_client(self):
-        # not thread safe
-        ldap_client = self.ldap_factory.new_ldap_client(self._ldap_config)
-        try:
-            ldap_client.bind()
-        except ldap.LDAPError as e:
-            logger.error('LDAP source "%s": bind error: %r', self.name, e)
-            return False
-
-        self._ldap_client = ldap_client
-        return True
-
-    def _deinit_ldap_client(self):
-        # not thread safe
-        self._ldap_client.unbind()
-        self._ldap_client = None
 
 
 class _LDAPFactory(object):
@@ -117,7 +71,7 @@ class _LDAPFactory(object):
         return _LDAPConfig(config)
 
     def new_ldap_client(self, ldap_config):
-        return _LDAPClient(ldap_config, ldap.initialize(ldap_config.ldap_uri()))
+        return _LDAPClient(ldap_config)
 
     def new_ldap_result_formatter(self, ldap_config):
         return _LDAPResultFormatter(ldap_config)
@@ -218,26 +172,84 @@ class _LDAPConfig(object):
 
 class _LDAPClient(object):
 
-    def __init__(self, ldap_config, ldap_obj):
+    def __init__(self, ldap_config, ldap_obj_factory=ldap.initialize):
         self._ldap_config = ldap_config
-        self._ldap_obj = ldap_obj
+        self._ldap_obj_factory = ldap_obj_factory
+        self._ldap_obj = None
+        self._name = self._ldap_config.name()
         self._base_dn = self._ldap_config.ldap_base_dn()
         self._attributes = self._ldap_config.attributes()
-        self._set_options()
 
-    def _set_options(self):
-        self._ldap_obj.set_option(ldap.OPT_REFERRALS, 0)
-        self._ldap_obj.set_option(ldap.OPT_NETWORK_TIMEOUT, self._ldap_config.ldap_network_timeout())
-        self._ldap_obj.set_option(ldap.OPT_TIMEOUT, self._ldap_config.ldap_timeout())
+    def close(self):
+        if self._is_set_up():
+            self._tear_down()
 
-    def bind(self):
-        self._ldap_obj.simple_bind_s(self._ldap_config.ldap_username(), self._ldap_config.ldap_password())
+    def set_up(self):
+        # This is an optional method. The main interest is that it will raise an exception
+        # if the ldap_obj can't be initialized properly. This can be useful if you want to
+        # fail early.
+        if not self._is_set_up():
+            self._set_up()
 
-    def unbind(self):
+    def _is_set_up(self):
+        return self._ldap_obj is not None
+
+    def _set_up(self):
+        self._ldap_obj = self._new_ldap_obj()
+        self._bind()
+
+    def _new_ldap_obj(self):
+        ldap_obj = self._ldap_obj_factory(self._ldap_config.ldap_uri())
+        ldap_obj.set_option(ldap.OPT_REFERRALS, 0)
+        ldap_obj.set_option(ldap.OPT_NETWORK_TIMEOUT, self._ldap_config.ldap_network_timeout())
+        ldap_obj.set_option(ldap.OPT_TIMEOUT, self._ldap_config.ldap_timeout())
+        return ldap_obj
+
+    def _bind(self):
+        try:
+            self._ldap_obj.simple_bind_s(self._ldap_config.ldap_username(), self._ldap_config.ldap_password())
+        except ldap.LDAPError as e:
+            logger.error('LDAP source "%s": bind error: %r', self._name, e)
+            self._tear_down()
+
+    def _tear_down(self):
         self._ldap_obj.unbind_s()
+        self._ldap_obj = None
 
     def search(self, filter_str):
-        return self._ldap_obj.search_s(self._base_dn, ldap.SCOPE_SUBTREE, filter_str, self._attributes)
+        if self._is_set_up():
+            retry = True
+        else:
+            self._set_up()
+            if not self._is_set_up():
+                return []
+            retry = False
+
+        results = self._search(filter_str)
+        if not self._is_set_up() and retry:
+            self._set_up()
+            if not self._is_set_up():
+                return []
+            results = self._search(filter_str)
+
+        return results
+
+    def _search(self, filter_str):
+        results = []
+
+        try:
+            results = self._ldap_obj.search_s(self._base_dn, ldap.SCOPE_SUBTREE, filter_str, self._attributes)
+        except ldap.FILTER_ERROR:
+            logger.warning('LDAP source "%s": search error: invalid filter "%s"', self._name, filter_str)
+        except ldap.NO_SUCH_OBJECT:
+            logger.warning('LDAP source "%s": search error: no such object "%s"', self._name, self._ldap_config.ldap_base_dn())
+        except ldap.TIMEOUT:
+            logger.warning('LDAP source "%s": search error: timeout')
+        except ldap.LDAPError as e:
+            logger.error('LDAP source "%s": search error: %r', self._name, e)
+            self._tear_down()
+
+        return results
 
 
 class _LDAPResultFormatter(object):
