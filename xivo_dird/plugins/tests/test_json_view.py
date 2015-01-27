@@ -221,7 +221,8 @@ class TestDisplayAwareResult(unittest.TestCase):
     def test_to_dict_no_relations(self):
         result = self.SourceResult({'firstname': 'Alice',
                                     'lastname': 'AAA',
-                                    'telephoneNumber': '5555555555'})
+                                    'telephoneNumber': '5555555555'},
+                                   self.xivo_id, None, None, None)
 
         display = [
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
@@ -235,7 +236,7 @@ class TestDisplayAwareResult(unittest.TestCase):
 
         expected = {
             'column_values': ['Alice', 'AAA', None, '5555555555', 'Canada'],
-            'relations': {'agent': None, 'user': None, 'endpoint': None},
+            'relations': {'xivo_id': self.xivo_id, 'agent_id': None, 'user_id': None, 'endpoint_id': None},
             'source': self.source_name,
         }
 
@@ -259,12 +260,10 @@ class TestDisplayAwareResult(unittest.TestCase):
 
         expected = {
             'column_values': ['Alice', 'AAA', None, '5555555555', 'Canada'],
-            'relations': {'agent': {'id': 'agent_id',
-                                    'xivo_id': self.xivo_id},
-                          'user': {'id': 'user_id',
-                                   'xivo_id': self.xivo_id},
-                          'endpoint': {'id': 'endpoint_id',
-                                       'xivo_id': self.xivo_id}},
+            'relations': {'xivo_id': self.xivo_id,
+                          'agent_id': 'agent_id',
+                          'user_id': 'user_id',
+                          'endpoint_id': 'endpoint_id'},
             'source': self.source_name,
         }
 

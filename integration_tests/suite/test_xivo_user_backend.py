@@ -41,12 +41,10 @@ class TestXivoUser(BaseDirdIntegrationTest):
         result = self.lookup('john', 'default')
 
         relations = result['results'][0]['relations']
-        assert_that(relations, equal_to({'agent': {'id': 3,
-                                                   'xivo_id': self.uuid},
-                                         'endpoint': {'id': 2,
-                                                      'xivo_id': self.uuid},
-                                         'user': {'id': 1,
-                                                  'xivo_id': self.uuid}}))
+        assert_that(relations, equal_to({'xivo_id': self.uuid,
+                                         'agent_id': 3,
+                                         'endpoint_id': 2,
+                                         'user_id': 1}))
 
     def test_no_result(self):
         result = self.lookup('frack', 'default')
@@ -98,28 +96,26 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
         expected_result = [
             {
                 'column_values': ['Charles', 'European', '9012', None],
-                'relations': {'agent': None,
-                              'endpoint': {'id': 42,
-                                           'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe'},
-                              'user': {'id': 100,
-                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe'}},
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
+                              'agent_id': None,
+                              'endpoint_id': 42,
+                              'user_id': 100},
                 'source': 'xivo_europe',
             },
             {
                 'column_values': ['Mary', 'Sue', '1465', None],
-                'relations': {'agent': None,
-                              'endpoint': {'id': 2,
-                                           'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'},
-                              'user': {'id': 2,
-                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': None,
+                              'endpoint_id': 2,
+                              'user_id': 2},
                 'source': 'xivo_america',
             },
             {
                 'column_values': ['Charles', 'Kenedy', '', None],
-                'relations': {'agent': None,
-                              'endpoint': None,
-                              'user': {'id': 100,
-                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': None,
+                              'endpoint_id': None,
+                              'user_id': 100},
                 'source': 'xivo_america',
             }
         ]
@@ -137,19 +133,18 @@ class TestXivoUserMultipleXivoOneUnknownHost(BaseDirdIntegrationTest):
         expected_result = [
             {
                 'column_values': ['Mary', 'Sue', '1465', None],
-                'relations': {'agent': None,
-                              'endpoint': {'id': 2,
-                                           'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'},
-                              'user': {'id': 2,
-                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': None,
+                              'endpoint_id': 2,
+                              'user_id': 2},
                 'source': 'xivo_america',
             },
             {
                 'column_values': ['Charles', 'Kenedy', '', None],
-                'relations': {'agent': None,
-                              'endpoint': None,
-                              'user': {'id': 100,
-                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': None,
+                              'endpoint_id': None,
+                              'user_id': 100},
                 'source': 'xivo_america',
             }
         ]
@@ -167,19 +162,18 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
         expected_result = [
             {
                 'column_values': ['Mary', 'Sue', '1465', None],
-                'relations': {'agent': None,
-                              'endpoint': {'id': 2,
-                                           'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'},
-                              'user': {'id': 2,
-                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': None,
+                              'endpoint_id': 2,
+                              'user_id': 2},
                 'source': 'xivo_america',
             },
             {
                 'column_values': ['Charles', 'Kenedy', '', None],
-                'relations': {'agent': None,
-                              'endpoint': None,
-                              'user': {'id': 100,
-                                       'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica'}},
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': None,
+                              'endpoint_id': None,
+                              'user_id': 100},
                 'source': 'xivo_america',
             }
         ]
