@@ -12,6 +12,8 @@ The xivo/dird image can be built using the following command:
 
    % docker build -t xivo/dird .
 
+You will need a configuration file that changes the listen address to 0.0.0.0.
+
 
 ## Testing
 
