@@ -8,7 +8,7 @@ simple REST API.
 
 ## Docker
 
-The xivo/dird image can be build using the following command:
+The xivo/dird image can be built using the following command:
 
    % docker build -t xivo/dird .
 
@@ -21,7 +21,7 @@ xivo-dird contains unittests and integration tests
 
 Dependencies to run the unittests are in the `requirements.txt` file.
 
-    % pip -r requirements.txt
+    % pip install -r requirements.txt -r test-requirements.txt
 
 To run the unittests
 
@@ -29,8 +29,9 @@ To run the unittests
 
 ### Integration tests
 
-docker is required to execute integration tests as well as the content of `test_requirements.txt`
+You need:
 
+    - docker
     % pip install -r test-requirements.txt
 
 A docker image named `dird-test` is required to execute the test suite.
@@ -40,9 +41,12 @@ To build this image execute:
     % make test-setup
     % make test-image
 
-The `make test-setup` step is time consuming and should rarelly be required. It
-pulls the required images that are going to be used for the dird-test image
-that is built from the local source using `make test-image`.
+There are two steps in preparing the integration tests:
+
+    - `make test-setup`: time consuming, but only needs to be run when
+      dependencies of xivo-dird change in any way.
+    - `make test-image`: a lot faster, and needs to be run when the code of
+      xivo-dird changes.
 
 To execute the integration tests execute:
 
