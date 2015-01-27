@@ -34,20 +34,14 @@ class TestController(TestCase):
     def tearDown(self):
         patch.stopall()
 
-    @patch('xivo.wsgi.run')
-    def test_run_starts_rest_api(self, wsgi_run):
+    def test_run_starts_rest_api(self):
         config = self._create_config(**{
-            'rest_api': {'wsgi_socket': s.socket},
+            'rest_api': {'listen': '127.0.0.1', 'port': '9489'},
             'debug': s.debug,
         })
         controller = Controller(config)
         controller.run()
-
-        wsgi_run.assert_called_once_with(self.rest_api.app,
-                                         bindAddress=s.socket,
-                                         multithreaded=True,
-                                         multiprocess=False,
-                                         debug=s.debug)
+        self.rest_api.run.assert_called_once_with()
 
     def test_init_loads_services(self):
         config = self._create_config(**{

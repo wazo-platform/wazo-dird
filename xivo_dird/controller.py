@@ -17,7 +17,6 @@
 
 import logging
 
-from xivo import wsgi
 from xivo_dird.core.rest_api import CoreRestApi
 from xivo_dird.core import plugin_manager
 
@@ -43,8 +42,4 @@ class Controller(object):
 
     def run(self):
         logger.debug('xivo-dird running...')
-        wsgi.run(self.rest_api.app,
-                 bindAddress=self.config['rest_api']['wsgi_socket'],
-                 multithreaded=True,
-                 multiprocess=False,
-                 debug=self.config['debug'])
+        self.rest_api.run()

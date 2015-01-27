@@ -14,13 +14,22 @@ case "$1" in
 				--no-create-home --disabled-login \
 				www-data
 		fi
-	
+
 		if [ ! -e "$LOG_FILENAME" ]; then
 			touch "$LOG_FILENAME"
 		fi
 		chown www-data: "$LOG_FILENAME"
 
-		invoke-rc.d nginx reload
+		# xivo-dird used to rely on nginx. When upgrading from such a version,
+		# we want nginx to forget about xivo-dird.
+		set +e
+		# Return 100 if nginx is not installed (which is valid, think docker).
+		invoke-rc.d --query --quiet nginx reload
+		status=$?
+		set -e
+		if [ $status -ne 100 ] ; then
+			invoke-rc.d nginx reload
+		fi
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
