@@ -1,0 +1,16 @@
+dird:
+  image: dird-test
+  ports:
+    - "9489:9489"
+  volumes:
+    - "./etc/xivo-dird:/etc/xivo-dird"
+  links:
+    - "slapd"
+slapd:
+  image: nickstenning/slapd
+  environment:
+    LDAP_DOMAIN: xivo-dird.xivo.io
+    LDAP_ORGANISATION: acme
+    LDAP_ROOTPASS: xivopassword
+  ports:
+    - "3389:389"

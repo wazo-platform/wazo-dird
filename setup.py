@@ -25,6 +25,7 @@ setup(
         ],
         'xivo_dird.backends': [
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
+            'ldap = xivo_dird.plugins.ldap_plugin:LDAPPlugin',
             'xivo = xivo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
             'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
         ],

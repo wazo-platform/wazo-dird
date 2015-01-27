@@ -1,0 +1,17 @@
+type: ldap
+name: test_ldap
+
+ldap_uri: ldap://slapd
+ldap_base_dn: ou=people,dc=xivo-dird,dc=xivo,dc=io
+ldap_username: cn=admin,dc=xivo-dird,dc=xivo,dc=io
+ldap_password: xivopassword
+
+unique_columns:
+  - entryUUID
+searched_columns:
+  - cn
+  - telephoneNumber
+source_to_display_columns:
+    givenName: firstname
+    sn: lastname
+    telephoneNumber: number

@@ -15,6 +15,7 @@ sync-context:
 test-setup: sync-context
 	docker pull python:2.7
 	docker pull xivo/dird
+	docker pull nickstenning/slapd
 
 test-image: sync-context
 	docker build --no-cache -t dird-test .

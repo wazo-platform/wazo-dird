@@ -50,7 +50,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         logger.info(out)
 
     @classmethod
-    def setupClass(cls):
+    def setUpClass(cls):
         cls.launch_dird_with_asset()
 
     @classmethod

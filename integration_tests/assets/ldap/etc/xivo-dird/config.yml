@@ -1,0 +1,28 @@
+enabled_plugins:
+    backends:
+        - ldap
+    services:
+        - lookup
+    views:
+        - default_json
+
+views:
+    displays:
+        default_display:
+            -
+                title: Firstname
+                field: firstname
+            -
+                title: Lastname
+                field: lastname
+            -
+                title: Number
+                field: number
+    profile_to_display:
+        default: default_display
+
+services:
+    lookup:
+        default:
+            sources:
+                - test_ldap
