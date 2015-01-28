@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import ldap
+import time
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
@@ -64,7 +65,15 @@ class LDAPHelper(object):
 
 
 def add_contacts(contacts):
-    helper = LDAPHelper()
+    for _ in xrange(5):
+        try:
+            helper = LDAPHelper()
+            break
+        except ldap.SERVER_DOWN:
+            time.sleep(1)
+    else:
+        raise Exception('could not add contacts: LDAP server is down')
+
     helper.add_ou_people()
     for contact in contacts:
         helper.add_contact(contact)
@@ -83,7 +92,11 @@ class TestLDAP(BaseDirdIntegrationTest):
     def setUpClass(cls):
         super(TestLDAP, cls).setUpClass()
 
-        add_contacts(cls.CONTACTS)
+        try:
+            add_contacts(cls.CONTACTS)
+        except Exception:
+            super(TestLDAP, cls).tearDownClass()
+            raise
 
     def test_lookup_on_cn(self):
         result = self.lookup('Ali', 'default')

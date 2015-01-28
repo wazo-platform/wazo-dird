@@ -49,7 +49,7 @@ alice = {'clientno': '1',
 class BaseCSVTestDirectory(unittest.TestCase):
 
     @classmethod
-    def setupClass(cls):
+    def setUpClass(cls):
         cls.fd, cls.fname = tempfile.mkstemp()
         cls.tmp_file = os.fdopen(cls.fd)
 
@@ -57,7 +57,7 @@ class BaseCSVTestDirectory(unittest.TestCase):
             f.write(cls.content)
 
     @classmethod
-    def teardownClass(cls):
+    def tearDownClass(cls):
         os.remove(cls.fname)
 
 

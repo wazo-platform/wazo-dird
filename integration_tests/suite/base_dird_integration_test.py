@@ -54,7 +54,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         cls.launch_dird_with_asset()
 
     @classmethod
-    def teardownClass(cls):
+    def tearDownClass(cls):
         cls.stop_dird_with_asset()
 
     def get_lookup_result(self, term, profile):
