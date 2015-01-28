@@ -21,6 +21,7 @@ RUN touch /var/log/xivo-dird.log
 RUN chown www-data: /var/log/xivo-dird.log
 
 WORKDIR /root/dird
+RUN sed -i '/listen/s/127.0.0.1/0.0.0.0/' etc/xivo-dird/config.yml
 RUN pip install -r requirements.txt
 RUN rsync -av etc/ /etc
 
