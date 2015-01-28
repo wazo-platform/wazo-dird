@@ -16,12 +16,13 @@ RUN apt-get -qq -y install \
 
 ADD . /root/dird
 RUN mkdir -p /var/run/xivo-dird
+RUN mkdir -p /etc/xivo-dird/conf.d
 RUN chmod a+w /var/run/xivo-dird
 RUN touch /var/log/xivo-dird.log
 RUN chown www-data: /var/log/xivo-dird.log
 
 WORKDIR /root/dird
-RUN sed -i '/listen/s/127.0.0.1/0.0.0.0/' etc/xivo-dird/config.yml
+RUN cp contribs/docker/listen.yml /etc/xivo-dird/conf.d/
 RUN pip install -r requirements.txt
 RUN rsync -av etc/ /etc
 
