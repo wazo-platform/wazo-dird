@@ -12,7 +12,9 @@ The xivo/dird image can be built using the following command:
 
    % docker build -t xivo/dird .
 
-You will need a configuration file that changes the listen address to 0.0.0.0.
+The `xivo/dird` image contains a configuration file to listen to HTTP requests
+on "0.0.0.0". To change this behavior, remove or edit the file
+`/etc/xivo-dird/conf.d/listen.yml`
 
 
 ## Testing
