@@ -54,7 +54,6 @@ def load_sources(enabled_backends, source_config_dir):
 
 
 def load_views(config, enabled_views, services, rest_api):
-    global views_manager
     check_func = lambda extension: extension.name in enabled_views
     extension_manager = enabled.EnabledExtensionManager(
         namespace='xivo_dird.views',
