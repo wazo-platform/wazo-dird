@@ -55,14 +55,10 @@ class TestConfig(TestCase):
             'views': {},
         }))
 
-    @patch('xivo.config_helper.parse_config_file')
-    def test_load_when_config_file_in_argv_then_read_config_from_file(self, parse_config_file, _):
-        parse_config_file.return_value = {'debug': True}
-
+    def test_load_when_config_file_in_argv_then_read_config_from_file(self, _):
         result = config.load(['-c', 'my_file'])
 
-        parse_config_file.assert_called_once_with('my_file')
-        assert_that(result['debug'], equal_to(True))
+        assert_that(result['config_file'], equal_to('my_file'))
 
     def test_load_when_foreground_in_argv_then_ignore_default_value(self, mock_open):
         mock_open.side_effect = IOError('no such file')
