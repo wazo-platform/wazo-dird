@@ -42,7 +42,7 @@ class LDAPPlugin(BaseSourcePlugin):
     def unload(self):
         self._ldap_client.close()
 
-    def search(self, term, profile, *args, **kwargs):
+    def search(self, term, profile=None, args=None):
         term = term.encode('UTF-8')
 
         filter_str = self._ldap_config.build_search_filter(term)
