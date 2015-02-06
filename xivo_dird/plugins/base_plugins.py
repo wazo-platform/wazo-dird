@@ -60,9 +60,6 @@ class BaseViewPlugin(object):
         add the routes to the http_app.
         '''
 
-    def unload(self):
-        return
-
 
 class BaseSourcePlugin(object):
     '''
