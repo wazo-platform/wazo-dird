@@ -22,18 +22,18 @@ from stevedore import enabled
 from xivo_dird.core.source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
-extension_manager = None
+services_extension_manager = None
 
 
 def load_services(config, enabled_services, sources):
-    global extension_manager
+    global services_extension_manager
     check_func = lambda extension: extension.name in enabled_services
-    extension_manager = enabled.EnabledExtensionManager(
+    services_extension_manager = enabled.EnabledExtensionManager(
         namespace='xivo_dird.services',
         check_func=check_func,
         invoke_on_load=True)
 
-    return dict(extension_manager.map(load_service_extension, config, sources))
+    return dict(services_extension_manager.map(load_service_extension, config, sources))
 
 
 def load_service_extension(extension, config, sources):
@@ -46,7 +46,7 @@ def load_service_extension(extension, config, sources):
 
 
 def unload_services():
-    extension_manager.map_method('unload')
+    services_extension_manager.map_method('unload')
 
 
 def load_sources(enabled_backends, source_config_dir):

@@ -73,11 +73,11 @@ class TestPluginManagerServices(TestCase):
         assert_that(result, equal_to((extension.name, s.callable)))
 
     def test_unload_services_calls_unload_on_services(self):
-        plugin_manager.extension_manager = Mock()
+        plugin_manager.services_extension_manager = Mock()
 
         plugin_manager.unload_services()
 
-        plugin_manager.extension_manager.map_method.assert_called_once_with('unload')
+        plugin_manager.services_extension_manager.map_method.assert_called_once_with('unload')
 
 
 class TestPluginManagerSources(TestCase):
