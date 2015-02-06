@@ -37,7 +37,6 @@ class BaseServicePlugin(object):
         '''
         Does the cleanup before the service can be deleted
         '''
-        return
 
 
 class BaseService(object):
@@ -86,7 +85,6 @@ class BaseSourcePlugin(object):
         The unload method is used to release any resources that are under the
         responsibility of this instance.
         '''
-        return
 
     @abc.abstractmethod
     def search(self, term, profile, *args, **kwargs):
