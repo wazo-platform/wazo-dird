@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,11 +50,7 @@ def unload_services():
 
 
 def load_sources(enabled_backends, source_config_dir):
-    config = {
-        'source_plugins': enabled_backends,
-        'plugin_config_dir': source_config_dir,
-    }
-    return SourceManager(config).load_sources()
+    return SourceManager(enabled_backends, source_config_dir).load_sources()
 
 
 def load_views(config, enabled_views, services, rest_api):

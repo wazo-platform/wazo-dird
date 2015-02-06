@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,13 +29,14 @@ class SourceManager(object):
 
     _namespace = 'xivo_dird.backends'
 
-    def __init__(self, config):
-        self._config = config
+    def __init__(self, enabled_backends, source_config_dir):
+        self._enabled_backends = enabled_backends
+        self._source_config_dir = source_config_dir
         self._configs_by_backend = defaultdict(list)
         self._sources = {}
 
     def should_load_backend(self, extension):
-        return extension.name in self._config.get('source_plugins', [])
+        return extension.name in self._enabled_backends
 
     def load_sources(self):
         manager = enabled.EnabledExtensionManager(
@@ -48,11 +49,7 @@ class SourceManager(object):
         return self._sources
 
     def _load_all_configs(self):
-        if 'plugin_config_dir' not in self._config:
-            logger.warning('No configured "plugin_config_dir"')
-            return
-
-        source_configs = parse_config_dir(self._config['plugin_config_dir'])
+        source_configs = parse_config_dir(self._source_config_dir)
 
         for source_config in source_configs:
             if 'type' not in source_config:
