@@ -37,7 +37,7 @@ def load_services(config, enabled_services, sources):
 
 
 def load_service_extension(extension, config, sources):
-    logger.debug('loading extension {}...'.format(extension.name))
+    logger.debug('loading extension %s...', extension.name)
     args = {
         'config': config.get(extension.name, {}),
         'sources': sources,
@@ -64,7 +64,7 @@ def load_views(config, enabled_views, services, rest_api):
 
 
 def load_view_extension(extension, config, services, rest_api):
-    logger.debug('loading extension {}...'.format(extension.name))
+    logger.debug('loading extension %s...', extension.name)
     args = {
         'config': config,
         'http_app': rest_api.app,
