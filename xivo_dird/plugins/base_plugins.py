@@ -27,7 +27,7 @@ class BaseServicePlugin(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def load(self, args=None):
+    def load(self, args):
         '''
         Bootstraps the plugin instance. The flask app, bus connection and other
         handles will be passed through the args dictionary
