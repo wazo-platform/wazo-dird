@@ -209,7 +209,7 @@ class _LDAPClient(object):
         try:
             self._ldap_obj.simple_bind_s(self._ldap_config.ldap_username(), self._ldap_config.ldap_password())
         except ldap.LDAPError as e:
-            logger.error('LDAP source "%s": bind error: %r', self._name, e)
+            logger.error('LDAP "%s": bind error: %r', self._name, e)
             self._tear_down()
 
     def _tear_down(self):
@@ -240,13 +240,13 @@ class _LDAPClient(object):
         try:
             results = self._ldap_obj.search_s(self._base_dn, ldap.SCOPE_SUBTREE, filter_str, self._attributes)
         except ldap.FILTER_ERROR:
-            logger.warning('LDAP source "%s": search error: invalid filter "%s"', self._name, filter_str)
+            logger.warning('LDAP "%s": search error: invalid filter "%s"', self._name, filter_str)
         except ldap.NO_SUCH_OBJECT:
-            logger.warning('LDAP source "%s": search error: no such object "%s"', self._name, self._ldap_config.ldap_base_dn())
+            logger.warning('LDAP "%s": search error: no such object "%s"', self._name, self._ldap_config.ldap_base_dn())
         except ldap.TIMEOUT:
-            logger.warning('LDAP source "%s": search error: timeout')
+            logger.warning('LDAP "%s": search error: timed out')
         except ldap.LDAPError as e:
-            logger.error('LDAP source "%s": search error: %r', self._name, e)
+            logger.error('LDAP "%s": search error: %r', self._name, e)
             self._tear_down()
 
         return results
