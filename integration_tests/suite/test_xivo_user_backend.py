@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -123,14 +123,22 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
 
-class TestXivoUserMultipleXivoOneUnknownHost(BaseDirdIntegrationTest):
+class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_two_working_one_cannot_resolv'
+    asset = 'xivo_users_multiple_xivo'
 
     def test_lookup_multiple_xivo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [
+            {
+                'column_values': ['Charles', 'European', '9012', None],
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
+                              'agent_id': None,
+                              'endpoint_id': 42,
+                              'user_id': 100},
+                'source': 'xivo_europe',
+            },
             {
                 'column_values': ['Mary', 'Sue', '1465', None],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
@@ -147,6 +155,27 @@ class TestXivoUserMultipleXivoOneUnknownHost(BaseDirdIntegrationTest):
                               'user_id': 100},
                 'source': 'xivo_america',
             }
+        ]
+
+        assert_that(result['results'], contains_inanyorder(*expected_result))
+
+
+class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
+
+    asset = 'xivo_users_missing_one_xivo'
+
+    def test_lookup_multiple_xivo(self):
+        result = self.lookup('john', 'default')
+
+        expected_result = [
+            {
+                'column_values': ['John', 'Doe', '1234', None],
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': 3,
+                              'endpoint_id': 2,
+                              'user_id': 1},
+                'source': 'xivo_america',
+            },
         ]
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
