@@ -28,26 +28,29 @@ class XivoUserPlugin(BaseSourcePlugin):
 
     def __init__(self, ConfdClientClass=Client):
         self._ConfdClientClass = ConfdClientClass
+        self._client = None
         self._uuid = None
-        self._initialized = False
 
     def load(self, args):
-        self._confd_config = args['config']['confd_config']
-        logger.debug('confd config %s', self._confd_config)
         self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
         self.name = args['config']['name']
-        self._entries = []
+
+        confd_config = args['config']['confd_config']
+        logger.debug('confd config %s', confd_config)
+        self._client = self._ConfdClientClass(**confd_config)
+
         self._SourceResult = make_result_class(
             self.name, ['id'],
             source_to_dest_map=args['config'].get(self.SOURCE_TO_DISPLAY))
-        self._fetch_content()
+
+        logger.info('XiVO %s successfully loaded', args['config']['name'])
 
     def name(self):
         return self.name
 
     def search(self, term, profile=None, args=None):
-        self._fetch_content()
         lowered_term = term.lower()
+        entries = self._fetch_entries(term)
 
         def match_fn(entry):
             for column in self._searched_columns:
@@ -55,10 +58,10 @@ class XivoUserPlugin(BaseSourcePlugin):
                     return True
             return False
 
-        return [entry for entry in self._entries if match_fn(entry)]
+        return [entry for entry in entries if match_fn(entry)]
 
     def list(self, unique_ids):
-        self._fetch_content()
+        entries = self._fetch_entries()
 
         def match_fn(entry):
             for unique_id in unique_ids:
@@ -66,32 +69,40 @@ class XivoUserPlugin(BaseSourcePlugin):
                     return True
             return False
 
-        return [entry for entry in self._entries if match_fn(entry)]
+        return [entry for entry in entries if match_fn(entry)]
 
-    def _fetch_content(self):
-        if self._initialized:
-            return
+    def _fetch_entries(self, term=None):
+        try:
+            uuid = self._get_uuid()
+        except Exception:
+            logger.exception('Cannot fetch UUID. No results will be returned')
+            return []
 
         try:
-            self._uuid = self._fetch_uuid()
-            users = self._fetch_users()
-            self._entries = [self._source_result_from_entry(user) for user in users]
-            self._initialized = True
-            logger.info('XiVO %s successfully loaded.', self._uuid)
+            entries = self._fetch_users(term)
         except Exception:
-            logger.debug('%s failed to load content, will retry later', self.name)
+            logger.exception('Cannot fetch entries. No results will be returned')
+            return []
 
-    def _fetch_uuid(self):
-        client = self._ConfdClientClass(**self._confd_config)
-        infos = client.infos()
-        return infos['uuid']
+        return (self._source_result_from_entry(entry, uuid)
+                for entry in entries)
 
-    def _fetch_users(self):
-        client = self._ConfdClientClass(**self._confd_config)
-        users = client.users.list(view='directory')
+    def _get_uuid(self):
+        if self._uuid:
+            return self._uuid
+
+        infos = self._client.infos()
+        self._uuid = infos['uuid']
+        return self._uuid
+
+    def _fetch_users(self, term=None):
+        if term:
+            users = self._client.users.list(view='directory', search=term)
+        else:
+            users = self._client.users.list(view='directory')
         return (user for user in users['items'])
 
-    def _source_result_from_entry(self, entry):
+    def _source_result_from_entry(self, entry, uuid):
         fields = {
             'id': entry['id'],
             'exten': entry.get('exten', ''),
@@ -100,7 +111,7 @@ class XivoUserPlugin(BaseSourcePlugin):
             'mobile_phone_number': entry.get('mobile_phone_number', '')
         }
         return self._SourceResult(fields,
-                                  xivo_id=self._uuid,
+                                  xivo_id=uuid,
                                   agent_id=entry['agent_id'],
                                   user_id=entry['id'],
                                   endpoint_id=entry['line_id'])

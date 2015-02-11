@@ -19,11 +19,9 @@ import unittest
 
 from hamcrest import assert_that
 from hamcrest import contains
-from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import empty
 from mock import Mock
-from mock import sentinel
 from ..xivo_user_plugin import XivoUserPlugin
 from xivo_dird import make_result_class
 
@@ -108,7 +106,7 @@ SOURCE_2 = SourceResult(
 class _BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self._FakedConfdClient = Mock(return_value=Mock())
+        self._FakedConfdClient = Mock(return_value=Mock(name='confd_client'))
         self._confd_client = self._FakedConfdClient.return_value
         self._source = XivoUserPlugin(self._FakedConfdClient)
 
@@ -117,13 +115,19 @@ class TestXivoUserBackendSearch(_BaseTest):
 
     def setUp(self):
         super(TestXivoUserBackendSearch, self).setUp()
-        self._source._entries = [SOURCE_1, SOURCE_2]
-        self._source._initialized = True
+        response = {'items': [CONFD_USER_1, CONFD_USER_2]}
+        self._confd_client.users.list.return_value = response
+        self._source._client = self._confd_client
+        self._source._SourceResult = SourceResult
+        self._source._uuid = UUID
 
     def test_search_on_excluded_column(self):
         self._source._searched_columns = ['lastname']
 
         result = self._source.search(term='paul')
+
+        self._confd_client.users.list.assert_called_once_with(view='directory',
+                                                              search='paul')
 
         assert_that(result, empty())
 
@@ -132,65 +136,74 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         result = self._source.search(term='paul')
 
+        self._confd_client.users.list.assert_called_once_with(view='directory',
+                                                              search='paul')
+
         assert_that(result, contains(SOURCE_2))
 
     def test_list_with_unknown_id(self):
         result = self._source.list(unique_ids=[(42,)])
+
+        self._confd_client.users.list.assert_called_once_with(view='directory')
 
         assert_that(result, empty())
 
     def test_list_with_known_id(self):
         result = self._source.list(unique_ids=[(226,)])
 
+        self._confd_client.users.list.assert_called_once_with(view='directory')
+
         assert_that(result, contains(SOURCE_1))
+
+    def test_fetch_entries_when_client_does_not_return_list(self):
+        self._confd_client.users.list.side_effect = Exception()
+
+        result = self._source._fetch_entries()
+
+        assert_that(result, empty())
+
+    def test_fetch_entries_when_client_does_not_return_uuid(self):
+        self._source._uuid = None
+        self._confd_client.infos.side_effect = Exception()
+
+        result = self._source._fetch_entries()
+
+        assert_that(result, empty())
 
 
 class TestXivoUserBackendInitialisation(_BaseTest):
 
-    def test_load(self):
-        self._source._fetch_content = Mock()
+    def setUp(self):
+        super(TestXivoUserBackendInitialisation, self).setUp()
+        self._confd_client.infos.return_value = {'uuid': UUID}
 
+    def test_load_searched_columns(self):
         self._source.load(DEFAULT_ARGS)
-
-        self._source._fetch_content.assert_called_once_with()
 
         assert_that(self._source._searched_columns,
                     equal_to(DEFAULT_ARGS['config']['searched_columns']))
 
-    def test_fetch_uuid(self):
-        self._confd_client.infos.return_value = {'uuid': sentinel.uuid}
-        self._source._confd_config = CONFD_CONFIG
+    def test_load_name(self):
+        self._source.load(DEFAULT_ARGS)
 
-        result = self._source._fetch_uuid()
+        assert_that(self._source.name,
+                    equal_to(DEFAULT_ARGS['config']['name']))
 
-        self._confd_client.infos.assert_called_once_with()
-        assert_that(result, equal_to(sentinel.uuid))
+    def test_load_client(self):
+        self._source.load(DEFAULT_ARGS)
 
-    def test_fetch_users(self):
-        confd_result = {
-            "items": [
-                CONFD_USER_1,
-                CONFD_USER_2,
-            ],
-            'total': 2,
-        }
-        self._source._confd_config = CONFD_CONFIG
-        self._confd_client.users.list.return_value = confd_result
-        self._source._fetch_uuid = Mock(return_value={'uuid': 'test'})
+        confd_config = DEFAULT_ARGS['config']['confd_config']
+        self._FakedConfdClient.assert_called_once_with(**confd_config)
 
-        result = self._source._fetch_users()
-
-        assert_that(result, contains_inanyorder(confd_result['items'][0],
-                                                confd_result['items'][1]))
+        assert_that(self._source._client, self._confd_client)
 
     def test_make_source_result_from_entry(self):
         entry = CONFD_USER_2
         SourceResult = make_result_class('my_test_xivo')
 
         self._source._SourceResult = SourceResult
-        self._source._uuid = UUID
 
-        result = self._source._source_result_from_entry(entry)
+        result = self._source._source_result_from_entry(entry, UUID)
 
         expected = SourceResult({'id': 227,
                                  'exten': '1234',
@@ -200,22 +213,3 @@ class TestXivoUserBackendInitialisation(_BaseTest):
                                 xivo_id=UUID, user_id=227, endpoint_id=320)
 
         assert_that(result, equal_to(expected))
-
-    def test_refresh_content(self):
-        self._source._fetch_uuid = Mock(return_value=UUID)
-        self._source._fetch_users = Mock(return_value=[CONFD_USER_1, CONFD_USER_2])
-        self._source._SourceResult = SourceResult
-
-        self._source._fetch_content()
-
-        self._source._fetch_uuid.assert_called_once_with()
-        self._source._fetch_users.assert_called_once_with()
-
-        assert_that(self._source._entries, contains_inanyorder(SOURCE_1, SOURCE_2))
-
-    def test_that_fetch_content_will_leave_the_source_uninitialized_on_error(self):
-        self._source._fetch_uuid = Mock(side_effect=RuntimeError)
-
-        self._source._fetch_content()
-
-        assert_that(self._source._initialized, equal_to(False))
