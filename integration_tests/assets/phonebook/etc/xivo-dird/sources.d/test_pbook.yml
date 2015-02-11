@@ -1,0 +1,7 @@
+type: phonebook
+name: test_pbook
+phonebook_url: http://phonebook/service/ipbx/json.php/restricted/pbx_services/phonebook
+source_to_display_columns:
+    phonebook.firstname: firstname
+    phonebook.lastname: lastname
+    phonebooknumber.office.number: number
