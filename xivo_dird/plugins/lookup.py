@@ -31,10 +31,7 @@ class LookupServicePlugin(BaseServicePlugin):
     def __init__(self):
         self._service = None
 
-    def load(self, args=None):
-        if not args:
-            args = {}
-
+    def load(self, args):
         try:
             self._service = _LookupService(args['config'], args['sources'])
             return self._service
@@ -43,7 +40,7 @@ class LookupServicePlugin(BaseServicePlugin):
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
-    def unload(self, args=None):
+    def unload(self):
         if self._service:
             self._service.stop()
             self._service = None

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,22 +22,22 @@ from stevedore import enabled
 from xivo_dird.core.source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
-extension_manager = None
+services_extension_manager = None
 
 
 def load_services(config, enabled_services, sources):
-    global extension_manager
+    global services_extension_manager
     check_func = lambda extension: extension.name in enabled_services
-    extension_manager = enabled.EnabledExtensionManager(
+    services_extension_manager = enabled.EnabledExtensionManager(
         namespace='xivo_dird.services',
         check_func=check_func,
         invoke_on_load=True)
 
-    return dict(extension_manager.map(load_service_extension, config, sources))
+    return dict(services_extension_manager.map(load_service_extension, config, sources))
 
 
 def load_service_extension(extension, config, sources):
-    logger.debug('loading extension {}...'.format(extension.name))
+    logger.debug('loading extension %s...', extension.name)
     args = {
         'config': config.get(extension.name, {}),
         'sources': sources,
@@ -46,19 +46,14 @@ def load_service_extension(extension, config, sources):
 
 
 def unload_services():
-    extension_manager.map_method('unload')
+    services_extension_manager.map_method('unload')
 
 
 def load_sources(enabled_backends, source_config_dir):
-    config = {
-        'source_plugins': enabled_backends,
-        'plugin_config_dir': source_config_dir,
-    }
-    return SourceManager(config).load_sources()
+    return SourceManager(enabled_backends, source_config_dir).load_sources()
 
 
 def load_views(config, enabled_views, services, rest_api):
-    global views_manager
     check_func = lambda extension: extension.name in enabled_views
     extension_manager = enabled.EnabledExtensionManager(
         namespace='xivo_dird.views',
@@ -69,7 +64,7 @@ def load_views(config, enabled_views, services, rest_api):
 
 
 def load_view_extension(extension, config, services, rest_api):
-    logger.debug('loading extension {}...'.format(extension.name))
+    logger.debug('loading extension %s...', extension.name)
     args = {
         'config': config,
         'http_app': rest_api.app,

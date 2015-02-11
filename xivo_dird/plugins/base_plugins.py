@@ -27,7 +27,7 @@ class BaseServicePlugin(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def load(self, args=None):
+    def load(self, args):
         '''
         Bootstraps the plugin instance. The flask app, bus connection and other
         handles will be passed through the args dictionary
@@ -37,7 +37,6 @@ class BaseServicePlugin(object):
         '''
         Does the cleanup before the service can be deleted
         '''
-        return
 
 
 class BaseService(object):
@@ -59,9 +58,6 @@ class BaseViewPlugin(object):
         The load method is responsible of acquiring resources for the plugin and
         add the routes to the http_app.
         '''
-
-    def unload(self):
-        return
 
 
 class BaseSourcePlugin(object):
@@ -89,10 +85,9 @@ class BaseSourcePlugin(object):
         The unload method is used to release any resources that are under the
         responsibility of this instance.
         '''
-        return
 
     @abc.abstractmethod
-    def search(self, term, profile, *args, **kwargs):
+    def search(self, term, profile, args):
         '''
         The search method should return a list of dict containing the search
         results.

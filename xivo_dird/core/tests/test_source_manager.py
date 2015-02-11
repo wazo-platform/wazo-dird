@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,17 +25,17 @@ from xivo_dird.core.source_manager import SourceManager
 
 class TestSourceManager(unittest.TestCase):
 
+    @patch('xivo_dird.core.source_manager.parse_config_dir')
     @patch('stevedore.enabled.EnabledExtensionManager')
-    def test_load_sources(self, extension_manager_init):
+    def test_load_sources(self, extension_manager_init, mock_parse_config_dir):
+        mock_parse_config_dir.return_value = []
         extension_manager = extension_manager_init.return_value
-        config = {
-            'source_plugins': [
-                'ldap',
-                'xivo_phonebook',
-            ],
-        }
+        enabled_backends = [
+            'ldap',
+            'xivo_phonebook',
+        ]
 
-        manager = SourceManager(config)
+        manager = SourceManager(enabled_backends, 'somedir')
 
         manager.load_sources()
 
@@ -45,16 +45,16 @@ class TestSourceManager(unittest.TestCase):
             invoke_on_load=False)
         extension_manager.map.assert_called_once_with(ANY, ANY)
 
+    @patch('xivo_dird.core.source_manager.parse_config_dir')
     @patch('stevedore.enabled.EnabledExtensionManager')
-    def test_load_sources_returns_dict_of_sources(self, extension_manager_init):
-        config = {
-            'source_plugins': [
-                'ldap',
-                'xivo_phonebook',
-            ],
-        }
+    def test_load_sources_returns_dict_of_sources(self, extension_manager_init, mock_parse_config_dir):
+        mock_parse_config_dir.return_value = []
+        enabled_backends = [
+            'ldap',
+            'xivo_phonebook',
+        ]
 
-        manager = SourceManager(config)
+        manager = SourceManager(enabled_backends, 'somedir')
         manager._sources = s.sources
 
         result = manager.load_sources()
@@ -62,35 +62,22 @@ class TestSourceManager(unittest.TestCase):
         assert_that(result, equal_to(s.sources))
 
     def test_should_load_backend(self):
-        config = {
-            'source_plugins': [
-                'ldap',
-            ]
-        }
+        enabled_backends = [
+            'ldap',
+        ]
         backend_1 = Mock()
         backend_1.name = 'ldap'
         backend_2 = Mock()
         backend_2.name = 'xivo_phonebook'
 
-        manager = SourceManager(config)
+        manager = SourceManager(enabled_backends, 'somedir')
 
         assert_that(manager.should_load_backend(backend_1), is_(True))
         assert_that(manager.should_load_backend(backend_2), is_(False))
 
-    def test_should_load_backend_missing_configs(self):
-        backend_1 = Mock()
-        backend_1.name = 'ldap'
-        backend_2 = Mock()
-        backend_2.name = 'xivo_phonebook'
-
-        manager = SourceManager({})
-
-        assert_that(manager.should_load_backend(backend_1), is_(False))
-        assert_that(manager.should_load_backend(backend_2), is_(False))
-
     @patch('xivo_dird.core.source_manager.parse_config_dir')
     def test_load_all_configs(self, mock_parse_config_dir):
-        manager = SourceManager({'plugin_config_dir': 'foo'})
+        manager = SourceManager([], 'foo')
 
         manager._load_all_configs()
 
@@ -113,7 +100,7 @@ class TestSourceManager(unittest.TestCase):
         extension = Mock()
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
-        manager = SourceManager({})
+        manager = SourceManager([], 'somedir')
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 
@@ -140,7 +127,7 @@ class TestSourceManager(unittest.TestCase):
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
         source1.load.side_effect = RuntimeError
-        manager = SourceManager({})
+        manager = SourceManager([], 'somedir')
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 

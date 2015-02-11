@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -73,11 +73,11 @@ class TestPluginManagerServices(TestCase):
         assert_that(result, equal_to((extension.name, s.callable)))
 
     def test_unload_services_calls_unload_on_services(self):
-        plugin_manager.extension_manager = Mock()
+        plugin_manager.services_extension_manager = Mock()
 
         plugin_manager.unload_services()
 
-        plugin_manager.extension_manager.map_method.assert_called_once_with('unload')
+        plugin_manager.services_extension_manager.map_method.assert_called_once_with('unload')
 
 
 class TestPluginManagerSources(TestCase):
@@ -85,14 +85,10 @@ class TestPluginManagerSources(TestCase):
     @patch('xivo_dird.core.plugin_manager.SourceManager')
     def test_load_sources_calls_source_manager(self, source_manager_init):
         source_manager = source_manager_init.return_value
-        expected_config = {
-            'source_plugins': s.enabled,
-            'plugin_config_dir': s.source_config_dir,
-        }
 
         plugin_manager.load_sources(s.enabled, s.source_config_dir)
 
-        source_manager_init.assert_called_once_with(expected_config)
+        source_manager_init.assert_called_once_with(s.enabled, s.source_config_dir)
         source_manager.load_sources.assert_called_once_with()
 
     @patch('xivo_dird.core.plugin_manager.SourceManager')
