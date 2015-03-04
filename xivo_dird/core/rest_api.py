@@ -22,6 +22,7 @@ import os
 from cherrypy import wsgiserver
 from flask import Flask
 from flask_restplus.api import Api
+from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
 
 
@@ -37,6 +38,7 @@ class CoreRestApi(object):
         self.app.wsgi_app = ProxyFix(self.app.wsgi_app)
         self.app.secret_key = os.urandom(24)
         self.app.permanent_session_lifetime = timedelta(minutes=5)
+        self.cors = CORS(self.app, allow_headers='Content-Type')
         self.api = Api(self.app, version=VERSION, prefix='/{}'.format(VERSION))
         self.config = config
         self.namespace = self.api.namespace('directories', description='directories operations')
