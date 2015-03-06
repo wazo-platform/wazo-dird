@@ -19,10 +19,12 @@ views:
                 title: Firstname
                 default: Unknown
                 field: firstname
+                type: name
             -
                 title: Lastname
                 default: Unknown
                 field: lastname
+                type: name
             -
                 title: Description
                 default:
