@@ -22,6 +22,7 @@ import os
 from cherrypy import wsgiserver
 from flask import Flask
 from flask_restplus.api import Api
+from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
 
 
@@ -33,13 +34,20 @@ logger = logging.getLogger(__name__)
 class CoreRestApi(object):
 
     def __init__(self, config):
+        self.config = config
         self.app = Flask('xivo_dird')
         self.app.wsgi_app = ProxyFix(self.app.wsgi_app)
         self.app.secret_key = os.urandom(24)
         self.app.permanent_session_lifetime = timedelta(minutes=5)
+        self.load_cors()
         self.api = Api(self.app, version=VERSION, prefix='/{}'.format(VERSION))
-        self.config = config
         self.namespace = self.api.namespace('directories', description='directories operations')
+
+    def load_cors(self):
+        cors_config = dict(self.config.get('cors', {}))
+        enabled = cors_config.pop('enabled', False)
+        if enabled:
+            CORS(self.app, **cors_config)
 
     def run(self):
         bind_addr = (self.config['listen'], self.config['port'])

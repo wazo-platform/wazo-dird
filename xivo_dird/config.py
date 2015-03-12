@@ -37,6 +37,10 @@ _DEFAULT_CONFIG = {
     'rest_api': {
         'listen': '127.0.0.1',
         'port': '9489',
+        'cors': {
+            'enabled': True,
+            'allow_headers': 'Content-Type'
+        },
     },
     'services': {},
     'source_config_dir': '/etc/xivo-dird/sources.d',

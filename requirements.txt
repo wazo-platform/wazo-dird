@@ -8,6 +8,7 @@ psycopg2
 Flask
 flask-restful==0.2.12
 flask-restplus==0.2.4
+flask-cors
 stevedore
 pyaml
 futures

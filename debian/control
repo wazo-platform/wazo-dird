@@ -28,6 +28,7 @@ Depends: ${python:Depends},
          python-cherrypy3,
          python-concurrent.futures,
          python-flask-restplus,
+         python-flask-cors,
          python-requests,
          xivo-confd-client
 Description: XIVO telephony systems library for directories manager
