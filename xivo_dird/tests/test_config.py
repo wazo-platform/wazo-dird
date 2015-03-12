@@ -31,29 +31,15 @@ class TestConfig(TestCase):
 
     def test_load_when_no_args_and_no_default_config_file_then_return_default_values(self, mock_open):
         mock_open.side_effect = IOError('no such file')
+        config._DEFAULT_CONFIG = {
+            'config': 'default',
+            'config_file': '/etc/xivo-dird/config.yml',
+            'extra_config_files': '/etc/xivo-dird/conf.d/',
+        }
 
         result = config.load([])
 
-        assert_that(result, has_entries({
-            'debug': False,
-            'log_filename': '/var/log/xivo-dird.log',
-            'log_level': logging.INFO,
-            'enabled_plugins': {
-                'backends': [],
-                'services': [],
-                'views': [],
-            },
-            'foreground': False,
-            'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
-            'rest_api': {
-                'listen': '127.0.0.1',
-                'port': '9489',
-            },
-            'services': {},
-            'source_config_dir': '/etc/xivo-dird/sources.d',
-            'user': 'www-data',
-            'views': {},
-        }))
+        assert_that(result, has_entries(config._DEFAULT_CONFIG))
 
     def test_load_when_config_file_in_argv_then_read_config_from_file(self, _):
         result = config.load(['-c', 'my_file'])
