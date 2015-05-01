@@ -1,5 +1,4 @@
-xivo-dird
-=========
+# xivo-dird
 [![Build Status](https://travis-ci.org/xivo-pbx/xivo-dird.png?branch=master)](https://travis-ci.org/xivo-pbx/xivo-dird)
 
 xivo-dird is a service to query many directory sources simultaneously using a
