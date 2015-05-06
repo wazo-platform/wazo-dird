@@ -15,6 +15,7 @@
         }
     },
     "x-xivo-port": 9489,
+    "x-xivo-name": "dird",
     "schemes": [
         "http"
     ],
