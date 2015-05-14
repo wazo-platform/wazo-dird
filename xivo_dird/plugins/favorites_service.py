@@ -27,14 +27,15 @@ from xivo_dird import BaseServicePlugin
 
 logger = logging.getLogger(__name__)
 
-class FavoriteServicePlugin(BaseServicePlugin):
+
+class FavoritesServicePlugin(BaseServicePlugin):
 
     def __init__(self):
         self._service = None
 
     def load(self, args):
         try:
-            self._service = _FavoriteService(args['config'], args['sources'])
+            self._service = _FavoritesService(args['config'], args['sources'])
             return self._service
         except KeyError:
             msg = ('%s should be loaded with "config" and "sources" but received: %s'
@@ -46,7 +47,8 @@ class FavoriteServicePlugin(BaseServicePlugin):
             self._service.stop()
             self._service = None
 
-class _FavoriteService(BaseService):
+
+class _FavoritesService(BaseService):
 
     def __init__(self, config, sources):
         self._config = config

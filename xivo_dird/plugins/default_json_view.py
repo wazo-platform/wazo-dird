@@ -68,11 +68,6 @@ class JsonViewPlugin(BaseViewPlugin):
         api_class = make_lookup_class(lookup_service, displays, api)
         namespace.route(route, doc=doc)(api_class)
 
-        route = '/favorites/<profile>'
-        favorite_service = args['services']['favorites']
-        api_class = make_favorite_class(favorite_service, displays, api)
-        namespace.route(route, doc=doc)(api_class)
-
     def _get_display_dict(self, view_config):
         result = {}
         for profile, display_name in view_config['profile_to_display'].iteritems():
@@ -123,42 +118,6 @@ def _format_results(results, display):
         'column_types': [d.type for d in display],
         'results': [DisplayAwareResult(display, r).to_dict() for r in results]
     }
-
-
-def make_favorite_class(favorite_service, displays, api):
-    parser = api.parser()
-    parser.add_argument('source', type=unicode, required=True, help='source is missing')
-    parser.add_argument('contact_id', type=list, required=True, help='contact_id is missing')
-
-    class Favorite(Resource):
-
-        def get(self, profile):
-            logger.info('Listing favorites with profile %s', profile)
-            if profile not in displays:
-                error = {
-                    'reason': ['The lookup profile does not exist'],
-                    'timestamp': [time()],
-                    'status_code': 404,
-                }
-                return error, 404
-
-            display = displays[profile]
-
-            raw_results = favorite_service(profile)
-            return _format_results(raw_results, display)
-
-        def post(self, profile):
-            args = parser.parse_args()
-            logger.debug(repr(args['contact_id']))
-            favorite_service.new_favorite(args['source'], tuple(args['contact_id']))
-            return '', 201
-
-        def delete(self, profile):
-            args = parser.parse_args()
-            favorite_service.remove_favorite(args['source'], tuple(args['contact_id']))
-            return '', 204
-
-    return Favorite
 
 
 class DisplayAwareResult(object):
