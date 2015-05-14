@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -65,7 +65,12 @@ class JsonViewPlugin(BaseViewPlugin):
             }
         }
 
-        api_class = make_api_class(lookup_service, displays, api)
+        api_class = make_lookup_class(lookup_service, displays, api)
+        namespace.route(route, doc=doc)(api_class)
+
+        route = '/favorites/<profile>'
+        favorite_service = args['services']['favorites']
+        api_class = make_favorite_class(favorite_service, displays, api)
         namespace.route(route, doc=doc)(api_class)
 
     def _get_display_dict(self, view_config):
@@ -82,7 +87,7 @@ class JsonViewPlugin(BaseViewPlugin):
         ]
 
 
-def make_api_class(lookup_service, displays, api):
+def make_lookup_class(lookup_service, displays, api):
 
     parser = api.parser()
     parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
@@ -104,19 +109,56 @@ def make_api_class(lookup_service, displays, api):
 
             display = displays[profile]
 
-            return _lookup(lookup_service, display, term, profile)
+            raw_results = lookup_service(term, profile, args={})
+            response = _format_results(raw_results, display)
+            response.update({'term': term})
+            return response
 
     return Lookup
 
 
-def _lookup(lookup_service, display, term, profile):
-    raw_results = lookup_service(term, profile, args={})
+def _format_results(results, display):
     return {
-        'term': term,
         'column_headers': [d.title for d in display],
         'column_types': [d.type for d in display],
-        'results': [DisplayAwareResult(display, r).to_dict() for r in raw_results]
+        'results': [DisplayAwareResult(display, r).to_dict() for r in results]
     }
+
+
+def make_favorite_class(favorite_service, displays, api):
+    parser = api.parser()
+    parser.add_argument('source', type=unicode, required=True, help='source is missing')
+    parser.add_argument('contact_id', type=list, required=True, help='contact_id is missing')
+
+    class Favorite(Resource):
+
+        def get(self, profile):
+            logger.info('Listing favorites with profile %s', profile)
+            if profile not in displays:
+                error = {
+                    'reason': ['The lookup profile does not exist'],
+                    'timestamp': [time()],
+                    'status_code': 404,
+                }
+                return error, 404
+
+            display = displays[profile]
+
+            raw_results = favorite_service(profile)
+            return _format_results(raw_results, display)
+
+        def post(self, profile):
+            args = parser.parse_args()
+            logger.debug(repr(args['contact_id']))
+            favorite_service.new_favorite(args['source'], tuple(args['contact_id']))
+            return '', 201
+
+        def delete(self, profile):
+            args = parser.parse_args()
+            favorite_service.remove_favorite(args['source'], tuple(args['contact_id']))
+            return '', 204
+
+    return Favorite
 
 
 class DisplayAwareResult(object):
