@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ from werkzeug.contrib.fixers import ProxyFix
 VERSION = 0.1
 
 logger = logging.getLogger(__name__)
+api = Api(version=VERSION, prefix='/{}'.format(VERSION))
 
 
 class CoreRestApi(object):
@@ -40,7 +41,8 @@ class CoreRestApi(object):
         self.app.secret_key = os.urandom(24)
         self.app.permanent_session_lifetime = timedelta(minutes=5)
         self.load_cors()
-        self.api = Api(self.app, version=VERSION, prefix='/{}'.format(VERSION))
+        self.api = api
+        self.api.init_app(self.app)
         self.namespace = self.api.namespace('directories', description='directories operations')
 
     def load_cors(self):

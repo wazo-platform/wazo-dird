@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#
 # Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
@@ -9,81 +8,54 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>
+# along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
 
 from collections import namedtuple
 from flask_restplus import Resource
-from flask_restplus import fields
 from time import time
-
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core.rest_api import api
 
 logger = logging.getLogger(__name__)
 
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
+
 parser = api.parser()
-parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
+parser.add_argument('source', type=unicode, required=True, help='source is missing')
+parser.add_argument('contact_id', type=list, required=True, help='contact_id is missing')
 
 
-class JsonViewPlugin(BaseViewPlugin):
+class FavoritesViewPlugin(BaseViewPlugin):
 
     def load(self, args=None):
         config = args['config']
 
-        if 'lookup' not in args['services']:
-            logger.error('Missing service plugin: lookup')
+        if 'favorites' not in args['services']:
+            logger.error('Missing service plugin: favorites')
             return
 
-        Lookup.configure(displays=make_displays(config),
-                         lookup_service=args['services']['lookup'])
+        FavoritesView.configure(displays=make_displays(config),
+                                favorites_service=args['services']['favorites'])
 
 
-doc = {
-    'model': api.model('Lookup', {
-        'column_headers': fields.List(fields.String, description='The labels of the result header'),
-        'column_types': fields.List(fields.String, description='The types of the result header'),
-        'results': fields.List(fields.List(fields.String), description='The values of the results'),
-        'term': fields.String(description='The string to look for'),
-    }),
-    'params': {
-        'term': {
-            'description': 'The string to look for',
-            'required': True,
-        },
-        'profile': {
-            'description': 'The profile to look for'
-        }
-    },
-    'responses': {
-        404: 'Invalid profile'
-    }
-}
-
-
-@api.route('/directories/lookup/<profile>', doc=doc)
-class Lookup(Resource):
+@api.route('/directories/favorites/<profile>')
+class FavoritesView(Resource):
     displays = None
-    lookup_service = None
+    favorites_service = None
 
     @classmethod
-    def configure(cls, displays, lookup_service):
+    def configure(cls, displays, favorites_service):
         cls.displays = displays
-        cls.lookup_service = lookup_service
+        cls.favorites_service = favorites_service
 
     def get(self, profile):
-        args = parser.parse_args()
-        term = args['term']
-
-        logger.info('Lookup for %s with profile %s', term, profile)
-
-        raw_results = self.lookup_service(term, profile, args={})
-
+        logger.debug('Listing favorites with profile %s', profile)
         if profile not in self.displays:
             error = {
                 'reason': ['The profile does not exist'],
@@ -93,10 +65,20 @@ class Lookup(Resource):
             return error, 404
 
         display = self.displays[profile]
-        response = format_results(raw_results, display)
 
-        response.update({'term': term})
-        return response
+        raw_results = self.favorites_service(profile)
+        return format_results(raw_results, display)
+
+    def post(self, profile):
+        args = parser.parse_args()
+        logger.debug(repr(args['contact_id']))
+        self.favorites_service.new_favorite(args['source'], tuple(args['contact_id']))
+        return '', 201
+
+    def delete(self, profile):
+        args = parser.parse_args()
+        self.favorites_service.remove_favorite(args['source'], tuple(args['contact_id']))
+        return '', 204
 
 
 def format_results(results, display):
@@ -115,6 +97,9 @@ def _format_result(result, display):
     }
 
 
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
+
+
 def make_displays(view_config):
     result = {}
     for profile, display_name in view_config['profile_to_display'].iteritems():
@@ -130,5 +115,3 @@ def _make_display_from_name(view_config, display_name):
                       display.get('field'))
         for display in view_config['displays'][display_name]
     ]
-
-DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
