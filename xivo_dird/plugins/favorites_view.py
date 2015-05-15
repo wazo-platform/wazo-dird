@@ -97,9 +97,6 @@ def _format_result(result, display):
     }
 
 
-DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
-
-
 def make_displays(view_config):
     result = {}
     for profile, display_name in view_config['profile_to_display'].iteritems():
@@ -115,3 +112,5 @@ def _make_display_from_name(view_config, display_name):
                       display.get('field'))
         for display in view_config['displays'][display_name]
     ]
+
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
