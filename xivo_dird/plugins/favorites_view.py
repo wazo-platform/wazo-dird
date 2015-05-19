@@ -43,8 +43,9 @@ class FavoritesViewPlugin(BaseViewPlugin):
         FavoritesView.configure(displays=make_displays(config),
                                 favorites_service=args['services']['favorites'])
 
+        api.route('/directories/favorites/<profile>')(FavoritesView)
 
-@api.route('/directories/favorites/<profile>')
+
 class FavoritesView(Resource):
     displays = None
     favorites_service = None
@@ -71,7 +72,6 @@ class FavoritesView(Resource):
 
     def post(self, profile):
         args = parser.parse_args()
-        logger.debug(repr(args['contact_id']))
         self.favorites_service.new_favorite(args['source'], tuple(args['contact_id']))
         return '', 201
 
