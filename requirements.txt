@@ -5,10 +5,10 @@ git+https://github.com/xivo-pbx/xivo-confd-client.git
 git+https://github.com/xivo-pbx/xivo-lib-rest-client.git
 sqlalchemy
 psycopg2
-Flask
+flask==0.10.1
 flask-restful==0.2.12
 flask-restplus==0.2.4
-flask-cors
+flask-cors==1.10.3
 stevedore
 pyaml
 futures
