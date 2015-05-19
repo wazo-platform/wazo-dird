@@ -27,6 +27,14 @@ from xivo_dird import BaseServicePlugin
 
 logger = logging.getLogger(__name__)
 
+ContactID = namedtuple('ContactID', ['source', 'id'])
+
+
+class NoSuchFavorite(ValueError):
+    def __init__(self, contact_id):
+        message = "No such favorite: {}".format(contact_id)
+        super(NoSuchFavorite, self).__init__(message)
+
 
 class FavoritesServicePlugin(BaseServicePlugin):
 
@@ -70,8 +78,8 @@ class _FavoritesService(BaseService):
     def favorites(self, profile):
         futures = []
         for source in self._source_by_profile(profile):
-            contact_ids = [contact_id.id for contact_id in self._favorites if contact_id.source == source.name]
-            futures.append(self._async_list(source, contact_ids))
+            ids = [contact_id.id for contact_id in self._favorites if contact_id.source == source.name]
+            futures.append(self._async_list(source, ids))
 
         params = {'return_when': ALL_COMPLETED}
         if 'lookup_timeout' in self._config:
@@ -88,7 +96,11 @@ class _FavoritesService(BaseService):
         self._favorites.append(ContactID(source, contact_id))
 
     def remove_favorite(self, source, contact_id):
-        self._favorites.remove(ContactID(source, contact_id))
+        contact_id = ContactID(source, contact_id)
+        try:
+            self._favorites.remove(contact_id)
+        except ValueError:
+            raise NoSuchFavorite(contact_id)
 
     def _source_by_profile(self, profile):
         try:
@@ -98,6 +110,3 @@ class _FavoritesService(BaseService):
             return []
         else:
             return [self._sources[name] for name in source_names if name in self._sources]
-
-
-ContactID = namedtuple('ContactID', ['source', 'id'])
