@@ -32,6 +32,7 @@ from xivo_dird.plugins.default_json_view import DisplayColumn
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
 from xivo_dird.plugins.default_json_view import Lookup
 from xivo_dird.plugins.default_json_view import format_results
+from xivo_dird.plugins.default_json_view import make_displays
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
 
@@ -41,31 +42,65 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         self.http_app = flask.Flask(__name__)
         self.plugin = JsonViewPlugin()
 
-    def test_default_view_load_no_lookup_service(self):
-        namespace = Mock()
+    def tearDown(self):
+        # reset class Lookup
+        Lookup.configure(displays=None, lookup_service=None)
 
-        self.plugin.load({'http_namespace': namespace,
+    @patch('xivo_dird.plugins.default_json_view.api.route')
+    def test_that_load_with_no_lookup_service_does_not_add_route(self, route):
+        self.plugin.load({'http_namespace': Mock(),
                           'rest_api': Mock(),
                           'services': {}})
 
-        assert_that(namespace.route.call_count, equal_to(0))
+        assert_that(route.call_count, equal_to(0))
 
-    def test_that_load_adds_the_route(self):
-        namespace = Mock()
+    @patch('xivo_dird.plugins.default_json_view.api.route')
+    def test_that_load_adds_the_route(self, route):
         args = {
             'config': {'displays': {},
                        'profile_to_display': {}},
             'http_app': self.http_app,
-            'http_namespace': namespace,
+            'http_namespace': Mock(),
             'rest_api': Mock(),
             'services': {'lookup': Mock()},
         }
 
         self.plugin.load(args)
 
-        namespace.route.assert_called_once_with('/lookup/<profile>', doc=ANY)
+        route.assert_called_once_with('/directories/lookup/<profile>', doc=ANY)
 
-    def test_get_display_dict(self):
+    @patch('xivo_dird.plugins.default_json_view.parser.parse_args')
+    def test_lookup_when_no_term_then_exception(self, parse_args):
+        parse_args.side_effect = HTTPException
+
+        self.assertRaises(HTTPException, Lookup().get, sentinel.profile)
+
+    @patch('xivo_dird.plugins.default_json_view.parser.parse_args', Mock(return_value={'term': sentinel.term}))
+    def test_that_lookup_forwards_term_to_the_service(self):
+        lookup_service = Mock()
+        Lookup.configure(displays=[], lookup_service=lookup_service)
+
+        Lookup().get(sentinel.profile)
+
+        lookup_service.assert_called_once_with(sentinel.term, sentinel.profile, args={})
+
+    @patch('xivo_dird.plugins.default_json_view.parser.parse_args', Mock(return_value={'term': sentinel.term}))
+    def test_that_lookup_adds_the_term_to_its_result(self):
+        lookup_service = Mock(return_value=[])
+        config = {'displays': {'first_display': [{'title': 'Firstname',
+                                                  'type': None,
+                                                  'default': 'Unknown',
+                                                  'field': 'firstname'}]},
+                  'profile_to_display': {sentinel.profile: 'first_display'}}
+        Lookup.configure(displays=make_displays(config), lookup_service=lookup_service)
+
+        result = Lookup().get(sentinel.profile)
+
+        assert_that(result, has_entries('term', sentinel.term))
+
+
+class TestMakeDisplays(unittest.TestCase):
+    def test_that_make_displays_generate_display_dict(self):
         first_display = [
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
             DisplayColumn('Lastname', None, 'ln', 'lastname'),
@@ -75,32 +110,27 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
             DisplayColumn('ln', None, 'N/A', 'LAST'),
         ]
 
-        args = {'config': {'displays': {'first_display': [{'title': 'Firstname',
-                                                           'type': None,
-                                                           'default': 'Unknown',
-                                                           'field': 'firstname'},
-                                                          {'title': 'Lastname',
-                                                           'type': None,
-                                                           'default': 'ln',
-                                                           'field': 'lastname'}],
-                                        'second_display': [{'title': 'fn',
-                                                            'type': 'some_type',
-                                                            'default': 'N/A',
-                                                            'field': 'firstname'},
-                                                           {'title': 'ln',
-                                                            'type': None,
-                                                            'default': 'N/A',
-                                                            'field': 'LAST'}]},
-                           'profile_to_display': {'profile_1': 'first_display',
-                                                  'profile_2': 'second_display',
-                                                  'profile_3': 'first_display'}},
-                'http_app': Mock(),
-                'http_namespace': Mock(),
-                'rest_api': Mock(),
-                'services': {'lookup': Mock()}}
-        self.plugin.load(args)
+        config = {'displays': {'first_display': [{'title': 'Firstname',
+                                                  'type': None,
+                                                  'default': 'Unknown',
+                                                  'field': 'firstname'},
+                                                 {'title': 'Lastname',
+                                                  'type': None,
+                                                  'default': 'ln',
+                                                  'field': 'lastname'}],
+                               'second_display': [{'title': 'fn',
+                                                   'type': 'some_type',
+                                                   'default': 'N/A',
+                                                   'field': 'firstname'},
+                                                  {'title': 'ln',
+                                                   'type': None,
+                                                   'default': 'N/A',
+                                                   'field': 'LAST'}]},
+                  'profile_to_display': {'profile_1': 'first_display',
+                                         'profile_2': 'second_display',
+                                         'profile_3': 'first_display'}}
 
-        display_dict = self.plugin._get_display_dict(args['config'])
+        display_dict = make_displays(config)
 
         expected = {
             'profile_1': first_display,
@@ -109,71 +139,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         }
 
         assert_that(display_dict, equal_to(expected))
-
-    @patch('xivo_dird.plugins.default_json_view._lookup')
-    def test_that_lookup_wrapper_calls_lookup(self, lookup):
-        lookup.return_value = sentinel.result
-        profile = 'test'
-        displays = {profile: sentinel.display}
-        api = Mock()
-        api.parser.return_value.parse_args.return_value = {'term': sentinel.term}
-        api_class = make_api_class(sentinel.lookup_service,
-                                   displays,
-                                   api=api)
-
-        result = api_class().get(profile)
-
-        lookup.assert_called_once_with(sentinel.lookup_service,
-                                       sentinel.display,
-                                       sentinel.term,
-                                       profile)
-        assert_that(result, equal_to(sentinel.result))
-
-    @patch('xivo_dird.plugins.default_json_view.parser.parse_args')
-    def test_lookup_when_no_term_then_exception(self, parse_args):
-        parse_args.side_effect = HTTPException
-
-        self.assertRaises(HTTPException, Lookup().get, sentinel.profile)
-
-    @patch('xivo_dird.plugins.default_json_view.parser.parse_args', return_value={'term': sentinel.term})
-    def test_that_lookup_forwards_term_to_the_service(self, parse_args):
-        lookup = Lookup()
-        lookup.configure(displays=[], lookup_service=Mock())
-
-        lookup.get(sentinel.profile)
-        lookup.lookup_service.assert_called_once_with(sentinel.term, sentinel.profile, args={})
-
-    def test_that_lookup_adds_the_term_to_its_result(self):
-        self.service.return_value = []
-
-        result = _lookup(self.service,
-                         [],
-                         sentinel.term,
-                         sentinel.profile)
-
-        assert_that(result, has_entries('term', sentinel.term))
-
-
-class TestLookup(unittest.TestCase):
-
-    def setUp(self):
-        self.service = Mock()
-
-    def test_that_lookup_forwards_term_to_the_service(self):
-        self.service.return_value = []
-        _lookup(self.service, [], sentinel.term, sentinel.profile)
-
-        self.service.assert_called_once_with(sentinel.term, sentinel.profile, args={})
-
-    def test_that_lookup_adds_the_term_to_its_result(self):
-        self.service.return_value = []
-
-        result = _lookup(self.service,
-                         [],
-                         sentinel.term,
-                         sentinel.profile)
-
-        assert_that(result, has_entries('term', sentinel.term))
 
 
 class TestFormatResult(unittest.TestCase):

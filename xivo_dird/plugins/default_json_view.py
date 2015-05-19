@@ -34,15 +34,16 @@ parser.add_argument('term', type=unicode, required=True, help='term is missing',
 class JsonViewPlugin(BaseViewPlugin):
 
     def load(self, args=None):
-        config = args['config']
-
         if 'lookup' not in args['services']:
             logger.error('Missing service plugin: lookup')
             return
 
+        config = args['config']
+
         Lookup.configure(displays=make_displays(config),
                          lookup_service=args['services']['lookup'])
 
+        api.route('/directories/lookup/<profile>', doc=doc)(Lookup)
 
 doc = {
     'model': api.model('Lookup', {
@@ -66,7 +67,6 @@ doc = {
 }
 
 
-@api.route('/directories/lookup/<profile>', doc=doc)
 class Lookup(Resource):
     displays = None
     lookup_service = None
