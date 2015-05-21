@@ -1,3 +1,10 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - dird
+    - slapd
+  environment:
+    PORTS: "9489 3389"
 dird:
   image: dird-test
   ports:
