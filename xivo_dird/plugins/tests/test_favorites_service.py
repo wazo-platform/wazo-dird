@@ -191,8 +191,7 @@ class TestFavoritesService(unittest.TestCase):
     def test_that_removing_unknown_favorites_raises_error(self):
         s = _FavoritesService({}, {})
 
-        # self.assertRaises(NoSuchFavorite, s.remove_favorite, 'source_unknown', 'id')
-        s.remove_favorite('source_unknown', 'id')
+        self.assertRaises(NoSuchFavorite, s.remove_favorite, 'source_unknown', 'id')
 
         s.stop()
 
