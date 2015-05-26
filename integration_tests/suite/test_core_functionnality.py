@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -136,7 +136,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         error = result.json()
 
         assert_that(result.status_code, equal_to(404))
-        assert_that(error['reason'], contains('The lookup profile does not exist'))
+        assert_that(error['reason'], contains('The profile does not exist'))
 
     def test_that_headers_returns_404(self):
         result = self.get_headers_result('unknown')
