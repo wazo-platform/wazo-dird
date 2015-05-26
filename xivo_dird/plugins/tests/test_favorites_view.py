@@ -21,11 +21,8 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
-from mock import ANY
 from mock import Mock
 from mock import patch
-from mock import sentinel
-from werkzeug.exceptions import HTTPException
 
 from xivo_dird import make_result_class
 from xivo_dird.plugins.favorites_view import DisplayColumn
