@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
 from hamcrest import contains
+from hamcrest import contains_inanyorder
+from hamcrest import has_entry
 
 
 class TestCSVBackend(BaseDirdIntegrationTest):
@@ -30,6 +32,16 @@ class TestCSVBackend(BaseDirdIntegrationTest):
 
         assert_that(result['results'][0]['column_values'],
                     contains('Alice', 'AAA', '5555555555'))
+
+    def test_that_asking_csv_favorites_returns_contacts(self):
+        self.post_favorite('default', {'source': 'my_csv', 'contact_id': ['1']})
+        self.post_favorite('default', {'source': 'my_csv', 'contact_id': ['3']})
+
+        result = self.favorites('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
+            has_entry('column_values', contains('Charles', 'CCC', '555123555'))))
 
 
 class TestCSVNoUnique(BaseDirdIntegrationTest):

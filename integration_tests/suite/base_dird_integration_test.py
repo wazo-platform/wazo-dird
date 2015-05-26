@@ -80,3 +80,20 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
     def favorites(self, profile):
         return json.loads(self.get_favorites_result(profile).text)
+
+    def post_favorite_result(self, profile, favorite_gid):
+        url = 'http://localhost:9489/0.1/directories/favorites/{profile}'
+        data = json.dumps(favorite_gid)
+        result = requests.post(url.format(profile=profile),
+                               data=data,
+                               headers={'Content-Type': 'application/json'})
+        return result
+
+    def post_favorite(self, profile, favorite_gid):
+        return self.post_favorite_result(profile, favorite_gid)
+
+    def delete_favorite_result(self, profile, favorite_gid):
+        url = 'http://localhost:9489/0.1/directories/favorites'
+        data = json.dumps(favorite_gid)
+        result = requests.delete(url, data=data)
+        return result
