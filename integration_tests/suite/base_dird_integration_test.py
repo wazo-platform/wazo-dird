@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -72,3 +72,11 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
     def headers(self, profile):
         return json.loads(self.get_headers_result(profile).text)
+
+    def get_favorites_result(self, profile):
+        url = 'http://localhost:9489/0.1/directories/favorites/{profile}'
+        result = requests.get(url.format(profile=profile))
+        return result
+
+    def favorites(self, profile):
+        return json.loads(self.get_favorites_result(profile).text)

@@ -3,9 +3,11 @@ enabled_plugins:
         - sample
     services:
         - lookup
+        - favorites
     views:
         - default_json
         - headers_view
+        - favorites_view
 
 views:
     displays:
