@@ -122,6 +122,33 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
+    def test_favorites_multiple_xivo(self):
+        self.post_favorite('default', {'source': 'xivo_america', 'contact_id': [1]})
+        self.post_favorite('default', {'source': 'xivo_asia', 'contact_id': [1]})
+
+        result = self.favorites('default')
+
+        expected_result = [
+            {
+                'column_values': ['Alice', None, '6543', None],
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e160asia',
+                              'agent_id': 3,
+                              'endpoint_id': 2,
+                              'user_id': 1},
+                'source': 'xivo_asia',
+            },
+            {
+                'column_values': ['John', 'Doe', '1234', None],
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': 3,
+                              'endpoint_id': 2,
+                              'user_id': 1},
+                'source': 'xivo_america',
+            }
+        ]
+
+        assert_that(result['results'], contains_inanyorder(*expected_result))
+
 
 class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
 
