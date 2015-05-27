@@ -123,43 +123,6 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
 
-class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
-
-    asset = 'xivo_users_multiple_xivo'
-
-    def test_lookup_multiple_xivo(self):
-        result = self.lookup('ar', 'default')
-
-        expected_result = [
-            {
-                'column_values': ['Charles', 'European', '9012', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
-                              'agent_id': None,
-                              'endpoint_id': 42,
-                              'user_id': 100},
-                'source': 'xivo_europe',
-            },
-            {
-                'column_values': ['Mary', 'Sue', '1465', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': 2,
-                              'user_id': 2},
-                'source': 'xivo_america',
-            },
-            {
-                'column_values': ['Charles', 'Kenedy', '', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': None,
-                              'user_id': 100},
-                'source': 'xivo_america',
-            }
-        ]
-
-        assert_that(result['results'], contains_inanyorder(*expected_result))
-
-
 class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
 
     asset = 'xivo_users_missing_one_xivo'
