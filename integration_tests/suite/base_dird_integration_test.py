@@ -93,7 +93,12 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return self.post_favorite_result(profile, favorite_gid)
 
     def delete_favorite_result(self, profile, favorite_gid):
-        url = 'http://localhost:9489/0.1/directories/favorites'
+        url = 'http://localhost:9489/0.1/directories/favorites/{profile}'
         data = json.dumps(favorite_gid)
-        result = requests.delete(url, data=data)
+        result = requests.delete(url.format(profile=profile),
+                                 data=data,
+                                 headers={'Content-Type': 'application/json'})
         return result
+
+    def delete_favorite(self, profile, favorite_gid):
+        return self.delete_favorite_result(profile, favorite_gid)
