@@ -35,7 +35,6 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         cls.cur_dir = os.getcwd()
         os.chdir(asset_path)
         cls._run_cmd('docker-compose up -d')
-        time.sleep(1)
 
     @classmethod
     def stop_dird_with_asset(cls):
