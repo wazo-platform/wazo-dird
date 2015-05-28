@@ -34,13 +34,13 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         asset_path = os.path.join(os.path.dirname(__file__), '..', 'assets', cls.asset)
         cls.cur_dir = os.getcwd()
         os.chdir(asset_path)
-        cls._run_cmd('fig up -d')
+        cls._run_cmd('docker-compose up -d')
         time.sleep(1)
 
     @classmethod
     def stop_dird_with_asset(cls):
-        cls._run_cmd('fig kill')
-        cls._run_cmd('fig rm --force')
+        cls._run_cmd('docker-compose kill')
+        cls._run_cmd('docker-compose rm --force')
         os.chdir(cls.cur_dir)
 
     @staticmethod
