@@ -101,6 +101,112 @@
                 ]
             }
         },
+        "/directories/favorites/{profile}": {
+            "get": {
+                "summary": "List favorite contacts",
+                "description": "Get the list of favorite contacts for directories configured in the profile",
+                "operationId": "list_favorites",
+                "tags": [
+                    "favorites",
+                    "follow_headers"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of contacts",
+                        "schema": {
+                            "$ref": "#/definitions/ContactList"
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid profile",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "profile",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The profile defines the list of directories to query and how the results are displayed",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        "/directories/favorites/{directory}/{contact}": {
+            "put": {
+                "summary": "Mark a contact as favorite",
+                "description": "Add the contact from {directory} to the list of favorite contacts.",
+                "operationId": "add_favorite",
+                "tags": [
+                    "favorites"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Favorite added."
+                    },
+                    "404": {
+                        "description": "Invalid directory",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "directory",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The directory where the contact is stored.",
+                        "required": true
+                    },
+                    {
+                        "name": "contact",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The ID of the contact. This ID is unique within the {directory}.",
+                        "required": true
+                    }
+                ]
+            },
+            "delete": {
+                "summary": "Unmark a contact as favorite",
+                "description": "Remove the contact from {directory} from the list of favorite contacts.",
+                "operationId": "remove_favorite",
+                "tags": [
+                    "favorites"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Favorite removed."
+                    },
+                    "404": {
+                        "description": "Invalid directory",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "directory",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The directory where the contact is stored.",
+                        "required": true
+                    },
+                    {
+                        "name": "contact",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The ID of the contact. This ID is unique within the {directory}.",
+                        "required": true
+                    }
+                ]
+            }
+        }
     },
     "definitions": {
         "Error": {
@@ -173,6 +279,17 @@
                 "term": {
                     "type": "string",
                     "description": "Search term used for these results"
+                }
+            }
+        },
+        "ContactList": {
+            "properties": {
+                "results": {
+                    "items": {
+                        "type": "Contact"
+                    },
+                    "type": "array",
+                    "description": "List of results"
                 }
             }
         },
