@@ -1,8 +1,9 @@
 Flask
 cherrypy
-flask-cors
+flask-cors==1.10.3
 flask-restful==0.2.12
 flask-restplus==0.2.4
+flask==0.10.1
 futures
 git+https://github.com/xivo-pbx/xivo-confd-client.git
 git+https://github.com/xivo-pbx/xivo-dao.git

@@ -25,6 +25,8 @@ from flask_restplus.api import Api
 from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
 
+from xivo_dird.swagger.resource import SwaggerResource
+
 
 VERSION = 0.1
 
@@ -43,6 +45,7 @@ class CoreRestApi(object):
         self.load_cors()
         self.api = api
         self.api.init_app(self.app)
+        SwaggerResource.add_resource(self.api)
         self.namespace = self.api.namespace('directories', description='directories operations')
 
     def load_cors(self):

@@ -17,6 +17,10 @@ setup(
 
     packages=find_packages(),
 
+    package_data={
+        'xivo_dird.swagger': ['*.json'],
+    },
+
     scripts=['bin/xivo-dird'],
 
     entry_points={

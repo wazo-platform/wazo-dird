@@ -1,0 +1,196 @@
+{
+    "swagger": 2,
+    "info": {
+        "title": "XiVO Dird",
+        "description": "Service for querying directories and finding contacts.\n\nA contact can contain various information such as a person's phone number, number, office number, department, office number, etc. The information displayed is selected via a profile. Directories can be aggregated using multiple data sources such as an LDAP server, a CSV file, another XiVO server, etc.\n\nPlease refer to [the documentation](http://documentation.xivo.io) for further details.",
+        "version": "0.1",
+        "license": {
+            "name": "GPL v3",
+            "url": "http://www.gnu.org/licenses/gpl.txt"
+        },
+        "contact": {
+            "name": "Dev Team",
+            "url": "http://xivo.io",
+            "email": "dev@avencall.com"
+        }
+    },
+    "x-xivo-port": 9489,
+    "x-xivo-name": "dird",
+    "schemes": [
+        "http"
+    ],
+    "basePath": "/0.1",
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/directories/lookup/{profile}": {
+            "get": {
+                "summary": "Search for contacts",
+                "description": "Search for contacts in directories configured in the profile",
+                "operationId": "lookup",
+                "tags": [
+                    "lookup",
+                    "follow_headers"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of contacts",
+                        "schema": {
+                            "$ref": "#/definitions/Lookup"
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid lookup",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "profile",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The profile defines the list of directories to query and how the results are displayed",
+                        "required": true
+                    },
+                    {
+                        "name": "term",
+                        "in": "query",
+                        "type": "string",
+                        "description": "A search term to look for",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        "/directories/lookup/{profile}/headers": {
+            "get": {
+                "summary": "Lookup headers",
+                "description": "Column headers that can be used when displaying lookup results to the client",
+                "operationId": "get_headers",
+                "tags": [
+                    "headers"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of headers",
+                        "schema": {
+                            "$ref": "#/definitions/Header"
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid profile",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "profile",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The profile defines the list of directories to query and how the results are displayed",
+                        "required": true
+                    }
+                ]
+            }
+        },
+    },
+    "definitions": {
+        "Error": {
+            "title": "Error",
+            "description": "Error message for the client",
+            "properties": {
+                "timestamp": {
+                    "description": "Time at which the error occured",
+                    "type": "array",
+                    "items": {
+                        "type": "number",
+                        "format": "timestamp"
+                    }
+                },
+                "reason": {
+                    "description": "Human readable explanation of the error",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status_code": {
+                    "description": "HTTP status code",
+                    "type": "integer"
+                }
+            },
+            "type": "string"
+        },
+        "Header": {
+            "properties": {
+                "column_headers": {
+                    "type": "array",
+                    "description": "Labels for the headers",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "column_types": {
+                    "type": "array",
+                    "description": "Data types for the headers",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "Lookup": {
+            "properties": {
+                "column_headers": {
+                    "type": "array",
+                    "description": "Labels for the headers",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "column_types": {
+                    "type": "array",
+                    "description": "Data types for the headers",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "results": {
+                    "items": {
+                        "type": "Contact"
+                    },
+                    "type": "array",
+                    "description": "List of results"
+                },
+                "term": {
+                    "type": "string",
+                    "description": "Search term used for these results"
+                }
+            }
+        },
+        "Contact": {
+            "properties": {
+                "column_values": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "relations": {
+                    "type": "map"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
