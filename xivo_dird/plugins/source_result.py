@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ class _SourceResult(object):
         self._add_destination_columns()
 
     def get_unique(self):
-        return tuple(self.fields.get(k) for k in self._unique_columns)
+        return tuple(str(self.fields.get(k)) for k in self._unique_columns)
 
     def _add_destination_columns(self):
         for source, destination in self._source_to_dest_map.iteritems():
