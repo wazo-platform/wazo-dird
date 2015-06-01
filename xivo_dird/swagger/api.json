@@ -147,12 +147,6 @@
                     "201": {
                         "description": "Favorite added."
                     },
-                    "404": {
-                        "description": "Invalid directory",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
                 },
                 "parameters": [
                     {
@@ -182,12 +176,6 @@
                     "204": {
                         "description": "Favorite removed."
                     },
-                    "404": {
-                        "description": "Invalid directory",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
                 },
                 "parameters": [
                     {
