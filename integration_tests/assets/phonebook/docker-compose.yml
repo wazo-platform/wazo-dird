@@ -6,7 +6,7 @@ sync:
   environment:
     PORTS: "9489 80"
 dird:
-  image: dird-test
+  image: xivo-dird-test
   ports:
     - "9489:9489"
   volumes:
