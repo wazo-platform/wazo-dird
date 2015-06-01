@@ -2,7 +2,7 @@ sync:
   image: n3llyb0y/wait
   links:
     - dird
-    - confd
+    # - confd  # not confd, we WANT it to take time to start
   environment:
     PORTS: "9489 8000"
 dird:
