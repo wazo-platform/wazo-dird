@@ -34,8 +34,8 @@ class TestCSVBackend(BaseDirdIntegrationTest):
                     contains('Alice', 'AAA', '5555555555'))
 
     def test_that_asking_csv_favorites_returns_contacts(self):
-        self.post_favorite('default', {'source': 'my_csv', 'contact_id': ['1']})
-        self.post_favorite('default', {'source': 'my_csv', 'contact_id': ['3']})
+        self.put_favorite('my_csv', '1')
+        self.put_favorite('my_csv', '3')
 
         result = self.favorites('default')
 

@@ -161,10 +161,10 @@ class TestAddRemoveFavorites(BaseDirdIntegrationTest):
     asset = 'csv_with_multiple_displays'
 
     def test_that_removed_favorites_are_not_listed(self):
-        self.post_favorite('default', {'source': 'my_csv', 'contact_id': ['1']})
-        self.post_favorite('default', {'source': 'my_csv', 'contact_id': ['2']})
-        self.post_favorite('default', {'source': 'my_csv', 'contact_id': ['3']})
-        self.delete_favorite('default', {'source': 'my_csv', 'contact_id': ['2']})
+        self.put_favorite('my_csv', '1')
+        self.put_favorite('my_csv', '2')
+        self.put_favorite('my_csv', '3')
+        self.delete_favorite('my_csv', '2')
 
         result = self.favorites('default')
 

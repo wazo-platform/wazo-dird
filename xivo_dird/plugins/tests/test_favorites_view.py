@@ -21,13 +21,14 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
+from mock import ANY
 from mock import Mock
 from mock import patch
 
 from xivo_dird import make_result_class
 from xivo_dird.plugins.favorites_view import DisplayColumn
 from xivo_dird.plugins.favorites_view import FavoritesViewPlugin
-from xivo_dird.plugins.favorites_view import FavoritesView
+from xivo_dird.plugins.favorites_view import FavoritesRead
 from xivo_dird.plugins.favorites_view import format_results
 from xivo_dird.plugins.favorites_view import make_displays
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
@@ -40,7 +41,7 @@ class TestFavoritesViewPlugin(BaseHTTPViewTestCase):
 
     def tearDown(self):
         # reset class FavoritesView
-        FavoritesView.configure(displays=None, favorites_service=None)
+        FavoritesRead.configure(displays=None, favorites_service=None)
 
     @patch('xivo_dird.plugins.favorites_view.api.route')
     def test_that_load_with_no_favorites_service_does_not_add_route(self, route):
@@ -51,8 +52,8 @@ class TestFavoritesViewPlugin(BaseHTTPViewTestCase):
 
         assert_that(route.call_count, equal_to(0))
 
-    @patch('xivo_dird.plugins.favorites_view.api.route')
-    def test_that_load_adds_the_route(self, route):
+    @patch('xivo_dird.plugins.favorites_view.api.add_resource')
+    def test_that_load_adds_the_route(self, add_resource):
         args = {
             'config': {'displays': {},
                        'profile_to_display': {}},
@@ -64,7 +65,8 @@ class TestFavoritesViewPlugin(BaseHTTPViewTestCase):
 
         FavoritesViewPlugin().load(args)
 
-        route.assert_called_once_with('/directories/favorites/<profile>')
+        add_resource.assert_any_call(ANY, '/directories/favorites/<profile>')
+        add_resource.assert_any_call(ANY, '/directories/favorites/<directory>/<contact>')
 
 
 class TestMakeDisplays(unittest.TestCase):

@@ -80,24 +80,18 @@ class BaseDirdIntegrationTest(unittest.TestCase):
     def favorites(self, profile):
         return json.loads(self.get_favorites_result(profile).text)
 
-    def post_favorite_result(self, profile, favorite_gid):
-        url = 'http://localhost:9489/0.1/directories/favorites/{profile}'
-        data = json.dumps(favorite_gid)
-        result = requests.post(url.format(profile=profile),
-                               data=data,
-                               headers={'Content-Type': 'application/json'})
+    def put_favorite_result(self, directory, contact):
+        url = 'http://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
+        result = requests.put(url.format(directory=directory, contact=contact))
         return result
 
-    def post_favorite(self, profile, favorite_gid):
-        return self.post_favorite_result(profile, favorite_gid)
+    def put_favorite(self, directory, contact):
+        return self.put_favorite_result(directory, contact)
 
-    def delete_favorite_result(self, profile, favorite_gid):
-        url = 'http://localhost:9489/0.1/directories/favorites/{profile}'
-        data = json.dumps(favorite_gid)
-        result = requests.delete(url.format(profile=profile),
-                                 data=data,
-                                 headers={'Content-Type': 'application/json'})
+    def delete_favorite_result(self, directory, contact):
+        url = 'http://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
+        result = requests.delete(url.format(directory=directory, contact=contact))
         return result
 
-    def delete_favorite(self, profile, favorite_gid):
-        return self.delete_favorite_result(profile, favorite_gid)
+    def delete_favorite(self, directory, contact):
+        return self.delete_favorite_result(directory, contact)

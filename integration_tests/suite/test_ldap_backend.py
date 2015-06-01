@@ -126,8 +126,8 @@ class TestLDAP(BaseDirdIntegrationTest):
         assert_that(result['results'], empty())
 
     def test_ldap_favorites(self):
-        self.post_favorite('default', {'source': 'test_ldap', 'contact_id': [self.entry_uuids[0]]})
-        self.post_favorite('default', {'source': 'test_ldap', 'contact_id': [self.entry_uuids[2]]})
+        self.put_favorite('test_ldap', self.entry_uuids[0])
+        self.put_favorite('test_ldap', self.entry_uuids[2])
 
         result = self.favorites('default')
 

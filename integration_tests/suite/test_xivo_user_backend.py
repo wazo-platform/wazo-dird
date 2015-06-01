@@ -123,8 +123,8 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
     def test_favorites_multiple_xivo(self):
-        self.post_favorite('default', {'source': 'xivo_america', 'contact_id': [1]})
-        self.post_favorite('default', {'source': 'xivo_asia', 'contact_id': [1]})
+        self.put_favorite('xivo_america', 1)
+        self.put_favorite('xivo_asia', 1)
 
         result = self.favorites('default')
 

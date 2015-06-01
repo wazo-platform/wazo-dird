@@ -26,10 +26,6 @@ logger = logging.getLogger(__name__)
 
 DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
 
-parser = api.parser()
-parser.add_argument('source', type=unicode, required=True, help='source is missing')
-parser.add_argument('contact_id', type=list, required=True, help='contact_id is missing')
-
 
 class FavoritesViewPlugin(BaseViewPlugin):
 
@@ -40,13 +36,15 @@ class FavoritesViewPlugin(BaseViewPlugin):
             logger.error('Missing service plugin: favorites')
             return
 
-        FavoritesView.configure(displays=make_displays(config),
+        FavoritesRead.configure(displays=make_displays(config),
                                 favorites_service=args['services']['favorites'])
+        FavoritesWrite.configure(favorites_service=args['services']['favorites'])
 
-        api.route('/directories/favorites/<profile>')(FavoritesView)
+        api.add_resource(FavoritesRead, '/directories/favorites/<profile>')
+        api.add_resource(FavoritesWrite, '/directories/favorites/<directory>/<contact>')
 
 
-class FavoritesView(Resource):
+class FavoritesRead(Resource):
     displays = None
     favorites_service = None
 
@@ -70,14 +68,21 @@ class FavoritesView(Resource):
         raw_results = self.favorites_service(profile)
         return format_results(raw_results, display)
 
-    def post(self, profile):
-        args = parser.parse_args()
-        self.favorites_service.new_favorite(args['source'], tuple(args['contact_id']))
+
+class FavoritesWrite(Resource):
+
+    favorites_service = None
+
+    @classmethod
+    def configure(cls, favorites_service):
+        cls.favorites_service = favorites_service
+
+    def put(self, directory, contact):
+        self.favorites_service.new_favorite(directory, tuple([contact]))
         return '', 201
 
-    def delete(self, profile):
-        args = parser.parse_args()
-        self.favorites_service.remove_favorite(args['source'], tuple(args['contact_id']))
+    def delete(self, directory, contact):
+        self.favorites_service.remove_favorite(directory, tuple([contact]))
         return '', 204
 
 
