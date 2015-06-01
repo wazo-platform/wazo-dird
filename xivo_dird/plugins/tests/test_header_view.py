@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@ from hamcrest import assert_that
 from hamcrest import equal_to
 from mock import ANY
 from mock import Mock
-from mock import patch
 from xivo_dird.plugins.headers_view import HeadersViewPlugin
 from xivo_dird.plugins.headers_view import make_api_class
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
@@ -66,36 +65,3 @@ class TestHeadersView(BaseHTTPViewTestCase):
             'column_types': ['some_type', None],
         }
         assert_that(result, equal_to(expected_result))
-
-    @patch('xivo_dird.plugins.headers_view.time', Mock(return_value='now'))
-    def test_result_with_a_bad_profile(self):
-        config = {'displays': {'display_1': [{'title': 'Firstname',
-                                              'type': None,
-                                              'default': 'Unknown',
-                                              'field': 'firstname'},
-                                             {'title': 'Lastname',
-                                              'type': None,
-                                              'default': 'ln',
-                                              'field': 'lastname'}],
-                               'display_2': [{'title': 'fn',
-                                              'type': 'some_type',
-                                              'default': 'N/A',
-                                              'field': 'firstname'},
-                                             {'title': 'ln',
-                                              'type': None,
-                                              'default': 'N/A',
-                                              'field': 'LAST'}]},
-                  'profile_to_display': {'profile_1': 'display_1',
-                                         'profile_2': 'display_2',
-                                         'profile_3': 'display_1'}}
-        api_class = make_api_class(config, namespace=Mock(), api=Mock())
-
-        result, code = api_class().get('profile_XXX')
-
-        expected_result = {
-            'reason': ['The lookup profile does not exist'],
-            'timestamp': ['now'],
-            'status_code': 404,
-        }
-        assert_that(result, equal_to(expected_result))
-        assert_that(code, equal_to(404))
