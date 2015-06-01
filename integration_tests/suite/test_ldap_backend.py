@@ -69,7 +69,7 @@ class LDAPHelper(object):
 
 
 def add_contacts(contacts):
-    for _ in xrange(5):
+    for _ in xrange(10):
         try:
             helper = LDAPHelper()
             break
