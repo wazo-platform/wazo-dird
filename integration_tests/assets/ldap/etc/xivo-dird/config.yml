@@ -6,7 +6,6 @@ enabled_plugins:
         - favorites
     views:
         - default_json
-        - favorites_view
 
 views:
     displays:

@@ -7,7 +7,6 @@ enabled_plugins:
     views:
         - default_json
         - headers_view
-        - favorites_view
 
 views:
     displays:
