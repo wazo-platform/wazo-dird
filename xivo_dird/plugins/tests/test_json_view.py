@@ -29,6 +29,8 @@ from werkzeug.exceptions import HTTPException
 
 from xivo_dird import make_result_class
 from xivo_dird.plugins.default_json_view import DisplayColumn
+from xivo_dird.plugins.default_json_view import FavoritesRead
+from xivo_dird.plugins.default_json_view import FavoritesWrite
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
 from xivo_dird.plugins.default_json_view import Lookup
 from xivo_dird.plugins.default_json_view import format_results
@@ -45,17 +47,20 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
     def tearDown(self):
         # reset class Lookup
         Lookup.configure(displays=None, lookup_service=None)
+        FavoritesRead.configure(displays=None, favorites_service=None)
+        FavoritesWrite.configure(favorites_service=None)
 
-    @patch('xivo_dird.plugins.default_json_view.api.route')
-    def test_that_load_with_no_lookup_service_does_not_add_route(self, route):
-        self.plugin.load({'http_namespace': Mock(),
+    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
+    def test_that_load_with_no_lookup_service_does_not_add_route(self, add_resource):
+        self.plugin.load({'config': {},
+                          'http_namespace': Mock(),
                           'rest_api': Mock(),
                           'services': {}})
 
-        assert_that(route.call_count, equal_to(0))
+        assert_that(add_resource.call_count, equal_to(0))
 
-    @patch('xivo_dird.plugins.default_json_view.api.route')
-    def test_that_load_adds_the_route(self, route):
+    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
+    def test_that_load_adds_the_lookup_route(self, add_resource):
         args = {
             'config': {'displays': {},
                        'profile_to_display': {}},
@@ -67,7 +72,35 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
         self.plugin.load(args)
 
-        route.assert_called_once_with('/directories/lookup/<profile>', doc=ANY)
+        add_resource.assert_called_once_with(ANY, '/directories/lookup/<profile>')
+
+    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
+    def test_that_load_with_no_favorites_service_does_not_add_route(self, add_resource):
+        JsonViewPlugin().load({'config': {},
+                               'http_namespace': Mock(),
+                               'rest_api': Mock(),
+                               'services': {}})
+
+        assert_that(add_resource.call_count, equal_to(0))
+
+    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
+    def test_that_load_adds_the_favorite_route(self, add_resource):
+        args = {
+            'config': {'displays': {},
+                       'profile_to_display': {}},
+            'http_app': self.http_app,
+            'http_namespace': Mock(),
+            'rest_api': Mock(),
+            'services': {'favorites': Mock()},
+        }
+
+        JsonViewPlugin().load(args)
+
+        add_resource.assert_any_call(ANY, '/directories/favorites/<profile>')
+        add_resource.assert_any_call(ANY, '/directories/favorites/<directory>/<contact>')
+
+
+class TestJsonViewLookup(BaseHTTPViewTestCase):
 
     @patch('xivo_dird.plugins.default_json_view.parser.parse_args')
     def test_lookup_when_no_term_then_exception(self, parse_args):
@@ -100,6 +133,12 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
 
 class TestMakeDisplays(unittest.TestCase):
+
+    def test_that_make_displays_with_no_config_returns_empty_dict(self):
+        result = make_displays({})
+
+        assert_that(result, equal_to({}))
+
     def test_that_make_displays_generate_display_dict(self):
         first_display = [
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),

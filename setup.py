@@ -38,7 +38,6 @@ setup(
         'xivo_dird.views': [
             'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
             'default_json = xivo_dird.plugins.default_json_view:JsonViewPlugin',
-            'favorites_view = xivo_dird.plugins.favorites_view:FavoritesViewPlugin',
         ],
     }
 )

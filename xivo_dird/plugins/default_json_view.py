@@ -19,7 +19,6 @@ import logging
 
 from collections import namedtuple
 from flask_restplus import Resource
-from flask_restplus import fields
 from time import time
 
 from xivo_dird import BaseViewPlugin
@@ -34,37 +33,30 @@ parser.add_argument('term', type=unicode, required=True, help='term is missing',
 class JsonViewPlugin(BaseViewPlugin):
 
     def load(self, args=None):
-        if 'lookup' not in args['services']:
-            logger.error('Missing service plugin: lookup')
-            return
-
         config = args['config']
+        displays = make_displays(config)
 
-        Lookup.configure(displays=make_displays(config),
-                         lookup_service=args['services']['lookup'])
+        lookup_url = '/directories/lookup/<profile>'
+        if 'lookup' in args['services']:
+            Lookup.configure(displays=displays,
+                             lookup_service=args['services']['lookup'])
 
-        api.route('/directories/lookup/<profile>', doc=doc)(Lookup)
+            api.add_resource(Lookup, lookup_url)
+        else:
+            logger.error('%s disabled: no service plugin `lookup`', lookup_url)
 
-doc = {
-    'model': api.model('Lookup', {
-        'column_headers': fields.List(fields.String, description='The labels of the result header'),
-        'column_types': fields.List(fields.String, description='The types of the result header'),
-        'results': fields.List(fields.List(fields.String), description='The values of the results'),
-        'term': fields.String(description='The string to look for'),
-    }),
-    'params': {
-        'term': {
-            'description': 'The string to look for',
-            'required': True,
-        },
-        'profile': {
-            'description': 'The profile to look for'
-        }
-    },
-    'responses': {
-        404: 'Invalid profile'
-    }
-}
+        favorites_read_url = '/directories/favorites/<profile>'
+        favorites_write_url = '/directories/favorites/<directory>/<contact>'
+        if 'favorites' in args['services']:
+            FavoritesRead.configure(displays=displays,
+                                    favorites_service=args['services']['favorites'])
+            FavoritesWrite.configure(favorites_service=args['services']['favorites'])
+
+            api.add_resource(FavoritesRead, '/directories/favorites/<profile>')
+            api.add_resource(FavoritesWrite, '/directories/favorites/<directory>/<contact>')
+        else:
+            logger.error('%s disabled: no service plugin `favorites`', favorites_read_url)
+            logger.error('%s disabled: no service plugin `favorites`', favorites_write_url)
 
 
 class Lookup(Resource):
@@ -99,6 +91,48 @@ class Lookup(Resource):
         return response
 
 
+class FavoritesRead(Resource):
+    displays = None
+    favorites_service = None
+
+    @classmethod
+    def configure(cls, displays, favorites_service):
+        cls.displays = displays
+        cls.favorites_service = favorites_service
+
+    def get(self, profile):
+        logger.debug('Listing favorites with profile %s', profile)
+        if profile not in self.displays:
+            error = {
+                'reason': ['The profile does not exist'],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
+
+        display = self.displays[profile]
+
+        raw_results = self.favorites_service(profile)
+        return format_results(raw_results, display)
+
+
+class FavoritesWrite(Resource):
+
+    favorites_service = None
+
+    @classmethod
+    def configure(cls, favorites_service):
+        cls.favorites_service = favorites_service
+
+    def put(self, directory, contact):
+        self.favorites_service.new_favorite(directory, tuple([contact]))
+        return '', 201
+
+    def delete(self, directory, contact):
+        self.favorites_service.remove_favorite(directory, tuple([contact]))
+        return '', 204
+
+
 def format_results(results, display):
     return {
         'column_headers': [d.title for d in display],
@@ -117,7 +151,7 @@ def _format_result(result, display):
 
 def make_displays(view_config):
     result = {}
-    for profile, display_name in view_config['profile_to_display'].iteritems():
+    for profile, display_name in view_config.get('profile_to_display', {}).iteritems():
         result[profile] = _make_display_from_name(view_config, display_name)
     return result
 
