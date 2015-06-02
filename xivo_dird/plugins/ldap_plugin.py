@@ -146,9 +146,6 @@ class _LDAPConfig(object):
             return '(|%s)' % ''.join(l)
 
     def build_list_filter(self, uids):
-        # XXX do we need to handle the case were the number of elements in a uid is
-        #     not the same as the number of unique column ?
-        # XXX do we need to handle the case were a value in the tuple is None or something alike ?
         if not uids:
             return None
 
