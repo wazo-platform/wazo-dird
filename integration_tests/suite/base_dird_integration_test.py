@@ -20,7 +20,6 @@ import unittest
 import requests
 import json
 import os
-import time
 import logging
 
 logger = logging.getLogger(__name__)
@@ -62,7 +61,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     def lookup(self, term, profile):
-        return json.loads(self.get_lookup_result(term, profile).text)
+        return self.get_lookup_result(term, profile).json()
 
     def get_headers_result(self, profile):
         url = 'http://localhost:9489/0.1/directories/lookup/{profile}/headers'
@@ -70,7 +69,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     def headers(self, profile):
-        return json.loads(self.get_headers_result(profile).text)
+        return self.get_headers_result(profile).json()
 
     def get_favorites_result(self, profile):
         url = 'http://localhost:9489/0.1/directories/favorites/{profile}'
@@ -78,7 +77,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     def favorites(self, profile):
-        return json.loads(self.get_favorites_result(profile).text)
+        return self.get_favorites_result(profile).json()
 
     def put_favorite_result(self, directory, contact):
         url = 'http://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
