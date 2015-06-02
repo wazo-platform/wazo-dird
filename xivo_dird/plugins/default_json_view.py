@@ -125,11 +125,11 @@ class FavoritesWrite(Resource):
         cls.favorites_service = favorites_service
 
     def put(self, directory, contact):
-        self.favorites_service.new_favorite(directory, tuple([contact]))
+        self.favorites_service.new_favorite(directory, contact)
         return '', 201
 
     def delete(self, directory, contact):
-        self.favorites_service.remove_favorite(directory, tuple([contact]))
+        self.favorites_service.remove_favorite(directory, contact)
         return '', 204
 
 

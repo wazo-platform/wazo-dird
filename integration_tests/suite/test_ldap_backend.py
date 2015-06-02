@@ -71,6 +71,7 @@ class LDAPHelper(object):
 def add_contacts(contacts):
     for _ in xrange(10):
         try:
+            print 'connecting to ldap...'
             helper = LDAPHelper()
             break
         except ldap.SERVER_DOWN:

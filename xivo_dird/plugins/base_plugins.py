@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -70,8 +70,8 @@ class BaseSourcePlugin(object):
 
     # These string are expected in the configuration
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in
-    UNIQUE_COLUMNS = 'unique_columns'  # These are the columns that make an entry unique
     SOURCE_TO_DISPLAY = 'source_to_display_columns'
+    UNIQUE_COLUMN = 'unique_column'  # This is the column that make an entry unique
 
     @abc.abstractmethod
     def load(self, args):
@@ -97,7 +97,7 @@ class BaseSourcePlugin(object):
         the `source_to_display_columns` dictionary can be used by the administrator
         to add new mapping.
 
-        If the backend has a `unique_columns` configuration, a new column will be
+        If the backend has a `unique_column` configuration, a new column will be
         added with a `__unique_id` header containing the unique key.
         '''
 

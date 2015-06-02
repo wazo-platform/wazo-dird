@@ -1,9 +1,6 @@
 type: csv
 name: my_csv
 file: /tmp/data/test.csv
-unique_columns:
-    - fn
-    - ln
 searched_columns:
     - ln
     - fn

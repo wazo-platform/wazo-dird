@@ -36,7 +36,7 @@ DEFAULT_ARGS = {'config': {'confd_config': CONFD_CONFIG,
 UUID = 'my-xivo-uuid'
 
 SourceResult = make_result_class(DEFAULT_ARGS['config']['name'],
-                                 unique_columns=['id'])
+                                 unique_column='id')
 
 CONFD_USER_1 = {
     "agent_id": 42,
@@ -142,14 +142,14 @@ class TestXivoUserBackendSearch(_BaseTest):
         assert_that(result, contains(SOURCE_2))
 
     def test_list_with_unknown_id(self):
-        result = self._source.list(unique_ids=[('42',)])
+        result = self._source.list(unique_ids=['42'])
 
         self._confd_client.users.list.assert_called_once_with(view='directory')
 
         assert_that(result, empty())
 
     def test_list_with_known_id(self):
-        result = self._source.list(unique_ids=[('226',)])
+        result = self._source.list(unique_ids=['226'])
 
         self._confd_client.users.list.assert_called_once_with(view='directory')
 

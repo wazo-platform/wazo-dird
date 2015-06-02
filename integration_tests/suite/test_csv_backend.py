@@ -46,9 +46,9 @@ class TestCSVBackend(BaseDirdIntegrationTest):
 
 class TestCSVNoUnique(BaseDirdIntegrationTest):
 
-    asset = 'csv_with_no_unique_columns'
+    asset = 'csv_with_no_unique_column'
 
-    def test_lookup_should_work_without_unique_columns(self):
+    def test_lookup_should_work_without_unique_column(self):
         result = self.lookup('lice', 'default')
 
         assert_that(result['results'][0]['column_values'],
@@ -57,7 +57,7 @@ class TestCSVNoUnique(BaseDirdIntegrationTest):
 
 class TestCSVWithAccents(BaseDirdIntegrationTest):
 
-    asset = 'csv_with_no_unique_columns'
+    asset = 'csv_with_no_unique_column'
 
     def test_lookup_with_accents_in_term(self):
         result = self.lookup('pép', 'default')

@@ -38,7 +38,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
     @classmethod
     def stop_dird_with_asset(cls):
         cls._run_cmd('docker-compose kill')
-        cls._run_cmd('docker-compose rm --force')
+        # cls._run_cmd('docker-compose rm --force')
         os.chdir(cls.cur_dir)
 
     @staticmethod
