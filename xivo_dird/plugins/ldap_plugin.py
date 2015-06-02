@@ -53,6 +53,8 @@ class LDAPPlugin(BaseSourcePlugin):
         # XXX what is the character encoding used in uids ?
         if not self._ldap_config.unique_column():
             return []
+        if not uids:
+            return []
 
         filter_str = self._ldap_config.build_list_filter(uids)
 

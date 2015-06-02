@@ -155,6 +155,13 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         assert_that(result, contains(SOURCE_1))
 
+    def test_list_with_empty_list(self):
+        result = self._source.list(unique_ids=[])
+
+        self._confd_client.users.list.assert_called_once_with(view='directory')
+
+        assert_that(result, contains())
+
     def test_fetch_entries_when_client_does_not_return_list(self):
         self._confd_client.users.list.side_effect = Exception()
 

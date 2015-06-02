@@ -68,7 +68,18 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_result_formatter.format.assert_called_once_with(sentinel.search_result)
         self.assertIs(result, sentinel.format_result)
 
-    def test_list(self):
+    def test_list_empty(self):
+        uids = []
+        self.ldap_config.build_list_filter.return_value = None
+        self.ldap_client.search.side_effect = TypeError('must be string, not None')
+        self.ldap_result_formatter.format.return_value = []
+
+        self.ldap_plugin.load(self.config)
+        result = self.ldap_plugin.list(uids)
+
+        self.assertEquals(result, [])
+
+    def test_list_with_uids(self):
         uids = ['123', '456']
         self.ldap_config.build_list_filter.return_value = sentinel.filter
         self.ldap_client.search.return_value = sentinel.search_result

@@ -196,6 +196,19 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         assert_that(results, contains())
 
+    def test_list_with_unique_column_but_empty_uids(self):
+        config = {
+            'file': self.fname,
+            'unique_column': 'clientno',
+            'name': self.name,
+        }
+
+        self.source.load({'config': config})
+
+        results = self.source.list([])
+
+        assert_that(results, contains())
+
     def test_list_with_unique_column(self):
         config = {
             'file': self.fname,
