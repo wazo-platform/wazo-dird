@@ -184,7 +184,7 @@ class TestFavoritesService(unittest.TestCase):
 
         sources['source_1'].list.assert_called_once_with(['id1'])
         sources['source_2'].list.assert_called_once_with(['id2'])
-        assert_that(result, contains('contact1', 'contact2'))
+        assert_that(result, contains_inanyorder('contact1', 'contact2'))
 
         s.stop()
 
