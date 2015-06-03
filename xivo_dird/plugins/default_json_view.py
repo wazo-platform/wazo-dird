@@ -127,7 +127,7 @@ class FavoritesWrite(Resource):
 
     def put(self, directory, contact):
         self.favorites_service.new_favorite(directory, contact)
-        return '', 201
+        return '', 204
 
     def delete(self, directory, contact):
         self.favorites_service.remove_favorite(directory, contact)
