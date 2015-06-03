@@ -68,7 +68,6 @@ def load_view_extension(extension, config, services, rest_api):
     args = {
         'config': config,
         'http_app': rest_api.app,
-        'http_namespace': rest_api.namespace,
         'rest_api': rest_api.api,
         'services': services,
     }

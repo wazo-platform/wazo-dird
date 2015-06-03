@@ -18,7 +18,8 @@
 import logging
 
 from collections import namedtuple
-from flask_restplus import Resource
+from flask_restful import reqparse
+from flask_restful import Resource
 from time import time
 
 from xivo_dird import BaseViewPlugin
@@ -26,7 +27,7 @@ from xivo_dird.core.rest_api import api
 
 logger = logging.getLogger(__name__)
 
-parser = api.parser()
+parser = reqparse.RequestParser()
 parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
 

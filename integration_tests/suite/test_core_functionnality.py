@@ -145,7 +145,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         error = result.json()
 
         assert_that(result.status_code, equal_to(404))
-        assert_that(error['reason'], contains('The lookup profile does not exist'))
+        assert_that(error['reason'], contains('The profile does not exist'))
 
     def test_that_favorites_returns_404(self):
         result = self.get_favorites_result('unknown')
