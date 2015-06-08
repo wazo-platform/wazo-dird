@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ DEFAULT_ARGS = {'config': {'confd_config': CONFD_CONFIG,
 UUID = 'my-xivo-uuid'
 
 SourceResult = make_result_class(DEFAULT_ARGS['config']['name'],
-                                 unique_columns=['id'])
+                                 unique_column='id')
 
 CONFD_USER_1 = {
     "agent_id": 42,
@@ -142,18 +142,25 @@ class TestXivoUserBackendSearch(_BaseTest):
         assert_that(result, contains(SOURCE_2))
 
     def test_list_with_unknown_id(self):
-        result = self._source.list(unique_ids=[(42,)])
+        result = self._source.list(unique_ids=['42'])
 
         self._confd_client.users.list.assert_called_once_with(view='directory')
 
         assert_that(result, empty())
 
     def test_list_with_known_id(self):
-        result = self._source.list(unique_ids=[(226,)])
+        result = self._source.list(unique_ids=['226'])
 
         self._confd_client.users.list.assert_called_once_with(view='directory')
 
         assert_that(result, contains(SOURCE_1))
+
+    def test_list_with_empty_list(self):
+        result = self._source.list(unique_ids=[])
+
+        self._confd_client.users.list.assert_called_once_with(view='directory')
+
+        assert_that(result, contains())
 
     def test_fetch_entries_when_client_does_not_return_list(self):
         self._confd_client.users.list.side_effect = Exception()

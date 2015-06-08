@@ -51,7 +51,9 @@ class LDAPPlugin(BaseSourcePlugin):
 
     def list(self, uids):
         # XXX what is the character encoding used in uids ?
-        if not self._ldap_config.unique_columns():
+        if not self._ldap_config.unique_column():
+            return []
+        if not uids:
             return []
 
         filter_str = self._ldap_config.build_list_filter(uids)
@@ -90,8 +92,8 @@ class _LDAPConfig(object):
     def name(self):
         return self._config['name']
 
-    def unique_columns(self):
-        return self._config.get(BaseSourcePlugin.UNIQUE_COLUMNS)
+    def unique_column(self):
+        return self._config.get(BaseSourcePlugin.UNIQUE_COLUMN)
 
     def source_to_display(self):
         return self._config.get(BaseSourcePlugin.SOURCE_TO_DISPLAY)
@@ -120,11 +122,9 @@ class _LDAPConfig(object):
             return None
 
         attributes = list(source_to_display)
-        unique_columns = self._config.get(BaseSourcePlugin.UNIQUE_COLUMNS)
-        if unique_columns:
-            for column in unique_columns:
-                if column not in attributes:
-                    attributes.append(column)
+        unique_column = self._config.get(BaseSourcePlugin.UNIQUE_COLUMN)
+        if unique_column and unique_column not in attributes:
+            attributes.append(unique_column)
 
         return attributes
 
@@ -148,21 +148,14 @@ class _LDAPConfig(object):
             return '(|%s)' % ''.join(l)
 
     def build_list_filter(self, uids):
-        # XXX do we need to handle the case were the number of elements in a uid is
-        #     not the same as the number of unique column ?
-        # XXX do we need to handle the case were a value in the tuple is None or something alike ?
         if not uids:
             return None
 
-        unique_columns = self._config[BaseSourcePlugin.UNIQUE_COLUMNS]
+        unique_column = self._config[BaseSourcePlugin.UNIQUE_COLUMN]
 
         l = []
         for uid in uids:
-            item_l = list('(%s=%s)' % (attr, escape_filter_chars(value)) for (attr, value) in zip(unique_columns, uid))
-            if len(item_l) == 1:
-                l.append(item_l[0])
-            else:
-                l.append('(&%s)' % ''.join(item_l))
+            l.append('(%s=%s)' % (unique_column, uid))
 
         if len(l) == 1:
             return l[0]
@@ -255,7 +248,7 @@ class _LDAPClient(object):
 class _LDAPResultFormatter(object):
 
     def __init__(self, ldap_config):
-        self._SourceResult = make_result_class(ldap_config.name(), ldap_config.unique_columns(), ldap_config.source_to_display())
+        self._SourceResult = make_result_class(ldap_config.name(), ldap_config.unique_column(), ldap_config.source_to_display())
 
     def format(self, raw_results):
         results = []

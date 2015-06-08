@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 class _SourceResult(object):
 
-    _unique_columns = []
+    _unique_column = None
     source = None
     _source_to_dest_map = {}
 
@@ -32,7 +32,7 @@ class _SourceResult(object):
         self._add_destination_columns()
 
     def get_unique(self):
-        return tuple(self.fields.get(k) for k in self._unique_columns)
+        return str(self.fields[self._unique_column])
 
     def _add_destination_columns(self):
         for source, destination in self._source_to_dest_map.iteritems():
@@ -51,15 +51,15 @@ class _SourceResult(object):
         return '<%s(%s)%s>' % (self.__class__.__name__, fields, self.relations)
 
 
-def make_result_class(source_name, unique_columns=None, source_to_dest_map=None):
-    if not unique_columns:
-        unique_columns = _SourceResult._unique_columns
+def make_result_class(source_name, unique_column=None, source_to_dest_map=None):
+    if not unique_column:
+        unique_column = _SourceResult._unique_column
     if not source_to_dest_map:
         source_to_dest_map = _SourceResult._source_to_dest_map
 
     class SourceResult(_SourceResult):
         source = source_name
-        _unique_columns = unique_columns
+        _unique_column = unique_column
         _source_to_dest_map = source_to_dest_map
 
     return SourceResult

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
         self.source = CSVPlugin()
         config = {
             'file': self.fname,
-            'unique_columns': ['clientno'],
+            'unique_column': 'clientno',
             'searched_columns': ['firstname'],
             'name': 'my_directory',
             'separator': '|',
@@ -136,7 +136,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'file': self.fname,
             'searched_columns': ['firstname', 'lastname'],
             'name': self.name,
-            'unique_columns': ['clientno'],
+            'unique_column': 'clientno',
         }
 
         self.source.load({'config': config})
@@ -173,7 +173,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_search_with_unique_defined(self):
         config = {
             'file': self.fname,
-            'unique_columns': ['clientno'],
+            'unique_column': 'clientno',
             'searched_columns': ['firstname'],
             'name': self.name,
         }
@@ -192,46 +192,33 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         self.source.load({'config': config})
 
-        results = self.source.list([('1',), ('3',)])
+        results = self.source.list(['1', '3'])
 
         assert_that(results, contains())
 
-    def test_list_empty_unique(self):
+    def test_list_with_unique_column_but_empty_uids(self):
         config = {
             'file': self.fname,
-            'unique_columns': [],
+            'unique_column': 'clientno',
             'name': self.name,
         }
 
         self.source.load({'config': config})
 
-        results = self.source.list([('1',), ('3',)])
+        results = self.source.list([])
 
         assert_that(results, contains())
 
-    def test_list_one_field(self):
+    def test_list_with_unique_column(self):
         config = {
             'file': self.fname,
-            'unique_columns': ['clientno'],
+            'unique_column': 'clientno',
             'name': self.name,
         }
 
         self.source.load({'config': config})
 
-        results = self.source.list([('1',), ('3',)])
-
-        assert_that(results, contains(self.alice_result, self.charles_result))
-
-    def test_list_many_field(self):
-        config = {
-            'file': self.fname,
-            'unique_columns': ['firstname', 'lastname'],
-            'name': self.name,
-        }
-
-        self.source.load({'config': config})
-
-        results = self.source.list([('Alice', 'AAA'), ('Charles', 'CCC')])
+        results = self.source.list(['1', '3'])
 
         assert_that(results, contains(self.alice_result, self.charles_result))
 
@@ -246,24 +233,24 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_is_in_unique_ids(self):
         config = {
             'file': self.fname,
-            'unique_columns': ['firstname', 'lastname'],
+            'unique_column': 'clientno',
             'name': 'my_dir',
         }
 
         self.source.load({'config': config})
 
-        result = self.source._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Alice', 'lastname': 'AAA'})
+        result = self.source._is_in_unique_ids(['12'], {'firstname': 'Alice', 'lastname': 'AAA', 'clientno': '12'})
 
         assert_that(result, equal_to(True))
 
-        result = self.source._is_in_unique_ids([('Alice', 'AAA')], {'firstname': 'Bob', 'lastname': 'BBB'})
+        result = self.source._is_in_unique_ids(['12'], {'firstname': 'Bob', 'lastname': 'BBB', 'clientno': '55'})
 
         assert_that(result, equal_to(False))
 
     def test_low_case_match_entry(self):
         config = {
             'file': self.fname,
-            'unique_columns': ['firstname', 'lastname'],
+            'unique_column': 'clientno',
             'name': 'my_dir',
         }
 
@@ -279,7 +266,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_low_case_match_entry_broken_config(self):
         config = {
             'file': self.fname,
-            'unique_columns': ['firstname', 'lastname'],
+            'unique_column': 'clientno',
             'name': 'my_dir',
         }
 

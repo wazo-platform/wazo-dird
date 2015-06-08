@@ -14,20 +14,21 @@ RUN apt-get -qq -y install \
      libsasl2-dev \
      python-dev
 
-ADD . /root/dird
-RUN mkdir -p /var/run/xivo-dird
 RUN mkdir -p /etc/xivo-dird/conf.d
+
+RUN mkdir -p /var/run/xivo-dird
 RUN chmod a+w /var/run/xivo-dird
+
 RUN touch /var/log/xivo-dird.log
 RUN chown www-data: /var/log/xivo-dird.log
 
-WORKDIR /root/dird
+ADD . /usr/src/xivo-dird
+WORKDIR /usr/src/xivo-dird
 RUN cp contribs/docker/listen.yml /etc/xivo-dird/conf.d/
 RUN pip install -r requirements.txt
 RUN rsync -av etc/ /etc
 
 RUN python setup.py install
-RUN rm -fr /root/dird
 
 EXPOSE 9489
 

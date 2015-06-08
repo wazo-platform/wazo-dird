@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import has_entries
+from hamcrest import none
 from mock import sentinel
 from xivo_dird.plugins.source_result import _SourceResult
 from xivo_dird.plugins.source_result import make_result_class
@@ -73,17 +74,11 @@ class TestSourceResult(unittest.TestCase):
                                            'user_id': None,
                                            'endpoint_id': sentinel.endpoint_id}))
 
-    def test_get_unique_one_column(self):
+    def test_get_unique(self):
         r = _SourceResult(self.fields)
-        r._unique_columns = ['client_no']
+        r._unique_column = 'client_no'
 
-        assert_that(r.get_unique(), equal_to((1,)))
-
-    def test_get_unique_many_columns(self):
-        r = _SourceResult(self.fields)
-        r._unique_columns = ['firstname', 'lastname']
-
-        assert_that(r.get_unique(), equal_to(('fn', 'ln')))
+        assert_that(r.get_unique(), equal_to('1'))
 
     def test_that_source_to_dest_transformation_are_applied(self):
         SourceResult = make_result_class(sentinel.name, source_to_dest_map={'firstname': 'fn',
@@ -103,12 +98,12 @@ class TestMakeResultClass(unittest.TestCase):
 
         assert_that(s.source, equal_to(sentinel.source_name))
 
-    def test_source_unique_columns(self):
-        SourceResult = make_result_class(sentinel.source_name, sentinel.unique_columns)
+    def test_source_unique_column(self):
+        SourceResult = make_result_class(sentinel.source_name, sentinel.unique_column)
 
         s = SourceResult(sentinel.fields)
 
-        assert_that(s._unique_columns, equal_to(sentinel.unique_columns))
+        assert_that(s._unique_column, equal_to(sentinel.unique_column))
         assert_that(s._source_to_dest_map, equal_to({}))
 
     def test_source_to_destination(self):
@@ -118,4 +113,4 @@ class TestMakeResultClass(unittest.TestCase):
         s = SourceResult({})
 
         assert_that(s._source_to_dest_map, equal_to({'from': 'to'}))
-        assert_that(s._unique_columns, equal_to([]))
+        assert_that(s._unique_column, none())

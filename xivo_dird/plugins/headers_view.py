@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,10 +17,11 @@
 
 import logging
 
+from collections import namedtuple
+from flask_restful import Resource
 from time import time
 from xivo_dird import BaseViewPlugin
-from flask_restplus import Resource
-from flask_restplus import fields
+from xivo_dird.core.rest_api import api
 
 logger = logging.getLogger(__name__)
 
@@ -28,51 +29,57 @@ logger = logging.getLogger(__name__)
 class HeadersViewPlugin(BaseViewPlugin):
 
     def load(self, args):
-        api = args['rest_api']
         config = args['config']
-        namespace = args['http_namespace']
+        displays = make_displays(config)
+        Headers.configure(displays)
 
-        api_class = make_api_class(config, namespace, api)
+        api.add_resource(Headers, '/directories/lookup/<profile>/headers')
 
-        route = '/lookup/<profile>/headers'
-        doc = {
-            'model': api.model('Headers', {
-                'column_headers': fields.List(fields.String,
-                                              description='The labels for the result header'),
-                'column_types': fields.List(fields.String,
-                                            description='The types for the result header'),
-            }),
-            'params': {
-                'profile': 'The profile identifies the list of contact sources and the display format',
-            },
-            'responses': {
-                404: 'Invalid profile'
+
+class Headers(Resource):
+    displays = None
+
+    @classmethod
+    def configure(cls, displays):
+        cls.displays = displays
+
+    def get(self, profile):
+        logger.debug('header request on profile %s', profile)
+        if profile not in self.displays:
+            logger.warning('profile %s does not exist, or associated display does not exist', profile)
+            error = {
+                'reason': ['The profile does not exist'],
+                'timestamp': [time()],
+                'status_code': 404,
             }
-        }
+            return error, 404
 
-        api_class = namespace.route(route, doc=doc)(api_class)
+        display = self.displays[profile]
+        response = format_headers(display)
+        return response
 
 
-def make_api_class(config, namespace, api):
+def format_headers(display):
+    return {
+        'column_headers': [d.title for d in display],
+        'column_types': [d.type for d in display],
+    }
 
-    class Headers(Resource):
 
-        def get(self, profile):
-            logger.debug('header request on profile %s', profile)
-            try:
-                display_name = config.get('profile_to_display', {})[profile]
-                display_configuration = config.get('displays', {})[display_name]
-            except KeyError:
-                logger.warning('profile %s does not exist, or associated display does not exist', profile)
-                error = {
-                    'reason': ['The lookup profile does not exist'],
-                    'timestamp': [time()],
-                    'status_code': 404,
-                }
-                return error, 404
+def make_displays(view_config):
+    result = {}
+    for profile, display_name in view_config.get('profile_to_display', {}).iteritems():
+        result[profile] = _make_display_from_name(view_config, display_name)
+    return result
 
-            response = {'column_headers': [column.get('title') for column in display_configuration],
-                        'column_types': [column.get('type') for column in display_configuration]}
-            return response
 
-    return Headers
+def _make_display_from_name(view_config, display_name):
+    return [
+        DisplayColumn(display.get('title'),
+                      display.get('type'),
+                      display.get('default'),
+                      display.get('field'))
+        for display in view_config['displays'][display_name]
+    ]
+
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])

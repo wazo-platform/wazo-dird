@@ -122,37 +122,27 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
+    def test_favorites_multiple_xivo(self):
+        self.put_favorite('xivo_america', 1)
+        self.put_favorite('xivo_asia', 1)
 
-class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
-
-    asset = 'xivo_users_multiple_xivo'
-
-    def test_lookup_multiple_xivo(self):
-        result = self.lookup('ar', 'default')
+        result = self.favorites('default')
 
         expected_result = [
             {
-                'column_values': ['Charles', 'European', '9012', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
-                              'agent_id': None,
-                              'endpoint_id': 42,
-                              'user_id': 100},
-                'source': 'xivo_europe',
-            },
-            {
-                'column_values': ['Mary', 'Sue', '1465', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
+                'column_values': ['Alice', None, '6543', None],
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e160asia',
+                              'agent_id': 3,
                               'endpoint_id': 2,
-                              'user_id': 2},
-                'source': 'xivo_america',
+                              'user_id': 1},
+                'source': 'xivo_asia',
             },
             {
-                'column_values': ['Charles', 'Kenedy', '', None],
+                'column_values': ['John', 'Doe', '1234', None],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': None,
-                              'user_id': 100},
+                              'agent_id': 3,
+                              'endpoint_id': 2,
+                              'user_id': 1},
                 'source': 'xivo_america',
             }
         ]

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
+from hamcrest import has_entry
 from hamcrest import is_in
 from hamcrest import is_not
 
@@ -136,7 +137,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         error = result.json()
 
         assert_that(result.status_code, equal_to(404))
-        assert_that(error['reason'], contains('The lookup profile does not exist'))
+        assert_that(error['reason'], contains('The profile does not exist'))
 
     def test_that_headers_returns_404(self):
         result = self.get_headers_result('unknown')
@@ -144,4 +145,29 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         error = result.json()
 
         assert_that(result.status_code, equal_to(404))
-        assert_that(error['reason'], contains('The lookup profile does not exist'))
+        assert_that(error['reason'], contains('The profile does not exist'))
+
+    def test_that_favorites_returns_404(self):
+        result = self.get_favorites_result('unknown')
+
+        error = result.json()
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(error['reason'], contains('The profile does not exist'))
+
+
+class TestAddRemoveFavorites(BaseDirdIntegrationTest):
+
+    asset = 'csv_with_multiple_displays'
+
+    def test_that_removed_favorites_are_not_listed(self):
+        self.put_favorite('my_csv', '1')
+        self.put_favorite('my_csv', '2')
+        self.put_favorite('my_csv', '3')
+        self.delete_favorite('my_csv', '2')
+
+        result = self.favorites('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
+            has_entry('column_values', contains('Charles', 'CCC', '555123555'))))

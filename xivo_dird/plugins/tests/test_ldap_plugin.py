@@ -68,8 +68,19 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_result_formatter.format.assert_called_once_with(sentinel.search_result)
         self.assertIs(result, sentinel.format_result)
 
-    def test_list(self):
-        uids = [('123',), ('456',)]
+    def test_list_empty(self):
+        uids = []
+        self.ldap_config.build_list_filter.return_value = None
+        self.ldap_client.search.side_effect = TypeError('must be string, not None')
+        self.ldap_result_formatter.format.return_value = []
+
+        self.ldap_plugin.load(self.config)
+        result = self.ldap_plugin.list(uids)
+
+        self.assertEquals(result, [])
+
+    def test_list_with_uids(self):
+        uids = ['123', '456']
         self.ldap_config.build_list_filter.return_value = sentinel.filter
         self.ldap_client.search.return_value = sentinel.search_result
         self.ldap_result_formatter.format.return_value = sentinel.format_result
@@ -82,9 +93,9 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_result_formatter.format.assert_called_once_with(sentinel.search_result)
         self.assertIs(result, sentinel.format_result)
 
-    def test_list_no_unique_columns(self):
-        uids = [('123',), ('456',)]
-        self.ldap_config.unique_columns.return_value = None
+    def test_list_no_unique_column(self):
+        uids = ['123', '456']
+        self.ldap_config.unique_column.return_value = None
 
         self.ldap_plugin.load(self.config)
         result = self.ldap_plugin.list(uids)
@@ -128,19 +139,19 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertRaises(Exception, ldap_config.name)
 
-    def test_unique_columns(self):
-        value = ['entryUUID']
+    def test_unique_column(self):
+        value = 'entryUUID'
 
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.UNIQUE_COLUMNS: value,
+            BaseSourcePlugin.UNIQUE_COLUMN: value,
         })
 
-        self.assertEqual(value, ldap_config.unique_columns())
+        self.assertEqual(value, ldap_config.unique_column())
 
-    def test_unique_columns_when_absent(self):
+    def test_unique_column_when_absent(self):
         ldap_config = _LDAPConfig({})
 
-        self.assertEqual(None, ldap_config.unique_columns())
+        self.assertEqual(None, ldap_config.unique_column())
 
     def test_source_to_display(self):
         value = {'givenName': 'firstname'}
@@ -233,9 +244,9 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertEqual(None, ldap_config.attributes())
 
-    def test_attributes_with_unique_columns_only_returns_none(self):
+    def test_attributes_with_unique_column_only_returns_none(self):
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.UNIQUE_COLUMNS: ['entryUUID']
+            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID'
         })
 
         self.assertEquals(None, ldap_config.attributes())
@@ -250,19 +261,27 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertEqual(['givenName', 'sn'], ldap_config.attributes())
 
-    def test_attributes_with_unique_columns_and_source_to_display(self):
+    def test_attributes_with_unique_column_and_source_to_display(self):
         ldap_config = _LDAPConfig({
             BaseSourcePlugin.SOURCE_TO_DISPLAY: {
                 'givenName': 'firstname',
                 'sn': 'lastname',
             },
-            BaseSourcePlugin.UNIQUE_COLUMNS: [
-                'uid',
-                'sn',
-            ],
+            BaseSourcePlugin.UNIQUE_COLUMN: 'uid'
         })
 
         self.assertEqual(['givenName', 'sn', 'uid'], ldap_config.attributes())
+
+    def test_attributes_with_unique_column_in_source_to_display(self):
+        ldap_config = _LDAPConfig({
+            BaseSourcePlugin.SOURCE_TO_DISPLAY: {
+                'givenName': 'firstname',
+                'sn': 'lastname',
+            },
+            BaseSourcePlugin.UNIQUE_COLUMN: 'sn'
+        })
+
+        self.assertEqual(['givenName', 'sn'], ldap_config.attributes())
 
     def test_build_search_filter_with_searched_columns_and_without_custom_filter(self):
         ldap_config = _LDAPConfig({
@@ -322,40 +341,28 @@ class TestLDAPConfig(unittest.TestCase):
         self.assertEqual(expected, ldap_config.build_search_filter(term))
 
     def test_build_list_filter_no_item(self):
-        columns = ['entryUUID']
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.UNIQUE_COLUMNS: columns,
+            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
         })
         uids = []
 
         self.assertFalse(ldap_config.build_list_filter(uids))
 
     def test_build_list_filter_one_item(self):
-        columns = ['entryUUID']
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.UNIQUE_COLUMNS: columns,
+            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
         })
-        uids = [('foo',)]
+        uids = ['foo']
 
         self.assertEqual('(entryUUID=foo)', ldap_config.build_list_filter(uids))
 
     def test_build_list_filter_two_items(self):
-        columns = ['entryUUID']
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.UNIQUE_COLUMNS: columns,
+            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
         })
-        uids = [('foo',), ('bar',)]
+        uids = ['foo', 'bar']
 
         self.assertEqual('(|(entryUUID=foo)(entryUUID=bar))', ldap_config.build_list_filter(uids))
-
-    def test_build_list_filter_one_multi_column_item(self):
-        columns = ['uid', 'sn']
-        ldap_config = _LDAPConfig({
-            BaseSourcePlugin.UNIQUE_COLUMNS: columns,
-        })
-        uids = [('bar', 'foo',)]
-
-        self.assertEqual('(&(uid=bar)(sn=foo))', ldap_config.build_list_filter(uids))
 
 
 class TestLDAPClient(unittest.TestCase):
@@ -446,14 +453,14 @@ class TestLDAPResultFormatter(unittest.TestCase):
 
     def setUp(self):
         self.name = 'foo'
-        self.unique_columns = ['entryUUID']
+        self.unique_column = 'entryUUID'
         self.source_to_display = {'givenName': 'firstname'}
         self.ldap_config = Mock(_LDAPConfig)
         self.ldap_config.name.return_value = self.name
-        self.ldap_config.unique_columns.return_value = self.unique_columns
+        self.ldap_config.unique_column.return_value = self.unique_column
         self.ldap_config.source_to_display.return_value = self.source_to_display
         self.ldap_result_formatter = _LDAPResultFormatter(self.ldap_config)
-        self.SourceResult = make_result_class(self.name, self.unique_columns, self.source_to_display)
+        self.SourceResult = make_result_class(self.name, self.unique_column, self.source_to_display)
 
     def test_format(self):
         raw_results = [

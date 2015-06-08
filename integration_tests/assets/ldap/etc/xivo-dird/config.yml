@@ -3,6 +3,7 @@ enabled_plugins:
         - ldap
     services:
         - lookup
+        - favorites
     views:
         - default_json
 
@@ -23,6 +24,10 @@ views:
 
 services:
     lookup:
+        default:
+            sources:
+                - test_ldap
+    favorites:
         default:
             sources:
                 - test_ldap

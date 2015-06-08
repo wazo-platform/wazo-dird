@@ -26,6 +26,7 @@ setup(
     entry_points={
         'xivo_dird.services': [
             'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
+            'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
         ],
         'xivo_dird.backends': [
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',

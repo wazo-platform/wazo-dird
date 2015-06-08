@@ -3,6 +3,7 @@ enabled_plugins:
         - xivo
     services:
         - lookup
+        - favorites
     views:
         - default_json
 
@@ -28,6 +29,12 @@ views:
 
 services:
     lookup:
+        default:
+            sources:
+                - xivo_america
+                - xivo_asia
+                - xivo_europe
+    favorites:
         default:
             sources:
                 - xivo_america

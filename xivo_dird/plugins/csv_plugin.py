@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,10 +47,10 @@ class CSVPlugin(BaseSourcePlugin):
         self._config = args.get('config', {})
         self._name = self._config.get('name', '')
         self._content = []
-        self._has_unique_id = not len(self._config.get(self.UNIQUE_COLUMNS, [])) == 0
+        self._has_unique_id = self._config.get(self.UNIQUE_COLUMN, None) is not None
         self._load_file()
         self._SourceResult = make_result_class(self._name,
-                                               self._config.get(self.UNIQUE_COLUMNS, []),
+                                               self._config.get(self.UNIQUE_COLUMN, None),
                                                self._config.get(self.SOURCE_TO_DISPLAY, {}))
 
     def name(self):
@@ -102,4 +102,5 @@ class CSVPlugin(BaseSourcePlugin):
             keys, [value.decode('utf-8') if type(value) == str else value for value in values]))
 
     def _make_unique(self, entry):
-        return tuple(entry[col] for col in self._config[self.UNIQUE_COLUMNS])
+        unique_column = self._config[self.UNIQUE_COLUMN]
+        return entry[unique_column]

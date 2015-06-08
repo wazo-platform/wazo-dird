@@ -128,7 +128,6 @@ class TestPluginManagerViews(TestCase):
         extension.obj.load.assert_called_once_with({
             'config': s.config,
             'http_app': rest_api.app,
-            'http_namespace': rest_api.namespace,
             'rest_api': rest_api.api,
             'services': s.services,
         })

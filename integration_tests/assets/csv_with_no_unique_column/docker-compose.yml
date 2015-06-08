@@ -1,5 +1,11 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - dird
+  environment:
+    PORTS: "9489"
 dird:
-  image: dird-test
+  image: xivo-dird-test
   ports:
     - "9489:9489"
   volumes:

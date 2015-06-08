@@ -1,5 +1,12 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - dird
+    - phonebook
+  environment:
+    PORTS: "9489 80"
 dird:
-  image: dird-test
+  image: xivo-dird-test
   ports:
     - "9489:9489"
   volumes:
@@ -10,4 +17,4 @@ phonebook:
   image: python:2.7
   volumes:
     - "./data:/tmp"
-  command: python /tmp/httpd.py
+  command: python /tmp/httpd.py 80

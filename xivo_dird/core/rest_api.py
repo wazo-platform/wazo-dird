@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ import logging
 import os
 from cherrypy import wsgiserver
 from flask import Flask
-from flask_restplus.api import Api
+from flask_restful import Api
 from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
 
@@ -31,6 +31,7 @@ from xivo_dird.swagger.resource import SwaggerResource
 VERSION = 0.1
 
 logger = logging.getLogger(__name__)
+api = Api(prefix='/{}'.format(VERSION))
 
 
 class CoreRestApi(object):
@@ -42,9 +43,8 @@ class CoreRestApi(object):
         self.app.secret_key = os.urandom(24)
         self.app.permanent_session_lifetime = timedelta(minutes=5)
         self.load_cors()
-        self.api = Api(self.app, version=VERSION, prefix='/{}'.format(VERSION))
-        SwaggerResource.add_resource(self.api)
-        self.namespace = self.api.namespace('directories', description='directories operations')
+        self.api = api
+        SwaggerResource.add_resource(api)
 
     def load_cors(self):
         cors_config = dict(self.config.get('cors', {}))
@@ -53,6 +53,8 @@ class CoreRestApi(object):
             CORS(self.app, **cors_config)
 
     def run(self):
+        self.api.init_app(self.app)
+
         bind_addr = (self.config['listen'], self.config['port'])
 
         wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': self.app})

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ class XivoUserPlugin(BaseSourcePlugin):
         self._client = self._ConfdClientClass(**confd_config)
 
         self._SourceResult = make_result_class(
-            self.name, ['id'],
+            self.name, 'id',
             source_to_dest_map=args['config'].get(self.SOURCE_TO_DISPLAY))
 
         logger.info('XiVO %s successfully loaded', args['config']['name'])

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
 from hamcrest import contains
+from hamcrest import contains_inanyorder
+from hamcrest import has_entry
 
 
 class TestCSVBackend(BaseDirdIntegrationTest):
@@ -31,12 +33,22 @@ class TestCSVBackend(BaseDirdIntegrationTest):
         assert_that(result['results'][0]['column_values'],
                     contains('Alice', 'AAA', '5555555555'))
 
+    def test_that_asking_csv_favorites_returns_contacts(self):
+        self.put_favorite('my_csv', '1')
+        self.put_favorite('my_csv', '3')
+
+        result = self.favorites('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
+            has_entry('column_values', contains('Charles', 'CCC', '555123555'))))
+
 
 class TestCSVNoUnique(BaseDirdIntegrationTest):
 
-    asset = 'csv_with_no_unique_columns'
+    asset = 'csv_with_no_unique_column'
 
-    def test_lookup_should_work_without_unique_columns(self):
+    def test_lookup_should_work_without_unique_column(self):
         result = self.lookup('lice', 'default')
 
         assert_that(result['results'][0]['column_values'],
@@ -45,7 +57,7 @@ class TestCSVNoUnique(BaseDirdIntegrationTest):
 
 class TestCSVWithAccents(BaseDirdIntegrationTest):
 
-    asset = 'csv_with_no_unique_columns'
+    asset = 'csv_with_no_unique_column'
 
     def test_lookup_with_accents_in_term(self):
         result = self.lookup('pép', 'default')

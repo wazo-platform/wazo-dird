@@ -4,9 +4,9 @@ sync:
     - dird
     - slapd
   environment:
-    PORTS: "9489 3389"
+    PORTS: "9489 389"
 dird:
-  image: dird-test
+  image: xivo-dird-test
   ports:
     - "9489:9489"
   volumes:

@@ -24,10 +24,12 @@ from collections import namedtuple
 from ldap.modlist import addModlist
 from hamcrest import assert_that
 from hamcrest import contains
+from hamcrest import contains_inanyorder
 from hamcrest import empty
-
+from hamcrest import has_entry
 
 Contact = namedtuple('Contact', ['firstname', 'lastname', 'number'])
+
 
 class LDAPHelper(object):
 
@@ -62,10 +64,12 @@ class LDAPHelper(object):
         })
 
         self._ldap_obj.add_s(dn, modlist)
+        search_dn, result = self._ldap_obj.search_s(dn, ldap.SCOPE_BASE, attrlist=['entryUUID'])[0]
+        return result['entryUUID'][0]
 
 
 def add_contacts(contacts):
-    for _ in xrange(5):
+    for _ in xrange(10):
         try:
             helper = LDAPHelper()
             break
@@ -74,9 +78,13 @@ def add_contacts(contacts):
     else:
         raise Exception('could not add contacts: LDAP server is down')
 
+    entry_uuids = []
     helper.add_ou_people()
     for contact in contacts:
-        helper.add_contact(contact)
+        entry_uuid = helper.add_contact(contact)
+        entry_uuids.append(entry_uuid)
+
+    return entry_uuids
 
 
 class TestLDAP(BaseDirdIntegrationTest):
@@ -86,14 +94,16 @@ class TestLDAP(BaseDirdIntegrationTest):
     CONTACTS = [
         Contact('Alice', 'Wonderland', '1001'),
         Contact('Bob', 'Barker', '1002'),
+        Contact('Connor', 'Manson', '1003'),
     ]
+    entry_uuids = []
 
     @classmethod
     def setUpClass(cls):
         super(TestLDAP, cls).setUpClass()
 
         try:
-            add_contacts(cls.CONTACTS)
+            cls.entry_uuids = add_contacts(cls.CONTACTS)
         except Exception:
             super(TestLDAP, cls).tearDownClass()
             raise
@@ -114,3 +124,13 @@ class TestLDAP(BaseDirdIntegrationTest):
         result = self.lookup('frack', 'default')
 
         assert_that(result['results'], empty())
+
+    def test_ldap_favorites(self):
+        self.put_favorite('test_ldap', self.entry_uuids[0])
+        self.put_favorite('test_ldap', self.entry_uuids[2])
+
+        result = self.favorites('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'Wonderland', '1001')),
+            has_entry('column_values', contains('Connor', 'Manson', '1003'))))

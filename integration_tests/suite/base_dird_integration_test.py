@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,9 +18,7 @@
 import subprocess
 import unittest
 import requests
-import json
 import os
-import time
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,13 +32,12 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         asset_path = os.path.join(os.path.dirname(__file__), '..', 'assets', cls.asset)
         cls.cur_dir = os.getcwd()
         os.chdir(asset_path)
-        cls._run_cmd('fig up -d')
-        time.sleep(1)
+        cls._run_cmd('docker-compose run sync')
 
     @classmethod
     def stop_dird_with_asset(cls):
-        cls._run_cmd('fig kill')
-        cls._run_cmd('fig rm --force')
+        cls._run_cmd('docker-compose kill')
+        cls._run_cmd('docker-compose rm --force')
         os.chdir(cls.cur_dir)
 
     @staticmethod
@@ -63,7 +60,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     def lookup(self, term, profile):
-        return json.loads(self.get_lookup_result(term, profile).text)
+        return self.get_lookup_result(term, profile).json()
 
     def get_headers_result(self, profile):
         url = 'http://localhost:9489/0.1/directories/lookup/{profile}/headers'
@@ -71,4 +68,28 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     def headers(self, profile):
-        return json.loads(self.get_headers_result(profile).text)
+        return self.get_headers_result(profile).json()
+
+    def get_favorites_result(self, profile):
+        url = 'http://localhost:9489/0.1/directories/favorites/{profile}'
+        result = requests.get(url.format(profile=profile))
+        return result
+
+    def favorites(self, profile):
+        return self.get_favorites_result(profile).json()
+
+    def put_favorite_result(self, directory, contact):
+        url = 'http://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
+        result = requests.put(url.format(directory=directory, contact=contact))
+        return result
+
+    def put_favorite(self, directory, contact):
+        return self.put_favorite_result(directory, contact)
+
+    def delete_favorite_result(self, directory, contact):
+        url = 'http://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
+        result = requests.delete(url.format(directory=directory, contact=contact))
+        return result
+
+    def delete_favorite(self, directory, contact):
+        return self.delete_favorite_result(directory, contact)

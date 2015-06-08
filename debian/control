@@ -27,7 +27,6 @@ Depends: ${python:Depends},
          python-stevedore,
          python-cherrypy3,
          python-concurrent.futures,
-         python-flask-restplus,
          python-flask-cors,
          python-requests,
          xivo-confd-client

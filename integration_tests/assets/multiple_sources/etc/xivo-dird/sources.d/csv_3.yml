@@ -1,8 +1,7 @@
 type: csv
 name: third_csv
 file: /tmp/data/other.csv
-unique_columns:
-    - clientno
+unique_column: clientno
 searched_columns:
     - firstname
     - lastname

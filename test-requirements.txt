@@ -1,6 +1,6 @@
+docker-compose
+mock
+nose
+pyhamcrest
 requests
 sh
-fig
-mock
-pyhamcrest
-nose
