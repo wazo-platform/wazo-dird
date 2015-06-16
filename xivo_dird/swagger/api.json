@@ -1,5 +1,5 @@
 {
-    "swagger": 2,
+    "swagger": "2.0",
     "info": {
         "title": "XiVO Dird",
         "description": " Contacts and directories in XiVO are managed by the xivo-dird daemon. This service provides a public API that can be used to query the directories that are configured on a XiVO. \n\n\nA contact can contain various information such as a person's phone number, number, office number, department, office number, etc. The information displayed is selected via a profile. Directories can be aggregated using multiple data sources such as an LDAP server, a CSV file, another XiVO server, etc.\n\n\nPlease refer to [the documentation](http://documentation.xivo.io) for further details.\n\n\nNote: The 0.1 API is currently in development. Major changes could still happen and new resources will be added over time.",
@@ -265,7 +265,7 @@
                 },
                 "results": {
                     "items": {
-                        "type": "Contact"
+                        "$ref": "#/definitions/Contact"
                     },
                     "type": "array",
                     "description": "List of results"
@@ -280,7 +280,7 @@
             "properties": {
                 "results": {
                     "items": {
-                        "type": "Contact"
+                        "$ref": "#/definitions/Contact"
                     },
                     "type": "array",
                     "description": "List of results"
@@ -296,9 +296,25 @@
                     "type": "array"
                 },
                 "relations": {
-                    "type": "map"
+                    "$ref": "#/definitions/Relation"
                 },
                 "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "Relation": {
+            "properties": {
+                "xivo_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "endpoint_id": {
+                    "type": "string"
+                },
+                "agent_id": {
                     "type": "string"
                 }
             }
