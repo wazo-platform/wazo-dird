@@ -1,0 +1,12 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - dird
+  environment:
+    PORTS: "9489 9497"
+dird:
+  image: xivo-dird-test
+  ports:
+    - "9489:9489"
+  volumes:
+    - "./etc/xivo-dird:/etc/xivo-dird"
