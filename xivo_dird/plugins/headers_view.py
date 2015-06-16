@@ -18,9 +18,10 @@
 import logging
 
 from collections import namedtuple
-from flask_restful import Resource
 from time import time
+
 from xivo_dird import BaseViewPlugin
+from xivo_dird.core.auth import AuthResource
 from xivo_dird.core.rest_api import api
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class HeadersViewPlugin(BaseViewPlugin):
         api.add_resource(Headers, '/directories/lookup/<profile>/headers')
 
 
-class Headers(Resource):
+class Headers(AuthResource):
     displays = None
 
     @classmethod

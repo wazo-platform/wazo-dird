@@ -35,7 +35,7 @@ _DEFAULT_CONFIG = {
     'foreground': False,
     'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
     'rest_api': {
-        'listen': '127.0.0.1',
+        'listen': 'localhost',
         'port': '9489',
         'cors': {
             'enabled': True,
@@ -46,6 +46,10 @@ _DEFAULT_CONFIG = {
     'source_config_dir': '/etc/xivo-dird/sources.d',
     'user': 'www-data',
     'views': {},
+    'auth': {
+        'host': 'localhost',
+        'port': '9497'
+    }
 }
 
 

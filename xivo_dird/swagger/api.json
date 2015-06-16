@@ -97,6 +97,13 @@
                         "type": "string",
                         "description": "The profile defines the list of directories to query and how the results are displayed",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }

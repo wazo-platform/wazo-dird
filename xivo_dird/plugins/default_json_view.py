@@ -19,10 +19,10 @@ import logging
 
 from collections import namedtuple
 from flask_restful import reqparse
-from flask_restful import Resource
 from time import time
 
 from xivo_dird import BaseViewPlugin
+from xivo_dird.core.auth import AuthResource
 from xivo_dird.core.rest_api import api
 
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ class JsonViewPlugin(BaseViewPlugin):
             logger.error('%s disabled: no service plugin `favorites`', favorites_write_url)
 
 
-class Lookup(Resource):
+class Lookup(AuthResource):
     displays = None
     lookup_service = None
 
@@ -92,7 +92,7 @@ class Lookup(Resource):
         return response
 
 
-class FavoritesRead(Resource):
+class FavoritesRead(AuthResource):
     displays = None
     favorites_service = None
 
@@ -117,7 +117,7 @@ class FavoritesRead(Resource):
         return format_results(raw_results, display)
 
 
-class FavoritesWrite(Resource):
+class FavoritesWrite(AuthResource):
 
     favorites_service = None
 
