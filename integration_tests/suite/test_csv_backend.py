@@ -72,7 +72,7 @@ class TestCSVWithAccents(BaseDirdIntegrationTest):
                     contains(u'Pépé', u'lol', u'555'))
 
 
-class TestCSVSeperator(BaseDirdIntegrationTest):
+class TestCSVSeparator(BaseDirdIntegrationTest):
 
     asset = 'csv_with_pipes'
 
