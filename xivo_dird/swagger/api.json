@@ -26,6 +26,18 @@
     "produces": [
         "application/json"
     ],
+    "securityDefinitions": {
+        "api_key": {
+            "type": "apiKey",
+            "name": "X-Auth-Token",
+            "in": "header"
+        }
+    },
+    "security": [
+        {
+            "api_key": []
+        }
+    ],
     "paths": {
         "/directories/lookup/{profile}": {
             "get": {
@@ -64,6 +76,13 @@
                         "type": "string",
                         "description": "A search term to look for",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -138,6 +157,13 @@
                         "type": "string",
                         "description": "The profile defines the list of directories to query and how the results are displayed",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -169,6 +195,13 @@
                         "type": "string",
                         "description": "The ID of the contact. This ID is unique within the {directory}.",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             },
@@ -198,6 +231,13 @@
                         "type": "string",
                         "description": "The ID of the contact. This ID is unique within the {directory}.",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
