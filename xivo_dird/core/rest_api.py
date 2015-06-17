@@ -58,6 +58,8 @@ class CoreRestApi(object):
 
         bind_addr = (self.config['listen'], self.config['port'])
 
+        _check_file_exists(self.config['certificate'])
+        _check_file_exists(self.config['private_key'])
         ssl_adapter = BuiltinSSLAdapter(self.config['certificate'],
                                         self.config['private_key'])
         wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': self.app})
@@ -71,3 +73,8 @@ class CoreRestApi(object):
             server.start()
         except KeyboardInterrupt:
             server.stop()
+
+
+def _check_file_exists(file_path):
+    with open(file_path, 'r'):
+        pass

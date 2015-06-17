@@ -19,6 +19,7 @@ import subprocess
 import unittest
 import requests
 import os
+import json
 import logging
 
 from hamcrest import assert_that, equal_to
@@ -29,6 +30,7 @@ requests.packages.urllib3.disable_warnings()
 
 ASSETS_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
 CA_CERT = os.path.join(ASSETS_ROOT, '_common', 'ssl', 'server.crt')
+
 
 class BaseDirdIntegrationTest(unittest.TestCase):
 
@@ -42,6 +44,18 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         cls._run_cmd('docker-compose run --rm sync')
 
     @classmethod
+    def dird_status(cls):
+        dird_id = cls._run_cmd('docker-compose ps -q dird').strip()
+        status = cls._run_cmd('docker inspect {container}'.format(container=dird_id))
+        return json.loads(status)
+
+    @classmethod
+    def dird_logs(cls):
+        dird_id = cls._run_cmd('docker-compose ps -q dird').strip()
+        status = cls._run_cmd('docker logs {container}'.format(container=dird_id))
+        return status
+
+    @classmethod
     def stop_dird_with_asset(cls):
         cls._run_cmd('docker-compose kill')
         os.chdir(cls.cur_dir)
@@ -51,6 +65,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         process = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, _ = process.communicate()
         logger.info(out)
+        return out
 
     @classmethod
     def setUpClass(cls):
