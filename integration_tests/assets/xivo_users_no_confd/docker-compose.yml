@@ -13,6 +13,7 @@ dird:
     - "9489:9489"
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
+    - "../_common/ssl:/etc/ssl"
 auth:
   image: nickstenning/flask
   ports:

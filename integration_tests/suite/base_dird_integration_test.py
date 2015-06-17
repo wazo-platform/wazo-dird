@@ -25,13 +25,17 @@ from hamcrest import assert_that, equal_to
 
 logger = logging.getLogger(__name__)
 
+requests.packages.urllib3.disable_warnings()
+
+ASSETS_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
+CA_CERT = os.path.join(ASSETS_ROOT, '_common', 'ssl', 'server.crt')
 
 class BaseDirdIntegrationTest(unittest.TestCase):
 
     @classmethod
     def launch_dird_with_asset(cls):
         cls.container_name = cls.asset
-        asset_path = os.path.join(os.path.dirname(__file__), '..', 'assets', cls.asset)
+        asset_path = os.path.join(ASSETS_ROOT, cls.asset)
         cls.cur_dir = os.getcwd()
         os.chdir(asset_path)
         cls._run_cmd('docker-compose rm --force')
@@ -57,8 +61,10 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         cls.stop_dird_with_asset()
 
     def get_lookup_result(self, term, profile, token=None):
-        url = 'http://localhost:9489/0.1/directories/lookup/{profile}?term={term}'
-        result = requests.get(url.format(profile=profile, term=term), headers={'X-Auth-Token': token})
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}?term={term}'
+        result = requests.get(url.format(profile=profile, term=term),
+                              headers={'X-Auth-Token': token},
+                              verify=CA_CERT)
         return result
 
     def lookup(self, term, profile):
@@ -67,8 +73,10 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.json()
 
     def get_headers_result(self, profile, token=None):
-        url = 'http://localhost:9489/0.1/directories/lookup/{profile}/headers'
-        result = requests.get(url.format(profile=profile), headers={'X-Auth-Token': token})
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/headers'
+        result = requests.get(url.format(profile=profile),
+                              headers={'X-Auth-Token': token},
+                              verify=CA_CERT)
         return result
 
     def headers(self, profile):
@@ -77,8 +85,10 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.json()
 
     def get_favorites_result(self, profile, token=None):
-        url = 'http://localhost:9489/0.1/directories/favorites/{profile}'
-        result = requests.get(url.format(profile=profile), headers={'X-Auth-Token': token})
+        url = 'https://localhost:9489/0.1/directories/favorites/{profile}'
+        result = requests.get(url.format(profile=profile),
+                              headers={'X-Auth-Token': token},
+                              verify=CA_CERT)
         return result
 
     def favorites(self, profile):
@@ -87,8 +97,10 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.json()
 
     def put_favorite_result(self, directory, contact, token=None):
-        url = 'http://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
-        result = requests.put(url.format(directory=directory, contact=contact), headers={'X-Auth-Token': token})
+        url = 'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
+        result = requests.put(url.format(directory=directory, contact=contact),
+                              headers={'X-Auth-Token': token},
+                              verify=CA_CERT)
         return result
 
     def put_favorite(self, directory, contact):
@@ -96,8 +108,10 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         assert_that(response.status_code, equal_to(204))
 
     def delete_favorite_result(self, directory, contact, token=None):
-        url = 'http://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
-        result = requests.delete(url.format(directory=directory, contact=contact), headers={'X-Auth-Token': token})
+        url = 'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
+        result = requests.delete(url.format(directory=directory, contact=contact),
+                                 headers={'X-Auth-Token': token},
+                                 verify=CA_CERT)
         return result
 
     def delete_favorite(self, directory, contact):

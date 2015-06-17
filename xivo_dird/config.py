@@ -35,8 +35,10 @@ _DEFAULT_CONFIG = {
     'foreground': False,
     'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
     'rest_api': {
-        'listen': 'localhost',
+        'listen': '0.0.0.0',
         'port': '9489',
+        'certificate': '/etc/nginx/ssl/server.crt',
+        'private_key': '/etc/nginx/ssl/server.key',
         'cors': {
             'enabled': True,
             'allow_headers': 'Content-Type'
