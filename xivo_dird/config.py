@@ -37,8 +37,8 @@ _DEFAULT_CONFIG = {
     'rest_api': {
         'listen': '0.0.0.0',
         'port': '9489',
-        'certificate': '/etc/nginx/ssl/server.crt',
-        'private_key': '/etc/nginx/ssl/server.key',
+        'certificate': '/usr/share/xivo-certs/server.crt',
+        'private_key': '/usr/share/xivo-certs/server.key',
         'cors': {
             'enabled': True,
             'allow_headers': 'Content-Type'
