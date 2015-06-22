@@ -17,7 +17,7 @@
     "x-xivo-port": 9489,
     "x-xivo-name": "dird",
     "schemes": [
-        "http"
+        "https"
     ],
     "basePath": "/0.1",
     "consumes": [
@@ -57,6 +57,12 @@
                     },
                     "404": {
                         "description": "The lookup profile does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -107,6 +113,12 @@
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 },
                 "parameters": [
@@ -148,6 +160,12 @@
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 },
                 "parameters": [
@@ -179,6 +197,12 @@
                 "responses": {
                     "204": {
                         "description": "Favorite added."
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 },
                 "parameters": [
@@ -215,6 +239,12 @@
                 "responses": {
                     "204": {
                         "description": "Favorite removed."
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 },
                 "parameters": [
