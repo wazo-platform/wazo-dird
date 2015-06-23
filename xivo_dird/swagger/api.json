@@ -26,18 +26,6 @@
     "produces": [
         "application/json"
     ],
-    "securityDefinitions": {
-        "api_key": {
-            "type": "apiKey",
-            "name": "X-Auth-Token",
-            "in": "header"
-        }
-    },
-    "security": [
-        {
-            "api_key": []
-        }
-    ],
     "paths": {
         "/directories/lookup/{profile}": {
             "get": {
@@ -45,8 +33,7 @@
                 "description": " The `lookup` query will return a list of result matching the searched term. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "lookup",
                 "tags": [
-                    "lookup",
-                    "follow_headers"
+                    "lookup"
                 ],
                 "responses": {
                     "200": {
@@ -82,13 +69,6 @@
                         "type": "string",
                         "description": "A search term to look for",
                         "required": true
-                    },
-                    {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -128,13 +108,6 @@
                         "type": "string",
                         "description": "The profile defines the list of directories to query and how the results are displayed",
                         "required": true
-                    },
-                    {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -145,8 +118,7 @@
                 "description": "Get the list of favorite contacts for directories configured in the profile",
                 "operationId": "list_favorites",
                 "tags": [
-                    "favorites",
-                    "follow_headers"
+                    "favorites"
                 ],
                 "responses": {
                     "200": {
@@ -175,13 +147,6 @@
                         "type": "string",
                         "description": "The profile defines the list of directories to query and how the results are displayed",
                         "required": true
-                    },
-                    {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -219,13 +184,6 @@
                         "type": "string",
                         "description": "The ID of the contact. This ID is unique within the {directory}.",
                         "required": true
-                    },
-                    {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             },
@@ -261,13 +219,6 @@
                         "type": "string",
                         "description": "The ID of the contact. This ID is unique within the {directory}.",
                         "required": true
-                    },
-                    {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
