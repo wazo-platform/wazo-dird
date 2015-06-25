@@ -1,18 +1,21 @@
 sync:
   image: n3llyb0y/wait
   links:
+    - auth
     - dird
     - slapd
   environment:
-    PORTS: "9489 389"
+    PORTS: "9489 389 9497"
 dird:
   image: xivo-dird-test
   ports:
     - "9489:9489"
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
+    - "../_common/ssl:/etc/ssl"
   links:
-    - "slapd"
+    - auth
+    - slapd
 slapd:
   image: nickstenning/slapd
   environment:
@@ -21,3 +24,11 @@ slapd:
     LDAP_ROOTPASS: xivopassword
   ports:
     - "3389:389"
+auth:
+  image: xivo-auth-mock
+  ports:
+    - "9497:9497"
+  volumes:
+    - "./auth_data:/tmp"
+    - "../_common/ssl:/etc/ssl"
+  command: "python /tmp/mock-xivo-auth.py 9497"

@@ -67,7 +67,7 @@ class TestHeadersView(BaseHTTPViewTestCase):
                   'profile_to_display': {'profile_1': 'display_1',
                                          'profile_2': 'display_2',
                                          'profile_3': 'display_1'}}
-        HeadersViewPlugin().load({'config': config})
+        Headers.configure(displays=make_displays(config))
 
         result = Headers().get('profile_2')
 

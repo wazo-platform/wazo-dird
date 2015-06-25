@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -90,6 +90,7 @@ class TestController(TestCase):
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)
+        config.setdefault('auth', {})
         config.setdefault('enabled_plugins', {})
         config['enabled_plugins'].setdefault('backends', [])
         config['enabled_plugins'].setdefault('services', [])

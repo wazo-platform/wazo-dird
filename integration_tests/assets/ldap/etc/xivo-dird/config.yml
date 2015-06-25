@@ -35,3 +35,9 @@ services:
 rest_api:
     listen: 0.0.0.0
     port: 9489
+    certificate: /etc/ssl/server.crt
+    private_key: /etc/ssl/server.key
+
+auth:
+    host: auth
+    port: 9497

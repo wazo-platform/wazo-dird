@@ -1,20 +1,31 @@
 sync:
   image: n3llyb0y/wait
   links:
+    - auth
     - dird
     - phonebook
   environment:
-    PORTS: "9489 80"
+    PORTS: "9489 80 9497"
 dird:
   image: xivo-dird-test
   ports:
     - "9489:9489"
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
+    - "../_common/ssl:/etc/ssl"
   links:
-    - "phonebook"
+    - auth
+    - phonebook
 phonebook:
   image: python:2.7
   volumes:
     - "./data:/tmp"
   command: python /tmp/httpd.py 80
+auth:
+  image: xivo-auth-mock
+  ports:
+    - "9497:9497"
+  volumes:
+    - "./auth_data:/tmp"
+    - "../_common/ssl:/etc/ssl"
+  command: "python /tmp/mock-xivo-auth.py 9497"

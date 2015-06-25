@@ -132,7 +132,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
     asset = 'sample_backend'
 
     def test_that_lookup_returns_404(self):
-        result = self.get_lookup_result('lice', 'unknown')
+        result = self.get_lookup_result('lice', 'unknown', token='valid-token')
 
         error = result.json()
 
@@ -140,7 +140,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         assert_that(error['reason'], contains('The profile does not exist'))
 
     def test_that_headers_returns_404(self):
-        result = self.get_headers_result('unknown')
+        result = self.get_headers_result('unknown', token='valid-token')
 
         error = result.json()
 
@@ -148,7 +148,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         assert_that(error['reason'], contains('The profile does not exist'))
 
     def test_that_favorites_returns_404(self):
-        result = self.get_favorites_result('unknown')
+        result = self.get_favorites_result('unknown', token='valid-token')
 
         error = result.json()
 

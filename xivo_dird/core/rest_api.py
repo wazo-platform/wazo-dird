@@ -20,6 +20,7 @@ from datetime import timedelta
 import logging
 import os
 from cherrypy import wsgiserver
+from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
@@ -57,9 +58,14 @@ class CoreRestApi(object):
 
         bind_addr = (self.config['listen'], self.config['port'])
 
+        _check_file_readable(self.config['certificate'])
+        _check_file_readable(self.config['private_key'])
+        ssl_adapter = BuiltinSSLAdapter(self.config['certificate'],
+                                        self.config['private_key'])
         wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': self.app})
         server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr,
                                                wsgi_app=wsgi_app)
+        server.ssl_adapter = ssl_adapter
 
         logger.debug('WSGIServer starting... uid: %s, listen: %s:%s', os.getuid(), bind_addr[0], bind_addr[1])
 
@@ -67,3 +73,8 @@ class CoreRestApi(object):
             server.start()
         except KeyboardInterrupt:
             server.stop()
+
+
+def _check_file_readable(file_path):
+    with open(file_path, 'r'):
+        pass

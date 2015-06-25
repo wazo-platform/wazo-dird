@@ -1,5 +1,5 @@
 {
-    "swagger": 2,
+    "swagger": "2.0",
     "info": {
         "title": "XiVO Dird",
         "description": " Contacts and directories in XiVO are managed by the xivo-dird daemon. This service provides a public API that can be used to query the directories that are configured on a XiVO. \n\n\nA contact can contain various information such as a person's phone number, number, office number, department, office number, etc. The information displayed is selected via a profile. Directories can be aggregated using multiple data sources such as an LDAP server, a CSV file, another XiVO server, etc.\n\n\nPlease refer to [the documentation](http://documentation.xivo.io) for further details.\n\n\nNote: The 0.1 API is currently in development. Major changes could still happen and new resources will be added over time.",
@@ -17,7 +17,7 @@
     "x-xivo-port": 9489,
     "x-xivo-name": "dird",
     "schemes": [
-        "http"
+        "https"
     ],
     "basePath": "/0.1",
     "consumes": [
@@ -33,8 +33,7 @@
                 "description": " The `lookup` query will return a list of result matching the searched term. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "lookup",
                 "tags": [
-                    "lookup",
-                    "follow_headers"
+                    "lookup"
                 ],
                 "responses": {
                     "200": {
@@ -45,6 +44,12 @@
                     },
                     "404": {
                         "description": "The lookup profile does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -64,6 +69,13 @@
                         "type": "string",
                         "description": "A search term to look for",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -88,6 +100,12 @@
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 },
                 "parameters": [
@@ -97,6 +115,13 @@
                         "type": "string",
                         "description": "The profile defines the list of directories to query and how the results are displayed",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -107,8 +132,7 @@
                 "description": "Get the list of favorite contacts for directories configured in the profile",
                 "operationId": "list_favorites",
                 "tags": [
-                    "favorites",
-                    "follow_headers"
+                    "favorites"
                 ],
                 "responses": {
                     "200": {
@@ -122,6 +146,12 @@
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 },
                 "parameters": [
@@ -131,6 +161,13 @@
                         "type": "string",
                         "description": "The profile defines the list of directories to query and how the results are displayed",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -146,6 +183,12 @@
                 "responses": {
                     "204": {
                         "description": "Favorite added."
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 },
                 "parameters": [
@@ -162,6 +205,13 @@
                         "type": "string",
                         "description": "The ID of the contact. This ID is unique within the {directory}.",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             },
@@ -175,6 +225,12 @@
                 "responses": {
                     "204": {
                         "description": "Favorite removed."
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 },
                 "parameters": [
@@ -191,6 +247,13 @@
                         "type": "string",
                         "description": "The ID of the contact. This ID is unique within the {directory}.",
                         "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
                     }
                 ]
             }
@@ -258,7 +321,7 @@
                 },
                 "results": {
                     "items": {
-                        "type": "Contact"
+                        "$ref": "#/definitions/Contact"
                     },
                     "type": "array",
                     "description": "List of results"
@@ -273,7 +336,7 @@
             "properties": {
                 "results": {
                     "items": {
-                        "type": "Contact"
+                        "$ref": "#/definitions/Contact"
                     },
                     "type": "array",
                     "description": "List of results"
@@ -289,9 +352,25 @@
                     "type": "array"
                 },
                 "relations": {
-                    "type": "map"
+                    "$ref": "#/definitions/Relation"
                 },
                 "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "Relation": {
+            "properties": {
+                "xivo_id": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "endpoint_id": {
+                    "type": "string"
+                },
+                "agent_id": {
                     "type": "string"
                 }
             }

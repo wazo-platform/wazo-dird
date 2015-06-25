@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import flask
 import unittest
 
 from hamcrest import assert_that
@@ -41,7 +40,6 @@ from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCas
 class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def setUp(self):
-        self.http_app = flask.Flask(__name__)
         self.plugin = JsonViewPlugin()
 
     def tearDown(self):
@@ -64,7 +62,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         args = {
             'config': {'displays': {},
                        'profile_to_display': {}},
-            'http_app': self.http_app,
             'http_namespace': Mock(),
             'rest_api': Mock(),
             'services': {'lookup': Mock()},
@@ -88,7 +85,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         args = {
             'config': {'displays': {},
                        'profile_to_display': {}},
-            'http_app': self.http_app,
             'http_namespace': Mock(),
             'rest_api': Mock(),
             'services': {'favorites': Mock()},
