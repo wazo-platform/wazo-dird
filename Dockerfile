@@ -31,6 +31,8 @@ RUN rsync -av etc/ /etc
 
 RUN python setup.py install
 
+ONBUILD ADD ./certs /usr/share/xivo-certs
+
 EXPOSE 9489
 
 CMD xivo-dird -d -f
