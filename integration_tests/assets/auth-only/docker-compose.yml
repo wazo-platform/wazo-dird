@@ -15,9 +15,10 @@ dird:
     - "./etc/xivo-dird:/etc/xivo-dird"
     - "../_common/ssl:/etc/ssl"
 auth:
-  image: nickstenning/flask
+  image: xivo-auth-mock
   ports:
     - "9497:9497"
   volumes:
     - "./auth_data:/tmp"
+    - "../_common/ssl:/etc/ssl"
   command: "python /tmp/mock-xivo-auth.py 9497"
