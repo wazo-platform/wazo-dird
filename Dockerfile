@@ -23,6 +23,7 @@ RUN touch /var/log/xivo-dird.log
 RUN chown www-data: /var/log/xivo-dird.log
 
 ADD . /usr/src/xivo-dird
+ADD ./contribs/docker/certs /usr/share/xivo-certs
 WORKDIR /usr/src/xivo-dird
 RUN cp contribs/docker/listen.yml /etc/xivo-dird/conf.d/
 RUN pip install -r requirements.txt
