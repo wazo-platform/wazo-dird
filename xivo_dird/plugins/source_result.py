@@ -45,6 +45,9 @@ class _SourceResult(object):
             logger.exception(msg)
         return None
 
+    def source_entry_id(self):
+        return self.relations['source_entry_id']
+
     def _add_destination_columns(self):
         for source, destination in self._source_to_dest_map.iteritems():
             self.fields[destination] = self.fields.get(source)

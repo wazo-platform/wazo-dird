@@ -204,7 +204,7 @@ class _ResultFormatter(object):
         if result.source not in self._favorites:
             return False
 
-        source_entry_id = result.relations.get('source_entry_id')
+        source_entry_id = result.source_entry_id()
         if not source_entry_id:
             return False
 
