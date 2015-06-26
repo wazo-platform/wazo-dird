@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class _SourceResult(object):
 
@@ -24,15 +28,22 @@ class _SourceResult(object):
 
     def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
         self.fields = fields
+        source_id = self.get_unique() if self._unique_column else None
         self.relations = {'xivo_id': xivo_id,
                           'agent_id': agent_id,
                           'user_id': user_id,
-                          'endpoint_id': endpoint_id}
+                          'endpoint_id': endpoint_id,
+                          'source_id': source_id}
 
         self._add_destination_columns()
 
     def get_unique(self):
-        return str(self.fields[self._unique_column])
+        try:
+            return str(self.fields[self._unique_column])
+        except KeyError:
+            msg = '{source} is not properlly configured, the unique column is not part of the result'.format(source=self.source)
+            logger.exception(msg)
+        return None
 
     def _add_destination_columns(self):
         for source, destination in self._source_to_dest_map.iteritems():

@@ -232,12 +232,20 @@ class TestFormatResult(unittest.TestCase):
         assert_that(result, has_entries('results', [
             {
                 'column_values': ['Alice', 'AAA', None, '5555555555', 'Canada'],
-                'relations': {'xivo_id': self.xivo_id, 'agent_id': None, 'user_id': None, 'endpoint_id': None},
+                'relations': {'xivo_id': self.xivo_id,
+                              'agent_id': None,
+                              'user_id': None,
+                              'endpoint_id': None,
+                              'source_id': None},
                 'source': self.source_name,
             },
             {
                 'column_values': ['Bob', 'BBB', None, '5555556666', 'Canada'],
-                'relations': {'xivo_id': self.xivo_id, 'agent_id': 'agent_id', 'user_id': 'user_id', 'endpoint_id': 'endpoint_id'},
+                'relations': {'xivo_id': self.xivo_id,
+                              'agent_id': 'agent_id',
+                              'user_id': 'user_id',
+                              'endpoint_id': 'endpoint_id',
+                              'source_id': None},
                 'source': self.source_name,
             },
         ]))
