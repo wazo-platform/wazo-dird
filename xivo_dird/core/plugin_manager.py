@@ -39,7 +39,7 @@ def load_services(config, enabled_services, sources):
 def load_service_extension(extension, config, sources):
     logger.debug('loading extension %s...', extension.name)
     args = {
-        'config': config.get(extension.name, {}),
+        'config': config,
         'sources': sources,
     }
     return extension.name, extension.obj.load(args)

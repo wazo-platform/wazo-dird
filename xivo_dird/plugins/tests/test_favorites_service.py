@@ -84,9 +84,13 @@ class TestFavoritesService(unittest.TestCase):
             'source_3': Mock(name='source_3', list=Mock(return_value=[{'f': 3}])),
         }
         config = {
-            'my_profile': {
-                'sources': ['source_1', 'source_3'],
-                'timeout': '1',
+            'services': {
+                'favorites': {
+                    'my_profile': {
+                        'sources': ['source_1', 'source_3'],
+                        'timeout': '1',
+                    }
+                }
             }
         }
 
@@ -111,9 +115,13 @@ class TestFavoritesService(unittest.TestCase):
             # 'source_3': Mock(name='source_3', list=Mock(return_value=[{'f': 3}])),  # ERROR in yaml config
         }
         config = {
-            'my_profile': {
-                'sources': ['source_1', 'source_3'],
-                'timeout': '1',
+            'services': {
+                'favorites': {
+                    'my_profile': {
+                        'sources': ['source_1', 'source_3'],
+                        'timeout': '1',
+                    }
+                }
             }
         }
 
@@ -171,9 +179,13 @@ class TestFavoritesService(unittest.TestCase):
         sources['source_1'].name = 'source_1'
         sources['source_2'].name = 'source_2'
         config = {
-            'my_profile': {
-                'sources': ['source_1', 'source_2'],
-                'timeout': '1',
+            'services': {
+                'favorites': {
+                    'my_profile': {
+                        'sources': ['source_1', 'source_2'],
+                        'timeout': '1',
+                    }
+                }
             }
         }
         s = _FavoritesService(config, sources)
@@ -202,9 +214,13 @@ class TestFavoritesService(unittest.TestCase):
         # Not settable via Mock constructor
         sources['source_1'].name = 'source_1'
         config = {
-            'my_profile': {
-                'sources': ['source_1'],
-                'timeout': '1',
+            'services': {
+                'favorites': {
+                    'my_profile': {
+                        'sources': ['source_1'],
+                        'timeout': '1',
+                    }
+                }
             }
         }
         s = _FavoritesService(config, sources)

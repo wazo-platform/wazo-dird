@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -78,8 +78,9 @@ class _LookupService(BaseService):
         return results
 
     def _source_by_profile(self, profile):
+        lookup_config = self._config.get('services', {}).get('lookup', {})
         try:
-            source_names = self._config[profile]['sources']
+            source_names = lookup_config[profile]['sources']
         except KeyError:
             logger.warning('Cannot find lookup sources for profile %s', profile)
             return []

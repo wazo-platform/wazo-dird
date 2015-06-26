@@ -50,15 +50,11 @@ class TestPluginManagerServices(TestCase):
 
     def test_load_service_extension_passes_right_plugin_arguments(self):
         extension = Mock()
-        extension.name = 'my_plugin'
-        config = {
-            'my_plugin': s.plugin_config
-        }
 
-        plugin_manager.load_service_extension(extension, config, s.sources)
+        plugin_manager.load_service_extension(extension, s.config, s.sources)
 
         extension.obj.load.assert_called_once_with({
-            'config': s.plugin_config,
+            'config': s.config,
             'sources': s.sources
         })
 

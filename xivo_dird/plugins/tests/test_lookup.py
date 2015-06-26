@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -83,9 +83,13 @@ class TestLookupService(unittest.TestCase):
             'source_3': Mock(name='source_3', search=Mock(return_value=[{'f': 3}])),
         }
         config = {
-            'my_profile': {
-                'sources': ['source_1', 'source_3'],
-                'timeout': '1',
+            'services': {
+                'lookup': {
+                    'my_profile': {
+                        'sources': ['source_1', 'source_3'],
+                        'timeout': '1',
+                    }
+                }
             }
         }
 
@@ -110,9 +114,13 @@ class TestLookupService(unittest.TestCase):
             # 'source_3': Mock(name='source_3', search=Mock(return_value=[{'f': 3}])),  # ERROR in yaml config
         }
         config = {
-            'my_profile': {
-                'sources': ['source_1', 'source_3'],
-                'timeout': '1',
+            'services': {
+                'lookup': {
+                    'my_profile': {
+                        'sources': ['source_1', 'source_3'],
+                        'timeout': '1',
+                    }
+                }
             }
         }
 

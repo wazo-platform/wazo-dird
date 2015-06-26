@@ -103,8 +103,9 @@ class _FavoritesService(BaseService):
             raise NoSuchFavorite(contact_id)
 
     def _source_by_profile(self, profile):
+        favorites_config = self._config.get('services', {}).get('favorites', {})
         try:
-            source_names = self._config[profile]['sources']
+            source_names = favorites_config[profile]['sources']
         except KeyError:
             logger.warning('Cannot find lookup sources for profile %s', profile)
             return []
