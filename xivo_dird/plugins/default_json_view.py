@@ -35,41 +35,53 @@ parser.add_argument('term', type=unicode, required=True, help='term is missing',
 
 class JsonViewPlugin(BaseViewPlugin):
 
+    lookup_url = '/directories/lookup/<profile>'
+    favorites_read_url = '/directories/favorites/<profile>'
+    favorites_write_url = '/directories/favorites/<directory>/<contact>'
+
     def load(self, args=None):
         config = args['config']
         displays = make_displays(config)
 
-        lookup_url = '/directories/lookup/<profile>'
-        if 'lookup' in args['services']:
+        favorite_service = args['services'].get('favorites')
+        lookup_service = args['services'].get('lookup')
+
+        if lookup_service:
             Lookup.configure(displays=displays,
-                             lookup_service=args['services']['lookup'])
+                             lookup_service=lookup_service,
+                             favorite_service=favorite_service)
 
-            api.add_resource(Lookup, lookup_url)
+            api.add_resource(Lookup, self.lookup_url)
         else:
-            logger.error('%s disabled: no service plugin `lookup`', lookup_url)
+            logger.error('%s disabled: no service plugin `lookup`', self.lookup_url)
 
-        favorites_read_url = '/directories/favorites/<profile>'
-        favorites_write_url = '/directories/favorites/<directory>/<contact>'
-        if 'favorites' in args['services']:
+        if favorite_service:
             FavoritesRead.configure(displays=displays,
-                                    favorites_service=args['services']['favorites'])
-            FavoritesWrite.configure(favorites_service=args['services']['favorites'])
+                                    favorites_service=favorite_service)
+            FavoritesWrite.configure(favorites_service=favorite_service)
 
             api.add_resource(FavoritesRead, '/directories/favorites/<profile>')
             api.add_resource(FavoritesWrite, '/directories/favorites/<directory>/<contact>')
         else:
-            logger.error('%s disabled: no service plugin `favorites`', favorites_read_url)
-            logger.error('%s disabled: no service plugin `favorites`', favorites_write_url)
+            logger.error('%s disabled: no service plugin `favorites`', self.favorites_read_url)
+            logger.error('%s disabled: no service plugin `favorites`', self.favorites_write_url)
 
 
 class Lookup(AuthResource):
+    class DisabledFavoriteService(object):
+        def __call__(self, profile):
+            return []
+
     displays = None
     lookup_service = None
+    favorite_service = DisabledFavoriteService()
 
     @classmethod
-    def configure(cls, displays, lookup_service):
+    def configure(cls, displays, lookup_service, favorite_service):
         cls.displays = displays
         cls.lookup_service = lookup_service
+        if favorite_service:
+            cls.favorite_service = favorite_service
 
     def get(self, profile):
         args = parser.parse_args()
@@ -86,6 +98,7 @@ class Lookup(AuthResource):
             return error, 404
 
         raw_results = self.lookup_service(term, profile, args={})
+        favorites = self.favorite_service(profile)
         display = self.displays[profile]
         response = format_results(raw_results, display)
 

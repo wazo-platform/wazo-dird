@@ -44,7 +44,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def tearDown(self):
         # reset class Lookup
-        Lookup.configure(displays=None, lookup_service=None)
+        Lookup.configure(displays=None, lookup_service=None, favorite_service=Lookup.DisabledFavoriteService())
         FavoritesRead.configure(displays=None, favorites_service=None)
         FavoritesWrite.configure(favorites_service=None)
 
@@ -115,7 +115,7 @@ class TestJsonViewLookup(BaseHTTPViewTestCase):
     @patch('xivo_dird.plugins.default_json_view.parser.parse_args', Mock(return_value={'term': sentinel.term}))
     def test_that_lookup_forwards_term_to_the_service(self):
         lookup_service = Mock(return_value=[])
-        Lookup.configure(displays=self.displays, lookup_service=lookup_service)
+        Lookup.configure(displays=self.displays, lookup_service=lookup_service, favorite_service=None)
 
         Lookup().get(sentinel.profile)
 
@@ -124,7 +124,7 @@ class TestJsonViewLookup(BaseHTTPViewTestCase):
     @patch('xivo_dird.plugins.default_json_view.parser.parse_args', Mock(return_value={'term': sentinel.term}))
     def test_that_lookup_adds_the_term_to_its_result(self):
         lookup_service = Mock(return_value=[])
-        Lookup.configure(displays=self.displays, lookup_service=lookup_service)
+        Lookup.configure(displays=self.displays, lookup_service=lookup_service, favorite_service=None)
 
         result = Lookup().get(sentinel.profile)
 
