@@ -187,3 +187,25 @@ class TestFavoritesVisibility(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
             has_entry('column_values', contains('Bob', 'BBB', '5555551234'))))
+
+
+class TestFavoritesPersistence(BaseDirdIntegrationTest):
+
+    asset = 'csv_with_multiple_displays'
+
+    def test_that_favorites_are_only_visible_for_the_same_token(self):
+        self.put_favorite('my_csv', '1')
+
+        result = self.favorites('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555'))))
+
+        self._run_cmd('docker-compose kill dird')
+        self._run_cmd('docker-compose rm -f dird')
+        self._run_cmd('docker-compose run --rm sync')
+
+        result = self.favorites('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555'))))
