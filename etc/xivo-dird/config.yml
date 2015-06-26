@@ -35,6 +35,11 @@ auth:
     host: localhost
     port: 9497
 
+# Connection info to the contact storage server (Consul)
+consul:
+    host: localhost
+    port: 8500
+
 enabled_plugins:
     backends:
         - sample
