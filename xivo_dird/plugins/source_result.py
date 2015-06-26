@@ -41,7 +41,7 @@ class _SourceResult(object):
         try:
             return str(self.fields[self._unique_column])
         except KeyError:
-            msg = '{source} is not properlly configured, the unique column is not part of the result'.format(source=self.source)
+            msg = '{source} is not properly configured, the unique column is not part of the result'.format(source=self.source)
             logger.exception(msg)
         return None
 
