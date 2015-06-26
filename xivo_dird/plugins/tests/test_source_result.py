@@ -36,6 +36,7 @@ class TestSourceResult(unittest.TestCase):
             'agent_id': None,
             'user_id': None,
             'endpoint_id': None,
+            'source_entry_id': None,
         }
 
     def test_source(self):
@@ -56,7 +57,8 @@ class TestSourceResult(unittest.TestCase):
         assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
                                            'agent_id': sentinel.agent_id,
                                            'user_id': None,
-                                           'endpoint_id': None}))
+                                           'endpoint_id': None,
+                                           'source_entry_id': None}))
 
     def test_user_relation(self):
         r = _SourceResult(self.fields, sentinel.xivo_id, user_id=sentinel.user_id)
@@ -64,7 +66,8 @@ class TestSourceResult(unittest.TestCase):
         assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
                                            'agent_id': None,
                                            'user_id': sentinel.user_id,
-                                           'endpoint_id': None}))
+                                           'endpoint_id': None,
+                                           'source_entry_id': None}))
 
     def test_endpoint_relation(self):
         r = _SourceResult(self.fields, sentinel.xivo_id, endpoint_id=sentinel.endpoint_id)
@@ -72,7 +75,8 @@ class TestSourceResult(unittest.TestCase):
         assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
                                            'agent_id': None,
                                            'user_id': None,
-                                           'endpoint_id': sentinel.endpoint_id}))
+                                           'endpoint_id': sentinel.endpoint_id,
+                                           'source_entry_id': None}))
 
     def test_get_unique(self):
         r = _SourceResult(self.fields)
@@ -88,22 +92,31 @@ class TestSourceResult(unittest.TestCase):
 
         assert_that(r.fields, has_entries('fn', 'fn', 'ln', 'ln'))
 
+    def test_that_the_source_entry_id_is_added_to_relations(self):
+        SourceResult = make_result_class('foobar', unique_column='email')
+
+        r = SourceResult({'fn': 'Foo',
+                          'ln': 'Bar',
+                          'email': 'foobar@example.com'})
+
+        assert_that(r.relations['source_entry_id'], equal_to('foobar@example.com'))
+
 
 class TestMakeResultClass(unittest.TestCase):
 
     def test_source_name(self):
         SourceResult = make_result_class(sentinel.source_name)
 
-        s = SourceResult(sentinel.fields)
+        s = SourceResult({})
 
         assert_that(s.source, equal_to(sentinel.source_name))
 
     def test_source_unique_column(self):
-        SourceResult = make_result_class(sentinel.source_name, sentinel.unique_column)
+        SourceResult = make_result_class(sentinel.source_name, 'the-unique-column')
 
-        s = SourceResult(sentinel.fields)
+        s = SourceResult({})
 
-        assert_that(s._unique_column, equal_to(sentinel.unique_column))
+        assert_that(s._unique_column, equal_to('the-unique-column'))
         assert_that(s._source_to_dest_map, equal_to({}))
 
     def test_source_to_destination(self):

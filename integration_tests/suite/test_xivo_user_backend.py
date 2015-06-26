@@ -44,7 +44,8 @@ class TestXivoUser(BaseDirdIntegrationTest):
         assert_that(relations, equal_to({'xivo_id': self.uuid,
                                          'agent_id': 3,
                                          'endpoint_id': 2,
-                                         'user_id': 1}))
+                                         'user_id': 1,
+                                         'source_entry_id': '1'}))
 
     def test_no_result(self):
         result = self.lookup('frack', 'default')
@@ -99,7 +100,8 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
                               'agent_id': None,
                               'endpoint_id': 42,
-                              'user_id': 100},
+                              'user_id': 100,
+                              'source_entry_id': '100'},
                 'source': 'xivo_europe',
             },
             {
@@ -107,7 +109,8 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': 2,
-                              'user_id': 2},
+                              'user_id': 2,
+                              'source_entry_id': '2'},
                 'source': 'xivo_america',
             },
             {
@@ -115,7 +118,8 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': None,
-                              'user_id': 100},
+                              'user_id': 100,
+                              'source_entry_id': '100'},
                 'source': 'xivo_america',
             }
         ]
@@ -134,7 +138,8 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e160asia',
                               'agent_id': 3,
                               'endpoint_id': 2,
-                              'user_id': 1},
+                              'user_id': 1,
+                              'source_entry_id': '1'},
                 'source': 'xivo_asia',
             },
             {
@@ -142,7 +147,8 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': 3,
                               'endpoint_id': 2,
-                              'user_id': 1},
+                              'user_id': 1,
+                              'source_entry_id': '1'},
                 'source': 'xivo_america',
             }
         ]
@@ -163,7 +169,8 @@ class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': 3,
                               'endpoint_id': 2,
-                              'user_id': 1},
+                              'user_id': 1,
+                              'source_entry_id': '1'},
                 'source': 'xivo_america',
             },
         ]
@@ -184,7 +191,8 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': 2,
-                              'user_id': 2},
+                              'user_id': 2,
+                              'source_entry_id': '2'},
                 'source': 'xivo_america',
             },
             {
@@ -192,7 +200,8 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': None,
-                              'user_id': 100},
+                              'user_id': 100,
+                              'source_entry_id': '100'},
                 'source': 'xivo_america',
             }
         ]

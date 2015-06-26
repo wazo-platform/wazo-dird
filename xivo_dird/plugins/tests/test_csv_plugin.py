@@ -37,7 +37,7 @@ clientno,firstname,lastname,number,age
 
 pipe_separated_content = comma_separated_content.replace(',', '|')
 
-SourceResult = make_result_class('my_directory', ['client_no'])
+SourceResult = make_result_class('my_directory', unique_column='clientno')
 
 alice = {'clientno': '1',
          'firstname': 'Alice',

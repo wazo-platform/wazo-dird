@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ class SamplePlugin(BaseSourcePlugin):
         self._config = args.get('config', {})
         self._name = self._config.get('name', 'sample_directory')
         self._source_to_display = self._config.get(self.SOURCE_TO_DISPLAY, {})
-        SourceResult = make_result_class(self._name, ['id'], self._source_to_display)
+        SourceResult = make_result_class(self._name, 'id', self._source_to_display)
         self._result = SourceResult(self._sample_result)
 
     def search(self, term, profile=None, args=None):
