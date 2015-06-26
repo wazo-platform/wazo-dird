@@ -26,10 +26,11 @@ case "$1" in
 		# Return 100 if nginx is not installed (which is valid, think docker).
 		invoke-rc.d --query --quiet nginx reload
 		status=$?
-		set -e
 		if [ $status -ne 100 ] ; then
+			# May temporarily fail during upgrade because SSL certs have moved.
 			invoke-rc.d nginx reload
 		fi
+		set -e
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
