@@ -82,8 +82,11 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def lookup(self, term, profile):
-        response = self.get_lookup_result(term, profile, token='valid-token')
+    def lookup(self, term, profile, token=None):
+        if not token:
+            token = 'valid-token'
+
+        response = self.get_lookup_result(term, profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 

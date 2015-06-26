@@ -31,7 +31,7 @@ class TestCSVBackend(BaseDirdIntegrationTest):
         result = self.lookup('lice', 'default')
 
         assert_that(result['results'][0]['column_values'],
-                    contains('Alice', 'AAA', '5555555555'))
+                    contains('Alice', 'AAA', '5555555555', True))
 
     def test_that_asking_csv_favorites_returns_contacts(self):
         self.put_favorite('my_csv', '1')
@@ -40,8 +40,8 @@ class TestCSVBackend(BaseDirdIntegrationTest):
         result = self.favorites('default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
-            has_entry('column_values', contains('Charles', 'CCC', '555123555'))))
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True)),
+            has_entry('column_values', contains('Charles', 'CCC', '555123555', True))))
 
 
 class TestCSVNoUnique(BaseDirdIntegrationTest):

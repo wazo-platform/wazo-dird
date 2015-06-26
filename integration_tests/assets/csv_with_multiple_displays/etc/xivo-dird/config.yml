@@ -23,6 +23,9 @@ views:
                 title: Number
                 default:
                 field: number
+            -
+                field: favorite
+                type: favorite
         second_display:
             -
                 title: fn
