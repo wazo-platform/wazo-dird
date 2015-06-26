@@ -28,12 +28,12 @@ class _SourceResult(object):
 
     def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
         self.fields = fields
-        source_id = self.get_unique() if self._unique_column else None
+        source_entry_id = self.get_unique() if self._unique_column else None
         self.relations = {'xivo_id': xivo_id,
                           'agent_id': agent_id,
                           'user_id': user_id,
                           'endpoint_id': endpoint_id,
-                          'source_id': source_id}
+                          'source_entry_id': source_entry_id}
 
         self._add_destination_columns()
 

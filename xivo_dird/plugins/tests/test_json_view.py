@@ -236,7 +236,7 @@ class TestFormatResult(unittest.TestCase):
                               'agent_id': None,
                               'user_id': None,
                               'endpoint_id': None,
-                              'source_id': None},
+                              'source_entry_id': None},
                 'source': self.source_name,
             },
             {
@@ -245,7 +245,7 @@ class TestFormatResult(unittest.TestCase):
                               'agent_id': 'agent_id',
                               'user_id': 'user_id',
                               'endpoint_id': 'endpoint_id',
-                              'source_id': None},
+                              'source_entry_id': None},
                 'source': self.source_name,
             },
         ]))

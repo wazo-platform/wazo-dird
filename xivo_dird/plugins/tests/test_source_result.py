@@ -36,7 +36,7 @@ class TestSourceResult(unittest.TestCase):
             'agent_id': None,
             'user_id': None,
             'endpoint_id': None,
-            'source_id': None,
+            'source_entry_id': None,
         }
 
     def test_source(self):
@@ -58,7 +58,7 @@ class TestSourceResult(unittest.TestCase):
                                            'agent_id': sentinel.agent_id,
                                            'user_id': None,
                                            'endpoint_id': None,
-                                           'source_id': None}))
+                                           'source_entry_id': None}))
 
     def test_user_relation(self):
         r = _SourceResult(self.fields, sentinel.xivo_id, user_id=sentinel.user_id)
@@ -67,7 +67,7 @@ class TestSourceResult(unittest.TestCase):
                                            'agent_id': None,
                                            'user_id': sentinel.user_id,
                                            'endpoint_id': None,
-                                           'source_id': None}))
+                                           'source_entry_id': None}))
 
     def test_endpoint_relation(self):
         r = _SourceResult(self.fields, sentinel.xivo_id, endpoint_id=sentinel.endpoint_id)
@@ -76,7 +76,7 @@ class TestSourceResult(unittest.TestCase):
                                            'agent_id': None,
                                            'user_id': None,
                                            'endpoint_id': sentinel.endpoint_id,
-                                           'source_id': None}))
+                                           'source_entry_id': None}))
 
     def test_get_unique(self):
         r = _SourceResult(self.fields)
@@ -92,14 +92,14 @@ class TestSourceResult(unittest.TestCase):
 
         assert_that(r.fields, has_entries('fn', 'fn', 'ln', 'ln'))
 
-    def test_that_the_source_id_is_added_to_relations(self):
+    def test_that_the_source_entry_id_is_added_to_relations(self):
         SourceResult = make_result_class('foobar', unique_column='email')
 
         r = SourceResult({'fn': 'Foo',
                           'ln': 'Bar',
                           'email': 'foobar@example.com'})
 
-        assert_that(r.relations['source_id'], equal_to('foobar@example.com'))
+        assert_that(r.relations['source_entry_id'], equal_to('foobar@example.com'))
 
 
 class TestMakeResultClass(unittest.TestCase):

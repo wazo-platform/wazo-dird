@@ -373,7 +373,7 @@
                 "agent_id": {
                     "type": "string"
                 },
-                "source_id": {
+                "source_entry_id": {
                     "type": "string",
                 },
             }

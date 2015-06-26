@@ -45,7 +45,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
                                          'agent_id': 3,
                                          'endpoint_id': 2,
                                          'user_id': 1,
-                                         'source_id': '1'}))
+                                         'source_entry_id': '1'}))
 
     def test_no_result(self):
         result = self.lookup('frack', 'default')
@@ -101,7 +101,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': 42,
                               'user_id': 100,
-                              'source_id': '100'},
+                              'source_entry_id': '100'},
                 'source': 'xivo_europe',
             },
             {
@@ -110,7 +110,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': 2,
                               'user_id': 2,
-                              'source_id': '2'},
+                              'source_entry_id': '2'},
                 'source': 'xivo_america',
             },
             {
@@ -119,7 +119,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': None,
                               'user_id': 100,
-                              'source_id': '100'},
+                              'source_entry_id': '100'},
                 'source': 'xivo_america',
             }
         ]
@@ -139,7 +139,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': 3,
                               'endpoint_id': 2,
                               'user_id': 1,
-                              'source_id': '1'},
+                              'source_entry_id': '1'},
                 'source': 'xivo_asia',
             },
             {
@@ -148,7 +148,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': 3,
                               'endpoint_id': 2,
                               'user_id': 1,
-                              'source_id': '1'},
+                              'source_entry_id': '1'},
                 'source': 'xivo_america',
             }
         ]
@@ -170,7 +170,7 @@ class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
                               'agent_id': 3,
                               'endpoint_id': 2,
                               'user_id': 1,
-                              'source_id': '1'},
+                              'source_entry_id': '1'},
                 'source': 'xivo_america',
             },
         ]
@@ -192,7 +192,7 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': 2,
                               'user_id': 2,
-                              'source_id': '2'},
+                              'source_entry_id': '2'},
                 'source': 'xivo_america',
             },
             {
@@ -201,7 +201,7 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': None,
                               'user_id': 100,
-                              'source_id': '100'},
+                              'source_entry_id': '100'},
                 'source': 'xivo_america',
             }
         ]

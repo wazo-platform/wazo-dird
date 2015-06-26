@@ -40,11 +40,11 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
             {'column_values': ['Alice', 'AAA', '5555555555'],
              'source': 'my_csv',
              'relations': {'xivo_id': None, 'user_id': None,
-                           'endpoint_id': None, 'agent_id': None, 'source_id': None}},
+                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
             {'column_values': ['Alice', 'Alan', '1111'],
              'source': 'third_csv',
              'relations': {'xivo_id': None, 'user_id': None,
-                           'endpoint_id': None, 'agent_id': None, 'source_id': '1'}},
+                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': '1'}},
         ]
 
         assert_that(result['results'],
@@ -62,7 +62,7 @@ class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):
             {'column_values': ['Alice', 'AAA', '5555555555'],
              'source': 'my_csv',
              'relations': {'xivo_id': None, 'user_id': None,
-                           'endpoint_id': None, 'agent_id': None, 'source_id': None}},
+                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
         ]
 
         assert_that(result['results'],
@@ -125,7 +125,7 @@ class TestWithAnotherConfigDir(BaseDirdIntegrationTest):
              'source': 'my_csv',
              'relations': {'xivo_id': None, 'user_id': None,
                            'endpoint_id': None, 'agent_id': None,
-                           'source_id': None}},
+                           'source_entry_id': None}},
         ]
 
         assert_that(result['results'],
