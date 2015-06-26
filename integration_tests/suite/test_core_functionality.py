@@ -171,3 +171,14 @@ class TestAddRemoveFavorites(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
             has_entry('column_values', contains('Charles', 'CCC', '555123555'))))
+
+    def test_that_favorites_are_only_visible_for_the_same_token(self):
+        self.put_favorite('my_csv', '1', token='valid-token-1')
+        self.put_favorite('my_csv', '2', token='valid-token-1')
+        self.put_favorite('my_csv', '3', token='valid-token-2')
+
+        result = self.favorites('default', token='valid-token-1')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
+            has_entry('column_values', contains('Bob', 'BBB', '5555551234'))))
