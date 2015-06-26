@@ -172,6 +172,11 @@ class TestAddRemoveFavorites(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
             has_entry('column_values', contains('Charles', 'CCC', '555123555'))))
 
+
+class TestFavoritesVisibility(BaseDirdIntegrationTest):
+
+    asset = 'csv_with_multiple_displays'
+
     def test_that_favorites_are_only_visible_for_the_same_token(self):
         self.put_favorite('my_csv', '1', token='valid-token-1')
         self.put_favorite('my_csv', '2', token='valid-token-1')
