@@ -22,7 +22,15 @@ from xivo.config_helper import read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
 _DEFAULT_CONFIG = {
+    'auth': {
+        'host': 'localhost',
+        'port': 9497
+    },
     'config_file': '/etc/xivo-dird/config.yml',
+    'consul': {
+        'host': 'localhost',
+        'port': 8500,
+    },
     'extra_config_files': '/etc/xivo-dird/conf.d/',
     'debug': False,
     'enabled_plugins': {
@@ -48,10 +56,6 @@ _DEFAULT_CONFIG = {
     'source_config_dir': '/etc/xivo-dird/sources.d',
     'user': 'www-data',
     'views': {},
-    'auth': {
-        'host': 'localhost',
-        'port': '9497'
-    }
 }
 
 
