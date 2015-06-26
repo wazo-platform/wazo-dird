@@ -141,8 +141,16 @@ class FavoritesWrite(AuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        self.favorites_service.remove_favorite(directory, contact, token_infos)
-        return '', 204
+        try:
+            self.favorites_service.remove_favorite(directory, contact, token_infos)
+            return '', 204
+        except self.favorites_service.NoSuchFavorite as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
 
 
 def format_results(results, display):

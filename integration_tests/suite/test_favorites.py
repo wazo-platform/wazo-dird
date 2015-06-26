@@ -19,6 +19,7 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
+from hamcrest import equal_to
 from hamcrest import has_entry
 
 
@@ -75,3 +76,12 @@ class TestFavoritesPersistence(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555'))))
+
+
+class TestRemovingFavoriteAlreadyInexistant(BaseDirdIntegrationTest):
+    asset = 'sample_backend'
+
+    def test_that_removing_an_inexisting_favorite_returns_404(self):
+        result = self.delete_favorite_result('unknown_source', 'unknown_contact', token='valid-token')
+
+        assert_that(result.status_code, equal_to(404))
