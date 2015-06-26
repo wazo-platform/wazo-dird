@@ -77,13 +77,17 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
 class TestFavoritesService(unittest.TestCase):
 
-    @unittest.skip
-    def test_that_favorites_searches_only_the_configured_sources(self):
+    @patch('xivo_dird.plugins.favorites_service.Consul')
+    def test_that_favorites_searches_only_the_configured_sources(self, consul):
+        consul_mock = consul.return_value
+        consul_mock.kv.get.return_value = (None, [])
         sources = {
-            'source_1': Mock(name='source_1', list=Mock(return_value=[{'f': 1}])),
-            'source_2': Mock(name='source_2', list=Mock(return_value=[{'f': 2}])),
-            'source_3': Mock(name='source_3', list=Mock(return_value=[{'f': 3}])),
+            'source_1': Mock(list=Mock(return_value=[{'f': 1}])),
+            'source_2': Mock(list=Mock(return_value=[{'f': 2}])),
+            'source_3': Mock(list=Mock(return_value=[{'f': 3}])),
         }
+        for source_name in sources:  # workaround mock.name that can't be set in __init__
+            sources[source_name].name = source_name
         config = {
             'services': {
                 'favorites': {
@@ -92,12 +96,15 @@ class TestFavoritesService(unittest.TestCase):
                         'timeout': '1',
                     }
                 }
+            },
+            'consul': {
+                'host': 'localhost'
             }
         }
 
         service = _FavoritesService(config, sources)
 
-        results = service('my_profile')
+        results = service('my_profile', {'token': s.token, 'uuid': s.uuid})
 
         expected_results = [{'f': 1}, {'f': 3}]
 
@@ -109,13 +116,17 @@ class TestFavoritesService(unittest.TestCase):
 
         service.stop()
 
-    @unittest.skip
-    def test_that_favorites_does_not_fail_if_one_config_is_not_correct(self):
+    @patch('xivo_dird.plugins.favorites_service.Consul')
+    def test_that_favorites_does_not_fail_if_one_config_is_not_correct(self, consul):
+        consul_mock = consul.return_value
+        consul_mock.kv.get.return_value = (None, [])
         sources = {
             'source_1': Mock(name='source_1', list=Mock(return_value=[{'f': 1}])),
             'source_2': Mock(name='source_2', list=Mock(return_value=[{'f': 2}])),
             # 'source_3': Mock(name='source_3', list=Mock(return_value=[{'f': 3}])),  # ERROR in yaml config
         }
+        for source_name in sources:  # workaround mock.name that can't be set in __init__
+            sources[source_name].name = source_name
         config = {
             'services': {
                 'favorites': {
@@ -124,12 +135,15 @@ class TestFavoritesService(unittest.TestCase):
                         'timeout': '1',
                     }
                 }
+            },
+            'consul': {
+                'host': 'localhost'
             }
         }
 
         service = _FavoritesService(config, sources)
 
-        results = service('my_profile')
+        results = service('my_profile', {'token': s.token, 'uuid': s.uuid})
 
         expected_results = [{'f': 1}]
 
@@ -173,15 +187,14 @@ class TestFavoritesService(unittest.TestCase):
         MockedThreadPoolExecutor.return_value.shutdown.assert_called_once_with()
 
     @patch('xivo_dird.plugins.favorites_service.Consul')
-    @unittest.skip
-    def test_that_favorites_are_listed_on_the_right_source(self, consul):
+    def test_that_favorites_are_listed_in_each_source_with_the_right_id_list(self, consul_init):
+        consul = consul_init.return_value
         sources = {
             'source_1': Mock(list=Mock(return_value=['contact1'])),
             'source_2': Mock(list=Mock(return_value=['contact2'])),
         }
-        # Not settable via Mock constructor
-        sources['source_1'].name = 'source_1'
-        sources['source_2'].name = 'source_2'
+        for source_name in sources:  # workaround mock.name that can't be set in __init__
+            sources[source_name].name = source_name
         config = {
             'services': {
                 'favorites': {
@@ -190,16 +203,18 @@ class TestFavoritesService(unittest.TestCase):
                         'timeout': '1',
                     }
                 }
+            },
+            'consul': {
+                'host': 'localhost'
             }
         }
-        service = _FavoritesService(config, sources)
-        _contact_ids.side_effect = [['id1'], ['id2']]
-        consul.return_value.kv.get.side_effect = [
+        consul.kv.get.side_effect = [
             (Mock(), ['/favorites/id1']),
             (Mock(), {'Value': 'id1'}),
             (Mock(), ['/favorites/id2']),
             (Mock(), {'Value': 'id2'}),
         ]
+        service = _FavoritesService(config, sources)
 
         result = service.favorites('my_profile', {'token': s.token, 'uuid': s.uuid})
 
@@ -209,38 +224,11 @@ class TestFavoritesService(unittest.TestCase):
 
         service.stop()
 
-    @unittest.skip
-    def test_that_removing_unknown_favorites_raises_error(self):
+    @patch('xivo_dird.plugins.favorites_service.Consul')
+    def test_that_removing_unknown_favorites_raises_error(self, consul_init):
+        consul_init.return_value.kv.get.return_value = (None, None)
         service = _FavoritesService({}, {})
 
-        self.assertRaises(NoSuchFavorite, service.remove_favorite, 'source_unknown', 'id')
-
-        service.stop()
-
-    @unittest.skip
-    def test_that_removed_favorites_are_not_listed_anymore(self):
-        sources = {
-            'source_1': Mock(list=Mock(return_value=[])),
-        }
-        # Not settable via Mock constructor
-        sources['source_1'].name = 'source_1'
-        config = {
-            'services': {
-                'favorites': {
-                    'my_profile': {
-                        'sources': ['source_1'],
-                        'timeout': '1',
-                    }
-                }
-            }
-        }
-        service = _FavoritesService(config, sources)
-        service.new_favorite('source_1', 'id1')
-        service.remove_favorite('source_1', 'id1')
-
-        result = service.favorites('my_profile')
-
-        sources['source_1'].list.assert_called_once_with([])
-        assert_that(result, contains())
+        self.assertRaises(NoSuchFavorite, service.remove_favorite, 'unknown_source', 'unknown_contact')
 
         service.stop()

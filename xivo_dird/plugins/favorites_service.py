@@ -34,10 +34,10 @@ FAVORITES_SOURCE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}'
 FAVORITE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}/{contact_id}'
 
 
-class NoSuchFavorite(ValueError):
+class _NoSuchFavorite(ValueError):
     def __init__(self, contact_id):
         message = "No such favorite: {}".format(contact_id)
-        super(NoSuchFavorite, self).__init__(message)
+        super(_NoSuchFavorite, self).__init__(message)
 
 
 class FavoritesServicePlugin(BaseServicePlugin):
@@ -64,6 +64,8 @@ class FavoritesServicePlugin(BaseServicePlugin):
 
 
 class _FavoritesService(BaseService):
+
+    NoSuchFavorite = _NoSuchFavorite
 
     def __init__(self, config, sources):
         self._config = config
@@ -124,6 +126,11 @@ class _FavoritesService(BaseService):
 
     def remove_favorite(self, source, contact_id, token_infos):
         key = FAVORITE_KEY.format(user_uuid=token_infos['uuid'], source=source, contact_id=contact_id)
+        _, value = self._consul().kv.get(key, token=token_infos['token'])
+
+        if value is None:
+            raise self.NoSuchFavorite((source, contact_id))
+
         self._consul().kv.delete(key, token=token_infos['token'])
 
     def _source_by_profile(self, profile):
