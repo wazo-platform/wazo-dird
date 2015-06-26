@@ -10,6 +10,7 @@ git+https://github.com/xivo-pbx/xivo-lib-python.git
 git+https://github.com/xivo-pbx/xivo-lib-rest-client.git
 psycopg2
 pyaml
+python-consul==0.3.18
 python-ldap
 requests
 sqlalchemy
