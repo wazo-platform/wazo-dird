@@ -374,8 +374,8 @@
                     "type": "string"
                 },
                 "source_entry_id": {
-                    "type": "string",
-                },
+                    "type": "string"
+                }
             }
         }
     }
