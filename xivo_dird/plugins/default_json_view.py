@@ -69,7 +69,7 @@ class JsonViewPlugin(BaseViewPlugin):
 
 class Lookup(AuthResource):
     class DisabledFavoriteService(object):
-        def __call__(self, profile):
+        def favorite_ids(self, profile, token_info):
             return []
 
     displays = None
@@ -97,10 +97,14 @@ class Lookup(AuthResource):
             }
             return error, 404
 
+        token = request.headers.get('X-Auth-Token', '')
+        token_infos = auth.client().token.get(token)
+
         raw_results = self.lookup_service(term, profile, args={})
-        favorites = self.favorite_service(profile)
-        display = self.displays[profile]
-        response = format_results(raw_results, display)
+        favorites = self.favorite_service.favorite_ids(profile, token_infos)
+
+        formatter = _ResultFormatter(self.displays[profile])
+        response = formatter.format_results(raw_results, favorites)
 
         response.update({'term': term})
         return response
@@ -125,13 +129,12 @@ class FavoritesRead(AuthResource):
             }
             return error, 404
 
-        display = self.displays[profile]
-
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
         raw_results = self.favorites_service.favorites(profile, token_infos)
-        return format_results(raw_results, display)
+        formatter = _FavoriteResultFormatter(self.displays[profile])
+        return formatter.format_results(raw_results)
 
 
 class FavoritesWrite(AuthResource):
@@ -165,20 +168,56 @@ class FavoritesWrite(AuthResource):
             return error, 404
 
 
-def format_results(results, display):
-    return {
-        'column_headers': [d.title for d in display],
-        'column_types': [d.type for d in display],
-        'results': [_format_result(r, display) for r in results]
-    }
+class _ResultFormatter(object):
+
+    def __init__(self, display):
+        self._display = display
+        self._headers = [d.title for d in display]
+        self._types = [d.type for d in display]
+        self._has_favorites = 'favorite' in self._types
+        if self._has_favorites:
+            self._favorite_field = [d.field for d in display if d.type == 'favorite'][0]
+
+    def format_results(self, results, favorites):
+        self._favorites = favorites
+        return {
+            'column_headers': self._headers,
+            'column_types': self._types,
+            'results': [self._format_result(r) for r in results]
+        }
+
+    def _format_result(self, result):
+        if self._has_favorites:
+            is_favorite = self._is_favorite(result)
+            result.fields[self._favorite_field] = is_favorite
+
+        return {
+            'column_values': [result.fields.get(d.field, d.default) for d in self._display],
+            'relations': result.relations,
+            'source': result.source,
+        }
+
+    def _is_favorite(self, result):
+        if not self._has_favorites:
+            return False
+
+        if result.source not in self._favorites:
+            return False
+
+        source_entry_id = result.relations.get('source_entry_id')
+        if not source_entry_id:
+            return False
+
+        return source_entry_id in self._favorites[result.source]
 
 
-def _format_result(result, display):
-    return {
-        'column_values': [result.fields.get(d.field, d.default) for d in display],
-        'relations': result.relations,
-        'source': result.source,
-    }
+class _FavoriteResultFormatter(_ResultFormatter):
+
+    def format_results(self, results):
+        return super(_FavoriteResultFormatter, self).format_results(results, [])
+
+    def _is_favorite(self, result):
+        return True
 
 
 def make_displays(view_config):
