@@ -77,8 +77,6 @@ class Lookup(AuthResource):
 
         logger.info('Lookup for %s with profile %s', term, profile)
 
-        raw_results = self.lookup_service(term, profile, args={})
-
         if profile not in self.displays:
             error = {
                 'reason': ['The profile does not exist'],
@@ -87,6 +85,7 @@ class Lookup(AuthResource):
             }
             return error, 404
 
+        raw_results = self.lookup_service(term, profile, args={})
         display = self.displays[profile]
         response = format_results(raw_results, display)
 
