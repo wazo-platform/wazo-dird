@@ -104,7 +104,7 @@ class _FavoritesService(BaseService):
     def favorite_ids(self, profile, token_infos):
         result = {}
         for source in self._source_by_profile(profile):
-            ids = self._favorite_ids_in_source(token_infos['uuid'], source.name, token_infos['token'])
+            ids = self._favorite_ids_in_source(token_infos['auth_id'], source.name, token_infos['token'])
             result[source.name] = ids
         return result
 
@@ -114,18 +114,16 @@ class _FavoritesService(BaseService):
         ids = []
         if keys:
             for key in keys:
-                logger.error(key)
                 _, result = self._consul().kv.get(key, token=token)
-                logger.error(result)
                 ids.append(result['Value'])
         return ids
 
     def new_favorite(self, source, contact_id, token_infos):
-        key = FAVORITE_KEY.format(user_uuid=token_infos['uuid'], source=source, contact_id=contact_id)
+        key = FAVORITE_KEY.format(user_uuid=token_infos['auth_id'], source=source, contact_id=contact_id)
         self._consul().kv.put(key, value=contact_id, token=token_infos['token'])
 
     def remove_favorite(self, source, contact_id, token_infos):
-        key = FAVORITE_KEY.format(user_uuid=token_infos['uuid'], source=source, contact_id=contact_id)
+        key = FAVORITE_KEY.format(user_uuid=token_infos['auth_id'], source=source, contact_id=contact_id)
         _, value = self._consul().kv.get(key, token=token_infos['token'])
 
         if value is None:
