@@ -75,8 +75,8 @@ class TestDisplay(BaseDirdIntegrationTest):
     def test_that_the_display_is_really_applied_to_lookup(self):
         result = self.lookup('lice', 'default')
 
-        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
-        assert_that(result['column_types'], contains(None, None, None))
+        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number', None))
+        assert_that(result['column_types'], contains(None, None, None, 'favorite'))
 
     def test_display_with_a_type_only(self):
         result = self.lookup('lice', 'test')
@@ -89,8 +89,8 @@ class TestDisplay(BaseDirdIntegrationTest):
     def test_that_the_display_is_applied_to_headers(self):
         result = self.headers('default')
 
-        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
-        assert_that(result['column_types'], contains(None, None, None))
+        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number', None))
+        assert_that(result['column_types'], contains(None, None, None, 'favorite'))
 
     def test_display_on_headers_with_no_title(self):
         result = self.headers('test')

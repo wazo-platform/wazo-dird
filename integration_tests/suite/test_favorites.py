@@ -36,8 +36,8 @@ class TestAddRemoveFavorites(BaseDirdIntegrationTest):
         result = self.favorites('default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
-            has_entry('column_values', contains('Charles', 'CCC', '555123555'))))
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True)),
+            has_entry('column_values', contains('Charles', 'CCC', '555123555', True))))
 
 
 class TestFavoritesVisibility(BaseDirdIntegrationTest):
@@ -52,8 +52,8 @@ class TestFavoritesVisibility(BaseDirdIntegrationTest):
         result = self.favorites('default', token='valid-token-1')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555')),
-            has_entry('column_values', contains('Bob', 'BBB', '5555551234'))))
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True)),
+            has_entry('column_values', contains('Bob', 'BBB', '5555551234', True))))
 
 
 class TestFavoritesPersistence(BaseDirdIntegrationTest):
@@ -66,7 +66,7 @@ class TestFavoritesPersistence(BaseDirdIntegrationTest):
         result = self.favorites('default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555'))))
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
 
         self._run_cmd('docker-compose kill dird')
         self._run_cmd('docker-compose rm -f dird')
@@ -75,7 +75,7 @@ class TestFavoritesPersistence(BaseDirdIntegrationTest):
         result = self.favorites('default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555'))))
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
 
 
 class TestRemovingFavoriteAlreadyInexistant(BaseDirdIntegrationTest):
@@ -85,3 +85,21 @@ class TestRemovingFavoriteAlreadyInexistant(BaseDirdIntegrationTest):
         result = self.delete_favorite_result('unknown_source', 'unknown_contact', token='valid-token')
 
         assert_that(result.status_code, equal_to(404))
+
+
+class TestFavoritesInLookupResults(BaseDirdIntegrationTest):
+
+    asset = 'csv_with_multiple_displays'
+
+    def test_that_favorites_lookup_results_show_favorites(self):
+        result = self.lookup('Ali', 'default', token='valid-token-1')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', False))))
+
+        self.put_favorite('my_csv', '1', token='valid-token-1')
+
+        result = self.lookup('Ali', 'default', token='valid-token-1')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))

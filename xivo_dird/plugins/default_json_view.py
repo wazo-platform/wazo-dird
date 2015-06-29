@@ -35,49 +35,59 @@ parser.add_argument('term', type=unicode, required=True, help='term is missing',
 
 class JsonViewPlugin(BaseViewPlugin):
 
+    lookup_url = '/directories/lookup/<profile>'
+    favorites_read_url = '/directories/favorites/<profile>'
+    favorites_write_url = '/directories/favorites/<directory>/<contact>'
+
     def load(self, args=None):
         config = args['config']
         displays = make_displays(config)
 
-        lookup_url = '/directories/lookup/<profile>'
-        if 'lookup' in args['services']:
+        favorite_service = args['services'].get('favorites')
+        lookup_service = args['services'].get('lookup')
+
+        if lookup_service:
             Lookup.configure(displays=displays,
-                             lookup_service=args['services']['lookup'])
+                             lookup_service=lookup_service,
+                             favorite_service=favorite_service)
 
-            api.add_resource(Lookup, lookup_url)
+            api.add_resource(Lookup, self.lookup_url)
         else:
-            logger.error('%s disabled: no service plugin `lookup`', lookup_url)
+            logger.error('%s disabled: no service plugin `lookup`', self.lookup_url)
 
-        favorites_read_url = '/directories/favorites/<profile>'
-        favorites_write_url = '/directories/favorites/<directory>/<contact>'
-        if 'favorites' in args['services']:
+        if favorite_service:
             FavoritesRead.configure(displays=displays,
-                                    favorites_service=args['services']['favorites'])
-            FavoritesWrite.configure(favorites_service=args['services']['favorites'])
+                                    favorites_service=favorite_service)
+            FavoritesWrite.configure(favorites_service=favorite_service)
 
             api.add_resource(FavoritesRead, '/directories/favorites/<profile>')
             api.add_resource(FavoritesWrite, '/directories/favorites/<directory>/<contact>')
         else:
-            logger.error('%s disabled: no service plugin `favorites`', favorites_read_url)
-            logger.error('%s disabled: no service plugin `favorites`', favorites_write_url)
+            logger.error('%s disabled: no service plugin `favorites`', self.favorites_read_url)
+            logger.error('%s disabled: no service plugin `favorites`', self.favorites_write_url)
 
 
 class Lookup(AuthResource):
+    class DisabledFavoriteService(object):
+        def favorite_ids(self, profile, token_info):
+            return []
+
     displays = None
     lookup_service = None
+    favorite_service = DisabledFavoriteService()
 
     @classmethod
-    def configure(cls, displays, lookup_service):
+    def configure(cls, displays, lookup_service, favorite_service):
         cls.displays = displays
         cls.lookup_service = lookup_service
+        if favorite_service:
+            cls.favorite_service = favorite_service
 
     def get(self, profile):
         args = parser.parse_args()
         term = args['term']
 
         logger.info('Lookup for %s with profile %s', term, profile)
-
-        raw_results = self.lookup_service(term, profile, args={})
 
         if profile not in self.displays:
             error = {
@@ -87,8 +97,14 @@ class Lookup(AuthResource):
             }
             return error, 404
 
-        display = self.displays[profile]
-        response = format_results(raw_results, display)
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+
+        raw_results = self.lookup_service(term, profile, args={})
+        favorites = self.favorite_service.favorite_ids(profile, token_infos)
+
+        formatter = _ResultFormatter(self.displays[profile])
+        response = formatter.format_results(raw_results, favorites)
 
         response.update({'term': term})
         return response
@@ -113,13 +129,12 @@ class FavoritesRead(AuthResource):
             }
             return error, 404
 
-        display = self.displays[profile]
-
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
         raw_results = self.favorites_service.favorites(profile, token_infos)
-        return format_results(raw_results, display)
+        formatter = _FavoriteResultFormatter(self.displays[profile])
+        return formatter.format_results(raw_results)
 
 
 class FavoritesWrite(AuthResource):
@@ -153,20 +168,56 @@ class FavoritesWrite(AuthResource):
             return error, 404
 
 
-def format_results(results, display):
-    return {
-        'column_headers': [d.title for d in display],
-        'column_types': [d.type for d in display],
-        'results': [_format_result(r, display) for r in results]
-    }
+class _ResultFormatter(object):
+
+    def __init__(self, display):
+        self._display = display
+        self._headers = [d.title for d in display]
+        self._types = [d.type for d in display]
+        self._has_favorites = 'favorite' in self._types
+        if self._has_favorites:
+            self._favorite_field = [d.field for d in display if d.type == 'favorite'][0]
+
+    def format_results(self, results, favorites):
+        self._favorites = favorites
+        return {
+            'column_headers': self._headers,
+            'column_types': self._types,
+            'results': [self._format_result(r) for r in results]
+        }
+
+    def _format_result(self, result):
+        if self._has_favorites:
+            is_favorite = self._is_favorite(result)
+            result.fields[self._favorite_field] = is_favorite
+
+        return {
+            'column_values': [result.fields.get(d.field, d.default) for d in self._display],
+            'relations': result.relations,
+            'source': result.source,
+        }
+
+    def _is_favorite(self, result):
+        if not self._has_favorites:
+            return False
+
+        if result.source not in self._favorites:
+            return False
+
+        source_entry_id = result.source_entry_id()
+        if not source_entry_id:
+            return False
+
+        return source_entry_id in self._favorites[result.source]
 
 
-def _format_result(result, display):
-    return {
-        'column_values': [result.fields.get(d.field, d.default) for d in display],
-        'relations': result.relations,
-        'source': result.source,
-    }
+class _FavoriteResultFormatter(_ResultFormatter):
+
+    def format_results(self, results):
+        return super(_FavoriteResultFormatter, self).format_results(results, [])
+
+    def _is_favorite(self, result):
+        return True
 
 
 def make_displays(view_config):

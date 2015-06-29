@@ -18,13 +18,14 @@
 import unittest
 
 from hamcrest import assert_that
+from hamcrest import contains
+from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entries
+from hamcrest import has_entry
 from mock import ANY
 from mock import Mock
 from mock import patch
-from mock import sentinel
-from werkzeug.exceptions import HTTPException
 
 from xivo_dird import make_result_class
 from xivo_dird.plugins.default_json_view import DisplayColumn
@@ -32,7 +33,7 @@ from xivo_dird.plugins.default_json_view import FavoritesRead
 from xivo_dird.plugins.default_json_view import FavoritesWrite
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
 from xivo_dird.plugins.default_json_view import Lookup
-from xivo_dird.plugins.default_json_view import format_results
+from xivo_dird.plugins.default_json_view import _ResultFormatter
 from xivo_dird.plugins.default_json_view import make_displays
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
@@ -44,7 +45,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def tearDown(self):
         # reset class Lookup
-        Lookup.configure(displays=None, lookup_service=None)
+        Lookup.configure(displays=None, lookup_service=None, favorite_service=Lookup.DisabledFavoriteService())
         FavoritesRead.configure(displays=None, favorites_service=None)
         FavoritesWrite.configure(favorites_service=None)
 
@@ -96,38 +97,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         add_resource.assert_any_call(ANY, '/directories/favorites/<directory>/<contact>')
 
 
-class TestJsonViewLookup(BaseHTTPViewTestCase):
-
-    @patch('xivo_dird.plugins.default_json_view.parser.parse_args')
-    def test_lookup_when_no_term_then_exception(self, parse_args):
-        parse_args.side_effect = HTTPException
-
-        self.assertRaises(HTTPException, Lookup().get, sentinel.profile)
-
-    @patch('xivo_dird.plugins.default_json_view.parser.parse_args', Mock(return_value={'term': sentinel.term}))
-    def test_that_lookup_forwards_term_to_the_service(self):
-        lookup_service = Mock()
-        Lookup.configure(displays=[], lookup_service=lookup_service)
-
-        Lookup().get(sentinel.profile)
-
-        lookup_service.assert_called_once_with(sentinel.term, sentinel.profile, args={})
-
-    @patch('xivo_dird.plugins.default_json_view.parser.parse_args', Mock(return_value={'term': sentinel.term}))
-    def test_that_lookup_adds_the_term_to_its_result(self):
-        lookup_service = Mock(return_value=[])
-        config = {'displays': {'first_display': [{'title': 'Firstname',
-                                                  'type': None,
-                                                  'default': 'Unknown',
-                                                  'field': 'firstname'}]},
-                  'profile_to_display': {sentinel.profile: 'first_display'}}
-        Lookup.configure(displays=make_displays(config), lookup_service=lookup_service)
-
-        result = Lookup().get(sentinel.profile)
-
-        assert_that(result, has_entries('term', sentinel.term))
-
-
 class TestMakeDisplays(unittest.TestCase):
 
     def test_that_make_displays_with_no_config_returns_empty_dict(self):
@@ -177,10 +146,11 @@ class TestMakeDisplays(unittest.TestCase):
 
 
 class TestFormatResult(unittest.TestCase):
+
     def setUp(self):
         self.source_name = 'my_source'
         self.xivo_id = 'my_xivo_abc'
-        self.SourceResult = make_result_class(self.source_name)
+        self.SourceResult = make_result_class(self.source_name, unique_column='id')
 
     def test_that_format_results_adds_columns_headers(self):
         display = [
@@ -190,8 +160,9 @@ class TestFormatResult(unittest.TestCase):
             DisplayColumn('Number', 'office_number', None, 'telephoneNumber'),
             DisplayColumn('Country', None, 'Canada', 'country'),
         ]
+        formatter = _ResultFormatter(display)
 
-        result = format_results([], display)
+        result = formatter.format_results([], [])
 
         expected_headers = ['Firstname', 'Lastname', None, 'Number', 'Country']
         assert_that(result, has_entries('column_headers', expected_headers))
@@ -203,19 +174,23 @@ class TestFormatResult(unittest.TestCase):
             DisplayColumn(None, 'status', None, None),
             DisplayColumn('Number', 'office_number', None, 'telephoneNumber'),
             DisplayColumn('Country', None, 'Canada', 'country'),
+            DisplayColumn(None, 'favorite', None, None),
         ]
+        formatter = _ResultFormatter(display)
 
-        result = format_results([], display)
+        result = formatter.format_results([], [])
 
-        expected_types = [None, None, 'status', 'office_number', None]
+        expected_types = [None, None, 'status', 'office_number', None, 'favorite']
         assert_that(result, has_entries('column_types', expected_types))
 
     def test_that_format_results_adds_results(self):
-        result1 = self.SourceResult({'firstname': 'Alice',
+        result1 = self.SourceResult({'id': 1,
+                                     'firstname': 'Alice',
                                      'lastname': 'AAA',
                                      'telephoneNumber': '5555555555'},
                                     self.xivo_id, None, None, None)
-        result2 = self.SourceResult({'firstname': 'Bob',
+        result2 = self.SourceResult({'id': 'user_id',
+                                     'firstname': 'Bob',
                                      'lastname': 'BBB',
                                      'telephoneNumber': '5555556666'},
                                     self.xivo_id, 'agent_id', 'user_id', 'endpoint_id')
@@ -226,8 +201,9 @@ class TestFormatResult(unittest.TestCase):
             DisplayColumn('Number', 'office_number', None, 'telephoneNumber'),
             DisplayColumn('Country', None, 'Canada', 'country')
         ]
+        formatter = _ResultFormatter(display)
 
-        result = format_results([result1, result2], display)
+        result = formatter.format_results([result1, result2], [])
 
         assert_that(result, has_entries('results', [
             {
@@ -236,7 +212,7 @@ class TestFormatResult(unittest.TestCase):
                               'agent_id': None,
                               'user_id': None,
                               'endpoint_id': None,
-                              'source_entry_id': None},
+                              'source_entry_id': '1'},
                 'source': self.source_name,
             },
             {
@@ -245,7 +221,33 @@ class TestFormatResult(unittest.TestCase):
                               'agent_id': 'agent_id',
                               'user_id': 'user_id',
                               'endpoint_id': 'endpoint_id',
-                              'source_entry_id': None},
+                              'source_entry_id': 'user_id'},
                 'source': self.source_name,
             },
         ]))
+
+    def test_that_format_results_marks_favorites(self):
+        result1 = self.SourceResult({'id': 1,
+                                     'firstname': 'Alice',
+                                     'lastname': 'AAA',
+                                     'telephoneNumber': '5555555555'},
+                                    self.xivo_id, None, 1, None)
+        result2 = self.SourceResult({'id': 2,
+                                     'firstname': 'Bob',
+                                     'lastname': 'BBB',
+                                     'telephoneNumber': '5555556666'},
+                                    self.xivo_id, 'agent_id', 2, 'endpoint_id')
+        display = [
+            DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
+            DisplayColumn('Lastname', None, '', 'lastname'),
+            DisplayColumn('Number', 'office_number', None, 'telephoneNumber'),
+            DisplayColumn('Favorite', 'favorite', None, None),
+        ]
+        formatter = _ResultFormatter(display)
+
+        result = formatter.format_results([result1, result2], {'my_source': ['2'],
+                                                               'my_other_source': ['1', '2', '3']})
+
+        assert_that(result, has_entry('results', contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', False)),
+            has_entry('column_values', contains('Bob', 'BBB', '5555556666', True)))))
