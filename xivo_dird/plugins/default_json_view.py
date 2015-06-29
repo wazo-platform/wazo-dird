@@ -97,7 +97,7 @@ class Lookup(AuthResource):
             }
             return error, 404
 
-        token = request.headers.get('X-Auth-Token', '')
+        token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
 
         raw_results = self.lookup_service(term, profile, args={})
