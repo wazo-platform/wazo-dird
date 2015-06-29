@@ -27,7 +27,6 @@ from mock import sentinel as s
 from xivo_dird import BaseService
 from xivo_dird.plugins.favorites_service import FavoritesServicePlugin
 from xivo_dird.plugins.favorites_service import _FavoritesService
-from xivo_dird.plugins.favorites_service import NoSuchFavorite
 
 
 class TestFavoritesServicePlugin(unittest.TestCase):
@@ -104,7 +103,7 @@ class TestFavoritesService(unittest.TestCase):
 
         service = _FavoritesService(config, sources)
 
-        results = service('my_profile', {'token': s.token, 'uuid': s.uuid})
+        results = service('my_profile', {'token': s.token, 'auth_id': s.auth_id})
 
         expected_results = [{'f': 1}, {'f': 3}]
 
@@ -143,7 +142,7 @@ class TestFavoritesService(unittest.TestCase):
 
         service = _FavoritesService(config, sources)
 
-        results = service('my_profile', {'token': s.token, 'uuid': s.uuid})
+        results = service('my_profile', {'token': s.token, 'auth_id': s.auth_id})
 
         expected_results = [{'f': 1}]
 
@@ -216,7 +215,7 @@ class TestFavoritesService(unittest.TestCase):
         ]
         service = _FavoritesService(config, sources)
 
-        result = service.favorites('my_profile', {'token': s.token, 'uuid': s.uuid})
+        result = service.favorites('my_profile', {'token': s.token, 'auth_id': s.auth_id})
 
         sources['source_1'].list.assert_called_once_with(['id1'])
         sources['source_2'].list.assert_called_once_with(['id2'])
@@ -227,8 +226,9 @@ class TestFavoritesService(unittest.TestCase):
     @patch('xivo_dird.plugins.favorites_service.Consul')
     def test_that_removing_unknown_favorites_raises_error(self, consul_init):
         consul_init.return_value.kv.get.return_value = (None, None)
-        service = _FavoritesService({}, {})
+        service = _FavoritesService({'consul': {'host': 'localhost'}}, {})
 
-        self.assertRaises(NoSuchFavorite, service.remove_favorite, 'unknown_source', 'unknown_contact')
+        self.assertRaises(service.NoSuchFavorite, service.remove_favorite,
+                          'unknown_source', 'unknown_contact', {'token': s.token, 'auth_id': s.auth_id})
 
         service.stop()
