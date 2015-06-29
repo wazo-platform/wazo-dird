@@ -18,10 +18,12 @@
 import logging
 
 from collections import namedtuple
+from flask import request
 from flask_restful import reqparse
 from time import time
 
 from xivo_dird import BaseViewPlugin
+from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
 from xivo_dird.core.rest_api import api
 
@@ -113,7 +115,10 @@ class FavoritesRead(AuthResource):
 
         display = self.displays[profile]
 
-        raw_results = self.favorites_service(profile)
+        token = request.headers.get('X-Auth-Token', '')
+        token_infos = auth.client().token.get(token)
+
+        raw_results = self.favorites_service.favorites(profile, token_infos)
         return format_results(raw_results, display)
 
 
@@ -126,12 +131,26 @@ class FavoritesWrite(AuthResource):
         cls.favorites_service = favorites_service
 
     def put(self, directory, contact):
-        self.favorites_service.new_favorite(directory, contact)
+        token = request.headers.get('X-Auth-Token', '')
+        token_infos = auth.client().token.get(token)
+
+        self.favorites_service.new_favorite(directory, contact, token_infos)
         return '', 204
 
     def delete(self, directory, contact):
-        self.favorites_service.remove_favorite(directory, contact)
-        return '', 204
+        token = request.headers.get('X-Auth-Token', '')
+        token_infos = auth.client().token.get(token)
+
+        try:
+            self.favorites_service.remove_favorite(directory, contact, token_infos)
+            return '', 204
+        except self.favorites_service.NoSuchFavorite as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
 
 
 def format_results(results, display):

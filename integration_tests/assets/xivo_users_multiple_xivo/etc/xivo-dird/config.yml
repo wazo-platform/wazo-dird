@@ -50,3 +50,7 @@ rest_api:
 auth:
     host: auth
     port: 9497
+
+consul:
+    host: consul
+    port: 8500

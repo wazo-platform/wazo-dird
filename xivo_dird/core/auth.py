@@ -33,15 +33,14 @@ def verify_token(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         token = request.headers.get('X-Auth-Token', '')
-        auth_host = current_app.config['auth']['host']
-        auth_port = current_app.config['auth']['port']
-        auth_client = Client(auth_host, auth_port)
 
         try:
-            token_is_valid = auth_client.token.is_valid(token)
+            token_is_valid = client().token.is_valid(token)
         except requests.RequestException as e:
+            auth_host = current_app.config['auth']['host']
+            auth_port = current_app.config['auth']['port']
             message = 'Could not connect to authentication server on {host}:{port}: {error}'.format(host=auth_host, port=auth_port, error=e)
-            logger.error(message)
+            logger.exception(message)
             return {
                 'reason': [message],
                 'timestamp': [time()],
@@ -53,6 +52,12 @@ def verify_token(func):
 
         abort(401)
     return wrapper
+
+
+def client():
+    auth_host = current_app.config['auth']['host']
+    auth_port = current_app.config['auth']['port']
+    return Client(auth_host, auth_port)
 
 
 class AuthResource(Resource):

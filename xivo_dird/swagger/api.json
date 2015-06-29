@@ -226,6 +226,12 @@
                     "204": {
                         "description": "Favorite removed."
                     },
+                    "404": {
+                        "description": "Favorite does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
                     "503": {
                         "description": "The authentication server is unreachable.",
                         "schema": {

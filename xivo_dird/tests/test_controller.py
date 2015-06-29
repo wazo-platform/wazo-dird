@@ -53,7 +53,7 @@ class TestController(TestCase):
 
         Controller(config)
 
-        self.load_services.assert_called_once_with(s.config, s.enabled, ANY)
+        self.load_services.assert_called_once_with(config, s.enabled, ANY)
 
     def test_del_unloads_services(self):
         config = self._create_config()

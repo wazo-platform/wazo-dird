@@ -30,7 +30,7 @@ class Controller(object):
         self.rest_api.app.config['auth'] = config['auth']
         self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
                                                    self.config['source_config_dir'])
-        self.services = plugin_manager.load_services(self.config['services'],
+        self.services = plugin_manager.load_services(self.config,
                                                      self.config['enabled_plugins']['services'],
                                                      self.sources)
         plugin_manager.load_views(self.config['views'],

@@ -106,8 +106,8 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def favorites(self, profile):
-        response = self.get_favorites_result(profile, token='valid-token')
+    def favorites(self, profile, token='valid-token'):
+        response = self.get_favorites_result(profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
@@ -118,8 +118,8 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def put_favorite(self, directory, contact):
-        response = self.put_favorite_result(directory, contact, token='valid-token')
+    def put_favorite(self, directory, contact, token='valid-token'):
+        response = self.put_favorite_result(directory, contact, token=token)
         assert_that(response.status_code, equal_to(204))
 
     def delete_favorite_result(self, directory, contact, token=None):
