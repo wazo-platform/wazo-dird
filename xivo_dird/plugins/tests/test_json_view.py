@@ -18,13 +18,14 @@
 import unittest
 
 from hamcrest import assert_that
+from hamcrest import contains
+from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entries
+from hamcrest import has_entry
 from mock import ANY
 from mock import Mock
 from mock import patch
-from mock import sentinel
-from werkzeug.exceptions import HTTPException
 
 from xivo_dird import make_result_class
 from xivo_dird.plugins.default_json_view import DisplayColumn
@@ -187,8 +188,8 @@ class TestFormatResult(unittest.TestCase):
                                      'firstname': 'Alice',
                                      'lastname': 'AAA',
                                      'telephoneNumber': '5555555555'},
-                                    self.xivo_id, None, 1, None)
-        result2 = self.SourceResult({'id': 2,
+                                    self.xivo_id, None, None, None)
+        result2 = self.SourceResult({'id': 'user_id',
                                      'firstname': 'Bob',
                                      'lastname': 'BBB',
                                      'telephoneNumber': '5555556666'},
@@ -209,7 +210,7 @@ class TestFormatResult(unittest.TestCase):
                 'column_values': ['Alice', 'AAA', None, '5555555555', 'Canada'],
                 'relations': {'xivo_id': self.xivo_id,
                               'agent_id': None,
-                              'user_id': 1,
+                              'user_id': None,
                               'endpoint_id': None,
                               'source_entry_id': '1'},
                 'source': self.source_name,
@@ -220,7 +221,7 @@ class TestFormatResult(unittest.TestCase):
                               'agent_id': 'agent_id',
                               'user_id': 'user_id',
                               'endpoint_id': 'endpoint_id',
-                              'source_entry_id': '2'},
+                              'source_entry_id': 'user_id'},
                 'source': self.source_name,
             },
         ]))
@@ -247,23 +248,6 @@ class TestFormatResult(unittest.TestCase):
         result = formatter.format_results([result1, result2], {'my_source': ['2'],
                                                                'my_other_source': ['1', '2', '3']})
 
-        assert_that(result, has_entries('results', [
-            {
-                'column_values': ['Alice', 'AAA', '5555555555', False],
-                'relations': {'xivo_id': self.xivo_id,
-                              'agent_id': None,
-                              'user_id': 1,
-                              'endpoint_id': None,
-                              'source_entry_id': '1'},
-                'source': self.source_name,
-            },
-            {
-                'column_values': ['Bob', 'BBB', '5555556666', True],
-                'relations': {'xivo_id': self.xivo_id,
-                              'agent_id': 'agent_id',
-                              'user_id': 2,
-                              'endpoint_id': 'endpoint_id',
-                              'source_entry_id': '2'},
-                'source': self.source_name,
-            },
-        ]))
+        assert_that(result, has_entry('results', contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', False)),
+            has_entry('column_values', contains('Bob', 'BBB', '5555556666', True)))))
