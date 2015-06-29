@@ -42,8 +42,9 @@ consul:
 
 enabled_plugins:
     backends:
-        - sample
+        - xivo
     services:
+        - favorites
         - lookup
     views:
         - default_json
@@ -66,6 +67,10 @@ views:
                 title: Description
                 default:
                 field: description
+            -
+                title: Favorite
+                field: favorite
+                type: favorite
     profile_to_display:
         default: default_display
 
@@ -73,5 +78,9 @@ services:
     lookup:
         default:
             sources:
-                - my_sample
+                - xivo_users
             timeout: 0.5
+    favorites:
+        default:
+            sources:
+                - xivo_users

@@ -1,0 +1,14 @@
+type: xivo
+name: xivo_users
+unique_column: id
+searched_columns:
+  - firstname
+  - lastname
+source_to_display_columns:
+    exten: number
+confd_config:
+  https: false
+  host: 127.0.0.1
+  port: 9487
+  version: 1.1
+  timeout: 1
