@@ -30,7 +30,7 @@ def token_get(token):
 
     return jsonify({
         'data': {
-            'uuid': tokens[token],
+            'auth_id': tokens[token],
             'token': token
         }
     })
