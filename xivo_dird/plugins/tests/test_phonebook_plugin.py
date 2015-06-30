@@ -216,7 +216,11 @@ class TestPhonebookResultConverter(unittest.TestCase):
 
     def setUp(self):
         self.name = 'foo'
-        self.source_to_display = {'phonebook.firstname': 'firstname', 'phonebook.lastname': 'lastname'}
+        self.source_to_display = {
+            'phonebook.firstname': 'firstname',
+            'phonebook.lastname': 'lastname',
+            'phonebooknumber.office.number': 'number',
+        }
         self.pbook_config = Mock(_PhonebookConfig)
         self.pbook_config.name.return_value = self.name
         self.pbook_config.source_to_display.return_value = self.source_to_display
@@ -236,7 +240,21 @@ class TestPhonebookResultConverter(unittest.TestCase):
                 }
             },
         }
-        expected_result = self.SourceResult({'firstname': 'Alice', 'lastname': 'Wonder'})
+        expected_result = self.SourceResult({'firstname': 'Alice', 'lastname': 'Wonder', 'number': '111'})
+
+        result = self.pbook_result_converter.convert(raw_result)
+
+        self.assertEqual(expected_result, result)
+
+    def test_convert_value_false_doesnt_raise(self):
+        raw_result = {
+            'phonebook': {
+                'firstname': 'Alice',
+                'lastname': 'Wonder',
+            },
+            'phonebooknumber': False,
+        }
+        expected_result = self.SourceResult({'firstname': 'Alice', 'lastname': 'Wonder', 'number': None})
 
         result = self.pbook_result_converter.convert(raw_result)
 
@@ -248,7 +266,7 @@ class TestPhonebookResultConverter(unittest.TestCase):
                 'firstname': 'Alice',
             },
         }
-        expected_result = self.SourceResult({'firstname': 'Alice', 'lastname': None})
+        expected_result = self.SourceResult({'firstname': 'Alice', 'lastname': None, 'number': None})
 
         result = self.pbook_result_converter.convert(raw_result)
 
@@ -261,7 +279,7 @@ class TestPhonebookResultConverter(unittest.TestCase):
                 'lastname': 'Wonder',
             },
         }]
-        expected_results = [self.SourceResult({'firstname': 'Alice', 'lastname': 'Wonder'})]
+        expected_results = [self.SourceResult({'firstname': 'Alice', 'lastname': 'Wonder', 'number': None})]
 
         results = self.pbook_result_converter.convert_all(raw_results)
 
