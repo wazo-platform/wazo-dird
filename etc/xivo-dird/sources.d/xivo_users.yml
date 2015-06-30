@@ -6,6 +6,7 @@ searched_columns:
   - lastname
 source_to_display_columns:
     exten: number
+    mobile_phone_number: mobile
 confd_config:
   https: false
   host: 127.0.0.1

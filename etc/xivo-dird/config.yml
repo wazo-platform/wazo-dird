@@ -55,18 +55,20 @@ views:
         default_display:
             -
                 title: Firstname
-                default: Unknown
                 field: firstname
                 type: name
             -
                 title: Lastname
-                default: Unknown
                 field: lastname
                 type: name
             -
-                title: Description
-                default:
-                field: description
+                title: Number
+                field: number
+                type: number
+            -
+                title: Mobile
+                field: mobile
+                type: mobile
             -
                 title: Favorite
                 field: favorite
