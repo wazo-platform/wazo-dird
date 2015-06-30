@@ -144,7 +144,7 @@ class _Fetcher(object):
             logger.warning('Phonebook "%s": could not map %r: no such key', self._name, self._key)
             return None
         except TypeError as e:
-            if v != False:
+            if v is not False:
                 logger.warning('Phonebook "%s": could not map %r: type error: %s', self._name, self._key, e)
             return None
         return v
