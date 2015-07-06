@@ -13,7 +13,7 @@ dird:
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
     - "./src:/usr/src/xivo-dird"
-    - "../_common/ssl:/etc/ssl"
+    - "./ssl:/etc/ssl"
   links:
     - "america"
     - "asia"

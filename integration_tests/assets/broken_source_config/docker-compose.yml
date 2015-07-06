@@ -14,7 +14,7 @@ dird:
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
     - "./src:/usr/src/xivo-dird"
-    - "../_common/ssl:/etc/ssl"
+    - "./ssl:/etc/ssl"
     - "./tmp/data/:/tmp/data"
 auth:
   image: xivo-auth-mock
@@ -22,5 +22,5 @@ auth:
     - "9497:9497"
   volumes:
     - "./auth_data:/tmp"
-    - "../_common/ssl:/etc/ssl"
+    - "./ssl:/etc/ssl"
   command: "python /tmp/mock-xivo-auth.py 9497"
