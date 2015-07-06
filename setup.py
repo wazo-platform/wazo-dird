@@ -29,6 +29,7 @@ setup(
             'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
         ],
         'xivo_dird.backends': [
+            'broken = xivo_dird.plugins.broken_backend:BrokenPlugin',
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
             'ldap = xivo_dird.plugins.ldap_plugin:LDAPPlugin',
             'phonebook = xivo_dird.plugins.phonebook_plugin:PhonebookPlugin',
