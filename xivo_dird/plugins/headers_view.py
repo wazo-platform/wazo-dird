@@ -75,12 +75,15 @@ def make_displays(view_config):
 
 
 def _make_display_from_name(view_config, display_name):
+    if display_name not in view_config['displays']:
+        logger.warning('Display `%s` is not defined.', display_name)
+    display = view_config['displays'].get(display_name, [])
     return [
-        DisplayColumn(display.get('title'),
-                      display.get('type'),
-                      display.get('default'),
-                      display.get('field'))
-        for display in view_config['displays'][display_name]
+        DisplayColumn(column.get('title'),
+                      column.get('type'),
+                      column.get('default'),
+                      column.get('field'))
+        for column in display
     ]
 
 DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
