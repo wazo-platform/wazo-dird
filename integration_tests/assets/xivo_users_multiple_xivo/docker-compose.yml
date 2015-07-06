@@ -15,6 +15,7 @@ dird:
     - "9489:9489"
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
+    - "./src:/usr/src/xivo-dird"
     - "../_common/ssl:/etc/ssl"
   links:
     - auth
