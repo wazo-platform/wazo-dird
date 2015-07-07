@@ -1,18 +1,9 @@
-FROM debian:latest
+FROM python:2.7
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get -qq update
-RUN apt-get -qq -y install apt-utils
-RUN apt-get -qq -y install \
-     build-essential \
-     python \
-     python-pip \
-     git \
-     libpq-dev \
-     libldap2-dev \
-     libsasl2-dev \
-     python-dev
+RUN apt-get -yq update \
+   && apt-get -yqq dist-upgrade \
+   && apt-get -yqq install libldap2-dev libsasl2-dev \
+   && apt-get -yq autoremove
 
 RUN mkdir -p /etc/xivo-dird/conf.d
 
@@ -26,7 +17,7 @@ ADD . /usr/src/xivo-dird
 ADD ./contribs/docker/certs /usr/share/xivo-certs
 WORKDIR /usr/src/xivo-dird
 RUN pip install -r requirements.txt
-RUN rsync -av etc/ /etc
+RUN cp -r etc/* /etc
 
 RUN python setup.py install
 
