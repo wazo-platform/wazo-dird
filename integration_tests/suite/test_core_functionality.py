@@ -68,6 +68,21 @@ class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):
                     contains_inanyorder(*expected_results))
 
 
+class TestBrokenDisplayConfig(BaseDirdIntegrationTest):
+
+    asset = 'broken_display_config'
+
+    def test_given_a_broken_display_config_when_headers_then_does_not_break_the_other_displays(self):
+        result = self.headers('default')
+
+        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
+
+    def test_given_a_broken_display_config_when_lookup_then_does_not_break_the_other_displays(self):
+        result = self.lookup('lice', 'default')
+
+        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
+
+
 class TestDisplay(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'

@@ -44,7 +44,7 @@ _DEFAULT_CONFIG = {
     'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
     'rest_api': {
         'listen': '0.0.0.0',
-        'port': '9489',
+        'port': 9489,
         'certificate': '/usr/share/xivo-certs/server.crt',
         'private_key': '/usr/share/xivo-certs/server.key',
         'cors': {
