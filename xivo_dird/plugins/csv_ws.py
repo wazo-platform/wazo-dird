@@ -31,10 +31,12 @@ class CSVWSPlugin(BaseSourcePlugin):
     def load(self, config):
         logger.debug('Loading with %s', config)
 
+        self._list_url = config['config'].get('list_url')
         self._lookup_url = config['config']['lookup_url']
+        self._unique_column = config['config'].get(self.UNIQUE_COLUMN)
         self._SourceResult = make_result_class(
             config['config']['name'],
-            config['config'].get(self.UNIQUE_COLUMN),
+            self._unique_column,
             config['config'].get(self.SOURCE_TO_DISPLAY, {}))
         self._timeout = config['config'].get('timeout', 10)
         self._delimiter = config['config'].get('delimiter', ',')
@@ -50,6 +52,19 @@ class CSVWSPlugin(BaseSourcePlugin):
 
         for result in self._reader.from_text(response.text):
             yield self._SourceResult(result)
+
+    def list(self, source_entry_ids):
+        if not (self._unique_column and self._list_url):
+            return
+
+        response = requests.get(self._list_url, timeout=self._timeout)
+
+        if response.status_code != 200:
+            return
+
+        for result in self._reader.from_text(response.text):
+            if result.get(self._unique_column) in source_entry_ids:
+                yield self._SourceResult(result)
 
 
 class _CSVReader(object):

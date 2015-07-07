@@ -17,7 +17,8 @@
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
-from hamcrest import assert_that, contains, has_length
+from hamcrest import (assert_that, contains, contains_inanyorder,
+                      has_entry, has_length)
 
 
 class TestCSVWSBackend(BaseDirdIntegrationTest):
@@ -27,10 +28,19 @@ class TestCSVWSBackend(BaseDirdIntegrationTest):
     def test_that_searching_for_ali_returns_alice(self):
         results = self.lookup('ali', 'default')
 
-        assert_that(results['results'][0]['column_values'],
-                    contains('Alice', 'Smith', '5551231111'))
+        assert_that(results['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'Smith', '5551231111', False))))
 
     def test_that_no_result_returns_an_empty_list(self):
         results = self.lookup('henry', 'default')
 
         assert_that(results['results'], has_length(0))
+
+    def test_that_results_can_be_favorited(self):
+        self.put_favorite('my_csv', '42')
+
+        result = self.favorites('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Bob', 'Malone', '5551232222', True),)
+        ))

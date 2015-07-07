@@ -3,6 +3,7 @@ enabled_plugins:
         - csv_ws
     services:
         - lookup
+        - favorites
     views:
         - default_json
 
@@ -21,6 +22,9 @@ views:
                 title: Number
                 default:
                 field: number
+            -
+                field: favorite
+                type: favorite
     profile_to_display:
         default: default_display
 
@@ -30,6 +34,10 @@ services:
             sources:
                 - my_csv
             timeout: 0.5
+    favorites:
+        default:
+            sources:
+                - my_csv
 
 rest_api:
        listen: 0.0.0.0
@@ -40,3 +48,7 @@ rest_api:
 auth:
     host: auth
     port: 9497
+
+consul:
+    host: consul
+    port: 8500

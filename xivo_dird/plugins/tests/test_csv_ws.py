@@ -19,6 +19,7 @@ import unittest
 
 from xivo_dird.plugins.csv_ws import CSVWSPlugin
 
+from hamcrest import assert_that, is_, empty
 from mock import patch
 from mock import sentinel as s
 
@@ -45,3 +46,43 @@ class TestCSVWSPlugin(unittest.TestCase):
         list(source.search(term))
 
         mocked_requests.get.assert_called_once_with(expected_url, timeout=s.timeout)
+
+    def test_that_list_returns_an_empty_list_if_no_unique_column(self):
+        config = {'config': {'lookup_url': 'the_lookup_url',
+                             'name': 'my-ws-source',
+                             'timeout': s.timeout}}
+
+        source = CSVWSPlugin()
+        source.load(config)
+
+        result = list(source.list([1, 2, 3]))
+
+        assert_that(result, is_(empty()))
+
+    def test_that_list_returns_an_empty_list_if_no_list_url(self):
+        config = {'config': {'lookup_url': 'the_lookup_url',
+                             'unique_column': 'id',
+                             'name': 'my-ws-source',
+                             'timeout': s.timeout}}
+
+        source = CSVWSPlugin()
+        source.load(config)
+
+        result = list(source.list([1, 2, 3]))
+
+        assert_that(result, is_(empty()))
+
+    @patch('xivo_dird.plugins.csv_ws.requests')
+    def test_that_list_queries_the_list_url(self, mocked_requests):
+        config = {'config': {'list_url': 'the_list_url',
+                             'lookup_url': 'the_lookup_url',
+                             'unique_column': 'id',
+                             'name': 'my-ws-source',
+                             'timeout': s.timeout}}
+
+        source = CSVWSPlugin()
+        source.load(config)
+
+        list(source.list([1, 2, 3]))
+
+        mocked_requests.get.assert_called_once_with('the_list_url', timeout=s.timeout)
