@@ -36,13 +36,14 @@ class CSVWSPlugin(BaseSourcePlugin):
             config['config']['name'],
             config['config'].get(self.UNIQUE_COLUMN),
             config['config'].get(self.SOURCE_TO_DISPLAY, {}))
+        self._timeout = config['config'].get('timeout', 10)
         self._delimiter = config['config'].get('delimiter', ',')
         self._reader = _CSVReader(self._delimiter)
 
     def search(self, term, profile=None, args=None):
         url = self._lookup_url.format(term=term)
 
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=self._timeout)
 
         if response.status_code != 200:
             return
