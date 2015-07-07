@@ -18,8 +18,8 @@
 import csv
 import logging
 import requests
-import StringIO
 
+from itertools import izip
 from xivo_dird import BaseSourcePlugin
 from xivo_dird import make_result_class
 
@@ -32,7 +32,7 @@ class CSVWSPlugin(BaseSourcePlugin):
         logger.debug('Loading with %s', config)
 
         self._list_url = config['config'].get('list_url')
-        self._lookup_url = config['config']['lookup_url']
+        self._lookup_url = unicode(config['config']['lookup_url'])
         self._unique_column = config['config'].get(self.UNIQUE_COLUMN)
         self._SourceResult = make_result_class(
             config['config']['name'],
@@ -73,8 +73,19 @@ class _CSVReader(object):
         self._delimiter = delimiter
 
     def from_text(self, raw):
-        file_object = StringIO.StringIO(raw)
-        reader = csv.reader(file_object, delimiter=self._delimiter)
+        reader = unicode_csv_reader(raw, delimiter=self._delimiter)
         headers = next(reader)
         for result in reader:
-            yield dict(zip(headers, result))
+            yield dict(izip(headers, result))
+
+
+def unicode_csv_reader(unicode_data, **kwargs):
+    csv_reader = csv.reader(utf_8_encoder(unicode_data), **kwargs)
+    for row in csv_reader:
+        yield [unicode(field, 'utf-8') for field in row]
+
+
+def utf_8_encoder(unicode_data):
+    encoded_data = unicode_data.encode('utf-8')
+    for line in encoded_data.split('\n'):
+        yield line

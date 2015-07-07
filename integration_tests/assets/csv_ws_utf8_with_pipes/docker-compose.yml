@@ -25,7 +25,7 @@ ws:
     - "8080:8080"
   volumes:
     - "./scripts/ws.py:/tmp/ws.py"
-  command: "python /tmp/ws.py '|'"
+  command: "python /tmp/ws.py '|' 'utf-8'"
 auth:
   image: xivo-auth-mock
   ports:

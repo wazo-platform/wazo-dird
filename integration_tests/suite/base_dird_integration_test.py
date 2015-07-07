@@ -76,7 +76,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         cls.stop_dird_with_asset()
 
     def get_lookup_result(self, term, profile, token=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}?term={term}'
+        url = u'https://localhost:9489/0.1/directories/lookup/{profile}?term={term}'
         result = requests.get(url.format(profile=profile, term=term),
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
@@ -88,7 +88,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.json()
 
     def get_headers_result(self, profile, token=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/headers'
+        url = u'https://localhost:9489/0.1/directories/lookup/{profile}/headers'
         result = requests.get(url.format(profile=profile),
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
@@ -100,7 +100,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.json()
 
     def get_favorites_result(self, profile, token=None):
-        url = 'https://localhost:9489/0.1/directories/favorites/{profile}'
+        url = u'https://localhost:9489/0.1/directories/favorites/{profile}'
         result = requests.get(url.format(profile=profile),
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
@@ -112,7 +112,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.json()
 
     def put_favorite_result(self, directory, contact, token=None):
-        url = 'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
+        url = u'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
         result = requests.put(url.format(directory=directory, contact=contact),
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
@@ -123,7 +123,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         assert_that(response.status_code, equal_to(204))
 
     def delete_favorite_result(self, directory, contact, token=None):
-        url = 'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
+        url = u'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
         result = requests.delete(url.format(directory=directory, contact=contact),
                                  headers={'X-Auth-Token': token},
                                  verify=CA_CERT)

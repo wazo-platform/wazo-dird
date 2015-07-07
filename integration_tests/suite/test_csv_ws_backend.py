@@ -25,11 +25,11 @@ class TestCSVWSBackend(BaseDirdIntegrationTest):
 
     asset = 'csv_ws_utf8_with_pipes'
 
-    def test_that_searching_for_ali_returns_alice(self):
-        results = self.lookup('ali', 'default')
+    def test_that_searching_for_result_with_non_ascii(self):
+        results = self.lookup(u'dré', 'default')
 
-        assert_that(results['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'Smith', '5551231111', False))))
+        assert_that(results['results'][0],
+                    has_entry('column_values', contains(u'Andrée-Anne', 'Smith', '5551231111', False)))
 
     def test_that_no_result_returns_an_empty_list(self):
         results = self.lookup('henry', 'default')
@@ -42,5 +42,5 @@ class TestCSVWSBackend(BaseDirdIntegrationTest):
         result = self.favorites('default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Bob', 'Malone', '5551232222', True),)
+            has_entry('column_values', contains(u'Benoît', 'Malone', '5551232222', True),)
         ))
