@@ -17,7 +17,7 @@
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
-from hamcrest import assert_that, contains
+from hamcrest import assert_that, contains, has_length
 
 
 class TestCSVWSBackend(BaseDirdIntegrationTest):
@@ -29,3 +29,8 @@ class TestCSVWSBackend(BaseDirdIntegrationTest):
 
         assert_that(results['results'][0]['column_values'],
                     contains('Alice', 'Smith', '5551231111'))
+
+    def test_that_no_result_returns_an_empty_list(self):
+        results = self.lookup('henry', 'default')
+
+        assert_that(results['results'], has_length(0))

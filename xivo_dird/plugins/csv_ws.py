@@ -37,16 +37,28 @@ class CSVWSPlugin(BaseSourcePlugin):
             config['config'].get(self.UNIQUE_COLUMN),
             config['config'].get(self.SOURCE_TO_DISPLAY, {}))
         self._delimiter = config['config'].get('delimiter', ',')
+        self._reader = _CSVReader(self._delimiter)
 
     def search(self, term, profile=None, args=None):
         url = self._lookup_url.format(term=term)
 
         response = requests.get(url, timeout=5)
-        logger.debug('Response %s', response.text)
-        f = StringIO.StringIO(response.text)
-        cr = csv.reader(f, delimiter=self._delimiter)
-        headers = next(cr)
-        for result in cr:
-            d = dict(zip(headers, result))
-            logger.debug('d = %s', d)
-            yield self._SourceResult(d)
+
+        if response.status_code != 200:
+            return
+
+        for result in self._reader.from_text(response.text):
+            yield self._SourceResult(result)
+
+
+class _CSVReader(object):
+
+    def __init__(self, delimiter):
+        self._delimiter = delimiter
+
+    def from_text(self, raw):
+        file_object = StringIO.StringIO(raw)
+        reader = csv.reader(file_object, delimiter=self._delimiter)
+        headers = next(reader)
+        for result in reader:
+            yield dict(zip(headers, result))
