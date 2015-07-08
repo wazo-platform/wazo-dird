@@ -1,0 +1,11 @@
+type: csv
+name: csv
+file: /tmp/data/test.csv
+searched_columns:
+    - fn
+    - ln
+unique_column: id
+source_to_display_columns:
+    fn: firstname
+    ln: lastname
+    num: number

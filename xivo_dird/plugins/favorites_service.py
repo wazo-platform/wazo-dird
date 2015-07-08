@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 ContactID = namedtuple('ContactID', ['source', 'id'])
 
-FAVORITES_SOURCE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}'
+FAVORITES_SOURCE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}/'
 FAVORITE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}/{contact_id}'
 
 

@@ -25,7 +25,7 @@ def response(data, code=200):
     return _response
 
 
-@app.route("/v1/kv/xivo/private/<uuid>/contacts/favorites/<source>", methods=['GET'])
+@app.route("/v1/kv/xivo/private/<uuid>/contacts/favorites/<source>/", methods=['GET'])
 def kv_list(uuid, source):
     if acl.get(request.args['token'], None) != uuid:
         return response('', 401)
