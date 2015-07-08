@@ -12,6 +12,6 @@ psycopg2
 pyaml
 python-consul==0.3.18
 python-ldap
-requests
+requests==2.0.0
 sqlalchemy
 stevedore
