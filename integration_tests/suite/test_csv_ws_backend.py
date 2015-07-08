@@ -44,3 +44,27 @@ class TestCSVWSBackend(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'Benoît', 'Malone', '5551232222', True),)
         ))
+
+
+class TestCSVWSBackend2(BaseDirdIntegrationTest):
+
+    asset = 'csv_ws_iso88591_with_coma'
+
+    def test_that_searching_for_result_with_non_ascii(self):
+        results = self.lookup(u'dré', 'default')
+
+        assert_that(results['results'][0],
+                    has_entry('column_values', contains(u'Andrée-Anne', 'Smith', '5551231111', False)))
+
+    def test_that_no_result_returns_an_empty_list(self):
+        results = self.lookup('henry', 'default')
+
+        assert_that(results['results'], has_length(0))
+
+    def test_that_results_can_be_favorited(self):
+        self.put_favorite('my_csv', '42')
+
+        result = self.favorites('default')
+
+        first_result = result['results'][0]['column_values']
+        assert_that(first_result, contains(u'Benoît', 'Malone', '5551232222', True))
