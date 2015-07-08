@@ -48,23 +48,23 @@ class CSVWSPlugin(BaseSourcePlugin):
         response = requests.get(url, timeout=self._timeout)
 
         if response.status_code != 200:
-            return
+            return []
 
-        for result in self._reader.from_text(response.text):
-            yield self._SourceResult(result)
+        return [self._SourceResult(result)
+                for result in self._reader.from_text(response.text)]
 
     def list(self, source_entry_ids):
         if not (self._unique_column and self._list_url):
-            return
+            return []
 
         response = requests.get(self._list_url, timeout=self._timeout)
 
         if response.status_code != 200:
-            return
+            return []
 
-        for result in self._reader.from_text(response.text):
-            if result.get(self._unique_column) in source_entry_ids:
-                yield self._SourceResult(result)
+        return [self._SourceResult(result)
+                for result in self._reader.from_text(response.text)
+                if result.get(self._unique_column) in source_entry_ids]
 
 
 class _CSVReader(object):

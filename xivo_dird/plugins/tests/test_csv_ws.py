@@ -43,7 +43,7 @@ class TestCSVWSPlugin(unittest.TestCase):
         source = CSVWSPlugin()
         source.load(config)
 
-        list(source.search(term))
+        source.search(term)
 
         mocked_requests.get.assert_called_once_with(expected_url, timeout=s.timeout)
 
@@ -55,7 +55,7 @@ class TestCSVWSPlugin(unittest.TestCase):
         source = CSVWSPlugin()
         source.load(config)
 
-        result = list(source.list([1, 2, 3]))
+        result = source.list([1, 2, 3])
 
         assert_that(result, is_(empty()))
 
@@ -68,7 +68,7 @@ class TestCSVWSPlugin(unittest.TestCase):
         source = CSVWSPlugin()
         source.load(config)
 
-        result = list(source.list([1, 2, 3]))
+        result = source.list([1, 2, 3])
 
         assert_that(result, is_(empty()))
 
@@ -83,6 +83,6 @@ class TestCSVWSPlugin(unittest.TestCase):
         source = CSVWSPlugin()
         source.load(config)
 
-        list(source.list([1, 2, 3]))
+        source.list([1, 2, 3])
 
         mocked_requests.get.assert_called_once_with('the_list_url', timeout=s.timeout)
