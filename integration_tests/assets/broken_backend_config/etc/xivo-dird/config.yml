@@ -30,7 +30,8 @@ services:
         default:
             sources:
                 - my_csv
-                - broken_csv
+                - my_broken
+                - broken_noname
 
 rest_api:
        listen: 0.0.0.0

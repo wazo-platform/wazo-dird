@@ -21,6 +21,7 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
 from hamcrest import contains
+from hamcrest import contains_string
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import is_in
@@ -84,6 +85,8 @@ class TestCoreSourceLoadingWithABrokenBackend(BaseDirdIntegrationTest):
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
+        assert_that(self.dird_logs(), contains_string('Failed to load back-end'))
+        assert_that(self.dird_logs(), contains_string('has no name'))
 
 
 class TestDisplay(BaseDirdIntegrationTest):
