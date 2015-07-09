@@ -21,6 +21,7 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
 from hamcrest import contains
+from hamcrest import contains_string
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import is_in
@@ -81,6 +82,26 @@ class TestBrokenDisplayConfig(BaseDirdIntegrationTest):
         result = self.lookup('lice', 'default')
 
         assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
+
+
+class TestCoreSourceLoadingWithABrokenBackend(BaseDirdIntegrationTest):
+
+    asset = 'broken_backend_config'
+
+    def test_with_a_broken_backend(self):
+        result = self.lookup('lice', 'default')
+
+        expected_results = [
+            {'column_values': ['Alice', 'AAA', '5555555555'],
+             'source': 'my_csv',
+             'relations': {'xivo_id': None, 'user_id': None,
+                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
+        ]
+
+        assert_that(result['results'],
+                    contains_inanyorder(*expected_results))
+        assert_that(self.dird_logs(), contains_string('Failed to load back-end'))
+        assert_that(self.dird_logs(), contains_string('has no name'))
 
 
 class TestDisplay(BaseDirdIntegrationTest):

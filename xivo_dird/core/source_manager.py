@@ -60,10 +60,16 @@ class SourceManager(object):
     def _load_sources_using_backend(self, extension, configs_by_backend):
         backend = extension.name
         for config in configs_by_backend[backend]:
-            source = extension.plugin()
-            source.name = config.get('name')
             try:
+                config_name = config['name']
+            except KeyError:
+                logger.warning('One of the config for back-end `%s` has no name. Ignoring.', backend)
+                logger.debug('Source config with no name: `%s`', config)
+                continue
+            try:
+                source = extension.plugin()
+                source.name = config_name
                 source.load({'config': config})
                 self._sources[source.name] = source
             except Exception:
-                logger.exception('Failed to load %s', source.name)
+                logger.exception('Failed to load back-end `%s` with config `%s`', extension.name, config_name)
