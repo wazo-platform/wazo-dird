@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2007-2014 Avencall
+# Copyright (C) 2007-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,8 +42,8 @@ class TestLDAPDirectoryDataSource(unittest.TestCase):
         result = self._ldap._decode_results(ldap_results)
 
         self.assertEquals(result, expected_result)
-        decode_entry.assert_was_called_with(ldap_results[0])
-        decode_entry.assert_was_called_with(ldap_results[1])
+        decode_entry.assert_any_call(ldap_results[0])
+        decode_entry.assert_any_call(ldap_results[1])
 
     def test_decode_entry(self):
         entry = ('dn=someóne,dn=somewhere', {'cn': ['anó nymous'],
@@ -73,8 +73,8 @@ class TestLDAPDirectoryDataSource(unittest.TestCase):
         result = self._ldap._decode_attributes(attributes)
 
         self.assertEqual(result, expected_result)
-        decode_values.assert_was_called_with(attributes['cn'])
-        decode_values.assert_was_called_with(attributes['sn'])
+        decode_values.assert_any_call(attributes['cn'])
+        decode_values.assert_any_call(attributes['sn'])
 
     def test_decode_values(self):
         values = ['anó nymous']
