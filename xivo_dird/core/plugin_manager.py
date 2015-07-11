@@ -49,8 +49,8 @@ def unload_services():
     services_extension_manager.map_method('unload')
 
 
-def load_sources(enabled_backends, source_config_dir):
-    return SourceManager(enabled_backends, source_config_dir).load_sources()
+def load_sources(enabled_backends, source_configs):
+    return SourceManager(enabled_backends, source_configs).load_sources()
 
 
 def load_views(config, enabled_views, services, rest_api):

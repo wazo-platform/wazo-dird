@@ -18,7 +18,7 @@
 import argparse
 
 from xivo.chain_map import ChainMap
-from xivo.config_helper import read_config_file_hierarchy
+from xivo.config_helper import parse_config_dir, read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
 _DEFAULT_CONFIG = {
@@ -56,6 +56,7 @@ _DEFAULT_CONFIG = {
     'source_config_dir': '/etc/xivo-dird/sources.d',
     'user': 'www-data',
     'views': {},
+    'sources': {},
 }
 
 
@@ -63,7 +64,22 @@ def load(argv):
     cli_config = _parse_cli_args(argv)
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
     reinterpreted_config = _get_reinterpreted_raw_values(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
-    return ChainMap(reinterpreted_config, cli_config, file_config, _DEFAULT_CONFIG)
+    source_dir_configuration = _load_source_config_dir(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
+    return ChainMap(reinterpreted_config, source_dir_configuration, cli_config, file_config, _DEFAULT_CONFIG)
+
+
+def _load_source_config_dir(config):
+    source_config_dir = config.get('source_config_dir')
+    if not source_config_dir:
+        return {}
+
+    source_configs = parse_config_dir(source_config_dir)
+    sources = {}
+    for source_config in source_configs:
+        source_name = source_config['name']
+        sources[source_name] = source_config
+
+    return {'sources': sources}
 
 
 def _parse_cli_args(argv):
