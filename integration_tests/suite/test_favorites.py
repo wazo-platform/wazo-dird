@@ -103,3 +103,17 @@ class TestFavoritesInLookupResults(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
+
+
+class TestFavoritesVisibilityInSimilarSources(BaseDirdIntegrationTest):
+
+    asset = 'similar_sources'
+
+    def test_that_favorites_are_only_visible_for_the_exact_source(self):
+        self.put_favorite('csv_2', '1', token='valid-token-1')
+
+        result = self.favorites('default', token='valid-token-1')
+
+        # No values from source 'csv', id '1'
+        assert_that(result['results'], contains(
+            has_entry('column_values', contains('Alice', 'Alan', '1111', True))))
