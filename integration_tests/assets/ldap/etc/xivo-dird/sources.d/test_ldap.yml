@@ -10,7 +10,7 @@ unique_column: entryUUID
 searched_columns:
   - cn
   - telephoneNumber
-source_to_display_columns:
-    givenName: firstname
-    sn: lastname
-    telephoneNumber: number
+format_columns:
+    firstname: "{givenName}"
+    lastname: "{sn}"
+    number: "{telephoneNumber}"
