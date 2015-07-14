@@ -137,3 +137,29 @@ class BaseDirdIntegrationTest(unittest.TestCase):
     def delete_favorite(self, directory, contact):
         response = self.delete_favorite_result(directory, contact, token='valid-token')
         assert_that(response.status_code, equal_to(204))
+
+    def post_private_result(self, private_infos, token=None):
+        url = 'https://localhost:9489/0.1/privates'
+        result = requests.post(url,
+                               data=json.dumps(private_infos),
+                               headers={'X-Auth-Token': token,
+                                        'Content-Type': 'application/json'},
+                               verify=CA_CERT)
+        return result
+
+    def post_private(self, private_infos, token='valid-token'):
+        response = self.post_private_result(private_infos, token)
+        assert_that(response.status_code, equal_to(201))
+        return response.json()
+
+    def get_privates_result(self, token=None):
+        url = 'https://localhost:9489/0.1/privates'
+        result = requests.get(url,
+                              headers={'X-Auth-Token': token},
+                              verify=CA_CERT)
+        return result
+
+    def get_privates(self, token='valid-token'):
+        response = self.get_privates_result(token)
+        assert_that(response.status_code, equal_to(200))
+        return response.json()

@@ -55,7 +55,7 @@ class TestAuthenticationErrro(BaseDirdIntegrationTest):
 
 class TestAuthenticationCoverage(BaseDirdIntegrationTest):
 
-    asset = 'csv_with_multiple_displays'
+    asset = 'all_routes'
 
     def test_auth_on_headers(self):
         result = self.get_headers_result('default')
@@ -79,5 +79,15 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
 
     def test_auth_on_favorite_delete(self):
         result = self.delete_favorite_result('source', 'contact')
+
+        assert_that(result.status_code, equal_to(401))
+
+    def test_auth_on_private_create(self):
+        result = self.post_private_result({})
+
+        assert_that(result.status_code, equal_to(401))
+
+    def test_auth_on_private_list(self):
+        result = self.get_privates_result()
 
         assert_that(result.status_code, equal_to(401))

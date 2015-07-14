@@ -1,4 +1,5 @@
 FROM xivo/xivo-dird
 
 ADD . /usr/src/xivo-dird
+WORKDIR /usr/src/xivo-dird
 RUN python setup.py develop
