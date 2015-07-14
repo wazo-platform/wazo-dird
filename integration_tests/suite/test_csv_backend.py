@@ -60,7 +60,7 @@ class TestCSVWithAccents(BaseDirdIntegrationTest):
     asset = 'csv_with_no_unique_column'
 
     def test_lookup_with_accents_in_term(self):
-        result = self.lookup('pép', 'default')
+        result = self.lookup(u'pép', 'default')
 
         assert_that(result['results'][0]['column_values'],
                     contains(u'Pépé', u'lol', u'555'))

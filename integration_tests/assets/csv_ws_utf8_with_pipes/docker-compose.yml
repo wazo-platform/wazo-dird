@@ -1,0 +1,43 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - auth
+    - dird
+    - consul
+    - ws
+  environment:
+    PORTS: "9489 9497 8500 8080"
+dird:
+  image: xivo-dird-test
+  links:
+    - auth
+    - ws
+    - consul
+  ports:
+    - "9489:9489"
+  volumes:
+    - "./etc/xivo-dird:/etc/xivo-dird"
+    - "../_common/ssl:/etc/ssl"
+    - "./tmp/data/:/tmp/data"
+ws:
+  image: nickstenning/flask
+  ports:
+    - "8080:8080"
+  volumes:
+    - "./scripts/ws.py:/tmp/ws.py"
+  command: "python /tmp/ws.py '|' 'utf-8'"
+auth:
+  image: xivo-auth-mock
+  ports:
+    - "9497:9497"
+  volumes:
+    - "./auth_data:/tmp"
+    - "../_common/ssl:/etc/ssl"
+  command: "python /tmp/mock-xivo-auth.py 9497"
+consul:
+  image: nickstenning/flask
+  expose:
+    - "8500"
+  volumes:
+    - "./consul_data:/tmp"
+  command: "python /tmp/mock-consul.py 8500"

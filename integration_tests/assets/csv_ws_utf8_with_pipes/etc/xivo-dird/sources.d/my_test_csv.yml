@@ -1,0 +1,6 @@
+type: csv_ws
+name: my_csv
+list_url: "http://ws:8080/ws"
+lookup_url: "http://ws:8080/ws?search={term}"
+delimiter: "|"
+unique_column: id
