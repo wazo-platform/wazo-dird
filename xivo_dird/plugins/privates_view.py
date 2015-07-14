@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import uuid
 
 from flask import request
 
@@ -41,6 +42,7 @@ class PrivateAll(AuthResource):
 
     def post(self):
         contact = request.json
+        contact['id'] = str(uuid.uuid4())
         self.contacts.append(contact)
         return contact, 201
 

@@ -18,10 +18,13 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
+from hamcrest import equal_to
 from hamcrest import has_entry
+from hamcrest import not_
 
 
 class TestAddPrivate(BaseDirdIntegrationTest):
+
     asset = 'privates_only'
 
     def test_that_created_privates_are_listed(self):
@@ -33,6 +36,17 @@ class TestAddPrivate(BaseDirdIntegrationTest):
         assert_that(result['items'], contains_inanyorder(
             has_entry('firstname', 'Alice'),
             has_entry('firstname', 'Bob')))
+
+
+class TestPrivateId(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_created_private_has_an_id(self):
+        alice = self.post_private({'firstname': 'Alice'}, token='valid-token')
+        bob = self.post_private({'firstname': 'Bob'}, token='valid-token')
+
+        assert_that(alice['id'], not_(equal_to(bob['id'])))
 
 # TODO
 # persistence
