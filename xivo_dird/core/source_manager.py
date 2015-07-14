@@ -49,19 +49,13 @@ class SourceManager(object):
 
     def _load_all_configs(self):
         for source_config in self._source_configs.itervalues():
-            source_type = source_config.get('type')
-            if source_type:
-                self._configs_by_backend[source_type].append(source_config)
+            source_type = source_config['type']
+            self._configs_by_backend[source_type].append(source_config)
 
     def _load_sources_using_backend(self, extension, configs_by_backend):
         backend = extension.name
         for config in configs_by_backend[backend]:
-            try:
-                config_name = config['name']
-            except KeyError:
-                logger.warning('One of the config for back-end `%s` has no name. Ignoring.', backend)
-                logger.debug('Source config with no name: `%s`', config)
-                continue
+            config_name = config['name']
             try:
                 source = extension.plugin()
                 source.name = config_name

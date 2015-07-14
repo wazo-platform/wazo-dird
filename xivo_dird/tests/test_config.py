@@ -18,8 +18,7 @@
 import logging
 
 from hamcrest import assert_that, has_entries, equal_to
-from mock import Mock
-from mock import patch
+from mock import Mock, patch, sentinel as s
 from unittest import TestCase
 
 from xivo_dird import config
@@ -37,39 +36,39 @@ class TestConfig(TestCase):
             'extra_config_files': '/etc/xivo-dird/conf.d/',
         }
 
-        result = config.load([])
+        result = config.load(s.logger, [])
 
         assert_that(result, has_entries(config._DEFAULT_CONFIG))
 
     def test_load_when_config_file_in_argv_then_read_config_from_file(self, _):
-        result = config.load(['-c', 'my_file'])
+        result = config.load(s.logger, ['-c', 'my_file'])
 
         assert_that(result['config_file'], equal_to('my_file'))
 
     def test_load_when_foreground_in_argv_then_ignore_default_value(self, mock_open):
         mock_open.side_effect = IOError('no such file')
 
-        result = config.load(['-f'])
+        result = config.load(s.logger, ['-f'])
 
         assert_that(result['foreground'], equal_to(True))
 
     def test_load_when_user_in_argv_then_ignore_default_value(self, mock_open):
         mock_open.side_effect = IOError('no such file')
 
-        result = config.load(['-u', 'my_user'])
+        result = config.load(s.logger, ['-u', 'my_user'])
 
         assert_that(result['user'], equal_to('my_user'))
 
     def test_load_when_debug_in_argv_then_ignore_default_value(self, mock_open):
         mock_open.side_effect = IOError('no such file')
 
-        result = config.load(['-d'])
+        result = config.load(s.logger, ['-d'])
 
         assert_that(result['debug'], equal_to(True))
 
     def test_load_when_log_level_in_argv_then_ignore_default_value(self, mock_open):
         mock_open.side_effect = IOError('no such file')
 
-        result = config.load(['-l', 'ERROR'])
+        result = config.load(s.logger, ['-l', 'ERROR'])
 
         assert_that(result['log_level'], equal_to(logging.ERROR))

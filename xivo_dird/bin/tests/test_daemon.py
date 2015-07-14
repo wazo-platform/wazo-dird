@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from hamcrest import assert_that, equal_to
-from mock import patch, sentinel as s
+from mock import ANY, patch, sentinel as s
 from unittest import TestCase
 
 from xivo_dird.bin import daemon
@@ -32,7 +32,7 @@ class TestXivoDird(TestCase):
     def test_main_injects_argv_into_config_loading(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
         daemon.main(s.argv)
 
-        load_config.assert_called_once_with(s.argv)
+        load_config.assert_called_once_with(ANY, s.argv)
 
     def test_main_injects_config_in_controller(self, load_config, controller_init, setup_logging, change_user, pidfile_context):
         config = load_config.return_value

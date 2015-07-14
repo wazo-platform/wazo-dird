@@ -21,6 +21,8 @@ from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_dir, read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
+logger = None
+
 _DEFAULT_CONFIG = {
     'auth': {
         'host': 'localhost',
@@ -60,7 +62,10 @@ _DEFAULT_CONFIG = {
 }
 
 
-def load(argv):
+def load(_logger, argv):
+    global logger
+    logger = _logger
+
     cli_config = _parse_cli_args(argv)
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
     reinterpreted_config = _get_reinterpreted_raw_values(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
@@ -76,7 +81,18 @@ def _load_source_config_dir(config):
     source_configs = parse_config_dir(source_config_dir)
     sources = {}
     for source_config in source_configs:
-        source_name = source_config['name']
+        source_type = source_config.get('type')
+        if not source_type:
+            logger.warning('One of the source config as no back-end type. Ignoring.')
+            logger.debug('Source config with no type: `%s`', config)
+            continue
+
+        source_name = source_config.get('name')
+        if not source_name:
+            logger.warning('One of the config for back-end `%s` has no name. Ignoring.', source_type)
+            logger.debug('Source config with no name: `%s`', config)
+            continue
+
         sources[source_name] = source_config
 
     return {'sources': sources}
