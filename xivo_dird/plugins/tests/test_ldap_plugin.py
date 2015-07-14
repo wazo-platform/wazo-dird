@@ -18,6 +18,8 @@
 import ldap
 import unittest
 
+from hamcrest import assert_that
+from hamcrest import contains_inanyorder
 from ldap.ldapobject import LDAPObject
 from mock import Mock, ANY, sentinel
 from xivo_dird.plugins.base_plugins import BaseSourcePlugin
@@ -259,7 +261,7 @@ class TestLDAPConfig(unittest.TestCase):
             },
         })
 
-        self.assertEqual(['givenName', 'sn'], ldap_config.attributes())
+        assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn'))
 
     def test_attributes_with_unique_column_and_source_to_display(self):
         ldap_config = _LDAPConfig({
@@ -270,7 +272,7 @@ class TestLDAPConfig(unittest.TestCase):
             BaseSourcePlugin.UNIQUE_COLUMN: 'uid'
         })
 
-        self.assertEqual(['givenName', 'sn', 'uid'], ldap_config.attributes())
+        assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn', 'uid'))
 
     def test_attributes_with_unique_column_in_source_to_display(self):
         ldap_config = _LDAPConfig({
@@ -281,7 +283,7 @@ class TestLDAPConfig(unittest.TestCase):
             BaseSourcePlugin.UNIQUE_COLUMN: 'sn'
         })
 
-        self.assertEqual(['givenName', 'sn'], ldap_config.attributes())
+        assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn'))
 
     def test_build_search_filter_with_searched_columns_and_without_custom_filter(self):
         ldap_config = _LDAPConfig({
