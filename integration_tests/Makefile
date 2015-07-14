@@ -1,4 +1,4 @@
-.PHONY: test-image test-setup clean sync-context
+.PHONY: test-setup clean sync-context
 
 test-setup:
 	docker pull python:2.7
