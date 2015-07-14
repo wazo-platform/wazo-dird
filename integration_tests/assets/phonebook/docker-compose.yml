@@ -12,7 +12,8 @@ dird:
     - "9489:9489"
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
-    - "../_common/ssl:/etc/ssl"
+    - "../../..:/usr/src/xivo-dird"
+    - "./ssl:/etc/ssl"
   links:
     - auth
     - phonebook
@@ -27,5 +28,5 @@ auth:
     - "9497:9497"
   volumes:
     - "./auth_data:/tmp"
-    - "../_common/ssl:/etc/ssl"
+    - "./ssl:/etc/ssl"
   command: "python /tmp/mock-xivo-auth.py 9497"

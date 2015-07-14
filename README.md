@@ -42,14 +42,10 @@ To build this image execute:
 
     % cd integration_tests
     % make test-setup
-    % make test-image
 
-There are two steps in preparing the integration tests:
-
-    - `make test-setup`: time consuming, but only needs to be run when
-      dependencies of xivo-dird change in any way.
-    - `make test-image`: a lot faster, and needs to be run when the code of
-      xivo-dird changes.
+`make test-setup` downloads a bunch of Docker images so it takes a long time,
+but it only needs to be run when dependencies of xivo-dird change in any way
+(new Python library, new server connection, etc.)
 
 To execute the integration tests execute:
 
