@@ -22,6 +22,7 @@ from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from ldap.ldapobject import LDAPObject
 from mock import Mock, ANY, sentinel
+from hamcrest import assert_that, contains_inanyorder
 from xivo_dird.plugins.base_plugins import BaseSourcePlugin
 from xivo_dird.plugins.ldap_plugin import _LDAPConfig, \
     _LDAPResultFormatter, _LDAPClient, LDAPPlugin, _LDAPFactory
@@ -155,19 +156,19 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertEqual(None, ldap_config.unique_column())
 
-    def test_source_to_display(self):
-        value = {'givenName': 'firstname'}
+    def test_format_columns(self):
+        value = {'firstname': '{givenName}'}
 
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SOURCE_TO_DISPLAY: value,
+            BaseSourcePlugin.FORMAT_COLUMNS: value,
         })
 
-        self.assertEqual(value, ldap_config.source_to_display())
+        self.assertEqual(value, ldap_config.format_columns())
 
-    def test_source_to_display_when_absent(self):
+    def test_format_columns_when_absent(self):
         ldap_config = _LDAPConfig({})
 
-        self.assertEqual(None, ldap_config.source_to_display())
+        self.assertEqual(None, ldap_config.format_columns())
 
     def test_ldap_uri(self):
         value = 'ldap://example.org'
@@ -253,32 +254,32 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertEquals(None, ldap_config.attributes())
 
-    def test_attributes_with_source_to_display(self):
+    def test_attributes_with_format_columns(self):
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SOURCE_TO_DISPLAY: {
-                'givenName': 'firstname',
-                'sn': 'lastname',
+            BaseSourcePlugin.FORMAT_COLUMNS: {
+                'firstname': '{givenName}',
+                'lastname': '{sn}',
             },
         })
 
         assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn'))
 
-    def test_attributes_with_unique_column_and_source_to_display(self):
+    def test_attributes_with_unique_column_and_format_columns(self):
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SOURCE_TO_DISPLAY: {
-                'givenName': 'firstname',
-                'sn': 'lastname',
+            BaseSourcePlugin.FORMAT_COLUMNS: {
+                'firstname': '{givenName}',
+                'lastname': '{sn}',
             },
             BaseSourcePlugin.UNIQUE_COLUMN: 'uid'
         })
 
         assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn', 'uid'))
 
-    def test_attributes_with_unique_column_in_source_to_display(self):
+    def test_attributes_with_unique_column_in_format_columns(self):
         ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SOURCE_TO_DISPLAY: {
-                'givenName': 'firstname',
-                'sn': 'lastname',
+            BaseSourcePlugin.FORMAT_COLUMNS: {
+                'firstname': '{givenName}',
+                'lastname': '{sn}',
             },
             BaseSourcePlugin.UNIQUE_COLUMN: 'sn'
         })
@@ -456,13 +457,13 @@ class TestLDAPResultFormatter(unittest.TestCase):
     def setUp(self):
         self.name = 'foo'
         self.unique_column = 'entryUUID'
-        self.source_to_display = {'givenName': 'firstname'}
+        self.format_columns = {'firstname': '{givenName}'}
         self.ldap_config = Mock(_LDAPConfig)
         self.ldap_config.name.return_value = self.name
         self.ldap_config.unique_column.return_value = self.unique_column
-        self.ldap_config.source_to_display.return_value = self.source_to_display
+        self.ldap_config.format_columns.return_value = self.format_columns
         self.ldap_result_formatter = _LDAPResultFormatter(self.ldap_config)
-        self.SourceResult = make_result_class(self.name, self.unique_column, self.source_to_display)
+        self.SourceResult = make_result_class(self.name, self.unique_column, self.format_columns)
 
     def test_format(self):
         raw_results = [

@@ -70,7 +70,7 @@ class BaseSourcePlugin(object):
 
     # These string are expected in the configuration
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in
-    SOURCE_TO_DISPLAY = 'source_to_display_columns'
+    FORMAT_COLUMNS = 'format_columns'
     UNIQUE_COLUMN = 'unique_column'  # This is the column that make an entry unique
 
     @abc.abstractmethod
@@ -94,8 +94,8 @@ class BaseSourcePlugin(object):
 
         The results should include the columns that are expected by the display.
         When columns from the source do not match the columns from the display,
-        the `source_to_display_columns` dictionary can be used by the administrator
-        to add new mapping.
+        the `format_columns` dictionary can be used by the administrator
+        to add or modify columns.
 
         If the backend has a `unique_column` configuration, a new column will be
         added with a `__unique_id` header containing the unique key.

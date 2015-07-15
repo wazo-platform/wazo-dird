@@ -17,6 +17,7 @@
 
 import unittest
 
+from hamcrest import assert_that, contains_inanyorder
 from mock import Mock, ANY, sentinel, patch
 from xivo_dird.plugins.base_plugins import BaseSourcePlugin
 from xivo_dird.plugins.phonebook_plugin import _PhonebookConfig, \
@@ -93,19 +94,30 @@ class TestPhonebookConfig(unittest.TestCase):
 
         self.assertRaises(Exception, phonebook_config.name)
 
-    def test_source_to_display(self):
-        value = {'phonebook.firstname': 'firstname'}
+    def test_format_columns(self):
+        value = {'firstname': '{phonebook.firstname}'}
 
         phonebook_config = _PhonebookConfig({
-            BaseSourcePlugin.SOURCE_TO_DISPLAY: value,
+            BaseSourcePlugin.FORMAT_COLUMNS: value,
         })
 
-        self.assertEqual(value, phonebook_config.source_to_display())
+        self.assertEqual(value, phonebook_config.format_columns())
 
-    def test_source_to_display_when_absent(self):
+    def test_format_columns_when_absent(self):
         phonebook_config = _PhonebookConfig({})
 
-        self.assertRaises(Exception, phonebook_config.source_to_display)
+        self.assertRaises(Exception, phonebook_config.format_columns)
+
+    def test_looked_up_keys(self):
+        value = {'firstname': '{phonebook.firstname}',
+                 'name': '{phonebook.firstname} {phonebook.lastname}'}
+
+        phonebook_config = _PhonebookConfig({
+            BaseSourcePlugin.FORMAT_COLUMNS: value,
+        })
+
+        assert_that(phonebook_config.looked_up_keys(),
+                    contains_inanyorder('phonebook.firstname', 'phonebook.lastname'))
 
     def test_phonebook_url(self):
         value = 'http://example.org/foobar'
@@ -216,14 +228,18 @@ class TestPhonebookResultConverter(unittest.TestCase):
 
     def setUp(self):
         self.name = 'foo'
-        self.source_to_display = {
-            'phonebook.firstname': 'firstname',
-            'phonebook.lastname': 'lastname',
-            'phonebooknumber.office.number': 'number',
+        self.format_columns = {
+            'name': '{phonebook.firstname} {phonebook.lastname}',
+            'firstname': '{phonebook.firstname}',
+            'lastname': '{phonebook.lastname}',
+            'number': '{phonebooknumber.office.number}',
         }
         self.pbook_config = Mock(_PhonebookConfig)
         self.pbook_config.name.return_value = self.name
-        self.pbook_config.source_to_display.return_value = self.source_to_display
+        self.pbook_config.format_columns.return_value = self.format_columns
+        self.pbook_config.looked_up_keys.return_value = ['phonebook.firstname',
+                                                         'phonebook.lastname',
+                                                         'phonebooknumber.office.number']
         self.pbook_result_converter = _PhonebookResultConverter(self.pbook_config)
         self.SourceResult = make_result_class(self.name, None, None)
 
@@ -240,7 +256,10 @@ class TestPhonebookResultConverter(unittest.TestCase):
                 }
             },
         }
-        expected_result = self.SourceResult({'firstname': 'Alice', 'lastname': 'Wonder', 'number': '111'})
+        expected_result = self.SourceResult({'firstname': 'Alice',
+                                             'lastname': 'Wonder',
+                                             'name': 'Alice Wonder',
+                                             'number': '111'})
 
         result = self.pbook_result_converter.convert(raw_result)
 
@@ -254,7 +273,10 @@ class TestPhonebookResultConverter(unittest.TestCase):
             },
             'phonebooknumber': False,
         }
-        expected_result = self.SourceResult({'firstname': 'Alice', 'lastname': 'Wonder', 'number': None})
+        expected_result = self.SourceResult({'firstname': 'Alice',
+                                             'lastname': 'Wonder',
+                                             'name': 'Alice Wonder',
+                                             'number': None})
 
         result = self.pbook_result_converter.convert(raw_result)
 
@@ -266,7 +288,10 @@ class TestPhonebookResultConverter(unittest.TestCase):
                 'firstname': 'Alice',
             },
         }
-        expected_result = self.SourceResult({'firstname': 'Alice', 'lastname': None, 'number': None})
+        expected_result = self.SourceResult({'firstname': 'Alice',
+                                             'lastname': None,
+                                             'name': 'Alice',
+                                             'number': None})
 
         result = self.pbook_result_converter.convert(raw_result)
 
@@ -279,7 +304,10 @@ class TestPhonebookResultConverter(unittest.TestCase):
                 'lastname': 'Wonder',
             },
         }]
-        expected_results = [self.SourceResult({'firstname': 'Alice', 'lastname': 'Wonder', 'number': None})]
+        expected_results = [self.SourceResult({'firstname': 'Alice',
+                                               'lastname': 'Wonder',
+                                               'name': 'Alice Wonder',
+                                               'number': None})]
 
         results = self.pbook_result_converter.convert_all(raw_results)
 

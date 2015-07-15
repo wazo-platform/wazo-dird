@@ -84,13 +84,14 @@ class TestSourceResult(unittest.TestCase):
 
         assert_that(r.get_unique(), equal_to('1'))
 
-    def test_that_source_to_dest_transformation_are_applied(self):
-        SourceResult = make_result_class(sentinel.name, source_to_dest_map={'firstname': 'fn',
-                                                                            'lastname': 'ln'})
+    def test_that_format_columns_transformation_are_applied(self):
+        SourceResult = make_result_class(sentinel.name, format_columns={'fn': '{firstname}',
+                                                                        'ln': '{lastname}',
+                                                                        'name': '{firstname} {lastname}'})
 
         r = SourceResult(self.fields)
 
-        assert_that(r.fields, has_entries('fn', 'fn', 'ln', 'ln'))
+        assert_that(r.fields, has_entries('fn', 'fn', 'ln', 'ln', 'name', 'fn ln'))
 
     def test_that_the_source_entry_id_is_added_to_relations(self):
         SourceResult = make_result_class('foobar', unique_column='email')
@@ -117,13 +118,13 @@ class TestMakeResultClass(unittest.TestCase):
         s = SourceResult({})
 
         assert_that(s._unique_column, equal_to('the-unique-column'))
-        assert_that(s._source_to_dest_map, equal_to({}))
+        assert_that(s._format_columns, equal_to({}))
 
-    def test_source_to_destination(self):
+    def test_format_columns(self):
         SourceResult = make_result_class(sentinel.source_name,
-                                         source_to_dest_map={'from': 'to'})
+                                         format_columns={'to': '{from}'})
 
         s = SourceResult({})
 
-        assert_that(s._source_to_dest_map, equal_to({'from': 'to'}))
+        assert_that(s._format_columns, equal_to({'to': '{from}'}))
         assert_that(s._unique_column, none())

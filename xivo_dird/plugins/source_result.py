@@ -16,17 +16,31 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import string
 
 logger = logging.getLogger(__name__)
+
+
+class _NoKeyErrorFormatter(string.Formatter):
+
+    def format(self, format_string, *args, **kwargs):
+        return super(_NoKeyErrorFormatter, self).format(format_string, *args, **kwargs).strip() or None
+
+    def get_value(self, key, args, kwargs):
+        if isinstance(key, str):
+            return kwargs.get(key, '')
+
+        return super(_NoKeyErrorFormatter, self).get_value(key, args, kwargs)
 
 
 class _SourceResult(object):
 
     _unique_column = None
     source = None
-    _source_to_dest_map = {}
+    _format_columns = {}
 
     def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
+        self._formatter = _NoKeyErrorFormatter()
         self.fields = fields
         source_entry_id = self.get_unique() if self._unique_column else None
         self.relations = {'xivo_id': xivo_id,
@@ -35,12 +49,13 @@ class _SourceResult(object):
                           'endpoint_id': endpoint_id,
                           'source_entry_id': source_entry_id}
 
-        self._add_destination_columns()
+        self._add_formatted_columns()
 
     def get_unique(self):
         try:
             return str(self.fields[self._unique_column])
         except KeyError:
+
             msg = '{source} is not properly configured, the unique column is not part of the result'.format(source=self.source)
             logger.exception(msg)
         return None
@@ -48,9 +63,9 @@ class _SourceResult(object):
     def source_entry_id(self):
         return self.relations['source_entry_id']
 
-    def _add_destination_columns(self):
-        for source, destination in self._source_to_dest_map.iteritems():
-            self.fields[destination] = self.fields.get(source)
+    def _add_formatted_columns(self):
+        for column, format_string in self._format_columns.iteritems():
+            self.fields[column] = self._formatter.format(format_string, **self.fields)
 
     def __eq__(self, other):
         return (self.source == other.source
@@ -65,15 +80,15 @@ class _SourceResult(object):
         return '<%s(%s)%s>' % (self.__class__.__name__, fields, self.relations)
 
 
-def make_result_class(source_name, unique_column=None, source_to_dest_map=None):
+def make_result_class(source_name, unique_column=None, format_columns=None):
     if not unique_column:
         unique_column = _SourceResult._unique_column
-    if not source_to_dest_map:
-        source_to_dest_map = _SourceResult._source_to_dest_map
+    if not format_columns:
+        format_columns = _SourceResult._format_columns
 
     class SourceResult(_SourceResult):
         source = source_name
         _unique_column = unique_column
-        _source_to_dest_map = source_to_dest_map
+        _format_columns = format_columns
 
     return SourceResult
