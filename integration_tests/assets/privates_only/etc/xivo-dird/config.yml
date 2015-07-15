@@ -2,8 +2,9 @@ enabled_plugins:
     backends:
         - sample
     services:
-        - lookup
         - favorites
+        - lookup
+        - privates
     views:
         - default_json
         - headers_view

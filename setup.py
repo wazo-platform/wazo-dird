@@ -27,6 +27,7 @@ setup(
         'xivo_dird.services': [
             'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
             'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
+            'privates = xivo_dird.plugins.privates_service:PrivatesServicePlugin',
         ],
         'xivo_dird.backends': [
             'broken = xivo_dird.plugins.broken_backend:BrokenPlugin',

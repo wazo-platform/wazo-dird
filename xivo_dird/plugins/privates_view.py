@@ -16,11 +16,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import logging
-import uuid
 
 from flask import request
 
 from xivo_dird import BaseViewPlugin
+from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
 from xivo_dird.core.rest_api import api
 
@@ -33,19 +33,29 @@ class PrivatesViewPlugin(BaseViewPlugin):
     private_one_url = '/privates/<contact_id>'
 
     def load(self, args=None):
+        privates_service = args['services'].get('privates')
+        PrivateAll.configure(privates_service)
         api.add_resource(PrivateAll, self.private_all_url)
 
 
 class PrivateAll(AuthResource):
 
     contacts = []
+    privates_service = None
+
+    @classmethod
+    def configure(cls, privates_service):
+        cls.privates_service = privates_service
 
     def post(self):
         contact = request.json
-        contact['id'] = str(uuid.uuid4())
-        self.contacts.append(contact)
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+        contact = self.privates_service.create_contact(contact, token_infos)
         return contact, 201
 
     def get(self):
-        result = {'items': self.contacts}
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+        result = {'items': self.privates_service.list_contacts(token_infos)}
         return result, 200

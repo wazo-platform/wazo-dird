@@ -17,9 +17,11 @@
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import assert_that
+from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entry
+from hamcrest import has_key
 from hamcrest import not_
 
 
@@ -48,8 +50,28 @@ class TestPrivateId(BaseDirdIntegrationTest):
 
         assert_that(alice['id'], not_(equal_to(bob['id'])))
 
+
+class TestPrivatesPersistence(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_privates_are_saved_across_dird_restart(self):
+        self.post_private({})
+
+        result_before = self.get_privates()
+
+        assert_that(result_before['items'], contains(has_key('id')))
+
+        self._run_cmd('docker-compose kill dird')
+        self._run_cmd('docker-compose rm -f dird')
+        self._run_cmd('docker-compose run --rm sync')
+
+        result_after = self.get_privates()
+
+        assert_that(result_after['items'], contains(has_key('id')))
+        assert_that(result_before['items'][0]['id'], equal_to(result_after['items'][0]['id']))
+
 # TODO
-# persistence
 # list with profile
 # deletion
 # update contact
