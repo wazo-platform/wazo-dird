@@ -81,15 +81,9 @@ def _load_source_config_dir(config):
     source_configs = parse_config_dir(source_config_dir)
     sources = {}
     for source_config in source_configs:
-        source_type = source_config.get('type')
-        if not source_type:
-            logger.warning('One of the source config as no back-end type. Ignoring.')
-            logger.debug('Source config with no type: `%s`', config)
-            continue
-
         source_name = source_config.get('name')
         if not source_name:
-            logger.warning('One of the config for back-end `%s` has no name. Ignoring.', source_type)
+            logger.warning('One of the configs has no name. Ignoring.')
             logger.debug('Source config with no name: `%s`', config)
             continue
 

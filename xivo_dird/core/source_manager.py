@@ -49,7 +49,11 @@ class SourceManager(object):
 
     def _load_all_configs(self):
         for source_config in self._source_configs.itervalues():
-            source_type = source_config['type']
+            source_type = source_config.get('type')
+            if not source_type:
+                logger.warning('One of the source config as no back-end type. Ignoring.')
+                logger.debug('Source config with no type: `%s`', source_config)
+                continue
             self._configs_by_backend[source_type].append(source_config)
 
     def _load_sources_using_backend(self, extension, configs_by_backend):
