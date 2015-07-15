@@ -69,12 +69,12 @@ class TestController(TestCase):
                 'backends': s.enabled,
                 'services': []
             },
-            'source_config_dir': s.source_config_dir,
+            'sources': s.source_configs,
         })
 
         Controller(config)
 
-        self.load_sources.assert_called_once_with(s.enabled, s.source_config_dir)
+        self.load_sources.assert_called_once_with(s.enabled, s.source_configs)
 
     def test_init_loads_views(self):
         config = self._create_config(**{
@@ -95,6 +95,7 @@ class TestController(TestCase):
         config['enabled_plugins'].setdefault('backends', [])
         config['enabled_plugins'].setdefault('services', [])
         config['enabled_plugins'].setdefault('views', [])
+        config.setdefault('sources', {})
         config.setdefault('rest_api', Mock())
         config.setdefault('services', Mock())
         config.setdefault('source_config_dir', Mock())

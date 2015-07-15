@@ -17,6 +17,7 @@
 
 import unittest
 
+from collections import defaultdict
 from hamcrest import assert_that, equal_to, is_, contains
 from mock import ANY, patch, Mock, sentinel as s
 
@@ -25,17 +26,19 @@ from xivo_dird.core.source_manager import SourceManager
 
 class TestSourceManager(unittest.TestCase):
 
-    @patch('xivo_dird.core.source_manager.parse_config_dir')
     @patch('stevedore.enabled.EnabledExtensionManager')
-    def test_load_sources(self, extension_manager_init, mock_parse_config_dir):
-        mock_parse_config_dir.return_value = []
+    def test_that_load_sources_loads_the_enabled_and_configured_sources(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
         enabled_backends = [
             'ldap',
             'xivo_phonebook',
         ]
+        my_ldap_config = {'type': 'ldap',
+                          'name': 'my_ldap'}
+        sources_by_type = defaultdict(list)
+        sources_by_type['ldap'].append(my_ldap_config)
 
-        manager = SourceManager(enabled_backends, 'somedir')
+        manager = SourceManager(enabled_backends, {'my_ldap': my_ldap_config})
 
         manager.load_sources()
 
@@ -43,18 +46,16 @@ class TestSourceManager(unittest.TestCase):
             namespace='xivo_dird.backends',
             check_func=manager.should_load_backend,
             invoke_on_load=False)
-        extension_manager.map.assert_called_once_with(ANY, ANY)
+        extension_manager.map.assert_called_once_with(ANY, sources_by_type)
 
-    @patch('xivo_dird.core.source_manager.parse_config_dir')
     @patch('stevedore.enabled.EnabledExtensionManager')
-    def test_load_sources_returns_dict_of_sources(self, extension_manager_init, mock_parse_config_dir):
-        mock_parse_config_dir.return_value = []
+    def test_load_sources_returns_dict_of_sources(self, extension_manager_init):
         enabled_backends = [
             'ldap',
             'xivo_phonebook',
         ]
 
-        manager = SourceManager(enabled_backends, 'somedir')
+        manager = SourceManager(enabled_backends, {})
         manager._sources = s.sources
 
         result = manager.load_sources()
@@ -70,18 +71,10 @@ class TestSourceManager(unittest.TestCase):
         backend_2 = Mock()
         backend_2.name = 'xivo_phonebook'
 
-        manager = SourceManager(enabled_backends, 'somedir')
+        manager = SourceManager(enabled_backends, {})
 
         assert_that(manager.should_load_backend(backend_1), is_(True))
         assert_that(manager.should_load_backend(backend_2), is_(False))
-
-    @patch('xivo_dird.core.source_manager.parse_config_dir')
-    def test_load_all_configs(self, mock_parse_config_dir):
-        manager = SourceManager([], 'foo')
-
-        manager._load_all_configs()
-
-        mock_parse_config_dir.assert_called_once_with('foo')
 
     def test_load_sources_using_backend_calls_load_on_all_sources_using_this_backend(self):
         configs = config1, config2 = [
@@ -100,7 +93,7 @@ class TestSourceManager(unittest.TestCase):
         extension = Mock()
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
-        manager = SourceManager([], 'somedir')
+        manager = SourceManager([], {})
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 
@@ -127,7 +120,7 @@ class TestSourceManager(unittest.TestCase):
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
         source1.load.side_effect = RuntimeError
-        manager = SourceManager([], 'somedir')
+        manager = SourceManager([], {})
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 

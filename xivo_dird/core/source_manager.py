@@ -19,7 +19,6 @@ import logging
 
 from collections import defaultdict
 from stevedore import enabled
-from xivo.config_helper import parse_config_dir
 
 
 logger = logging.getLogger(__name__)
@@ -29,9 +28,9 @@ class SourceManager(object):
 
     _namespace = 'xivo_dird.backends'
 
-    def __init__(self, enabled_backends, source_config_dir):
+    def __init__(self, enabled_backends, source_configs):
         self._enabled_backends = enabled_backends
-        self._source_config_dir = source_config_dir
+        self._source_configs = source_configs
         self._configs_by_backend = defaultdict(list)
         self._sources = {}
 
@@ -49,23 +48,18 @@ class SourceManager(object):
         return self._sources
 
     def _load_all_configs(self):
-        source_configs = parse_config_dir(self._source_config_dir)
-
-        for source_config in source_configs:
-            if 'type' not in source_config:
+        for source_config in self._source_configs.itervalues():
+            source_type = source_config.get('type')
+            if not source_type:
+                logger.warning('One of the source config as no back-end type. Ignoring.')
+                logger.debug('Source config with no type: `%s`', source_config)
                 continue
-
-            self._configs_by_backend[source_config['type']].append(source_config)
+            self._configs_by_backend[source_type].append(source_config)
 
     def _load_sources_using_backend(self, extension, configs_by_backend):
         backend = extension.name
         for config in configs_by_backend[backend]:
-            try:
-                config_name = config['name']
-            except KeyError:
-                logger.warning('One of the config for back-end `%s` has no name. Ignoring.', backend)
-                logger.debug('Source config with no name: `%s`', config)
-                continue
+            config_name = config['name']
             try:
                 source = extension.plugin()
                 source.name = config_name
