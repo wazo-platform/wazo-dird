@@ -1,5 +1,3 @@
-docker-compose
 mock
 nose
 pyhamcrest
-sh

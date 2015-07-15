@@ -1,0 +1,5 @@
+docker-compose
+pyhamcrest
+python-ldap
+nose
+sh
