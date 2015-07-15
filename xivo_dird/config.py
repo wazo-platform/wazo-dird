@@ -21,8 +21,6 @@ from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_dir, read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
-logger = None
-
 _DEFAULT_CONFIG = {
     'auth': {
         'host': 'localhost',
@@ -62,18 +60,15 @@ _DEFAULT_CONFIG = {
 }
 
 
-def load(_logger, argv):
-    global logger
-    logger = _logger
-
+def load(logger, argv):
     cli_config = _parse_cli_args(argv)
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
     reinterpreted_config = _get_reinterpreted_raw_values(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
-    source_dir_configuration = _load_source_config_dir(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
+    source_dir_configuration = _load_source_config_dir(logger, ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
     return ChainMap(reinterpreted_config, source_dir_configuration, cli_config, file_config, _DEFAULT_CONFIG)
 
 
-def _load_source_config_dir(config):
+def _load_source_config_dir(logger, config):
     source_config_dir = config.get('source_config_dir')
     if not source_config_dir:
         return {}
