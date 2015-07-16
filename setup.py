@@ -35,6 +35,7 @@ setup(
             'csv_ws = xivo_dird.plugins.csv_ws:CSVWSPlugin',
             'ldap = xivo_dird.plugins.ldap_plugin:LDAPPlugin',
             'phonebook = xivo_dird.plugins.phonebook_plugin:PhonebookPlugin',
+            'privates = xivo_dird.plugins.privates_backend:PrivatesBackend',
             'xivo = xivo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
             'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
         ],

@@ -103,7 +103,7 @@ class TestPrivatesVisibility(BaseDirdIntegrationTest):
 
     asset = 'privates_only'
 
-    def test_that_favorites_are_only_visible_for_the_same_token(self):
+    def test_that_privates_are_only_visible_for_the_same_token(self):
         self.post_private({'firstname': 'Alice'}, token='valid-token-1')
         self.post_private({'firstname': 'Bob'}, token='valid-token-1')
         self.post_private({'firstname': 'Charlie'}, token='valid-token-2')
@@ -115,8 +115,22 @@ class TestPrivatesVisibility(BaseDirdIntegrationTest):
                                                            has_entry('firstname', 'Bob')))
         assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
 
+
+class TestPrivatesListWithProfile(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_listing_privates_with_profile(self):
+        self.post_private({'firstname': 'Alice'})
+        self.post_private({'firstname': 'Bob'})
+
+        result = self.get_privates_with_profile('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', None, None)),
+            has_entry('column_values', contains('Bob', None, None))))
+
 # TODO
-# list with profile
 # update contact
 # lookup = return privates
 # favorite privates

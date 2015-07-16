@@ -33,6 +33,7 @@ class SourceManager(object):
         self._source_configs = config['sources']
         self._main_config = config
         self._sources = {}
+        self._config = config
 
     def should_load_backend(self, extension):
         return extension.name in self._enabled_backends
@@ -55,6 +56,7 @@ class SourceManager(object):
             try:
                 source = extension.plugin()
                 source.name = config_name
+                source.backend = backend
                 source.load({'config': config,
                              'main_config': self._main_config})
                 self._sources[source.name] = source

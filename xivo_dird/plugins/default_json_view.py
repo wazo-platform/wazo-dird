@@ -38,6 +38,7 @@ class JsonViewPlugin(BaseViewPlugin):
     lookup_url = '/directories/lookup/<profile>'
     favorites_read_url = '/directories/favorites/<profile>'
     favorites_write_url = '/directories/favorites/<directory>/<contact>'
+    privates_url = '/directories/privates/<profile>'
 
     def load(self, args=None):
         config = args['config']
@@ -45,6 +46,7 @@ class JsonViewPlugin(BaseViewPlugin):
 
         favorite_service = args['services'].get('favorites')
         lookup_service = args['services'].get('lookup')
+        privates_service = args['services'].get('privates')
 
         if lookup_service:
             Lookup.configure(displays=displays,
@@ -60,11 +62,18 @@ class JsonViewPlugin(BaseViewPlugin):
                                     favorites_service=favorite_service)
             FavoritesWrite.configure(favorites_service=favorite_service)
 
-            api.add_resource(FavoritesRead, '/directories/favorites/<profile>')
-            api.add_resource(FavoritesWrite, '/directories/favorites/<directory>/<contact>')
+            api.add_resource(FavoritesRead, self.favorites_read_url)
+            api.add_resource(FavoritesWrite, self.favorites_write_url)
         else:
             logger.error('%s disabled: no service plugin `favorites`', self.favorites_read_url)
             logger.error('%s disabled: no service plugin `favorites`', self.favorites_write_url)
+
+        if privates_service:
+            Privates.configure(displays=displays,
+                               privates_service=privates_service)
+            api.add_resource(Privates, self.privates_url)
+        else:
+            logger.error('%s disabled: no service plugin `privates`', self.privates_url)
 
 
 class Lookup(AuthResource):
@@ -166,6 +175,26 @@ class FavoritesWrite(AuthResource):
                 'status_code': 404,
             }
             return error, 404
+
+
+class Privates(AuthResource):
+
+    displays = None
+    privates_service = None
+
+    @classmethod
+    def configure(cls, displays, privates_service):
+        cls.displays = displays
+        cls.privates_service = privates_service
+
+    def get(self, profile):
+        logger.debug('Listing privates with profile %s', profile)
+        token = request.headers.get('X-Auth-Token', '')
+        token_infos = auth.client().token.get(token)
+
+        raw_results = self.privates_service.list_contacts(token_infos)
+        formatter = _FavoriteResultFormatter(self.displays[profile])
+        return formatter.format_results(raw_results)
 
 
 class _ResultFormatter(object):

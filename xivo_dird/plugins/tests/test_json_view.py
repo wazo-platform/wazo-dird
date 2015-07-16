@@ -23,7 +23,10 @@ from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entries
 from hamcrest import has_entry
+from hamcrest import has_item
+from hamcrest import not_
 from mock import ANY
+from mock import call
 from mock import Mock
 from mock import patch
 
@@ -33,6 +36,7 @@ from xivo_dird.plugins.default_json_view import FavoritesRead
 from xivo_dird.plugins.default_json_view import FavoritesWrite
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
 from xivo_dird.plugins.default_json_view import Lookup
+from xivo_dird.plugins.default_json_view import Privates
 from xivo_dird.plugins.default_json_view import _ResultFormatter
 from xivo_dird.plugins.default_json_view import make_displays
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
@@ -56,7 +60,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                           'rest_api': Mock(),
                           'services': {}})
 
-        assert_that(add_resource.call_count, equal_to(0))
+        assert_that(add_resource.call_args_list, not_(has_item(call(Lookup, ANY))))
 
     @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_adds_the_lookup_route(self, add_resource):
@@ -70,7 +74,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
         self.plugin.load(args)
 
-        add_resource.assert_called_once_with(ANY, '/directories/lookup/<profile>')
+        add_resource.assert_any_call(Lookup, JsonViewPlugin.lookup_url)
 
     @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_with_no_favorites_service_does_not_add_route(self, add_resource):
@@ -79,7 +83,8 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                                'rest_api': Mock(),
                                'services': {}})
 
-        assert_that(add_resource.call_count, equal_to(0))
+        assert_that(add_resource.call_args_list, not_(has_item(call(FavoritesRead, ANY))))
+        assert_that(add_resource.call_args_list, not_(has_item(call(FavoritesWrite, ANY))))
 
     @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_adds_the_favorite_route(self, add_resource):
@@ -93,8 +98,31 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
         JsonViewPlugin().load(args)
 
-        add_resource.assert_any_call(ANY, '/directories/favorites/<profile>')
-        add_resource.assert_any_call(ANY, '/directories/favorites/<directory>/<contact>')
+        add_resource.assert_any_call(FavoritesRead, JsonViewPlugin.favorites_read_url)
+        add_resource.assert_any_call(FavoritesWrite, JsonViewPlugin.favorites_write_url)
+
+    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
+    def test_that_load_with_no_privates_service_does_not_add_route(self, add_resource):
+        JsonViewPlugin().load({'config': {},
+                               'http_namespace': Mock(),
+                               'rest_api': Mock(),
+                               'services': {}})
+
+        assert_that(add_resource.call_args_list, not_(has_item(call(Privates, ANY))))
+
+    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
+    def test_that_load_adds_the_privates_routes(self, add_resource):
+        args = {
+            'config': {'displays': {},
+                       'profile_to_display': {}},
+            'http_namespace': Mock(),
+            'rest_api': Mock(),
+            'services': {'privates': Mock()},
+        }
+
+        JsonViewPlugin().load(args)
+
+        add_resource.assert_any_call(Privates, JsonViewPlugin.privates_url)
 
 
 class TestMakeDisplays(unittest.TestCase):

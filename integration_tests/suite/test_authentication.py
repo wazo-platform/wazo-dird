@@ -96,3 +96,8 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
         result = self.delete_private_result('contact_id')
 
         assert_that(result.status_code, equal_to(401))
+
+    def test_auth_on_private_list_with_profile(self):
+        result = self.get_privates_with_profile_result('default')
+
+        assert_that(result.status_code, equal_to(401))
