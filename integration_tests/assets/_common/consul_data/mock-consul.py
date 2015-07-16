@@ -49,7 +49,7 @@ def item(key):
 def truncate_key(key, search_start, last_char):
     try:
         sep_index = key.index(last_char, search_start)
-        truncated_key = key[:sep_index]
+        truncated_key = key[:sep_index+1]
     except ValueError:
         truncated_key = key
 

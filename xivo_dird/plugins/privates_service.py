@@ -78,4 +78,4 @@ class _PrivatesService(BaseService):
 
 
 def dict_from_consul(prefix, consul_dict):
-    return dict((consul_kv['Key'][len(prefix)+1:], consul_kv['Value']) for consul_kv in consul_dict)
+    return dict((consul_kv['Key'][len(prefix):], consul_kv['Value']) for consul_kv in consul_dict)
