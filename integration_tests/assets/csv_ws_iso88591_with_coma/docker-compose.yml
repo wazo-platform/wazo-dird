@@ -6,7 +6,7 @@ sync:
     - consul
     - ws
   environment:
-    PORTS: "9489 9497 8500 8080"
+    PORTS: "9489 9497 8500 9485"
 dird:
   image: xivo-dird-test
   links:
@@ -22,7 +22,7 @@ dird:
 ws:
   image: nickstenning/flask
   ports:
-    - "8080:8080"
+    - "9485:9485"
   volumes:
     - "./scripts/ws.py:/tmp/ws.py"
   command: "python /tmp/ws.py ',' 'iso-8859-1'"
