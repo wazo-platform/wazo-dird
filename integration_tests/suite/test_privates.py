@@ -71,11 +71,27 @@ class TestPrivatesPersistence(BaseDirdIntegrationTest):
         assert_that(result_after['items'], contains(has_key('id')))
         assert_that(result_before['items'][0]['id'], equal_to(result_after['items'][0]['id']))
 
+
+class TestPrivatesVisibility(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_favorites_are_only_visible_for_the_same_token(self):
+        self.post_private({'firstname': 'Alice'}, token='valid-token-1')
+        self.post_private({'firstname': 'Bob'}, token='valid-token-1')
+        self.post_private({'firstname': 'Charlie'}, token='valid-token-2')
+
+        result_1 = self.get_privates(token='valid-token-1')
+        result_2 = self.get_privates(token='valid-token-2')
+
+        assert_that(result_1['items'], contains(has_entry('firstname', 'Alice'),
+                                                has_entry('firstname', 'Bob')))
+        assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
+
 # TODO
 # list with profile
 # deletion
 # update contact
-# different tokens = different contacts
 # lookup = return privates
 # favorite privates
 # validation upon contact creation/update
