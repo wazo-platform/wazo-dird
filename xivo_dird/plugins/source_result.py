@@ -24,11 +24,14 @@ logger = logging.getLogger(__name__)
 class _NoKeyErrorFormatter(string.Formatter):
 
     def format(self, format_string, *args, **kwargs):
-        return super(_NoKeyErrorFormatter, self).format(format_string, *args, **kwargs).strip() or None
+        return super(_NoKeyErrorFormatter, self).format(format_string, *args, **kwargs).strip()
 
     def get_value(self, key, args, kwargs):
         if isinstance(key, str):
-            return kwargs.get(key, '')
+            value = kwargs.get(key)
+            if value is None:
+                return ''
+            return value
 
         return super(_NoKeyErrorFormatter, self).get_value(key, args, kwargs)
 
@@ -65,7 +68,8 @@ class _SourceResult(object):
 
     def _add_formatted_columns(self):
         for column, format_string in self._format_columns.iteritems():
-            self.fields[column] = self._formatter.format(format_string, **self.fields)
+            value = self._formatter.format(format_string, **self.fields) or None
+            self.fields[column] = value
 
     def __eq__(self, other):
         return (self.source == other.source

@@ -17,13 +17,15 @@
 
 import unittest
 
-from hamcrest import assert_that
-from hamcrest import equal_to
-from hamcrest import has_entries
-from hamcrest import none
+from hamcrest import (assert_that,
+                      equal_to,
+                      has_entries,
+                      none,
+                      is_)
 from mock import sentinel
-from xivo_dird.plugins.source_result import _SourceResult
-from xivo_dird.plugins.source_result import make_result_class
+from xivo_dird.plugins.source_result import (_SourceResult,
+                                             make_result_class,
+                                             _NoKeyErrorFormatter as Formatter)
 
 
 class TestSourceResult(unittest.TestCase):
@@ -128,3 +130,24 @@ class TestMakeResultClass(unittest.TestCase):
 
         assert_that(s._format_columns, equal_to({'to': '{from}'}))
         assert_that(s._unique_column, none())
+
+
+class TestFormatter(unittest.TestCase):
+
+    def setUp(self):
+        self.formatter = Formatter()
+
+    def test_that_missing_keys_do_not_raise_an_exception(self):
+        result = self.formatter.format('{missing}', **{'foo': 'bar'})
+
+        assert_that(result, equal_to(''))
+
+    def test_that_a_missing_key_in_a_string_combining_two_fields(self):
+        result = self.formatter.format('{firstname} {lastname}', **{'firstname': 'Alice'})
+
+        assert_that(result, equal_to('Alice'))
+
+    def test_that_a_None_value_is_not_replaced_by_the_None_string(self):
+        result = self.formatter.format('{mobile}', **{'mobile': None})
+
+        assert_that(result, is_(''))
