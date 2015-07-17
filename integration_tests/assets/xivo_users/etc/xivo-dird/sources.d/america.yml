@@ -7,5 +7,5 @@ confd_config:
   host: confd
   port: 8000
   version: 1.1
-source_to_display_columns:
-    exten: number
+format_columns:
+    number: "{exten}"

@@ -37,7 +37,7 @@ class CSVWSPlugin(BaseSourcePlugin):
         self._SourceResult = make_result_class(
             config['config']['name'],
             self._unique_column,
-            config['config'].get(self.SOURCE_TO_DISPLAY, {}))
+            config['config'].get(self.FORMAT_COLUMNS, {}))
         self._timeout = config['config'].get('timeout', 10)
         self._delimiter = config['config'].get('delimiter', ',')
         self._reader = _CSVReader(self._delimiter)

@@ -31,6 +31,12 @@ case "$1" in
 			invoke-rc.d nginx reload
 		fi
 		set -e
+
+		# source_to_display_columns migration
+		files=$(grep -rIn 'source_to_display' /etc/xivo-dird/sources.d/* | awk -F ':' '{print $1}')
+		for file in $files; do
+			/usr/share/xivo-dird/migrations/0001_source_to_display_columns_to_format_columns.py $file
+		done
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)

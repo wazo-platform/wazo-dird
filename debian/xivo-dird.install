@@ -1,2 +1,3 @@
 debian/tmp/usr/bin/xivo-dird usr/bin/
 etc/*  etc/
+migrations/ usr/share/xivo-dird

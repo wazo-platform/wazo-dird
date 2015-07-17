@@ -41,7 +41,7 @@ class XivoUserPlugin(BaseSourcePlugin):
 
         self._SourceResult = make_result_class(
             self.name, 'id',
-            source_to_dest_map=args['config'].get(self.SOURCE_TO_DISPLAY))
+            format_columns=args['config'].get(self.FORMAT_COLUMNS))
 
         logger.info('XiVO %s successfully loaded', args['config']['name'])
 

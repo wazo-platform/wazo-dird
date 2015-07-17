@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import re
 import requests
 
 from xivo_dird import BaseSourcePlugin
@@ -64,8 +65,17 @@ class _PhonebookConfig(object):
     def name(self):
         return self._config['name']
 
-    def source_to_display(self):
-        return self._config[BaseSourcePlugin.SOURCE_TO_DISPLAY]
+    def format_columns(self):
+        return self._config[BaseSourcePlugin.FORMAT_COLUMNS]
+
+    def looked_up_keys(self):
+        results = set()
+
+        for format_string in self.format_columns().itervalues():
+            for key in re.findall(r'{([\w.]+)}', format_string):
+                results.add(key)
+
+        return list(results)
 
     def phonebook_url(self):
         return self._config.get('phonebook_url', self.DEFAULT_PHONEBOOK_URL)
@@ -116,23 +126,29 @@ class _PhonebookClient(object):
 class _PhonebookResultConverter(object):
 
     def __init__(self, pbook_config):
-        self._SourceResult = make_result_class(pbook_config.name(), None, None)
-        self._mapping = [(column, _Fetcher(raw_column, pbook_config)) for
-                         (raw_column, column) in pbook_config.source_to_display().iteritems()]
+        self._format_columns = pbook_config.format_columns()
+        self._SourceResult = make_result_class(pbook_config.name())
+        self._fetchers = [_Fetcher(key, pbook_config.name()) for key in pbook_config.looked_up_keys()]
 
     def convert(self, raw_result):
-        fields = dict((column, fetcher(raw_result)) for (column, fetcher) in self._mapping)
+        mapping = dict((fetcher._key, fetcher(raw_result)) for fetcher in self._fetchers)
+        fields = dict((column, self._format_value(format_string, mapping))
+                      for column, format_string in self._format_columns.iteritems())
         return self._SourceResult(fields)
 
     def convert_all(self, raw_results):
         return [self.convert(raw_result) for raw_result in raw_results]
 
+    def _format_value(self, format_string, mapping):
+        valid_format_string = format_string.replace('.', '/')
+        return valid_format_string.format(**mapping).strip() or None
+
 
 class _Fetcher(object):
 
-    def __init__(self, key, pbook_config):
-        self._key = key
-        self._name = pbook_config.name()
+    def __init__(self, key, name):
+        self._key = key.replace('.', '/')
+        self._name = name
         self._keys = key.split('.')
 
     def __call__(self, raw_result):
@@ -142,9 +158,9 @@ class _Fetcher(object):
                 v = v[k]
         except KeyError:
             logger.warning('Phonebook "%s": could not map %r: no such key', self._name, self._key)
-            return None
+            return ''
         except TypeError as e:
             if v is not False:
                 logger.warning('Phonebook "%s": could not map %r: type error: %s', self._name, self._key, e)
-            return None
+            return ''
         return v

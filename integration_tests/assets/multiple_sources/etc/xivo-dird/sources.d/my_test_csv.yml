@@ -3,7 +3,7 @@ name: second_csv
 file: /tmp/data/test.csv
 searched_columns:
     - ln
-source_to_display_columns:
-    ln: lastname
-    fn: firstname
-    num: number
+format_columns:
+    lastname: "{ln}"
+    firstname: "{num}"
+    number: "{fn}"

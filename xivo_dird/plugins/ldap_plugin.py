@@ -17,6 +17,7 @@
 
 import ldap
 import logging
+import re
 import threading
 
 from ldap.filter import escape_filter_chars
@@ -95,8 +96,8 @@ class _LDAPConfig(object):
     def unique_column(self):
         return self._config.get(BaseSourcePlugin.UNIQUE_COLUMN)
 
-    def source_to_display(self):
-        return self._config.get(BaseSourcePlugin.SOURCE_TO_DISPLAY)
+    def format_columns(self):
+        return self._config.get(BaseSourcePlugin.FORMAT_COLUMNS)
 
     def ldap_uri(self):
         return self._config['ldap_uri']
@@ -117,11 +118,14 @@ class _LDAPConfig(object):
         return self._config.get('ldap_timeout', self.DEFAULT_LDAP_TIMEOUT)
 
     def attributes(self):
-        source_to_display = self._config.get(BaseSourcePlugin.SOURCE_TO_DISPLAY)
-        if not source_to_display:
+        format_columns = self._config.get(BaseSourcePlugin.FORMAT_COLUMNS)
+        if not format_columns:
             return None
 
-        attributes = list(source_to_display)
+        attributes = []
+        for column in format_columns.itervalues():
+            fields = re.findall(r'{(\w+)}', column)
+            attributes.extend(fields)
         unique_column = self._config.get(BaseSourcePlugin.UNIQUE_COLUMN)
         if unique_column and unique_column not in attributes:
             attributes.append(unique_column)
@@ -248,7 +252,9 @@ class _LDAPClient(object):
 class _LDAPResultFormatter(object):
 
     def __init__(self, ldap_config):
-        self._SourceResult = make_result_class(ldap_config.name(), ldap_config.unique_column(), ldap_config.source_to_display())
+        self._SourceResult = make_result_class(ldap_config.name(),
+                                               ldap_config.unique_column(),
+                                               ldap_config.format_columns())
 
     def format(self, raw_results):
         results = []
