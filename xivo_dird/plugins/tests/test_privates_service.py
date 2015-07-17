@@ -69,3 +69,12 @@ class TestPrivatesServicePlugin(unittest.TestCase):
         service.list_contacts({'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.get.call_count, greater_than(0))
+
+    @patch('xivo_dird.plugins.privates_service.Consul')
+    def test_that_remove_contact_calls_consul_delete(self, consul_init):
+        consul = consul_init.return_value
+
+        service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}})
+        service.remove_contact('my-contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(consul.kv.delete.call_count, greater_than(0))

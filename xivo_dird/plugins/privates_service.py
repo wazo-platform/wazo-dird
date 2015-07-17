@@ -27,6 +27,7 @@ from xivo_dird import BaseServicePlugin
 logger = logging.getLogger(__name__)
 
 PRIVATE_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
+PRIVATE_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
 PRIVATE_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
 
 
@@ -60,6 +61,12 @@ class _PrivatesService(BaseService):
                                                                   attribute=attribute)
                 consul.kv.put(consul_key, value)
         return contact_infos
+
+    def remove_contact(self, contact_id, token_infos):
+        with self._consul(token=token_infos['token']) as consul:
+            consul_key = PRIVATE_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
+                                                    contact_uuid=contact_id)
+            consul.kv.delete(consul_key, recurse=True)
 
     def list_contacts(self, token_infos):
         user_uuid = token_infos['auth_id']

@@ -40,6 +40,23 @@ class TestAddPrivate(BaseDirdIntegrationTest):
             has_entry('firstname', 'Bob')))
 
 
+class TestRemovePrivate(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_removed_privates_are_not_listed(self):
+        self.post_private({'firstname': 'Alice'})
+        bob = self.post_private({'firstname': 'Bob'})
+        self.post_private({'firstname': 'Charlie'})
+        self.delete_private(bob['id'])
+
+        result = self.get_privates()
+
+        assert_that(result['items'], contains_inanyorder(
+            has_entry('firstname', 'Alice'),
+            has_entry('firstname', 'Charlie')))
+
+
 class TestPrivateId(BaseDirdIntegrationTest):
 
     asset = 'privates_only'
@@ -84,13 +101,12 @@ class TestPrivatesVisibility(BaseDirdIntegrationTest):
         result_1 = self.get_privates(token='valid-token-1')
         result_2 = self.get_privates(token='valid-token-2')
 
-        assert_that(result_1['items'], contains(has_entry('firstname', 'Alice'),
-                                                has_entry('firstname', 'Bob')))
+        assert_that(result_1['items'], contains_inanyorder(has_entry('firstname', 'Alice'),
+                                                           has_entry('firstname', 'Bob')))
         assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
 
 # TODO
 # list with profile
-# deletion
 # update contact
 # lookup = return privates
 # favorite privates

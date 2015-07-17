@@ -102,13 +102,19 @@ def kv_delete(uuid, path):
     if 'token' not in request.args or acl.get(request.args['token']) != uuid:
         return response('', 401)
 
-    key = get_key(request.path)
+    request_key = get_key(request.path)
 
-    if key not in kv_store:
-        return response('', 404)
+    if request.args.get('recurse', False):
+        for key in kv_store.keys():
+            if key.startswith(request_key):
+                kv_store.pop(key)
+        return response('true')
 
-    kv_store.pop(key)
-    return response('true')
+    if request_key in kv_store:
+        kv_store.pop(request_key)
+        return response('true')
+
+    return response('', 404)
 
 
 if __name__ == "__main__":

@@ -35,12 +35,13 @@ class PrivatesViewPlugin(BaseViewPlugin):
     def load(self, args=None):
         privates_service = args['services'].get('privates')
         PrivateAll.configure(privates_service)
+        PrivateOne.configure(privates_service)
         api.add_resource(PrivateAll, self.private_all_url)
+        api.add_resource(PrivateOne, self.private_one_url)
 
 
 class PrivateAll(AuthResource):
 
-    contacts = []
     privates_service = None
 
     @classmethod
@@ -59,3 +60,18 @@ class PrivateAll(AuthResource):
         token_infos = auth.client().token.get(token)
         result = {'items': self.privates_service.list_contacts(token_infos)}
         return result, 200
+
+
+class PrivateOne(AuthResource):
+
+    privates_service = None
+
+    @classmethod
+    def configure(cls, privates_service):
+        cls.privates_service = privates_service
+
+    def delete(self, contact_id):
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+        self.privates_service.remove_contact(contact_id, token_infos)
+        return '', 204

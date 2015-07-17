@@ -299,7 +299,7 @@
                     {
                         "name": "contact",
                         "in": "body",
-                        "description": "The ID of the contact. This ID is unique within the {directory}.",
+                        "description": "The attributes of the contact",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/PrivateBody"
@@ -319,6 +319,36 @@
                         "schema": {
                             "$ref": "#/definitions/Private"
                         }
+                    }
+                }
+            }
+        },
+        "/privates/{contact_id}": {
+            "delete": {
+                "summary": "Remove private contact",
+                "operationId": "remove_private",
+                "tags": [
+                    "privates"
+                ],
+                "parameters": [
+                    {
+                        "name": "contact_id",
+                        "in": "path",
+                        "type": "string",
+                        "required": true,
+                        "description": "The ID of the private contact."
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "The private contact was removed."
                     }
                 }
             }

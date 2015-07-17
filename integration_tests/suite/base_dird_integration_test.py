@@ -163,3 +163,14 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         response = self.get_privates_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
+
+    def delete_private_result(self, private_id, token=None):
+        url = 'https://localhost:9489/0.1/privates/{contact_uuid}'
+        result = requests.delete(url.format(contact_uuid=private_id),
+                                 headers={'X-Auth-Token': token},
+                                 verify=CA_CERT)
+        return result
+
+    def delete_private(self, private_id, token='valid-token'):
+        response = self.delete_private_result(private_id, token)
+        assert_that(response.status_code, equal_to(204))
