@@ -42,7 +42,7 @@ class CSVWSPlugin(BaseSourcePlugin):
         self._delimiter = config['config'].get('delimiter', ',')
         self._reader = _CSVReader(self._delimiter)
 
-    def search(self, term, profile=None, args=None):
+    def search(self, term, args=None):
         url = self._lookup_url.format(term=term)
 
         response = requests.get(url, timeout=self._timeout)

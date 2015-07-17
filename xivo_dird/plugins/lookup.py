@@ -56,15 +56,15 @@ class _LookupService(BaseService):
     def stop(self):
         self._executor.shutdown()
 
-    def _async_search(self, source, term, profile, args):
-        future = self._executor.submit(source.search, term, profile, args)
+    def _async_search(self, source, term, args):
+        future = self._executor.submit(source.search, term, args)
         future.name = source.name
         return future
 
     def __call__(self, term, profile, args):
         futures = []
         for source in self._source_by_profile(profile):
-            futures.append(self._async_search(source, term, profile, args))
+            futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}
         if 'lookup_timeout' in self._config:

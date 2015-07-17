@@ -56,7 +56,7 @@ class CSVPlugin(BaseSourcePlugin):
     def name(self):
         return self._name
 
-    def search(self, term, profile=None, args=None):
+    def search(self, term, args=None):
         if 'searched_columns' not in self._config:
             return []
 

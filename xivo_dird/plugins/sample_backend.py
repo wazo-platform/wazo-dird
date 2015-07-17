@@ -35,5 +35,5 @@ class SamplePlugin(BaseSourcePlugin):
         SourceResult = make_result_class(self._name, 'id', self._format_columns)
         self._result = SourceResult(self._sample_result)
 
-    def search(self, term, profile=None, args=None):
+    def search(self, term, args=None):
         return [self._result]
