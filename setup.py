@@ -25,8 +25,9 @@ setup(
 
     entry_points={
         'xivo_dird.services': [
-            'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
             'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
+            'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
+            'privates = xivo_dird.plugins.privates_service:PrivatesServicePlugin',
         ],
         'xivo_dird.backends': [
             'broken = xivo_dird.plugins.broken_backend:BrokenPlugin',
@@ -40,6 +41,7 @@ setup(
         'xivo_dird.views': [
             'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
             'default_json = xivo_dird.plugins.default_json_view:JsonViewPlugin',
+            'privates_view = xivo_dird.plugins.privates_view:PrivatesViewPlugin',
         ],
     }
 )

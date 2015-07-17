@@ -263,6 +263,95 @@
                     }
                 ]
             }
+        },
+        "/privates": {
+            "get": {
+                "summary": "List private contacts",
+                "operationId": "get_privates",
+                "tags": [
+                    "privates"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of private contacts",
+                        "schema": {
+                            "$ref": "#/definitions/PrivateList"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create new private contact",
+                "operationId": "add_private",
+                "tags": [
+                    "privates"
+                ],
+                "parameters": [
+                    {
+                        "name": "contact",
+                        "in": "body",
+                        "description": "The attributes of the contact",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PrivateBody"
+                        }
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "The new private contact",
+                        "schema": {
+                            "$ref": "#/definitions/Private"
+                        }
+                    }
+                }
+            }
+        },
+        "/privates/{contact_id}": {
+            "delete": {
+                "summary": "Remove private contact",
+                "operationId": "remove_private",
+                "tags": [
+                    "privates"
+                ],
+                "parameters": [
+                    {
+                        "name": "contact_id",
+                        "in": "path",
+                        "type": "string",
+                        "required": true,
+                        "description": "The ID of the private contact."
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "The private contact was removed."
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -380,6 +469,35 @@
                     "type": "string"
                 },
                 "source_entry_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "Private": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                }
+            }
+        },
+        "PrivateList": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Private"
+            }
+        },
+        "PrivateBody": {
+            "properties": {
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
                     "type": "string"
                 }
             }

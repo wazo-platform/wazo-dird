@@ -50,3 +50,7 @@ but it only needs to be run when dependencies of xivo-dird change in any way
 To execute the integration tests execute:
 
     % nosetests integration_tests
+
+For developers, when adding/removing a plugin:
+
+    % make egg-info

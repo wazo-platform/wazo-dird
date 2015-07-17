@@ -1,0 +1,63 @@
+enabled_plugins:
+    backends:
+        - sample
+    services:
+        - favorites
+        - lookup
+        - privates
+    views:
+        - default_json
+        - headers_view
+        - privates_view
+
+views:
+    displays:
+        default_display:
+            -
+                title: Firstname
+                default: Unknown
+                field: firstname
+            -
+                title: Lastname
+                default: Unknown
+                field: lastname
+            -
+                title: Number
+                default:
+                field: number
+            -
+                field: favorite
+                type: favorite
+    profile_to_display:
+        default: default_display
+
+services:
+    lookup:
+        default:
+            sources:
+                - sample
+            timeout: 0.5
+    favorites:
+        default:
+            sources:
+                - sample
+            timeout: 0.5
+    privates:
+        default:
+            sources:
+                - sample
+            timeout: 0.5
+
+rest_api:
+       listen: 0.0.0.0
+       port: 9489
+       certificate: /etc/ssl/server.crt
+       private_key: /etc/ssl/server.key
+
+auth:
+    host: auth
+    port: 9497
+
+consul:
+    host: consul
+    port: 8500

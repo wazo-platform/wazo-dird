@@ -60,7 +60,7 @@ class TestFavoritesPersistence(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'
 
-    def test_that_favorites_are_only_visible_for_the_same_token(self):
+    def test_that_privates_are_saved_across_dird_restart(self):
         self.put_favorite('my_csv', '1')
 
         result = self.favorites('default')
