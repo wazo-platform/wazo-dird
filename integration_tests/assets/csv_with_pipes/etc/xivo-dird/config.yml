@@ -50,7 +50,7 @@ sources:
       searched_columns:
           - fn
           - ln
-      source_to_display_columns:
-          ln: lastname
-          fn: firstname
-          num: number
+      format_columns:
+          lastname: "{ln}"
+          firstname: "{fn}"
+          number: "{num}"
