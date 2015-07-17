@@ -77,6 +77,34 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 class TestFavoritesService(unittest.TestCase):
 
     @patch('xivo_dird.plugins.favorites_service.Consul')
+    def test_that_list_favorites_passes_down_token_infos(self, consul):
+        consul_mock = consul.return_value
+        consul_mock.kv.get.return_value = (None, [])
+        source = Mock(list=Mock(return_value=[{'f': 1}]))
+        source.name = 'source'
+        config = {
+            'services': {
+                'favorites': {
+                    'my_profile': {
+                        'sources': ['source']
+                    }
+                }
+            },
+            'consul': {
+                'host': 'localhost'
+            }
+        }
+        service = _FavoritesService(config, {'source': source})
+        token_infos = {'token': s.token, 'auth_id': s.auth_id}
+
+        service.favorites('my_profile', token_infos)
+
+        source.list.assert_called_once_with([],
+                                            {'token_infos': token_infos})
+
+        service.stop()
+
+    @patch('xivo_dird.plugins.favorites_service.Consul')
     def test_that_favorites_searches_only_the_configured_sources(self, consul):
         consul_mock = consul.return_value
         consul_mock.kv.get.return_value = (None, [])
@@ -107,9 +135,9 @@ class TestFavoritesService(unittest.TestCase):
 
         expected_results = [{'f': 1}, {'f': 3}]
 
-        sources['source_1'].list.assert_called_once_with([])
-        assert_that(sources['source_2'].call_count, equal_to(0))
-        sources['source_3'].list.assert_called_once_with([])
+        assert_that(sources['source_1'].list.call_count, equal_to(1))
+        assert_that(sources['source_2'].list.call_count, equal_to(0))
+        assert_that(sources['source_3'].list.call_count, equal_to(1))
 
         assert_that(results, contains_inanyorder(*expected_results))
 
@@ -146,8 +174,8 @@ class TestFavoritesService(unittest.TestCase):
 
         expected_results = [{'f': 1}]
 
-        sources['source_1'].list.assert_called_once_with([])
-        assert_that(sources['source_2'].call_count, equal_to(0))
+        assert_that(sources['source_1'].list.call_count, equal_to(1))
+        assert_that(sources['source_2'].list.call_count, equal_to(0))
 
         assert_that(results, contains_inanyorder(*expected_results))
 
@@ -215,10 +243,11 @@ class TestFavoritesService(unittest.TestCase):
         ]
         service = _FavoritesService(config, sources)
 
-        result = service.favorites('my_profile', {'token': s.token, 'auth_id': s.auth_id})
+        token_infos = {'token': s.token, 'auth_id': s.auth_id}
+        result = service.favorites('my_profile', token_infos)
 
-        sources['source_1'].list.assert_called_once_with(['id1'])
-        sources['source_2'].list.assert_called_once_with(['id2'])
+        sources['source_1'].list.assert_called_once_with(['id1'], {'token_infos': token_infos})
+        sources['source_2'].list.assert_called_once_with(['id2'], {'token_infos': token_infos})
         assert_that(result, contains_inanyorder('contact1', 'contact2'))
 
         service.stop()

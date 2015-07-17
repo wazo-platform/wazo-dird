@@ -101,7 +101,7 @@ class BaseSourcePlugin(object):
         added with a `__unique_id` header containing the unique key.
         '''
 
-    def list(self, uids):
+    def list(self, uids, args):
         '''
         Returns a list of results based on the unique column for this backend.
         This function is not mandatory as some backends make it harder than

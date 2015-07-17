@@ -60,7 +60,7 @@ class XivoUserPlugin(BaseSourcePlugin):
 
         return [entry for entry in entries if match_fn(entry)]
 
-    def list(self, unique_ids):
+    def list(self, unique_ids, args=None):
         entries = self._fetch_entries()
 
         def match_fn(entry):

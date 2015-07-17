@@ -76,6 +76,26 @@ class TestLookupServicePlugin(unittest.TestCase):
 
 class TestLookupService(unittest.TestCase):
 
+    def test_that_lookup_passes_down_token_infos(self):
+        source = Mock(search=Mock(return_value=[{'f': 1}]))
+        config = {
+            'services': {
+                'lookup': {
+                    'my_profile': {
+                        'sources': ['source']
+                    }
+                }
+            }
+        }
+        s = _LookupService(config, {'source': source})
+
+        s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+
+        source.search.assert_called_once_with(sentinel.term,
+                                              {'token_infos': sentinel.token_infos})
+
+        s.stop()
+
     def test_that_lookup_searches_only_the_configured_sources(self):
         sources = {
             'source_1': Mock(name='source_1', search=Mock(return_value=[{'f': 1}])),
@@ -95,13 +115,13 @@ class TestLookupService(unittest.TestCase):
 
         s = _LookupService(config, sources)
 
-        results = s(sentinel.term, 'my_profile', sentinel.args)
+        results = s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         expected_results = [{'f': 1}, {'f': 3}]
 
-        sources['source_1'].search.assert_called_once_with(sentinel.term, sentinel.args)
-        assert_that(sources['source_2'].call_count, equal_to(0))
-        sources['source_3'].search.assert_called_once_with(sentinel.term, sentinel.args)
+        assert_that(sources['source_1'].search.call_count, equal_to(1))
+        assert_that(sources['source_2'].search.call_count, equal_to(0))
+        assert_that(sources['source_3'].search.call_count, equal_to(1))
 
         assert_that(results, contains_inanyorder(*expected_results))
 
@@ -126,12 +146,12 @@ class TestLookupService(unittest.TestCase):
 
         s = _LookupService(config, sources)
 
-        results = s(sentinel.term, 'my_profile', sentinel.args)
+        results = s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         expected_results = [{'f': 1}]
 
-        sources['source_1'].search.assert_called_once_with(sentinel.term, sentinel.args)
-        assert_that(sources['source_2'].call_count, equal_to(0))
+        assert_that(sources['source_1'].search.call_count, equal_to(1))
+        assert_that(sources['source_2'].search.call_count, equal_to(0))
 
         assert_that(results, contains_inanyorder(*expected_results))
 
@@ -140,7 +160,7 @@ class TestLookupService(unittest.TestCase):
     def test_when_the_profile_is_not_configured(self):
         s = _LookupService({}, {})
 
-        result = s(sentinel.term, 'my_profile', sentinel.args)
+        result = s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         assert_that(result, contains())
 
@@ -149,7 +169,7 @@ class TestLookupService(unittest.TestCase):
     def test_when_the_sources_are_not_configured(self):
         s = _LookupService({'my_profile': {}}, {})
 
-        result = s(sentinel.term, 'my_profile', sentinel.args)
+        result = s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         assert_that(result, contains())
 

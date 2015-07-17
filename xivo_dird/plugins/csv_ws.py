@@ -53,7 +53,7 @@ class CSVWSPlugin(BaseSourcePlugin):
         return [self._SourceResult(result)
                 for result in self._reader.from_text(response.text)]
 
-    def list(self, source_entry_ids):
+    def list(self, source_entry_ids, args=None):
         if not (self._unique_column and self._list_url):
             return []
 

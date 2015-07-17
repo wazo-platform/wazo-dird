@@ -63,7 +63,7 @@ class CSVPlugin(BaseSourcePlugin):
         fn = partial(self._low_case_match_entry, term.lower(), self._config[self.SEARCHED_COLUMNS])
         return self._list_from_predicate(fn)
 
-    def list(self, unique_ids):
+    def list(self, unique_ids, args=None):
         if not self._has_unique_id:
             return []
 

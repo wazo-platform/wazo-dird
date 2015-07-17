@@ -61,9 +61,10 @@ class _LookupService(BaseService):
         future.name = source.name
         return future
 
-    def __call__(self, term, profile, args):
+    def __call__(self, term, profile, args, token_infos):
         futures = []
         for source in self._source_by_profile(profile):
+            args['token_infos'] = token_infos
             futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}

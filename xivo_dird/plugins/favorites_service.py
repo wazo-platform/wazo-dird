@@ -76,8 +76,8 @@ class _FavoritesService(BaseService):
     def stop(self):
         self._executor.shutdown()
 
-    def _async_list(self, source, contact_ids):
-        future = self._executor.submit(source.list, contact_ids)
+    def _async_list(self, source, contact_ids, args):
+        future = self._executor.submit(source.list, contact_ids, args)
         future.name = source.name
         return future
 
@@ -88,7 +88,7 @@ class _FavoritesService(BaseService):
         futures = []
         for source_name, ids in self.favorite_ids(profile, token_infos).iteritems():
             source = self._sources[source_name]
-            futures.append(self._async_list(source, ids))
+            futures.append(self._async_list(source, ids, {'token_infos': token_infos}))
 
         params = {'return_when': ALL_COMPLETED}
         if 'lookup_timeout' in self._config:

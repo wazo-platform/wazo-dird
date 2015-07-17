@@ -50,7 +50,7 @@ class LDAPPlugin(BaseSourcePlugin):
 
         return self._search_and_format(filter_str)
 
-    def list(self, uids):
+    def list(self, uids, args=None):
         # XXX what is the character encoding used in uids ?
         if not self._ldap_config.unique_column():
             return []
