@@ -264,6 +264,52 @@
                 ]
             }
         },
+        "/directories/privates/{profile}": {
+            "get": {
+                "summary": "List private contacts",
+                "description": "Get the list of private contacts formatted for the profile",
+                "operationId": "list_privates",
+                "tags": [
+                    "privates"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of contacts",
+                        "schema": {
+                            "$ref": "#/definitions/ContactList"
+                        }
+                    },
+                    "404": {
+                        "description": "Invalid profile",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "profile",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The profile defines the list of directories to query and how the results are displayed",
+                        "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    }
+                ]
+            }
+        },
         "/privates": {
             "get": {
                 "summary": "List private contacts",
