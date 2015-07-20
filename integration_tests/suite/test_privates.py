@@ -116,6 +116,16 @@ class TestPrivatesVisibility(BaseDirdIntegrationTest):
         assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
 
 
+class TestPrivatesListWithProfileEmpty(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_listing_privates_with_profile_empty_returns_empty_list(self):
+        result = self.get_privates_with_profile('default')
+
+        assert_that(result['results'], contains())
+
+
 class TestPrivatesListWithProfile(BaseDirdIntegrationTest):
 
     asset = 'privates_only'
