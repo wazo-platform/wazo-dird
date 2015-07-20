@@ -51,6 +51,7 @@ class SourceManager(object):
         backend = extension.name
         for config in configs_by_backend[backend]:
             config_name = config['name']
+            logger.debug('Loading source %s', config_name)
             try:
                 source = extension.plugin()
                 source.name = config_name
