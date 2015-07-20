@@ -31,7 +31,6 @@ class SourceManager(object):
     def __init__(self, enabled_backends, source_configs):
         self._enabled_backends = enabled_backends
         self._source_configs = source_configs
-        self._configs_by_backend = defaultdict(list)
         self._sources = {}
 
     def should_load_backend(self, extension):
@@ -43,18 +42,9 @@ class SourceManager(object):
             check_func=self.should_load_backend,
             invoke_on_load=False,
         )
-        self._load_all_configs()
-        manager.map(self._load_sources_using_backend, self._configs_by_backend)
+        configs_by_backend = self.group_configs_by_backend(self._source_configs)
+        manager.map(self._load_sources_using_backend, configs_by_backend)
         return self._sources
-
-    def _load_all_configs(self):
-        for source_config in self._source_configs.itervalues():
-            source_type = source_config.get('type')
-            if not source_type:
-                logger.warning('One of the source config as no back-end type. Ignoring.')
-                logger.debug('Source config with no type: `%s`', source_config)
-                continue
-            self._configs_by_backend[source_type].append(source_config)
 
     def _load_sources_using_backend(self, extension, configs_by_backend):
         backend = extension.name
@@ -67,3 +57,15 @@ class SourceManager(object):
                 self._sources[source.name] = source
             except Exception:
                 logger.exception('Failed to load back-end `%s` with config `%s`', extension.name, config_name)
+
+    @staticmethod
+    def group_configs_by_backend(source_configs):
+        configs_by_backend = defaultdict(list)
+        for source_config in source_configs.itervalues():
+            source_type = source_config.get('type')
+            if not source_type:
+                logger.warning('One of the source config has no back-end type. Ignoring.')
+                logger.debug('Source config with no type: `%s`', source_config)
+                continue
+            configs_by_backend[source_type].append(source_config)
+        return configs_by_backend
