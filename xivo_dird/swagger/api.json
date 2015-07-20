@@ -332,6 +332,12 @@
                         "schema": {
                             "$ref": "#/definitions/PrivateList"
                         }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 }
             },
@@ -365,6 +371,12 @@
                         "schema": {
                             "$ref": "#/definitions/Private"
                         }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 }
             }
@@ -395,6 +407,12 @@
                 "responses": {
                     "204": {
                         "description": "The private contact was removed."
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 }
             }

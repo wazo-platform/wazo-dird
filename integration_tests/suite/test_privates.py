@@ -145,4 +145,6 @@ class TestPrivatesListWithProfile(BaseDirdIntegrationTest):
 # lookup = return privates
 # favorite privates
 # validation upon contact creation/update
+# consul unreachable
+# invalid profile
 # other errors
