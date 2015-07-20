@@ -74,7 +74,7 @@ class _PrivatesService(BaseService):
         contacts = []
         with self._consul(token=token_infos['token']) as consul:
             _, contact_key_prefixes = consul.kv.get(consul_key, keys=True, separator='/')
-            for key_prefix in contact_key_prefixes:
+            for key_prefix in (contact_key_prefixes or []):
                 _, consul_dict = consul.kv.get(key_prefix, recurse=True)
                 contacts.append(dict_from_consul(key_prefix, consul_dict))
         return contacts

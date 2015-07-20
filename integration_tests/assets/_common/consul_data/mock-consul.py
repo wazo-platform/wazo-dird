@@ -64,26 +64,31 @@ def response(data, code=200):
 
 
 @app.route("/v1/kv/xivo/private/<uuid>/<path:path>", methods=['GET'], strict_slashes=False)
-def kv_list(uuid, path):
+def kv_get(uuid, path):
     if 'token' not in request.args or acl.get(request.args['token']) != uuid:
         return response('', 401)
 
     root_key = get_key(request.path)
     subkeys = [key for key in kv_store.keys() if key.startswith(root_key)]
+    result = []
 
     if request.args.get('keys', False):
         separator = request.args.get('separator')
         if separator:
             subkeys = set(truncate_key(key, search_start=len(root_key), last_char=separator) for key in subkeys)
-        return response(list(subkeys))
+        result = list(subkeys)
 
     if request.args.get('recurse', False):
-        return response([item(key) for key in subkeys])
+        result = [item(key) for key in subkeys]
 
     if root_key in kv_store:
-        return response([item(root_key)])
+        result = [item(root_key)]
 
-    return response('', 404)
+    # Consul prefers None to empty list
+    if not result:
+        result = None
+
+    return response(result, 404)
 
 
 @app.route("/v1/kv/xivo/private/<uuid>/<path:path>", methods=['PUT'])
