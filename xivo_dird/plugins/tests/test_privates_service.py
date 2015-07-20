@@ -54,18 +54,29 @@ class TestPrivatesServicePlugin(unittest.TestCase):
     @patch('xivo_dird.plugins.privates_service.Consul')
     def test_that_create_contact_calls_consul_put(self, consul_init):
         consul = consul_init.return_value
-
         service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
         service.create_contact({'eyes': 'violet'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.put.call_count, greater_than(0))
 
     @patch('xivo_dird.plugins.privates_service.Consul')
+    def test_that_list_contacts_calls_consul_get(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), ['/my/key/', 'my/other/key/'])
+        source = Mock(backend='privates')
+        service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}}, {'privates': source})
+
+        service.list_contacts({'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(consul.kv.get.call_count, greater_than(0))
+
+    @patch('xivo_dird.plugins.privates_service.Consul')
     def test_that_list_contacts_raw_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [{'Key': 'some-key', 'Value': 'some-value'}])
-
         service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
         service.list_contacts_raw({'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.get.call_count, greater_than(0))
@@ -73,8 +84,8 @@ class TestPrivatesServicePlugin(unittest.TestCase):
     @patch('xivo_dird.plugins.privates_service.Consul')
     def test_that_remove_contact_calls_consul_delete(self, consul_init):
         consul = consul_init.return_value
-
         service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
         service.remove_contact('my-contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.delete.call_count, greater_than(0))
