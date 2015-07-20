@@ -25,6 +25,16 @@ from hamcrest import has_key
 from hamcrest import not_
 
 
+class TestListPrivates(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_listing_empty_privates_returns_empty_list(self):
+        result = self.get_privates()
+
+        assert_that(result['items'], contains())
+
+
 class TestAddPrivate(BaseDirdIntegrationTest):
 
     asset = 'privates_only'
