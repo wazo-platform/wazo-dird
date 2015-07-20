@@ -10,7 +10,7 @@ test-setup: egg-info
 	docker build --no-cache -t xivo-dird-test -f Dockerfile-dird-test ..
 
 egg-info:
-	cd .. && python setup.py install_egg_info
+	cd .. && python setup.py egg_info
 
 test:
 	nosetests
