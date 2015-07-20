@@ -75,7 +75,8 @@ class _PrivatesService(BaseService):
         consul_key = PRIVATE_CONTACTS_KEY.format(user_uuid=user_uuid)
         with self._consul(token=token_infos['token']) as consul:
             _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
-            contact_ids = [contact_key[len(consul_key):-1] for contact_key in (contact_keys or [])]
+            contact_keys = contact_keys or []
+            contact_ids = [contact_key[len(consul_key):-1] for contact_key in contact_keys]
             contacts = self._source.list(contact_ids, token_infos)
         return contacts
 
@@ -84,8 +85,9 @@ class _PrivatesService(BaseService):
         consul_key = PRIVATE_CONTACTS_KEY.format(user_uuid=user_uuid)
         contacts = []
         with self._consul(token=token_infos['token']) as consul:
-            _, contact_key_prefixes = consul.kv.get(consul_key, keys=True, separator='/')
-            for key_prefix in (contact_key_prefixes or []):
+            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
+            contact_keys = contact_keys or []
+            for key_prefix in contact_keys:
                 _, consul_dict = consul.kv.get(key_prefix, recurse=True)
                 contacts.append(dict_from_consul(key_prefix, consul_dict))
         return contacts
