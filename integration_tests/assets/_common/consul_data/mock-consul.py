@@ -84,11 +84,11 @@ def kv_get(uuid, path):
     if root_key in kv_store:
         result = [item(root_key)]
 
-    # Consul prefers None to empty list
-    if not result:
-        result = None
+    if result:
+        return response(result, 200)
 
-    return response(result, 404)
+    # Consul prefers None to empty list
+    return response(None, 404)
 
 
 @app.route("/v1/kv/xivo/private/<uuid>/<path:path>", methods=['PUT'])
