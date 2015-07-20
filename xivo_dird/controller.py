@@ -29,7 +29,7 @@ class Controller(object):
         self.rest_api = CoreRestApi(self.config['rest_api'])
         self.rest_api.app.config['auth'] = config['auth']
         self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
-                                                   self.config['sources'])
+                                                   self.config)
         self.services = plugin_manager.load_services(self.config,
                                                      self.config['enabled_plugins']['services'],
                                                      self.sources)

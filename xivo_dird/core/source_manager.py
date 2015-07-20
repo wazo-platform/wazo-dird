@@ -28,9 +28,10 @@ class SourceManager(object):
 
     _namespace = 'xivo_dird.backends'
 
-    def __init__(self, enabled_backends, source_configs):
+    def __init__(self, enabled_backends, config):
         self._enabled_backends = enabled_backends
-        self._source_configs = source_configs
+        self._source_configs = config['sources']
+        self._main_config = config
         self._sources = {}
 
     def should_load_backend(self, extension):
@@ -53,7 +54,8 @@ class SourceManager(object):
             try:
                 source = extension.plugin()
                 source.name = config_name
-                source.load({'config': config})
+                source.load({'config': config,
+                             'main_config': self._main_config})
                 self._sources[source.name] = source
             except Exception:
                 logger.exception('Failed to load back-end `%s` with config `%s`', extension.name, config_name)

@@ -38,7 +38,7 @@ class TestSourceManager(unittest.TestCase):
         sources_by_type = defaultdict(list)
         sources_by_type['ldap'].append(my_ldap_config)
 
-        manager = SourceManager(enabled_backends, {'my_ldap': my_ldap_config})
+        manager = SourceManager(enabled_backends, {'sources': {'my_ldap': my_ldap_config}})
 
         manager.load_sources()
 
@@ -55,7 +55,7 @@ class TestSourceManager(unittest.TestCase):
             'xivo_phonebook',
         ]
 
-        manager = SourceManager(enabled_backends, {})
+        manager = SourceManager(enabled_backends, {'sources': {}})
         manager._sources = s.sources
 
         result = manager.load_sources()
@@ -71,59 +71,41 @@ class TestSourceManager(unittest.TestCase):
         backend_2 = Mock()
         backend_2.name = 'xivo_phonebook'
 
-        manager = SourceManager(enabled_backends, {})
+        manager = SourceManager(enabled_backends, {'sources': {}})
 
         assert_that(manager.should_load_backend(backend_1), is_(True))
         assert_that(manager.should_load_backend(backend_2), is_(False))
 
     def test_load_sources_using_backend_calls_load_on_all_sources_using_this_backend(self):
-        configs = config1, config2 = [
-            {
-                'type': 'backend',
-                'name': 'source1'
-            },
-            {
-                'type': 'backend',
-                'name': 'source2'
-            }
-        ]
-        configs_by_backend = {
-            'backend': configs
-        }
+        config1 = {'type': 'backend', 'name': 'source1'}
+        config2 = {'type': 'backend', 'name': 'source2'}
+        main_config = {'sources': {'source1': config1, 'source2': config2}}
+        configs_by_backend = {'backend': [config1, config2]}
         extension = Mock()
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
-        manager = SourceManager([], {})
+        manager = SourceManager([], main_config)
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 
         assert_that(source1.name, equal_to('source1'))
-        source1.load.assert_called_once_with({'config': config1})
+        source1.load.assert_called_once_with({'config': config1, 'main_config': main_config})
         assert_that(source2.name, equal_to('source2'))
-        source2.load.assert_called_once_with({'config': config2})
+        source2.load.assert_called_once_with({'config': config2, 'main_config': main_config})
 
     def test_load_sources_using_backend_calls_load_on_all_sources_with_exceptions(self):
-        configs = config1, config2 = [
-            {
-                'type': 'backend',
-                'name': 'source1'
-            },
-            {
-                'type': 'backend',
-                'name': 'source2'
-            }
-        ]
-        configs_by_backend = {
-            'backend': configs
-        }
+        config1 = {'type': 'backend', 'name': 'source1'}
+        config2 = {'type': 'backend', 'name': 'source2'}
+        main_config = {'sources': {'source1': config1, 'source2': config2}}
+        configs_by_backend = {'backend': [config1, config2]}
         extension = Mock()
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
         source1.load.side_effect = RuntimeError
-        manager = SourceManager([], {})
+        manager = SourceManager([], main_config)
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 
         assert_that(manager._sources.keys(), contains('source2'))
         assert_that(source2.name, equal_to('source2'))
-        source2.load.assert_called_once_with({'config': config2})
+        source2.load.assert_called_once_with({'config': config2, 'main_config': main_config})
