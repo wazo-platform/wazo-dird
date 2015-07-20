@@ -49,8 +49,6 @@ class PrivatesBackend(BaseSourcePlugin):
         with self._consul(token=token_infos['token']) as consul:
             for contact_key in contact_keys:
                 _, consul_dict = consul.kv.get(contact_key, recurse=True)
-                import pprint
-                pprint.pprint(consul_dict)
                 contacts.append(self._SourceResult(dict_from_consul(contact_key, consul_dict)))
         return contacts
 
