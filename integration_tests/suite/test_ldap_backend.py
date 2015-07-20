@@ -33,7 +33,7 @@ Contact = namedtuple('Contact', ['firstname', 'lastname', 'number'])
 
 class LDAPHelper(object):
 
-    LDAP_URI = 'ldap://localhost:3389'
+    LDAP_URI = 'ldap://localhost:3899'
 
     BASE_DN = 'dc=xivo-dird,dc=xivo,dc=io'
     ADMIN_DN = 'cn=admin,{}'.format(BASE_DN)

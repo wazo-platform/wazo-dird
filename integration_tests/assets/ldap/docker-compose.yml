@@ -26,7 +26,7 @@ slapd:
     LDAP_ORGANISATION: acme
     LDAP_ROOTPASS: xivopassword
   ports:
-    - "3389:389"
+    - "3899:389"
 auth:
   image: xivo-auth-mock
   ports:
