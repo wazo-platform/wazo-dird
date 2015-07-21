@@ -103,4 +103,5 @@ class DisabledPrivateSource(object):
 
 
 def dict_from_consul(prefix, consul_dict):
-    return dict((consul_kv['Key'][len(prefix):], consul_kv['Value']) for consul_kv in consul_dict)
+    prefix_length = len(prefix)
+    return dict((consul_kv['Key'][prefix_length:], consul_kv['Value']) for consul_kv in consul_dict)
