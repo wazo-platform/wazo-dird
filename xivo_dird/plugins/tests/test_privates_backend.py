@@ -18,6 +18,9 @@ from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import greater_than
 from hamcrest import has_entries
+from hamcrest import has_entry
+from hamcrest import has_item
+from hamcrest import has_property
 from mock import Mock
 from mock import patch
 from unittest import TestCase
@@ -39,6 +42,19 @@ class TestPrivatesBackend(TestCase):
         source.list(['1', '2'], {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.get.call_count, greater_than(1))
+
+    @patch('xivo_dird.plugins.privates_backend.Consul')
+    def test_that_list_add_attribute_private(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = Mock(), [{'Key': 'my/key',
+                                               'Value': 'my-value'}]
+        source = PrivatesBackend()
+        source.load({'config': {'name': 'privates'},
+                     'main_config': {'consul': {'host': 'localhost'}}})
+
+        result = source.list(['1'], {'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(result, has_item(has_property('fields', has_entry('private', True))))
 
 
 class TestDictFromConsul(TestCase):
