@@ -36,7 +36,7 @@ class PhonebookPlugin(BaseSourcePlugin):
         self._pbook_client = self.pbook_factory.new_phonebook_client(pbook_config)
         self._pbook_result_converter = self.pbook_factory.new_phonebook_result_converter(pbook_config)
 
-    def search(self, term, profile=None, args=None):
+    def search(self, term, args=None):
         term = term.encode('UTF-8')
 
         return self._pbook_result_converter.convert_all(self._pbook_client.search(term))

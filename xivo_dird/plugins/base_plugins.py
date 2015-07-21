@@ -87,7 +87,7 @@ class BaseSourcePlugin(object):
         '''
 
     @abc.abstractmethod
-    def search(self, term, profile, args):
+    def search(self, term, args=None):
         '''
         The search method should return a list of dict containing the search
         results.
@@ -101,7 +101,7 @@ class BaseSourcePlugin(object):
         added with a `__unique_id` header containing the unique key.
         '''
 
-    def list(self, uids):
+    def list(self, uids, args):
         '''
         Returns a list of results based on the unique column for this backend.
         This function is not mandatory as some backends make it harder than

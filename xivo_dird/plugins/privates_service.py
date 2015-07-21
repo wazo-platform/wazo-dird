@@ -36,18 +36,20 @@ class PrivatesServicePlugin(BaseServicePlugin):
     def load(self, args):
         try:
             config = args['config']
+            sources = args['sources']
         except KeyError:
-            msg = ('%s should be loaded with "config" but received: %s'
+            msg = ('%s should be loaded with "config" and "sources" but received: %s'
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
-        return _PrivatesService(config)
+        return _PrivatesService(config, sources)
 
 
 class _PrivatesService(BaseService):
 
-    def __init__(self, config):
+    def __init__(self, config, sources):
         self._config = config
+        self._source = next((source for source in sources.itervalues() if source.backend == 'privates'), DisabledPrivateSource())
 
     def __call__(self):
         pass
@@ -71,10 +73,21 @@ class _PrivatesService(BaseService):
     def list_contacts(self, token_infos):
         user_uuid = token_infos['auth_id']
         consul_key = PRIVATE_CONTACTS_KEY.format(user_uuid=user_uuid)
+        with self._consul(token=token_infos['token']) as consul:
+            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
+            contact_keys = contact_keys or []
+            contact_ids = [contact_key[len(consul_key):-1] for contact_key in contact_keys]
+            contacts = self._source.list(contact_ids, token_infos)
+        return contacts
+
+    def list_contacts_raw(self, token_infos):
+        user_uuid = token_infos['auth_id']
+        consul_key = PRIVATE_CONTACTS_KEY.format(user_uuid=user_uuid)
         contacts = []
         with self._consul(token=token_infos['token']) as consul:
-            _, contact_key_prefixes = consul.kv.get(consul_key, keys=True, separator='/')
-            for key_prefix in (contact_key_prefixes or []):
+            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
+            contact_keys = contact_keys or []
+            for key_prefix in contact_keys:
                 _, consul_dict = consul.kv.get(key_prefix, recurse=True)
                 contacts.append(dict_from_consul(key_prefix, consul_dict))
         return contacts
@@ -82,6 +95,11 @@ class _PrivatesService(BaseService):
     @contextmanager
     def _consul(self, token):
         yield Consul(token=token, **self._config['consul'])
+
+
+class DisabledPrivateSource(object):
+    def list(self, _source_entry_ids, _token_infos):
+        return []
 
 
 def dict_from_consul(prefix, consul_dict):

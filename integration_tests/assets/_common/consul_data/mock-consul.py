@@ -16,9 +16,15 @@
 
 import base64
 import json
+import logging
+import pprint
 import sys
 
-from flask import Flask, make_response, request
+from flask import Flask
+from flask import make_response
+from flask import request
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -120,6 +126,12 @@ def kv_delete(uuid, path):
         return response('true')
 
     return response('', 404)
+
+
+@app.after_request
+def log_response(response):
+    logging.debug('\n' + pprint.pformat(json.loads(response.data)))
+    return response
 
 
 if __name__ == "__main__":

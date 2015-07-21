@@ -74,7 +74,7 @@ class TestController(TestCase):
 
         Controller(config)
 
-        self.load_sources.assert_called_once_with(s.enabled, s.source_configs)
+        self.load_sources.assert_called_once_with(s.enabled, config)
 
     def test_init_loads_views(self):
         config = self._create_config(**{

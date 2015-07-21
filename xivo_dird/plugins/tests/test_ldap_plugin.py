@@ -64,7 +64,7 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_result_formatter.format.return_value = sentinel.format_result
 
         self.ldap_plugin.load(self.config)
-        result = self.ldap_plugin.search(term, '')
+        result = self.ldap_plugin.search(term)
 
         self.ldap_config.build_search_filter.assert_called_once_with(term.encode('UTF-8'))
         self.ldap_client.search.assert_called_once_with(sentinel.filter)

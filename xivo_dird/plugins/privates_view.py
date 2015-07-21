@@ -58,7 +58,7 @@ class PrivateAll(AuthResource):
     def get(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        result = {'items': self.privates_service.list_contacts(token_infos)}
+        result = {'items': self.privates_service.list_contacts_raw(token_infos)}
         return result, 200
 
 

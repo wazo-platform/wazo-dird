@@ -4,6 +4,7 @@ enabled_plugins:
     services:
         - lookup
         - favorites
+        - privates
     views:
         - default_json
         - headers_view

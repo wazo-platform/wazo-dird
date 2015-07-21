@@ -1,9 +1,7 @@
 enabled_plugins:
     backends:
-        - sample
+        - privates
     services:
-        - favorites
-        - lookup
         - privates
     views:
         - default_json
@@ -15,38 +13,15 @@ views:
         default_display:
             -
                 title: Firstname
-                default: Unknown
                 field: firstname
             -
                 title: Lastname
-                default: Unknown
                 field: lastname
             -
                 title: Number
-                default:
                 field: number
-            -
-                field: favorite
-                type: favorite
     profile_to_display:
         default: default_display
-
-services:
-    lookup:
-        default:
-            sources:
-                - sample
-            timeout: 0.5
-    favorites:
-        default:
-            sources:
-                - sample
-            timeout: 0.5
-    privates:
-        default:
-            sources:
-                - sample
-            timeout: 0.5
 
 rest_api:
        listen: 0.0.0.0
