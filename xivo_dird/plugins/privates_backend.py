@@ -44,13 +44,13 @@ class PrivatesBackend(BaseSourcePlugin):
     def search(self, term, profile=None, args=None):
         return []
 
-    def list(self, source_entry_ids, token_infos):
-        user_uuid = token_infos['auth_id']
+    def list(self, source_entry_ids, args):
+        user_uuid = args['token_infos']['auth_id']
         contact_keys = [PRIVATE_CONTACT_KEY.format(user_uuid=user_uuid,
                                                    contact_uuid=contact_uuid)
                         for contact_uuid in source_entry_ids]
         contacts = []
-        with self._consul(token=token_infos['token']) as consul:
+        with self._consul(token=args['token_infos']['token']) as consul:
             for contact_key in contact_keys:
                 _, consul_dict = consul.kv.get(contact_key, recurse=True)
                 contact = self._SourceResult(dict_from_consul(contact_key, consul_dict))

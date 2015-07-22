@@ -78,7 +78,7 @@ class _PrivatesService(BaseService):
             _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
             contact_keys = contact_keys or []
             contact_ids = [contact_key[len(consul_key):-1] for contact_key in contact_keys]
-            contacts = self._source.list(contact_ids, token_infos)
+            contacts = self._source.list(contact_ids, {'token_infos': token_infos})
         return contacts
 
     def list_contacts_raw(self, token_infos):

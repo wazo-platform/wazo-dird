@@ -123,12 +123,15 @@ class TestFavoritesInPrivatesResults(BaseDirdIntegrationTest):
 
         self.put_favorite('privates', bob['id'])
 
-        result = self.get_privates_with_profile('default')
+        privates = self.get_privates_with_profile('default')
+        favorites = self.favorites('default')
 
-        assert_that(result['results'], contains_inanyorder(
+        assert_that(privates['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', None, None, False)),
             has_entry('column_values', contains('Bob', None, None, True)),
             has_entry('column_values', contains('Charlie', None, None, False))))
+        assert_that(favorites['results'], contains_inanyorder(
+            has_entry('column_values', contains('Bob', None, None, True))))
 
 
 class TestFavoritesVisibilityInSimilarSources(BaseDirdIntegrationTest):

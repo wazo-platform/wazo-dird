@@ -18,7 +18,6 @@ from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import greater_than
 from hamcrest import has_entries
-from hamcrest import has_entry
 from hamcrest import has_item
 from hamcrest import has_property
 from mock import Mock
@@ -39,7 +38,7 @@ class TestPrivatesBackend(TestCase):
         source.load({'config': {'name': 'privates'},
                      'main_config': {'consul': {'host': 'localhost'}}})
 
-        source.list(['1', '2'], {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        source.list(['1', '2'], {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
 
         assert_that(consul.kv.get.call_count, greater_than(1))
 
@@ -52,7 +51,7 @@ class TestPrivatesBackend(TestCase):
         source.load({'config': {'name': 'privates'},
                      'main_config': {'consul': {'host': 'localhost'}}})
 
-        result = source.list(['1'], {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        result = source.list(['1'], {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
 
         assert_that(result, has_item(has_property('is_private', True)))
         assert_that(result, has_item(has_property('is_deletable', True)))
