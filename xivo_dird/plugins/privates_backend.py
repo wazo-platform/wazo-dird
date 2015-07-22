@@ -65,6 +65,8 @@ class PrivatesBackend(BaseSourcePlugin):
 
 def dict_from_consul(prefix, consul_dict):
     result = {}
+    if consul_dict is None:
+        return result
     for consul_kv in consul_dict:
         if consul_kv['Key'].startswith(prefix):
             key = consul_kv['Key'][len(prefix):]

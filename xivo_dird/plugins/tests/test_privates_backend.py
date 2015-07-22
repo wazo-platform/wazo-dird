@@ -64,6 +64,11 @@ class TestDictFromConsul(TestCase):
 
         assert_that(result, equal_to({}))
 
+    def test_dict_from_consul_none(self):
+        result = dict_from_consul('', None)
+
+        assert_that(result, equal_to({}))
+
     def test_dict_from_consul_full(self):
         consul_dict = [
             {'Key': '/my/prefix/key1',
