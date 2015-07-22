@@ -55,7 +55,6 @@ class PersonalBackend(BaseSourcePlugin):
                 _, consul_dict = consul.kv.get(contact_key, recurse=True)
                 if consul_dict:
                     contact = self._SourceResult(dict_from_consul(contact_key, consul_dict))
-                    contact.fields['private'] = True
                     contacts.append(contact)
         return contacts
 
