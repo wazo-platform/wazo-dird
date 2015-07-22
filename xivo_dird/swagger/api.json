@@ -33,7 +33,7 @@
                 "description": " The `lookup` query will return a list of result matching the searched term. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "lookup",
                 "tags": [
-                    "lookup"
+                    "directories"
                 ],
                 "responses": {
                     "200": {
@@ -86,7 +86,7 @@
                 "description": "Column headers that can be used when displaying lookup results to the client",
                 "operationId": "get_headers",
                 "tags": [
-                    "headers"
+                    "directories"
                 ],
                 "responses": {
                     "200": {
@@ -132,7 +132,7 @@
                 "description": "Get the list of favorite contacts for directories configured in the profile",
                 "operationId": "list_favorites",
                 "tags": [
-                    "favorites"
+                    "directories"
                 ],
                 "responses": {
                     "200": {
@@ -178,7 +178,7 @@
                 "description": "Add the contact from {directory} to the list of favorite contacts.",
                 "operationId": "add_favorite",
                 "tags": [
-                    "favorites"
+                    "directories"
                 ],
                 "responses": {
                     "204": {
@@ -220,7 +220,7 @@
                 "description": "Remove the contact from {directory} from the list of favorite contacts.",
                 "operationId": "remove_favorite",
                 "tags": [
-                    "favorites"
+                    "directories"
                 ],
                 "responses": {
                     "204": {
@@ -270,7 +270,7 @@
                 "description": "Get the list of private contacts formatted for the profile",
                 "operationId": "list_privates",
                 "tags": [
-                    "privates"
+                    "directories"
                 ],
                 "responses": {
                     "200": {

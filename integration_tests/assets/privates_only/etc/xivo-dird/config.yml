@@ -3,6 +3,7 @@ enabled_plugins:
         - privates
     services:
         - privates
+        - favorites
     views:
         - default_json
         - headers_view
@@ -20,8 +21,17 @@ views:
             -
                 title: Number
                 field: number
+            -
+                title: Favorite
+                type: favorite
     profile_to_display:
         default: default_display
+
+services:
+    favorites:
+        default:
+            sources:
+                - privates
 
 rest_api:
        listen: 0.0.0.0

@@ -105,6 +105,60 @@ class TestFavoritesInLookupResults(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
 
 
+class TestFavoritesInPrivatesResults(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_privates_list_results_show_favorites(self):
+        self.post_private({'firstname': 'Alice'})
+        bob = self.post_private({'firstname': 'Bob'})
+        self.post_private({'firstname': 'Charlie'})
+
+        result = self.get_privates_with_profile('default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', None, None, False)),
+            has_entry('column_values', contains('Bob', None, None, False)),
+            has_entry('column_values', contains('Charlie', None, None, False))))
+
+        self.put_favorite('privates', bob['id'])
+
+        privates = self.get_privates_with_profile('default')
+
+        assert_that(privates['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', None, None, False)),
+            has_entry('column_values', contains('Bob', None, None, True)),
+            has_entry('column_values', contains('Charlie', None, None, False))))
+
+
+class TestPrivatesInFavoritesList(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_favorites_list_results_accept_privates(self):
+        alice = self.post_private({'firstname': 'Alice'})
+        self.put_favorite('privates', alice['id'])
+
+        favorites = self.favorites('default')
+
+        assert_that(favorites['results'], contains(
+            has_entry('column_values', contains('Alice', None, None, True))))
+
+
+class TestDeleteFavoritePrivate(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_removed_favorited_privates_are_not_listed_anymore(self):
+        alice = self.post_private({'firstname': 'Alice'})
+        self.put_favorite('privates', alice['id'])
+        self.delete_private(alice['id'])
+
+        favorites = self.favorites('default')
+
+        assert_that(favorites['results'], contains())
+
+
 class TestFavoritesVisibilityInSimilarSources(BaseDirdIntegrationTest):
 
     asset = 'similar_sources'
