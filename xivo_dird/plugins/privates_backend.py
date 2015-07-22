@@ -53,9 +53,10 @@ class PrivatesBackend(BaseSourcePlugin):
         with self._consul(token=args['token_infos']['token']) as consul:
             for contact_key in contact_keys:
                 _, consul_dict = consul.kv.get(contact_key, recurse=True)
-                contact = self._SourceResult(dict_from_consul(contact_key, consul_dict))
-                contact.fields['private'] = True
-                contacts.append(contact)
+                if consul_dict:
+                    contact = self._SourceResult(dict_from_consul(contact_key, consul_dict))
+                    contact.fields['private'] = True
+                    contacts.append(contact)
         return contacts
 
     @contextmanager
