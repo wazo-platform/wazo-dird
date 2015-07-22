@@ -206,6 +206,7 @@ class _ResultFormatter(object):
         self._has_favorites = 'favorite' in self._types
         if self._has_favorites:
             self._favorite_field = [d.field for d in display if d.type == 'favorite'][0]
+        self._private_fields = [d.field for d in display if d.type == 'private']
 
     def format_results(self, results, favorites):
         self._favorites = favorites
@@ -219,6 +220,8 @@ class _ResultFormatter(object):
         if self._has_favorites:
             is_favorite = self._is_favorite(result)
             result.fields[self._favorite_field] = is_favorite
+
+        result.fields.update(dict.fromkeys(self._private_fields, result.is_private))
 
         return {
             'column_values': [result.fields.get(d.field, d.default) for d in self._display],

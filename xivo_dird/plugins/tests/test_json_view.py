@@ -279,3 +279,40 @@ class TestFormatResult(unittest.TestCase):
         assert_that(result, has_entry('results', contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', False)),
             has_entry('column_values', contains('Bob', 'BBB', '5555556666', True)))))
+
+    def test_that_format_results_marks_privates(self):
+        result1 = self.SourceResult({'id': 1,
+                                     'firstname': 'Alice',
+                                     'lastname': 'AAA',
+                                     'telephoneNumber': '5555555555'},
+                                    self.xivo_id, None, 1, None)
+        result2 = self.SourceResult({'id': 2,
+                                     'firstname': 'Bob',
+                                     'lastname': 'BBB',
+                                     'telephoneNumber': '5555556666'},
+                                    self.xivo_id, 'agent_id', 2, 'endpoint_id')
+        result3 = make_result_class(
+            'private_source',
+            unique_column='id',
+            is_private=True,
+            is_deletable=True)({
+                'id': 'my-id',
+                'firstname': 'Charlie',
+                'lastname': 'CCC',
+                'telephoneNumber': '5555557777'
+            }, self.xivo_id, None, None, None)
+
+        display = [
+            DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
+            DisplayColumn('Lastname', None, '', 'lastname'),
+            DisplayColumn('Number', 'office_number', None, 'telephoneNumber'),
+            DisplayColumn('Private', 'private', None, None),
+        ]
+        formatter = _ResultFormatter(display)
+
+        result = formatter.format_results([result1, result2, result3], {})
+
+        assert_that(result, has_entry('results', contains_inanyorder(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', False)),
+            has_entry('column_values', contains('Bob', 'BBB', '5555556666', False)),
+            has_entry('column_values', contains('Charlie', 'CCC', '5555557777', True)))))

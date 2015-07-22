@@ -131,6 +131,14 @@ class TestMakeResultClass(unittest.TestCase):
         assert_that(s._format_columns, equal_to({'to': '{from}'}))
         assert_that(s._unique_column, none())
 
+    def test_deletable(self):
+        SourceResult = make_result_class(sentinel.source_name,
+                                         is_deletable=True)
+
+        s = SourceResult({})
+
+        assert_that(s.is_deletable, is_(True))
+
 
 class TestFormatter(unittest.TestCase):
 

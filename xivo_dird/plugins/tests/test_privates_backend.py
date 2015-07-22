@@ -44,7 +44,7 @@ class TestPrivatesBackend(TestCase):
         assert_that(consul.kv.get.call_count, greater_than(1))
 
     @patch('xivo_dird.plugins.privates_backend.Consul')
-    def test_that_list_add_attribute_private(self, consul_init):
+    def test_that_list_sets_attribute_private_and_deletable(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = Mock(), [{'Key': 'my/key',
                                                'Value': 'my-value'}]
@@ -54,7 +54,8 @@ class TestPrivatesBackend(TestCase):
 
         result = source.list(['1'], {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
-        assert_that(result, has_item(has_property('fields', has_entry('private', True))))
+        assert_that(result, has_item(has_property('is_private', True)))
+        assert_that(result, has_item(has_property('is_deletable', True)))
 
 
 class TestDictFromConsul(TestCase):

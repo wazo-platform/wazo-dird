@@ -34,7 +34,10 @@ class PrivatesBackend(BaseSourcePlugin):
         self._SourceResult = make_result_class(
             config['config']['name'],
             config['config'].get(self.UNIQUE_COLUMN),
-            config['config'].get(self.FORMAT_COLUMNS, {}))
+            config['config'].get(self.FORMAT_COLUMNS, {}),
+            is_private=True,
+            is_deletable=True
+        )
         self._config = config['main_config']
 
     def search(self, term, profile=None, args=None):
