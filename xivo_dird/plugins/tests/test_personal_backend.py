@@ -24,36 +24,36 @@ from mock import Mock
 from mock import patch
 from unittest import TestCase
 
-from ..privates_backend import PrivatesBackend
-from ..privates_backend import dict_from_consul
+from ..personal_backend import PersonalBackend
+from ..personal_backend import dict_from_consul
 
 
-class TestPrivatesBackend(TestCase):
+class TestPersonalBackend(TestCase):
 
-    @patch('xivo_dird.plugins.privates_backend.Consul')
+    @patch('xivo_dird.plugins.personal_backend.Consul')
     def test_that_list_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = Mock(), []
-        source = PrivatesBackend()
-        source.load({'config': {'name': 'privates'},
+        source = PersonalBackend()
+        source.load({'config': {'name': 'personal'},
                      'main_config': {'consul': {'host': 'localhost'}}})
 
         source.list(['1', '2'], {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
 
         assert_that(consul.kv.get.call_count, greater_than(1))
 
-    @patch('xivo_dird.plugins.privates_backend.Consul')
-    def test_that_list_sets_attribute_private_and_deletable(self, consul_init):
+    @patch('xivo_dird.plugins.personal_backend.Consul')
+    def test_that_list_sets_attribute_personal_and_deletable(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = Mock(), [{'Key': 'my/key',
                                                'Value': 'my-value'}]
-        source = PrivatesBackend()
-        source.load({'config': {'name': 'privates'},
+        source = PersonalBackend()
+        source.load({'config': {'name': 'personal'},
                      'main_config': {'consul': {'host': 'localhost'}}})
 
         result = source.list(['1'], {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
 
-        assert_that(result, has_item(has_property('is_private', True)))
+        assert_that(result, has_item(has_property('is_personal', True)))
         assert_that(result, has_item(has_property('is_deletable', True)))
 
 

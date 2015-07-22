@@ -27,51 +27,51 @@ from xivo_dird.core.rest_api import api
 logger = logging.getLogger(__name__)
 
 
-class PrivatesViewPlugin(BaseViewPlugin):
+class PersonalViewPlugin(BaseViewPlugin):
 
-    private_all_url = '/privates'
-    private_one_url = '/privates/<contact_id>'
+    personal_all_url = '/personal'
+    personal_one_url = '/personal/<contact_id>'
 
     def load(self, args=None):
-        privates_service = args['services'].get('privates')
-        PrivateAll.configure(privates_service)
-        PrivateOne.configure(privates_service)
-        api.add_resource(PrivateAll, self.private_all_url)
-        api.add_resource(PrivateOne, self.private_one_url)
+        personal_service = args['services'].get('personal')
+        PersonalAll.configure(personal_service)
+        PersonalOne.configure(personal_service)
+        api.add_resource(PersonalAll, self.personal_all_url)
+        api.add_resource(PersonalOne, self.personal_one_url)
 
 
-class PrivateAll(AuthResource):
+class PersonalAll(AuthResource):
 
-    privates_service = None
+    personal_service = None
 
     @classmethod
-    def configure(cls, privates_service):
-        cls.privates_service = privates_service
+    def configure(cls, personal_service):
+        cls.personal_service = personal_service
 
     def post(self):
         contact = request.json
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        contact = self.privates_service.create_contact(contact, token_infos)
+        contact = self.personal_service.create_contact(contact, token_infos)
         return contact, 201
 
     def get(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        result = {'items': self.privates_service.list_contacts_raw(token_infos)}
+        result = {'items': self.personal_service.list_contacts_raw(token_infos)}
         return result, 200
 
 
-class PrivateOne(AuthResource):
+class PersonalOne(AuthResource):
 
-    privates_service = None
+    personal_service = None
 
     @classmethod
-    def configure(cls, privates_service):
-        cls.privates_service = privates_service
+    def configure(cls, personal_service):
+        cls.personal_service = personal_service
 
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        self.privates_service.remove_contact(contact_id, token_infos)
+        self.personal_service.remove_contact(contact_id, token_infos)
         return '', 204

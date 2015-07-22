@@ -264,11 +264,11 @@
                 ]
             }
         },
-        "/directories/privates/{profile}": {
+        "/directories/personal/{profile}": {
             "get": {
-                "summary": "List private contacts",
-                "description": "Get the list of private contacts formatted for the profile",
-                "operationId": "list_privates",
+                "summary": "List personal contacts",
+                "description": "Get the list of personal contacts formatted for the profile",
+                "operationId": "list_personal",
                 "tags": [
                     "directories"
                 ],
@@ -310,12 +310,12 @@
                 ]
             }
         },
-        "/privates": {
+        "/personal": {
             "get": {
-                "summary": "List private contacts",
-                "operationId": "get_privates",
+                "summary": "List personal contacts",
+                "operationId": "get_personal",
                 "tags": [
-                    "privates"
+                    "personal"
                 ],
                 "parameters": [
                     {
@@ -328,9 +328,9 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "A list of private contacts",
+                        "description": "A list of personal contacts",
                         "schema": {
-                            "$ref": "#/definitions/PrivateList"
+                            "$ref": "#/definitions/PersonalList"
                         }
                     },
                     "503": {
@@ -342,10 +342,10 @@
                 }
             },
             "post": {
-                "summary": "Create new private contact",
-                "operationId": "add_private",
+                "summary": "Create new personal contact",
+                "operationId": "add_personal",
                 "tags": [
-                    "privates"
+                    "personal"
                 ],
                 "parameters": [
                     {
@@ -354,7 +354,7 @@
                         "description": "The attributes of the contact",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/PrivateBody"
+                            "$ref": "#/definitions/PersonalBody"
                         }
                     },
                     {
@@ -367,9 +367,9 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "The new private contact",
+                        "description": "The new personal contact",
                         "schema": {
-                            "$ref": "#/definitions/Private"
+                            "$ref": "#/definitions/Personal"
                         }
                     },
                     "503": {
@@ -381,12 +381,12 @@
                 }
             }
         },
-        "/privates/{contact_id}": {
+        "/personal/{contact_id}": {
             "delete": {
-                "summary": "Remove private contact",
-                "operationId": "remove_private",
+                "summary": "Remove personal contact",
+                "operationId": "remove_personal",
                 "tags": [
-                    "privates"
+                    "personal"
                 ],
                 "parameters": [
                     {
@@ -394,7 +394,7 @@
                         "in": "path",
                         "type": "string",
                         "required": true,
-                        "description": "The ID of the private contact."
+                        "description": "The ID of the personal contact."
                     },
                     {
                         "name": "X-Auth-Token",
@@ -406,7 +406,7 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "The private contact was removed."
+                        "description": "The personal contact was removed."
                     },
                     "503": {
                         "description": "The authentication server is unreachable.",
@@ -537,7 +537,7 @@
                 }
             }
         },
-        "Private": {
+        "Personal": {
             "properties": {
                 "id": {
                     "type": "string"
@@ -550,13 +550,13 @@
                 }
             }
         },
-        "PrivateList": {
+        "PersonalList": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/Private"
+                "$ref": "#/definitions/Personal"
             }
         },
-        "PrivateBody": {
+        "PersonalBody": {
             "properties": {
                 "firstname": {
                     "type": "string"

@@ -37,7 +37,7 @@ from xivo_dird.plugins.default_json_view import FavoritesRead
 from xivo_dird.plugins.default_json_view import FavoritesWrite
 from xivo_dird.plugins.default_json_view import JsonViewPlugin
 from xivo_dird.plugins.default_json_view import Lookup
-from xivo_dird.plugins.default_json_view import Privates
+from xivo_dird.plugins.default_json_view import Personal
 from xivo_dird.plugins.default_json_view import _ResultFormatter
 from xivo_dird.plugins.default_json_view import make_displays
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
@@ -103,27 +103,27 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         add_resource.assert_any_call(FavoritesWrite, JsonViewPlugin.favorites_write_url)
 
     @patch('xivo_dird.plugins.default_json_view.api.add_resource')
-    def test_that_load_with_no_privates_service_does_not_add_route(self, add_resource):
+    def test_that_load_with_no_personal_service_does_not_add_route(self, add_resource):
         JsonViewPlugin().load({'config': {},
                                'http_namespace': Mock(),
                                'rest_api': Mock(),
                                'services': {}})
 
-        assert_that(add_resource.call_args_list, not_(has_item(call(Privates, ANY))))
+        assert_that(add_resource.call_args_list, not_(has_item(call(Personal, ANY))))
 
     @patch('xivo_dird.plugins.default_json_view.api.add_resource')
-    def test_that_load_adds_the_privates_routes(self, add_resource):
+    def test_that_load_adds_the_personal_routes(self, add_resource):
         args = {
             'config': {'displays': {},
                        'profile_to_display': {}},
             'http_namespace': Mock(),
             'rest_api': Mock(),
-            'services': {'privates': Mock()},
+            'services': {'personal': Mock()},
         }
 
         JsonViewPlugin().load(args)
 
-        add_resource.assert_any_call(Privates, JsonViewPlugin.privates_url)
+        add_resource.assert_any_call(Personal, JsonViewPlugin.personal_url)
 
 
 class TestMakeDisplays(unittest.TestCase):
@@ -281,7 +281,7 @@ class TestFormatResult(unittest.TestCase):
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', False)),
             has_entry('column_values', contains('Bob', 'BBB', '5555556666', True)))))
 
-    def test_that_format_results_marks_privates(self):
+    def test_that_format_results_marks_personal(self):
         result1 = self.SourceResult({'id': 1,
                                      'firstname': 'Alice',
                                      'lastname': 'AAA',
@@ -293,9 +293,9 @@ class TestFormatResult(unittest.TestCase):
                                      'telephoneNumber': '5555556666'},
                                     self.xivo_id, 'agent_id', 2, 'endpoint_id')
         result3 = make_result_class(
-            'private_source',
+            'personal_source',
             unique_column='id',
-            is_private=True,
+            is_personal=True,
             is_deletable=True)({
                 'id': 'my-id',
                 'firstname': 'Charlie',
@@ -307,7 +307,7 @@ class TestFormatResult(unittest.TestCase):
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
             DisplayColumn('Lastname', None, '', 'lastname'),
             DisplayColumn('Number', 'office_number', None, 'telephoneNumber'),
-            DisplayColumn('Private', 'private', None, None),
+            DisplayColumn('Personal', 'personal', None, None),
         ]
         formatter = _ResultFormatter(display)
 

@@ -25,18 +25,18 @@ from xivo_dird import make_result_class
 
 logger = logging.getLogger(__name__)
 
-PRIVATE_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
+PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
 UNIQUE_COLUMN = 'id'
 
 
-class PrivatesBackend(BaseSourcePlugin):
+class PersonalBackend(BaseSourcePlugin):
 
     def load(self, config):
         self._SourceResult = make_result_class(
             config['config']['name'],
             UNIQUE_COLUMN,
             config['config'].get(self.FORMAT_COLUMNS, {}),
-            is_private=True,
+            is_personal=True,
             is_deletable=True
         )
         self._config = config['main_config']
@@ -46,8 +46,8 @@ class PrivatesBackend(BaseSourcePlugin):
 
     def list(self, source_entry_ids, args):
         user_uuid = args['token_infos']['auth_id']
-        contact_keys = [PRIVATE_CONTACT_KEY.format(user_uuid=user_uuid,
-                                                   contact_uuid=contact_uuid)
+        contact_keys = [PERSONAL_CONTACT_KEY.format(user_uuid=user_uuid,
+                                                    contact_uuid=contact_uuid)
                         for contact_uuid in source_entry_ids]
         contacts = []
         with self._consul(token=args['token_infos']['token']) as consul:

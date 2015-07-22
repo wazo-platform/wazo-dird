@@ -24,67 +24,67 @@ from mock import Mock
 from mock import patch
 from mock import sentinel as s
 from xivo_dird import BaseService
-from xivo_dird.plugins.privates_service import PrivatesServicePlugin
-from xivo_dird.plugins.privates_service import _PrivatesService
+from xivo_dird.plugins.personal_service import PersonalServicePlugin
+from xivo_dird.plugins.personal_service import _PersonalService
 
 
-class TestPrivatesServicePlugin(unittest.TestCase):
+class TestPersonalServicePlugin(unittest.TestCase):
 
     def test_load_no_config(self):
-        plugin = PrivatesServicePlugin()
+        plugin = PersonalServicePlugin()
 
         self.assertRaises(ValueError, plugin.load, {})
 
     def test_that_load_returns_a_service(self):
-        plugin = PrivatesServicePlugin()
+        plugin = PersonalServicePlugin()
 
         service = plugin.load({'config': s.config, 'sources': {}})
 
         assert_that(isinstance(service, BaseService))
 
-    @patch('xivo_dird.plugins.privates_service._PrivatesService')
-    def test_that_load_injects_config_and_sources_to_the_service(self, MockedPrivatesService):
-        plugin = PrivatesServicePlugin()
+    @patch('xivo_dird.plugins.personal_service._PersonalService')
+    def test_that_load_injects_config_and_sources_to_the_service(self, MockedPersonalService):
+        plugin = PersonalServicePlugin()
 
         service = plugin.load({'config': s.config, 'sources': {}})
 
-        MockedPrivatesService.assert_called_once_with(s.config, {})
-        assert_that(service, equal_to(MockedPrivatesService.return_value))
+        MockedPersonalService.assert_called_once_with(s.config, {})
+        assert_that(service, equal_to(MockedPersonalService.return_value))
 
-    @patch('xivo_dird.plugins.privates_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.Consul')
     def test_that_create_contact_calls_consul_put(self, consul_init):
         consul = consul_init.return_value
-        service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
 
         service.create_contact({'eyes': 'violet'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.put.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.privates_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.Consul')
     def test_that_list_contacts_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), ['/my/key/', 'my/other/key/'])
-        source = Mock(backend='privates')
-        service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}}, {'privates': source})
+        source = Mock(backend='personal')
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {'personal': source})
 
         service.list_contacts({'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.privates_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.Consul')
     def test_that_list_contacts_raw_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [{'Key': 'some-key', 'Value': 'some-value'}])
-        service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
 
         service.list_contacts_raw({'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.privates_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.Consul')
     def test_that_remove_contact_calls_consul_delete(self, consul_init):
         consul = consul_init.return_value
-        service = _PrivatesService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
 
         service.remove_contact('my-contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
 

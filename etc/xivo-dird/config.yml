@@ -42,16 +42,16 @@ consul:
 
 enabled_plugins:
     backends:
-        - privates
+        - personal
         - xivo
     services:
         - favorites
         - lookup
-        - privates
+        - personal
     views:
         - default_json
         - headers_view
-        - privates_view
+        - personal_view
 
 views:
     displays:
@@ -77,9 +77,9 @@ views:
                 field: favorite
                 type: favorite
             -
-                title: Private
-                field: private
-                type: private
+                title: Personal
+                field: personal
+                type: personal
     profile_to_display:
         default: default_display
 
@@ -93,4 +93,4 @@ services:
         default:
             sources:
                 - xivo_users
-                - privates
+                - personal

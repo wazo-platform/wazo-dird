@@ -38,7 +38,7 @@ class JsonViewPlugin(BaseViewPlugin):
     lookup_url = '/directories/lookup/<profile>'
     favorites_read_url = '/directories/favorites/<profile>'
     favorites_write_url = '/directories/favorites/<directory>/<contact>'
-    privates_url = '/directories/privates/<profile>'
+    personal_url = '/directories/personal/<profile>'
 
     def load(self, args=None):
         config = args['config']
@@ -46,7 +46,7 @@ class JsonViewPlugin(BaseViewPlugin):
 
         favorite_service = args['services'].get('favorites')
         lookup_service = args['services'].get('lookup')
-        privates_service = args['services'].get('privates')
+        personal_service = args['services'].get('personal')
 
         if lookup_service:
             Lookup.configure(displays=displays,
@@ -68,13 +68,13 @@ class JsonViewPlugin(BaseViewPlugin):
             logger.error('%s disabled: no service plugin `favorites`', self.favorites_read_url)
             logger.error('%s disabled: no service plugin `favorites`', self.favorites_write_url)
 
-        if privates_service:
-            Privates.configure(displays=displays,
-                               privates_service=privates_service,
+        if personal_service:
+            Personal.configure(displays=displays,
+                               personal_service=personal_service,
                                favorite_service=favorite_service)
-            api.add_resource(Privates, self.privates_url)
+            api.add_resource(Personal, self.personal_url)
         else:
-            logger.error('%s disabled: no service plugin `privates`', self.privates_url)
+            logger.error('%s disabled: no service plugin `personal`', self.personal_url)
 
 
 class DisabledFavoriteService(object):
@@ -179,25 +179,25 @@ class FavoritesWrite(AuthResource):
             return error, 404
 
 
-class Privates(AuthResource):
+class Personal(AuthResource):
 
     displays = None
-    privates_service = None
+    personal_service = None
     favorite_service = DisabledFavoriteService()
 
     @classmethod
-    def configure(cls, displays, privates_service, favorite_service):
+    def configure(cls, displays, personal_service, favorite_service):
         cls.displays = displays
-        cls.privates_service = privates_service
+        cls.personal_service = personal_service
         if favorite_service:
             cls.favorite_service = favorite_service
 
     def get(self, profile):
-        logger.debug('Listing privates with profile %s', profile)
+        logger.debug('Listing personal with profile %s', profile)
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        raw_results = self.privates_service.list_contacts(token_infos)
+        raw_results = self.personal_service.list_contacts(token_infos)
         favorites = self.favorite_service.favorite_ids(profile, token_infos)
         formatter = _ResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results, favorites)
@@ -212,7 +212,7 @@ class _ResultFormatter(object):
         self._has_favorites = 'favorite' in self._types
         if self._has_favorites:
             self._favorite_field = [d.field for d in display if d.type == 'favorite'][0]
-        self._private_fields = [d.field for d in display if d.type == 'private']
+        self._personal_fields = [d.field for d in display if d.type == 'personal']
 
     def format_results(self, results, favorites):
         self._favorites = favorites
@@ -227,7 +227,7 @@ class _ResultFormatter(object):
             is_favorite = self._is_favorite(result)
             result.fields[self._favorite_field] = is_favorite
 
-        result.fields.update(dict.fromkeys(self._private_fields, result.is_private))
+        result.fields.update(dict.fromkeys(self._personal_fields, result.is_personal))
 
         return {
             'column_values': [result.fields.get(d.field, d.default) for d in self._display],
