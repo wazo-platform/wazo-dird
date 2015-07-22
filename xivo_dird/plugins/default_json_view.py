@@ -70,17 +70,19 @@ class JsonViewPlugin(BaseViewPlugin):
 
         if privates_service:
             Privates.configure(displays=displays,
-                               privates_service=privates_service)
+                               privates_service=privates_service,
+                               favorite_service=favorite_service)
             api.add_resource(Privates, self.privates_url)
         else:
             logger.error('%s disabled: no service plugin `privates`', self.privates_url)
 
 
-class Lookup(AuthResource):
-    class DisabledFavoriteService(object):
-        def favorite_ids(self, profile, token_info):
-            return []
+class DisabledFavoriteService(object):
+    def favorite_ids(self, profile, token_info):
+        return []
 
+
+class Lookup(AuthResource):
     displays = None
     lookup_service = None
     favorite_service = DisabledFavoriteService()
@@ -181,11 +183,14 @@ class Privates(AuthResource):
 
     displays = None
     privates_service = None
+    favorite_service = DisabledFavoriteService()
 
     @classmethod
-    def configure(cls, displays, privates_service):
+    def configure(cls, displays, privates_service, favorite_service):
         cls.displays = displays
         cls.privates_service = privates_service
+        if favorite_service:
+            cls.favorite_service = favorite_service
 
     def get(self, profile):
         logger.debug('Listing privates with profile %s', profile)
@@ -193,8 +198,9 @@ class Privates(AuthResource):
         token_infos = auth.client().token.get(token)
 
         raw_results = self.privates_service.list_contacts(token_infos)
-        formatter = _FavoriteResultFormatter(self.displays[profile])
-        return formatter.format_results(raw_results)
+        favorites = self.favorite_service.favorite_ids(profile, token_infos)
+        formatter = _ResultFormatter(self.displays[profile])
+        return formatter.format_results(raw_results, favorites)
 
 
 class _ResultFormatter(object):

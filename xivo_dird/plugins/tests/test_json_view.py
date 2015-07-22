@@ -31,6 +31,7 @@ from mock import Mock
 from mock import patch
 
 from xivo_dird import make_result_class
+from xivo_dird.plugins.default_json_view import DisabledFavoriteService
 from xivo_dird.plugins.default_json_view import DisplayColumn
 from xivo_dird.plugins.default_json_view import FavoritesRead
 from xivo_dird.plugins.default_json_view import FavoritesWrite
@@ -49,7 +50,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def tearDown(self):
         # reset class Lookup
-        Lookup.configure(displays=None, lookup_service=None, favorite_service=Lookup.DisabledFavoriteService())
+        Lookup.configure(displays=None, lookup_service=None, favorite_service=DisabledFavoriteService())
         FavoritesRead.configure(displays=None, favorites_service=None)
         FavoritesWrite.configure(favorites_service=None)
 

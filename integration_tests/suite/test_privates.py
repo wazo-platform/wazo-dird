@@ -137,13 +137,12 @@ class TestPrivatesListWithProfile(BaseDirdIntegrationTest):
         result = self.get_privates_with_profile('default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', None, None)),
-            has_entry('column_values', contains('Bob', None, None))))
+            has_entry('column_values', contains('Alice', None, None, False)),
+            has_entry('column_values', contains('Bob', None, None, False))))
 
 # TODO
 # update contact
 # lookup = return privates
-# favorite privates
 # validation upon contact creation/update
 # consul unreachable
 # invalid profile

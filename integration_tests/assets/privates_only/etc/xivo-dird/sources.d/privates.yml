@@ -1,2 +1,3 @@
 type: privates
 name: privates
+unique_column: id
