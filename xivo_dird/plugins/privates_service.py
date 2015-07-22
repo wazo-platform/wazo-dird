@@ -62,7 +62,7 @@ class _PrivatesService(BaseService):
                 consul_key = PRIVATE_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
                                                                   contact_uuid=contact_infos[UNIQUE_COLUMN],
                                                                   attribute=attribute)
-                consul.kv.put(consul_key, value)
+                consul.kv.put(consul_key, value.encode('utf-8'))
         return contact_infos
 
     def remove_contact(self, contact_id, token_infos):

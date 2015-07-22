@@ -50,6 +50,22 @@ class TestAddPrivate(BaseDirdIntegrationTest):
             has_entry('firstname', 'Bob')))
 
 
+class TestAddPrivateNonAscii(BaseDirdIntegrationTest):
+
+    asset = 'privates_only'
+
+    def test_that_created_privates_are_listed(self):
+        self.post_private({'firstname': 'Àlîce'})
+
+        raw = self.get_privates()
+        formatted = self.get_privates_with_profile('default')
+
+        assert_that(raw['items'], contains_inanyorder(
+            has_entry('firstname', u'Àlîce')))
+        assert_that(formatted['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'Àlîce', None, None, False))))
+
+
 class TestRemovePrivate(BaseDirdIntegrationTest):
 
     asset = 'privates_only'
