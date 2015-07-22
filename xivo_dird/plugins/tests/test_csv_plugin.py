@@ -72,7 +72,7 @@ class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
             'unique_column': 'clientno',
             'searched_columns': ['firstname'],
             'name': 'my_directory',
-            'separator': '|',
+            'separator': u'|',
         }
 
         self.source.load({'config': config})

@@ -75,11 +75,16 @@ class CSVPlugin(BaseSourcePlugin):
             logger.warning('Could not initialize missing file configuration')
             return
 
+        filename = self._config['file']
+        delimiter = str(self._config.get('separator', ','))
+
         try:
-            with open(self._config['file'], 'r') as f:
-                csvreader = csv.reader(f, delimiter=self._config.get('separator', ','))
+            logger.debug('Reading %s with delimiter %r', filename, delimiter)
+            with open(filename, 'r') as f:
+                csvreader = csv.reader(f, delimiter=delimiter)
                 keys = [key.decode('utf-8') for key in next(csvreader)]
                 self._content = [self._row_to_dict(keys, row) for row in csvreader]
+                logger.debug('Loaded with %s', self._content)
         except IOError:
             logger.exception('Could not load CSV file content')
 
@@ -90,6 +95,7 @@ class CSVPlugin(BaseSourcePlugin):
         return self._make_unique(entry) in unique_ids
 
     def _low_case_match_entry(self, term, columns, entry):
+        logger.debug('Looking for %r in %s [%s]', term, entry, columns)
         values = (entry[col].lower() for col in columns if col)
         for value in values:
             if term in value:
