@@ -26,6 +26,7 @@ from xivo_dird import make_result_class
 logger = logging.getLogger(__name__)
 
 PRIVATE_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
+UNIQUE_COLUMN = 'id'
 
 
 class PrivatesBackend(BaseSourcePlugin):
@@ -33,7 +34,7 @@ class PrivatesBackend(BaseSourcePlugin):
     def load(self, config):
         self._SourceResult = make_result_class(
             config['config']['name'],
-            config['config'].get(self.UNIQUE_COLUMN),
+            UNIQUE_COLUMN,
             config['config'].get(self.FORMAT_COLUMNS, {}),
             is_private=True,
             is_deletable=True

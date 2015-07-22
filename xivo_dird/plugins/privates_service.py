@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 PRIVATE_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
 PRIVATE_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
 PRIVATE_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
+UNIQUE_COLUMN = 'id'
 
 
 class PrivatesServicePlugin(BaseServicePlugin):
@@ -55,11 +56,11 @@ class _PrivatesService(BaseService):
         pass
 
     def create_contact(self, contact_infos, token_infos):
-        contact_infos['id'] = str(uuid.uuid4())
+        contact_infos[UNIQUE_COLUMN] = str(uuid.uuid4())
         with self._consul(token=token_infos['token']) as consul:
             for attribute, value in contact_infos.iteritems():
                 consul_key = PRIVATE_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
-                                                                  contact_uuid=contact_infos['id'],
+                                                                  contact_uuid=contact_infos[UNIQUE_COLUMN],
                                                                   attribute=attribute)
                 consul.kv.put(consul_key, value)
         return contact_infos
