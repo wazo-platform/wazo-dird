@@ -138,51 +138,51 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         response = self.delete_favorite_result(directory, contact, token='valid-token')
         assert_that(response.status_code, equal_to(204))
 
-    def post_private_result(self, private_infos, token=None):
-        url = 'https://localhost:9489/0.1/privates'
+    def post_personal_result(self, personal_infos, token=None):
+        url = 'https://localhost:9489/0.1/personal'
         result = requests.post(url,
-                               data=json.dumps(private_infos),
+                               data=json.dumps(personal_infos),
                                headers={'X-Auth-Token': token,
                                         'Content-Type': 'application/json'},
                                verify=CA_CERT)
         return result
 
-    def post_private(self, private_infos, token='valid-token'):
-        response = self.post_private_result(private_infos, token)
+    def post_personal(self, personal_infos, token='valid-token'):
+        response = self.post_personal_result(personal_infos, token)
         assert_that(response.status_code, equal_to(201))
         return response.json()
 
-    def get_privates_result(self, token=None):
-        url = 'https://localhost:9489/0.1/privates'
+    def get_personal_result(self, token=None):
+        url = 'https://localhost:9489/0.1/personal'
         result = requests.get(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
 
-    def get_privates(self, token='valid-token'):
-        response = self.get_privates_result(token)
+    def get_personal(self, token='valid-token'):
+        response = self.get_personal_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
-    def delete_private_result(self, private_id, token=None):
-        url = 'https://localhost:9489/0.1/privates/{contact_uuid}'
-        result = requests.delete(url.format(contact_uuid=private_id),
+    def delete_personal_result(self, personal_id, token=None):
+        url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
+        result = requests.delete(url.format(contact_uuid=personal_id),
                                  headers={'X-Auth-Token': token},
                                  verify=CA_CERT)
         return result
 
-    def delete_private(self, private_id, token='valid-token'):
-        response = self.delete_private_result(private_id, token)
+    def delete_personal(self, personal_id, token='valid-token'):
+        response = self.delete_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(204))
 
-    def get_privates_with_profile_result(self, profile, token=None):
-        url = 'https://localhost:9489/0.1/directories/privates/{profile}'
+    def get_personal_with_profile_result(self, profile, token=None):
+        url = 'https://localhost:9489/0.1/directories/personal/{profile}'
         result = requests.get(url.format(profile=profile),
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
 
-    def get_privates_with_profile(self, profile, token='valid-token'):
-        response = self.get_privates_with_profile_result(profile, token)
+    def get_personal_with_profile(self, profile, token='valid-token'):
+        response = self.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()

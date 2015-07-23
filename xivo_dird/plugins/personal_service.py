@@ -26,13 +26,13 @@ from xivo_dird import BaseServicePlugin
 
 logger = logging.getLogger(__name__)
 
-PRIVATE_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
-PRIVATE_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
-PRIVATE_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
+PERSONAL_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
+PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
+PERSONAL_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
 UNIQUE_COLUMN = 'id'
 
 
-class PrivatesServicePlugin(BaseServicePlugin):
+class PersonalServicePlugin(BaseServicePlugin):
 
     def load(self, args):
         try:
@@ -43,14 +43,14 @@ class PrivatesServicePlugin(BaseServicePlugin):
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
-        return _PrivatesService(config, sources)
+        return _PersonalService(config, sources)
 
 
-class _PrivatesService(BaseService):
+class _PersonalService(BaseService):
 
     def __init__(self, config, sources):
         self._config = config
-        self._source = next((source for source in sources.itervalues() if source.backend == 'privates'), DisabledPrivateSource())
+        self._source = next((source for source in sources.itervalues() if source.backend == 'personal'), DisabledPersonalSource())
 
     def __call__(self):
         pass
@@ -59,21 +59,21 @@ class _PrivatesService(BaseService):
         contact_infos[UNIQUE_COLUMN] = str(uuid.uuid4())
         with self._consul(token=token_infos['token']) as consul:
             for attribute, value in contact_infos.iteritems():
-                consul_key = PRIVATE_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
-                                                                  contact_uuid=contact_infos[UNIQUE_COLUMN],
-                                                                  attribute=attribute)
+                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
+                                                                   contact_uuid=contact_infos[UNIQUE_COLUMN],
+                                                                   attribute=attribute)
                 consul.kv.put(consul_key, value.encode('utf-8'))
-        return contact_infos
+            return contact_infos
 
     def remove_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
-            consul_key = PRIVATE_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
-                                                    contact_uuid=contact_id)
+            consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
+                                                     contact_uuid=contact_id)
             consul.kv.delete(consul_key, recurse=True)
 
     def list_contacts(self, token_infos):
         user_uuid = token_infos['auth_id']
-        consul_key = PRIVATE_CONTACTS_KEY.format(user_uuid=user_uuid)
+        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
         with self._consul(token=token_infos['token']) as consul:
             _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
             contact_keys = contact_keys or []
@@ -83,7 +83,7 @@ class _PrivatesService(BaseService):
 
     def list_contacts_raw(self, token_infos):
         user_uuid = token_infos['auth_id']
-        consul_key = PRIVATE_CONTACTS_KEY.format(user_uuid=user_uuid)
+        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
         contacts = []
         with self._consul(token=token_infos['token']) as consul:
             _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
@@ -98,7 +98,7 @@ class _PrivatesService(BaseService):
         yield Consul(token=token, **self._config['consul'])
 
 
-class DisabledPrivateSource(object):
+class DisabledPersonalSource(object):
     def list(self, _source_entry_ids, _token_infos):
         return []
 

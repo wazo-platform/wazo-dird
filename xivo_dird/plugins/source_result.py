@@ -84,7 +84,7 @@ class _SourceResult(object):
         return '<%s(%s)%s>' % (self.__class__.__name__, fields, self.relations)
 
 
-def make_result_class(source_name, unique_column=None, format_columns=None, is_deletable=False, is_private=False):
+def make_result_class(source_name, unique_column=None, format_columns=None, is_deletable=False, is_personal=False):
     if not unique_column:
         unique_column = _SourceResult._unique_column
     if not format_columns:
@@ -96,6 +96,6 @@ def make_result_class(source_name, unique_column=None, format_columns=None, is_d
         _format_columns = format_columns
 
     SourceResult.is_deletable = is_deletable
-    SourceResult.is_private = is_private
+    SourceResult.is_personal = is_personal
 
     return SourceResult

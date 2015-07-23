@@ -25,40 +25,40 @@ from hamcrest import has_key
 from hamcrest import not_
 
 
-class TestListPrivates(BaseDirdIntegrationTest):
+class TestListPersonal(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_that_listing_empty_privates_returns_empty_list(self):
-        result = self.get_privates()
+    def test_that_listing_empty_personal_returns_empty_list(self):
+        result = self.get_personal()
 
         assert_that(result['items'], contains())
 
 
-class TestAddPrivate(BaseDirdIntegrationTest):
+class TestAddPersonal(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_that_created_privates_are_listed(self):
-        self.post_private({'firstname': 'Alice'})
-        self.post_private({'firstname': 'Bob'})
+    def test_that_created_personal_are_listed(self):
+        self.post_personal({'firstname': 'Alice'})
+        self.post_personal({'firstname': 'Bob'})
 
-        result = self.get_privates()
+        result = self.get_personal()
 
         assert_that(result['items'], contains_inanyorder(
             has_entry('firstname', 'Alice'),
             has_entry('firstname', 'Bob')))
 
 
-class TestAddPrivateNonAscii(BaseDirdIntegrationTest):
+class TestAddPersonalNonAscii(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_that_created_privates_are_listed(self):
-        self.post_private({'firstname': 'Àlîce'})
+    def test_that_created_personal_are_listed(self):
+        self.post_personal({'firstname': 'Àlîce'})
 
-        raw = self.get_privates()
-        formatted = self.get_privates_with_profile('default')
+        raw = self.get_personal()
+        formatted = self.get_personal_with_profile('default')
 
         assert_that(raw['items'], contains_inanyorder(
             has_entry('firstname', u'Àlîce')))
@@ -66,42 +66,42 @@ class TestAddPrivateNonAscii(BaseDirdIntegrationTest):
             has_entry('column_values', contains(u'Àlîce', None, None, False))))
 
 
-class TestRemovePrivate(BaseDirdIntegrationTest):
+class TestRemovePersonal(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_that_removed_privates_are_not_listed(self):
-        self.post_private({'firstname': 'Alice'})
-        bob = self.post_private({'firstname': 'Bob'})
-        self.post_private({'firstname': 'Charlie'})
-        self.delete_private(bob['id'])
+    def test_that_removed_personal_are_not_listed(self):
+        self.post_personal({'firstname': 'Alice'})
+        bob = self.post_personal({'firstname': 'Bob'})
+        self.post_personal({'firstname': 'Charlie'})
+        self.delete_personal(bob['id'])
 
-        result = self.get_privates()
+        result = self.get_personal()
 
         assert_that(result['items'], contains_inanyorder(
             has_entry('firstname', 'Alice'),
             has_entry('firstname', 'Charlie')))
 
 
-class TestPrivateId(BaseDirdIntegrationTest):
+class TestPersonalId(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_that_created_private_has_an_id(self):
-        alice = self.post_private({'firstname': 'Alice'}, token='valid-token')
-        bob = self.post_private({'firstname': 'Bob'}, token='valid-token')
+    def test_that_created_personal_has_an_id(self):
+        alice = self.post_personal({'firstname': 'Alice'}, token='valid-token')
+        bob = self.post_personal({'firstname': 'Bob'}, token='valid-token')
 
         assert_that(alice['id'], not_(equal_to(bob['id'])))
 
 
-class TestPrivatesPersistence(BaseDirdIntegrationTest):
+class TestPersonalPersistence(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_that_privates_are_saved_across_dird_restart(self):
-        self.post_private({})
+    def test_that_personal_are_saved_across_dird_restart(self):
+        self.post_personal({})
 
-        result_before = self.get_privates()
+        result_before = self.get_personal()
 
         assert_that(result_before['items'], contains(has_key('id')))
 
@@ -109,48 +109,48 @@ class TestPrivatesPersistence(BaseDirdIntegrationTest):
         self._run_cmd('docker-compose rm -f dird')
         self._run_cmd('docker-compose run --rm sync')
 
-        result_after = self.get_privates()
+        result_after = self.get_personal()
 
         assert_that(result_after['items'], contains(has_key('id')))
         assert_that(result_before['items'][0]['id'], equal_to(result_after['items'][0]['id']))
 
 
-class TestPrivatesVisibility(BaseDirdIntegrationTest):
+class TestPersonalVisibility(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_that_privates_are_only_visible_for_the_same_token(self):
-        self.post_private({'firstname': 'Alice'}, token='valid-token-1')
-        self.post_private({'firstname': 'Bob'}, token='valid-token-1')
-        self.post_private({'firstname': 'Charlie'}, token='valid-token-2')
+    def test_that_personal_are_only_visible_for_the_same_token(self):
+        self.post_personal({'firstname': 'Alice'}, token='valid-token-1')
+        self.post_personal({'firstname': 'Bob'}, token='valid-token-1')
+        self.post_personal({'firstname': 'Charlie'}, token='valid-token-2')
 
-        result_1 = self.get_privates(token='valid-token-1')
-        result_2 = self.get_privates(token='valid-token-2')
+        result_1 = self.get_personal(token='valid-token-1')
+        result_2 = self.get_personal(token='valid-token-2')
 
         assert_that(result_1['items'], contains_inanyorder(has_entry('firstname', 'Alice'),
                                                            has_entry('firstname', 'Bob')))
         assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
 
 
-class TestPrivatesListWithProfileEmpty(BaseDirdIntegrationTest):
+class TestPersonalListWithProfileEmpty(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_that_listing_privates_with_profile_empty_returns_empty_list(self):
-        result = self.get_privates_with_profile('default')
+    def test_that_listing_personal_with_profile_empty_returns_empty_list(self):
+        result = self.get_personal_with_profile('default')
 
         assert_that(result['results'], contains())
 
 
-class TestPrivatesListWithProfile(BaseDirdIntegrationTest):
+class TestPersonalListWithProfile(BaseDirdIntegrationTest):
 
-    asset = 'privates_only'
+    asset = 'personal_only'
 
-    def test_listing_privates_with_profile(self):
-        self.post_private({'firstname': 'Alice'})
-        self.post_private({'firstname': 'Bob'})
+    def test_listing_personal_with_profile(self):
+        self.post_personal({'firstname': 'Alice'})
+        self.post_personal({'firstname': 'Bob'})
 
-        result = self.get_privates_with_profile('default')
+        result = self.get_personal_with_profile('default')
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', None, None, False)),
@@ -158,7 +158,7 @@ class TestPrivatesListWithProfile(BaseDirdIntegrationTest):
 
 # TODO
 # update contact
-# lookup = return privates
+# lookup = include personal
 # validation upon contact creation/update
 # consul unreachable
 # invalid profile
