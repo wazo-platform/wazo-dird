@@ -132,7 +132,8 @@
                 "description": "Get the list of favorite contacts for directories configured in the profile",
                 "operationId": "list_favorites",
                 "tags": [
-                    "directories"
+                    "directories",
+                    "favorites"
                 ],
                 "responses": {
                     "200": {
@@ -178,7 +179,8 @@
                 "description": "Add the contact from {directory} to the list of favorite contacts.",
                 "operationId": "add_favorite",
                 "tags": [
-                    "directories"
+                    "directories",
+                    "favorites"
                 ],
                 "responses": {
                     "204": {
@@ -220,7 +222,8 @@
                 "description": "Remove the contact from {directory} from the list of favorite contacts.",
                 "operationId": "remove_favorite",
                 "tags": [
-                    "directories"
+                    "directories",
+                    "favorites"
                 ],
                 "responses": {
                     "204": {
@@ -266,11 +269,12 @@
         },
         "/directories/personal/{profile}": {
             "get": {
-                "summary": "List personal contacts",
+                "summary": "List personal contacts with formatting",
                 "description": "Get the list of personal contacts formatted for the profile",
                 "operationId": "list_personal",
                 "tags": [
-                    "directories"
+                    "directories",
+                    "personal"
                 ],
                 "responses": {
                     "200": {
