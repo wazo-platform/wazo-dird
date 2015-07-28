@@ -21,10 +21,11 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
+from hamcrest import not_
+from hamcrest import none
 from mock import Mock
 from mock import patch
 from mock import sentinel
-from xivo_dird import BaseService
 from xivo_dird.plugins.lookup import LookupServicePlugin
 from xivo_dird.plugins.lookup import _LookupService
 
@@ -47,7 +48,7 @@ class TestLookupServicePlugin(unittest.TestCase):
         service = plugin.load({'sources': sentinel.sources,
                                'config': sentinel.config})
 
-        assert_that(isinstance(service, BaseService))
+        assert_that(service, not_(none()))
 
     @patch('xivo_dird.plugins.lookup._LookupService')
     def test_that_load_injects_config_to_the_service(self, MockedLookupService):
@@ -89,7 +90,7 @@ class TestLookupService(unittest.TestCase):
         }
         s = _LookupService(config, {'source': source})
 
-        s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         source.search.assert_called_once_with(sentinel.term,
                                               {'token_infos': sentinel.token_infos})
@@ -115,7 +116,7 @@ class TestLookupService(unittest.TestCase):
 
         s = _LookupService(config, sources)
 
-        results = s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        results = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         expected_results = [{'f': 1}, {'f': 3}]
 
@@ -146,7 +147,7 @@ class TestLookupService(unittest.TestCase):
 
         s = _LookupService(config, sources)
 
-        results = s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        results = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         expected_results = [{'f': 1}]
 
@@ -160,7 +161,7 @@ class TestLookupService(unittest.TestCase):
     def test_when_the_profile_is_not_configured(self):
         s = _LookupService({}, {})
 
-        result = s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        result = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         assert_that(result, contains())
 
@@ -169,7 +170,7 @@ class TestLookupService(unittest.TestCase):
     def test_when_the_sources_are_not_configured(self):
         s = _LookupService({'my_profile': {}}, {})
 
-        result = s(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        result = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
         assert_that(result, contains())
 

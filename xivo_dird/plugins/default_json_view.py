@@ -111,7 +111,7 @@ class Lookup(AuthResource):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
 
-        raw_results = self.lookup_service(term, profile, args={}, token_infos=token_infos)
+        raw_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos)
         favorites = self.favorite_service.favorite_ids(profile, token_infos)
 
         formatter = _ResultFormatter(self.displays[profile])

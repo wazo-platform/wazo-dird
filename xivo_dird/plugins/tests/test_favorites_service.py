@@ -21,10 +21,11 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
+from hamcrest import not_
+from hamcrest import none
 from mock import Mock
 from mock import patch
 from mock import sentinel as s
-from xivo_dird import BaseService
 from xivo_dird.plugins.favorites_service import FavoritesServicePlugin
 from xivo_dird.plugins.favorites_service import _FavoritesService
 
@@ -47,7 +48,7 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         service = plugin.load({'sources': s.sources,
                                'config': s.config})
 
-        assert_that(isinstance(service, BaseService))
+        assert_that(service, not_(none()))
 
     @patch('xivo_dird.plugins.favorites_service._FavoritesService')
     def test_that_load_injects_config_to_the_service(self, MockedFavoritesService):
@@ -131,7 +132,7 @@ class TestFavoritesService(unittest.TestCase):
 
         service = _FavoritesService(config, sources)
 
-        results = service('my_profile', {'token': s.token, 'auth_id': s.auth_id})
+        results = service.favorites('my_profile', {'token': s.token, 'auth_id': s.auth_id})
 
         expected_results = [{'f': 1}, {'f': 3}]
 
@@ -170,7 +171,7 @@ class TestFavoritesService(unittest.TestCase):
 
         service = _FavoritesService(config, sources)
 
-        results = service('my_profile', {'token': s.token, 'auth_id': s.auth_id})
+        results = service.favorites('my_profile', {'token': s.token, 'auth_id': s.auth_id})
 
         expected_results = [{'f': 1}]
 

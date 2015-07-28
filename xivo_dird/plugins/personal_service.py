@@ -21,7 +21,6 @@ import uuid
 from consul import Consul
 
 from contextlib import contextmanager
-from xivo_dird import BaseService
 from xivo_dird import BaseServicePlugin
 from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
 from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
@@ -49,14 +48,11 @@ class PersonalServicePlugin(BaseServicePlugin):
         return _PersonalService(config, sources)
 
 
-class _PersonalService(BaseService):
+class _PersonalService(object):
 
     def __init__(self, config, sources):
         self._config = config
         self._source = next((source for source in sources.itervalues() if source.backend == 'personal'), DisabledPersonalSource())
-
-    def __call__(self):
-        pass
 
     def create_contact(self, contact_infos, token_infos):
         contact_infos[UNIQUE_COLUMN] = str(uuid.uuid4())

@@ -23,7 +23,6 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from consul import Consul
 
-from xivo_dird import BaseService
 from xivo_dird import BaseServicePlugin
 from xivo_dird.core.consul import ls_from_consul
 
@@ -64,7 +63,7 @@ class FavoritesServicePlugin(BaseServicePlugin):
             self._service = None
 
 
-class _FavoritesService(BaseService):
+class _FavoritesService(object):
 
     NoSuchFavorite = _NoSuchFavorite
 
@@ -81,9 +80,6 @@ class _FavoritesService(BaseService):
         future = self._executor.submit(source.list, contact_ids, args)
         future.name = source.name
         return future
-
-    def __call__(self, profile, token_infos):
-        return self.favorites(profile, token_infos)
 
     def favorites(self, profile, token_infos):
         futures = []
