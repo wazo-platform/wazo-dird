@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import itertools
 import logging
 
 from consul import Consul
@@ -25,13 +26,20 @@ from xivo_dird import make_result_class
 
 logger = logging.getLogger(__name__)
 
+PERSONAL_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
 PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
+PERSONAL_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
 UNIQUE_COLUMN = 'id'
+
+
+def match(term, actual):
+    return term.lower() in actual.lower()
 
 
 class PersonalBackend(BaseSourcePlugin):
 
     def load(self, config):
+        logger.debug('Loading personal source')
         self._SourceResult = make_result_class(
             config['config']['name'],
             UNIQUE_COLUMN,
@@ -39,12 +47,34 @@ class PersonalBackend(BaseSourcePlugin):
             is_personal=True,
             is_deletable=True
         )
+        self._searched_columns = config['config'].get(self.SEARCHED_COLUMNS, [])
         self._config = config['main_config']
 
-    def search(self, term, profile=None, args=None):
-        return []
+    def search(self, term, args=None):
+        logger.debug('Searching personal contacts with %s', term)
+        contacts = []
+        user_uuid = args['token_infos']['auth_id']
+        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
+        with self._consul(token=args['token_infos']['token']) as consul:
+            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
+            contact_keys = contact_keys or []
+            contact_ids = [contact_key[len(consul_key):-1] for contact_key in contact_keys]
+            for contact_id, attribute in itertools.product(contact_ids, self._searched_columns):
+                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=user_uuid,
+                                                                   contact_uuid=contact_id,
+                                                                   attribute=attribute)
+                _, result = consul.kv.get(consul_key)
+                if not result:
+                    continue
+                if not result['Value']:
+                    continue
+                if match(term, result['Value'].decode('utf-8')):
+                    contacts.append(contact_id)
+
+        return self.list(contacts, args)
 
     def list(self, source_entry_ids, args):
+        logger.debug('Listing personal contacts')
         user_uuid = args['token_infos']['auth_id']
         contact_keys = [PERSONAL_CONTACT_KEY.format(user_uuid=user_uuid,
                                                     contact_uuid=contact_uuid)

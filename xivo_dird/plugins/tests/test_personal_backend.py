@@ -56,6 +56,18 @@ class TestPersonalBackend(TestCase):
         assert_that(result, has_item(has_property('is_personal', True)))
         assert_that(result, has_item(has_property('is_deletable', True)))
 
+    @patch('xivo_dird.plugins.personal_backend.Consul')
+    def test_that_search_calls_consul_get(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = Mock(), []
+        source = PersonalBackend()
+        source.load({'config': {'name': 'personal'},
+                     'main_config': {'consul': {'host': 'localhost'}}})
+
+        source.search('alice', {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
+
+        assert_that(consul.kv.get.call_count, greater_than(0))
+
 
 class TestDictFromConsul(TestCase):
 

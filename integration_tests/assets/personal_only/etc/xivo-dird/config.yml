@@ -4,6 +4,7 @@ enabled_plugins:
     services:
         - personal
         - favorites
+        - lookup
     views:
         - default_json
         - headers_view
@@ -29,6 +30,10 @@ views:
 
 services:
     favorites:
+        default:
+            sources:
+                - personal
+    lookup:
         default:
             sources:
                 - personal

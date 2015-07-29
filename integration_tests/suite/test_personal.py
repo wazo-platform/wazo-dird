@@ -156,9 +156,37 @@ class TestPersonalListWithProfile(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Alice', None, None, False)),
             has_entry('column_values', contains('Bob', None, None, False))))
 
+
+class TestLookupPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_includes_personal_contacts(self):
+        self.post_personal({'firstname': 'Alice'})
+        self.post_personal({'firstname': 'Bob'})
+
+        result = self.lookup('ali', 'default')
+
+        import pprint
+        pprint.pprint(result)
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', None, None, False))))
+
+
+class TestLookupPersonalNonAscii(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_accepts_non_ascii_in_term(self):
+        self.post_personal({'firstname': 'Céline'})
+
+        result = self.lookup(u'Céline', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'Céline', None, None, False))))
+
 # TODO
 # update contact
-# lookup = include personal
 # validation upon contact creation/update
 # consul unreachable
 # invalid profile
