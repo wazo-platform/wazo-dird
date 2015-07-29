@@ -185,6 +185,32 @@ class TestLookupPersonalNonAscii(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'Céline', None, None, False))))
 
+
+class TestLookupPersonalFuzzyAsciiMatch1(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_matches_non_ascii_with_ascii(self):
+        self.post_personal({'firstname': 'Céline'})
+
+        result = self.lookup(u'celine', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'Céline', None, None, False))))
+
+
+class TestLookupPersonalFuzzyAsciiMatch2(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_matches_non_ascii_with_ascii(self):
+        self.post_personal({'firstname': 'Etienne'})
+
+        result = self.lookup(u'étienne', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'Etienne', None, None, False))))
+
 # TODO
 # update contact
 # validation upon contact creation/update

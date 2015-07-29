@@ -21,6 +21,7 @@ import logging
 from consul import Consul
 
 from contextlib import contextmanager
+from unidecode import unidecode
 from xivo_dird import BaseSourcePlugin
 from xivo_dird import make_result_class
 
@@ -33,7 +34,7 @@ UNIQUE_COLUMN = 'id'
 
 
 def match(term, actual):
-    return term.lower() in actual.lower()
+    return unidecode(term).lower() in unidecode(actual).lower()
 
 
 class PersonalBackend(BaseSourcePlugin):
