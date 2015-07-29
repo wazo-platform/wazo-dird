@@ -236,14 +236,12 @@ class TestFavoritesService(unittest.TestCase):
             }
         }
         consul.kv.get.side_effect = [
-            (Mock(), ['/favorites/id1']),
-            (Mock(), {'Value': 'id1'}),
-            (Mock(), ['/favorites/id2']),
-            (Mock(), {'Value': 'id2'}),
+            (Mock(), ['xivo/private/uuid/contacts/favorites/{source}/id1']),
+            (Mock(), ['xivo/private/uuid/contacts/favorites/{source}/id2']),
         ]
         service = _FavoritesService(config, sources)
 
-        token_infos = {'token': s.token, 'auth_id': s.auth_id}
+        token_infos = {'token': s.token, 'auth_id': 'uuid'}
         result = service.favorites('my_profile', token_infos)
 
         sources['source_1'].list.assert_called_once_with(['id1'], {'token_infos': token_infos})

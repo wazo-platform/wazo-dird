@@ -167,8 +167,6 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
 
         result = self.lookup('ali', 'default')
 
-        import pprint
-        pprint.pprint(result)
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', None, None, False))))
 

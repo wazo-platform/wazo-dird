@@ -24,12 +24,14 @@ from contextlib import contextmanager
 from unidecode import unidecode
 from xivo_dird import BaseSourcePlugin
 from xivo_dird import make_result_class
+from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
+from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
+from xivo_dird.core.consul import PERSONAL_CONTACT_ATTRIBUTE_KEY
+from xivo_dird.core.consul import dict_from_consul
+from xivo_dird.core.consul import ls_from_consul
 
 logger = logging.getLogger(__name__)
 
-PERSONAL_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
-PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
-PERSONAL_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
 UNIQUE_COLUMN = 'id'
 
 
@@ -58,8 +60,7 @@ class PersonalBackend(BaseSourcePlugin):
         consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
         with self._consul(token=args['token_infos']['token']) as consul:
             _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
-            contact_keys = contact_keys or []
-            contact_ids = [contact_key[len(consul_key):-1] for contact_key in contact_keys]
+            contact_ids = ls_from_consul(consul_key, contact_keys)
             for contact_id, attribute in itertools.product(contact_ids, self._searched_columns):
                 consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=user_uuid,
                                                                    contact_uuid=contact_id,
@@ -92,15 +93,3 @@ class PersonalBackend(BaseSourcePlugin):
     @contextmanager
     def _consul(self, token):
         yield Consul(token=token, **self._config['consul'])
-
-
-def dict_from_consul(prefix, consul_dict):
-    result = {}
-    if consul_dict is None:
-        return result
-    for consul_kv in consul_dict:
-        if consul_kv['Key'].startswith(prefix):
-            key = consul_kv['Key'][len(prefix):]
-            value = consul_kv['Value']
-            result[key] = value
-    return result
