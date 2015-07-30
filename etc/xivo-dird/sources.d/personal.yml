@@ -1,2 +1,10 @@
 type: personal
 name: personal
+searched_columns:
+    - company
+    - email
+    - fax
+    - firstname
+    - lastname
+    - mobile
+    - number
