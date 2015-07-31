@@ -31,7 +31,7 @@ class TestListPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_listing_empty_personal_returns_empty_list(self):
-        result = self.get_personal()
+        result = self.list_personal()
 
         assert_that(result['items'], contains())
 
@@ -44,7 +44,7 @@ class TestAddPersonal(BaseDirdIntegrationTest):
         self.post_personal({'firstname': 'Alice'})
         self.post_personal({'firstname': 'Bob'})
 
-        result = self.get_personal()
+        result = self.list_personal()
 
         assert_that(result['items'], contains_inanyorder(
             has_entry('firstname', 'Alice'),
@@ -58,7 +58,7 @@ class TestAddPersonalNonAscii(BaseDirdIntegrationTest):
     def test_that_created_personal_are_listed(self):
         self.post_personal({'firstname': 'Àlîce'})
 
-        raw = self.get_personal()
+        raw = self.list_personal()
         formatted = self.get_personal_with_profile('default')
 
         assert_that(raw['items'], contains_inanyorder(
@@ -82,7 +82,7 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
         self.post_personal({'firstname': 'Charlie'})
         self.delete_personal(bob['id'])
 
-        result = self.get_personal()
+        result = self.list_personal()
 
         assert_that(result['items'], contains_inanyorder(
             has_entry('firstname', 'Alice'),
@@ -107,7 +107,7 @@ class TestPersonalPersistence(BaseDirdIntegrationTest):
     def test_that_personal_are_saved_across_dird_restart(self):
         self.post_personal({})
 
-        result_before = self.get_personal()
+        result_before = self.list_personal()
 
         assert_that(result_before['items'], contains(has_key('id')))
 
@@ -115,7 +115,7 @@ class TestPersonalPersistence(BaseDirdIntegrationTest):
         self._run_cmd('docker-compose rm -f dird')
         self._run_cmd('docker-compose run --rm sync')
 
-        result_after = self.get_personal()
+        result_after = self.list_personal()
 
         assert_that(result_after['items'], contains(has_key('id')))
         assert_that(result_before['items'][0]['id'], equal_to(result_after['items'][0]['id']))
@@ -130,8 +130,8 @@ class TestPersonalVisibility(BaseDirdIntegrationTest):
         self.post_personal({'firstname': 'Bob'}, token='valid-token-1')
         self.post_personal({'firstname': 'Charlie'}, token='valid-token-2')
 
-        result_1 = self.get_personal(token='valid-token-1')
-        result_2 = self.get_personal(token='valid-token-2')
+        result_1 = self.list_personal(token='valid-token-1')
+        result_2 = self.list_personal(token='valid-token-2')
 
         assert_that(result_1['items'], contains_inanyorder(has_entry('firstname', 'Alice'),
                                                            has_entry('firstname', 'Bob')))
@@ -230,12 +230,31 @@ class TestEditPersonal(BaseDirdIntegrationTest):
 
         self.put_personal(contact['id'], {'firstname': 'Nicolas', 'lastname': 'Narvidon'})
 
-        result = self.get_personal()
+        result = self.list_personal()
         assert_that(result['items'], contains(has_entries({
             'firstname': 'Nicolas',
             'lastname': 'Narvidon'
         })))
 
+
+class TestGetPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_get_inexisting_personal_contact_returns_404(self):
+        result = self.get_personal_result('unknown-id', 'valid-token')
+
+        assert_that(result.status_code, equal_to(404))
+
+    def test_that_get_returns_all_attributes(self):
+        contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
+
+        result = self.get_personal(contact['id'])
+
+        assert_that(result, has_entries({
+            'firstname': u'Noémie',
+            'lastname': 'Narvidon'
+        }))
 
 # TODO
 # validation upon contact creation/update

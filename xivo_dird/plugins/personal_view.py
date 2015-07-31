@@ -72,6 +72,20 @@ class PersonalOne(AuthResource):
     def configure(cls, personal_service):
         cls.personal_service = personal_service
 
+    def get(self, contact_id):
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+        try:
+            contact = self.personal_service.get_contact(contact_id, token_infos)
+            return contact, 200
+        except self.personal_service.NoSuchPersonalContact as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
+
     def put(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)

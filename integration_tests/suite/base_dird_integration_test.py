@@ -152,15 +152,27 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         assert_that(response.status_code, equal_to(201))
         return response.json()
 
-    def get_personal_result(self, token=None):
+    def list_personal_result(self, token=None):
         url = 'https://localhost:9489/0.1/personal'
         result = requests.get(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
 
-    def get_personal(self, token='valid-token'):
-        response = self.get_personal_result(token)
+    def list_personal(self, token='valid-token'):
+        response = self.list_personal_result(token)
+        assert_that(response.status_code, equal_to(200))
+        return response.json()
+
+    def get_personal_result(self, personal_id, token=None):
+        url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
+        result = requests.get(url.format(contact_uuid=personal_id),
+                              headers={'X-Auth-Token': token},
+                              verify=CA_CERT)
+        return result
+
+    def get_personal(self, personal_id, token='valid-token'):
+        response = self.get_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 

@@ -76,6 +76,15 @@ class _PersonalService(BaseService):
                 consul.kv.put(consul_key, value.encode('utf-8'))
         return contact_infos
 
+    def get_contact(self, contact_id, token_infos):
+        with self._consul(token=token_infos['token']) as consul:
+            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
+                raise _NoSuchPersonalContact(contact_id)
+            consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
+                                                     contact_uuid=contact_id)
+            _, consul_dict = consul.kv.get(consul_key, recurse=True)
+        return dict_from_consul(consul_key, consul_dict)
+
     def edit_contact(self, contact_id, contact_infos, token_infos):
         with self._consul(token=token_infos['token']) as consul:
             if not self._contact_exists(consul, token_infos['auth_id'], contact_id):

@@ -386,6 +386,47 @@
             }
         },
         "/personal/{contact_id}": {
+            "get": {
+                "summary": "Get personal contact",
+                "description": "Returns the details of the personal contact.",
+                "operationId": "get_personal",
+                "tags": [
+                    "personal"
+                ],
+                "parameters": [
+                    {
+                        "name": "contact_id",
+                        "in": "path",
+                        "type": "string",
+                        "required": true,
+                        "description": "The ID of the personal contact."
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The personal contact attributes.",
+                        "schema": {
+                            "$ref": "#/definitions/Personal"
+                        }
+                    },
+                    "404": {
+                        "description": "The personal contact does not exist"
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
             "put": {
                 "summary": "Edit personal contact",
                 "operationId": "edit_personal",
