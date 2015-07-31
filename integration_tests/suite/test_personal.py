@@ -228,13 +228,29 @@ class TestEditPersonal(BaseDirdIntegrationTest):
     def test_that_edit_personal_contact_updates_attributes(self):
         contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
 
-        self.put_personal(contact['id'], {'firstname': 'Nicolas', 'lastname': 'Narvidon'})
+        self.put_personal(contact['id'], {'firstname': 'Nicolas'})
 
         result = self.list_personal()
         assert_that(result['items'], contains(has_entries({
             'firstname': 'Nicolas',
             'lastname': 'Narvidon'
         })))
+
+
+class TestEditPersonalResult(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_edit_personal_contact_returns_the_whole_contact(self):
+        contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
+
+        result = self.put_personal(contact['id'], {'firstname': 'Nicolas'})
+
+        assert_that(result, has_key('id'))
+        assert_that(result, has_entries({
+            'firstname': 'Nicolas',
+            'lastname': 'Narvidon'
+        }))
 
 
 class TestGetPersonal(BaseDirdIntegrationTest):

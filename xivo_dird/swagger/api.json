@@ -459,8 +459,11 @@
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "The personal contact was removed."
+                    "200": {
+                        "description": "The personal contact was edited.",
+                        "schema": {
+                            "$ref": "#/definitions/Personal"
+                        }
                     },
                     "404": {
                         "description": "The personal contact does not exist"

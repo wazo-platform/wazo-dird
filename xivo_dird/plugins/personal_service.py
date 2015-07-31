@@ -94,7 +94,7 @@ class _PersonalService(BaseService):
                                                                    contact_uuid=contact_id,
                                                                    attribute=attribute)
                 consul.kv.put(consul_key, value.encode('utf-8'))
-        return contact_infos
+        return self.get_contact(contact_id, token_infos)
 
     def remove_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
