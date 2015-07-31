@@ -83,6 +83,18 @@ class TestDictFromConsul(TestCase):
             'key3': 'value3'
         }))
 
+    def test_dict_from_consul_with_value_none(self):
+        consul_dict = [
+            {'Key': '/my/prefix/key1',
+             'Value': None},
+        ]
+
+        result = dict_from_consul('/my/prefix/', consul_dict)
+
+        assert_that(result, has_entries({
+            'key1': '',
+        }))
+
 
 class TestLsFromConsul(TestCase):
 

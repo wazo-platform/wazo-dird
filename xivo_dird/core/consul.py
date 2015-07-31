@@ -29,7 +29,7 @@ def dict_from_consul(prefix, consul_dict):
         full_key = consul_kv['Key'].decode('utf-8')
         if full_key.startswith(prefix):
             key = full_key[prefix_length:]
-            value = consul_kv['Value'].decode('utf-8')
+            value = (consul_kv['Value'] or '').decode('utf-8')
             result[key] = value
     return result
 
