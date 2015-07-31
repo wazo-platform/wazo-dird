@@ -67,14 +67,8 @@ class _PersonalService(BaseService):
         pass
 
     def create_contact(self, contact_infos, token_infos):
-        contact_infos[UNIQUE_COLUMN] = str(uuid.uuid4())
-        with self._consul(token=token_infos['token']) as consul:
-            for attribute, value in contact_infos.iteritems():
-                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
-                                                                   contact_uuid=contact_infos[UNIQUE_COLUMN],
-                                                                   attribute=attribute)
-                consul.kv.put(consul_key, value.encode('utf-8'))
-        return contact_infos
+        contact_id = str(uuid.uuid4())
+        return self._create_contact(contact_id, contact_infos, token_infos)
 
     def get_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
@@ -89,12 +83,8 @@ class _PersonalService(BaseService):
         with self._consul(token=token_infos['token']) as consul:
             if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
                 raise _NoSuchPersonalContact(contact_id)
-            for attribute, value in contact_infos.iteritems():
-                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
-                                                                   contact_uuid=contact_id,
-                                                                   attribute=attribute)
-                consul.kv.put(consul_key, value.encode('utf-8'))
-        return self.get_contact(contact_id, token_infos)
+        self.remove_contact(contact_id, token_infos)
+        return self._create_contact(contact_id, contact_infos, token_infos)
 
     def remove_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
@@ -134,6 +124,17 @@ class _PersonalService(BaseService):
                                                  contact_uuid=contact_id)
         _, result = consul.kv.get(consul_key, keys=True)
         return result is not None
+
+    def _create_contact(self, contact_id, contact_infos, token_infos):
+        result = dict(contact_infos)
+        result[UNIQUE_COLUMN] = contact_id
+        with self._consul(token=token_infos['token']) as consul:
+            for attribute, value in result.iteritems():
+                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
+                                                                   contact_uuid=contact_id,
+                                                                   attribute=attribute)
+                consul.kv.put(consul_key, value.encode('utf-8'))
+        return result
 
 
 class DisabledPersonalSource(object):

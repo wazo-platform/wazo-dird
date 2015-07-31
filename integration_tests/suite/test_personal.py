@@ -16,6 +16,7 @@
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
+from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
@@ -225,32 +226,26 @@ class TestEditPersonal(BaseDirdIntegrationTest):
 
         assert_that(result.status_code, equal_to(404))
 
-    def test_that_edit_personal_contact_updates_attributes(self):
+    def test_that_edit_personal_contact_replaces_attributes(self):
         contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
 
-        self.put_personal(contact['id'], {'firstname': 'Nicolas'})
+        put_result = self.put_personal(contact['id'], {'firstname': 'Nicolas', 'company': 'acme'})
 
-        result = self.list_personal()
-        assert_that(result['items'], contains(has_entries({
+        assert_that(put_result, has_key('id'))
+        assert_that(put_result, contains_inanyorder('id', 'firstname', 'company'))
+        assert_that(put_result, has_entries({
             'firstname': 'Nicolas',
-            'lastname': 'Narvidon'
-        })))
-
-
-class TestEditPersonalResult(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def test_that_edit_personal_contact_returns_the_whole_contact(self):
-        contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
-
-        result = self.put_personal(contact['id'], {'firstname': 'Nicolas'})
-
-        assert_that(result, has_key('id'))
-        assert_that(result, has_entries({
-            'firstname': 'Nicolas',
-            'lastname': 'Narvidon'
+            'company': 'acme'
         }))
+
+        list_result = self.list_personal()
+        assert_that(list_result['items'], contains(all_of(
+            contains_inanyorder('id', 'firstname', 'company'),
+            has_entries({
+                'firstname': 'Nicolas',
+                'company': 'acme'
+            })
+        )))
 
 
 class TestGetPersonal(BaseDirdIntegrationTest):
