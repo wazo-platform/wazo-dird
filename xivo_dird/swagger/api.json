@@ -458,6 +458,9 @@
                     "204": {
                         "description": "The personal contact was removed."
                     },
+                    "404": {
+                        "description": "The personal contact does not exist"
+                    },
                     "503": {
                         "description": "The authentication server is unreachable.",
                         "schema": {

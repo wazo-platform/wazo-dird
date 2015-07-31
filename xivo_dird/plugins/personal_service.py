@@ -89,6 +89,8 @@ class _PersonalService(BaseService):
 
     def remove_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
+            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
+                raise _NoSuchPersonalContact(contact_id)
             consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
                                                      contact_uuid=contact_id)
             consul.kv.delete(consul_key, recurse=True)

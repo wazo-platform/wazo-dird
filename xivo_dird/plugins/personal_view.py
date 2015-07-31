@@ -89,5 +89,13 @@ class PersonalOne(AuthResource):
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        self.personal_service.remove_contact(contact_id, token_infos)
-        return '', 204
+        try:
+            self.personal_service.remove_contact(contact_id, token_infos)
+            return '', 204
+        except self.personal_service.NoSuchPersonalContact as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404

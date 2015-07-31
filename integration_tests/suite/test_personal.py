@@ -71,6 +71,11 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
+    def test_that_removing_unknown_personal_returns_404(self):
+        result = self.delete_personal_result('unknown-id', 'valid-token')
+
+        assert_that(result.status_code, equal_to(404))
+
     def test_that_removed_personal_are_not_listed(self):
         self.post_personal({'firstname': 'Alice'})
         bob = self.post_personal({'firstname': 'Bob'})
