@@ -82,6 +82,26 @@ class TestPersonalServicePlugin(unittest.TestCase):
         assert_that(consul.kv.get.call_count, greater_than(0))
 
     @patch('xivo_dird.plugins.personal_service.Consul')
+    def test_that_get_contact_calls_consul_get(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), [])
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
+        service.get_contact('contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(consul.kv.get.call_count, greater_than(0))
+
+    @patch('xivo_dird.plugins.personal_service.Consul')
+    def test_that_edit_contact_calls_consul_put(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), [])
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
+        service.edit_contact('contact-id', {'firstname': 'Alice'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(consul.kv.put.call_count, greater_than(0))
+
+    @patch('xivo_dird.plugins.personal_service.Consul')
     def test_that_remove_contact_calls_consul_delete(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [])
