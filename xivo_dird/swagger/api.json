@@ -429,6 +429,7 @@
             },
             "put": {
                 "summary": "Edit personal contact",
+                "description": "Replace personal contact's attributes. Omitted attributes will be removed. Attribute `id` can not be changed.",
                 "operationId": "edit_personal",
                 "tags": [
                     "personal"
