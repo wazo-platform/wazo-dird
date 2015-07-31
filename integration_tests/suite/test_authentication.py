@@ -87,13 +87,18 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
 
         assert_that(result.status_code, equal_to(401))
 
-    def test_auth_on_personal_edit(self):
-        result = self.put_personal_result('contact_id', {})
+    def test_auth_on_personal_list(self):
+        result = self.list_personal_result()
 
         assert_that(result.status_code, equal_to(401))
 
-    def test_auth_on_personal_list(self):
-        result = self.list_personal_result()
+    def test_auth_on_personal_get(self):
+        result = self.get_personal_result('contact_id')
+
+        assert_that(result.status_code, equal_to(401))
+
+    def test_auth_on_personal_edit(self):
+        result = self.put_personal_result('contact_id', {})
 
         assert_that(result.status_code, equal_to(401))
 
