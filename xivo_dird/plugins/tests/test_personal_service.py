@@ -20,6 +20,7 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import greater_than
+from hamcrest import has_entry
 from mock import Mock
 from mock import patch
 from mock import sentinel as s
@@ -100,6 +101,17 @@ class TestPersonalServicePlugin(unittest.TestCase):
         service.edit_contact('contact-id', {'firstname': 'Alice'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.put.call_count, greater_than(0))
+
+    @patch('xivo_dird.plugins.personal_service.Consul')
+    def test_that_edit_contact_does_not_accept_modifying_contact_id(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), [])
+        consul.kv.put.return_value = (Mock(), [])
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
+        result = service.edit_contact('contact-id', {'id': 'new-id', 'firstname': 'Alice'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(result, has_entry('id', 'contact-id'))
 
     @patch('xivo_dird.plugins.personal_service.Consul')
     def test_that_remove_contact_calls_consul_delete(self, consul_init):
