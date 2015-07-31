@@ -18,6 +18,7 @@
 import logging
 
 from flask import request
+from time import time
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
@@ -74,8 +75,16 @@ class PersonalOne(AuthResource):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
         new_contact = request.json
-        contact = self.personal_service.edit_contact(contact_id, new_contact, token_infos)
-        return contact, 200
+        try:
+            contact = self.personal_service.edit_contact(contact_id, new_contact, token_infos)
+            return contact, 200
+        except self.personal_service.NoSuchPersonalContact as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
 
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']

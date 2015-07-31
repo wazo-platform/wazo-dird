@@ -215,6 +215,11 @@ class TestEditPersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
+    def test_that_edit_inexisting_personal_contact_returns_404(self):
+        result = self.put_personal_result('unknown-id', {'firstname': 'John', 'lastname': 'Doe'}, 'valid-token')
+
+        assert_that(result.status_code, equal_to(404))
+
     def test_that_edit_personal_contact_updates_attributes(self):
         contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
 

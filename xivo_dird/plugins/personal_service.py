@@ -35,6 +35,12 @@ logger = logging.getLogger(__name__)
 UNIQUE_COLUMN = 'id'
 
 
+class _NoSuchPersonalContact(ValueError):
+    def __init__(self, contact_id):
+        message = "No such personal contact: {}".format(contact_id)
+        super(_NoSuchPersonalContact, self).__init__(message)
+
+
 class PersonalServicePlugin(BaseServicePlugin):
 
     def load(self, args):
@@ -50,6 +56,8 @@ class PersonalServicePlugin(BaseServicePlugin):
 
 
 class _PersonalService(BaseService):
+
+    NoSuchPersonalContact = _NoSuchPersonalContact
 
     def __init__(self, config, sources):
         self._config = config
@@ -70,6 +78,8 @@ class _PersonalService(BaseService):
 
     def edit_contact(self, contact_id, contact_infos, token_infos):
         with self._consul(token=token_infos['token']) as consul:
+            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
+                raise _NoSuchPersonalContact(contact_id)
             for attribute, value in contact_infos.iteritems():
                 consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
                                                                    contact_uuid=contact_id,
@@ -107,6 +117,12 @@ class _PersonalService(BaseService):
     @contextmanager
     def _consul(self, token):
         yield Consul(token=token, **self._config['consul'])
+
+    def _contact_exists(self, consul, user_uuid, contact_id):
+        consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=user_uuid,
+                                                 contact_uuid=contact_id)
+        _, result = consul.kv.get(consul_key, keys=True)
+        return result is not None
 
 
 class DisabledPersonalSource(object):
