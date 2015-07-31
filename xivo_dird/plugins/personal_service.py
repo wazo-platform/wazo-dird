@@ -66,7 +66,16 @@ class _PersonalService(BaseService):
                                                                    contact_uuid=contact_infos[UNIQUE_COLUMN],
                                                                    attribute=attribute)
                 consul.kv.put(consul_key, value.encode('utf-8'))
-            return contact_infos
+        return contact_infos
+
+    def edit_contact(self, contact_id, contact_infos, token_infos):
+        with self._consul(token=token_infos['token']) as consul:
+            for attribute, value in contact_infos.iteritems():
+                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
+                                                                   contact_uuid=contact_id,
+                                                                   attribute=attribute)
+                consul.kv.put(consul_key, value.encode('utf-8'))
+        return contact_infos
 
     def remove_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:

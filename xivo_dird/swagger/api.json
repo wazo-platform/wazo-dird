@@ -271,7 +271,7 @@
             "get": {
                 "summary": "List personal contacts with formatting",
                 "description": "Get the list of personal contacts formatted for the profile",
-                "operationId": "list_personal",
+                "operationId": "list_personal_profile",
                 "tags": [
                     "directories",
                     "personal"
@@ -317,7 +317,7 @@
         "/personal": {
             "get": {
                 "summary": "List personal contacts",
-                "operationId": "get_personal",
+                "operationId": "list_personal",
                 "tags": [
                     "personal"
                 ],
@@ -386,6 +386,52 @@
             }
         },
         "/personal/{contact_id}": {
+            "put": {
+                "summary": "Edit personal contact",
+                "operationId": "edit_personal",
+                "tags": [
+                    "personal"
+                ],
+                "parameters": [
+                    {
+                        "name": "contact_id",
+                        "in": "path",
+                        "type": "string",
+                        "required": true,
+                        "description": "The ID of the personal contact."
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    },
+                    {
+                        "name": "contact",
+                        "in": "body",
+                        "description": "The new attributes of the contact",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PersonalBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "The personal contact was removed."
+                    },
+                    "404": {
+                        "description": "The personal contact does not exist"
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "summary": "Remove personal contact",
                 "operationId": "remove_personal",

@@ -49,9 +49,9 @@ class PersonalAll(AuthResource):
         cls.personal_service = personal_service
 
     def post(self):
-        contact = request.json
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
+        contact = request.json
         contact = self.personal_service.create_contact(contact, token_infos)
         return contact, 201
 
@@ -69,6 +69,13 @@ class PersonalOne(AuthResource):
     @classmethod
     def configure(cls, personal_service):
         cls.personal_service = personal_service
+
+    def put(self, contact_id):
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+        new_contact = request.json
+        contact = self.personal_service.edit_contact(contact_id, new_contact, token_infos)
+        return contact, 200
 
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']

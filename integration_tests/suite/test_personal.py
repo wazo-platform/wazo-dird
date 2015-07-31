@@ -21,6 +21,7 @@ from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entry
+from hamcrest import has_entries
 from hamcrest import has_key
 from hamcrest import not_
 
@@ -209,8 +210,24 @@ class TestLookupPersonalFuzzyAsciiMatch2(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'Etienne', None, None, False))))
 
+
+class TestEditPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_edit_personal_contact_updates_attributes(self):
+        contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
+
+        self.put_personal(contact['id'], {'firstname': 'Nicolas', 'lastname': 'Narvidon'})
+
+        result = self.get_personal()
+        assert_that(result['items'], contains(has_entries({
+            'firstname': 'Nicolas',
+            'lastname': 'Narvidon'
+        })))
+
+
 # TODO
-# update contact
 # validation upon contact creation/update
 # consul unreachable
 # invalid profile

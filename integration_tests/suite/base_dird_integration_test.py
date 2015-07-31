@@ -164,6 +164,20 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
+    def put_personal_result(self, personal_id, personal_infos, token=None):
+        url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
+        result = requests.put(url.format(contact_uuid=personal_id),
+                              data=json.dumps(personal_infos),
+                              headers={'X-Auth-Token': token,
+                                       'Content-Type': 'application/json'},
+                              verify=CA_CERT)
+        return result
+
+    def put_personal(self, personal_id, personal_infos, token='valid-token'):
+        response = self.put_personal_result(personal_id, personal_infos, token)
+        assert_that(response.status_code, equal_to(200))
+        return response.json()
+
     def delete_personal_result(self, personal_id, token=None):
         url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
         result = requests.delete(url.format(contact_uuid=personal_id),
