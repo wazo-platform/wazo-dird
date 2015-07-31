@@ -35,10 +35,11 @@ class PersonalViewPlugin(BaseViewPlugin):
 
     def load(self, args=None):
         personal_service = args['services'].get('personal')
-        PersonalAll.configure(personal_service)
-        PersonalOne.configure(personal_service)
-        api.add_resource(PersonalAll, self.personal_all_url)
-        api.add_resource(PersonalOne, self.personal_one_url)
+        if personal_service:
+            PersonalAll.configure(personal_service)
+            PersonalOne.configure(personal_service)
+            api.add_resource(PersonalAll, self.personal_all_url)
+            api.add_resource(PersonalOne, self.personal_one_url)
 
 
 class PersonalAll(AuthResource):
