@@ -20,10 +20,11 @@ import unittest
 from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import greater_than
+from hamcrest import not_
+from hamcrest import none
 from mock import Mock
 from mock import patch
 from mock import sentinel as s
-from xivo_dird import BaseService
 from xivo_dird.plugins.personal_service import PersonalServicePlugin
 from xivo_dird.plugins.personal_service import _PersonalService
 
@@ -40,7 +41,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         service = plugin.load({'config': s.config, 'sources': {}})
 
-        assert_that(isinstance(service, BaseService))
+        assert_that(service, not_(none()))
 
     @patch('xivo_dird.plugins.personal_service._PersonalService')
     def test_that_load_injects_config_and_sources_to_the_service(self, MockedPersonalService):

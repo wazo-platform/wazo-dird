@@ -39,15 +39,6 @@ class BaseServicePlugin(object):
         '''
 
 
-class BaseService(object):
-
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def __call__(self, *args, **kwargs):
-        pass
-
-
 class BaseViewPlugin(object):
 
     __metaclass__ = abc.ABCMeta

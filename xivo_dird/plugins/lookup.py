@@ -21,7 +21,6 @@ from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from xivo_dird import BaseServicePlugin
-from xivo_dird import BaseService
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ class LookupServicePlugin(BaseServicePlugin):
             self._service = None
 
 
-class _LookupService(BaseService):
+class _LookupService(object):
 
     def __init__(self, config, sources):
         self._config = config
@@ -61,7 +60,7 @@ class _LookupService(BaseService):
         future.name = source.name
         return future
 
-    def __call__(self, term, profile, args, token_infos):
+    def lookup(self, term, profile, args, token_infos):
         futures = []
         for source in self._source_by_profile(profile):
             args['token_infos'] = token_infos
