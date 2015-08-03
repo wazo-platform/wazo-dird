@@ -41,6 +41,13 @@ class _NoSuchPersonalContact(ValueError):
         super(_NoSuchPersonalContact, self).__init__(message)
 
 
+class _InvalidPersonalContact(ValueError):
+    def __init__(self, errors):
+        self.errors = errors
+        message = "Invalid personal contact: {}".format(errors)
+        super(_InvalidPersonalContact, self).__init__(message)
+
+
 class PersonalServicePlugin(BaseServicePlugin):
 
     def load(self, args):
@@ -58,6 +65,7 @@ class PersonalServicePlugin(BaseServicePlugin):
 class _PersonalService(BaseService):
 
     NoSuchPersonalContact = _NoSuchPersonalContact
+    InvalidPersonalContact = _InvalidPersonalContact
 
     def __init__(self, config, sources):
         self._config = config
@@ -67,6 +75,7 @@ class _PersonalService(BaseService):
         pass
 
     def create_contact(self, contact_infos, token_infos):
+        self.validate_contact(contact_infos)
         contact_id = str(uuid.uuid4())
         return self._create_contact(contact_id, contact_infos, token_infos)
 
@@ -80,6 +89,7 @@ class _PersonalService(BaseService):
         return dict_from_consul(consul_key, consul_dict)
 
     def edit_contact(self, contact_id, contact_infos, token_infos):
+        self.validate_contact(contact_infos)
         with self._consul(token=token_infos['token']) as consul:
             if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
                 raise _NoSuchPersonalContact(contact_id)
@@ -135,6 +145,21 @@ class _PersonalService(BaseService):
                                                                    attribute=attribute)
                 consul.kv.put(consul_key, value.encode('utf-8'))
         return result
+
+    @staticmethod
+    def validate_contact(contact_infos):
+        errors = []
+        if '.' in contact_infos:
+            errors.append('key `.` is invalid')
+
+        if any(not hasattr(key, 'encode') for key in contact_infos):
+            errors.append('all keys must be strings')
+
+        if any(not hasattr(value, 'encode') for value in contact_infos.itervalues()):
+            errors.append('all values must be strings')
+
+        if errors:
+            raise _InvalidPersonalContact(errors)
 
 
 class DisabledPersonalSource(object):

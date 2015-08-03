@@ -21,6 +21,7 @@ from hamcrest import assert_that
 from hamcrest import equal_to
 from hamcrest import greater_than
 from hamcrest import has_entry
+from hamcrest import is_
 from mock import Mock
 from mock import patch
 from mock import sentinel as s
@@ -122,3 +123,40 @@ class TestPersonalServicePlugin(unittest.TestCase):
         service.remove_contact('my-contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.delete.call_count, greater_than(0))
+
+
+class TestValidateContact(unittest.TestCase):
+
+    def test_that_validate_contact_refuses_dot_key(self):
+        contact_infos = {
+            '.': '.'
+        }
+
+        exception = _PersonalService.InvalidPersonalContact
+        self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
+
+    def test_that_validate_contact_refuses_non_string_key(self):
+        contact_infos = {
+            1: '.'
+        }
+
+        exception = _PersonalService.InvalidPersonalContact
+        self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
+
+    def test_that_validate_contact_refuses_non_string_value(self):
+        contact_infos = {
+            'a': 2
+        }
+
+        exception = _PersonalService.InvalidPersonalContact
+        self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
+
+    def test_that_validate_contact_accepts_correct_contact(self):
+        contact_infos = {
+            'firstname': 'Alice',
+            'lastname': 'Bob',
+        }
+
+        result = _PersonalService.validate_contact(contact_infos)
+
+        assert_that(result, is_(None))

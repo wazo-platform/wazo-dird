@@ -68,6 +68,16 @@ class TestAddPersonalNonAscii(BaseDirdIntegrationTest):
             has_entry('column_values', contains(u'Àlîce', None, None, False))))
 
 
+class TestAddInvalidPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_adding_invalid_personal_returns_400(self):
+        result = self.post_personal_result({'.': 'invalid'}, 'valid-token')
+
+        assert_that(result.status_code, equal_to(400))
+
+
 class TestRemovePersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
@@ -248,6 +258,18 @@ class TestEditPersonal(BaseDirdIntegrationTest):
         )))
 
 
+class TestEditInvalidPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_edit_personal_contact_with_invalid_values_return_404(self):
+        contact = self.post_personal({'firstname': 'Ursule', 'lastname': 'Uparlende'})
+
+        result = self.put_personal_result(contact['id'], {'firstname': 'Ulga', 'company': 'acme', '.': 'invalid'}, 'valid-token')
+
+        assert_that(result.status_code, equal_to(400))
+
+
 class TestGetPersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
@@ -268,7 +290,6 @@ class TestGetPersonal(BaseDirdIntegrationTest):
         }))
 
 # TODO
-# validation upon contact creation/update
 # consul unreachable
 # invalid profile
 # other errors

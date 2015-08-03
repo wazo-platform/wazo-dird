@@ -54,8 +54,16 @@ class PersonalAll(AuthResource):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
         contact = request.json
-        contact = self.personal_service.create_contact(contact, token_infos)
-        return contact, 201
+        try:
+            contact = self.personal_service.create_contact(contact, token_infos)
+            return contact, 201
+        except self.personal_service.InvalidPersonalContact as e:
+            error = {
+                'reason': e.errors,
+                'timestamp': [time()],
+                'status_code': 400,
+            }
+            return error, 400
 
     def get(self):
         token = request.headers['X-Auth-Token']
@@ -100,6 +108,13 @@ class PersonalOne(AuthResource):
                 'status_code': 404,
             }
             return error, 404
+        except self.personal_service.InvalidPersonalContact as e:
+            error = {
+                'reason': e.errors,
+                'timestamp': [time()],
+                'status_code': 400,
+            }
+            return error, 400
 
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']
