@@ -81,6 +81,29 @@ class TestAddInvalidPersonal(BaseDirdIntegrationTest):
         assert_that(result.status_code, equal_to(400))
 
 
+class TestAddWeirdPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_adding_personal_with_weird_attributes_is_ok(self):
+        self.post_personal({
+            '%': '%',
+            '?': '?',
+            '#': '#',
+            '%': '%'
+        })
+
+        result = self.list_personal()
+
+        assert_that(result['items'], contains(
+            has_entries({
+                '%': '%',
+                '?': '?',
+                '#': '#',
+                '%': '%'
+            })))
+
+
 class TestRemovePersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'

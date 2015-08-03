@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import urllib
 import uuid
 
 from consul import Consul
@@ -143,6 +144,7 @@ class _PersonalService(BaseService):
                 consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
                                                                    contact_uuid=contact_id,
                                                                    attribute=attribute.encode('utf-8'))
+                consul_key = urllib.quote(consul_key)
                 consul.kv.put(consul_key, value.encode('utf-8'))
         return result
 

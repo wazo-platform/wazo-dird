@@ -95,6 +95,18 @@ class TestDictFromConsul(TestCase):
             'key1': '',
         }))
 
+    def test_dict_from_consul_with_urlencoded_key(self):
+        consul_dict = [
+            {'Key': '/my/prefix/%25',
+             'Value': 'value'},
+        ]
+
+        result = dict_from_consul('/my/prefix/', consul_dict)
+
+        assert_that(result, has_entries({
+            '%': 'value',
+        }))
+
 
 class TestLsFromConsul(TestCase):
 
@@ -134,3 +146,10 @@ class TestLsFromConsul(TestCase):
         result = ls_from_consul('/my/prefix/key/', keys)
 
         assert_that(result, contains('attribute1', u'àttríbùté2', 'attribute3'))
+
+    def test_ls_from_consul_with_urlencoded_key(self):
+        keys = ['/my/prefix/key/%25']
+
+        result = ls_from_consul('/my/prefix/key/', keys)
+
+        assert_that(result, contains('%'))
