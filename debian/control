@@ -29,6 +29,7 @@ Depends: ${python:Depends},
          python-concurrent.futures,
          python-flask-cors,
          python-requests,
+         python-unidecode,
          xivo-confd-client
 Description: XIVO telephony systems library for directories manager
  XIVO is a system based on a powerful IPBX, to bring an easy to

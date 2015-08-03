@@ -23,12 +23,15 @@ from consul import Consul
 from contextlib import contextmanager
 from xivo_dird import BaseService
 from xivo_dird import BaseServicePlugin
+from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
+from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
+from xivo_dird.core.consul import PERSONAL_CONTACT_ATTRIBUTE_KEY
+from xivo_dird.core.consul import dict_from_consul
+from xivo_dird.core.consul import ls_from_consul
 
 logger = logging.getLogger(__name__)
 
-PERSONAL_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
-PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
-PERSONAL_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
+
 UNIQUE_COLUMN = 'id'
 
 
@@ -74,10 +77,9 @@ class _PersonalService(BaseService):
     def list_contacts(self, token_infos):
         user_uuid = token_infos['auth_id']
         consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
-        with self._consul(token=token_infos['token']) as consul:
+        with self._consul(token_infos['token']) as consul:
             _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
-            contact_keys = contact_keys or []
-            contact_ids = [contact_key[len(consul_key):-1] for contact_key in contact_keys]
+            contact_ids = ls_from_consul(consul_key, contact_keys)
             contacts = self._source.list(contact_ids, {'token_infos': token_infos})
         return contacts
 
@@ -101,8 +103,3 @@ class _PersonalService(BaseService):
 class DisabledPersonalSource(object):
     def list(self, _source_entry_ids, _token_infos):
         return []
-
-
-def dict_from_consul(prefix, consul_dict):
-    prefix_length = len(prefix)
-    return dict((consul_kv['Key'][prefix_length:], consul_kv['Value']) for consul_kv in consul_dict)

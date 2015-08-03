@@ -15,9 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from hamcrest import assert_that
-from hamcrest import equal_to
 from hamcrest import greater_than
-from hamcrest import has_entries
 from hamcrest import has_item
 from hamcrest import has_property
 from mock import Mock
@@ -25,7 +23,6 @@ from mock import patch
 from unittest import TestCase
 
 from ..personal_backend import PersonalBackend
-from ..personal_backend import dict_from_consul
 
 
 class TestPersonalBackend(TestCase):
@@ -56,43 +53,14 @@ class TestPersonalBackend(TestCase):
         assert_that(result, has_item(has_property('is_personal', True)))
         assert_that(result, has_item(has_property('is_deletable', True)))
 
+    @patch('xivo_dird.plugins.personal_backend.Consul')
+    def test_that_search_calls_consul_get(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = Mock(), []
+        source = PersonalBackend()
+        source.load({'config': {'name': 'personal'},
+                     'main_config': {'consul': {'host': 'localhost'}}})
 
-class TestDictFromConsul(TestCase):
+        source.search('alice', {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
 
-    def test_dict_from_consul_empty(self):
-        result = dict_from_consul('', [])
-
-        assert_that(result, equal_to({}))
-
-    def test_dict_from_consul_none(self):
-        result = dict_from_consul('', None)
-
-        assert_that(result, equal_to({}))
-
-    def test_dict_from_consul_full(self):
-        consul_dict = [
-            {'Key': '/my/prefix/key1',
-             'Value': 'value1'},
-            {'Key': '/my/prefix/key2',
-             'Value': 'value2'},
-            {'Key': '/my/prefix/key3',
-             'Value': 'value3'},
-        ]
-
-        result = dict_from_consul('/my/prefix/', consul_dict)
-
-        assert_that(result, has_entries({
-            'key1': 'value1',
-            'key2': 'value2',
-            'key3': 'value3'
-        }))
-
-    def test_dict_from_consul_with_unknown_prefix(self):
-        consul_dict = [
-            {'Key': '/my/prefix/key1',
-             'Value': 'value1'}
-        ]
-
-        result = dict_from_consul('/unknown/prefix/', consul_dict)
-
-        assert_that(result, equal_to({}))
+        assert_that(consul.kv.get.call_count, greater_than(0))

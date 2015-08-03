@@ -156,9 +156,61 @@ class TestPersonalListWithProfile(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Alice', None, None, False)),
             has_entry('column_values', contains('Bob', None, None, False))))
 
+
+class TestLookupPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_includes_personal_contacts(self):
+        self.post_personal({'firstname': 'Alice'})
+        self.post_personal({'firstname': 'Bob'})
+
+        result = self.lookup('ali', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains('Alice', None, None, False))))
+
+
+class TestLookupPersonalNonAscii(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_accepts_non_ascii_in_term(self):
+        self.post_personal({'firstname': 'Céline'})
+
+        result = self.lookup(u'Céline', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'Céline', None, None, False))))
+
+
+class TestLookupPersonalFuzzyAsciiMatch1(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_matches_non_ascii_with_ascii(self):
+        self.post_personal({'firstname': 'Céline'})
+
+        result = self.lookup(u'celine', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'Céline', None, None, False))))
+
+
+class TestLookupPersonalFuzzyAsciiMatch2(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_matches_non_ascii_with_ascii(self):
+        self.post_personal({'firstname': 'Etienne'})
+
+        result = self.lookup(u'étienne', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'Etienne', None, None, False))))
+
 # TODO
 # update contact
-# lookup = include personal
 # validation upon contact creation/update
 # consul unreachable
 # invalid profile

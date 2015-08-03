@@ -74,7 +74,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
     @patch('xivo_dird.plugins.personal_service.Consul')
     def test_that_list_contacts_raw_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
-        consul.kv.get.return_value = (Mock(), [{'Key': 'some-key', 'Value': 'some-value'}])
+        consul.kv.get.return_value = (Mock(), [])
         service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
 
         service.list_contacts_raw({'token': 'valid-token', 'auth_id': 'my-uuid'})

@@ -25,6 +25,7 @@ from consul import Consul
 
 from xivo_dird import BaseService
 from xivo_dird import BaseServicePlugin
+from xivo_dird.core.consul import ls_from_consul
 
 logger = logging.getLogger(__name__)
 
@@ -111,12 +112,7 @@ class _FavoritesService(BaseService):
     def _favorite_ids_in_source(self, uuid, source_name, token):
         source_key = FAVORITES_SOURCE_KEY.format(user_uuid=uuid, source=source_name)
         _, keys = self._consul().kv.get(source_key, keys=True, token=token)
-        ids = []
-        if keys:
-            for key in keys:
-                _, result = self._consul().kv.get(key, token=token)
-                ids.append(result['Value'])
-        return ids
+        return ls_from_consul(source_key, keys)
 
     def new_favorite(self, source, contact_id, token_infos):
         key = FAVORITE_KEY.format(user_uuid=token_infos['auth_id'], source=source, contact_id=contact_id)

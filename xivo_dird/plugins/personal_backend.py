@@ -15,23 +15,34 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import itertools
 import logging
 
 from consul import Consul
 
 from contextlib import contextmanager
+from unidecode import unidecode
 from xivo_dird import BaseSourcePlugin
 from xivo_dird import make_result_class
+from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
+from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
+from xivo_dird.core.consul import PERSONAL_CONTACT_ATTRIBUTE_KEY
+from xivo_dird.core.consul import dict_from_consul
+from xivo_dird.core.consul import ls_from_consul
 
 logger = logging.getLogger(__name__)
 
-PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
 UNIQUE_COLUMN = 'id'
+
+
+def match(term, actual):
+    return unidecode(term).lower() in unidecode(actual).lower()
 
 
 class PersonalBackend(BaseSourcePlugin):
 
     def load(self, config):
+        logger.debug('Loading personal source')
         self._SourceResult = make_result_class(
             config['config']['name'],
             UNIQUE_COLUMN,
@@ -39,12 +50,33 @@ class PersonalBackend(BaseSourcePlugin):
             is_personal=True,
             is_deletable=True
         )
+        self._searched_columns = config['config'].get(self.SEARCHED_COLUMNS, [])
         self._config = config['main_config']
 
-    def search(self, term, profile=None, args=None):
-        return []
+    def search(self, term, args=None):
+        logger.debug('Searching personal contacts with %s', term)
+        contacts = []
+        user_uuid = args['token_infos']['auth_id']
+        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
+        with self._consul(token=args['token_infos']['token']) as consul:
+            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
+            contact_ids = ls_from_consul(consul_key, contact_keys)
+            for contact_id, attribute in itertools.product(contact_ids, self._searched_columns):
+                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=user_uuid,
+                                                                   contact_uuid=contact_id,
+                                                                   attribute=attribute)
+                _, result = consul.kv.get(consul_key)
+                if not result:
+                    continue
+                if not result['Value']:
+                    continue
+                if match(term, result['Value'].decode('utf-8')):
+                    contacts.append(contact_id)
+
+        return self.list(contacts, args)
 
     def list(self, source_entry_ids, args):
+        logger.debug('Listing personal contacts')
         user_uuid = args['token_infos']['auth_id']
         contact_keys = [PERSONAL_CONTACT_KEY.format(user_uuid=user_uuid,
                                                     contact_uuid=contact_uuid)
@@ -61,15 +93,3 @@ class PersonalBackend(BaseSourcePlugin):
     @contextmanager
     def _consul(self, token):
         yield Consul(token=token, **self._config['consul'])
-
-
-def dict_from_consul(prefix, consul_dict):
-    result = {}
-    if consul_dict is None:
-        return result
-    for consul_kv in consul_dict:
-        if consul_kv['Key'].startswith(prefix):
-            key = consul_kv['Key'][len(prefix):]
-            value = consul_kv['Value']
-            result[key] = value
-    return result
