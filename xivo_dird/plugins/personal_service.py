@@ -151,14 +151,34 @@ class _PersonalService(BaseService):
     @staticmethod
     def validate_contact(contact_infos):
         errors = []
-        if '.' in contact_infos:
-            errors.append('key `.` is invalid')
 
         if any(not hasattr(key, 'encode') for key in contact_infos):
             errors.append('all keys must be strings')
 
         if any(not hasattr(value, 'encode') for value in contact_infos.itervalues()):
             errors.append('all values must be strings')
+
+        if errors:
+            raise _InvalidPersonalContact(errors)
+        # from here we assume we have strings
+
+        if '.' in contact_infos:
+            errors.append('key `.` is invalid')
+
+        if any((('..' in key) for key in contact_infos)):
+            errors.append('.. is forbidden in keys')
+
+        if any('//' in key for key in contact_infos):
+            errors.append('// is forbidden in keys')
+
+        if any(key.startswith('/') for key in contact_infos):
+            errors.append('key must not start with /')
+
+        if any(key.endswith('/') for key in contact_infos):
+            errors.append('key must not end with /')
+
+        if any('/./' in key for key in contact_infos):
+            errors.append('key must not contain /./')
 
         if errors:
             raise _InvalidPersonalContact(errors)
