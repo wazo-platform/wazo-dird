@@ -18,6 +18,7 @@
 import sh
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_TOKEN
 
 from hamcrest import assert_that
 from hamcrest import contains
@@ -172,7 +173,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
     asset = 'sample_backend'
 
     def test_that_lookup_returns_404(self):
-        result = self.get_lookup_result('lice', 'unknown', token='valid-token')
+        result = self.get_lookup_result('lice', 'unknown', token=VALID_TOKEN)
 
         error = result.json()
 
@@ -180,7 +181,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         assert_that(error['reason'], contains('The profile does not exist'))
 
     def test_that_headers_returns_404(self):
-        result = self.get_headers_result('unknown', token='valid-token')
+        result = self.get_headers_result('unknown', token=VALID_TOKEN)
 
         error = result.json()
 
@@ -188,7 +189,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         assert_that(error['reason'], contains('The profile does not exist'))
 
     def test_that_favorites_returns_404(self):
-        result = self.get_favorites_result('unknown', token='valid-token')
+        result = self.get_favorites_result('unknown', token=VALID_TOKEN)
 
         error = result.json()
 

@@ -15,6 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_TOKEN
+from .base_dird_integration_test import VALID_TOKEN_1
+from .base_dird_integration_test import VALID_TOKEN_2
 
 from hamcrest import all_of
 from hamcrest import assert_that
@@ -76,7 +79,7 @@ class TestAddInvalidPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_adding_invalid_personal_returns_400(self):
-        result = self.post_personal_result({'.': 'invalid'}, 'valid-token')
+        result = self.post_personal_result({'.': 'invalid'}, VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))
 
@@ -109,7 +112,7 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_removing_unknown_personal_returns_404(self):
-        result = self.delete_personal_result('unknown-id', 'valid-token')
+        result = self.delete_personal_result('unknown-id', VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(404))
 
@@ -131,8 +134,8 @@ class TestPersonalId(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_created_personal_has_an_id(self):
-        alice = self.post_personal({'firstname': 'Alice'}, token='valid-token')
-        bob = self.post_personal({'firstname': 'Bob'}, token='valid-token')
+        alice = self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN)
+        bob = self.post_personal({'firstname': 'Bob'}, token=VALID_TOKEN)
 
         assert_that(alice['id'], not_(equal_to(bob['id'])))
 
@@ -163,12 +166,12 @@ class TestPersonalVisibility(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_personal_are_only_visible_for_the_same_token(self):
-        self.post_personal({'firstname': 'Alice'}, token='valid-token-1')
-        self.post_personal({'firstname': 'Bob'}, token='valid-token-1')
-        self.post_personal({'firstname': 'Charlie'}, token='valid-token-2')
+        self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN_1)
+        self.post_personal({'firstname': 'Bob'}, token=VALID_TOKEN_1)
+        self.post_personal({'firstname': 'Charlie'}, token=VALID_TOKEN_2)
 
-        result_1 = self.list_personal(token='valid-token-1')
-        result_2 = self.list_personal(token='valid-token-2')
+        result_1 = self.list_personal(token=VALID_TOKEN_1)
+        result_2 = self.list_personal(token=VALID_TOKEN_2)
 
         assert_that(result_1['items'], contains_inanyorder(has_entry('firstname', 'Alice'),
                                                            has_entry('firstname', 'Bob')))
@@ -258,7 +261,7 @@ class TestEditPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_edit_inexisting_personal_contact_returns_404(self):
-        result = self.put_personal_result('unknown-id', {'firstname': 'John', 'lastname': 'Doe'}, 'valid-token')
+        result = self.put_personal_result('unknown-id', {'firstname': 'John', 'lastname': 'Doe'}, VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(404))
 
@@ -291,7 +294,7 @@ class TestEditInvalidPersonal(BaseDirdIntegrationTest):
     def test_that_edit_personal_contact_with_invalid_values_return_404(self):
         contact = self.post_personal({'firstname': 'Ursule', 'lastname': 'Uparlende'})
 
-        result = self.put_personal_result(contact['id'], {'firstname': 'Ulga', 'company': 'acme', '.': 'invalid'}, 'valid-token')
+        result = self.put_personal_result(contact['id'], {'firstname': 'Ulga', 'company': 'acme', '.': 'invalid'}, VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))
 
@@ -301,7 +304,7 @@ class TestGetPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_get_inexisting_personal_contact_returns_404(self):
-        result = self.get_personal_result('unknown-id', 'valid-token')
+        result = self.get_personal_result('unknown-id', VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(404))
 

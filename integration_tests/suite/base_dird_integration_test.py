@@ -36,6 +36,11 @@ except ImportError:
 ASSETS_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
 CA_CERT = os.path.join(ASSETS_ROOT, '_common', 'ssl', 'server.crt')
 
+VALID_TOKEN = 'valid-token'
+VALID_TOKEN_1 = 'valid-token-1'
+VALID_TOKEN_2 = 'valid-token-2'
+VALID_TOKEN_3 = 'valid-token-3'
+
 
 class BaseDirdIntegrationTest(unittest.TestCase):
 
@@ -87,7 +92,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def lookup(self, term, profile, token='valid-token'):
+    def lookup(self, term, profile, token=VALID_TOKEN):
         response = self.get_lookup_result(term, profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -100,7 +105,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     def headers(self, profile):
-        response = self.get_headers_result(profile, token='valid-token')
+        response = self.get_headers_result(profile, token=VALID_TOKEN)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
@@ -111,7 +116,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def favorites(self, profile, token='valid-token'):
+    def favorites(self, profile, token=VALID_TOKEN):
         response = self.get_favorites_result(profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -123,7 +128,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def put_favorite(self, directory, contact, token='valid-token'):
+    def put_favorite(self, directory, contact, token=VALID_TOKEN):
         response = self.put_favorite_result(directory, contact, token=token)
         assert_that(response.status_code, equal_to(204))
 
@@ -135,7 +140,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     def delete_favorite(self, directory, contact):
-        response = self.delete_favorite_result(directory, contact, token='valid-token')
+        response = self.delete_favorite_result(directory, contact, token=VALID_TOKEN)
         assert_that(response.status_code, equal_to(204))
 
     def post_personal_result(self, personal_infos, token=None):
@@ -147,7 +152,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                                verify=CA_CERT)
         return result
 
-    def post_personal(self, personal_infos, token='valid-token'):
+    def post_personal(self, personal_infos, token=VALID_TOKEN):
         response = self.post_personal_result(personal_infos, token)
         assert_that(response.status_code, equal_to(201))
         return response.json()
@@ -159,7 +164,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def list_personal(self, token='valid-token'):
+    def list_personal(self, token=VALID_TOKEN):
         response = self.list_personal_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -171,7 +176,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def get_personal(self, personal_id, token='valid-token'):
+    def get_personal(self, personal_id, token=VALID_TOKEN):
         response = self.get_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -185,7 +190,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def put_personal(self, personal_id, personal_infos, token='valid-token'):
+    def put_personal(self, personal_id, personal_infos, token=VALID_TOKEN):
         response = self.put_personal_result(personal_id, personal_infos, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -197,7 +202,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                                  verify=CA_CERT)
         return result
 
-    def delete_personal(self, personal_id, token='valid-token'):
+    def delete_personal(self, personal_id, token=VALID_TOKEN):
         response = self.delete_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(204))
 
@@ -208,7 +213,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
-    def get_personal_with_profile(self, profile, token='valid-token'):
+    def get_personal_with_profile(self, profile, token=VALID_TOKEN):
         response = self.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()

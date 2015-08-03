@@ -15,6 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_TOKEN
+from .base_dird_integration_test import VALID_TOKEN_1
+from .base_dird_integration_test import VALID_TOKEN_2
 
 from hamcrest import assert_that
 from hamcrest import contains
@@ -45,11 +48,11 @@ class TestFavoritesVisibility(BaseDirdIntegrationTest):
     asset = 'csv_with_multiple_displays'
 
     def test_that_favorites_are_only_visible_for_the_same_token(self):
-        self.put_favorite('my_csv', '1', token='valid-token-1')
-        self.put_favorite('my_csv', '2', token='valid-token-1')
-        self.put_favorite('my_csv', '3', token='valid-token-2')
+        self.put_favorite('my_csv', '1', token=VALID_TOKEN_1)
+        self.put_favorite('my_csv', '2', token=VALID_TOKEN_1)
+        self.put_favorite('my_csv', '3', token=VALID_TOKEN_2)
 
-        result = self.favorites('default', token='valid-token-1')
+        result = self.favorites('default', token=VALID_TOKEN_1)
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', True)),
@@ -82,7 +85,7 @@ class TestRemovingFavoriteAlreadyInexistant(BaseDirdIntegrationTest):
     asset = 'sample_backend'
 
     def test_that_removing_an_inexisting_favorite_returns_404(self):
-        result = self.delete_favorite_result('unknown_source', 'unknown_contact', token='valid-token')
+        result = self.delete_favorite_result('unknown_source', 'unknown_contact', token=VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(404))
 
@@ -92,14 +95,14 @@ class TestFavoritesInLookupResults(BaseDirdIntegrationTest):
     asset = 'csv_with_multiple_displays'
 
     def test_that_favorites_lookup_results_show_favorites(self):
-        result = self.lookup('Ali', 'default', token='valid-token-1')
+        result = self.lookup('Ali', 'default', token=VALID_TOKEN_1)
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', False))))
 
-        self.put_favorite('my_csv', '1', token='valid-token-1')
+        self.put_favorite('my_csv', '1', token=VALID_TOKEN_1)
 
-        result = self.lookup('Ali', 'default', token='valid-token-1')
+        result = self.lookup('Ali', 'default', token=VALID_TOKEN_1)
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
@@ -164,9 +167,9 @@ class TestFavoritesVisibilityInSimilarSources(BaseDirdIntegrationTest):
     asset = 'similar_sources'
 
     def test_that_favorites_are_only_visible_for_the_exact_source(self):
-        self.put_favorite('csv_2', '1', token='valid-token-1')
+        self.put_favorite('csv_2', '1', token=VALID_TOKEN_1)
 
-        result = self.favorites('default', token='valid-token-1')
+        result = self.favorites('default', token=VALID_TOKEN_1)
 
         # No values from source 'csv', id '1'
         assert_that(result['results'], contains(
