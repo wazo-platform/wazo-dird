@@ -57,15 +57,18 @@ class TestAddPersonalNonAscii(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_created_personal_are_listed(self):
-        self.post_personal({'firstname': 'Àlîce'})
+        self.post_personal({'firstname': 'Alice', 'key': u'NonAsciiValue-é'})
+        self.post_personal({'firstname': 'Bob', u'NonAsciiKey-é': 'value'})
 
         raw = self.list_personal()
         formatted = self.get_personal_with_profile('default')
 
         assert_that(raw['items'], contains_inanyorder(
-            has_entry('firstname', u'Àlîce')))
+            has_entry('key', u'NonAsciiValue-é'),
+            has_entry(u'NonAsciiKey-é', 'value')))
         assert_that(formatted['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'Àlîce', None, None, False))))
+            has_entry('column_values', contains(u'Alice', None, None, False)),
+            has_entry('column_values', contains(u'Bob', None, None, False))))
 
 
 class TestAddInvalidPersonal(BaseDirdIntegrationTest):

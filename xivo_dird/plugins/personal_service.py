@@ -142,7 +142,7 @@ class _PersonalService(BaseService):
             for attribute, value in result.iteritems():
                 consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
                                                                    contact_uuid=contact_id,
-                                                                   attribute=attribute)
+                                                                   attribute=attribute.encode('utf-8'))
                 consul.kv.put(consul_key, value.encode('utf-8'))
         return result
 
