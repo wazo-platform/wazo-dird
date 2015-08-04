@@ -20,8 +20,10 @@ import urllib
 import uuid
 
 from consul import Consul
-
+from consul import ConsulException
 from contextlib import contextmanager
+from requests.exceptions import RequestException
+
 from xivo_dird import BaseService
 from xivo_dird import BaseServicePlugin
 from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
@@ -34,6 +36,10 @@ logger = logging.getLogger(__name__)
 
 
 UNIQUE_COLUMN = 'id'
+
+
+class _PersonalServiceException(Exception):
+    pass
 
 
 class _NoSuchPersonalContact(ValueError):
@@ -65,8 +71,9 @@ class PersonalServicePlugin(BaseServicePlugin):
 
 class _PersonalService(BaseService):
 
-    NoSuchPersonalContact = _NoSuchPersonalContact
     InvalidPersonalContact = _InvalidPersonalContact
+    NoSuchPersonalContact = _NoSuchPersonalContact
+    PersonalServiceException = _PersonalServiceException
 
     def __init__(self, config, sources):
         self._config = config
@@ -128,7 +135,12 @@ class _PersonalService(BaseService):
 
     @contextmanager
     def _consul(self, token):
-        yield Consul(token=token, **self._config['consul'])
+        try:
+            yield Consul(token=token, **self._config['consul'])
+        except ConsulException as e:
+            raise self.PersonalServiceException('Error from Consul: {}'.format(str(e)))
+        except RequestException as e:
+            raise self.PersonalServiceException('Error while connecting to Consul: {}'.format(str(e)))
 
     def _contact_exists(self, consul, user_uuid, contact_id):
         consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=user_uuid,

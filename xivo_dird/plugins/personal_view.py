@@ -42,6 +42,20 @@ class PersonalViewPlugin(BaseViewPlugin):
             api.add_resource(PersonalOne, self.personal_one_url)
 
 
+def catch_service_error(wrapped):
+    def wrapper(self, *args, **kwargs):
+        try:
+            return wrapped(self, *args, **kwargs)
+        except self.personal_service.PersonalServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
+    return wrapper
+
+
 class PersonalAll(AuthResource):
 
     personal_service = None
@@ -50,6 +64,7 @@ class PersonalAll(AuthResource):
     def configure(cls, personal_service):
         cls.personal_service = personal_service
 
+    @catch_service_error
     def post(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -65,6 +80,7 @@ class PersonalAll(AuthResource):
             }
             return error, 400
 
+    @catch_service_error
     def get(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -80,6 +96,7 @@ class PersonalOne(AuthResource):
     def configure(cls, personal_service):
         cls.personal_service = personal_service
 
+    @catch_service_error
     def get(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -94,6 +111,7 @@ class PersonalOne(AuthResource):
             }
             return error, 404
 
+    @catch_service_error
     def put(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -116,6 +134,7 @@ class PersonalOne(AuthResource):
             }
             return error, 400
 
+    @catch_service_error
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)

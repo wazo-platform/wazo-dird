@@ -315,7 +315,43 @@ class TestGetPersonal(BaseDirdIntegrationTest):
             'lastname': 'Narvidon'
         }))
 
+
+class TestConsulInternalError(BaseDirdIntegrationTest):
+    '''
+    This scenario may happen when the requested consul key is too long.
+    '''
+
+    asset = 'consul_500'
+
+    def test_when_consul_errors_that_personal_actions_return_503(self):
+        result = self.get_personal_result('unknown-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.put_personal_result('unknown-id', {}, 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.post_personal_result({}, 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.delete_personal_result('unknown-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.list_personal_result('valid-token')
+        assert_that(result.status_code, equal_to(503))
+
+
+class TestConsulUnreachable(BaseDirdIntegrationTest):
+
+    asset = 'no_consul'
+
+    def test_when_consul_errors_that_personal_actions_return_503(self):
+        result = self.get_personal_result('unknown-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.put_personal_result('unknown-id', {}, 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.post_personal_result({}, 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.delete_personal_result('unknown-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.list_personal_result('valid-token')
+        assert_that(result.status_code, equal_to(503))
+
 # TODO
-# consul unreachable
 # invalid profile
 # other errors
