@@ -69,7 +69,7 @@ class TestDictFromConsul(TestCase):
         consul_dict = [
             {'Key': '/my/prefix/key1',
              'Value': 'value1'},
-            {'Key': u'/my/prefix/kéỳ2'.encode('utf-8'),
+            {'Key': u'/my/prefix/kéỳ2',
              'Value': u'vàlùé2'.encode('utf-8')},
             {'Key': '/my/prefix/key3',
              'Value': 'value3'},
