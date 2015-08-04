@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
-import urllib
 import uuid
 
 from consul import Consul
@@ -27,8 +26,8 @@ from requests.exceptions import RequestException
 from xivo_dird import BaseServicePlugin
 from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
 from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
-from xivo_dird.core.consul import PERSONAL_CONTACT_ATTRIBUTE_KEY
 from xivo_dird.core.consul import dict_from_consul
+from xivo_dird.core.consul import dict_to_consul
 from xivo_dird.core.consul import ls_from_consul
 
 logger = logging.getLogger(__name__)
@@ -69,7 +68,8 @@ class _PersonalService(object):
 
     def __init__(self, config, sources):
         self._config = config
-        self._source = next((source for source in sources.itervalues() if source.backend == 'personal'), DisabledPersonalSource())
+        self._source = next((source for source in sources.itervalues() if source.backend == 'personal'),
+                            DisabledPersonalSource())
 
     def create_contact(self, contact_infos, token_infos):
         self.validate_contact(contact_infos)
@@ -141,7 +141,9 @@ class _PersonalService(object):
         result = dict(contact_infos)
         result[UNIQUE_COLUMN] = contact_id
         with self._consul(token=token_infos['token']) as consul:
-            for consul_key, value in consul.dict_to_consul.iteritems():
+            prefix = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
+                                                 contact_uuid=contact_id)
+            for consul_key, value in dict_to_consul(prefix, result).iteritems():
                 consul.kv.put(consul_key, value)
         return result
 
