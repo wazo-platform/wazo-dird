@@ -209,6 +209,18 @@ class TestLookupPersonalFuzzyAsciiMatch2(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'Etienne', None, None, False))))
 
+
+class TestLookupPersonalWith2MatchingFields(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_lookup_does_not_return_duplicates_when_matching_multiple_fields(self):
+        self.post_personal({'firstname': 'john', 'lastname': 'john', 'company': 'john'})
+
+        result = self.lookup('john', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'john', 'john', None, False))))
 # TODO
 # update contact
 # validation upon contact creation/update

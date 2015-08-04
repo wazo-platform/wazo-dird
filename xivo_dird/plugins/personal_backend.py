@@ -55,7 +55,7 @@ class PersonalBackend(BaseSourcePlugin):
 
     def search(self, term, args=None):
         logger.debug('Searching personal contacts with %s', term)
-        contacts = []
+        contacts = set()
         user_uuid = args['token_infos']['auth_id']
         consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
         with self._consul(token=args['token_infos']['token']) as consul:
@@ -71,7 +71,7 @@ class PersonalBackend(BaseSourcePlugin):
                 if not result['Value']:
                     continue
                 if match(term, result['Value'].decode('utf-8')):
-                    contacts.append(contact_id)
+                    contacts.add(contact_id)
 
         return self.list(contacts, args)
 
