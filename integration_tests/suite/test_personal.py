@@ -16,11 +16,13 @@
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
+from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entry
+from hamcrest import has_entries
 from hamcrest import has_key
 from hamcrest import not_
 
@@ -30,7 +32,7 @@ class TestListPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_listing_empty_personal_returns_empty_list(self):
-        result = self.get_personal()
+        result = self.list_personal()
 
         assert_that(result['items'], contains())
 
@@ -43,7 +45,7 @@ class TestAddPersonal(BaseDirdIntegrationTest):
         self.post_personal({'firstname': 'Alice'})
         self.post_personal({'firstname': 'Bob'})
 
-        result = self.get_personal()
+        result = self.list_personal()
 
         assert_that(result['items'], contains_inanyorder(
             has_entry('firstname', 'Alice'),
@@ -55,20 +57,61 @@ class TestAddPersonalNonAscii(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_created_personal_are_listed(self):
-        self.post_personal({'firstname': 'Àlîce'})
+        self.post_personal({'firstname': 'Alice', 'key': u'NonAsciiValue-é'})
+        self.post_personal({'firstname': 'Bob', u'NonAsciiKey-é': 'value'})
 
-        raw = self.get_personal()
+        raw = self.list_personal()
         formatted = self.get_personal_with_profile('default')
 
         assert_that(raw['items'], contains_inanyorder(
-            has_entry('firstname', u'Àlîce')))
+            has_entry('key', u'NonAsciiValue-é'),
+            has_entry(u'NonAsciiKey-é', 'value')))
         assert_that(formatted['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'Àlîce', None, None, False))))
+            has_entry('column_values', contains(u'Alice', None, None, False)),
+            has_entry('column_values', contains(u'Bob', None, None, False))))
+
+
+class TestAddInvalidPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_adding_invalid_personal_returns_400(self):
+        result = self.post_personal_result({'.': 'invalid'}, 'valid-token')
+
+        assert_that(result.status_code, equal_to(400))
+
+
+class TestAddWeirdPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_adding_personal_with_weird_attributes_is_ok(self):
+        self.post_personal({
+            '%': '%',
+            '?': '?',
+            '#': '#',
+            '%': '%'
+        })
+
+        result = self.list_personal()
+
+        assert_that(result['items'], contains(
+            has_entries({
+                '%': '%',
+                '?': '?',
+                '#': '#',
+                '%': '%'
+            })))
 
 
 class TestRemovePersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
+
+    def test_that_removing_unknown_personal_returns_404(self):
+        result = self.delete_personal_result('unknown-id', 'valid-token')
+
+        assert_that(result.status_code, equal_to(404))
 
     def test_that_removed_personal_are_not_listed(self):
         self.post_personal({'firstname': 'Alice'})
@@ -76,7 +119,7 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
         self.post_personal({'firstname': 'Charlie'})
         self.delete_personal(bob['id'])
 
-        result = self.get_personal()
+        result = self.list_personal()
 
         assert_that(result['items'], contains_inanyorder(
             has_entry('firstname', 'Alice'),
@@ -101,7 +144,7 @@ class TestPersonalPersistence(BaseDirdIntegrationTest):
     def test_that_personal_are_saved_across_dird_restart(self):
         self.post_personal({})
 
-        result_before = self.get_personal()
+        result_before = self.list_personal()
 
         assert_that(result_before['items'], contains(has_key('id')))
 
@@ -109,7 +152,7 @@ class TestPersonalPersistence(BaseDirdIntegrationTest):
         self._run_cmd('docker-compose rm -f dird')
         self._run_cmd('docker-compose run --rm sync')
 
-        result_after = self.get_personal()
+        result_after = self.list_personal()
 
         assert_that(result_after['items'], contains(has_key('id')))
         assert_that(result_before['items'][0]['id'], equal_to(result_after['items'][0]['id']))
@@ -124,8 +167,8 @@ class TestPersonalVisibility(BaseDirdIntegrationTest):
         self.post_personal({'firstname': 'Bob'}, token='valid-token-1')
         self.post_personal({'firstname': 'Charlie'}, token='valid-token-2')
 
-        result_1 = self.get_personal(token='valid-token-1')
-        result_2 = self.get_personal(token='valid-token-2')
+        result_1 = self.list_personal(token='valid-token-1')
+        result_2 = self.list_personal(token='valid-token-2')
 
         assert_that(result_1['items'], contains_inanyorder(has_entry('firstname', 'Alice'),
                                                            has_entry('firstname', 'Bob')))
@@ -210,6 +253,106 @@ class TestLookupPersonalFuzzyAsciiMatch2(BaseDirdIntegrationTest):
             has_entry('column_values', contains(u'Etienne', None, None, False))))
 
 
+class TestEditPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_edit_inexisting_personal_contact_returns_404(self):
+        result = self.put_personal_result('unknown-id', {'firstname': 'John', 'lastname': 'Doe'}, 'valid-token')
+
+        assert_that(result.status_code, equal_to(404))
+
+    def test_that_edit_personal_contact_replaces_attributes(self):
+        contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
+
+        put_result = self.put_personal(contact['id'], {'firstname': 'Nicolas', 'company': 'acme'})
+
+        assert_that(put_result, has_key('id'))
+        assert_that(put_result, contains_inanyorder('id', 'firstname', 'company'))
+        assert_that(put_result, has_entries({
+            'firstname': 'Nicolas',
+            'company': 'acme'
+        }))
+
+        list_result = self.list_personal()
+        assert_that(list_result['items'], contains(all_of(
+            contains_inanyorder('id', 'firstname', 'company'),
+            has_entries({
+                'firstname': 'Nicolas',
+                'company': 'acme'
+            })
+        )))
+
+
+class TestEditInvalidPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_edit_personal_contact_with_invalid_values_return_404(self):
+        contact = self.post_personal({'firstname': 'Ursule', 'lastname': 'Uparlende'})
+
+        result = self.put_personal_result(contact['id'], {'firstname': 'Ulga', 'company': 'acme', '.': 'invalid'}, 'valid-token')
+
+        assert_that(result.status_code, equal_to(400))
+
+
+class TestGetPersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def test_that_get_inexisting_personal_contact_returns_404(self):
+        result = self.get_personal_result('unknown-id', 'valid-token')
+
+        assert_that(result.status_code, equal_to(404))
+
+    def test_that_get_returns_all_attributes(self):
+        contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
+
+        result = self.get_personal(contact['id'])
+
+        assert_that(result, has_entries({
+            'firstname': u'Noémie',
+            'lastname': 'Narvidon'
+        }))
+
+
+class TestConsulInternalError(BaseDirdIntegrationTest):
+    '''
+    This scenario may happen when the requested consul key is too long.
+    '''
+
+    asset = 'consul_500'
+
+    def test_when_consul_errors_that_personal_actions_return_503(self):
+        result = self.get_personal_result('unknown-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.put_personal_result('unknown-id', {}, 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.post_personal_result({}, 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.delete_personal_result('unknown-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.list_personal_result('valid-token')
+        assert_that(result.status_code, equal_to(503))
+
+
+class TestConsulUnreachable(BaseDirdIntegrationTest):
+
+    asset = 'no_consul'
+
+    def test_when_consul_errors_that_personal_actions_return_503(self):
+        result = self.get_personal_result('unknown-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.put_personal_result('unknown-id', {}, 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.post_personal_result({}, 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.delete_personal_result('unknown-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.list_personal_result('valid-token')
+        assert_that(result.status_code, equal_to(503))
+
+
 class TestLookupPersonalWith2MatchingFields(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
@@ -221,9 +364,7 @@ class TestLookupPersonalWith2MatchingFields(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'john', 'john', None, False))))
+
 # TODO
-# update contact
-# validation upon contact creation/update
-# consul unreachable
 # invalid profile
 # other errors

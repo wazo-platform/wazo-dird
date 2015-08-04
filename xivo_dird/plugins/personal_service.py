@@ -16,11 +16,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import urllib
 import uuid
 
 from consul import Consul
-
+from consul import ConsulException
 from contextlib import contextmanager
+from requests.exceptions import RequestException
+
 from xivo_dird import BaseServicePlugin
 from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
 from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
@@ -32,6 +35,23 @@ logger = logging.getLogger(__name__)
 
 
 UNIQUE_COLUMN = 'id'
+
+
+class _PersonalServiceException(Exception):
+    pass
+
+
+class _NoSuchPersonalContact(ValueError):
+    def __init__(self, contact_id):
+        message = "No such personal contact: {}".format(contact_id)
+        super(_NoSuchPersonalContact, self).__init__(message)
+
+
+class _InvalidPersonalContact(ValueError):
+    def __init__(self, errors):
+        self.errors = errors
+        message = "Invalid personal contact: {}".format(errors)
+        super(_InvalidPersonalContact, self).__init__(message)
 
 
 class PersonalServicePlugin(BaseServicePlugin):
@@ -50,22 +70,40 @@ class PersonalServicePlugin(BaseServicePlugin):
 
 class _PersonalService(object):
 
+    InvalidPersonalContact = _InvalidPersonalContact
+    NoSuchPersonalContact = _NoSuchPersonalContact
+    PersonalServiceException = _PersonalServiceException
+
     def __init__(self, config, sources):
         self._config = config
         self._source = next((source for source in sources.itervalues() if source.backend == 'personal'), DisabledPersonalSource())
 
     def create_contact(self, contact_infos, token_infos):
-        contact_infos[UNIQUE_COLUMN] = str(uuid.uuid4())
+        self.validate_contact(contact_infos)
+        contact_id = str(uuid.uuid4())
+        return self._create_contact(contact_id, contact_infos, token_infos)
+
+    def get_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
-            for attribute, value in contact_infos.iteritems():
-                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
-                                                                   contact_uuid=contact_infos[UNIQUE_COLUMN],
-                                                                   attribute=attribute)
-                consul.kv.put(consul_key, value.encode('utf-8'))
-            return contact_infos
+            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
+                raise _NoSuchPersonalContact(contact_id)
+            consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
+                                                     contact_uuid=contact_id)
+            _, consul_dict = consul.kv.get(consul_key, recurse=True)
+        return dict_from_consul(consul_key, consul_dict)
+
+    def edit_contact(self, contact_id, contact_infos, token_infos):
+        self.validate_contact(contact_infos)
+        with self._consul(token=token_infos['token']) as consul:
+            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
+                raise _NoSuchPersonalContact(contact_id)
+        self.remove_contact(contact_id, token_infos)
+        return self._create_contact(contact_id, contact_infos, token_infos)
 
     def remove_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
+            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
+                raise _NoSuchPersonalContact(contact_id)
             consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
                                                      contact_uuid=contact_id)
             consul.kv.delete(consul_key, recurse=True)
@@ -93,7 +131,71 @@ class _PersonalService(object):
 
     @contextmanager
     def _consul(self, token):
-        yield Consul(token=token, **self._config['consul'])
+        try:
+            yield Consul(token=token, **self._config['consul'])
+        except ConsulException as e:
+            raise self.PersonalServiceException('Error from Consul: {}'.format(str(e)))
+        except RequestException as e:
+            raise self.PersonalServiceException('Error while connecting to Consul: {}'.format(str(e)))
+
+    def _contact_exists(self, consul, user_uuid, contact_id):
+        consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=user_uuid,
+                                                 contact_uuid=contact_id)
+        _, result = consul.kv.get(consul_key, keys=True)
+        return result is not None
+
+    def _create_contact(self, contact_id, contact_infos, token_infos):
+        result = dict(contact_infos)
+        result[UNIQUE_COLUMN] = contact_id
+        with self._consul(token=token_infos['token']) as consul:
+            for attribute, value in result.iteritems():
+                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
+                                                                   contact_uuid=contact_id,
+                                                                   attribute=attribute.encode('utf-8'))
+                consul_key = urllib.quote(consul_key)
+                consul.kv.put(consul_key, value.encode('utf-8'))
+        return result
+
+    @staticmethod
+    def validate_contact(contact_infos):
+        errors = []
+
+        if any(not hasattr(key, 'encode') for key in contact_infos):
+            errors.append('all keys must be strings')
+
+        if any(not hasattr(value, 'encode') for value in contact_infos.itervalues()):
+            errors.append('all values must be strings')
+
+        if errors:
+            raise _InvalidPersonalContact(errors)
+        # from here we assume we have strings
+
+        if '.' in contact_infos:
+            errors.append('key `.` is invalid')
+
+        if any((('..' in key) for key in contact_infos)):
+            errors.append('.. is forbidden in keys')
+
+        if any('//' in key for key in contact_infos):
+            errors.append('// is forbidden in keys')
+
+        if any(key.startswith('/') for key in contact_infos):
+            errors.append('key must not start with /')
+
+        if any(key.endswith('/') for key in contact_infos):
+            errors.append('key must not end with /')
+
+        if any(key.startswith('./') for key in contact_infos):
+            errors.append('key must not start with ./')
+
+        if any(key.endswith('/.') for key in contact_infos):
+            errors.append('key must not end with /.')
+
+        if any('/./' in key for key in contact_infos):
+            errors.append('key must not contain /./')
+
+        if errors:
+            raise _InvalidPersonalContact(errors)
 
 
 class DisabledPersonalSource(object):

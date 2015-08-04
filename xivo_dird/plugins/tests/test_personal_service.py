@@ -22,6 +22,8 @@ from hamcrest import equal_to
 from hamcrest import greater_than
 from hamcrest import not_
 from hamcrest import none
+from hamcrest import has_entry
+from hamcrest import is_
 from mock import Mock
 from mock import patch
 from mock import sentinel as s
@@ -83,10 +85,98 @@ class TestPersonalServicePlugin(unittest.TestCase):
         assert_that(consul.kv.get.call_count, greater_than(0))
 
     @patch('xivo_dird.plugins.personal_service.Consul')
+    def test_that_get_contact_calls_consul_get(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), [])
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
+        service.get_contact('contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(consul.kv.get.call_count, greater_than(0))
+
+    @patch('xivo_dird.plugins.personal_service.Consul')
+    def test_that_edit_contact_calls_consul_put(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), [])
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
+        service.edit_contact('contact-id', {'firstname': 'Alice'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(consul.kv.put.call_count, greater_than(0))
+
+    @patch('xivo_dird.plugins.personal_service.Consul')
+    def test_that_edit_contact_does_not_accept_modifying_contact_id(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), [])
+        consul.kv.put.return_value = (Mock(), [])
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
+        result = service.edit_contact('contact-id', {'id': 'new-id', 'firstname': 'Alice'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(result, has_entry('id', 'contact-id'))
+
+    @patch('xivo_dird.plugins.personal_service.Consul')
     def test_that_remove_contact_calls_consul_delete(self, consul_init):
         consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), [])
         service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
 
         service.remove_contact('my-contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.delete.call_count, greater_than(0))
+
+
+class TestValidateContact(unittest.TestCase):
+
+    def test_that_validate_contact_refuses_dot_key(self):
+        contact_infos = {
+            '.': '.'
+        }
+
+        exception = _PersonalService.InvalidPersonalContact
+        self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
+
+    def test_that_validate_contact_refuses_non_string_key(self):
+        contact_infos = {
+            1: '.'
+        }
+
+        exception = _PersonalService.InvalidPersonalContact
+        self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
+
+    def test_that_validate_contact_refuses_non_string_value(self):
+        contact_infos = {
+            'a': 2
+        }
+
+        exception = _PersonalService.InvalidPersonalContact
+        self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
+
+    def test_that_validate_contact_refuses_path_related_keys(self):
+        exception = _PersonalService.InvalidPersonalContact
+        self.assertRaises(exception, _PersonalService.validate_contact, {'/': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'//': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'/abc': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'abc/': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'..': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'./././abc': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'./abc': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'abc/.': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'abcd./../../../abc': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'abcd./../../..': '..'})
+
+    def test_that_validate_contact_accepts_keys_with_separators(self):
+        _PersonalService.validate_contact({'abcd.def.ghij': '..'})
+        _PersonalService.validate_contact({'.abcd.def.ghij.': '..'})
+        _PersonalService.validate_contact({'abcd/def/ghij': '..'})
+        _PersonalService.validate_contact({'abcd.def/ghi.jkl': '..'})
+
+    def test_that_validate_contact_accepts_correct_contact(self):
+        contact_infos = {
+            'firstname': 'Alice',
+            'lastname': 'Bob',
+        }
+
+        result = _PersonalService.validate_contact(contact_infos)
+
+        assert_that(result, is_(None))

@@ -15,9 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import logging
+import urllib
+
 PERSONAL_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
 PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
 PERSONAL_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
+
+logger = logging.getLogger(__name__)
 
 
 def dict_from_consul(prefix, consul_dict):
@@ -26,7 +31,7 @@ def dict_from_consul(prefix, consul_dict):
     if consul_dict is None:
         return result
     for consul_kv in consul_dict:
-        full_key = consul_kv['Key'].decode('utf-8')
+        full_key = urllib.unquote(consul_kv['Key'])
         if full_key.startswith(prefix):
             key = full_key[prefix_length:]
             value = (consul_kv['Value'] or '').decode('utf-8')
@@ -36,5 +41,7 @@ def dict_from_consul(prefix, consul_dict):
 
 def ls_from_consul(prefix, keys):
     keys = keys or []
+    keys = (urllib.unquote(key) for key in keys)
     prefix_length = len(prefix)
-    return [key[prefix_length:].rstrip('/').decode('utf-8') for key in keys]
+    result = [key[prefix_length:].rstrip('/').decode('utf-8') for key in keys]
+    return result
