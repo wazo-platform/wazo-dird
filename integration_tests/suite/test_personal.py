@@ -26,6 +26,8 @@ from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entry
 from hamcrest import has_entries
+from hamcrest import has_item
+from hamcrest import has_items
 from hamcrest import has_key
 from hamcrest import not_
 
@@ -33,6 +35,9 @@ from hamcrest import not_
 class TestListPersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
+
+    def tearDown(self):
+        self.clear_personal()
 
     def test_that_listing_empty_personal_returns_empty_list(self):
         result = self.list_personal()
@@ -44,49 +49,43 @@ class TestAddPersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
+    def tearDown(self):
+        self.clear_personal()
+
+    def test_that_created_personal_has_an_id(self):
+        alice = self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN)
+        bob = self.post_personal({'firstname': 'Bob'}, token=VALID_TOKEN)
+
+        assert_that(alice['id'], not_(equal_to(bob['id'])))
+
     def test_that_created_personal_are_listed(self):
         self.post_personal({'firstname': 'Alice'})
         self.post_personal({'firstname': 'Bob'})
 
         result = self.list_personal()
 
-        assert_that(result['items'], contains_inanyorder(
+        assert_that(result['items'], has_items(
             has_entry('firstname', 'Alice'),
             has_entry('firstname', 'Bob')))
 
-
-class TestAddPersonalNonAscii(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def test_that_created_personal_are_listed(self):
+    def test_that_created_personal_with_non_ascii_are_listed(self):
         self.post_personal({'firstname': 'Alice', 'key': u'NonAsciiValue-é'})
         self.post_personal({'firstname': 'Bob', u'NonAsciiKey-é': 'value'})
 
         raw = self.list_personal()
         formatted = self.get_personal_with_profile('default')
 
-        assert_that(raw['items'], contains_inanyorder(
+        assert_that(raw['items'], has_items(
             has_entry('key', u'NonAsciiValue-é'),
             has_entry(u'NonAsciiKey-é', 'value')))
-        assert_that(formatted['results'], contains_inanyorder(
+        assert_that(formatted['results'], has_items(
             has_entry('column_values', contains(u'Alice', None, None, False)),
             has_entry('column_values', contains(u'Bob', None, None, False))))
-
-
-class TestAddInvalidPersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
 
     def test_that_adding_invalid_personal_returns_400(self):
         result = self.post_personal_result({'.': 'invalid'}, VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))
-
-
-class TestAddWeirdPersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
 
     def test_that_adding_personal_with_weird_attributes_is_ok(self):
         self.post_personal({
@@ -98,7 +97,7 @@ class TestAddWeirdPersonal(BaseDirdIntegrationTest):
 
         result = self.list_personal()
 
-        assert_that(result['items'], contains(
+        assert_that(result['items'], has_item(
             has_entries({
                 '%': '%',
                 '?': '?',
@@ -110,6 +109,9 @@ class TestAddWeirdPersonal(BaseDirdIntegrationTest):
 class TestRemovePersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
+
+    def tearDown(self):
+        self.clear_personal()
 
     def test_that_removing_unknown_personal_returns_404(self):
         result = self.delete_personal_result('unknown-id', VALID_TOKEN)
@@ -129,20 +131,12 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
             has_entry('firstname', 'Charlie')))
 
 
-class TestPersonalId(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def test_that_created_personal_has_an_id(self):
-        alice = self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN)
-        bob = self.post_personal({'firstname': 'Bob'}, token=VALID_TOKEN)
-
-        assert_that(alice['id'], not_(equal_to(bob['id'])))
-
-
 class TestPersonalPersistence(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
+
+    def tearDown(self):
+        self.clear_personal()
 
     def test_that_personal_are_saved_across_dird_restart(self):
         self.post_personal({})
@@ -165,6 +159,9 @@ class TestPersonalVisibility(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
+    def tearDown(self):
+        self.clear_personal()
+
     def test_that_personal_are_only_visible_for_the_same_token(self):
         self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN_1)
         self.post_personal({'firstname': 'Bob'}, token=VALID_TOKEN_1)
@@ -182,6 +179,9 @@ class TestPersonalListWithProfileEmpty(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
+    def tearDown(self):
+        self.clear_personal()
+
     def test_that_listing_personal_with_profile_empty_returns_empty_list(self):
         result = self.get_personal_with_profile('default')
 
@@ -191,6 +191,9 @@ class TestPersonalListWithProfileEmpty(BaseDirdIntegrationTest):
 class TestPersonalListWithProfile(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
+
+    def tearDown(self):
+        self.clear_personal()
 
     def test_listing_personal_with_profile(self):
         self.post_personal({'firstname': 'Alice'})
@@ -207,49 +210,33 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
-    def test_that_lookup_includes_personal_contacts(self):
-        self.post_personal({'firstname': 'Alice'})
-        self.post_personal({'firstname': 'Bob'})
+    @classmethod
+    def setUpClass(cls):
+        super(TestLookupPersonal, cls).setUpClass()
+        cls.post_personal({'firstname': 'Alice'})
+        cls.post_personal({'firstname': 'Bob'})
+        cls.post_personal({'firstname': 'Céline'})
+        cls.post_personal({'firstname': 'Etienne'})
 
+    def test_that_lookup_includes_personal_contacts(self):
         result = self.lookup('ali', 'default')
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', None, None, False))))
 
-
-class TestLookupPersonalNonAscii(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
     def test_that_lookup_accepts_non_ascii_in_term(self):
-        self.post_personal({'firstname': 'Céline'})
-
         result = self.lookup(u'Céline', 'default')
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'Céline', None, None, False))))
 
-
-class TestLookupPersonalFuzzyAsciiMatch1(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def test_that_lookup_matches_non_ascii_with_ascii(self):
-        self.post_personal({'firstname': 'Céline'})
-
+    def test_that_lookup_matches_query_ascii_with_result_non_ascii(self):
         result = self.lookup(u'celine', 'default')
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'Céline', None, None, False))))
 
-
-class TestLookupPersonalFuzzyAsciiMatch2(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def test_that_lookup_matches_non_ascii_with_ascii(self):
-        self.post_personal({'firstname': 'Etienne'})
-
+    def test_that_lookup_matches_query_non_ascii_with_result_ascii(self):
         result = self.lookup(u'étienne', 'default')
 
         assert_that(result['results'], contains_inanyorder(
@@ -259,6 +246,9 @@ class TestLookupPersonalFuzzyAsciiMatch2(BaseDirdIntegrationTest):
 class TestEditPersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
+
+    def tearDown(self):
+        self.clear_personal()
 
     def test_that_edit_inexisting_personal_contact_returns_404(self):
         result = self.put_personal_result('unknown-id', {'firstname': 'John', 'lastname': 'Doe'}, VALID_TOKEN)
@@ -291,6 +281,9 @@ class TestEditInvalidPersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
+    def tearDown(self):
+        self.clear_personal()
+
     def test_that_edit_personal_contact_with_invalid_values_return_404(self):
         contact = self.post_personal({'firstname': 'Ursule', 'lastname': 'Uparlende'})
 
@@ -302,6 +295,9 @@ class TestEditInvalidPersonal(BaseDirdIntegrationTest):
 class TestGetPersonal(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
+
+    def tearDown(self):
+        self.clear_personal()
 
     def test_that_get_inexisting_personal_contact_returns_404(self):
         result = self.get_personal_result('unknown-id', VALID_TOKEN)

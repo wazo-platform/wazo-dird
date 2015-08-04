@@ -85,6 +85,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
     def tearDownClass(cls):
         cls.stop_dird_with_asset()
 
+    @classmethod
     def get_lookup_result(self, term, profile, token=None):
         url = u'https://localhost:9489/0.1/directories/lookup/{profile}?term={term}'
         result = requests.get(url.format(profile=profile, term=term),
@@ -92,11 +93,13 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
+    @classmethod
     def lookup(self, term, profile, token=VALID_TOKEN):
         response = self.get_lookup_result(term, profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
+    @classmethod
     def get_headers_result(self, profile, token=None):
         url = u'https://localhost:9489/0.1/directories/lookup/{profile}/headers'
         result = requests.get(url.format(profile=profile),
@@ -104,11 +107,13 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
+    @classmethod
     def headers(self, profile):
         response = self.get_headers_result(profile, token=VALID_TOKEN)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
+    @classmethod
     def get_favorites_result(self, profile, token=None):
         url = u'https://localhost:9489/0.1/directories/favorites/{profile}'
         result = requests.get(url.format(profile=profile),
@@ -116,11 +121,13 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
+    @classmethod
     def favorites(self, profile, token=VALID_TOKEN):
         response = self.get_favorites_result(profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
+    @classmethod
     def put_favorite_result(self, directory, contact, token=None):
         url = u'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
         result = requests.put(url.format(directory=directory, contact=contact),
@@ -128,10 +135,12 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
+    @classmethod
     def put_favorite(self, directory, contact, token=VALID_TOKEN):
         response = self.put_favorite_result(directory, contact, token=token)
         assert_that(response.status_code, equal_to(204))
 
+    @classmethod
     def delete_favorite_result(self, directory, contact, token=None):
         url = u'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
         result = requests.delete(url.format(directory=directory, contact=contact),
@@ -139,10 +148,12 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                                  verify=CA_CERT)
         return result
 
+    @classmethod
     def delete_favorite(self, directory, contact):
         response = self.delete_favorite_result(directory, contact, token=VALID_TOKEN)
         assert_that(response.status_code, equal_to(204))
 
+    @classmethod
     def post_personal_result(self, personal_infos, token=None):
         url = 'https://localhost:9489/0.1/personal'
         result = requests.post(url,
@@ -152,11 +163,13 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                                verify=CA_CERT)
         return result
 
+    @classmethod
     def post_personal(self, personal_infos, token=VALID_TOKEN):
         response = self.post_personal_result(personal_infos, token)
         assert_that(response.status_code, equal_to(201))
         return response.json()
 
+    @classmethod
     def list_personal_result(self, token=None):
         url = 'https://localhost:9489/0.1/personal'
         result = requests.get(url,
@@ -164,11 +177,13 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
+    @classmethod
     def list_personal(self, token=VALID_TOKEN):
         response = self.list_personal_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
+    @classmethod
     def get_personal_result(self, personal_id, token=None):
         url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
         result = requests.get(url.format(contact_uuid=personal_id),
@@ -176,11 +191,13 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
+    @classmethod
     def get_personal(self, personal_id, token=VALID_TOKEN):
         response = self.get_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
+    @classmethod
     def put_personal_result(self, personal_id, personal_infos, token=None):
         url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
         result = requests.put(url.format(contact_uuid=personal_id),
@@ -190,11 +207,13 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
+    @classmethod
     def put_personal(self, personal_id, personal_infos, token=VALID_TOKEN):
         response = self.put_personal_result(personal_id, personal_infos, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
+    @classmethod
     def delete_personal_result(self, personal_id, token=None):
         url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
         result = requests.delete(url.format(contact_uuid=personal_id),
@@ -202,10 +221,12 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                                  verify=CA_CERT)
         return result
 
+    @classmethod
     def delete_personal(self, personal_id, token=VALID_TOKEN):
         response = self.delete_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(204))
 
+    @classmethod
     def get_personal_with_profile_result(self, profile, token=None):
         url = 'https://localhost:9489/0.1/directories/personal/{profile}'
         result = requests.get(url.format(profile=profile),
@@ -213,7 +234,14 @@ class BaseDirdIntegrationTest(unittest.TestCase):
                               verify=CA_CERT)
         return result
 
+    @classmethod
     def get_personal_with_profile(self, profile, token=VALID_TOKEN):
         response = self.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
+
+    @classmethod
+    def clear_personal(self, token=VALID_TOKEN):
+        contact_ids = (contact['id'] for contact in self.list_personal(token)['items'])
+        for contact_id in contact_ids:
+            self.delete_personal(contact_id, token)
