@@ -141,12 +141,8 @@ class _PersonalService(object):
         result = dict(contact_infos)
         result[UNIQUE_COLUMN] = contact_id
         with self._consul(token=token_infos['token']) as consul:
-            for attribute, value in result.iteritems():
-                consul_key = PERSONAL_CONTACT_ATTRIBUTE_KEY.format(user_uuid=token_infos['auth_id'],
-                                                                   contact_uuid=contact_id,
-                                                                   attribute=attribute.encode('utf-8'))
-                consul_key = urllib.quote(consul_key)
-                consul.kv.put(consul_key, value.encode('utf-8'))
+            for consul_key, value in consul.dict_to_consul.iteritems():
+                consul.kv.put(consul_key, value)
         return result
 
     @staticmethod

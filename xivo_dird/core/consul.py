@@ -45,3 +45,13 @@ def ls_from_consul(prefix, keys):
     prefix_length = len(prefix)
     result = [key[prefix_length:].rstrip('/').decode('utf-8') for key in keys]
     return result
+
+
+def dict_to_consul(prefix, dict_):
+    prefix = prefix or ''
+    dict_ = dict_ or {}
+    result = {}
+    for key, value in dict_.iteritems():
+        full_key = urllib.quote('{}{}'.format(prefix.encode('utf-8'), key.encode('utf-8')))
+        result[full_key] = value.encode('utf-8')
+    return result

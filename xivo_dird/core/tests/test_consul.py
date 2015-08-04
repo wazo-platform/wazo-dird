@@ -23,6 +23,7 @@ from unittest import TestCase
 
 from ..consul import dict_from_consul
 from ..consul import ls_from_consul
+from ..consul import dict_to_consul
 
 
 class TestDictFromConsul(TestCase):
@@ -153,3 +154,65 @@ class TestLsFromConsul(TestCase):
         result = ls_from_consul('/my/prefix/key/', keys)
 
         assert_that(result, contains('%'))
+
+
+class TestDictToConsul(TestCase):
+
+    def test_that_dict_to_consul_empty(self):
+        result = dict_to_consul('', {})
+
+        assert_that(result, equal_to({}))
+
+    def test_dict_to_consul_values_none(self):
+        result = dict_to_consul('', None)
+
+        assert_that(result, equal_to({}))
+
+    def test_dict_to_consul_prefix_none(self):
+        result = dict_to_consul(None, {'a': 'b'})
+
+        assert_that(result, equal_to({'a': 'b'}))
+
+    def test_dict_to_consul_prefix_empty(self):
+        result = dict_to_consul('', {'a': 'b'})
+
+        assert_that(result, equal_to({'a': 'b'}))
+
+    def test_dict_to_consul_full(self):
+        consul_dict = {
+            'key1': 'value1',
+            'key2': 'value2',
+            'key3': 'value3'
+        }
+
+        result = dict_to_consul('/my/prefix/', consul_dict)
+
+        assert_that(result, has_entries({
+            '/my/prefix/key1': 'value1',
+            '/my/prefix/key2': 'value2',
+            '/my/prefix/key3': 'value3'
+        }))
+
+    def test_dict_to_consul_non_ascii(self):
+        consul_dict = {
+            u'non_ascii_key_ééé': 'value1',
+            'key2': u'non_ascii_value_ééé'
+        }
+
+        result = dict_to_consul(u'non_ascii_prefix_ééé/', consul_dict)
+
+        assert_that(result, has_entries({
+            u'non_ascii_prefix_%C3%A9%C3%A9%C3%A9/non_ascii_key_%C3%A9%C3%A9%C3%A9': 'value1',
+            u'non_ascii_prefix_%C3%A9%C3%A9%C3%A9/key2': 'non_ascii_value_ééé',
+        }))
+
+    def test_dict_to_consul_special_characters(self):
+        consul_dict = {
+            u'%?#': 'value1',
+        }
+
+        result = dict_to_consul(u'%?#/', consul_dict)
+
+        assert_that(result, has_entries({
+            '%25%3F%23/%25%3F%23': 'value1'
+        }))
