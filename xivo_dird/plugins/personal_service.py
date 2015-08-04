@@ -189,6 +189,12 @@ class _PersonalService(BaseService):
         if any(key.endswith('/') for key in contact_infos):
             errors.append('key must not end with /')
 
+        if any(key.startswith('./') for key in contact_infos):
+            errors.append('key must not start with ./')
+
+        if any(key.endswith('/.') for key in contact_infos):
+            errors.append('key must not end with /.')
+
         if any('/./' in key for key in contact_infos):
             errors.append('key must not contain /./')
 

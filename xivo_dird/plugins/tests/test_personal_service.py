@@ -159,11 +159,14 @@ class TestValidateContact(unittest.TestCase):
         self.assertRaises(exception, _PersonalService.validate_contact, {'abc/': '..'})
         self.assertRaises(exception, _PersonalService.validate_contact, {'..': '..'})
         self.assertRaises(exception, _PersonalService.validate_contact, {'./././abc': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'./abc': '..'})
+        self.assertRaises(exception, _PersonalService.validate_contact, {'abc/.': '..'})
         self.assertRaises(exception, _PersonalService.validate_contact, {'abcd./../../../abc': '..'})
         self.assertRaises(exception, _PersonalService.validate_contact, {'abcd./../../..': '..'})
 
     def test_that_validate_contact_accepts_keys_with_separators(self):
         _PersonalService.validate_contact({'abcd.def.ghij': '..'})
+        _PersonalService.validate_contact({'.abcd.def.ghij.': '..'})
         _PersonalService.validate_contact({'abcd/def/ghij': '..'})
         _PersonalService.validate_contact({'abcd.def/ghi.jkl': '..'})
 
