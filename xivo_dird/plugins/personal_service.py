@@ -37,23 +37,6 @@ logger = logging.getLogger(__name__)
 UNIQUE_COLUMN = 'id'
 
 
-class _PersonalServiceException(Exception):
-    pass
-
-
-class _NoSuchPersonalContact(ValueError):
-    def __init__(self, contact_id):
-        message = "No such personal contact: {}".format(contact_id)
-        super(_NoSuchPersonalContact, self).__init__(message)
-
-
-class _InvalidPersonalContact(ValueError):
-    def __init__(self, errors):
-        self.errors = errors
-        message = "Invalid personal contact: {}".format(errors)
-        super(_InvalidPersonalContact, self).__init__(message)
-
-
 class PersonalServicePlugin(BaseServicePlugin):
 
     def load(self, args):
@@ -70,9 +53,19 @@ class PersonalServicePlugin(BaseServicePlugin):
 
 class _PersonalService(object):
 
-    InvalidPersonalContact = _InvalidPersonalContact
-    NoSuchPersonalContact = _NoSuchPersonalContact
-    PersonalServiceException = _PersonalServiceException
+    class PersonalServiceException(Exception):
+        pass
+
+    class NoSuchPersonalContact(ValueError):
+        def __init__(self, contact_id):
+            message = "No such personal contact: {}".format(contact_id)
+            ValueError.__init__(self, message)
+
+    class InvalidPersonalContact(ValueError):
+        def __init__(self, errors):
+            message = "Invalid personal contact: {}".format(errors)
+            ValueError.__init__(self, message)
+            self.errors = errors
 
     def __init__(self, config, sources):
         self._config = config
@@ -86,7 +79,7 @@ class _PersonalService(object):
     def get_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
             if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise _NoSuchPersonalContact(contact_id)
+                raise self.NoSuchPersonalContact(contact_id)
             consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
                                                      contact_uuid=contact_id)
             _, consul_dict = consul.kv.get(consul_key, recurse=True)
@@ -96,14 +89,14 @@ class _PersonalService(object):
         self.validate_contact(contact_infos)
         with self._consul(token=token_infos['token']) as consul:
             if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise _NoSuchPersonalContact(contact_id)
+                raise self.NoSuchPersonalContact(contact_id)
         self.remove_contact(contact_id, token_infos)
         return self._create_contact(contact_id, contact_infos, token_infos)
 
     def remove_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
             if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise _NoSuchPersonalContact(contact_id)
+                raise self.NoSuchPersonalContact(contact_id)
             consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
                                                      contact_uuid=contact_id)
             consul.kv.delete(consul_key, recurse=True)
@@ -167,7 +160,7 @@ class _PersonalService(object):
             errors.append('all values must be strings')
 
         if errors:
-            raise _InvalidPersonalContact(errors)
+            raise _PersonalService.InvalidPersonalContact(errors)
         # from here we assume we have strings
 
         if '.' in contact_infos:
@@ -195,7 +188,7 @@ class _PersonalService(object):
             errors.append('key must not contain /./')
 
         if errors:
-            raise _InvalidPersonalContact(errors)
+            raise _PersonalService.InvalidPersonalContact(errors)
 
 
 class DisabledPersonalSource(object):
