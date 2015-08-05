@@ -357,6 +357,8 @@ class TestConsulUnreachable(BaseDirdIntegrationTest):
         assert_that(result.status_code, equal_to(503))
         result = self.list_personal_result('valid-token')
         assert_that(result.status_code, equal_to(503))
+        result = self.get_personal_with_profile_result('default', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
 
 
 # TODO

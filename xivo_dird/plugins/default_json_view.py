@@ -197,7 +197,15 @@ class Personal(AuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        raw_results = self.personal_service.list_contacts(token_infos)
+        try:
+            raw_results = self.personal_service.list_contacts(token_infos)
+        except self.personal_service.PersonalServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
         favorites = self.favorite_service.favorite_ids(profile, token_infos)
         formatter = _ResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results, favorites)
