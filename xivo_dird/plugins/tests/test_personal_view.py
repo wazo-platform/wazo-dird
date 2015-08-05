@@ -17,21 +17,15 @@
 from unittest import TestCase
 
 from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import contains_inanyorder
 from hamcrest import equal_to
-from hamcrest import has_entries
-from hamcrest import has_entry
-from hamcrest import has_item
-from hamcrest import not_
-from mock import ANY
-from mock import call
 from mock import Mock
 from mock import patch
 
-from xivo_dird.plugins.personal_view import PersonalViewPlugin
+from xivo_dird.plugins.personal_view import extract_charset
 from xivo_dird.plugins.personal_view import PersonalAll
+from xivo_dird.plugins.personal_view import PersonalImport
 from xivo_dird.plugins.personal_view import PersonalOne
+from xivo_dird.plugins.personal_view import PersonalViewPlugin
 
 
 class TestPersonalView(TestCase):
@@ -62,3 +56,27 @@ class TestPersonalView(TestCase):
 
         add_resource.assert_any_call(PersonalAll, PersonalViewPlugin.personal_all_url)
         add_resource.assert_any_call(PersonalOne, PersonalViewPlugin.personal_one_url)
+        add_resource.assert_any_call(PersonalImport, PersonalViewPlugin.personal_import_url)
+
+
+class TestExtractCharset(TestCase):
+
+    def test_that_extract_charset_defaults_to_utf8(self):
+        result = extract_charset('')
+
+        assert_that(result, equal_to('utf-8'))
+
+    def test_that_extract_charset_returns_charset(self):
+        result = extract_charset('mimetype; charset=mycharset')
+
+        assert_that(result, equal_to('mycharset'))
+
+    def test_that_extract_charset_ignores_multiple_spaces(self):
+        result = extract_charset('   mimetype   ;    charset   =   mycharset    ')
+
+        assert_that(result, equal_to('mycharset'))
+
+    def test_that_extract_charset_lowers_charset(self):
+        result = extract_charset('MIMETYPE; CHARSET=MYCHARSET')
+
+        assert_that(result, equal_to('mycharset'))
