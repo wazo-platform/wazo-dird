@@ -217,6 +217,7 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
         cls.post_personal({'firstname': 'Bob'})
         cls.post_personal({'firstname': 'Céline'})
         cls.post_personal({'firstname': 'Etienne'})
+        cls.post_personal({'firstname': 'john', 'lastname': 'john', 'company': 'john'})
 
     def test_that_lookup_includes_personal_contacts(self):
         result = self.lookup('ali', 'default')
@@ -241,6 +242,12 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'Etienne', None, None, False))))
+
+    def test_that_lookup_does_not_return_duplicates_when_matching_multiple_fields(self):
+        result = self.lookup('john', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'john', 'john', None, False))))
 
 
 class TestEditPersonal(BaseDirdIntegrationTest):
@@ -351,18 +358,6 @@ class TestConsulUnreachable(BaseDirdIntegrationTest):
         result = self.list_personal_result('valid-token')
         assert_that(result.status_code, equal_to(503))
 
-
-class TestLookupPersonalWith2MatchingFields(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def test_that_lookup_does_not_return_duplicates_when_matching_multiple_fields(self):
-        self.post_personal({'firstname': 'john', 'lastname': 'john', 'company': 'john'})
-
-        result = self.lookup('john', 'default')
-
-        assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'john', 'john', None, False))))
 
 # TODO
 # invalid profile
