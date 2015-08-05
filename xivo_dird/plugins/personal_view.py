@@ -50,14 +50,6 @@ def catch_service_error(wrapped):
     return wrapper
 
 
-def extract_charset(content_type):
-    content_type = content_type.strip().lower()
-    match = re.match(CHARSET_REGEX, content_type)
-    if match:
-        return match.group(1)
-    return 'utf-8'
-
-
 class PersonalViewPlugin(BaseViewPlugin):
 
     personal_all_url = '/personal'
@@ -181,7 +173,7 @@ class PersonalImport(AuthResource):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
 
-        charset = extract_charset(request.content_type)
+        charset = request.mimetype_params.get('charset', 'utf-8')
         csv_document = request.data
         try:
             csv_document.decode(charset)
