@@ -112,7 +112,11 @@ class Lookup(AuthResource):
         token_infos = auth.client().token.get(token)
 
         raw_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos)
-        favorites = self.favorite_service.favorite_ids(profile, token_infos)
+        try:
+            favorites = self.favorite_service.favorite_ids(profile, token_infos)
+        except self.favorite_service.FavoritesServiceException as e:
+            logger.error('Error while listing favorites: %s', e)
+            favorites = []
 
         formatter = _ResultFormatter(self.displays[profile])
         response = formatter.format_results(raw_results, favorites)
