@@ -143,7 +143,16 @@ class FavoritesRead(AuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        raw_results = self.favorites_service.favorites(profile, token_infos)
+        try:
+            raw_results = self.favorites_service.favorites(profile, token_infos)
+        except self.favorites_service.FavoritesServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
+
         formatter = _FavoriteResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results)
 
@@ -160,7 +169,15 @@ class FavoritesWrite(AuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        self.favorites_service.new_favorite(directory, contact, token_infos)
+        try:
+            self.favorites_service.new_favorite(directory, contact, token_infos)
+        except self.favorites_service.FavoritesServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
         return '', 204
 
     def delete(self, directory, contact):
@@ -177,6 +194,13 @@ class FavoritesWrite(AuthResource):
                 'status_code': 404,
             }
             return error, 404
+        except self.favorites_service.FavoritesServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
 
 
 class Personal(AuthResource):

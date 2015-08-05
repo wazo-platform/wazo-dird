@@ -22,6 +22,9 @@ from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from consul import Consul
+from consul import ConsulException
+from contextlib import contextmanager
+from requests import RequestException
 
 from xivo_dird import BaseServicePlugin
 from xivo_dird.core.consul import ls_from_consul
@@ -32,12 +35,6 @@ ContactID = namedtuple('ContactID', ['source', 'id'])
 
 FAVORITES_SOURCE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}/'
 FAVORITE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}/{contact_id}'
-
-
-class _NoSuchFavorite(ValueError):
-    def __init__(self, contact_id):
-        message = "No such favorite: {}".format(contact_id)
-        super(_NoSuchFavorite, self).__init__(message)
 
 
 class FavoritesServicePlugin(BaseServicePlugin):
@@ -65,7 +62,13 @@ class FavoritesServicePlugin(BaseServicePlugin):
 
 class _FavoritesService(object):
 
-    NoSuchFavorite = _NoSuchFavorite
+    class FavoritesServiceException(Exception):
+        pass
+
+    class NoSuchFavorite(ValueError):
+        def __init__(self, contact_id):
+            message = "No such favorite: {}".format(contact_id)
+            super(_FavoritesService.NoSuchFavorite, self).__init__(message)
 
     def __init__(self, config, sources):
         self._config = config
@@ -107,21 +110,25 @@ class _FavoritesService(object):
 
     def _favorite_ids_in_source(self, uuid, source_name, token):
         source_key = FAVORITES_SOURCE_KEY.format(user_uuid=uuid, source=source_name)
-        _, keys = self._consul().kv.get(source_key, keys=True, token=token)
+        with self._consul() as consul:
+            _, keys = consul.kv.get(source_key, keys=True, token=token)
         return ls_from_consul(source_key, keys)
 
     def new_favorite(self, source, contact_id, token_infos):
         key = FAVORITE_KEY.format(user_uuid=token_infos['auth_id'], source=source, contact_id=contact_id)
-        self._consul().kv.put(key, value=contact_id, token=token_infos['token'])
+        with self._consul() as consul:
+            consul.kv.put(key, value=contact_id, token=token_infos['token'])
 
     def remove_favorite(self, source, contact_id, token_infos):
         key = FAVORITE_KEY.format(user_uuid=token_infos['auth_id'], source=source, contact_id=contact_id)
-        _, value = self._consul().kv.get(key, token=token_infos['token'])
+        with self._consul() as consul:
+            _, value = consul.kv.get(key, token=token_infos['token'])
 
         if value is None:
             raise self.NoSuchFavorite((source, contact_id))
 
-        self._consul().kv.delete(key, token=token_infos['token'])
+        with self._consul() as consul:
+            consul.kv.delete(key, token=token_infos['token'])
 
     def _source_by_profile(self, profile):
         favorites_config = self._config.get('services', {}).get('favorites', {})
@@ -133,5 +140,11 @@ class _FavoritesService(object):
         else:
             return [self._sources[name] for name in source_names if name in self._sources]
 
+    @contextmanager
     def _consul(self):
-        return Consul(**self._config['consul'])
+        try:
+            yield Consul(**self._config['consul'])
+        except ConsulException as e:
+            raise self.FavoritesServiceException('Error from Consul: {}'.format(str(e)))
+        except RequestException as e:
+            raise self.FavoritesServiceException('Error while connecting to Consul: {}'.format(str(e)))
