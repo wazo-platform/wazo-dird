@@ -102,7 +102,7 @@ class Lookup(AuthResource):
 
         if profile not in self.displays:
             error = {
-                'reason': ['The profile does not exist'],
+                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
                 'timestamp': [time()],
                 'status_code': 404,
             }
@@ -224,6 +224,14 @@ class Personal(AuthResource):
         logger.debug('Listing personal with profile %s', profile)
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
+
+        if profile not in self.displays:
+            error = {
+                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
 
         try:
             raw_results = self.personal_service.list_contacts(token_infos)

@@ -175,25 +175,22 @@ class TestPersonalVisibility(BaseDirdIntegrationTest):
         assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
 
 
-class TestPersonalListWithProfileEmpty(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.clear_personal()
-
-    def test_that_listing_personal_with_profile_empty_returns_empty_list(self):
-        result = self.get_personal_with_profile('default')
-
-        assert_that(result['results'], contains())
-
-
 class TestPersonalListWithProfile(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
     def tearDown(self):
         self.clear_personal()
+
+    def test_listing_personal_with_unknow_profile(self):
+        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN)
+
+        assert_that(result.status_code, equal_to(404))
+
+    def test_that_listing_personal_with_profile_empty_returns_empty_list(self):
+        result = self.get_personal_with_profile('default')
+
+        assert_that(result['results'], contains())
 
     def test_listing_personal_with_profile(self):
         self.post_personal({'firstname': 'Alice'})
