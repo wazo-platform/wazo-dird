@@ -21,7 +21,6 @@ from hamcrest import equal_to
 from mock import Mock
 from mock import patch
 
-from xivo_dird.plugins.personal_view import extract_charset
 from xivo_dird.plugins.personal_view import PersonalAll
 from xivo_dird.plugins.personal_view import PersonalImport
 from xivo_dird.plugins.personal_view import PersonalOne
