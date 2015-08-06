@@ -15,13 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import cStringIO
 import logging
 import re
 
 from flask import request
+from flask_restful import reqparse
 from time import time
 
 from xivo.unicode_csv import UnicodeDictReader
+from xivo.unicode_csv import UnicodeDictWriter
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
@@ -67,6 +70,10 @@ class PersonalViewPlugin(BaseViewPlugin):
             api.add_resource(PersonalImport, self.personal_import_url)
 
 
+parser = reqparse.RequestParser()
+parser.add_argument('format', type=unicode, required=False, location='args')
+
+
 class PersonalAll(AuthResource):
 
     personal_service = None
@@ -95,8 +102,38 @@ class PersonalAll(AuthResource):
     def get(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        result = {'items': self.personal_service.list_contacts_raw(token_infos)}
-        return result, 200
+
+        contacts = self.personal_service.list_contacts_raw(token_infos)
+
+        mimetype = request.mimetype
+        if not mimetype:
+            args = parser.parse_args()
+            mimetype = args.get('format', None)
+
+        return self.contacts_formatter(mimetype)(contacts)
+
+    @classmethod
+    def contacts_formatter(cls, mimetype):
+        formatters = {
+            'text/csv': cls.format_csv,
+            'application/json': cls.format_json
+        }
+        return formatters.get(mimetype, cls.format_json)
+
+    @staticmethod
+    def format_csv(contacts):
+        if not contacts:
+            return '', 204
+        csv_text = cStringIO.StringIO()
+        fieldnames = sorted(list(set(attribute for contact in contacts for attribute in contact)))
+        csv_writer = UnicodeDictWriter(csv_text, fieldnames)
+        csv_writer.writeheader()
+        csv_writer.writerows(contacts)
+        return csv_text.getvalue(), 200, {'Content-Type': 'text/csv; charset=utf-8'}
+
+    @staticmethod
+    def format_json(contacts):
+        return {'items': contacts}, 200
 
 
 class PersonalOne(AuthResource):
