@@ -318,10 +318,24 @@
             "get": {
                 "summary": "List personal contacts",
                 "operationId": "list_personal",
+                "description": "CSV format is the same as `/import`, where headers of all contacts are mixed. The charset of the response is always `utf-8`",
                 "tags": [
                     "personal"
                 ],
+                "produces": [
+                    "application/json",
+                    "text/csv; charset=utf-8"
+                ],
                 "parameters": [
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "type": "string",
+                        "enum": ["application/json", "text/csv"],
+                        "default": "application/json",
+                        "required": false,
+                        "description": "Format of the response body"
+                    },
                     {
                         "name": "X-Auth-Token",
                         "in": "header",
