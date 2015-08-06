@@ -88,6 +88,11 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
 
         assert_that(result.status_code, equal_to(401))
 
+    def test_auth_on_personal_import(self):
+        result = self.import_personal_result('')
+
+        assert_that(result.status_code, equal_to(401))
+
     def test_auth_on_personal_list(self):
         result = self.list_personal_result()
 

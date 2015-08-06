@@ -514,6 +514,54 @@
                     }
                 }
             }
+        },
+        "/personal/import": {
+            "post": {
+                "summary": "Import multiple personal contacts at once",
+                "operationId": "import_personal",
+                "tags": [
+                    "personal"
+                ],
+                "consumes": ["text/csv; charset=utf-8", "text/csv; charset=iso8859-15", "text/csv; charset=cp1252"],
+                "parameters": [
+                    {
+                        "name": "contacts",
+                        "description": "The attributes of the contacts in CSV format. The encoding must be set in the Content-Type header, via the `charset=` option. Field delimiter is `,`, quoting character is `\"` and line delimiter is `\\r\\n`",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "description": "Authentication token obtained from xivo-auth.",
+                        "in": "header",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "At least one contact has been created.",
+                        "schema": {
+                            "$ref": "#/definitions/PersonalImportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Input could not be decoded, and no contacts were created.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "The authentication server is unreachable.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -661,6 +709,32 @@
                 },
                 "lastname": {
                     "type": "string"
+                }
+            }
+        },
+        "PersonalImportResponse": {
+            "properties": {
+                "created": {
+                    "$ref": "#/definitions/PersonalList"
+                },
+                "failed": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PersonalImportFailure"
+                    }
+                }
+            }
+        },
+        "PersonalImportFailure": {
+            "properties": {
+                "line": {
+                    "type": "integer"
+                },
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         }

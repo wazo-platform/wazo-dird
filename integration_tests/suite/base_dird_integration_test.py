@@ -170,6 +170,23 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.json()
 
     @classmethod
+    def import_personal_result(self, csv, token=None, encoding='utf-8'):
+        url = 'https://localhost:9489/0.1/personal/import'
+        content_type = 'text/csv; charset={}'.format(encoding)
+        result = requests.post(url,
+                               data=csv,
+                               headers={'X-Auth-Token': token,
+                                        'Content-Type': content_type},
+                               verify=CA_CERT)
+        return result
+
+    @classmethod
+    def import_personal(self, personal_infos, token=VALID_TOKEN, encoding='utf-8'):
+        response = self.import_personal_result(personal_infos, token, encoding)
+        assert_that(response.status_code, equal_to(201))
+        return response.json()
+
+    @classmethod
     def list_personal_result(self, token=None):
         url = 'https://localhost:9489/0.1/personal'
         result = requests.get(url,
