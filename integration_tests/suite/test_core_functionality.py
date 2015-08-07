@@ -20,6 +20,7 @@ import sh
 from .base_dird_integration_test import BaseDirdIntegrationTest
 from .base_dird_integration_test import VALID_TOKEN
 
+from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_string
@@ -178,7 +179,8 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         error = result.json()
 
         assert_that(result.status_code, equal_to(404))
-        assert_that(error['reason'], contains('The profile does not exist'))
+        assert_that(error['reason'], contains(all_of(contains_string('profile'),
+                                                     contains_string('unknown'))))
 
     def test_that_headers_returns_404(self):
         result = self.get_headers_result('unknown', token=VALID_TOKEN)
@@ -186,7 +188,8 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         error = result.json()
 
         assert_that(result.status_code, equal_to(404))
-        assert_that(error['reason'], contains('The profile does not exist'))
+        assert_that(error['reason'], contains(all_of(contains_string('profile'),
+                                                     contains_string('unknown'))))
 
     def test_that_favorites_returns_404(self):
         result = self.get_favorites_result('unknown', token=VALID_TOKEN)
@@ -194,4 +197,14 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
         error = result.json()
 
         assert_that(result.status_code, equal_to(404))
-        assert_that(error['reason'], contains('The profile does not exist'))
+        assert_that(error['reason'], contains(all_of(contains_string('profile'),
+                                                     contains_string('unknown'))))
+
+    def test_that_personal_returns_404(self):
+        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN)
+
+        error = result.json()
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(error['reason'], contains(all_of(contains_string('profile'),
+                                                     contains_string('unknown'))))

@@ -138,7 +138,7 @@ class FavoritesRead(AuthResource):
         logger.debug('Listing favorites with profile %s', profile)
         if profile not in self.displays:
             error = {
-                'reason': ['The profile does not exist'],
+                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
                 'timestamp': [time()],
                 'status_code': 404,
             }
