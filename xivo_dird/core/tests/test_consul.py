@@ -84,6 +84,18 @@ class TestDictFromConsul(TestCase):
             'key3': 'value3'
         }))
 
+    def test_dict_from_consul_with_value_empty(self):
+        consul_dict = [
+            {'Key': '/my/prefix/key1',
+             'Value': ''},
+        ]
+
+        result = dict_from_consul('/my/prefix/', consul_dict)
+
+        assert_that(result, has_entries({
+            'key1': None,
+        }))
+
     def test_dict_from_consul_with_value_none(self):
         consul_dict = [
             {'Key': '/my/prefix/key1',
@@ -93,7 +105,7 @@ class TestDictFromConsul(TestCase):
         result = dict_from_consul('/my/prefix/', consul_dict)
 
         assert_that(result, has_entries({
-            'key1': '',
+            'key1': None,
         }))
 
     def test_dict_from_consul_with_urlencoded_key(self):
