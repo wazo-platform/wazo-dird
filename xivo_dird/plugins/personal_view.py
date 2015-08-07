@@ -20,6 +20,7 @@ import logging
 import re
 
 from flask import request
+from flask import Response
 from flask_restful import reqparse
 from time import time
 
@@ -129,7 +130,9 @@ class PersonalAll(AuthResource):
         csv_writer = UnicodeDictWriter(csv_text, fieldnames)
         csv_writer.writeheader()
         csv_writer.writerows(contacts)
-        return csv_text.getvalue(), 200, {'Content-Type': 'text/csv; charset=utf-8'}
+        return Response(response=csv_text.getvalue(),
+                        status=200,
+                        content_type='text/csv; charset=utf-8')
 
     @staticmethod
     def format_json(contacts):
