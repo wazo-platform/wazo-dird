@@ -31,7 +31,7 @@ def dict_from_consul(prefix, consul_dict):
     if consul_dict is None:
         return result
     for consul_kv in consul_dict:
-        full_key = urllib.unquote(consul_kv['Key'])
+        full_key = consul_kv['Key']
         if full_key.startswith(prefix):
             key = full_key[prefix_length:]
             value = (consul_kv['Value'] or '').decode('utf-8')
@@ -41,9 +41,8 @@ def dict_from_consul(prefix, consul_dict):
 
 def ls_from_consul(prefix, keys):
     keys = keys or []
-    keys = (urllib.unquote(key) for key in keys)
     prefix_length = len(prefix)
-    result = [key[prefix_length:].rstrip('/').decode('utf-8') for key in keys]
+    result = [key[prefix_length:].rstrip('/') for key in keys]
     return result
 
 
@@ -52,6 +51,6 @@ def dict_to_consul(prefix, dict_):
     dict_ = dict_ or {}
     result = {}
     for key, value in dict_.iteritems():
-        full_key = urllib.quote('{}{}'.format(prefix.encode('utf-8'), key.encode('utf-8')))
+        full_key = urllib.quote('{}{}'.format(prefix, key))
         result[full_key] = value.encode('utf-8')
     return result

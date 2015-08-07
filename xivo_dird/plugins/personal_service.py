@@ -185,6 +185,12 @@ class _PersonalService(object):
         if any('/./' in key for key in contact_infos):
             errors.append('key must not contain /./')
 
+        try:
+            for key in contact_infos:
+                key.encode('ascii')
+        except UnicodeEncodeError:
+            errors.append('key must contain only ASCII characters')
+
         if errors:
             raise _PersonalService.InvalidPersonalContact(errors)
 

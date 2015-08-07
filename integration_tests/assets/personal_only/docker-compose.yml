@@ -16,6 +16,7 @@ dird:
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
     - "../../..:/usr/src/xivo-dird"
+    - "../../../../lib-python/xivo:/usr/local/lib/python2.7/site-packages/xivo"
     - "./ssl:/etc/ssl"
 auth:
   image: xivo-auth-mock
