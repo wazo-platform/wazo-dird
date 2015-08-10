@@ -127,6 +127,10 @@ class PersonalAll(AuthResource):
             return '', 204
         csv_text = cStringIO.StringIO()
         fieldnames = sorted(list(set(attribute for contact in contacts for attribute in contact)))
+        for contact in contacts:
+            for attribute in contact:
+                if contact[attribute] is None:
+                    contact[attribute] = ''
         csv_writer = UnicodeDictWriter(csv_text, fieldnames)
         csv_writer.writeheader()
         csv_writer.writerows(contacts)

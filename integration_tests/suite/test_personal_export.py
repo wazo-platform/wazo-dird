@@ -45,6 +45,16 @@ class TestPersonalExport(BaseDirdIntegrationTest):
                                                       matches_regexp('Bob,[^,]*,Bodkartan')))
         assert_that(result[-1], equal_to(''))
 
+    def test_that_export_with_empty_values_returns_empty_strings(self):
+        self.post_personal({'firstname': 'Alice', 'lastname': ''})
+
+        result = self.export_personal()
+
+        result = result.split('\r\n')
+        assert_that(result[0], equal_to('firstname,id,lastname'))
+        assert_that(result[1:-1], contains_inanyorder(matches_regexp('Alice,[^,]*,$')))
+        assert_that(result[-1], equal_to(''))
+
     def test_that_export_full_mixes_all_headers(self):
         self.post_personal({'firstname': 'Alice'})
         self.post_personal({'lastname': 'Bodkartan'})
