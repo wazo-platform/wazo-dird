@@ -22,7 +22,6 @@ import os
 import json
 import logging
 
-from hamcrest import any_of
 from hamcrest import assert_that
 from hamcrest import equal_to
 
@@ -215,7 +214,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
     def export_personal(self, token=VALID_TOKEN):
         response = self.export_personal_result(token)
         assert_that(response.status_code, equal_to(200))
-        return response.json()
+        return response.text
 
     @classmethod
     def get_personal_result(self, personal_id, token=None):
