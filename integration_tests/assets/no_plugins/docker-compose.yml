@@ -4,6 +4,7 @@ sync:
     - dird
   environment:
     PORTS: "9489"
+    TIMEOUT: 5
 dird:
   image: xivo-dird-test
   ports:

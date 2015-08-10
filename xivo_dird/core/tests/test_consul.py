@@ -70,7 +70,7 @@ class TestDictFromConsul(TestCase):
         consul_dict = [
             {'Key': '/my/prefix/key1',
              'Value': 'value1'},
-            {'Key': u'/my/prefix/kéỳ2',
+            {'Key': u'/my/prefix/key2',
              'Value': u'vàlùé2'.encode('utf-8')},
             {'Key': '/my/prefix/key3',
              'Value': 'value3'},
@@ -80,7 +80,7 @@ class TestDictFromConsul(TestCase):
 
         assert_that(result, has_entries({
             'key1': 'value1',
-            u'kéỳ2': u'vàlùé2',
+            'key2': u'vàlùé2',
             'key3': 'value3'
         }))
 
@@ -106,18 +106,6 @@ class TestDictFromConsul(TestCase):
 
         assert_that(result, has_entries({
             'key1': None,
-        }))
-
-    def test_dict_from_consul_with_urlencoded_key(self):
-        consul_dict = [
-            {'Key': '/my/prefix/%25',
-             'Value': 'value'},
-        ]
-
-        result = dict_from_consul('/my/prefix/', consul_dict)
-
-        assert_that(result, has_entries({
-            '%': 'value',
         }))
 
 
@@ -151,17 +139,8 @@ class TestLsFromConsul(TestCase):
 
         assert_that(result, contains('attribute1', 'attribute2', 'attribute3'))
 
-    def test_ls_from_consul_with_non_ascii(self):
-        keys = ['/my/prefix/key/attribute1',
-                u'/my/prefix/key/àttríbùté2'.encode('utf-8'),
-                '/my/prefix/key/attribute3']
-
-        result = ls_from_consul('/my/prefix/key/', keys)
-
-        assert_that(result, contains('attribute1', u'àttríbùté2', 'attribute3'))
-
     def test_ls_from_consul_with_urlencoded_key(self):
-        keys = ['/my/prefix/key/%25']
+        keys = ['/my/prefix/key/%']
 
         result = ls_from_consul('/my/prefix/key/', keys)
 
@@ -207,15 +186,13 @@ class TestDictToConsul(TestCase):
 
     def test_dict_to_consul_non_ascii(self):
         consul_dict = {
-            u'non_ascii_key_ééé': 'value1',
-            'key2': u'non_ascii_value_ééé'
+            'key': u'non_ascii_value_ééé'
         }
 
-        result = dict_to_consul(u'non_ascii_prefix_ééé/', consul_dict)
+        result = dict_to_consul(u'prefix/', consul_dict)
 
         assert_that(result, has_entries({
-            u'non_ascii_prefix_%C3%A9%C3%A9%C3%A9/non_ascii_key_%C3%A9%C3%A9%C3%A9': 'value1',
-            u'non_ascii_prefix_%C3%A9%C3%A9%C3%A9/key2': 'non_ascii_value_ééé',
+            u'prefix/key': 'non_ascii_value_ééé',
         }))
 
     def test_dict_to_consul_special_characters(self):

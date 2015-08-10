@@ -174,3 +174,16 @@ class TestFavoritesVisibilityInSimilarSources(BaseDirdIntegrationTest):
         # No values from source 'csv', id '1'
         assert_that(result['results'], contains(
             has_entry('column_values', contains('Alice', 'Alan', '1111', True))))
+
+
+class TestConsulUnreachable(BaseDirdIntegrationTest):
+
+    asset = 'no_consul'
+
+    def test_when_consul_errors_that_favorites_actions_return_503(self):
+        result = self.get_favorites_result('default', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.put_favorite_result('some-source', 'some-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.delete_favorite_result('some-source', 'some-id', 'valid-token')
+        assert_that(result.status_code, equal_to(503))

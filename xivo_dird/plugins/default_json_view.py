@@ -102,7 +102,7 @@ class Lookup(AuthResource):
 
         if profile not in self.displays:
             error = {
-                'reason': ['The profile does not exist'],
+                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
                 'timestamp': [time()],
                 'status_code': 404,
             }
@@ -112,7 +112,11 @@ class Lookup(AuthResource):
         token_infos = auth.client().token.get(token)
 
         raw_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos)
-        favorites = self.favorite_service.favorite_ids(profile, token_infos)
+        try:
+            favorites = self.favorite_service.favorite_ids(profile, token_infos)
+        except self.favorite_service.FavoritesServiceException as e:
+            logger.error('Error while listing favorites: %s', e)
+            favorites = []
 
         formatter = _ResultFormatter(self.displays[profile])
         response = formatter.format_results(raw_results, favorites)
@@ -134,7 +138,7 @@ class FavoritesRead(AuthResource):
         logger.debug('Listing favorites with profile %s', profile)
         if profile not in self.displays:
             error = {
-                'reason': ['The profile does not exist'],
+                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
                 'timestamp': [time()],
                 'status_code': 404,
             }
@@ -143,7 +147,16 @@ class FavoritesRead(AuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        raw_results = self.favorites_service.favorites(profile, token_infos)
+        try:
+            raw_results = self.favorites_service.favorites(profile, token_infos)
+        except self.favorites_service.FavoritesServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
+
         formatter = _FavoriteResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results)
 
@@ -160,7 +173,15 @@ class FavoritesWrite(AuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        self.favorites_service.new_favorite(directory, contact, token_infos)
+        try:
+            self.favorites_service.new_favorite(directory, contact, token_infos)
+        except self.favorites_service.FavoritesServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
         return '', 204
 
     def delete(self, directory, contact):
@@ -177,6 +198,13 @@ class FavoritesWrite(AuthResource):
                 'status_code': 404,
             }
             return error, 404
+        except self.favorites_service.FavoritesServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
 
 
 class Personal(AuthResource):
@@ -197,7 +225,23 @@ class Personal(AuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        raw_results = self.personal_service.list_contacts(token_infos)
+        if profile not in self.displays:
+            error = {
+                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
+
+        try:
+            raw_results = self.personal_service.list_contacts(token_infos)
+        except self.personal_service.PersonalServiceException as e:
+            error = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 503,
+            }
+            return error, 503
         favorites = self.favorite_service.favorite_ids(profile, token_infos)
         formatter = _ResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results, favorites)

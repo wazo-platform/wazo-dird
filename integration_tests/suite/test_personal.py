@@ -70,17 +70,14 @@ class TestAddPersonal(BaseDirdIntegrationTest):
 
     def test_that_created_personal_with_non_ascii_are_listed(self):
         self.post_personal({'firstname': 'Alice', 'key': u'NonAsciiValue-é'})
-        self.post_personal({'firstname': 'Bob', u'NonAsciiKey-é': 'value'})
 
         raw = self.list_personal()
         formatted = self.get_personal_with_profile('default')
 
         assert_that(raw['items'], has_items(
-            has_entry('key', u'NonAsciiValue-é'),
-            has_entry(u'NonAsciiKey-é', 'value')))
+            has_entry('key', u'NonAsciiValue-é')))
         assert_that(formatted['results'], has_items(
-            has_entry('column_values', contains(u'Alice', None, None, False)),
-            has_entry('column_values', contains(u'Bob', None, None, False))))
+            has_entry('column_values', contains(u'Alice', None, None, False))))
 
     def test_that_adding_invalid_personal_returns_400(self):
         result = self.post_personal_result({'.': 'invalid'}, VALID_TOKEN)
@@ -175,25 +172,22 @@ class TestPersonalVisibility(BaseDirdIntegrationTest):
         assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
 
 
-class TestPersonalListWithProfileEmpty(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.clear_personal()
-
-    def test_that_listing_personal_with_profile_empty_returns_empty_list(self):
-        result = self.get_personal_with_profile('default')
-
-        assert_that(result['results'], contains())
-
-
 class TestPersonalListWithProfile(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
     def tearDown(self):
         self.clear_personal()
+
+    def test_listing_personal_with_unknow_profile(self):
+        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN)
+
+        assert_that(result.status_code, equal_to(404))
+
+    def test_that_listing_personal_with_profile_empty_returns_empty_list(self):
+        result = self.get_personal_with_profile('default')
+
+        assert_that(result['results'], contains())
 
     def test_listing_personal_with_profile(self):
         self.post_personal({'firstname': 'Alice'})
@@ -356,6 +350,8 @@ class TestConsulUnreachable(BaseDirdIntegrationTest):
         result = self.delete_personal_result('unknown-id', 'valid-token')
         assert_that(result.status_code, equal_to(503))
         result = self.list_personal_result('valid-token')
+        assert_that(result.status_code, equal_to(503))
+        result = self.get_personal_with_profile_result('default', 'valid-token')
         assert_that(result.status_code, equal_to(503))
 
 

@@ -22,7 +22,8 @@ import os
 import json
 import logging
 
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that
+from hamcrest import equal_to
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,21 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         response = self.list_personal_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
+
+    @classmethod
+    def export_personal_result(self, token=None):
+        url = 'https://localhost:9489/0.1/personal'
+        result = requests.get(url,
+                              headers={'X-Auth-Token': token},
+                              verify=CA_CERT,
+                              params={'format': 'text/csv'})
+        return result
+
+    @classmethod
+    def export_personal(self, token=VALID_TOKEN):
+        response = self.export_personal_result(token)
+        assert_that(response.status_code, equal_to(200))
+        return response.text
 
     @classmethod
     def get_personal_result(self, personal_id, token=None):

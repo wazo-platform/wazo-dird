@@ -49,7 +49,7 @@ class Headers(AuthResource):
         if profile not in self.displays:
             logger.warning('profile %s does not exist, or associated display does not exist', profile)
             error = {
-                'reason': ['The profile does not exist'],
+                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
                 'timestamp': [time()],
                 'status_code': 404,
             }

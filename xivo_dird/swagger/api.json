@@ -49,7 +49,7 @@
                         }
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -102,7 +102,7 @@
                         }
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -149,7 +149,7 @@
                         }
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -187,7 +187,7 @@
                         "description": "Favorite added."
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -236,7 +236,7 @@
                         }
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -290,7 +290,7 @@
                         }
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -318,10 +318,24 @@
             "get": {
                 "summary": "List personal contacts",
                 "operationId": "list_personal",
+                "description": "CSV format is the same as `/import`, where headers of all contacts are mixed. The charset of the response is always `utf-8`. Errors are always formatted in JSON.",
                 "tags": [
                     "personal"
                 ],
+                "produces": [
+                    "application/json",
+                    "text/csv; charset=utf-8"
+                ],
                 "parameters": [
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "type": "string",
+                        "enum": ["application/json", "text/csv"],
+                        "default": "application/json",
+                        "required": false,
+                        "description": "Format of the response body"
+                    },
                     {
                         "name": "X-Auth-Token",
                         "in": "header",
@@ -334,11 +348,18 @@
                     "200": {
                         "description": "A list of personal contacts",
                         "schema": {
-                            "$ref": "#/definitions/PersonalList"
+                            "properties": {
+                                "items": {
+                                    "$ref": "#/definitions/PersonalList"
+                                }
+                            }
                         }
                     },
+                    "204": {
+                        "description": "No contacts are available (CSV format only)."
+                    },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -377,7 +398,7 @@
                         }
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -420,7 +441,7 @@
                         "description": "The personal contact does not exist"
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -470,7 +491,7 @@
                         "description": "The personal contact does not exist"
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -507,7 +528,7 @@
                         "description": "The personal contact does not exist"
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -555,7 +576,7 @@
                         }
                     },
                     "503": {
-                        "description": "The authentication server is unreachable.",
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
