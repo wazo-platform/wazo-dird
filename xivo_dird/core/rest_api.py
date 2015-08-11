@@ -19,6 +19,8 @@ from datetime import timedelta
 
 import logging
 import os
+import urllib
+
 from cherrypy import wsgiserver
 from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
 from flask import Flask, request
@@ -79,7 +81,8 @@ class CoreRestApi(object):
 
 
 def _log_request(response):
-    logger.info('(%s) %s %s %s', request.remote_addr, request.method, request.url, response.status_code)
+    url = urllib.unquote(request.url)
+    logger.info('(%s) %s %s %s', request.remote_addr, request.method, url, response.status_code)
     return response
 
 
