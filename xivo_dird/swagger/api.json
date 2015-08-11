@@ -421,7 +421,7 @@
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "204": {
                         "description": "The personal contacts was purged."
                     },
                     "503": {
