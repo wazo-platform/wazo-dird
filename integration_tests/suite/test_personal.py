@@ -23,6 +23,7 @@ from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
+from hamcrest import empty
 from hamcrest import equal_to
 from hamcrest import has_entry
 from hamcrest import has_entries
@@ -37,7 +38,7 @@ class TestListPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_listing_empty_personal_returns_empty_list(self):
         result = self.list_personal()
@@ -50,7 +51,7 @@ class TestAddPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_created_personal_has_an_id(self):
         alice = self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN)
@@ -108,7 +109,7 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_removing_unknown_personal_returns_404(self):
         result = self.delete_personal_result('unknown-id', VALID_TOKEN)
@@ -128,12 +129,30 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
             has_entry('firstname', 'Charlie')))
 
 
+class TestPurgePersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def tearDown(self):
+        self.purge_personal()
+
+    def test_that_purged_personal_are_empty(self):
+        self.post_personal({'firstname': 'Alice'})
+        self.post_personal({'firstname': 'Bob'})
+        self.post_personal({'firstname': 'Charlie'})
+        self.purge_personal()
+
+        result = self.list_personal()
+
+        assert_that(result['items'], empty())
+
+
 class TestPersonalPersistence(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_personal_are_saved_across_dird_restart(self):
         self.post_personal({})
@@ -157,7 +176,7 @@ class TestPersonalVisibility(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_personal_are_only_visible_for_the_same_token(self):
         self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN_1)
@@ -177,7 +196,7 @@ class TestPersonalListWithProfile(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_listing_personal_with_unknow_profile(self):
         result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN)
@@ -249,7 +268,7 @@ class TestEditPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_edit_inexisting_personal_contact_returns_404(self):
         result = self.put_personal_result('unknown-id', {'firstname': 'John', 'lastname': 'Doe'}, VALID_TOKEN)
@@ -283,7 +302,7 @@ class TestEditInvalidPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_edit_personal_contact_with_invalid_values_return_404(self):
         contact = self.post_personal({'firstname': 'Ursule', 'lastname': 'Uparlende'})
@@ -298,7 +317,7 @@ class TestGetPersonal(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_get_inexisting_personal_contact_returns_404(self):
         result = self.get_personal_result('unknown-id', VALID_TOKEN)

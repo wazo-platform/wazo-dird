@@ -125,6 +125,16 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         assert_that(consul.kv.delete.call_count, greater_than(0))
 
+    @patch('xivo_dird.plugins.personal_service.Consul')
+    def test_that_purge_contacts_calls_consul_delete(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = (Mock(), [])
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+
+        service.purge_contacts({'token': 'valid-token', 'auth_id': 'my-uuid'})
+
+        assert_that(consul.kv.delete.call_count, greater_than(0))
+
 
 class TestValidateContact(unittest.TestCase):
 

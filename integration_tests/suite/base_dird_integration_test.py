@@ -260,6 +260,19 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         assert_that(response.status_code, equal_to(204))
 
     @classmethod
+    def purge_personal_result(self, token=None):
+        url = 'https://localhost:9489/0.1/personal'
+        result = requests.delete(url,
+                                 headers={'X-Auth-Token': token},
+                                 verify=CA_CERT)
+        return result
+
+    @classmethod
+    def purge_personal(self, token=VALID_TOKEN):
+        response = self.purge_personal_result(token)
+        assert_that(response.status_code, equal_to(204))
+
+    @classmethod
     def get_personal_with_profile_result(self, profile, token=None):
         url = 'https://localhost:9489/0.1/directories/personal/{profile}'
         result = requests.get(url.format(profile=profile),
@@ -272,9 +285,3 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         response = self.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
-
-    @classmethod
-    def clear_personal(self, token=VALID_TOKEN):
-        contact_ids = (contact['id'] for contact in self.list_personal(token)['items'])
-        for contact_id in contact_ids:
-            self.delete_personal(contact_id, token)

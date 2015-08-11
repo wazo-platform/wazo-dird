@@ -27,7 +27,7 @@ class TestPersonalExport(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def tearDown(self):
-        self.clear_personal()
+        self.purge_personal()
 
     def test_that_export_empty_returns_204(self):
         result = self.export_personal_result('valid-token')

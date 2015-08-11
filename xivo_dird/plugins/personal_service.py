@@ -101,6 +101,11 @@ class _PersonalService(object):
                                                      contact_uuid=contact_id)
             consul.kv.delete(consul_key, recurse=True)
 
+    def purge_contacts(self, token_infos):
+        with self._consul(token=token_infos['token']) as consul:
+            consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=token_infos['auth_id'],)
+            consul.kv.delete(consul_key, recurse=True)
+
     def list_contacts(self, token_infos):
         user_uuid = token_infos['auth_id']
         consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
