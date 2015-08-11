@@ -260,6 +260,19 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         assert_that(response.status_code, equal_to(204))
 
     @classmethod
+    def purge_personal_result(self, token=None):
+        url = 'https://localhost:9489/0.1/personal'
+        result = requests.delete(url,
+                                 headers={'X-Auth-Token': token},
+                                 verify=CA_CERT)
+        return result
+
+    @classmethod
+    def purge_personal(self, token=VALID_TOKEN):
+        response = self.purge_personal_result(token)
+        assert_that(response.status_code, equal_to(204))
+
+    @classmethod
     def get_personal_with_profile_result(self, profile, token=None):
         url = 'https://localhost:9489/0.1/directories/personal/{profile}'
         result = requests.get(url.format(profile=profile),

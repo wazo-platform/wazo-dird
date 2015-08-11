@@ -113,6 +113,15 @@ class PersonalAll(AuthResource):
 
         return self.contacts_formatter(mimetype)(contacts)
 
+    @catch_service_error
+    def delete(self):
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+
+        self.personal_service.purge_contacts(token_infos)
+
+        return '', 204
+
     @classmethod
     def contacts_formatter(cls, mimetype):
         formatters = {

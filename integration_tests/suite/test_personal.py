@@ -23,6 +23,7 @@ from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
+from hamcrest import empty
 from hamcrest import equal_to
 from hamcrest import has_entry
 from hamcrest import has_entries
@@ -126,6 +127,24 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
         assert_that(result['items'], contains_inanyorder(
             has_entry('firstname', 'Alice'),
             has_entry('firstname', 'Charlie')))
+
+
+class TestPurgePersonal(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def tearDown(self):
+        self.clear_personal()
+
+    def test_that_purged_personal_are_empty(self):
+        self.post_personal({'firstname': 'Alice'})
+        self.post_personal({'firstname': 'Bob'})
+        self.post_personal({'firstname': 'Charlie'})
+        self.purge_personal()
+
+        result = self.list_personal()
+
+        assert_that(result['items'], empty())
 
 
 class TestPersonalPersistence(BaseDirdIntegrationTest):
