@@ -19,12 +19,14 @@ from datetime import timedelta
 
 import logging
 import os
+
 from cherrypy import wsgiserver
 from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
+from xivo import http_helpers
 
 from xivo_dird.swagger.resource import SwaggerResource
 
@@ -40,6 +42,8 @@ class CoreRestApi(object):
     def __init__(self, config):
         self.config = config
         self.app = Flask('xivo_dird')
+        http_helpers.add_logger(self.app, logger)
+        self.app.after_request(http_helpers.log_request)
         self.app.wsgi_app = ProxyFix(self.app.wsgi_app)
         self.app.secret_key = os.urandom(24)
         self.app.permanent_session_lifetime = timedelta(minutes=5)
