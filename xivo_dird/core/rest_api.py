@@ -21,7 +21,7 @@ import logging
 import os
 from cherrypy import wsgiserver
 from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api
 from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
@@ -40,6 +40,7 @@ class CoreRestApi(object):
     def __init__(self, config):
         self.config = config
         self.app = Flask('xivo_dird')
+        self.app.before_request(_log_request)
         self.app.wsgi_app = ProxyFix(self.app.wsgi_app)
         self.app.secret_key = os.urandom(24)
         self.app.permanent_session_lifetime = timedelta(minutes=5)
@@ -75,6 +76,10 @@ class CoreRestApi(object):
             server.start()
         except KeyboardInterrupt:
             server.stop()
+
+
+def _log_request():
+    logger.info('(%s) %s %s', request.remote_addr, request.method, request.url)
 
 
 def _check_file_readable(file_path):
