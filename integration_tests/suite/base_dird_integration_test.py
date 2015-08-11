@@ -285,9 +285,3 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         response = self.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
-
-    @classmethod
-    def clear_personal(self, token=VALID_TOKEN):
-        contact_ids = (contact['id'] for contact in self.list_personal(token)['items'])
-        for contact_id in contact_ids:
-            self.delete_personal(contact_id, token)
