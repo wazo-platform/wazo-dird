@@ -404,6 +404,33 @@
                         }
                     }
                 }
+            },
+            "delete": {
+                "summary": "Purge personal contacts",
+                "operationId": "purge_personal",
+                "tags": [
+                    "personal"
+                ],
+                "parameters": [
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "The personal contacts was purged."
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
             }
         },
         "/personal/{contact_id}": {
