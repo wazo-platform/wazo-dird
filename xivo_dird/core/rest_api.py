@@ -40,7 +40,7 @@ class CoreRestApi(object):
     def __init__(self, config):
         self.config = config
         self.app = Flask('xivo_dird')
-        self.app.before_request(_log_request)
+        self.app.after_request(_log_request)
         self.app.wsgi_app = ProxyFix(self.app.wsgi_app)
         self.app.secret_key = os.urandom(24)
         self.app.permanent_session_lifetime = timedelta(minutes=5)
@@ -78,8 +78,9 @@ class CoreRestApi(object):
             server.stop()
 
 
-def _log_request():
-    logger.info('(%s) %s %s', request.remote_addr, request.method, request.url)
+def _log_request(response):
+    logger.info('(%s) %s %s %s', request.remote_addr, request.method, request.url, response.status_code)
+    return response
 
 
 def _check_file_readable(file_path):
