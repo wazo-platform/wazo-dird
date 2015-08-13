@@ -76,3 +76,14 @@ class TestPersonalExport(BaseDirdIntegrationTest):
         assert_that(result[0], equal_to('firstname,id'))
         assert_that(result[1:-1], contains_inanyorder(matches_regexp(u'Éloïse,[^,]*')))
         assert_that(result[-1], equal_to(''))
+
+    def test_that_export_produces_the_same_output_as_import_with_empty_column(self):
+        self.import_personal('firstname,lastname,special-key\njohn,doe,\nbob,martin,')
+
+        result = self.export_personal()
+
+        result = result.split('\r\n')
+        assert_that(result[0], equal_to('firstname,id,lastname,special-key'))
+        assert_that(result[1:-1], contains_inanyorder(matches_regexp(u'john,[^,]*,doe,'),
+                                                      matches_regexp(u'bob,[^,]*,martin,')))
+        assert_that(result[-1], equal_to(''))
