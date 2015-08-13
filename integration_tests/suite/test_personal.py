@@ -231,6 +231,7 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
         cls.post_personal({'firstname': 'Céline'})
         cls.post_personal({'firstname': 'Etienne'})
         cls.post_personal({'firstname': 'john', 'lastname': 'john', 'company': 'john'})
+        cls.post_personal({'firstname': 'empty-column', 'lastname': ''})
 
     def test_that_lookup_includes_personal_contacts(self):
         result = self.lookup('ali', 'default')
@@ -261,6 +262,12 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'john', 'john', None, False))))
+
+    def test_that_lookup_returns_None_when_a_column_is_empty(self):
+        result = self.lookup('empty', 'default')
+
+        assert_that(result['results'], contains_inanyorder(
+            has_entry('column_values', contains(u'empty-column', None, None, False))))
 
 
 class TestEditPersonal(BaseDirdIntegrationTest):
