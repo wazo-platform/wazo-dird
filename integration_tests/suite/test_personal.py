@@ -341,6 +341,14 @@ class TestGetPersonal(BaseDirdIntegrationTest):
             'lastname': 'Narvidon'
         }))
 
+    def test_that_personal_api_is_symmetric(self):
+        contact_post = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon', 'special-key': ''})
+        contact_put = self.put_personal(contact_post['id'], contact_post)
+        contact_get = self.get_personal(contact_post['id'])
+
+        assert_that(contact_get, equal_to(contact_post))
+        assert_that(contact_get, equal_to(contact_put))
+
 
 class TestConsulInternalError(BaseDirdIntegrationTest):
     '''
@@ -379,8 +387,3 @@ class TestConsulUnreachable(BaseDirdIntegrationTest):
         assert_that(result.status_code, equal_to(503))
         result = self.get_personal_with_profile_result('default', 'valid-token')
         assert_that(result.status_code, equal_to(503))
-
-
-# TODO
-# invalid profile
-# other errors

@@ -93,10 +93,13 @@ class TestDictFromConsul(TestCase):
         result = dict_from_consul('/my/prefix/', consul_dict)
 
         assert_that(result, has_entries({
-            'key1': None,
+            'key1': '',
         }))
 
     def test_dict_from_consul_with_value_none(self):
+        '''
+        Consul transforms empty values to None, so we have to transform them back.
+        '''
         consul_dict = [
             {'Key': '/my/prefix/key1',
              'Value': None},
@@ -105,7 +108,7 @@ class TestDictFromConsul(TestCase):
         result = dict_from_consul('/my/prefix/', consul_dict)
 
         assert_that(result, has_entries({
-            'key1': None,
+            'key1': '',
         }))
 
 
