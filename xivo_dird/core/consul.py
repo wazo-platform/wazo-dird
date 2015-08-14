@@ -34,7 +34,7 @@ def dict_from_consul(prefix, consul_dict):
         full_key = consul_kv['Key']
         if full_key.startswith(prefix):
             key = full_key[prefix_length:]
-            value = consul_kv['Value'].decode('utf-8') if consul_kv.get('Value') else None
+            value = (consul_kv.get('Value') or '').decode('utf-8')
             result[key] = value
     return result
 

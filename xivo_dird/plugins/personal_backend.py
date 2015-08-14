@@ -86,8 +86,10 @@ class PersonalBackend(BaseSourcePlugin):
             for contact_key in contact_keys:
                 _, consul_dict = consul.kv.get(contact_key, recurse=True)
                 if consul_dict:
-                    contact = self._SourceResult(dict_from_consul(contact_key, consul_dict))
-                    contacts.append(contact)
+                    contact = {attribute: value
+                               for attribute, value in dict_from_consul(contact_key, consul_dict).iteritems()
+                               if value}
+                    contacts.append(self._SourceResult(contact))
         return contacts
 
     @contextmanager
