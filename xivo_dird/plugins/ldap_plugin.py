@@ -262,7 +262,10 @@ class _LDAPResultFormatter(object):
     def format(self, raw_results):
         results = []
         for _, attrs in raw_results:
-            fields = dict((name, values[0]) for name, values in attrs.iteritems())
-            results.append(self._SourceResult(fields))
+            results.append(self._format_one_result(attrs))
 
         return results
+
+    def _format_one_result(self, attrs):
+        fields = dict((name, values[0]) for name, values in attrs.iteritems())
+        return self._SourceResult(fields)
