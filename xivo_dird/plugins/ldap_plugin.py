@@ -90,6 +90,9 @@ class _LDAPConfig(object):
     def __init__(self, config):
         self._config = config
 
+    def has_binary_uid(self):
+        return self._config.get('binary_uid', False)
+
     def name(self):
         return self._config['name']
 

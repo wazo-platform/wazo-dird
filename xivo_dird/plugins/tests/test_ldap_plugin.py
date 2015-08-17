@@ -141,6 +141,16 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertRaises(Exception, ldap_config.name)
 
+    def test_binary_uid_field_not_set(self):
+        ldap_config = _LDAPConfig({})
+
+        self.assertFalse(ldap_config.has_binary_uid())
+
+    def test_has_binary_uid_field(self):
+        ldap_config = _LDAPConfig({'binary_uid': True})
+
+        self.assertTrue(ldap_config.has_binary_uid())
+
     def test_unique_column(self):
         value = 'entryUUID'
 
