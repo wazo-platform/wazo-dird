@@ -162,13 +162,18 @@ class _LDAPConfig(object):
         unique_column = self._config[BaseSourcePlugin.UNIQUE_COLUMN]
 
         l = []
-        for uid in uids:
+        for uid in self._convert_uids(uids):
             l.append('(%s=%s)' % (unique_column, uid))
 
         if len(l) == 1:
             return l[0]
         else:
             return '(|%s)' % ''.join(l)
+
+    def _convert_uids(self, uids):
+        if self.has_binary_uid():
+            return [uuid.UUID(uid).bytes for uid in uids]
+        return uids
 
 
 class _LDAPClient(object):

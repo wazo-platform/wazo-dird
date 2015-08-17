@@ -370,6 +370,16 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertEqual('(entryUUID=foo)', ldap_config.build_list_filter(uids))
 
+    def test_build_list_filter_binary(self):
+        binary_uid = os.urandom(16)
+        ldap_config = _LDAPConfig({
+            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
+            'binary_uid': True,
+        })
+        uids = [str(uuid.UUID(bytes=binary_uid))]
+
+        self.assertEqual('(entryUUID=%s)' % binary_uid, ldap_config.build_list_filter(uids))
+
     def test_build_list_filter_two_items(self):
         ldap_config = _LDAPConfig({
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
