@@ -16,7 +16,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import ldap
+import os
 import unittest
+import uuid
 
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
@@ -469,12 +471,14 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.format_columns = {'firstname': '{givenName}'}
         self.ldap_config = Mock(_LDAPConfig)
         self.ldap_config.name.return_value = self.name
+        self.ldap_config.has_binary_uid.return_value = False
         self.ldap_config.unique_column.return_value = self.unique_column
         self.ldap_config.format_columns.return_value = self.format_columns
-        self.ldap_result_formatter = _LDAPResultFormatter(self.ldap_config)
         self.SourceResult = make_result_class(self.name, self.unique_column, self.format_columns)
 
     def test_format(self):
+        formatter = self._new_formatter(binary_uids=False)
+
         raw_results = [
             ('dn', {'entryUUID': ['0123'], 'givenName': ['John']}),
         ]
@@ -482,6 +486,27 @@ class TestLDAPResultFormatter(unittest.TestCase):
             self.SourceResult({'entryUUID': '0123', 'givenName': 'John'})
         ]
 
-        results = self.ldap_result_formatter.format(raw_results)
+        results = formatter.format(raw_results)
 
         self.assertEqual(expected_results, results)
+
+    def test_format_with_binary_uid(self):
+        formatter = self._new_formatter(binary_uids=True)
+
+        binary_uid = os.urandom(16)
+        encoded_uid = uuid.UUID(bytes=binary_uid)
+
+        raw_results = [
+            ('dn', {'entryUUID': [binary_uid], 'givenName': ['John']}),
+        ]
+        expected_results = [
+            self.SourceResult({'entryUUID': encoded_uid, 'givenName': 'John'})
+        ]
+
+        results = formatter.format(raw_results)
+
+        self.assertEqual(expected_results, results)
+
+    def _new_formatter(self, binary_uids):
+        self.ldap_config.has_binary_uid.return_value = binary_uids
+        return _LDAPResultFormatter(self.ldap_config)

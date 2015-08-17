@@ -19,6 +19,7 @@ import ldap
 import logging
 import re
 import threading
+import uuid
 
 from ldap.filter import escape_filter_chars
 from xivo_dird import BaseSourcePlugin
@@ -255,8 +256,10 @@ class _LDAPClient(object):
 class _LDAPResultFormatter(object):
 
     def __init__(self, ldap_config):
+        self._unique_column = ldap_config.unique_column()
+        self._bin_uid = ldap_config.has_binary_uid()
         self._SourceResult = make_result_class(ldap_config.name(),
-                                               ldap_config.unique_column(),
+                                               self._unique_column,
                                                ldap_config.format_columns())
 
     def format(self, raw_results):
@@ -268,4 +271,8 @@ class _LDAPResultFormatter(object):
 
     def _format_one_result(self, attrs):
         fields = dict((name, values[0]) for name, values in attrs.iteritems())
+
+        if self._bin_uid and self._unique_column in fields:
+            fields[self._unique_column] = uuid.UUID(bytes=fields[self._unique_column])
+
         return self._SourceResult(fields)
