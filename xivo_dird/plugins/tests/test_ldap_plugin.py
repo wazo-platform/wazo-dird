@@ -22,7 +22,6 @@ from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from ldap.ldapobject import LDAPObject
 from mock import Mock, ANY, sentinel
-from hamcrest import assert_that, contains_inanyorder
 from xivo_dird.plugins.base_plugins import BaseSourcePlugin
 from xivo_dird.plugins.ldap_plugin import _LDAPConfig, \
     _LDAPResultFormatter, _LDAPClient, LDAPPlugin, _LDAPFactory
