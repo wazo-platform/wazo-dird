@@ -23,6 +23,7 @@ from unittest import TestCase
 
 from ..consul import dict_from_consul
 from ..consul import ls_from_consul
+from ..consul import tree_from_consul
 from ..consul import dict_to_consul
 
 
@@ -148,6 +149,98 @@ class TestLsFromConsul(TestCase):
         result = ls_from_consul('/my/prefix/key/', keys)
 
         assert_that(result, contains('%'))
+
+
+class TestTreeFromConsul(TestCase):
+
+    def test_tree_from_consul_empty(self):
+        result = tree_from_consul('', [])
+
+        assert_that(result, equal_to({}))
+
+    def test_tree_from_consul_entries_none(self):
+        result = tree_from_consul('', None)
+
+        assert_that(result, equal_to({}))
+
+    def test_tree_from_consul_prefix_none(self):
+        result = tree_from_consul(None, [{'Key': 'key',
+                                          'Value': 'value'}])
+
+        assert_that(result, equal_to({'key': 'value'}))
+
+    def test_tree_from_consul_prefix_empty(self):
+        result = tree_from_consul('', [{'Key': 'key',
+                                        'Value': 'value'}])
+
+        assert_that(result, equal_to({'key': 'value'}))
+
+    def test_tree_from_consul_tranforms_None_values_to_empty_string(self):
+        result = tree_from_consul('', [{'Key': 'key',
+                                        'Value': None}])
+
+        assert_that(result, equal_to({'key': ''}))
+
+    def test_tree_from_consul_removes_heading_slashes(self):
+        result = tree_from_consul('', [{'Key': '//key',
+                                        'Value': 'value'}])
+
+        assert_that(result, equal_to({'key': 'value'}))
+
+    def test_tree_from_consul_removes_trailing_slashes(self):
+        result = tree_from_consul('', [{'Key': 'key//',
+                                        'Value': 'value'}])
+
+        assert_that(result, equal_to({'key': 'value'}))
+
+    def test_tree_from_consul_non_ascii(self):
+        result = tree_from_consul('', [{'Key': 'non_ascii_value',
+                                        'Value': u'ééé'.encode('utf-8')}])
+
+        assert_that(result, equal_to({'non_ascii_value': u'ééé'}))
+
+    def test_tree_from_consul_one_level(self):
+        result = tree_from_consul('my/prefix/', [{'Key': 'my/prefix/key',
+                                                  'Value': 'value'},
+                                                 {'Key': 'my/prefix/other_key',
+                                                  'Value': 'other_value'}])
+
+        assert_that(result, equal_to({'key': 'value',
+                                      'other_key': 'other_value'}))
+
+    def test_tree_from_consul_two_levels(self):
+        result = tree_from_consul('my/prefix/', [{'Key': 'my/prefix/key/subkey',
+                                                  'Value': 'value'},
+                                                 {'Key': 'my/prefix/other_key/subkey',
+                                                  'Value': 'other_value'}])
+
+        assert_that(result, equal_to({
+            'key': {
+                'subkey': 'value'
+                },
+            'other_key': {
+                'subkey': 'other_value'
+            }
+        }))
+
+    def test_tree_from_consul_three_levels(self):
+        result = tree_from_consul('my/prefix/', [{'Key': 'my/prefix/key/subkey/subsubkey',
+                                                  'Value': 'value'},
+                                                 {'Key': 'my/prefix/other_key/subkey/subsubkey',
+                                                  'Value': 'other_value'}])
+
+        assert_that(result, equal_to({
+            'key': {
+                'subkey': {
+                    'subsubkey': 'value'
+                }
+            },
+            'other_key': {
+                'subkey': {
+                    'subsubkey': 'other_value'
+                }
+            }
+        }))
 
 
 class TestDictToConsul(TestCase):

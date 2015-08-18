@@ -15,14 +15,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from hamcrest import assert_that
+from hamcrest import equal_to
 from hamcrest import greater_than
 from hamcrest import has_item
 from hamcrest import has_property
+from hamcrest import not_
 from mock import Mock
 from mock import patch
 from unittest import TestCase
 
+from ..personal_backend import match
 from ..personal_backend import PersonalBackend
+from ..personal_backend import remove_empty_values
 
 
 class TestPersonalBackend(TestCase):
@@ -64,3 +68,44 @@ class TestPersonalBackend(TestCase):
         source.search('alice', {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
 
         assert_that(consul.kv.get.call_count, greater_than(0))
+
+
+class TestMatch(TestCase):
+
+    def test_that_empty_strings_match(self):
+        assert_that(match('', ''))
+
+    def test_that_empty_string_matches_non_empty(self):
+        assert_that(match('', 'a'))
+
+    def test_that_different_string_dont_match(self):
+        assert_that(not_(match('a', 'b')))
+
+    def test_that_substring_matches_superstring(self):
+        assert_that(not_(match('abc', 'zabcd')))
+
+    def test_that_lowercase_matches_uppercase(self):
+        assert_that(not_(match('abc', 'ZABCD')))
+        assert_that(not_(match('ABC', 'zabcd')))
+
+    def test_that_non_ascii_matches_ascii(self):
+        assert_that(not_(match('café', 'cafe')))
+        assert_that(not_(match('cafe', 'café')))
+
+
+class TestRemoveEmptyValues(TestCase):
+
+    def test_that_remove_empty_values_empty_returns_empty(self):
+        result = remove_empty_values({})
+
+        assert_that(result, equal_to({}))
+
+    def test_that_remove_empty_values_non_empty_returns_input(self):
+        result = remove_empty_values({'a': 'b', 'c': 'd'})
+
+        assert_that(result, equal_to({'a': 'b', 'c': 'd'}))
+
+    def test_that_remove_empty_values_with_empty_values_removes_empty_values(self):
+        result = remove_empty_values({'a': 'b', 'c': ''})
+
+        assert_that(result, equal_to({'a': 'b'}))
