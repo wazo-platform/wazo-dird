@@ -143,15 +143,15 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertRaises(Exception, ldap_config.name)
 
-    def test_binary_uid_field_not_set(self):
+    def test_unique_column_format_field_not_set(self):
         ldap_config = _LDAPConfig({})
 
-        self.assertFalse(ldap_config.has_binary_uid())
+        self.assertFalse(ldap_config.has_binary_uuid())
 
-    def test_has_binary_uid_field(self):
-        ldap_config = _LDAPConfig({'binary_uid': True})
+    def test_unique_column_format_binary_uuid(self):
+        ldap_config = _LDAPConfig({'unique_column_format': 'binary_uuid'})
 
-        self.assertTrue(ldap_config.has_binary_uid())
+        self.assertTrue(ldap_config.has_binary_uuid())
 
     def test_unique_column(self):
         value = 'entryUUID'
@@ -374,7 +374,7 @@ class TestLDAPConfig(unittest.TestCase):
         binary_uid = os.urandom(16)
         ldap_config = _LDAPConfig({
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
-            'binary_uid': True,
+            'unique_column_format': 'binary_uuid',
         })
         uids = [str(uuid.UUID(bytes=binary_uid))]
 
@@ -481,7 +481,6 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.format_columns = {'firstname': '{givenName}'}
         self.ldap_config = Mock(_LDAPConfig)
         self.ldap_config.name.return_value = self.name
-        self.ldap_config.has_binary_uid.return_value = False
         self.ldap_config.unique_column.return_value = self.unique_column
         self.ldap_config.format_columns.return_value = self.format_columns
         self.SourceResult = make_result_class(self.name, self.unique_column, self.format_columns)
@@ -518,5 +517,5 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.assertEqual(expected_results, results)
 
     def _new_formatter(self, binary_uids):
-        self.ldap_config.has_binary_uid.return_value = binary_uids
+        self.ldap_config.has_binary_uuid.return_value = binary_uids
         return _LDAPResultFormatter(self.ldap_config)

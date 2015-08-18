@@ -91,8 +91,8 @@ class _LDAPConfig(object):
     def __init__(self, config):
         self._config = config
 
-    def has_binary_uid(self):
-        return self._config.get('binary_uid', False)
+    def has_binary_uuid(self):
+        return self._config.get('unique_column_format', 'string') == 'binary_uuid'
 
     def name(self):
         return self._config['name']
@@ -171,7 +171,7 @@ class _LDAPConfig(object):
             return '(|%s)' % ''.join(l)
 
     def _convert_uids(self, uids):
-        if self.has_binary_uid():
+        if self.has_binary_uuid():
             return [uuid.UUID(uid).bytes for uid in uids]
         return uids
 
@@ -262,7 +262,7 @@ class _LDAPResultFormatter(object):
 
     def __init__(self, ldap_config):
         self._unique_column = ldap_config.unique_column()
-        self._bin_uid = ldap_config.has_binary_uid()
+        self._bin_uid = ldap_config.has_binary_uuid()
         self._SourceResult = make_result_class(ldap_config.name(),
                                                self._unique_column,
                                                ldap_config.format_columns())
