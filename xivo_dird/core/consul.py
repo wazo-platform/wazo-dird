@@ -20,7 +20,6 @@ import urllib
 
 PERSONAL_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
 PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
-PERSONAL_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
 
 logger = logging.getLogger(__name__)
 
