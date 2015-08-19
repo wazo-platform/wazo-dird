@@ -20,7 +20,6 @@ import urllib
 
 PERSONAL_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
 PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
-PERSONAL_CONTACT_ATTRIBUTE_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/{attribute}'
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +42,25 @@ def ls_from_consul(prefix, keys):
     keys = keys or []
     prefix_length = len(prefix)
     result = [key[prefix_length:].rstrip('/') for key in keys]
+    return result
+
+
+def tree_from_consul(prefix, consul_entries):
+    prefix = prefix or ''
+    prefix_length = len(prefix)
+    result = {}
+    if consul_entries is None:
+        return result
+    for consul_entry in consul_entries:
+        full_key = consul_entry['Key']
+        if full_key.startswith(prefix):
+            key_parts = full_key[prefix_length:].strip('/').split('/')
+            parts_count = len(key_parts)
+            value = (consul_entry.get('Value') or '').decode('utf-8')
+            tree = result
+            for part_index, key_part in enumerate(key_parts):
+                default = {} if part_index < parts_count - 1 else value
+                tree = tree.setdefault(key_part, default)
     return result
 
 
