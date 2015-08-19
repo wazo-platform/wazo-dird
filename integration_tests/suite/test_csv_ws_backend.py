@@ -30,6 +30,7 @@ class TestCSVWSBackend(BaseDirdIntegrationTest):
 
         assert_that(results['results'][0],
                     has_entry('column_values', contains(u'Andrée-Anne', 'Smith', '5551231111', False)))
+        assert_that(results['results'], has_length(1))
 
     def test_that_no_result_returns_an_empty_list(self):
         results = self.lookup('henry', 'default')
