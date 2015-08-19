@@ -32,7 +32,10 @@ class CSVWSPlugin(BaseSourcePlugin):
         logger.debug('Loading with %s', config)
 
         self._list_url = config['config'].get('list_url')
-        self._lookup_url = unicode(config['config']['lookup_url'])
+        lookup_params = '&'.join(['%s={term}' % param
+                                  for param
+                                  in config['config'].get(self.SEARCHED_COLUMNS, [])])
+        self._lookup_url = unicode('?'.join([config['config']['lookup_url'], lookup_params]))
         self._unique_column = config['config'].get(self.UNIQUE_COLUMN)
         self._SourceResult = make_result_class(
             config['config']['name'],

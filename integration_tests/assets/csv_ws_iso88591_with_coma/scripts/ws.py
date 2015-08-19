@@ -41,21 +41,21 @@ def line(fields, separator=separator):
 
 @app.route('/ws')
 def ws():
-    lookup_term = request.args.get('search')
-    reverse_term = request.args.get('phonesearch')
-    if lookup_term:
-        term = lookup_term.lower()
-        data = []
-        for entry in entries:
-            # if term = "alice s" it should match alice smith
-            composed_field = '{} {}'.format(entry[1].lower(), entry[2].lower()).strip()
-            if term in composed_field:
-                data.append(entry)
-    elif reverse_term:
-        data = [entry for entry in entries if entry[3] == reverse_term]
-    else:
-        data = entries
+    result = set()
 
+    if not request.args.keys():
+        result = entries
+
+    for field, term in request.args.iteritems():
+        if field not in headers:
+            continue
+
+        i = headers.index(field)
+        for entry in entries:
+            if term.lower() in entry[i].lower():
+                result.add(entry)
+
+    data = list(result)
     if not data:
         return '', 404
 

@@ -33,12 +33,16 @@ class TestCSVWSPlugin(unittest.TestCase):
 
     @patch('xivo_dird.plugins.csv_ws.requests')
     def test_that_search_queries_the_lookup_url(self, mocked_requests):
-        lookup_url = u'http://example.com:8000/ws?search={term}'
+        lookup_url = u'http://example.com:8000/ws'
         config = {'config': {'lookup_url': lookup_url,
                              'name': 'my-ws-source',
-                             'timeout': s.timeout}}
+                             'timeout': s.timeout,
+                             'searched_columns': [
+                                 'firstname',
+                                 'lastname',
+                             ]}}
         term = u'dédé'
-        expected_url = lookup_url.format(term=term)
+        expected_url = u'http://example.com:8000/ws?firstname=dédé&lastname=dédé'
 
         source = CSVWSPlugin()
         source.load(config)
