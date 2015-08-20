@@ -371,14 +371,14 @@ class TestLDAPConfig(unittest.TestCase):
         self.assertEqual('(entryUUID=foo)', ldap_config.build_list_filter(uids))
 
     def test_build_list_filter_binary(self):
-        binary_uid = os.urandom(16)
+        binary_uuid = os.urandom(16)
         ldap_config = _LDAPConfig({
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
             'unique_column_format': 'binary_uuid',
         })
-        uids = [str(uuid.UUID(bytes=binary_uid))]
+        uids = [str(uuid.UUID(bytes=binary_uuid))]
 
-        self.assertEqual('(entryUUID=%s)' % binary_uid, ldap_config.build_list_filter(uids))
+        self.assertEqual('(entryUUID=%s)' % binary_uuid, ldap_config.build_list_filter(uids))
 
     def test_build_list_filter_two_items(self):
         ldap_config = _LDAPConfig({
@@ -486,7 +486,7 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.SourceResult = make_result_class(self.name, self.unique_column, self.format_columns)
 
     def test_format(self):
-        formatter = self._new_formatter(binary_uids=False)
+        formatter = self._new_formatter(has_binary_uuid=False)
 
         raw_results = [
             ('dn', {'entryUUID': ['0123'], 'givenName': ['John']}),
@@ -500,13 +500,13 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.assertEqual(expected_results, results)
 
     def test_format_with_binary_uid(self):
-        formatter = self._new_formatter(binary_uids=True)
+        formatter = self._new_formatter(has_binary_uuid=True)
 
-        binary_uid = os.urandom(16)
-        encoded_uid = uuid.UUID(bytes=binary_uid)
+        binary_uuid = os.urandom(16)
+        encoded_uid = uuid.UUID(bytes=binary_uuid)
 
         raw_results = [
-            ('dn', {'entryUUID': [binary_uid], 'givenName': ['John']}),
+            ('dn', {'entryUUID': [binary_uuid], 'givenName': ['John']}),
         ]
         expected_results = [
             self.SourceResult({'entryUUID': encoded_uid, 'givenName': 'John'})
@@ -516,6 +516,6 @@ class TestLDAPResultFormatter(unittest.TestCase):
 
         self.assertEqual(expected_results, results)
 
-    def _new_formatter(self, binary_uids):
-        self.ldap_config.has_binary_uuid.return_value = binary_uids
+    def _new_formatter(self, has_binary_uuid):
+        self.ldap_config.has_binary_uuid.return_value = has_binary_uuid
         return _LDAPResultFormatter(self.ldap_config)

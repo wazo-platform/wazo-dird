@@ -262,7 +262,7 @@ class _LDAPResultFormatter(object):
 
     def __init__(self, ldap_config):
         self._unique_column = ldap_config.unique_column()
-        self._bin_uid = ldap_config.has_binary_uuid()
+        self._bin_uuid = ldap_config.has_binary_uuid()
         self._SourceResult = make_result_class(ldap_config.name(),
                                                self._unique_column,
                                                ldap_config.format_columns())
@@ -277,7 +277,7 @@ class _LDAPResultFormatter(object):
     def _format_one_result(self, attrs):
         fields = dict((name, values[0]) for name, values in attrs.iteritems())
 
-        if self._bin_uid and self._unique_column in fields:
+        if self._bin_uuid and self._unique_column in fields:
             fields[self._unique_column] = uuid.UUID(bytes=fields[self._unique_column])
 
         return self._SourceResult(fields)
