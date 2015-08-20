@@ -503,7 +503,7 @@ class TestLDAPResultFormatter(unittest.TestCase):
         formatter = self._new_formatter(has_binary_uuid=True)
 
         binary_uuid = os.urandom(16)
-        encoded_uid = uuid.UUID(bytes=binary_uuid)
+        encoded_uid = str(uuid.UUID(bytes=binary_uuid))
 
         raw_results = [
             ('dn', {'entryUUID': [binary_uuid], 'givenName': ['John']}),

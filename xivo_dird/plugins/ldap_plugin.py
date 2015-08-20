@@ -278,6 +278,6 @@ class _LDAPResultFormatter(object):
         fields = dict((name, values[0]) for name, values in attrs.iteritems())
 
         if self._bin_uuid and self._unique_column in fields:
-            fields[self._unique_column] = uuid.UUID(bytes=fields[self._unique_column])
+            fields[self._unique_column] = str(uuid.UUID(bytes=fields[self._unique_column]))
 
         return self._SourceResult(fields)
