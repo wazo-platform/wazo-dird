@@ -16,13 +16,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import ldap
+import os
 import unittest
+import uuid
 
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from ldap.ldapobject import LDAPObject
 from mock import Mock, ANY, sentinel
-from hamcrest import assert_that, contains_inanyorder
 from xivo_dird.plugins.base_plugins import BaseSourcePlugin
 from xivo_dird.plugins.ldap_plugin import _LDAPConfig, \
     _LDAPResultFormatter, _LDAPClient, LDAPPlugin, _LDAPFactory
@@ -141,6 +142,16 @@ class TestLDAPConfig(unittest.TestCase):
         ldap_config = _LDAPConfig({})
 
         self.assertRaises(Exception, ldap_config.name)
+
+    def test_unique_column_format_field_not_set(self):
+        ldap_config = _LDAPConfig({})
+
+        self.assertFalse(ldap_config.has_binary_uuid())
+
+    def test_unique_column_format_binary_uuid(self):
+        ldap_config = _LDAPConfig({'unique_column_format': 'binary_uuid'})
+
+        self.assertTrue(ldap_config.has_binary_uuid())
 
     def test_unique_column(self):
         value = 'entryUUID'
@@ -359,6 +370,16 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertEqual('(entryUUID=foo)', ldap_config.build_list_filter(uids))
 
+    def test_build_list_filter_binary(self):
+        binary_uuid = os.urandom(16)
+        ldap_config = _LDAPConfig({
+            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
+            'unique_column_format': 'binary_uuid',
+        })
+        uids = [str(uuid.UUID(bytes=binary_uuid))]
+
+        self.assertEqual('(entryUUID=%s)' % binary_uuid, ldap_config.build_list_filter(uids))
+
     def test_build_list_filter_two_items(self):
         ldap_config = _LDAPConfig({
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
@@ -462,10 +483,11 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.ldap_config.name.return_value = self.name
         self.ldap_config.unique_column.return_value = self.unique_column
         self.ldap_config.format_columns.return_value = self.format_columns
-        self.ldap_result_formatter = _LDAPResultFormatter(self.ldap_config)
         self.SourceResult = make_result_class(self.name, self.unique_column, self.format_columns)
 
     def test_format(self):
+        formatter = self._new_formatter(has_binary_uuid=False)
+
         raw_results = [
             ('dn', {'entryUUID': ['0123'], 'givenName': ['John']}),
         ]
@@ -473,6 +495,27 @@ class TestLDAPResultFormatter(unittest.TestCase):
             self.SourceResult({'entryUUID': '0123', 'givenName': 'John'})
         ]
 
-        results = self.ldap_result_formatter.format(raw_results)
+        results = formatter.format(raw_results)
 
         self.assertEqual(expected_results, results)
+
+    def test_format_with_binary_uid(self):
+        formatter = self._new_formatter(has_binary_uuid=True)
+
+        binary_uuid = os.urandom(16)
+        encoded_uid = str(uuid.UUID(bytes=binary_uuid))
+
+        raw_results = [
+            ('dn', {'entryUUID': [binary_uuid], 'givenName': ['John']}),
+        ]
+        expected_results = [
+            self.SourceResult({'entryUUID': encoded_uid, 'givenName': 'John'})
+        ]
+
+        results = formatter.format(raw_results)
+
+        self.assertEqual(expected_results, results)
+
+    def _new_formatter(self, has_binary_uuid):
+        self.ldap_config.has_binary_uuid.return_value = has_binary_uuid
+        return _LDAPResultFormatter(self.ldap_config)

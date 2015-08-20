@@ -19,6 +19,7 @@ import ldap
 import logging
 import re
 import threading
+import uuid
 
 from ldap.filter import escape_filter_chars
 from xivo_dird import BaseSourcePlugin
@@ -90,6 +91,9 @@ class _LDAPConfig(object):
     def __init__(self, config):
         self._config = config
 
+    def has_binary_uuid(self):
+        return self._config.get('unique_column_format', 'string') == 'binary_uuid'
+
     def name(self):
         return self._config['name']
 
@@ -158,13 +162,18 @@ class _LDAPConfig(object):
         unique_column = self._config[BaseSourcePlugin.UNIQUE_COLUMN]
 
         l = []
-        for uid in uids:
+        for uid in self._convert_uids(uids):
             l.append('(%s=%s)' % (unique_column, uid))
 
         if len(l) == 1:
             return l[0]
         else:
             return '(|%s)' % ''.join(l)
+
+    def _convert_uids(self, uids):
+        if self.has_binary_uuid():
+            return [uuid.UUID(uid).bytes for uid in uids]
+        return uids
 
 
 class _LDAPClient(object):
@@ -252,14 +261,23 @@ class _LDAPClient(object):
 class _LDAPResultFormatter(object):
 
     def __init__(self, ldap_config):
+        self._unique_column = ldap_config.unique_column()
+        self._bin_uuid = ldap_config.has_binary_uuid()
         self._SourceResult = make_result_class(ldap_config.name(),
-                                               ldap_config.unique_column(),
+                                               self._unique_column,
                                                ldap_config.format_columns())
 
     def format(self, raw_results):
         results = []
         for _, attrs in raw_results:
-            fields = dict((name, values[0]) for name, values in attrs.iteritems())
-            results.append(self._SourceResult(fields))
+            results.append(self._format_one_result(attrs))
 
         return results
+
+    def _format_one_result(self, attrs):
+        fields = dict((name, values[0]) for name, values in attrs.iteritems())
+
+        if self._bin_uuid and self._unique_column in fields:
+            fields[self._unique_column] = str(uuid.UUID(bytes=fields[self._unique_column]))
+
+        return self._SourceResult(fields)
