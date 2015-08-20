@@ -1,6 +1,9 @@
 type: csv_ws
 name: my_csv
 list_url: "http://ws:9485/ws"
-lookup_url: "http://ws:9485/ws?search={term}"
+lookup_url: "http://ws:9485/ws"
 delimiter: "|"
 unique_column: id
+searched_columns:
+  - firstname
+  - lastname
