@@ -516,6 +516,21 @@ class TestLDAPResultFormatter(unittest.TestCase):
 
         self.assertEqual(expected_results, results)
 
+    def test_format_with_referals(self):
+        formatter = self._new_formatter(has_binary_uuid=False)
+
+        raw_results = [
+            ('dn', {'entryUUID': ['0123'], 'givenName': ['John']}),
+            (None, ['ldap://b.example.com/cn=test,dc=lan-quebec,dc=avencall,dc=com??sub']),
+        ]
+        expected_results = [
+            self.SourceResult({'entryUUID': '0123', 'givenName': 'John'})
+        ]
+
+        results = formatter.format(raw_results)
+
+        self.assertEqual(expected_results, results)
+
     def _new_formatter(self, has_binary_uuid):
         self.ldap_config.has_binary_uuid.return_value = has_binary_uuid
         return _LDAPResultFormatter(self.ldap_config)
