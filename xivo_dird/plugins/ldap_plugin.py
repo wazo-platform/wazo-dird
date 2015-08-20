@@ -269,7 +269,9 @@ class _LDAPResultFormatter(object):
 
     def format(self, raw_results):
         results = []
-        for _, attrs in raw_results:
+        for dn, attrs in raw_results:
+            if not dn:
+                continue
             results.append(self._format_one_result(attrs))
 
         return results
