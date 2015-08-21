@@ -21,7 +21,6 @@ import logging
 import os
 
 from cherrypy import wsgiserver
-from cherrypy.wsgiserver.ssl_builtin import BuiltinSSLAdapter
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
@@ -64,13 +63,12 @@ class CoreRestApi(object):
 
         _check_file_readable(self.config['certificate'])
         _check_file_readable(self.config['private_key'])
-        ssl_adapter = BuiltinSSLAdapter(self.config['certificate'],
-                                        self.config['private_key'])
         wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': self.app})
         server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr,
                                                wsgi_app=wsgi_app)
-        server.ssl_adapter = ssl_adapter
-
+        server.ssl_adapter = http_helpers.ssl_adapter(self.config['certificate'],
+                                                      self.config['private_key'],
+                                                      self.config.get('ciphers'))
         logger.debug('WSGIServer starting... uid: %s, listen: %s:%s', os.getuid(), bind_addr[0], bind_addr[1])
 
         list_routes(self.app)
