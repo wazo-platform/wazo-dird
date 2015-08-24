@@ -16,3 +16,4 @@ requests==2.0.0
 sqlalchemy==0.9.4  # from xivo-dao
 stevedore==0.14.1
 unidecode==0.04.9
+pyopenssl
