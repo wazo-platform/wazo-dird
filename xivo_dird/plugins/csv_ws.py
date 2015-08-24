@@ -31,6 +31,7 @@ class CSVWSPlugin(BaseSourcePlugin):
     def load(self, config):
         logger.debug('Loading with %s', config)
 
+        self._name = config['config']['name']
         self._list_url = config['config'].get('list_url')
         lookup_params = '&'.join(['%s={term}' % param
                                   for param
@@ -46,7 +47,7 @@ class CSVWSPlugin(BaseSourcePlugin):
         self._reader = _CSVReader(self._delimiter)
 
     def search(self, term, args=None):
-        logger.debug('Searching CSV WS `%s` with `%s`', self.name, term)
+        logger.debug('Searching CSV WS `%s` with `%s`', self._name, term)
         url = self._lookup_url.format(term=term)
 
         response = requests.get(url, timeout=self._timeout)
@@ -60,7 +61,7 @@ class CSVWSPlugin(BaseSourcePlugin):
                 if result]
 
     def list(self, source_entry_ids, args=None):
-        logger.debug('Listing contacts %s from CSV WS `%s`', source_entry_ids, self.name)
+        logger.debug('Listing contacts %s from CSV WS `%s`', source_entry_ids, self._name)
         if not (self._unique_column and self._list_url):
             return []
 
