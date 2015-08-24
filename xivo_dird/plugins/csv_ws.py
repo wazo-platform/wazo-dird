@@ -46,11 +46,13 @@ class CSVWSPlugin(BaseSourcePlugin):
         self._reader = _CSVReader(self._delimiter)
 
     def search(self, term, args=None):
+        logger.debug('Searching CSV WS `%s` with `%s`', self.name, term)
         url = self._lookup_url.format(term=term)
 
         response = requests.get(url, timeout=self._timeout)
 
         if response.status_code != 200:
+            logger.debug('GET %s %s', url, response.status_code)
             return []
 
         return [self._SourceResult(result)
@@ -58,6 +60,7 @@ class CSVWSPlugin(BaseSourcePlugin):
                 if result]
 
     def list(self, source_entry_ids, args=None):
+        logger.debug('Listing contacts %s from CSV WS `%s`', source_entry_ids, self.name)
         if not (self._unique_column and self._list_url):
             return []
 
