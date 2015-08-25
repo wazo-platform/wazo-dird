@@ -62,12 +62,12 @@ class TestXivoUserNoConfd(BaseDirdIntegrationTest):
         assert_that(result['results'], contains())
 
 
-class TestXivoUserSlowConfd(BaseDirdIntegrationTest):
+class TestXivoUserLateConfd(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_slow_confd'
+    asset = 'xivo_users_late_confd'
 
     def test_given_confd_slow_to_start_when_lookup_then_first_returns_no_results_then_return_right_result(self):
-        # dird is not stuck on a slow confd
+        # dird is not stuck on a late confd
         result = self.lookup('dyl', 'default')
         assert_that(result['results'], contains())
 
