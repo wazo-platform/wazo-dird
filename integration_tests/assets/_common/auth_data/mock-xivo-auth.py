@@ -31,7 +31,8 @@ def token_get(token):
     return jsonify({
         'data': {
             'auth_id': tokens[token],
-            'token': token
+            'token': token,
+            'xivo_user_uuid': ''
         }
     })
 

@@ -285,3 +285,35 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         response = self.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
+
+    @classmethod
+    def get_menu_cisco_result(self, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/menu/cisco'
+        result = requests.get(url,
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_menu_cisco(self, proxy=None, token=VALID_TOKEN):
+        response = self.get_menu_cisco_result(proxy, token)
+        assert_that(response.status_code, equal_to(200))
+        return response.text
+
+    @classmethod
+    def get_lookup_cisco_result(self, profile, proxy=None, term=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/cisco{query}'
+        query = '?term={term}'.format(term=term) if term else ''
+        result = requests.get(url.format(profile=profile,
+                                         query=query),
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_lookup_cisco(self, profile, proxy=None, term=None, token=VALID_TOKEN):
+        response = self.get_lookup_cisco_result(profile, proxy, term, token)
+        assert_that(response.status_code, equal_to(200))
+        return response.text
