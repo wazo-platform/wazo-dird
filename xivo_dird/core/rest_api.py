@@ -70,8 +70,8 @@ class CoreRestApi(object):
                                                       self.config['private_key'],
                                                       self.config.get('ciphers'))
         logger.debug('WSGIServer starting... uid: %s, listen: %s:%s', os.getuid(), bind_addr[0], bind_addr[1])
-
-        list_routes(self.app)
+        for route in http_helpers.list_routes(self.app):
+            logger.debug(route)
 
         try:
             server.start()
@@ -82,14 +82,3 @@ class CoreRestApi(object):
 def _check_file_readable(file_path):
     with open(file_path, 'r'):
         pass
-
-
-def list_routes(app):
-    output = []
-    for rule in app.url_map.iter_rules():
-        methods = ','.join(rule.methods)
-        line = "{:50s} {:20s} {}".format(rule.endpoint, methods, rule)
-        output.append(line)
-
-    for line in sorted(output):
-        logger.debug(line)
