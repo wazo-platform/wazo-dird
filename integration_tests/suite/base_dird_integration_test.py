@@ -287,17 +287,17 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.json()
 
     @classmethod
-    def get_menu_cisco_result(self, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/menu/cisco'
-        result = requests.get(url,
+    def get_menu_cisco_result(self, profile, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/menu/{profile}/cisco'
+        result = requests.get(url.format(profile=profile),
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
         return result
 
     @classmethod
-    def get_menu_cisco(self, proxy=None, token=VALID_TOKEN):
-        response = self.get_menu_cisco_result(proxy, token)
+    def get_menu_cisco(self, profile, proxy=None, token=VALID_TOKEN):
+        response = self.get_menu_cisco_result(profile, proxy, token)
         assert_that(response.status_code, equal_to(200))
         return response.text
 

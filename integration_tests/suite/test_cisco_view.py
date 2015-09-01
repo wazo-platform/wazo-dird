@@ -32,15 +32,21 @@ class TestCiscoView(BaseDirdIntegrationTest):
 
     def test_that_dird_replace_url_by_proxy(self):
         proxy_url = 'http://my-proxy.com/lookup'
-        result = self.get_menu_cisco(proxy=proxy_url)
+        result = self.get_menu_cisco(profile=self.profile, proxy=proxy_url)
 
         assert_that(result, matches_regexp(URL_REGEX.format(proxy_url)))
 
     def test_that_menu_return_lookup_url_when_no_proxy(self):
-        result = self.get_menu_cisco(token=VALID_TOKEN)
+        result = self.get_menu_cisco(profile=self.profile, token=VALID_TOKEN)
 
         assert_that(result, matches_regexp(URL_REGEX.format('/lookup')))
         assert_that(result, not_(matches_regexp(URL_REGEX.format('/menu'))))
+
+    def test_that_menu_return_lookup_url_when_profile_name_menu(self):
+        profile = 'menu'
+        result = self.get_menu_cisco(profile=profile, token=VALID_TOKEN)
+
+        assert_that(result, matches_regexp(URL_REGEX.format('/lookup/menu')))
 
     def test_that_lookup_replace_url_by_proxy(self):
         proxy_url = 'http://my-proxy.com/lookup'

@@ -40,7 +40,7 @@ TEMPLATE_CISCO_RESULTS = "cisco_results.jinja"
 
 class CiscoViewPlugin(BaseViewPlugin):
 
-    cisco_lookup_menu = '/directories/menu/cisco'
+    cisco_lookup_menu = '/directories/menu/<profile>/cisco'
     cisco_lookup = '/directories/lookup/<profile>/cisco'
 
     def load(self, args=None):
@@ -66,10 +66,10 @@ class CiscoLookupMenu(AuthResource):
         cls.lookup_service = lookup_service
         cls.jinja_env = jinja_env
 
-    def get(self):
+    def get(self, profile):
         proxy_url = request.headers.get('Proxy-URL', None)
         if not proxy_url:
-            proxy_url = request.base_url.replace('menu', 'lookup')
+            proxy_url = request.base_url.replace('menu', 'lookup', 1)
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
