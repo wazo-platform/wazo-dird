@@ -20,6 +20,7 @@ import logging
 import requests
 
 from itertools import izip
+from requests import RequestException
 from xivo_dird import BaseSourcePlugin
 from xivo_dird import make_result_class
 
@@ -50,7 +51,11 @@ class CSVWSPlugin(BaseSourcePlugin):
         logger.debug('Searching CSV WS `%s` with `%s`', self._name, term)
         url = self._lookup_url.format(term=term)
 
-        response = requests.get(url, timeout=self._timeout)
+        try:
+            response = requests.get(url, timeout=self._timeout)
+        except RequestException as e:
+            logger.error('Error connecting to %s: %s', url, e)
+            return []
 
         if response.status_code != 200:
             logger.debug('GET %s %s', url, response.status_code)
@@ -65,7 +70,11 @@ class CSVWSPlugin(BaseSourcePlugin):
         if not (self._unique_column and self._list_url):
             return []
 
-        response = requests.get(self._list_url, timeout=self._timeout)
+        try:
+            response = requests.get(self._list_url, timeout=self._timeout)
+        except RequestException as e:
+            logger.error('Error connecting to %s: %s', self._list_url, e)
+            return []
 
         if response.status_code != 200:
             return []
