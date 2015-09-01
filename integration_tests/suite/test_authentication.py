@@ -43,7 +43,7 @@ class TestAuthentication(BaseDirdIntegrationTest):
         assert_that(result.status_code, equal_to(401))
 
 
-class TestAuthenticationErrro(BaseDirdIntegrationTest):
+class TestAuthenticationError(BaseDirdIntegrationTest):
 
     asset = 'no_auth_server'
 
