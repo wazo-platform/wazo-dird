@@ -18,6 +18,7 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 from .base_dird_integration_test import VALID_TOKEN
 
 from hamcrest import assert_that
+from hamcrest import contains_string
 from hamcrest import matches_regexp
 from hamcrest import not_
 
@@ -68,3 +69,9 @@ class TestCiscoView(BaseDirdIntegrationTest):
         result = self.get_lookup_cisco(profile=self.profile, term='toto')
 
         assert_that(result, matches_regexp(TAG_REGEX.format(tag='CiscoIPPhoneDirectory')))
+
+    def test_that_lookup_return_result(self):
+        result = self.get_lookup_cisco(profile=self.profile, term='Alice')
+
+        assert_that(result, contains_string('Alice'))
+        assert_that(result, contains_string('5555555555'))

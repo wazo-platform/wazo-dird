@@ -17,6 +17,7 @@ dird:
     - "./etc/xivo-dird:/etc/xivo-dird"
     - "../../..:/usr/src/xivo-dird"
     - "./ssl:/etc/ssl"
+    - "./tmp/data:/tmp/data"
 auth:
   image: xivo-auth-mock
   ports:
