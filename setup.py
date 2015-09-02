@@ -19,6 +19,7 @@ setup(
 
     package_data={
         'xivo_dird.swagger': ['*.json'],
+        'xivo_dird.plugins.lookup_templates': ['*.jinja'],
     },
 
     scripts=['bin/xivo-dird'],
