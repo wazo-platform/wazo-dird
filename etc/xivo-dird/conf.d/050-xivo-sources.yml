@@ -1,0 +1,2 @@
+!exec
+command: xivo-confgen dird/sources.yml

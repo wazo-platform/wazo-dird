@@ -8,3 +8,5 @@ searched_columns:
     - lastname
     - mobile
     - number
+format_columns:
+    - name: '{firstname} {lastname}'
