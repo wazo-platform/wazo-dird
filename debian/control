@@ -22,6 +22,7 @@ Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
          xivo-lib-python,
+         python-jinja-2,
          python-ldap,
          python-flask,
          python-stevedore,

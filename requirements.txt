@@ -8,10 +8,11 @@ git+https://github.com/xivo-pbx/xivo-confd-client.git
 git+https://github.com/xivo-pbx/xivo-dao.git
 git+https://github.com/xivo-pbx/xivo-lib-python.git
 git+https://github.com/xivo-pbx/xivo-lib-rest-client.git  # from xivo-{auth,confd}-client
+jinja2==2.6
 psycopg2==2.4.5  # from xivo-dao
-pyyaml==3.10
 python-consul==0.4.2
 python-ldap==2.4.10
+pyyaml==3.10
 requests==2.0.0
 sqlalchemy==0.9.4  # from xivo-dao
 stevedore==0.14.1

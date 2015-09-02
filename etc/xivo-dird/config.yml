@@ -55,6 +55,7 @@ enabled_plugins:
         - default_json
         - headers_view
         - personal_view
+        - cisco_view
 
 views:
     displays:

@@ -40,8 +40,9 @@ setup(
             'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
         ],
         'xivo_dird.views': [
-            'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
+            'cisco_view = xivo_dird.plugins.cisco_view:CiscoViewPlugin',
             'default_json = xivo_dird.plugins.default_json_view:JsonViewPlugin',
+            'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
             'personal_view = xivo_dird.plugins.personal_view:PersonalViewPlugin',
         ],
     }
