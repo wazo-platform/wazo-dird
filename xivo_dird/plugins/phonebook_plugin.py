@@ -140,7 +140,7 @@ class _PhonebookResultConverter(object):
         return [self.convert(raw_result) for raw_result in raw_results]
 
     def _format_value(self, format_string, mapping):
-        valid_format_string = format_string.replace('.', '/')
+        valid_format_string = unicode(format_string.replace('.', '/'))
         return valid_format_string.format(**mapping).strip() or None
 
 

@@ -268,14 +268,14 @@ class TestPhonebookResultConverter(unittest.TestCase):
     def test_convert_value_false_doesnt_raise(self):
         raw_result = {
             'phonebook': {
-                'firstname': 'Alice',
+                'firstname': u'Éric',
                 'lastname': 'Wonder',
             },
             'phonebooknumber': False,
         }
-        expected_result = self.SourceResult({'firstname': 'Alice',
+        expected_result = self.SourceResult({'firstname': u'Éric',
                                              'lastname': 'Wonder',
-                                             'name': 'Alice Wonder',
+                                             'name': u'Éric Wonder',
                                              'number': None})
 
         result = self.pbook_result_converter.convert(raw_result)
