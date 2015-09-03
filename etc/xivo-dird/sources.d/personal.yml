@@ -9,6 +9,6 @@ searched_columns:
     - mobile
     - number
 format_columns:
-    - name: '{firstname} {lastname}'
-    - nom: '{firstname} {lastname}'
-    - phone: '{number}'
+    name: '{firstname} {lastname}'
+    nom: '{firstname} {lastname}'
+    phone: '{number}'
