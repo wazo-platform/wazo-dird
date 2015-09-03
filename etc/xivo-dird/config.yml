@@ -47,6 +47,10 @@ enabled_plugins:
     backends:
         - personal
         - xivo
+        - phonebook
+        - csv
+        - csv_ws
+        - ldap
     services:
         - favorites
         - lookup
