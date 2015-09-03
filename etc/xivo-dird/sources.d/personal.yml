@@ -10,3 +10,5 @@ searched_columns:
     - number
 format_columns:
     - name: '{firstname} {lastname}'
+    - nom: '{firstname} {lastname}'
+    - phone: '{number}'
