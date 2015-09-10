@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 class XivoUserPlugin(BaseSourcePlugin):
 
+    _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield', 'description', 'mobile_phone_number']
+
     def __init__(self, ConfdClientClass=Client):
         self._ConfdClientClass = ConfdClientClass
         self._client = None
@@ -103,14 +105,7 @@ class XivoUserPlugin(BaseSourcePlugin):
         return (user for user in users['items'])
 
     def _source_result_from_entry(self, entry, uuid):
-        fields = {
-            'id': entry['id'],
-            'exten': entry.get('exten', ''),
-            'firstname': entry.get('firstname', ''),
-            'lastname': entry.get('lastname', ''),
-            'mobile_phone_number': entry.get('mobile_phone_number', '')
-        }
-        return self._SourceResult(fields,
+        return self._SourceResult({key: entry.get(key) for key in self._valid_keys},
                                   xivo_id=uuid,
                                   agent_id=entry['agent_id'],
                                   user_id=entry['id'],
