@@ -27,6 +27,135 @@
         "application/json"
     ],
     "paths": {
+        "/directories/menu/{profile}/cisco": {
+            "get": {
+                "summary": "Extends the directories menu for Cisco Unified IP Phones",
+                "description": "The `menu` query will return a XML to extend the directories menu for Cisco Unified IP Phones.",
+                "operationId": "cisco_menu",
+                "tags": [
+                    "directories",
+                    "cisco",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "XML to extend the directories menu",
+                        "schema": {
+                            "$ref": "#/definitions/CiscoIPPhoneMenu"
+                        },
+                        "examples": {
+                            "text/xml": "<CiscoIPPhoneMenu> <MenuItem> <Name>XiVO Directory</Name> <URL>http://proxy-url?vendor=cisco'&amp;xivo_user_uuid=1234</URL> </MenuItem> </CiscoIPPhoneMenu>"
+                        }
+                    },
+                    "404": {
+                        "description": "The lookup profile does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "profile",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The profile defines the list of directories to query and how the results are displayed. Used to generate lookup URL",
+                        "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    },
+                    {
+                        "name": "Proxy-URL",
+                        "in": "header",
+                        "type": "string",
+                        "required": false,
+                        "description": "URL that will be integrated in the XML response. (not working on swagger 2.1"
+                    }
+                ]
+            }
+        },
+        "/directories/lookup/{profile}/cisco": {
+            "get": {
+                "summary": "Search for contacts with Cisco Unified IP Phones",
+                "description": " The `lookup` query will return a list of result matching the searched term formated for Cisco Unified IP Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `cisco_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "operationId": "cisco_lookup",
+                "tags": [
+                    "directories",
+                    "cisco",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "XML to extend the directories menu",
+                        "schema": {
+                            "$ref": "#/definitions/CiscoIPPhoneDirectory"
+                        },
+                        "examples": {
+                            "text/xml": " <CiscoIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> </CiscoIPPhoneDirectory>"
+                        }
+                    },
+                    "404": {
+                        "description": "The lookup profile does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "profile",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The profile defines the list of directories to query and how the results are displayed. Used to generate lookup URL",
+                        "required": true
+                    },
+                    {
+                        "name": "term",
+                        "in": "query",
+                        "type": "string",
+                        "description": "A search term to look for",
+                        "required": false
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    },
+                    {
+                        "name": "Proxy-URL",
+                        "in": "header",
+                        "type": "string",
+                        "required": false,
+                        "description": "URL that will be integrated in the XML response. (not working on swagger 2.1"
+                    }
+                ]
+            }
+        },
         "/directories/lookup/{profile}": {
             "get": {
                 "summary": "Search for contacts",
@@ -785,6 +914,57 @@
                     }
                 }
             }
+        },
+        "CiscoIPPhoneDirectory": {
+            "properties": {
+                "DirectoryEntry": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CiscoDirectoryEntry"
+                    }
+                }
+            },
+            "required": [
+                "DirectoryEntry"
+            ]
+        },
+        "CiscoDirectoryEntry": {
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Telephone": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Name",
+                "Telephone"
+            ]
+        },
+        "CiscoIPPhoneMenu": {
+            "properties": {
+                "MenuItem": {
+                    "$ref": "#/definitions/CiscoMenuItem"
+                }
+            },
+            "required": [
+                "MenuItem"
+            ]
+        },
+        "CiscoMenuItem": {
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "URL": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Name",
+                "URL"
+            ]
         }
     }
 }
