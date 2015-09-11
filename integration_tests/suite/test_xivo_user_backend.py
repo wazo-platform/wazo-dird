@@ -62,12 +62,12 @@ class TestXivoUserNoConfd(BaseDirdIntegrationTest):
         assert_that(result['results'], contains())
 
 
-class TestXivoUserSlowConfd(BaseDirdIntegrationTest):
+class TestXivoUserLateConfd(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_slow_confd'
+    asset = 'xivo_users_late_confd'
 
     def test_given_confd_slow_to_start_when_lookup_then_first_returns_no_results_then_return_right_result(self):
-        # dird is not stuck on a slow confd
+        # dird is not stuck on a late confd
         result = self.lookup('dyl', 'default')
         assert_that(result['results'], contains())
 
@@ -181,6 +181,37 @@ class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
 class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
 
     asset = 'xivo_users_two_working_one_404'
+
+    def test_lookup_multiple_xivo(self):
+        result = self.lookup('ar', 'default')
+
+        expected_result = [
+            {
+                'column_values': ['Mary', 'Sue', '1465', None],
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': None,
+                              'endpoint_id': 2,
+                              'user_id': 2,
+                              'source_entry_id': '2'},
+                'source': 'xivo_america',
+            },
+            {
+                'column_values': ['Charles', 'Kenedy', '', None],
+                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                              'agent_id': None,
+                              'endpoint_id': None,
+                              'user_id': 100,
+                              'source_entry_id': '100'},
+                'source': 'xivo_america',
+            }
+        ]
+
+        assert_that(result['results'], contains_inanyorder(*expected_result))
+
+
+class TestXivoUserMultipleXivoOneTimeout(BaseDirdIntegrationTest):
+
+    asset = 'xivo_users_two_working_one_timeout'
 
     def test_lookup_multiple_xivo(self):
         result = self.lookup('ar', 'default')

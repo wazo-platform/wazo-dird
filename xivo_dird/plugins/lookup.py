@@ -48,12 +48,15 @@ class LookupServicePlugin(BaseServicePlugin):
 class _LookupService(object):
 
     def __init__(self, config, sources):
-        self._config = config
+        self._global_config = config
         self._sources = sources
         self._executor = ThreadPoolExecutor(max_workers=10)
 
     def stop(self):
         self._executor.shutdown()
+
+    def _config(self, profile):
+        return self._global_config.get('services', {}).get('lookup', {}).get(profile, {})
 
     def _async_search(self, source, term, args):
         future = self._executor.submit(source.search, term, args)
@@ -67,8 +70,8 @@ class _LookupService(object):
             futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}
-        if 'lookup_timeout' in self._config:
-            params['timeout'] = self._config['lookup_timeout']
+        if 'timeout' in self._config(profile):
+            params['timeout'] = self._config(profile)['timeout']
 
         done, _ = wait(futures, **params)
         results = []
@@ -78,9 +81,8 @@ class _LookupService(object):
         return results
 
     def _source_by_profile(self, profile):
-        lookup_config = self._config.get('services', {}).get('lookup', {})
         try:
-            source_names = lookup_config[profile]['sources']
+            source_names = self._config(profile)['sources']
         except KeyError:
             logger.warning('Cannot find lookup sources for profile %s', profile)
             return []

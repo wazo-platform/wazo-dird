@@ -1,0 +1,46 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - auth
+    - dird
+    - america
+    - europe
+    - asia
+  environment:
+    PORTS: "9489 8000 8000 8000 9497"
+dird:
+  image: xivo-dird-test
+  ports:
+    - "9489:9489"
+  volumes:
+    - "./etc/xivo-dird:/etc/xivo-dird"
+    - "../../..:/usr/src/xivo-dird"
+    - "./ssl:/etc/ssl"
+  links:
+    - auth
+    - america
+    - asia
+    - europe
+america:
+  image: python:2.7
+  volumes:
+    - "./confd_data:/tmp"
+  command: "/tmp/run_confd america"
+europe:
+  image: nickstenning/flask
+  volumes:
+    - "./confd_data:/tmp"
+  command: "/tmp/run_confd_timeout 3"
+asia:
+  image: python:2.7
+  volumes:
+    - "./confd_data:/tmp"
+  command: "/tmp/run_confd asia"
+auth:
+  image: xivo-auth-mock
+  ports:
+    - "9497:9497"
+  volumes:
+    - "./auth_data:/tmp"
+    - "./ssl:/etc/ssl"
+  command: "python /tmp/mock-xivo-auth.py 9497"
