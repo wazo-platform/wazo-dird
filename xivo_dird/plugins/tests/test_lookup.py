@@ -108,7 +108,7 @@ class TestLookupService(unittest.TestCase):
                 'lookup': {
                     'my_profile': {
                         'sources': ['source_1', 'source_3'],
-                        'timeout': '1',
+                        'timeout': 1,
                     }
                 }
             }
@@ -139,7 +139,7 @@ class TestLookupService(unittest.TestCase):
                 'lookup': {
                     'my_profile': {
                         'sources': ['source_1', 'source_3'],
-                        'timeout': '1',
+                        'timeout': 1,
                     }
                 }
             }
