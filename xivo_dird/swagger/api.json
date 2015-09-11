@@ -108,7 +108,7 @@
                             "$ref": "#/definitions/CiscoIPPhoneDirectory"
                         },
                         "examples": {
-                            "text/xml": " <CiscoIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> </CiscoIPPhoneDirectory>"
+                            "text/xml": " <CiscoIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> </CiscoIPPhoneDirectory><SoftKeyItem> <Name>PrevPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> <Position>2</Position> </SoftKeyItem> <SoftKeyItem> <Name>Exit</Name> <URL>SoftKey:Exit</URL> <Position>3</Position> </SoftKeyItem> <SoftKeyItem> <Name>NextPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> <Position>4</Position> </SoftKeyItem> </CiscoIPPhoneDirectory>"
                         }
                     },
                     "404": {
@@ -137,6 +137,22 @@
                         "in": "query",
                         "type": "string",
                         "description": "A search term to look for",
+                        "required": false
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "type": "integer",
+                        "description": "The limit defines the number of individual objects that are returned. Default: 16",
+                        "default": 0,
+                        "required": false
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "type": "integer",
+                        "description": "The offset defines the offsets the start by the number specified. Default: 0",
+                        "default": 0,
                         "required": false
                     },
                     {
@@ -198,6 +214,22 @@
                         "type": "string",
                         "description": "A search term to look for",
                         "required": true
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "type": "integer",
+                        "description": "The limit defines the number of individual objects that are returned. Default: None",
+                        "default": 0,
+                        "required": false
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "type": "integer",
+                        "description": "The offset defines the offsets the start by the number specified. Default: 0",
+                        "default": 0,
+                        "required": false
                     },
                     {
                         "name": "X-Auth-Token",
@@ -811,6 +843,44 @@
                 "term": {
                     "type": "string",
                     "description": "Search term used for these results"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Limit used for these results"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Offset used for these results"
+                },
+                "total": {
+                    "type": "integer",
+                    "description": "Total results returned"
+                },
+                "links": {
+                    "$ref": "#/definitions/Links"
+                }
+            },
+            "required": [
+                "column_headers",
+                "column_types",
+                "limit",
+                "offset",
+                "results",
+                "term",
+                "total",
+                "links"
+            ]
+        },
+        "Links": {
+            "description": "Links to navigate through all results",
+            "properties": {
+                "next": {
+                    "type": "string",
+                    "description": "URL to retrieve next page of results. Doesn't exist if no next results"
+                },
+                "previous": {
+                    "type": "string",
+                    "description": "URL to retrieve previous page of results. Doesn't exist if no previous results"
                 }
             }
         },
