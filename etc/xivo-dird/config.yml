@@ -79,7 +79,7 @@ views:
             -
                 title: Mobile
                 field: mobile
-                type: mobile
+                type: callable
             -
                 title: Favorite
                 field: favorite
