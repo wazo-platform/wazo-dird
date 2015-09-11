@@ -89,6 +89,9 @@ class _LDAPConfig(object):
     DEFAULT_LDAP_TIMEOUT = 1.0
 
     def __init__(self, config):
+        if not config.get('ldap_custom_filter') and not config.get(BaseSourcePlugin.SEARCHED_COLUMNS):
+            raise LookupError("%s need a searched_columns OR ldap_custom_filter in it's configuration" % config.get('name'))
+
         self._config = config
 
     def has_binary_uuid(self):
@@ -140,9 +143,17 @@ class _LDAPConfig(object):
         # Note that this function might return an invalid filter if the config
         # use an incorrectly written custom filter.
         term_escaped = escape_filter_chars(term)
-        if 'ldap_custom_filter' in self._config:
+
+        ldap_custom_filter = self._config.get('ldap_custom_filter')
+        searched_columns = self._config.get(BaseSourcePlugin.SEARCHED_COLUMNS)
+
+        if ldap_custom_filter and searched_columns:
+            custom_filter = self._build_search_filter_from_custom_filter(term_escaped)
+            generated_filter = self._build_search_filter_from_searched_columns(term_escaped)
+            return '(&{custom}{generated})'.format(custom=custom_filter, generated=generated_filter)
+        elif ldap_custom_filter:
             return self._build_search_filter_from_custom_filter(term_escaped)
-        else:
+        elif searched_columns:
             return self._build_search_filter_from_searched_columns(term_escaped)
 
     def _build_search_filter_from_custom_filter(self, term_escaped):

@@ -131,142 +131,149 @@ class _TestLDAPFactory(unittest.TestCase):
 
 class TestLDAPConfig(unittest.TestCase):
 
+    def new_ldap_config(self, config):
+        config.update({BaseSourcePlugin.SEARCHED_COLUMNS: ['cn']})
+        return _LDAPConfig(config)
+
+    def test_that_a_config_without_searched_columns_or_filter_raises(self):
+        self.assertRaises(LookupError, _LDAPConfig, {})
+
     def test_name(self):
         value = 'foo'
 
-        ldap_config = _LDAPConfig({'name': value})
+        ldap_config = self.new_ldap_config({'name': value})
 
         self.assertEqual(value, ldap_config.name())
 
     def test_name_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertRaises(Exception, ldap_config.name)
 
     def test_unique_column_format_field_not_set(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertFalse(ldap_config.has_binary_uuid())
 
     def test_unique_column_format_binary_uuid(self):
-        ldap_config = _LDAPConfig({'unique_column_format': 'binary_uuid'})
+        ldap_config = self.new_ldap_config({'unique_column_format': 'binary_uuid'})
 
         self.assertTrue(ldap_config.has_binary_uuid())
 
     def test_unique_column(self):
         value = 'entryUUID'
 
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.UNIQUE_COLUMN: value,
         })
 
         self.assertEqual(value, ldap_config.unique_column())
 
     def test_unique_column_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertEqual(None, ldap_config.unique_column())
 
     def test_format_columns(self):
         value = {'firstname': '{givenName}'}
 
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.FORMAT_COLUMNS: value,
         })
 
         self.assertEqual(value, ldap_config.format_columns())
 
     def test_format_columns_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertEqual(None, ldap_config.format_columns())
 
     def test_ldap_uri(self):
         value = 'ldap://example.org'
 
-        ldap_config = _LDAPConfig({'ldap_uri': value})
+        ldap_config = self.new_ldap_config({'ldap_uri': value})
 
         self.assertEqual(value, ldap_config.ldap_uri())
 
     def test_ldap_uri_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertRaises(Exception, ldap_config.ldap_uri)
 
     def test_ldap_base_dn(self):
         value = 'ou=people,dc=example,dc=org'
 
-        ldap_config = _LDAPConfig({'ldap_base_dn': value})
+        ldap_config = self.new_ldap_config({'ldap_base_dn': value})
 
         self.assertEqual(value, ldap_config.ldap_base_dn())
 
     def test_ldap_base_dn_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertRaises(Exception, ldap_config.ldap_base_dn)
 
     def test_ldap_username(self):
         value = 'john'
 
-        ldap_config = _LDAPConfig({'ldap_username': value})
+        ldap_config = self.new_ldap_config({'ldap_username': value})
 
         self.assertEqual(value, ldap_config.ldap_username())
 
     def test_ldap_username_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertEqual(_LDAPConfig.DEFAULT_LDAP_USERNAME, ldap_config.ldap_username())
 
     def test_ldap_password(self):
         value = 'foobar'
 
-        ldap_config = _LDAPConfig({'ldap_password': value})
+        ldap_config = self.new_ldap_config({'ldap_password': value})
 
         self.assertEqual(value, ldap_config.ldap_password())
 
     def test_ldap_password_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertEqual(_LDAPConfig.DEFAULT_LDAP_PASSWORD, ldap_config.ldap_password())
 
     def test_ldap_network_timeout(self):
         value = 4.0
 
-        ldap_config = _LDAPConfig({'ldap_network_timeout': value})
+        ldap_config = self.new_ldap_config({'ldap_network_timeout': value})
 
         self.assertEqual(value, ldap_config.ldap_network_timeout())
 
     def test_ldap_network_timeout_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertEqual(_LDAPConfig.DEFAULT_LDAP_NETWORK_TIMEOUT, ldap_config.ldap_network_timeout())
 
     def test_ldap_timeout(self):
         value = 42.0
 
-        ldap_config = _LDAPConfig({'ldap_timeout': value})
+        ldap_config = self.new_ldap_config({'ldap_timeout': value})
 
         self.assertEqual(value, ldap_config.ldap_timeout())
 
     def test_ldap_timeout_when_absent(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertEqual(_LDAPConfig.DEFAULT_LDAP_TIMEOUT, ldap_config.ldap_timeout())
 
     def test_attributes_with_nothing(self):
-        ldap_config = _LDAPConfig({})
+        ldap_config = self.new_ldap_config({})
 
         self.assertEqual(None, ldap_config.attributes())
 
     def test_attributes_with_unique_column_only_returns_none(self):
-        ldap_config = _LDAPConfig({
-            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID'
+        ldap_config = self.new_ldap_config({
+            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
         })
 
         self.assertEquals(None, ldap_config.attributes())
 
     def test_attributes_with_format_columns(self):
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.FORMAT_COLUMNS: {
                 'firstname': '{givenName}',
                 'lastname': '{sn}',
@@ -276,7 +283,7 @@ class TestLDAPConfig(unittest.TestCase):
         assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn'))
 
     def test_attributes_with_unique_column_and_format_columns(self):
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.FORMAT_COLUMNS: {
                 'firstname': '{givenName}',
                 'lastname': '{sn}',
@@ -287,7 +294,7 @@ class TestLDAPConfig(unittest.TestCase):
         assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn', 'uid'))
 
     def test_attributes_with_unique_column_in_format_columns(self):
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.FORMAT_COLUMNS: {
                 'firstname': '{givenName}',
                 'lastname': '{sn}',
@@ -304,25 +311,20 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertEqual('(cn=*foo*)', ldap_config.build_search_filter('foo'))
 
-    def test_build_search_filter_with_searched_columns_and_with_custom_filter(self):
+    def test_build_search_filter_without_searched_columns_and_with_custom_filter(self):
         ldap_config = _LDAPConfig({
             'ldap_custom_filter': '(cn=*%Q*)',
         })
 
         self.assertEqual('(cn=*foo*)', ldap_config.build_search_filter('foo'))
 
-    def test_build_search_filter_without_searched_columns_and_with_custom_filter(self):
+    def test_build_search_filter_with_searched_columns_and_custom_filter(self):
         ldap_config = _LDAPConfig({
             BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
             'ldap_custom_filter': '(cn=*%Q*)',
         })
 
-        self.assertEqual('(cn=*foo*)', ldap_config.build_search_filter('foo'))
-
-    def test_build_search_filter_without_searched_columns_and_without_custom_filter(self):
-        ldap_config = _LDAPConfig({})
-
-        self.assertRaises(Exception, ldap_config.build_search_filter, 'foo')
+        self.assertEqual('(&(cn=*foo*)(sn=*foo*))', ldap_config.build_search_filter('foo'))
 
     def test_build_search_filter_searched_columns_escape_term(self):
         ldap_config = _LDAPConfig({
@@ -355,7 +357,7 @@ class TestLDAPConfig(unittest.TestCase):
         self.assertEqual(expected, ldap_config.build_search_filter(term))
 
     def test_build_list_filter_no_item(self):
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
         })
         uids = []
@@ -363,7 +365,7 @@ class TestLDAPConfig(unittest.TestCase):
         self.assertFalse(ldap_config.build_list_filter(uids))
 
     def test_build_list_filter_one_item(self):
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
         })
         uids = ['foo']
@@ -372,7 +374,7 @@ class TestLDAPConfig(unittest.TestCase):
 
     def test_build_list_filter_binary(self):
         binary_uuid = os.urandom(16)
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
             'unique_column_format': 'binary_uuid',
         })
@@ -381,7 +383,7 @@ class TestLDAPConfig(unittest.TestCase):
         self.assertEqual('(entryUUID=%s)' % binary_uuid, ldap_config.build_list_filter(uids))
 
     def test_build_list_filter_two_items(self):
-        ldap_config = _LDAPConfig({
+        ldap_config = self.new_ldap_config({
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
         })
         uids = ['foo', 'bar']
