@@ -80,8 +80,12 @@ class _SourceResult(object):
         return not self == other
 
     def __repr__(self):
-        fields = ', '.join(repr(v) for v in self.fields.values())
-        return '<%s(%s)%s>' % (self.__class__.__name__, fields, self.relations)
+        return '%s(%s, %s, %s, %s, %s)' % (self.__class__.__name__,
+                                           self.fields,
+                                           self.relations['xivo_id'],
+                                           self.relations['agent_id'],
+                                           self.relations['user_id'],
+                                           self.relations['endpoint_id'])
 
 
 def make_result_class(source_name, unique_column=None, format_columns=None, is_deletable=False, is_personal=False):

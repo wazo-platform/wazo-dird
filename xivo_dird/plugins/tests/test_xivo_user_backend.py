@@ -45,6 +45,8 @@ CONFD_USER_1 = {
     "id": 226,
     "lastname": "",
     "line_id": 123,
+    'userfield': None,
+    'description': None,
     "links": [
         {
             "href": "http://localhost:9487/1.1/users/226",
@@ -64,6 +66,8 @@ SOURCE_1 = SourceResult(
      'exten': '666',
      'firstname': 'Louis-Jean',
      'lastname': '',
+     'userfield': None,
+     'description': None,
      'mobile_phone_number': '5555551234'},
     xivo_id=UUID,
     agent_id=42,
@@ -78,6 +82,8 @@ CONFD_USER_2 = {
     "id": 227,
     "lastname": "",
     "line_id": 320,
+    'userfield': '555',
+    'description': 'here',
     "links": [
         {
             "href": "http://localhost:9487/1.1/users/227",
@@ -96,7 +102,9 @@ SOURCE_2 = SourceResult(
      'exten': '1234',
      'firstname': 'Paul',
      'lastname': '',
-     'mobile_phone_number': ''},
+     'mobile_phone_number': '',
+     'userfield': '555',
+     'description': 'here'},
     xivo_id=UUID,
     user_id=227,
     endpoint_id=320,
@@ -216,7 +224,9 @@ class TestXivoUserBackendInitialisation(_BaseTest):
                                  'exten': '1234',
                                  'firstname': 'Paul',
                                  'lastname': '',
-                                 'mobile_phone_number': ''},
+                                 'mobile_phone_number': '',
+                                 'userfield': '555',
+                                 'description': 'here'},
                                 xivo_id=UUID, user_id=227, endpoint_id=320)
 
         assert_that(result, equal_to(expected))
