@@ -1,5 +1,5 @@
 #!/bin/sh
 
-sleep 5
+sleep 10
 cd /tmp
 python -m SimpleHTTPServer

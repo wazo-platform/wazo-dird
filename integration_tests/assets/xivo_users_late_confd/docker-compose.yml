@@ -5,7 +5,7 @@ sync:
     - dird
     # - confd  # not confd, we WANT it to take time to start
   environment:
-    PORTS: "9489 8000 9497"
+    PORTS: "9489 9497"
 dird:
   image: xivo-dird-test
   ports:
