@@ -119,7 +119,7 @@ class CiscoLookup(AuthResource):
         lookup_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos)
 
         template = self.jinja_env.get_template(TEMPLATE_CISCO_RESULTS)
-        context = {'results': lookup_results}
+        context = {'results': lookup_results['results']}
         response_xml = template.render(context)
 
         return Response(response_xml, content_type='text/xml', status=200)

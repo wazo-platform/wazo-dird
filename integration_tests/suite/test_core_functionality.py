@@ -28,6 +28,7 @@ from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import is_in
 from hamcrest import is_not
+from hamcrest import has_key
 
 
 class TestCoreSourceManagement(BaseDirdIntegrationTest):
@@ -51,6 +52,53 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
+
+
+class TestCoreSortLookup(BaseDirdIntegrationTest):
+
+    asset = 'sort_lookup'
+
+    def test_given_invalid_offset_then_lookup_return_404(self):
+        result = self.get_lookup_result('A', 'default', token=VALID_TOKEN, offset=-1)
+        assert_that(result.status_code, equal_to((404)))
+
+    def test_given_invalid_limit_then_lookup_return_404(self):
+        result = self.get_lookup_result('A', 'default', token=VALID_TOKEN, limit=-1)
+        assert_that(result.status_code, equal_to((404)))
+
+    def test_lookup_return_offset_when_has_more_results(self):
+        result = self.lookup('A', 'default', limit=1, offset=1)
+
+        assert_that(result['links'], has_key('next'))
+        assert_that(result['links'], has_key('previous'))
+        assert_that(result['links']['next'], contains_string('limit=1&offset=2'))
+        assert_that(result['links']['previous'], contains_string('limit=1&offset=0'))
+
+    def test_lookup_not_return_offset_when_has_no_limit_results(self):
+        result = self.lookup('A', 'default')
+
+        assert_that(result['links'], is_not(has_key('next')))
+        assert_that(result['links'], is_not(has_key('previous')))
+
+    def test_lookup_return_results_sorted(self):
+        result = self.lookup('A', 'default')
+
+        expected_results = [
+            {'column_values': ['AAA', 'BBB', '5555555555'],
+             'source': 'my_csv',
+             'relations': {'xivo_id': None, 'user_id': None,
+                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
+            {'column_values': ['AAA', 'BBD', '5555555555'],
+             'source': 'my_csv',
+             'relations': {'xivo_id': None, 'user_id': None,
+                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
+            {'column_values': ['BAA', 'AAA', '5555555555'],
+             'source': 'my_csv',
+             'relations': {'xivo_id': None, 'user_id': None,
+                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
+        ]
+        assert_that(result['results'], equal_to(expected_results))
+        assert_that(result['total'], equal_to(3))
 
 
 class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):

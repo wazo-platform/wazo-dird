@@ -98,6 +98,9 @@ services:
                 - xivo_users
                 - personal
             timeout: 0.5
+            sort:
+                - name
+                - number
     favorites:
         default:
             sources:

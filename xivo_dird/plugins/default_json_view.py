@@ -30,6 +30,8 @@ from xivo_dird.core.rest_api import api
 logger = logging.getLogger(__name__)
 
 parser = reqparse.RequestParser()
+parser.add_argument('limit', type=int, required=False, help='limit cannot be converted', location='args')
+parser.add_argument('offset', type=int, required=False, help='offset cannot be converted', location='args')
 parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
 
@@ -97,6 +99,8 @@ class Lookup(AuthResource):
     def get(self, profile):
         args = parser.parse_args()
         term = args['term']
+        limit = args['limit']
+        offset = 0 if args['offset'] is None else args['offset']
 
         logger.info('Lookup for %s with profile %s', term, profile)
 
@@ -108,10 +112,31 @@ class Lookup(AuthResource):
             }
             return error, 404
 
+        if limit is not None and limit < 0:
+            error = {
+                'reason': ['The limit should be positive'],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
+
+        if offset < 0:
+            error = {
+                'reason': ['The offset should be positive'],
+                'timestamp': [time()],
+                'status_code': 404,
+            }
+            return error, 404
+
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
 
-        raw_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos)
+        raw_results = self.lookup_service.lookup(term,
+                                                 profile,
+                                                 args={},
+                                                 token_infos=token_infos,
+                                                 limit=limit,
+                                                 offset=offset)
         try:
             favorites = self.favorite_service.favorite_ids(profile, token_infos)
         except self.favorite_service.FavoritesServiceException as e:
@@ -119,9 +144,26 @@ class Lookup(AuthResource):
             favorites = []
 
         formatter = _ResultFormatter(self.displays[profile])
-        response = formatter.format_results(raw_results, favorites)
+        response = formatter.format_results(raw_results['results'], favorites)
 
-        response.update({'term': term})
+        response.update({'term': term,
+                         'limit': raw_results['limit'],
+                         'offset': raw_results['offset'],
+                         'total': len(raw_results['results']),
+                         'links': {}})
+
+        uri = '{url}?term={term}&limit={limit}&offset={offset}'
+        if raw_results['next_offset'] is not None:
+            response['links']['next'] = uri.format(url=request.base_url,
+                                                   term=term,
+                                                   limit=limit,
+                                                   offset=raw_results['next_offset'])
+        if raw_results['previous_offset'] is not None:
+            response['links']['previous'] = uri.format(url=request.base_url,
+                                                       term=term,
+                                                       limit=limit,
+                                                       offset=raw_results['previous_offset'])
+
         return response
 
 
