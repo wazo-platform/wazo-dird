@@ -1,0 +1,44 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - auth
+    - consul
+    - dird
+    - slapd
+  environment:
+    PORTS: "389 8500 9489 9497"
+dird:
+  image: xivo-dird-test
+  ports:
+    - "9489:9489"
+  volumes:
+    - "./etc/xivo-dird:/etc/xivo-dird"
+    - "../../..:/usr/src/xivo-dird"
+    - "./ssl:/etc/ssl"
+  links:
+    - auth
+    - consul
+    - slapd
+slapd:
+  image: nickstenning/slapd
+  environment:
+    LDAP_DOMAIN: xivo-dird.xivo.io
+    LDAP_ORGANISATION: acme
+    LDAP_ROOTPASS: xivopassword
+  ports:
+    - "3899:389"
+auth:
+  image: xivo-auth-mock
+  ports:
+    - "9497:9497"
+  volumes:
+    - "./auth_data:/tmp"
+    - "./ssl:/etc/ssl"
+  command: "python /tmp/mock-xivo-auth.py 9497"
+consul:
+  image: nickstenning/flask
+  expose:
+    - "8500"
+  volumes:
+    - "./consul_data:/tmp"
+  command: "python /tmp/mock-consul.py 8500"

@@ -28,7 +28,7 @@ from hamcrest import contains_inanyorder
 from hamcrest import empty
 from hamcrest import has_entry
 
-Contact = namedtuple('Contact', ['firstname', 'lastname', 'number'])
+Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
 
 
 class LDAPHelper(object):
@@ -61,6 +61,7 @@ class LDAPHelper(object):
             'givenName': [contact.firstname],
             'sn': [contact.lastname],
             'telephoneNumber': [contact.number],
+            'l': [contact.city],
         })
 
         self._ldap_obj.add_s(dn, modlist)
@@ -92,9 +93,9 @@ class TestLDAP(BaseDirdIntegrationTest):
     asset = 'ldap'
 
     CONTACTS = [
-        Contact('Alice', 'Wonderland', '1001'),
-        Contact('Bob', 'Barker', '1002'),
-        Contact('Connor', 'Manson', '1003'),
+        Contact('Alice', 'Wonderland', '1001', 'Lyon'),
+        Contact('Bob', 'Barker', '1002', 'Lyon'),
+        Contact('Connor', 'Manson', '1003', 'QC'),
     ]
     entry_uuids = []
 
@@ -134,3 +135,36 @@ class TestLDAP(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'Wonderland', '1001')),
             has_entry('column_values', contains('Connor', 'Manson', '1003'))))
+
+
+class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
+
+    asset = 'ldap_city'
+
+    CONTACTS = [
+        Contact('Alice', 'Wonderland', '1001', 'Lyon'),
+        Contact('Bob', 'Barker', '1002', 'Lyon'),
+        Contact('Connor', 'Manson', '1003', 'QC'),
+    ]
+    entry_uuids = []
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestLDAPWithCustomFilter, cls).setUpClass()
+
+        try:
+            cls.entry_uuids = add_contacts(cls.CONTACTS)
+        except Exception:
+            super(TestLDAPWithCustomFilter, cls).tearDownClass()
+            raise
+
+    def test_lookup_on_cn(self):
+        result = self.lookup('Ali', 'default')
+
+        assert_that(result['results'][0]['column_values'],
+                    contains('Alice', 'Wonderland', '1001'))
+
+    def test_no_result_because_of_the_custom_filter(self):
+        result = self.lookup('connor', 'default')
+
+        assert_that(result['results'], empty())
