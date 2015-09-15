@@ -35,6 +35,12 @@ parser.add_argument('offset', type=int, required=False, help='offset cannot be c
 parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
 
+def _error(code, msg):
+    return {'reason': [msg],
+            'timestamp': [time()],
+            'status_code': code}, code
+
+
 class JsonViewPlugin(BaseViewPlugin):
 
     lookup_url = '/directories/lookup/<profile>'
@@ -105,28 +111,11 @@ class Lookup(AuthResource):
         logger.info('Lookup for %s with profile %s', term, profile)
 
         if profile not in self.displays:
-            error = {
-                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
-            return error, 404
-
+            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
         if limit is not None and limit < 0:
-            error = {
-                'reason': ['The limit should be positive'],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
-            return error, 404
-
+            return _error(404, 'The limit should be positive')
         if offset < 0:
-            error = {
-                'reason': ['The offset should be positive'],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
-            return error, 404
+            return _error(404, 'The offset should be positive')
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -179,12 +168,7 @@ class FavoritesRead(AuthResource):
     def get(self, profile):
         logger.debug('Listing favorites with profile %s', profile)
         if profile not in self.displays:
-            error = {
-                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
-            return error, 404
+            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
 
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
@@ -192,12 +176,7 @@ class FavoritesRead(AuthResource):
         try:
             raw_results = self.favorites_service.favorites(profile, token_infos)
         except self.favorites_service.FavoritesServiceException as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 503,
-            }
-            return error, 503
+            return _error(503, str(e))
 
         formatter = _FavoriteResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results)
@@ -218,12 +197,7 @@ class FavoritesWrite(AuthResource):
         try:
             self.favorites_service.new_favorite(directory, contact, token_infos)
         except self.favorites_service.FavoritesServiceException as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 503,
-            }
-            return error, 503
+            return _error(503, str(e))
         return '', 204
 
     def delete(self, directory, contact):
@@ -234,19 +208,9 @@ class FavoritesWrite(AuthResource):
             self.favorites_service.remove_favorite(directory, contact, token_infos)
             return '', 204
         except self.favorites_service.NoSuchFavorite as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
-            return error, 404
+            return _error(404, str(e))
         except self.favorites_service.FavoritesServiceException as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 503,
-            }
-            return error, 503
+            return _error(503, str(e))
 
 
 class Personal(AuthResource):
@@ -268,22 +232,13 @@ class Personal(AuthResource):
         token_infos = auth.client().token.get(token)
 
         if profile not in self.displays:
-            error = {
-                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
-            return error, 404
+            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
 
         try:
             raw_results = self.personal_service.list_contacts(token_infos)
         except self.personal_service.PersonalServiceException as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 503,
-            }
-            return error, 503
+            return _error(503, str(e))
+
         favorites = self.favorite_service.favorite_ids(profile, token_infos)
         formatter = _ResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results, favorites)
