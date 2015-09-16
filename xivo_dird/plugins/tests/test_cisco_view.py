@@ -30,10 +30,13 @@ class TestCiscoView(TestCase):
 
     def setUp(self):
         self.plugin = CiscoViewPlugin()
+        self.views_config = {
+            'displays_phone': {},
+        }
 
     @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_with_no_cisco_service_does_not_add_routes(self, add_resource):
-        self.plugin.load({'config': {},
+        self.plugin.load({'config': self.views_config,
                           'http_namespace': Mock(),
                           'rest_api': Mock(),
                           'services': {}})
@@ -43,7 +46,7 @@ class TestCiscoView(TestCase):
     @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_adds_the_routes(self, add_resource):
         args = {
-            'config': {},
+            'config': self.views_config,
             'http_namespace': Mock(),
             'rest_api': Mock(),
             'services': {'lookup': Mock()},

@@ -88,8 +88,13 @@ views:
                 title: Personal
                 field: personal
                 type: personal
+    displays_phone:
+        default:
+            name: displayname
+            number: phone
     profile_to_display:
         default: default_display
+    # profile_to_display_phone: {}
 
 services:
     lookup:

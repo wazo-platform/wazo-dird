@@ -27,6 +27,7 @@ from jinja2 import Environment
 from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
 from xivo_dird import BaseViewPlugin
+from xivo_dird.core.phone_helpers import PhoneDisplay
 from xivo_dird.core.rest_api import api
 
 logger = logging.getLogger(__name__)
@@ -44,14 +45,13 @@ class CiscoViewPlugin(BaseViewPlugin):
     cisco_lookup = '/directories/lookup/<profile>/cisco'
 
     def load(self, args=None):
+        phone_display = PhoneDisplay.new_from_config(args['config'])
         jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_FOLDER))
 
         lookup_service = args['services'].get('lookup')
         if lookup_service:
-            CiscoLookupMenu.configure(lookup_service,
-                                      jinja_env=jinja_env)
-            CiscoLookup.configure(lookup_service=lookup_service,
-                                  jinja_env=jinja_env)
+            CiscoLookupMenu.configure(lookup_service, jinja_env)
+            CiscoLookup.configure(lookup_service, jinja_env, phone_display)
             api.add_resource(CiscoLookupMenu, self.cisco_lookup_menu)
             api.add_resource(CiscoLookup, self.cisco_lookup)
 
@@ -91,11 +91,13 @@ class CiscoLookup(AuthResource):
 
     jinja_env = None
     lookup_service = None
+    phone_display = None
 
     @classmethod
-    def configure(cls, lookup_service, jinja_env):
+    def configure(cls, lookup_service, jinja_env, phone_display):
         cls.lookup_service = lookup_service
         cls.jinja_env = jinja_env
+        cls.phone_display = phone_display
 
     def get(self, profile):
         proxy_url = request.headers.get('Proxy-URL', None)
@@ -119,7 +121,11 @@ class CiscoLookup(AuthResource):
         lookup_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos)
 
         template = self.jinja_env.get_template(TEMPLATE_CISCO_RESULTS)
-        context = {'results': lookup_results}
+        context = {
+            'results': lookup_results,
+            'name_field': self.phone_display.get_name_field(profile),
+            'number_field': self.phone_display.get_number_field(profile),
+        }
         response_xml = template.render(context)
 
         return Response(response_xml, content_type='text/xml', status=200)

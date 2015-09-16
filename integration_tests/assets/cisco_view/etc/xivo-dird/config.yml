@@ -22,6 +22,10 @@ views:
             -
                 title: Favorite
                 type: favorite
+    displays_phone:
+        default:
+            name: displayname
+            number: phone
     profile_to_display:
         default: default_display
 
