@@ -103,6 +103,11 @@ services:
                 - xivo_users
                 - personal
             timeout: 0.5
+        default_phone:
+            sources:
+                - xivodir
+                - internal
+            timeout: 0.5
     favorites:
         default:
             sources:
