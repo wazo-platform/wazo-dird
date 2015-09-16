@@ -98,11 +98,6 @@ views:
 
 services:
     lookup:
-        default:
-            sources:
-                - xivo_users
-                - personal
-            timeout: 0.5
         default_phone:
             sources:
                 - xivodir
