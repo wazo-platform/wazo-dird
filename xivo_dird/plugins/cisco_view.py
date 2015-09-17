@@ -50,8 +50,8 @@ def _error(code, msg):
 
 class CiscoViewPlugin(BaseViewPlugin):
 
-    cisco_lookup_menu = '/directories/menu/<profile>/cisco'
-    cisco_lookup_input = '/directories/input/<profile>/cisco'
+    cisco_menu = '/directories/menu/<profile>/cisco'
+    cisco_input = '/directories/input/<profile>/cisco'
     cisco_lookup = '/directories/lookup/<profile>/cisco'
 
     def load(self, args=None):
@@ -60,15 +60,15 @@ class CiscoViewPlugin(BaseViewPlugin):
 
         lookup_service = args['services'].get('lookup')
         if lookup_service:
-            CiscoLookupMenu.configure(lookup_service, jinja_env)
-            CiscoLookupInput.configure(lookup_service, jinja_env)
+            CiscoMenu.configure(lookup_service, jinja_env)
+            CiscoInput.configure(lookup_service, jinja_env)
             CiscoLookup.configure(lookup_service, jinja_env, phone_display)
-            api.add_resource(CiscoLookupMenu, self.cisco_lookup_menu)
-            api.add_resource(CiscoLookupInput, self.cisco_lookup_input)
+            api.add_resource(CiscoMenu, self.cisco_menu)
+            api.add_resource(CiscoInput, self.cisco_input)
             api.add_resource(CiscoLookup, self.cisco_lookup)
 
 
-class CiscoLookupMenu(AuthResource):
+class CiscoMenu(AuthResource):
 
     jinja_env = None
     lookup_service = None
@@ -95,7 +95,7 @@ class CiscoLookupMenu(AuthResource):
         return Response(response_xml, content_type='text/xml', status=200)
 
 
-class CiscoLookupInput(AuthResource):
+class CiscoInput(AuthResource):
 
     jinja_env = None
     lookup_service = None

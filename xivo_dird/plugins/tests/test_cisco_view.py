@@ -22,8 +22,8 @@ from mock import Mock
 from mock import patch
 
 from xivo_dird.plugins.cisco_view import CiscoViewPlugin
-from xivo_dird.plugins.cisco_view import CiscoLookupMenu
-from xivo_dird.plugins.cisco_view import CiscoLookupInput
+from xivo_dird.plugins.cisco_view import CiscoMenu
+from xivo_dird.plugins.cisco_view import CiscoInput
 from xivo_dird.plugins.cisco_view import CiscoLookup
 
 
@@ -55,6 +55,6 @@ class TestCiscoView(TestCase):
 
         self.plugin.load(args)
 
-        add_resource.assert_any_call(CiscoLookupMenu, CiscoViewPlugin.cisco_lookup_menu)
-        add_resource.assert_any_call(CiscoLookupInput, CiscoViewPlugin.cisco_lookup_input)
+        add_resource.assert_any_call(CiscoMenu, CiscoViewPlugin.cisco_menu)
+        add_resource.assert_any_call(CiscoInput, CiscoViewPlugin.cisco_input)
         add_resource.assert_any_call(CiscoLookup, CiscoViewPlugin.cisco_lookup)
