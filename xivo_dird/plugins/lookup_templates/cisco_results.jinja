@@ -22,7 +22,7 @@
 {% if previous_query_string -%}
 <SoftKeyItem>
 <Name>PrevPage</Name>
-<URL>{{ xivo_proxy_url }}?vendor=cisco{{ '&amp;{}'.format(previous_query_string) }}</URL>
+<URL>{{ xivo_proxy_url }}?{{ previous_query_string }}</URL>
 <Position>2</Position>
 </SoftKeyItem>
 {% endif -%}
@@ -36,7 +36,7 @@
 {% if next_query_string -%}
 <SoftKeyItem>
 <Name>NextPage</Name>
-<URL>{{ xivo_proxy_url }}?vendor=cisco{{ '&amp;{}'.format(next_query_string) }}</URL>
+<URL>{{ xivo_proxy_url }}?{{ next_query_string }}</URL>
 <Position>4</Position>
 </SoftKeyItem>
 {% endif -%}
