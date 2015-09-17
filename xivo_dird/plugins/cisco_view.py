@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 TEMPLATE_FOLDER = os.path.join(CURRENT_PATH, 'lookup_templates')
 TEMPLATE_CISCO_MENU = "cisco_menu.jinja"
-TEMPLATE_CISCO_NO_TERM = "cisco_no_term.jinja"
+TEMPLATE_CISCO_INPUT = "cisco_input.jinja"
 TEMPLATE_CISCO_RESULTS = "cisco_results.jinja"
 
 MAX_ITEM_PER_PAGE = 16
@@ -51,6 +51,7 @@ def _error(code, msg):
 class CiscoViewPlugin(BaseViewPlugin):
 
     cisco_lookup_menu = '/directories/menu/<profile>/cisco'
+    cisco_lookup_input = '/directories/input/<profile>/cisco'
     cisco_lookup = '/directories/lookup/<profile>/cisco'
 
     def load(self, args=None):
@@ -60,8 +61,10 @@ class CiscoViewPlugin(BaseViewPlugin):
         lookup_service = args['services'].get('lookup')
         if lookup_service:
             CiscoLookupMenu.configure(lookup_service, jinja_env)
+            CiscoLookupInput.configure(lookup_service, jinja_env)
             CiscoLookup.configure(lookup_service, jinja_env, phone_display)
             api.add_resource(CiscoLookupMenu, self.cisco_lookup_menu)
+            api.add_resource(CiscoLookupInput, self.cisco_lookup_input)
             api.add_resource(CiscoLookup, self.cisco_lookup)
 
 
@@ -78,7 +81,7 @@ class CiscoLookupMenu(AuthResource):
     def get(self, profile):
         proxy_url = request.headers.get('Proxy-URL', None)
         if not proxy_url:
-            proxy_url = request.base_url.replace('menu', 'lookup', 1)
+            proxy_url = request.base_url.replace('menu', 'input', 1)
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -92,10 +95,37 @@ class CiscoLookupMenu(AuthResource):
         return Response(response_xml, content_type='text/xml', status=200)
 
 
+class CiscoLookupInput(AuthResource):
+
+    jinja_env = None
+    lookup_service = None
+
+    @classmethod
+    def configure(cls, lookup_service, jinja_env):
+        cls.lookup_service = lookup_service
+        cls.jinja_env = jinja_env
+
+    def get(self, profile):
+        proxy_url = request.headers.get('Proxy-URL', None)
+        if not proxy_url:
+            proxy_url = request.base_url.replace('input', 'lookup', 1)
+
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+        xivo_user_uuid = token_infos['xivo_user_uuid']
+
+        template = self.jinja_env.get_template(TEMPLATE_CISCO_INPUT)
+        context = {'xivo_proxy_url': proxy_url,
+                   'xivo_user_uuid': xivo_user_uuid}
+        response_xml = template.render(context)
+
+        return Response(response_xml, content_type='text/xml', status=200)
+
+
 parser = reqparse.RequestParser()
 parser.add_argument('limit', type=int, required=False, help='limit cannot be converted', location='args')
 parser.add_argument('offset', type=int, required=False, help='offset cannot be converted', location='args')
-parser.add_argument('term', type=unicode, required=False, location='args')
+parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
 
 class CiscoLookup(AuthResource):
@@ -120,15 +150,7 @@ class CiscoLookup(AuthResource):
         xivo_user_uuid = token_infos['xivo_user_uuid']
 
         args = parser.parse_args()
-        term = args.get('term', None)
-        if not term:
-            template = self.jinja_env.get_template(TEMPLATE_CISCO_NO_TERM)
-            context = {'xivo_proxy_url': proxy_url,
-                       'xivo_user_uuid': xivo_user_uuid}
-            response_xml = template.render(context)
-
-            return Response(response_xml, content_type='text/xml', mimetype='text/xml', status=200)
-
+        term = args['term']
         limit = MAX_ITEM_PER_PAGE if args['limit'] is None else args['limit']
         offset = 0 if args['offset'] is None else args['offset']
 
@@ -151,10 +173,14 @@ class CiscoLookup(AuthResource):
                                           limit=limit, offset=results['previous_offset'])
 
         template = self.jinja_env.get_template(TEMPLATE_CISCO_RESULTS)
-        context = {'results': results['results'],
-                   'xivo_proxy_url': proxy_url,
-                   'next_query_string': next_query,
-                   'previous_query_string': previous_query}
+        context = {
+            'results': results['results'],
+            'name_field': self.phone_display.get_name_field(profile),
+            'number_field': self.phone_display.get_number_field(profile),
+            'xivo_proxy_url': proxy_url,
+            'next_query_string': next_query,
+            'previous_query_string': previous_query
+        }
         response_xml = template.render(context)
 
         return Response(response_xml, content_type='text/xml', status=200)
