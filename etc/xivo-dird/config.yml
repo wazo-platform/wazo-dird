@@ -65,12 +65,8 @@ views:
     displays:
         default_display:
             -
-                title: Firstname
-                field: firstname
-                type: name
-            -
-                title: Lastname
-                field: lastname
+                title: Name
+                field: name
                 type: name
             -
                 title: Number
