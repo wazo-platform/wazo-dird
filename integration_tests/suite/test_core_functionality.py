@@ -69,6 +69,8 @@ class TestCoreSortLookup(BaseDirdIntegrationTest):
     def test_lookup_return_offset_when_has_more_results(self):
         result = self.lookup('A', 'default', limit=1, offset=1)
 
+        assert_that(result['offset_next'], equal_to(2))
+        assert_that(result['offset_previous'], equal_to(0))
         assert_that(result['links'], has_key('next'))
         assert_that(result['links'], has_key('previous'))
         assert_that(result['links']['next'], contains_string('limit=1&offset=2'))

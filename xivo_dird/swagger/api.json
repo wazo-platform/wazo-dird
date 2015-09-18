@@ -852,6 +852,14 @@
                     "type": "integer",
                     "description": "Offset used for these results"
                 },
+                "offset_next": {
+                    "type": "integer",
+                    "description": "Offset for the next result. Does not exist if no next result"
+                },
+                "offset_previous": {
+                    "type": "integer",
+                    "description": "Offset for the previous result. Does not exist if no previous result"
+                },
                 "links": {
                     "$ref": "#/definitions/Links"
                 }

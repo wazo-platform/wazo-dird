@@ -142,11 +142,13 @@ class Lookup(AuthResource):
 
         uri = '{url}?term={term}&limit={limit}&offset={offset}'
         if raw_results['next_offset'] is not None:
+            response['offset_next'] = raw_results['next_offset']
             response['links']['next'] = uri.format(url=request.base_url,
                                                    term=term,
                                                    limit=limit,
                                                    offset=raw_results['next_offset'])
         if raw_results['previous_offset'] is not None:
+            response['offset_previous'] = raw_results['previous_offset']
             response['links']['previous'] = uri.format(url=request.base_url,
                                                        term=term,
                                                        limit=limit,
