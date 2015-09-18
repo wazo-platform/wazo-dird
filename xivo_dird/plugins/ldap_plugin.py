@@ -150,7 +150,7 @@ class _LDAPConfig(object):
         if ldap_custom_filter and searched_columns:
             custom_filter = self._build_search_filter_from_custom_filter(term_escaped)
             generated_filter = self._build_search_filter_from_searched_columns(term_escaped)
-            return '(&{custom}{generated})'.format(custom=custom_filter, generated=generated_filter)
+            return u'(&{custom}{generated})'.format(custom=custom_filter, generated=generated_filter)
         elif ldap_custom_filter:
             return self._build_search_filter_from_custom_filter(term_escaped)
         elif searched_columns:
