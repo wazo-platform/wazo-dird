@@ -852,10 +852,6 @@
                     "type": "integer",
                     "description": "Offset used for these results"
                 },
-                "total": {
-                    "type": "integer",
-                    "description": "Total results returned"
-                },
                 "links": {
                     "$ref": "#/definitions/Links"
                 }
@@ -867,7 +863,6 @@
                 "offset",
                 "results",
                 "term",
-                "total",
                 "links"
             ]
         },

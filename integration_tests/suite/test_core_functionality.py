@@ -98,7 +98,6 @@ class TestCoreSortLookup(BaseDirdIntegrationTest):
                            'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
         ]
         assert_that(result['results'], equal_to(expected_results))
-        assert_that(result['total'], equal_to(3))
 
 
 class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):

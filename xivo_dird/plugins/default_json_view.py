@@ -138,7 +138,6 @@ class Lookup(AuthResource):
         response.update({'term': term,
                          'limit': raw_results['limit'],
                          'offset': raw_results['offset'],
-                         'total': len(raw_results['results']),
                          'links': {}})
 
         uri = '{url}?term={term}&limit={limit}&offset={offset}'
