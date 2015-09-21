@@ -1,0 +1,10 @@
+type: csv
+name: my_csv
+file: /tmp/data/test.csv
+searched_columns:
+    - ln
+    - fn
+format_columns:
+    lastname: "{ln}"
+    firstname: "{fn}"
+    number: "{num}"

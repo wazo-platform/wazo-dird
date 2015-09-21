@@ -23,6 +23,7 @@ from flask import Response
 from flask_restful import reqparse
 from jinja2 import FileSystemLoader
 from jinja2 import Environment
+from time import time
 
 from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
@@ -36,6 +37,14 @@ TEMPLATE_FOLDER = os.path.join(CURRENT_PATH, 'lookup_templates')
 TEMPLATE_CISCO_MENU = "cisco_menu.jinja"
 TEMPLATE_CISCO_NO_TERM = "cisco_no_term.jinja"
 TEMPLATE_CISCO_RESULTS = "cisco_results.jinja"
+
+MAX_ITEM_PER_PAGE = 16
+
+
+def _error(code, msg):
+    return {'reason': [msg],
+            'timestamp': [time()],
+            'status_code': code}, code
 
 
 class CiscoViewPlugin(BaseViewPlugin):
@@ -84,6 +93,8 @@ class CiscoLookupMenu(AuthResource):
 
 
 parser = reqparse.RequestParser()
+parser.add_argument('limit', type=int, required=False, help='limit cannot be converted', location='args')
+parser.add_argument('offset', type=int, required=False, help='offset cannot be converted', location='args')
 parser.add_argument('term', type=unicode, required=False, location='args')
 
 
@@ -116,10 +127,31 @@ class CiscoLookup(AuthResource):
 
             return Response(response_xml, content_type='text/xml', mimetype='text/xml', status=200)
 
-        lookup_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos)
+        limit = MAX_ITEM_PER_PAGE if args['limit'] is None else args['limit']
+        offset = 0 if args['offset'] is None else args['offset']
+
+        if limit < 0:
+            return _error(404, 'The limit should be positive')
+        if offset < 0:
+            return _error(404, 'The offset should be positive')
+
+        lookup_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos,
+                                                    limit=limit, offset=offset)
+
+        query = 'xivo_user_uuid={xivo_user_uuid}&amp;term={term}&amp;limit={limit}&amp;offset={offset}'
+        next_query, previous_query = None, None
+        if lookup_results['next_offset'] is not None:
+            next_query = query.format(xivo_user_uuid=xivo_user_uuid, term=term,
+                                      limit=limit, offset=lookup_results['next_offset'])
+        if lookup_results['previous_offset'] is not None:
+            previous_query = query.format(xivo_user_uuid=xivo_user_uuid, term=term,
+                                          limit=limit, offset=lookup_results['previous_offset'])
 
         template = self.jinja_env.get_template(TEMPLATE_CISCO_RESULTS)
-        context = {'results': lookup_results}
+        context = {'results': lookup_results['results'],
+                   'xivo_proxy_url': proxy_url,
+                   'next_query_string': next_query,
+                   'previous_query_string': previous_query}
         response_xml = template.render(context)
 
         return Response(response_xml, content_type='text/xml', status=200)

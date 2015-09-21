@@ -19,6 +19,7 @@ from .base_dird_integration_test import VALID_TOKEN
 
 from hamcrest import assert_that
 from hamcrest import contains_string
+from hamcrest import equal_to
 from hamcrest import matches_regexp
 from hamcrest import not_
 
@@ -30,6 +31,14 @@ class TestCiscoView(BaseDirdIntegrationTest):
 
     asset = 'cisco_view'
     profile = 'default'
+
+    def test_given_invalid_offset_then_lookup_cisco_return_404(self):
+        result = self.get_lookup_cisco_result(term='A', profile=self.profile, token=VALID_TOKEN, offset=-1)
+        assert_that(result.status_code, equal_to((404)))
+
+    def test_given_invalid_limit_then_lookup_cisco_return_404(self):
+        result = self.get_lookup_cisco_result(term='A', profile=self.profile, token=VALID_TOKEN, limit=-1)
+        assert_that(result.status_code, equal_to((404)))
 
     def test_that_dird_replace_url_by_proxy(self):
         proxy_url = 'http://my-proxy.com/lookup'
