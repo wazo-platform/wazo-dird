@@ -109,7 +109,7 @@ class _LookupService(object):
 
         return next_offset
 
-    def _previous_offset(sellf, offset, limit):
+    def _previous_offset(self, offset, limit):
         if offset == 0:
             return None
 
