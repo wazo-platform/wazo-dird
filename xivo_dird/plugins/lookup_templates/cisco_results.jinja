@@ -2,8 +2,8 @@
 <CiscoIPPhoneDirectory>
 {% for result in results -%}
  <DirectoryEntry>
-  <Name>{{ result.fields.get(name_field) }}</Name>
-  <Telephone>{{ result.fields.get(number_field) }}</Telephone>
+  <Name>{{ result.name }}</Name>
+  <Telephone>{{ result.number }}</Telephone>
  </DirectoryEntry>
 {% else -%}
  <DirectoryEntry>

@@ -27,7 +27,7 @@ from jinja2 import Environment
 from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
 from xivo_dird import BaseViewPlugin
-from xivo_dird.core.phone_helpers import PhoneDisplay
+from xivo_dird.core.phone_helpers import new_phone_display_from_config
 from xivo_dird.core.rest_api import api
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class CiscoViewPlugin(BaseViewPlugin):
     cisco_lookup = '/directories/lookup/<profile>/cisco'
 
     def load(self, args=None):
-        phone_display = PhoneDisplay.new_from_config(args['config'])
+        phone_display = new_phone_display_from_config(args['config'])
         jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_FOLDER))
 
         lookup_service = args['services'].get('lookup')
@@ -119,12 +119,11 @@ class CiscoLookup(AuthResource):
             return Response(response_xml, content_type='text/xml', mimetype='text/xml', status=200)
 
         lookup_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos)
+        display_results = self.phone_display.format_results(profile, lookup_results)
 
         template = self.jinja_env.get_template(TEMPLATE_CISCO_RESULTS)
         context = {
-            'results': lookup_results,
-            'name_field': self.phone_display.get_name_field(profile),
-            'number_field': self.phone_display.get_number_field(profile),
+            'results': display_results,
         }
         response_xml = template.render(context)
 

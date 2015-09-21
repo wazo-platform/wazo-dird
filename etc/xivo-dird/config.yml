@@ -90,8 +90,40 @@ views:
                 type: personal
     displays_phone:
         default:
-            name: displayname
-            number: phone
+            name:
+                - display_name
+                - display_name1
+                - display_name2
+            number:
+                -
+                    field:
+                        - phone
+                        - phone1
+                        - phone2
+                -
+                    field:
+                        - phone_office
+                        - phone_office1
+                        - phone_office2
+                    name_format: "{name} (Office)"
+                -
+                    field:
+                        - phone_mobile
+                        - phone_mobile1
+                        - phone_mobile2
+                    name_format: "{name} (Mobile)"
+                -
+                    field:
+                        - phone_home
+                        - phone_home1
+                        - phone_home2
+                    name_format: "{name} (Home)"
+                -
+                    field:
+                        - phone_other
+                        - phone_other1
+                        - phone_other2
+                    name_format: "{name} (Other)"
     profile_to_display:
         default: default_display
     # profile_to_display_phone: {}
