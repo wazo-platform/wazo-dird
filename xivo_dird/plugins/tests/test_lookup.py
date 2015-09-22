@@ -21,6 +21,7 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
+from hamcrest import is_
 from hamcrest import not_
 from hamcrest import none
 from mock import Mock
@@ -97,6 +98,57 @@ class TestLookupService(unittest.TestCase):
 
         s.stop()
 
+    def test_that_lookup_return_next_offset_when_has_more_results(self):
+        limit = 1
+        offset = 0
+        sources, config = self._config_one_source(results=5)
+
+        s = _LookupService(config, sources)
+
+        results = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos, limit, offset)
+
+        assert_that(results['next_offset'], equal_to(1))
+
+        s.stop()
+
+    def test_that_lookup_return_no_next_offset_when_has_no_more_results(self):
+        limit = 5
+        offset = 0
+        sources, config = self._config_one_source(results=5)
+
+        s = _LookupService(config, sources)
+
+        results = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos, limit, offset)
+
+        assert_that(results['next_offset'], is_(None))
+
+        s.stop()
+
+    def test_that_lookup_return_previous_offset_when_has_previous_results(self):
+        limit = 2
+        offset = 3
+        sources, config = self._config_one_source(results=5)
+
+        s = _LookupService(config, sources)
+
+        results = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos, limit, offset)
+
+        assert_that(results['previous_offset'], equal_to(1))
+
+        s.stop()
+
+    def test_that_lookup_return_no_previous_offset_when_has_no_previous_results(self):
+        sources, config = self._config_one_source(results=5)
+
+        s = _LookupService(config, sources)
+
+        results = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+
+        assert_that(results['previous_offset'], is_(None))
+        assert_that(results['next_offset'], is_(None))
+
+        s.stop()
+
     def test_that_lookup_searches_only_the_configured_sources(self):
         sources = {
             'source_1': Mock(name='source_1', search=Mock(return_value=[{'f': 1}])),
@@ -124,7 +176,7 @@ class TestLookupService(unittest.TestCase):
         assert_that(sources['source_2'].search.call_count, equal_to(0))
         assert_that(sources['source_3'].search.call_count, equal_to(1))
 
-        assert_that(results, contains_inanyorder(*expected_results))
+        assert_that(results['results'], contains_inanyorder(*expected_results))
 
         s.stop()
 
@@ -154,7 +206,7 @@ class TestLookupService(unittest.TestCase):
         assert_that(sources['source_1'].search.call_count, equal_to(1))
         assert_that(sources['source_2'].search.call_count, equal_to(0))
 
-        assert_that(results, contains_inanyorder(*expected_results))
+        assert_that(results['results'], contains_inanyorder(*expected_results))
 
         s.stop()
 
@@ -163,7 +215,7 @@ class TestLookupService(unittest.TestCase):
 
         result = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
-        assert_that(result, contains())
+        assert_that(result['results'], contains())
 
         s.stop()
 
@@ -172,7 +224,7 @@ class TestLookupService(unittest.TestCase):
 
         result = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
 
-        assert_that(result, contains())
+        assert_that(result['results'], contains())
 
         s.stop()
 
@@ -189,3 +241,20 @@ class TestLookupService(unittest.TestCase):
         s.stop()
 
         MockedThreadPoolExecutor.return_value.shutdown.assert_called_once_with()
+
+    def _config_one_source(self, results):
+        return_value = [{'name': i} for i in range(results)]
+        sources = {
+            'source_1': Mock(name='source_1', search=Mock(return_value=return_value))
+        }
+        config = {
+            'services': {
+                'lookup': {
+                    'my_profile': {
+                        'sources': ['source_1'],
+                        'timeout': 1,
+                    }
+                }
+            }
+        }
+        return sources, config

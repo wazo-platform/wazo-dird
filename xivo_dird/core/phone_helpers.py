@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from collections import namedtuple
+from operator import attrgetter
 from xivo_dird.core.exception import InvalidConfigError
 
 
@@ -34,6 +35,10 @@ class _PhoneDisplay(object):
     def format_results(self, profile, lookup_results):
         display = self._get_display(profile)
         return display.format_results(lookup_results)
+
+    def get_transform_function(self, profile):
+        display = self._get_display(profile)
+        return display.transform_results
 
     def _get_display(self, profile):
         display_name = self._profile_to_display.get(profile)
@@ -87,6 +92,11 @@ class _Display(object):
         for lookup_result in lookup_results:
             self._format_result(lookup_result.fields, results)
         return results
+
+    def transform_results(self, lookup_results):
+        display_results = self.format_results(lookup_results)
+        display_results.sort(key=attrgetter('name', 'number'))
+        return display_results
 
     def _format_result(self, fields, out):
         name = self._get_value_from_candidates(fields, self._name_config)

@@ -1,27 +1,21 @@
 sync:
   image: n3llyb0y/wait
   links:
-    - auth
     - dird
-    # - confd  # not confd, we WANT it to take time to start
+    - auth
   environment:
     PORTS: "9489 9497"
 dird:
   image: xivo-dird-test
+  links:
+      - auth
   ports:
     - "9489:9489"
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
     - "../../..:/usr/src/xivo-dird"
     - "./ssl:/etc/ssl"
-  links:
-    - auth
-    - confd
-confd:
-  image: python:2.7
-  volumes:
-    - "./confd_data:/tmp"
-  command: /tmp/run_confd
+    - "./tmp/data/:/tmp/data"
 auth:
   image: xivo-auth-mock
   ports:

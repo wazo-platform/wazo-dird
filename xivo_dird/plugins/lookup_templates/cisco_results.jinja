@@ -11,4 +11,34 @@
   <Telephone></Telephone>
  </DirectoryEntry>
 {% endfor -%}
+
+{% if next_query_string or previous_query_string -%}
+<SoftKeyItem>
+<Name>Dial</Name>
+<URL>SoftKey:Dial</URL>
+<Position>1</Position>
+</SoftKeyItem>
+
+{% if previous_query_string -%}
+<SoftKeyItem>
+<Name>PrevPage</Name>
+<URL>{{ xivo_proxy_url }}?vendor=cisco{{ '&amp;{}'.format(previous_query_string) }}</URL>
+<Position>2</Position>
+</SoftKeyItem>
+{% endif -%}
+
+<SoftKeyItem>
+<Name>Exit</Name>
+<URL>SoftKey:Exit</URL>
+<Position>3</Position>
+</SoftKeyItem>
+
+{% if next_query_string -%}
+<SoftKeyItem>
+<Name>NextPage</Name>
+<URL>{{ xivo_proxy_url }}?vendor=cisco{{ '&amp;{}'.format(next_query_string) }}</URL>
+<Position>4</Position>
+</SoftKeyItem>
+{% endif -%}
+{% endif -%}
 </CiscoIPPhoneDirectory>
