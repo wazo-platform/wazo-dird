@@ -28,8 +28,8 @@ from time import time
 from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
 from xivo_dird import BaseViewPlugin
-from xivo_dird.core.phone_helpers import new_phone_display_from_config
 from xivo_dird.core.rest_api import api
+from xivo_dird.plugins.phone_helpers import new_phone_display_from_config
 
 logger = logging.getLogger(__name__)
 

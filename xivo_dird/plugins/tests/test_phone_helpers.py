@@ -18,8 +18,8 @@
 from hamcrest import assert_that, equal_to
 from mock import Mock, patch, sentinel
 from unittest import TestCase
-from xivo_dird.core.phone_helpers import _PhoneDisplay, _Display
 from xivo_dird.core.exception import InvalidConfigError
+from xivo_dird.plugins.phone_helpers import _PhoneDisplay, _Display
 
 
 class TestPhoneDisplay(TestCase):
@@ -71,7 +71,7 @@ class TestPhoneDisplay(TestCase):
 
         self.display.format_results.assert_called_once_with(self.lookup_results)
 
-    @patch('xivo_dird.core.phone_helpers._Display')
+    @patch('xivo_dird.plugins.phone_helpers._Display')
     def test_new_from_config(self, mock_Display):
         views_config = {
             'displays_phone': {
