@@ -1,0 +1,11 @@
+type: csv
+name: test_csv
+file: /tmp/data/test.csv
+searched_columns:
+    - fn
+    - fn1
+format_columns:
+    display_name: "{fn}"
+    display_name1: "{fn1}"
+    phone: "{num}"
+    phone1: "{num1}"

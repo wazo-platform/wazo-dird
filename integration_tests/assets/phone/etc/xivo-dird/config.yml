@@ -1,0 +1,41 @@
+enabled_plugins:
+    backends:
+        - csv
+    services:
+        - lookup
+    views:
+        - cisco_view
+
+views:
+    displays_phone:
+        default:
+            name:
+                - display_name
+                - display_name1
+            number:
+                -
+                    field:
+                        - phone
+                -
+                    field:
+                        - phone1
+
+services:
+    lookup:
+        default:
+            sources:
+                - test_csv
+
+rest_api:
+       listen: 0.0.0.0
+       port: 9489
+       certificate: /etc/ssl/server.crt
+       private_key: /etc/ssl/server.key
+
+auth:
+    host: auth
+    port: 9497
+
+consul:
+    host: consul
+    port: 8500
