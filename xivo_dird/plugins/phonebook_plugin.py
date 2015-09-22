@@ -146,6 +146,11 @@ class _PhonebookResultConverter(object):
 
 class _Fetcher(object):
 
+    _IGNORED_MISSING_KEYS = ['phonebooknumber/home/number',
+                             'phonebooknumber/mobile/number',
+                             'phonebooknumber/office/number',
+                             'phonebooknumber/other/number']
+
     def __init__(self, key, name):
         self._key = key.replace('.', '/')
         self._name = name
@@ -157,7 +162,8 @@ class _Fetcher(object):
             for k in self._keys:
                 v = v[k]
         except KeyError:
-            logger.warning('Phonebook "%s": could not map %r: no such key', self._name, self._key)
+            if self._key not in self._IGNORED_MISSING_KEYS:
+                logger.warning('Phonebook "%s": could not map %r: no such key', self._name, self._key)
             return ''
         except TypeError as e:
             if v is not False:
