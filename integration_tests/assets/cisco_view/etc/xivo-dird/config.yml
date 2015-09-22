@@ -24,8 +24,12 @@ views:
                 type: favorite
     displays_phone:
         default:
-            name: displayname
-            number: phone
+            name:
+                - displayname
+            number:
+                -
+                    field:
+                        - phone
     profile_to_display:
         default: default_display
 
