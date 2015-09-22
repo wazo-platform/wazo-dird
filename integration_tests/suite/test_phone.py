@@ -28,30 +28,30 @@ class TestPhone(BaseDirdIntegrationTest):
     profile = 'default'
 
     def test_no_fallback_no_multiple_results(self):
-        result = self.get_lookup_cisco_result(term='Ali', profile=self.profile, token=VALID_TOKEN)
+        result = self.get_lookup_cisco(term='Ali', profile=self.profile, token=VALID_TOKEN)
 
-        results = self._get_directory_entries(result.text)
+        results = self._get_directory_entries(result)
 
         assert_that(results, equal_to([('Alice', '101')]))
 
     def test_fallback_no_multiple_results(self):
-        result = self.get_lookup_cisco_result(term='Bob', profile=self.profile, token=VALID_TOKEN)
+        result = self.get_lookup_cisco(term='Bob', profile=self.profile, token=VALID_TOKEN)
 
-        results = self._get_directory_entries(result.text)
+        results = self._get_directory_entries(result)
 
         assert_that(results, equal_to([('Bobby', '201')]))
 
     def test_no_fallback_multiple_results(self):
-        result = self.get_lookup_cisco_result(term='Char', profile=self.profile, token=VALID_TOKEN)
+        result = self.get_lookup_cisco(term='Char', profile=self.profile, token=VALID_TOKEN)
 
-        results = self._get_directory_entries(result.text)
+        results = self._get_directory_entries(result)
 
         assert_that(results, equal_to([('Charles', '301'), ('Charles', '302')]))
 
     def test_no_results(self):
-        result = self.get_lookup_cisco_result(term='Dia', profile=self.profile, token=VALID_TOKEN)
+        result = self.get_lookup_cisco(term='Dia', profile=self.profile, token=VALID_TOKEN)
 
-        results = self._get_directory_entries(result.text)
+        results = self._get_directory_entries(result)
 
         assert_that(results, equal_to([('No entries', '')]))
 
