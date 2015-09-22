@@ -131,9 +131,6 @@ services:
                 - xivodir
                 - internal
             timeout: 0.5
-            sort:
-                - name
-                - number
     favorites:
         default:
             sources:

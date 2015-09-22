@@ -216,22 +216,6 @@
                         "required": true
                     },
                     {
-                        "name": "limit",
-                        "in": "query",
-                        "type": "integer",
-                        "description": "The limit defines the number of individual objects that are returned. Default: None",
-                        "default": 0,
-                        "required": false
-                    },
-                    {
-                        "name": "offset",
-                        "in": "query",
-                        "type": "integer",
-                        "description": "The offset defines the offsets the start by the number specified. Default: 0",
-                        "default": 0,
-                        "required": false
-                    },
-                    {
                         "name": "X-Auth-Token",
                         "in": "header",
                         "type": "string",
@@ -844,22 +828,6 @@
                     "type": "string",
                     "description": "Search term used for these results"
                 },
-                "limit": {
-                    "type": "integer",
-                    "description": "Limit used for these results"
-                },
-                "offset": {
-                    "type": "integer",
-                    "description": "Offset used for these results"
-                },
-                "offset_next": {
-                    "type": "integer",
-                    "description": "Offset for the next result. Does not exist if no next result"
-                },
-                "offset_previous": {
-                    "type": "integer",
-                    "description": "Offset for the previous result. Does not exist if no previous result"
-                },
                 "links": {
                     "$ref": "#/definitions/Links"
                 }
@@ -867,8 +835,6 @@
             "required": [
                 "column_headers",
                 "column_types",
-                "limit",
-                "offset",
                 "results",
                 "term",
                 "links"

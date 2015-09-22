@@ -87,10 +87,8 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         cls.stop_dird_with_asset()
 
     @classmethod
-    def get_lookup_result(self, term, profile, limit=None, offset=None, token=None):
+    def get_lookup_result(self, term, profile, token=None):
         query = [u'term={}'.format(term)]
-        query.append(u'limit={}'.format(limit)) if limit else None
-        query.append(u'offset={}'.format(offset)) if offset else None
         url = u'https://localhost:9489/0.1/directories/lookup/{profile}?{query}'
         result = requests.get(url.format(profile=profile, query='&'.join(query)),
                               headers={'X-Auth-Token': token},
@@ -98,8 +96,8 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     @classmethod
-    def lookup(self, term, profile, token=VALID_TOKEN, limit=None, offset=None):
-        response = self.get_lookup_result(term, profile, token=token, limit=limit, offset=offset)
+    def lookup(self, term, profile, token=VALID_TOKEN):
+        response = self.get_lookup_result(term, profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
