@@ -143,8 +143,8 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
 
     CONTACTS = [
         Contact('Alice', 'Wonderland', '1001', 'Lyon'),
-        Contact('Bob', 'Barker', '1002', 'Lyon'),
-        Contact('Connor', 'Manson', '1003', 'QC'),
+        Contact('Bob', 'Barker', '1002', 'Québec'),
+        Contact('Charlé', 'Doe', '1003', 'Québec'),
     ]
     entry_uuids = []
 
@@ -159,12 +159,12 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
             raise
 
     def test_lookup_on_cn(self):
-        result = self.lookup('Ali', 'default')
+        result = self.lookup(u'charlé', 'default')
 
         assert_that(result['results'][0]['column_values'],
-                    contains('Alice', 'Wonderland', '1001'))
+                    contains(u'Charlé', 'Doe', '1003'))
 
     def test_no_result_because_of_the_custom_filter(self):
-        result = self.lookup('connor', 'default')
+        result = self.lookup('alice', 'default')
 
         assert_that(result['results'], empty())

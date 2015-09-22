@@ -45,8 +45,6 @@ class LDAPPlugin(BaseSourcePlugin):
         self._ldap_client.close()
 
     def search(self, term, args=None):
-        term = term.encode('UTF-8')
-
         filter_str = self._ldap_config.build_search_filter(term)
 
         return self._search_and_format(filter_str)
@@ -254,8 +252,13 @@ class _LDAPClient(object):
     def _search(self, filter_str):
         results = []
 
+        encoded_filter_str = filter_str.encode('utf-8')
+
         try:
-            results = self._ldap_obj.search_s(self._base_dn, ldap.SCOPE_SUBTREE, filter_str, self._attributes)
+            results = self._ldap_obj.search_s(self._base_dn,
+                                              ldap.SCOPE_SUBTREE,
+                                              encoded_filter_str,
+                                              self._attributes)
         except ldap.FILTER_ERROR:
             logger.warning('LDAP "%s": search error: invalid filter "%s"', self._name, filter_str)
         except ldap.NO_SUCH_OBJECT:
