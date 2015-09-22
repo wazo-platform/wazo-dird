@@ -38,23 +38,23 @@ class LDAPHelper(object):
     BASE_DN = 'dc=xivo-dird,dc=xivo,dc=io'
     ADMIN_DN = 'cn=admin,{}'.format(BASE_DN)
     ADMIN_PASSWORD = 'xivopassword'
-    PEOPLE_DN = 'ou=people,{}'.format(BASE_DN)
+    QUEBEC_DN = 'ou=québec,{}'.format(BASE_DN)
 
     def __init__(self):
         self._ldap_obj = ldap.initialize(self.LDAP_URI)
         self._ldap_obj.simple_bind_s(self.ADMIN_DN, self.ADMIN_PASSWORD)
 
-    def add_ou_people(self):
+    def add_ou_quebec(self):
         modlist = addModlist({
             'objectClass': ['organizationalUnit'],
-            'ou': ['people'],
+            'ou': ['quebec'],
         })
 
-        self._ldap_obj.add_s(self.PEOPLE_DN, modlist)
+        self._ldap_obj.add_s(self.QUEBEC_DN, modlist)
 
     def add_contact(self, contact):
         cn = '{} {}'.format(contact.firstname, contact.lastname)
-        dn = 'cn={},{}'.format(cn, self.PEOPLE_DN)
+        dn = 'cn={},{}'.format(cn, self.QUEBEC_DN)
         modlist = addModlist({
             'objectClass': ['inetOrgPerson'],
             'cn': [cn],
@@ -80,7 +80,7 @@ def add_contacts(contacts):
         raise Exception('could not add contacts: LDAP server is down')
 
     entry_uuids = []
-    helper.add_ou_people()
+    helper.add_ou_quebec()
     for contact in contacts:
         entry_uuid = helper.add_contact(contact)
         entry_uuids.append(entry_uuid)
@@ -143,8 +143,8 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
 
     CONTACTS = [
         Contact('Alice', 'Wonderland', '1001', 'Lyon'),
-        Contact('Bob', 'Barker', '1002', 'Lyon'),
-        Contact('Connor', 'Manson', '1003', 'QC'),
+        Contact('Bob', 'Barker', '1002', 'Québec'),
+        Contact('Charlé', 'Doe', '1003', 'Québec'),
     ]
     entry_uuids = []
 
@@ -159,12 +159,12 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
             raise
 
     def test_lookup_on_cn(self):
-        result = self.lookup('Ali', 'default')
+        result = self.lookup(u'charlé', 'default')
 
         assert_that(result['results'][0]['column_values'],
-                    contains('Alice', 'Wonderland', '1001'))
+                    contains(u'Charlé', 'Doe', '1003'))
 
     def test_no_result_because_of_the_custom_filter(self):
-        result = self.lookup('connor', 'default')
+        result = self.lookup('alice', 'default')
 
         assert_that(result['results'], empty())

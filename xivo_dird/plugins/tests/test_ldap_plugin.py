@@ -326,6 +326,14 @@ class TestLDAPConfig(unittest.TestCase):
 
         self.assertEqual('(&(cn=*foo*)(sn=*foo*))', ldap_config.build_search_filter('foo'))
 
+    def test_build_search_filter_with_searched_columns_and_custom_filter_unicode_term(self):
+        ldap_config = _LDAPConfig({
+            BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
+            'ldap_custom_filter': str('(cn=*%Q*)'),
+        })
+
+        self.assertEqual(u'(&(cn=*Québec*)(sn=*Québec*))', ldap_config.build_search_filter(u'Québec'))
+
     def test_build_search_filter_searched_columns_escape_term(self):
         ldap_config = _LDAPConfig({
             BaseSourcePlugin.SEARCHED_COLUMNS: ['cn'],
