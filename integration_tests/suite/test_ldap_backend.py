@@ -38,23 +38,23 @@ class LDAPHelper(object):
     BASE_DN = 'dc=xivo-dird,dc=xivo,dc=io'
     ADMIN_DN = 'cn=admin,{}'.format(BASE_DN)
     ADMIN_PASSWORD = 'xivopassword'
-    PEOPLE_DN = 'ou=people,{}'.format(BASE_DN)
+    QUEBEC_DN = 'ou=québec,{}'.format(BASE_DN)
 
     def __init__(self):
         self._ldap_obj = ldap.initialize(self.LDAP_URI)
         self._ldap_obj.simple_bind_s(self.ADMIN_DN, self.ADMIN_PASSWORD)
 
-    def add_ou_people(self):
+    def add_ou_quebec(self):
         modlist = addModlist({
             'objectClass': ['organizationalUnit'],
-            'ou': ['people'],
+            'ou': ['quebec'],
         })
 
-        self._ldap_obj.add_s(self.PEOPLE_DN, modlist)
+        self._ldap_obj.add_s(self.QUEBEC_DN, modlist)
 
     def add_contact(self, contact):
         cn = '{} {}'.format(contact.firstname, contact.lastname)
-        dn = 'cn={},{}'.format(cn, self.PEOPLE_DN)
+        dn = 'cn={},{}'.format(cn, self.QUEBEC_DN)
         modlist = addModlist({
             'objectClass': ['inetOrgPerson'],
             'cn': [cn],
@@ -80,7 +80,7 @@ def add_contacts(contacts):
         raise Exception('could not add contacts: LDAP server is down')
 
     entry_uuids = []
-    helper.add_ou_people()
+    helper.add_ou_quebec()
     for contact in contacts:
         entry_uuid = helper.add_contact(contact)
         entry_uuids.append(entry_uuid)

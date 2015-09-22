@@ -253,9 +253,10 @@ class _LDAPClient(object):
         results = []
 
         encoded_filter_str = filter_str.encode('utf-8')
+        encoded_base_dn = self._base_dn.encode('utf-8')
 
         try:
-            results = self._ldap_obj.search_s(self._base_dn,
+            results = self._ldap_obj.search_s(encoded_base_dn,
                                               ldap.SCOPE_SUBTREE,
                                               encoded_filter_str,
                                               self._attributes)
