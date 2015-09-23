@@ -163,21 +163,15 @@ class CiscoLookup(AuthResource):
         results = self.lookup_service.lookup2(term, profile, args={}, token_infos=token_infos,
                                               limit=limit, offset=offset, transform_func=transform_func)
 
-        query = 'xivo_user_uuid={xivo_user_uuid}&term={term}&limit={limit}&offset={offset}'
-        next_query, previous_query = None, None
-        if results['next_offset'] is not None:
-            next_query = query.format(xivo_user_uuid=xivo_user_uuid, term=term,
-                                      limit=limit, offset=results['next_offset'])
-        if results['previous_offset'] is not None:
-            previous_query = query.format(xivo_user_uuid=xivo_user_uuid, term=term,
-                                          limit=limit, offset=results['previous_offset'])
-
         template = self.jinja_env.get_template(TEMPLATE_CISCO_RESULTS)
         context = {
             'results': results['results'],
             'xivo_proxy_url': proxy_url,
-            'next_query_string': next_query,
-            'previous_query_string': previous_query
+            'xivo_user_uuid': xivo_user_uuid,
+            'term': term,
+            'limit': limit,
+            'offset_next': results['next_offset'],
+            'offset_previous': results['previous_offset']
         }
         response_xml = template.render(context)
 
