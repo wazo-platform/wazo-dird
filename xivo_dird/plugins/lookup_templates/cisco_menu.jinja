@@ -2,6 +2,6 @@
 <CiscoIPPhoneMenu>
  <MenuItem>
   <Name>XiVO Directory</Name>
-  <URL>{{ xivo_proxy_url }}{{ '?xivo_user_uuid={}'.format(xivo_user_uuid) if xivo_user_uuid }}</URL>
+  <URL>{{ xivo_proxy_url|e }}{{ '?xivo_user_uuid={}'.format(xivo_user_uuid|e) if xivo_user_uuid }}</URL>
  </MenuItem>
 </CiscoIPPhoneMenu>

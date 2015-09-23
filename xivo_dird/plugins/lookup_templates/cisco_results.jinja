@@ -2,8 +2,8 @@
 <CiscoIPPhoneDirectory>
 {% for result in results -%}
  <DirectoryEntry>
-  <Name>{{ result.name }}</Name>
-  <Telephone>{{ result.number }}</Telephone>
+  <Name>{{ result.name|e }}</Name>
+  <Telephone>{{ result.number|e }}</Telephone>
  </DirectoryEntry>
 {% else -%}
  <DirectoryEntry>
@@ -22,7 +22,7 @@
 {% if previous_query_string -%}
 <SoftKeyItem>
 <Name>PrevPage</Name>
-<URL>{{ xivo_proxy_url }}?{{ previous_query_string }}</URL>
+<URL>{{ xivo_proxy_url|e }}?{{ previous_query_string|e }}</URL>
 <Position>2</Position>
 </SoftKeyItem>
 {% endif -%}
@@ -36,7 +36,7 @@
 {% if next_query_string -%}
 <SoftKeyItem>
 <Name>NextPage</Name>
-<URL>{{ xivo_proxy_url }}?{{ next_query_string }}</URL>
+<URL>{{ xivo_proxy_url|e }}?{{ next_query_string|e }}</URL>
 <Position>4</Position>
 </SoftKeyItem>
 {% endif -%}
