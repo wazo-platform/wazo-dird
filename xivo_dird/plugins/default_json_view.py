@@ -125,7 +125,7 @@ class Lookup(AuthResource):
         formatter = _ResultFormatter(self.displays[profile])
         response = formatter.format_results(raw_results['results'], favorites)
 
-        response.update({'term': term, 'links': {}})
+        response.update({'term': term})
 
         return response
 

@@ -827,9 +827,6 @@
                 "term": {
                     "type": "string",
                     "description": "Search term used for these results"
-                },
-                "links": {
-                    "$ref": "#/definitions/Links"
                 }
             },
             "required": [
@@ -839,19 +836,6 @@
                 "term",
                 "links"
             ]
-        },
-        "Links": {
-            "description": "Links to navigate through all results",
-            "properties": {
-                "next": {
-                    "type": "string",
-                    "description": "URL to retrieve next page of results. Doesn't exist if no next results"
-                },
-                "previous": {
-                    "type": "string",
-                    "description": "URL to retrieve previous page of results. Doesn't exist if no previous results"
-                }
-            }
         },
         "ContactList": {
             "properties": {
