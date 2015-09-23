@@ -63,7 +63,7 @@ class _LookupService(object):
         future.name = source.name
         return future
 
-    def lookup(self, term, profile, args, token_infos, limit=None, offset=0, transform_func=None):
+    def lookup(self, term, profile, args, token_infos):
         futures = []
         for source in self._source_by_profile(profile):
             args['token_infos'] = token_infos
@@ -78,7 +78,11 @@ class _LookupService(object):
         for future in done:
             for result in future.result():
                 results.append(result)
+        return results
 
+    def lookup2(self, term, profile, args, token_infos, limit=None, offset=0, transform_func=None):
+        # This function has been added in 15.16 and should be removed in 15.17. Do not use it.
+        results = self.lookup(term, profile, args, token_infos)
         if transform_func:
             results = transform_func(results)
 
@@ -87,7 +91,6 @@ class _LookupService(object):
                          'offset': offset,
                          'next_offset': self._next_offset(offset, limit, len(results)),
                          'previous_offset': self._previous_offset(offset, limit)}
-
         return total_results
 
     def _source_by_profile(self, profile):

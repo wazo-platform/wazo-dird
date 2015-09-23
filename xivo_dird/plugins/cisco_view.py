@@ -138,8 +138,8 @@ class CiscoLookup(AuthResource):
             return _error(400, 'The offset should be positive')
 
         transform_func = self.phone_display.get_transform_function(profile)
-        results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos,
-                                             limit=limit, offset=offset, transform_func=transform_func)
+        results = self.lookup_service.lookup2(term, profile, args={}, token_infos=token_infos,
+                                              limit=limit, offset=offset, transform_func=transform_func)
 
         query = 'xivo_user_uuid={xivo_user_uuid}&amp;term={term}&amp;limit={limit}&amp;offset={offset}'
         next_query, previous_query = None, None

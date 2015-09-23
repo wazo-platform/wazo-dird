@@ -123,7 +123,7 @@ class Lookup(AuthResource):
             favorites = []
 
         formatter = _ResultFormatter(self.displays[profile])
-        response = formatter.format_results(raw_results['results'], favorites)
+        response = formatter.format_results(raw_results, favorites)
 
         response.update({'term': term})
 
