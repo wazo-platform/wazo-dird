@@ -25,7 +25,7 @@ views:
     displays_phone:
         default:
             name:
-                - displayname
+                - display_name
             number:
                 -
                     field:

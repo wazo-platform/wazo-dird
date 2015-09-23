@@ -7,5 +7,5 @@ searched_columns:
 format_columns:
     lastname: "{ln}"
     firstname: "{fn}"
-    displayname: "{fn} {ln}"
+    display_name: "{fn} {ln}"
     phone: "{num}"
