@@ -133,9 +133,9 @@ class CiscoLookup(AuthResource):
         offset = 0 if args['offset'] is None else args['offset']
 
         if limit < 0:
-            return _error(404, 'The limit should be positive')
+            return _error(400, 'The limit should be positive')
         if offset < 0:
-            return _error(404, 'The offset should be positive')
+            return _error(400, 'The offset should be positive')
 
         transform_func = self.phone_display.get_transform_function(profile)
         results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos,

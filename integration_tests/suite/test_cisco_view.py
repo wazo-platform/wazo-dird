@@ -32,13 +32,13 @@ class TestCiscoView(BaseDirdIntegrationTest):
     asset = 'cisco_view'
     profile = 'default'
 
-    def test_given_invalid_offset_then_lookup_cisco_return_404(self):
+    def test_given_invalid_offset_then_lookup_cisco_return_400(self):
         result = self.get_lookup_cisco_result(term='A', profile=self.profile, token=VALID_TOKEN, offset=-1)
-        assert_that(result.status_code, equal_to((404)))
+        assert_that(result.status_code, equal_to((400)))
 
-    def test_given_invalid_limit_then_lookup_cisco_return_404(self):
+    def test_given_invalid_limit_then_lookup_cisco_return_400(self):
         result = self.get_lookup_cisco_result(term='A', profile=self.profile, token=VALID_TOKEN, limit=-1)
-        assert_that(result.status_code, equal_to((404)))
+        assert_that(result.status_code, equal_to((400)))
 
     def test_that_dird_replace_url_by_proxy(self):
         proxy_url = 'http://my-proxy.com/lookup'
