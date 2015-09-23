@@ -48,29 +48,6 @@ class TestPhoneDisplay(TestCase):
         self.display.format_results.assert_called_once_with(self.lookup_results)
         assert_that(results, equal_to(self.display.format_results.return_value))
 
-    def test_format_results_no_display_with_default_display(self):
-        displays = {
-            _PhoneDisplay.DEFAULT_DISPLAY_NAME: self.display
-        }
-        profile_to_display = {
-            self.profile_name: self.display_name,
-        }
-        phone_display = _PhoneDisplay(displays, profile_to_display)
-
-        phone_display.format_results(self.profile_name, self.lookup_results)
-
-        self.display.format_results.assert_called_once_with(self.lookup_results)
-
-    def test_format_results_no_profile_to_display_with_default_display(self):
-        displays = {
-            _PhoneDisplay.DEFAULT_DISPLAY_NAME: self.display
-        }
-        phone_display = _PhoneDisplay(displays, {})
-
-        phone_display.format_results(self.profile_name, self.lookup_results)
-
-        self.display.format_results.assert_called_once_with(self.lookup_results)
-
     @patch('xivo_dird.plugins.phone_helpers._Display')
     def test_new_from_config(self, mock_Display):
         views_config = {
@@ -109,6 +86,11 @@ class TestPhoneDisplay(TestCase):
         self.config['profile_to_display_phone'] = {'default': None}
 
         self._assert_invalid_config(self.config, 'views/profile_to_display_phone/default')
+
+    def test_new_from_config_profile_to_display_phone_missing_display(self):
+        self.config['profile_to_display_phone'] = {'foo': 'anchovy'}
+
+        self._assert_invalid_config(self.config, 'views/profile_to_display_phone/foo')
 
     def _assert_invalid_config(self, config, location_path):
         try:

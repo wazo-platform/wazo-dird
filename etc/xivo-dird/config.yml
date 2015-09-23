@@ -122,7 +122,8 @@ views:
                     name_format: "{name} (Other)"
     profile_to_display:
         default: default_display
-    # profile_to_display_phone: {}
+    profile_to_display_phone:
+        default_phone: default
 
 services:
     lookup:

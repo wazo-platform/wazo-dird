@@ -26,8 +26,6 @@ def new_phone_display_from_config(views_config):
 
 class _PhoneDisplay(object):
 
-    DEFAULT_DISPLAY_NAME = 'default'
-
     def __init__(self, displays, profile_to_display):
         self._displays = displays
         self._profile_to_display = profile_to_display
@@ -41,11 +39,8 @@ class _PhoneDisplay(object):
         return display.transform_results
 
     def _get_display(self, profile):
-        display_name = self._profile_to_display.get(profile)
-        display = self._displays.get(display_name)
-        if not display:
-            display = self._displays[self.DEFAULT_DISPLAY_NAME]
-        return display
+        display_name = self._profile_to_display[profile]
+        return self._displays[display_name]
 
     @classmethod
     def new_from_config(cls, views_config):
@@ -74,6 +69,10 @@ class _PhoneDisplay(object):
             if not isinstance(display_name, basestring):
                 raise InvalidConfigError('views/profile_to_display_phone/{}'.format(profile_name),
                                          'expected basestring: was {}'.format(basestring))
+
+            if display_name not in displays:
+                raise InvalidConfigError('views/profile_to_display_phone/{}'.format(profile_name),
+                                         'undefined display {}'.format(display_name))
 
         return cls(displays, profile_to_display)
 
