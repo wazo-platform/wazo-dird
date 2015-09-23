@@ -88,9 +88,10 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
     @classmethod
     def get_lookup_result(self, term, profile, token=None):
-        query = [u'term={}'.format(term)]
-        url = u'https://localhost:9489/0.1/directories/lookup/{profile}?{query}'
-        result = requests.get(url.format(profile=profile, query='&'.join(query)),
+        params = {'term': term}
+        url = u'https://localhost:9489/0.1/directories/lookup/{profile}'
+        result = requests.get(url.format(profile=profile),
+                              params=params,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
@@ -304,13 +305,10 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
     @classmethod
     def get_lookup_cisco_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/cisco?{query}'
-        query = []
-        query.append('term={term}'.format(term=term)) if term else None
-        query.append('limit={limit}'.format(limit=limit)) if limit else None
-        query.append('offset={offset}'.format(offset=offset)) if offset else None
-        result = requests.get(url.format(profile=profile,
-                                         query='&'.join(query)),
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/cisco'
+        params = {'term': term, 'limit': limit, 'offset': offset}
+        result = requests.get(url.format(profile=profile),
+                              params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
