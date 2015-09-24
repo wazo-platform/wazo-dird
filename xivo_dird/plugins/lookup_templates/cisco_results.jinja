@@ -2,8 +2,8 @@
 <CiscoIPPhoneDirectory>
 {% for result in results -%}
  <DirectoryEntry>
-  <Name>{{ result.name }}</Name>
-  <Telephone>{{ result.number }}</Telephone>
+  <Name>{{ result.name|e }}</Name>
+  <Telephone>{{ result.number|e }}</Telephone>
  </DirectoryEntry>
 {% else -%}
  <DirectoryEntry>
@@ -12,17 +12,17 @@
  </DirectoryEntry>
 {% endfor -%}
 
-{% if next_query_string or previous_query_string -%}
+{% if offset_next is not none or offset_previous is not none -%}
 <SoftKeyItem>
 <Name>Dial</Name>
 <URL>SoftKey:Dial</URL>
 <Position>1</Position>
 </SoftKeyItem>
 
-{% if previous_query_string -%}
+{% if offset_previous is not none -%}
 <SoftKeyItem>
 <Name>PrevPage</Name>
-<URL>{{ xivo_proxy_url }}?vendor=cisco{{ '&amp;{}'.format(previous_query_string) }}</URL>
+<URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_previous|e }}</URL>
 <Position>2</Position>
 </SoftKeyItem>
 {% endif -%}
@@ -33,10 +33,10 @@
 <Position>3</Position>
 </SoftKeyItem>
 
-{% if next_query_string -%}
+{% if offset_next is not none -%}
 <SoftKeyItem>
 <Name>NextPage</Name>
-<URL>{{ xivo_proxy_url }}?vendor=cisco{{ '&amp;{}'.format(next_query_string) }}</URL>
+<URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_next|e }}</URL>
 <Position>4</Position>
 </SoftKeyItem>
 {% endif -%}

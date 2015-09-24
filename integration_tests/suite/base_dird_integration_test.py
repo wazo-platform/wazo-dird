@@ -304,6 +304,21 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return response.text
 
     @classmethod
+    def get_input_cisco_result(self, profile, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/input/{profile}/cisco'
+        result = requests.get(url.format(profile=profile),
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_input_cisco(self, profile, proxy=None, token=VALID_TOKEN):
+        response = self.get_input_cisco_result(profile, proxy, token)
+        assert_that(response.status_code, equal_to(200))
+        return response.text
+
+    @classmethod
     def get_lookup_cisco_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
         url = 'https://localhost:9489/0.1/directories/lookup/{profile}/cisco'
         params = {'term': term, 'limit': limit, 'offset': offset}
@@ -315,7 +330,7 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         return result
 
     @classmethod
-    def get_lookup_cisco(self, profile, proxy=None, term=None, token=VALID_TOKEN, limit=None, offset=None):
+    def get_lookup_cisco(self, profile, term, proxy=None, token=VALID_TOKEN, limit=None, offset=None):
         response = self.get_lookup_cisco_result(profile, proxy, term, token, limit, offset)
         assert_that(response.status_code, equal_to(200))
         return response.text

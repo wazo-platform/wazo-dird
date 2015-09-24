@@ -47,7 +47,62 @@
                             "$ref": "#/definitions/CiscoIPPhoneMenu"
                         },
                         "examples": {
-                            "text/xml": "<CiscoIPPhoneMenu> <MenuItem> <Name>XiVO Directory</Name> <URL>http://proxy-url?vendor=cisco'&amp;xivo_user_uuid=1234</URL> </MenuItem> </CiscoIPPhoneMenu>"
+                            "text/xml": "<CiscoIPPhoneMenu> <MenuItem> <Name>XiVO Directory</Name> <URL>http://proxy-url?xivo_user_uuid=1234</URL> </MenuItem> </CiscoIPPhoneMenu>"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "profile",
+                        "in": "path",
+                        "type": "string",
+                        "description": "The profile defines the list of directories to query and how the results are displayed. Used to generate lookup URL",
+                        "required": true
+                    },
+                    {
+                        "name": "X-Auth-Token",
+                        "in": "header",
+                        "type": "string",
+                        "required": true,
+                        "description": "Authentication token obtained from xivo-auth."
+                    },
+                    {
+                        "name": "Proxy-URL",
+                        "in": "header",
+                        "type": "string",
+                        "required": false,
+                        "description": "URL that will be integrated in the XML response. (not working on swagger 2.1"
+                    }
+                ]
+            }
+        },
+        "/directories/input/{profile}/cisco": {
+            "get": {
+                "summary": "Given informations about how make request lookup for Cisco Unified IP Phones",
+                "description": "The `input` query will return a XML to give informations about how make request lookup for Cisco Unified IP Phones.",
+                "operationId": "cisco_input",
+                "tags": [
+                    "directories",
+                    "cisco",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "XML to make request lookup",
+                        "schema": {
+                            "$ref": "#/definitions/CiscoIPPhoneInput"
+                        },
+                        "examples": {
+                            "text/xml": "<CiscoIPPhoneInput> <Title>XiVO Search</Title> <Prompt>Name or number</Prompt> <URL>http://proxy-url?xivo_user_uuid=00000000-0000-0000-0000-000000000000</URL> <InputItem> <DisplayName>Name or number</DisplayName> <QueryStringParam>term</QueryStringParam> <DefaultValue /> <InputFlags>A</InputFlags> </InputItem> </CiscoIPPhoneInput>"
                         }
                     },
                     "503": {
@@ -981,6 +1036,46 @@
             "required": [
                 "Name",
                 "URL"
+            ]
+        },
+        "CiscoIPPhoneInput": {
+            "properties": {
+                "Title": {
+                    "type": "string"
+                },
+                "Prompt": {
+                    "type": "string"
+                },
+                "URL": {
+                    "type": "string"
+                },
+                "InputItem": {
+                    "$ref": "#/definitions/CiscoInputItem"
+                }
+            },
+            "required": [
+                "URL",
+                "InputItem"
+            ]
+        },
+        "CiscoInputItem": {
+            "properties": {
+                "DisplayName": {
+                    "type": "string"
+                },
+                "QueryStringParam": {
+                    "type": "string"
+                },
+                "DefaultValue":{
+                    "type": "string"
+                },
+                "InputFlags": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "QueryStringParam",
+                "DisplayName"
             ]
         }
     }
