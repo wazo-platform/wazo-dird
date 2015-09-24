@@ -19,6 +19,8 @@ views:
                 -
                     field:
                         - phone1
+    profile_to_display_phone:
+        default: default
 
 services:
     lookup:

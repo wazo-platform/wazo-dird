@@ -7,3 +7,4 @@ confd_config:
   host: europe
   port: 8000
   version: 1.1
+  https: false

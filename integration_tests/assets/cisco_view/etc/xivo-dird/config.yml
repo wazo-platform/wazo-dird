@@ -32,6 +32,8 @@ views:
                         - phone
     profile_to_display:
         default: default_display
+    profile_to_display_phone:
+        default: default
 
 services:
     lookup:

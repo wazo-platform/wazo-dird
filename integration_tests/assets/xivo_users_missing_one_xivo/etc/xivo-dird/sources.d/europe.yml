@@ -8,3 +8,4 @@ confd_config:
   port: 8000
   version: 1.1
   timeout: 3
+  https: false
