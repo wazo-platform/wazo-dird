@@ -87,19 +87,18 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         cls.stop_dird_with_asset()
 
     @classmethod
-    def get_lookup_result(self, term, profile, limit=None, offset=None, token=None):
-        query = [u'term={}'.format(term)]
-        query.append(u'limit={}'.format(limit)) if limit else None
-        query.append(u'offset={}'.format(offset)) if offset else None
-        url = u'https://localhost:9489/0.1/directories/lookup/{profile}?{query}'
-        result = requests.get(url.format(profile=profile, query='&'.join(query)),
+    def get_lookup_result(self, term, profile, token=None):
+        params = {'term': term}
+        url = u'https://localhost:9489/0.1/directories/lookup/{profile}'
+        result = requests.get(url.format(profile=profile),
+                              params=params,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
 
     @classmethod
-    def lookup(self, term, profile, token=VALID_TOKEN, limit=None, offset=None):
-        response = self.get_lookup_result(term, profile, token=token, limit=limit, offset=offset)
+    def lookup(self, term, profile, token=VALID_TOKEN):
+        response = self.get_lookup_result(term, profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
@@ -306,13 +305,10 @@ class BaseDirdIntegrationTest(unittest.TestCase):
 
     @classmethod
     def get_lookup_cisco_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/cisco?{query}'
-        query = []
-        query.append('term={term}'.format(term=term)) if term else None
-        query.append('limit={limit}'.format(limit=limit)) if limit else None
-        query.append('offset={offset}'.format(offset=offset)) if offset else None
-        result = requests.get(url.format(profile=profile,
-                                         query='&'.join(query)),
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/cisco'
+        params = {'term': term, 'limit': limit, 'offset': offset}
+        result = requests.get(url.format(profile=profile),
+                              params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)

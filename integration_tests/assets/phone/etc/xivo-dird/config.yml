@@ -4,34 +4,21 @@ enabled_plugins:
     services:
         - lookup
     views:
-        - default_json
         - cisco_view
 
 views:
-    displays:
-        default_display:
-            -
-                title: Firstname
-                field: firstname
-            -
-                title: Lastname
-                field: lastname
-            -
-                title: Number
-                field: number
-            -
-                title: Favorite
-                type: favorite
     displays_phone:
         default:
             name:
                 - display_name
+                - display_name1
             number:
                 -
                     field:
                         - phone
-    profile_to_display:
-        default: default_display
+                -
+                    field:
+                        - phone1
 
 services:
     lookup:

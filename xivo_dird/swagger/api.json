@@ -50,12 +50,6 @@
                             "text/xml": "<CiscoIPPhoneMenu> <MenuItem> <Name>XiVO Directory</Name> <URL>http://proxy-url?vendor=cisco'&amp;xivo_user_uuid=1234</URL> </MenuItem> </CiscoIPPhoneMenu>"
                         }
                     },
-                    "404": {
-                        "description": "The lookup profile does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
@@ -111,8 +105,8 @@
                             "text/xml": " <CiscoIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> </CiscoIPPhoneDirectory><SoftKeyItem> <Name>PrevPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> <Position>2</Position> </SoftKeyItem> <SoftKeyItem> <Name>Exit</Name> <URL>SoftKey:Exit</URL> <Position>3</Position> </SoftKeyItem> <SoftKeyItem> <Name>NextPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> <Position>4</Position> </SoftKeyItem> </CiscoIPPhoneDirectory>"
                         }
                     },
-                    "404": {
-                        "description": "The lookup profile does not exist",
+                    "400": {
+                        "description": "The limit or offset should be positive",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -143,15 +137,15 @@
                         "name": "limit",
                         "in": "query",
                         "type": "integer",
-                        "description": "The limit defines the number of individual objects that are returned. Default: 16",
-                        "default": 0,
+                        "description": "The limit defines the number of individual objects that are returned",
+                        "default": 16,
                         "required": false
                     },
                     {
                         "name": "offset",
                         "in": "query",
                         "type": "integer",
-                        "description": "The offset defines the offsets the start by the number specified. Default: 0",
+                        "description": "The offset defines the offsets the start by the number specified",
                         "default": 0,
                         "required": false
                     },
@@ -167,7 +161,7 @@
                         "in": "header",
                         "type": "string",
                         "required": false,
-                        "description": "URL that will be integrated in the XML response. (not working on swagger 2.1"
+                        "description": "URL that will be integrated in the XML response. (not working on swagger 2.1)"
                     }
                 ]
             }
@@ -214,22 +208,6 @@
                         "type": "string",
                         "description": "A search term to look for",
                         "required": true
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "type": "integer",
-                        "description": "The limit defines the number of individual objects that are returned. Default: None",
-                        "default": 0,
-                        "required": false
-                    },
-                    {
-                        "name": "offset",
-                        "in": "query",
-                        "type": "integer",
-                        "description": "The offset defines the offsets the start by the number specified. Default: 0",
-                        "default": 0,
-                        "required": false
                     },
                     {
                         "name": "X-Auth-Token",
@@ -843,49 +821,15 @@
                 "term": {
                     "type": "string",
                     "description": "Search term used for these results"
-                },
-                "limit": {
-                    "type": "integer",
-                    "description": "Limit used for these results"
-                },
-                "offset": {
-                    "type": "integer",
-                    "description": "Offset used for these results"
-                },
-                "offset_next": {
-                    "type": "integer",
-                    "description": "Offset for the next result. Does not exist if no next result"
-                },
-                "offset_previous": {
-                    "type": "integer",
-                    "description": "Offset for the previous result. Does not exist if no previous result"
-                },
-                "links": {
-                    "$ref": "#/definitions/Links"
                 }
             },
             "required": [
                 "column_headers",
                 "column_types",
-                "limit",
-                "offset",
                 "results",
                 "term",
                 "links"
             ]
-        },
-        "Links": {
-            "description": "Links to navigate through all results",
-            "properties": {
-                "next": {
-                    "type": "string",
-                    "description": "URL to retrieve next page of results. Doesn't exist if no next results"
-                },
-                "previous": {
-                    "type": "string",
-                    "description": "URL to retrieve previous page of results. Doesn't exist if no previous results"
-                }
-            }
         },
         "ContactList": {
             "properties": {

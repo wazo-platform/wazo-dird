@@ -29,6 +29,7 @@ from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core.rest_api import api
+from xivo_dird.plugins.phone_helpers import new_phone_display_from_config
 
 logger = logging.getLogger(__name__)
 
@@ -53,14 +54,13 @@ class CiscoViewPlugin(BaseViewPlugin):
     cisco_lookup = '/directories/lookup/<profile>/cisco'
 
     def load(self, args=None):
+        phone_display = new_phone_display_from_config(args['config'])
         jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_FOLDER))
 
         lookup_service = args['services'].get('lookup')
         if lookup_service:
-            CiscoLookupMenu.configure(lookup_service,
-                                      jinja_env=jinja_env)
-            CiscoLookup.configure(lookup_service=lookup_service,
-                                  jinja_env=jinja_env)
+            CiscoLookupMenu.configure(lookup_service, jinja_env)
+            CiscoLookup.configure(lookup_service, jinja_env, phone_display)
             api.add_resource(CiscoLookupMenu, self.cisco_lookup_menu)
             api.add_resource(CiscoLookup, self.cisco_lookup)
 
@@ -102,11 +102,13 @@ class CiscoLookup(AuthResource):
 
     jinja_env = None
     lookup_service = None
+    phone_display = None
 
     @classmethod
-    def configure(cls, lookup_service, jinja_env):
+    def configure(cls, lookup_service, jinja_env, phone_display):
         cls.lookup_service = lookup_service
         cls.jinja_env = jinja_env
+        cls.phone_display = phone_display
 
     def get(self, profile):
         proxy_url = request.headers.get('Proxy-URL', None)
@@ -131,24 +133,25 @@ class CiscoLookup(AuthResource):
         offset = 0 if args['offset'] is None else args['offset']
 
         if limit < 0:
-            return _error(404, 'The limit should be positive')
+            return _error(400, 'The limit should be positive')
         if offset < 0:
-            return _error(404, 'The offset should be positive')
+            return _error(400, 'The offset should be positive')
 
-        lookup_results = self.lookup_service.lookup(term, profile, args={}, token_infos=token_infos,
-                                                    limit=limit, offset=offset)
+        transform_func = self.phone_display.get_transform_function(profile)
+        results = self.lookup_service.lookup2(term, profile, args={}, token_infos=token_infos,
+                                              limit=limit, offset=offset, transform_func=transform_func)
 
         query = 'xivo_user_uuid={xivo_user_uuid}&amp;term={term}&amp;limit={limit}&amp;offset={offset}'
         next_query, previous_query = None, None
-        if lookup_results['next_offset'] is not None:
+        if results['next_offset'] is not None:
             next_query = query.format(xivo_user_uuid=xivo_user_uuid, term=term,
-                                      limit=limit, offset=lookup_results['next_offset'])
-        if lookup_results['previous_offset'] is not None:
+                                      limit=limit, offset=results['next_offset'])
+        if results['previous_offset'] is not None:
             previous_query = query.format(xivo_user_uuid=xivo_user_uuid, term=term,
-                                          limit=limit, offset=lookup_results['previous_offset'])
+                                          limit=limit, offset=results['previous_offset'])
 
         template = self.jinja_env.get_template(TEMPLATE_CISCO_RESULTS)
-        context = {'results': lookup_results['results'],
+        context = {'results': results['results'],
                    'xivo_proxy_url': proxy_url,
                    'next_query_string': next_query,
                    'previous_query_string': previous_query}

@@ -2,10 +2,10 @@ type: csv
 name: test_csv
 file: /tmp/data/test.csv
 searched_columns:
-    - ln
     - fn
+    - fn1
 format_columns:
-    lastname: "{ln}"
-    firstname: "{fn}"
-    display_name: "{fn} {ln}"
+    display_name: "{fn}"
+    display_name1: "{fn1}"
     phone: "{num}"
+    phone1: "{num1}"

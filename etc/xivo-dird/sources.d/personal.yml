@@ -11,4 +11,5 @@ searched_columns:
 format_columns:
     name: '{firstname} {lastname}'
     nom: '{firstname} {lastname}'
+    display_name: '{firstname} {lastname}'
     phone: '{number}'

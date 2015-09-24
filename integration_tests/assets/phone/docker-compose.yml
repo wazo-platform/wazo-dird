@@ -1,21 +1,21 @@
 sync:
   image: n3llyb0y/wait
   links:
-    - dird
     - auth
+    - dird
   environment:
     PORTS: "9489 9497"
 dird:
   image: xivo-dird-test
   links:
-      - auth
+    - auth
   ports:
     - "9489:9489"
   volumes:
     - "./etc/xivo-dird:/etc/xivo-dird"
     - "../../..:/usr/src/xivo-dird"
     - "./ssl:/etc/ssl"
-    - "./tmp/data/:/tmp/data"
+    - "./tmp/data:/tmp/data"
 auth:
   image: xivo-auth-mock
   ports:
