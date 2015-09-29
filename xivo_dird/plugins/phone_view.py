@@ -19,6 +19,7 @@ import logging
 
 from flask import request
 from flask import Response
+from flask_restful.inputs import natural
 from flask_restful import reqparse
 from time import time
 
@@ -90,12 +91,6 @@ class PhoneInput(AuthResource):
         return Response(response_xml, content_type=self.content_type, status=200)
 
 
-parser = reqparse.RequestParser()
-parser.add_argument('limit', type=int, required=False, help='limit cannot be converted', location='args')
-parser.add_argument('offset', type=int, required=False, help='offset cannot be converted', location='args')
-parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
-
-
 class PhoneLookup(AuthResource):
 
     lookup_service = None
@@ -109,7 +104,11 @@ class PhoneLookup(AuthResource):
     def __init__(self, template, content_type, max_item_per_page=None):
         self.template = template
         self.content_type = content_type
-        self.max_item_per_page = max_item_per_page
+
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('limit', type=natural, required=False, default=max_item_per_page, location='args')
+        self.parser.add_argument('offset', type=natural, required=False, default=0, location='args')
+        self.parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
     def get(self, profile):
         proxy_url = request.headers.get('Proxy-URL', None)
@@ -120,15 +119,10 @@ class PhoneLookup(AuthResource):
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid']
 
-        args = parser.parse_args()
+        args = self.parser.parse_args()
         term = args['term']
-        limit = self.max_item_per_page if args['limit'] is None else args['limit']
-        offset = 0 if args['offset'] is None else args['offset']
-
-        if limit < 0 and limit is not None:
-            return _error(400, 'The limit should be positive')
-        if offset < 0:
-            return _error(400, 'The offset should be positive')
+        offset = args['offset']
+        limit = args['limit']
 
         transform_func = self.phone_display.get_transform_function(profile)
         results = self.lookup_service.lookup2(term, profile, args={}, token_infos=token_infos,
