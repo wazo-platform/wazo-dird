@@ -125,7 +125,7 @@ class PhoneLookup(AuthResource):
         limit = self.max_item_per_page if args['limit'] is None else args['limit']
         offset = 0 if args['offset'] is None else args['offset']
 
-        if limit < 0:
+        if limit < 0 and limit is not None:
             return _error(400, 'The limit should be positive')
         if offset < 0:
             return _error(400, 'The offset should be positive')
