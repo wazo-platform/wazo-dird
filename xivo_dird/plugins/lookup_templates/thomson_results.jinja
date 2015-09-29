@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ThomsonPhoneBook>
+{% if offset_previous is not none -%}
+<MenuItem>
+ <Item>previous-page</Item>
+ <URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_previous|e }}</URL>
+</MenuItem>
+{% endif -%}
+
+{% for result in results -%}
+ <DirectoryEntry>
+  <Name>{{ result.name|e }}</Name>
+  <Telephone>Dial:{{ result.number|e }}</Telephone>
+ </DirectoryEntry>
+{% else -%}
+ <DirectoryEntry>
+  <Name>No entries</Name>
+  <Telephone></Telephone>
+ </DirectoryEntry>
+{% endfor -%}
+
+{% if offset_next is not none -%}
+<MenuItem>
+ <Item>next-page</Item>
+ <URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_next|e }}</URL>
+</MenuItem>
+{% endif -%}
+</ThomsonPhoneBook>

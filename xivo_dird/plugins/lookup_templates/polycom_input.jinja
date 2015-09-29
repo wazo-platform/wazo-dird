@@ -1,0 +1,16 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>XiVO Search</title>
+  </head>
+  <body>
+    <form action="{{ xivo_proxy_url|e }}" method="get" accept-charset="utf-8">
+      <span class="fm-desc clearboth">
+        <label id="lb-name" for="it-name">Name or number:</label>
+      </span>
+      <input type="text" name="term" id="it-term" size="15" value="" />
+      <input type="hidden" name="xivo_user_uuid" value="{{ xivo_user_uuid|e }}" />
+      <input type="submit" name="submit" id="it-submit" class="itb-submit" value="Search" />
+    </form>
+  </body>
+</html>
