@@ -48,9 +48,7 @@ class PhoneMenu(AuthResource):
         self.content_type = content_type
 
     def get(self, profile):
-        proxy_url = request.headers.get('Proxy-URL', None)
-        if not proxy_url:
-            proxy_url = request.base_url.replace('menu', 'input', 1)
+        proxy_url = request.headers.get('Proxy-URL', _build_next_url('menu'))
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -76,9 +74,7 @@ class PhoneInput(AuthResource):
         self.content_type = content_type
 
     def get(self, profile):
-        proxy_url = request.headers.get('Proxy-URL', None)
-        if not proxy_url:
-            proxy_url = request.base_url.replace('input', 'lookup', 1)
+        proxy_url = request.headers.get('Proxy-URL', _build_next_url('input'))
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -111,18 +107,15 @@ class PhoneLookup(AuthResource):
         self.parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
     def get(self, profile):
-        proxy_url = request.headers.get('Proxy-URL', None)
-        if not proxy_url:
-            proxy_url = request.base_url
-
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid']
-
         args = self.parser.parse_args()
         term = args['term']
         offset = args['offset']
         limit = args['limit']
+        proxy_url = request.headers.get('Proxy-URL', _build_next_url('lookup'))
+
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+        xivo_user_uuid = token_infos['xivo_user_uuid']
 
         transform_func = self.phone_display.get_transform_function(profile)
         results = self.lookup_service.lookup2(term, profile, args={}, token_infos=token_infos,
@@ -140,3 +133,13 @@ class PhoneLookup(AuthResource):
         response_xml = self.template.render(context)
 
         return Response(response_xml, content_type=self.content_type, status=200)
+
+
+def _build_next_url(current):
+    if current == 'menu':
+        return request.base_url.replace('menu', 'input', 1)
+    if current == 'input':
+        return request.base_url.replace('input', 'lookup', 1)
+    if current == 'lookup':
+        return request.base_url
+    return None
