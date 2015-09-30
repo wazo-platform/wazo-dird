@@ -28,6 +28,7 @@ from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import is_in
 from hamcrest import is_not
+from hamcrest import has_length
 from hamcrest import has_key
 
 
@@ -52,6 +53,20 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
+
+
+class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
+
+    asset = 'half_broken'
+
+    def test_that_lookup_returns_some_results(self):
+        result = self.lookup('al', 'default')
+
+        assert_that(result['results'], has_length(2))
+        assert_that(result['results'][0]['column_values'],
+                    contains(u'Alice', u'AAA', u'5555555555'))
+        assert_that(result['results'][1]['column_values'],
+                    contains(u'Alice', u'AAA', u'5555555555'))
 
 
 class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):
