@@ -15,11 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import os
 import logging
-
-from jinja2 import FileSystemLoader
-from jinja2 import Environment
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core.rest_api import api
@@ -28,8 +24,6 @@ from xivo_dird.plugins.phone_view import PhoneLookup
 
 logger = logging.getLogger(__name__)
 
-CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
-TEMPLATE_FOLDER = os.path.join(CURRENT_PATH, 'lookup_templates')
 TEMPLATE_YEALINK_RESULTS = "yealink_results.jinja"
 
 CONTENT_TYPE = 'text/xml'
@@ -41,11 +35,8 @@ class YealinkViewPlugin(BaseViewPlugin):
 
     def load(self, args=None):
         phone_display = new_phone_display_from_config(args['config'])
-        jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_FOLDER))
-        template_lookup = jinja_env.get_template(TEMPLATE_YEALINK_RESULTS)
-
         lookup_service = args['services'].get('lookup')
         if lookup_service:
             PhoneLookup.configure(lookup_service, phone_display)
             api.add_resource(PhoneLookup, self.yealink_lookup, endpoint='YealinkPhoneLookup',
-                             resource_class_args=(template_lookup, CONTENT_TYPE))
+                             resource_class_args=(TEMPLATE_YEALINK_RESULTS, CONTENT_TYPE))

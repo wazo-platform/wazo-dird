@@ -19,6 +19,7 @@ import logging
 
 from flask import request
 from flask import Response
+from flask import render_template
 from flask_restful.inputs import natural
 from flask_restful import reqparse
 from time import time
@@ -54,9 +55,9 @@ class PhoneMenu(AuthResource):
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
-        context = {'xivo_proxy_url': proxy_url,
-                   'xivo_user_uuid': xivo_user_uuid}
-        response_xml = self.template.render(context)
+        response_xml = render_template(self.template,
+                                       xivo_proxy_url=proxy_url,
+                                       xivo_user_uuid=xivo_user_uuid)
 
         return Response(response_xml, content_type=self.content_type, status=200)
 
@@ -80,9 +81,9 @@ class PhoneInput(AuthResource):
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
-        context = {'xivo_proxy_url': proxy_url,
-                   'xivo_user_uuid': xivo_user_uuid}
-        response_xml = self.template.render(context)
+        response_xml = render_template(self.template,
+                                       xivo_proxy_url=proxy_url,
+                                       xivo_user_uuid=xivo_user_uuid)
 
         return Response(response_xml, content_type=self.content_type, status=200)
 
@@ -121,16 +122,14 @@ class PhoneLookup(AuthResource):
         results = self.lookup_service.lookup2(term, profile, args={}, token_infos=token_infos,
                                               limit=limit, offset=offset, transform_func=transform_func)
 
-        context = {
-            'results': results['results'],
-            'xivo_proxy_url': proxy_url,
-            'xivo_user_uuid': xivo_user_uuid,
-            'term': term,
-            'limit': limit,
-            'offset_next': results['next_offset'],
-            'offset_previous': results['previous_offset']
-        }
-        response_xml = self.template.render(context)
+        response_xml = render_template(self.template,
+                                       results=results['results'],
+                                       xivo_proxy_url=proxy_url,
+                                       xivo_user_uuid=xivo_user_uuid,
+                                       term=term,
+                                       limit=limit,
+                                       offset_next=results['next_offset'],
+                                       offset_previous=results['previous_offset'])
 
         return Response(response_xml, content_type=self.content_type, status=200)
 

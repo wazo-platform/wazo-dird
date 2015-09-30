@@ -31,6 +31,7 @@ from xivo_dird.swagger.resource import SwaggerResource
 
 
 VERSION = 0.1
+TEMPLATE_FOLDER = 'plugins/templates'
 
 logger = logging.getLogger(__name__)
 api = Api(prefix='/{}'.format(VERSION))
@@ -40,7 +41,7 @@ class CoreRestApi(object):
 
     def __init__(self, config):
         self.config = config
-        self.app = Flask('xivo_dird')
+        self.app = Flask('xivo_dird', template_folder=TEMPLATE_FOLDER)
         http_helpers.add_logger(self.app, logger)
         self.app.after_request(http_helpers.log_request)
         self.app.wsgi_app = ProxyFix(self.app.wsgi_app)
