@@ -1,6 +1,6 @@
 cherrypy==3.2.2
 flask-cors==1.10.3
-flask-restful==0.2.12
+flask-restful==0.3.4
 flask==0.10.1
 futures==2.2.0
 git+https://github.com/xivo-pbx/xivo-auth-client.git
