@@ -1,1 +1,1 @@
-recursive-include xivo_dird/plugins/lookup_templates *.jinja
+recursive-include xivo_dird/plugins/templates *.jinja
