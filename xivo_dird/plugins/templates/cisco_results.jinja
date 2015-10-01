@@ -7,35 +7,35 @@
  </DirectoryEntry>
 {% else -%}
  <DirectoryEntry>
-  <Name>No entries</Name>
+  <Name>{{ gettext('No entries') }}</Name>
   <Telephone></Telephone>
  </DirectoryEntry>
 {% endfor -%}
 
 {% if offset_next is not none or offset_previous is not none -%}
 <SoftKeyItem>
-<Name>Dial</Name>
+<Name>{{ gettext('Dial') }}</Name>
 <URL>SoftKey:Dial</URL>
 <Position>1</Position>
 </SoftKeyItem>
 
 {% if offset_previous is not none -%}
 <SoftKeyItem>
-<Name>PrevPage</Name>
+<Name>{{ gettext('PrevPage') }}</Name>
 <URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_previous|e }}</URL>
 <Position>2</Position>
 </SoftKeyItem>
 {% endif -%}
 
 <SoftKeyItem>
-<Name>Exit</Name>
+<Name>{{ gettext('Exit') }}</Name>
 <URL>SoftKey:Exit</URL>
 <Position>3</Position>
 </SoftKeyItem>
 
 {% if offset_next is not none -%}
 <SoftKeyItem>
-<Name>NextPage</Name>
+<Name>{{ gettext('NextPage') }}</Name>
 <URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_next|e }}</URL>
 <Position>4</Position>
 </SoftKeyItem>

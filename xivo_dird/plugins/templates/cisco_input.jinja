@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <CiscoIPPhoneInput>
- <Title>XiVO Search</Title>
- <Prompt>Name or number</Prompt>
+ <Title>{{ gettext('XiVO Search') }}</Title>
+ <Prompt>{{ gettext('Name or number') }}</Prompt>
  <URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}</URL>
  <InputItem>
-  <DisplayName>Name or number</DisplayName>
+  <DisplayName>{{ gettext('Name or number') }}</DisplayName>
   <QueryStringParam>term</QueryStringParam>
   <DefaultValue />
   <InputFlags>A</InputFlags>
