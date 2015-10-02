@@ -90,6 +90,20 @@ class TestRemovingFavoriteAlreadyInexistant(BaseDirdIntegrationTest):
         assert_that(result.status_code, equal_to(404))
 
 
+class TestFavoritesWithOneBrokenSource(BaseDirdIntegrationTest):
+
+    asset = 'half_broken'
+
+    def test_that_listing_favorites_of_a_broken_source_returns_favorites_from_other_sources(self):
+        self.put_favorite('my_csv', '1')
+        self.put_favorite('broken', '1')
+
+        result = self.favorites('default')
+
+        assert_that(result['results'], contains(
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555'))))
+
+
 class TestFavoritesInLookupResults(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'

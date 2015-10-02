@@ -34,6 +34,7 @@ parser.add_argument('term', type=unicode, required=True, help='term is missing',
 
 
 def _error(code, msg):
+    logger.error(msg)
     return {'reason': [msg],
             'timestamp': [time()],
             'status_code': code}, code

@@ -27,6 +27,7 @@ from contextlib import contextmanager
 from requests import RequestException
 
 from xivo_dird import BaseServicePlugin
+from xivo_dird import helpers
 from xivo_dird.core.consul import ls_from_consul
 
 logger = logging.getLogger(__name__)
@@ -80,7 +81,8 @@ class _FavoritesService(object):
         self._executor.shutdown()
 
     def _async_list(self, source, contact_ids, args):
-        future = self._executor.submit(source.list, contact_ids, args)
+        raise_stopper = helpers.RaiseStopper(return_on_raise=[])
+        future = self._executor.submit(raise_stopper.execute, source.list, contact_ids, args)
         future.name = source.name
         return future
 

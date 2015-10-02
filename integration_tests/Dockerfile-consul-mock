@@ -1,3 +1,0 @@
-FROM progrium/consul
-
-RUN consul exec 

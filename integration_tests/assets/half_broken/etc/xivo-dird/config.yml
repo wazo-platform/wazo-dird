@@ -1,0 +1,86 @@
+enabled_plugins:
+    backends:
+        - csv
+        - broken_lookup
+    services:
+        - favorites
+        - lookup
+    views:
+        - default_json
+
+views:
+    displays:
+        default_display:
+            -
+                title: Firstname
+                default: Unknown
+                field: firstname
+            -
+                title: Lastname
+                default: Unknown
+                field: lastname
+            -
+                title: Number
+                default:
+                field: number
+    profile_to_display:
+        default: default_display
+
+services:
+    lookup:
+        default:
+            sources:
+                - my_csv
+                - broken
+                - my_other_csv
+            timeout: 0.5
+    favorites:
+        default:
+            sources:
+                - my_csv
+                - broken
+                - my_other_csv
+
+rest_api:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /etc/ssl/server.crt
+    private_key: /etc/ssl/server.key
+
+auth:
+    host: auth
+    port: 9497
+
+consul:
+    host: consul
+    port: 8500
+
+sources:
+    my_csv:
+      type: csv
+      name: my_csv
+      file: /tmp/data/test.csv
+      separator: "|"
+      unique_column: id
+      searched_columns:
+          - fn
+          - ln
+      format_columns:
+          lastname: "{ln}"
+          firstname: "{fn}"
+          number: "{num}"
+    my_other_csv:
+      type: csv
+      name: my_other_csv
+      file: /tmp/data/test.csv
+      separator: "|"
+      searched_columns:
+          - fn
+          - ln
+      format_columns:
+          lastname: "{ln}"
+          firstname: "{fn}"
+          number: "{num}"
+    broken:
+      type: broken_lookup
+      name: broken

@@ -21,6 +21,7 @@ from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from xivo_dird import BaseServicePlugin
+from xivo_dird import helpers
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,8 @@ class _LookupService(object):
         return self._global_config.get('services', {}).get('lookup', {}).get(profile, {})
 
     def _async_search(self, source, term, args):
-        future = self._executor.submit(source.search, term, args)
+        raise_stopper = helpers.RaiseStopper(return_on_raise=[])
+        future = self._executor.submit(raise_stopper.execute, source.search, term, args)
         future.name = source.name
         return future
 
