@@ -3,6 +3,7 @@ enabled_plugins:
         - csv
         - broken_lookup
     services:
+        - favorites
         - lookup
     views:
         - default_json
@@ -33,6 +34,12 @@ services:
                 - broken
                 - my_other_csv
             timeout: 0.5
+    favorites:
+        default:
+            sources:
+                - my_csv
+                - broken
+                - my_other_csv
 
 rest_api:
     listen: 0.0.0.0
@@ -44,12 +51,17 @@ auth:
     host: auth
     port: 9497
 
+consul:
+    host: consul
+    port: 8500
+
 sources:
     my_csv:
       type: csv
       name: my_csv
       file: /tmp/data/test.csv
       separator: "|"
+      unique_column: id
       searched_columns:
           - fn
           - ln
