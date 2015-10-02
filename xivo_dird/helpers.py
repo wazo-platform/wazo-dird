@@ -17,13 +17,17 @@
 
 import logging
 
-
 logger = logging.getLogger()
 
 
-def no_throw_execute(default, f, *args, **kwargs):
-    try:
-        return f(*args, **kwargs)
-    except Exception:
-        logger.exception('An error occured in %s', f.__name__)
-    return default
+class RaiseStopper(object):
+
+    def __init__(self, return_on_raise):
+        self.return_on_raise = return_on_raise
+
+    def execute(self, function, *args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except Exception:
+            logger.exception('An error occured in %s', function.__name__)
+        return self.return_on_raise

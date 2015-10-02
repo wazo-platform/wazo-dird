@@ -60,7 +60,8 @@ class _LookupService(object):
         return self._global_config.get('services', {}).get('lookup', {}).get(profile, {})
 
     def _async_search(self, source, term, args):
-        future = self._executor.submit(helpers.no_throw_execute, [], source.search, term, args)
+        raise_stopper = helpers.RaiseStopper(return_on_raise=[])
+        future = self._executor.submit(raise_stopper.execute, source.search, term, args)
         future.name = source.name
         return future
 

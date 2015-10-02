@@ -81,7 +81,8 @@ class _FavoritesService(object):
         self._executor.shutdown()
 
     def _async_list(self, source, contact_ids, args):
-        future = self._executor.submit(helpers.no_throw_execute, [], source.list, contact_ids, args)
+        raise_stopper = helpers.RaiseStopper(return_on_raise=[])
+        future = self._executor.submit(raise_stopper.execute, source.list, contact_ids, args)
         future.name = source.name
         return future
 
