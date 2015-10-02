@@ -3,3 +3,5 @@ FROM xivo/xivo-dird
 ADD . /usr/src/xivo-dird
 WORKDIR /usr/src/xivo-dird
 RUN python setup.py develop
+WORKDIR /usr/src/xivo-dird/integration_tests/docker/broken-plugins
+RUN python setup.py develop

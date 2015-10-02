@@ -32,8 +32,6 @@ setup(
             'personal = xivo_dird.plugins.personal_service:PersonalServicePlugin',
         ],
         'xivo_dird.backends': [
-            'broken = xivo_dird.plugins.broken_backend:BrokenPlugin',
-            'broken_lookup = xivo_dird.plugins.broken_backend:BrokenLookup',
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
             'csv_ws = xivo_dird.plugins.csv_ws:CSVWSPlugin',
             'ldap = xivo_dird.plugins.ldap_plugin:LDAPPlugin',
