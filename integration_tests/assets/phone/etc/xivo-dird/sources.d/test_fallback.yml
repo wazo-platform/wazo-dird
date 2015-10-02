@@ -1,6 +1,6 @@
 type: csv
-name: test_csv
-file: /tmp/data/test.csv
+name: test_fallback
+file: /tmp/data/test_fallback.csv
 searched_columns:
     - fn
     - fn1

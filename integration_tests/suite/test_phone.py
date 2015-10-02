@@ -25,35 +25,41 @@ from hamcrest import equal_to
 class TestPhone(BaseDirdIntegrationTest):
 
     asset = 'phone'
-    profile = 'default'
 
     def test_no_fallback_no_multiple_results(self):
-        result = self.get_lookup_cisco(term='Ali', profile=self.profile, token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(term='Ali', profile='test_fallback', token=VALID_TOKEN)
 
-        results = self._get_directory_entries(result)
+        results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Alice', '101')]))
 
     def test_fallback_no_multiple_results(self):
-        result = self.get_lookup_cisco(term='Bob', profile=self.profile, token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(term='Bob', profile='test_fallback', token=VALID_TOKEN)
 
-        results = self._get_directory_entries(result)
+        results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Bobby', '201')]))
 
     def test_no_fallback_multiple_results(self):
-        result = self.get_lookup_cisco(term='Char', profile=self.profile, token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(term='Char', profile='test_fallback', token=VALID_TOKEN)
 
-        results = self._get_directory_entries(result)
+        results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Charles', '301'), ('Charles', '302')]))
 
     def test_no_results(self):
-        result = self.get_lookup_cisco(term='Dia', profile=self.profile, token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(term='Dia', profile='test_fallback', token=VALID_TOKEN)
 
-        results = self._get_directory_entries(result)
+        results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('No entries', '')]))
+
+    def test_results_are_sorted(self):
+        xml_content = self.get_lookup_cisco(term='A', profile='test_sorted', token=VALID_TOKEN)
+
+        results = self._get_directory_entries(xml_content)
+
+        assert_that(results, equal_to([('A1', '1'), ('A2', '2'), ('A3', '3')]))
 
     def _get_directory_entries(self, xml_string):
         document = parse_xml(xml_string)
@@ -70,4 +76,3 @@ class TestPhone(BaseDirdIntegrationTest):
             if node.nodeType == node.TEXT_NODE:
                 rc.append(node.data)
         return ''.join(rc)
-

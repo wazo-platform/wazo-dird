@@ -11,6 +11,13 @@ views:
         default:
             name:
                 - display_name
+            number:
+                -
+                    field:
+                        - phone
+        test_fallback:
+            name:
+                - display_name
                 - display_name1
             number:
                 -
@@ -20,13 +27,17 @@ views:
                     field:
                         - phone1
     profile_to_display_phone:
-        default: default
+        test_fallback: test_fallback
+        test_sorted: default
 
 services:
     lookup:
-        default:
+        test_fallback:
             sources:
-                - test_csv
+                - test_fallback
+        test_sorted:
+            sources:
+                - test_sorted
 
 rest_api:
        listen: 0.0.0.0
