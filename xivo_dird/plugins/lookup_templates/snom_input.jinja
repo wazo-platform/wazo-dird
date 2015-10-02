@@ -2,7 +2,7 @@
 <SnomIPPhoneInput>
  <Title>XiVO Search</Title>
  <Prompt>Name or number</Prompt>
- <URL>{{ xivo_proxy_url|e }}{{ '?xivo_user_uuid={}'.format(xivo_user_uuid|e) if xivo_user_uuid }}</URL>
+ <URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}</URL>
  <InputItem>
   <DisplayName>Name or number</DisplayName>
   <QueryStringParam>term</QueryStringParam>

@@ -52,7 +52,7 @@ class PhoneMenu(AuthResource):
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid']
+        xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
         context = {'xivo_proxy_url': proxy_url,
                    'xivo_user_uuid': xivo_user_uuid}
@@ -78,7 +78,7 @@ class PhoneInput(AuthResource):
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid']
+        xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
         context = {'xivo_proxy_url': proxy_url,
                    'xivo_user_uuid': xivo_user_uuid}
@@ -115,7 +115,7 @@ class PhoneLookup(AuthResource):
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid']
+        xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
         transform_func = self.phone_display.get_transform_function(profile)
         results = self.lookup_service.lookup2(term, profile, args={}, token_infos=token_infos,
