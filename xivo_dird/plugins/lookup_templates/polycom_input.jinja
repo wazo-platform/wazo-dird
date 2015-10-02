@@ -5,12 +5,12 @@
   </head>
   <body>
     <form action="{{ xivo_proxy_url|e }}" method="get" accept-charset="utf-8">
-      <span class="fm-desc clearboth">
-        <label id="lb-name" for="it-name">Name or number:</label>
+      <span>
+        <label for="it-term">Name or number:</label>
       </span>
       <input type="text" name="term" id="it-term" size="15" value="" />
       <input type="hidden" name="xivo_user_uuid" value="{{ xivo_user_uuid|e }}" />
-      <input type="submit" name="submit" id="it-submit" class="itb-submit" value="Search" />
+      <input type="submit" name="submit" value="Search" />
     </form>
   </body>
 </html>
