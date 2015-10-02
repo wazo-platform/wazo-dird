@@ -175,3 +175,13 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
         result = self.lookup('alice', 'default')
 
         assert_that(result['results'], empty())
+
+
+class TestLDAPServiceIsDown(BaseDirdIntegrationTest):
+
+    asset = 'ldap_service_down'
+
+    def test_lookup(self):
+        result = self.lookup('alice', 'default')
+
+        assert_that(result['results'], empty())
