@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "title": "XiVO Dird",
-        "description": " Contacts and directories in XiVO are managed by the xivo-dird daemon. This service provides a public API that can be used to query the directories that are configured on a XiVO. \n\n\nA contact can contain various information such as a person's phone number, number, office number, department, office number, etc. The information displayed is selected via a profile. Directories can be aggregated using multiple data sources such as an LDAP server, a CSV file, another XiVO server, etc.\n\n\nPlease refer to [the documentation](http://documentation.xivo.io) for further details.\n\n\nNote: The 0.1 API is currently in development. Major changes could still happen and new resources will be added over time.",
+        "description": "Contacts and directories in XiVO are managed by the xivo-dird daemon. This service provides a public API that can be used to query the directories that are configured on a XiVO. \n\n\nA contact can contain various information such as a person's phone number, number, office number, department, office number, etc. The information displayed is selected via a profile. Directories can be aggregated using multiple data sources such as an LDAP server, a CSV file, another XiVO server, etc.\n\n\nPlease refer to [the documentation](http://documentation.xivo.io) for further details.\n\n\nNote: The 0.1 API is currently in development. Major changes could still happen and new resources will be added over time.",
         "version": "0.1",
         "license": {
             "name": "GPL v3",
@@ -27,6 +27,107 @@
         "application/json"
     ],
     "paths": {
+        "/directories/input/{profile}/aastra": {
+            "get": {
+                "summary": "Given informations about how make request lookup for Aastra Phones",
+                "description": "The `input` query will return a XML to give informations about how make request lookup for Aastra Phones.",
+                "operationId": "aastra_input",
+                "tags": [
+                    "directories",
+                    "aastra",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "XML to make request lookup",
+                        "schema": {
+                            "$ref": "#/definitions/AastraIPPhoneInputScreen"
+                        },
+                        "examples": {
+                            "text/xml": "<AastraIPPhoneInputScreen> <Title>XiVO Search</Title> <Prompt>Name or number</Prompt> <URL>http://proxy-url?xivo_user_uuid=00000000-0000-0000-0000-000000000000</URL> <Parameter>term</Parameter> </AastraIPPhoneInputScreen>"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    },
+                    {
+                        "$ref": "#/parameters/ProxyUrl"
+                    }
+                ]
+            }
+        },
+        "/directories/lookup/{profile}/aastra": {
+            "get": {
+                "summary": "Search for contacts with Aastra Phones",
+                "description": "The `lookup` query will return a list of result matching the searched term formated for Aastra Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `aastra_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "operationId": "cisco_lookup",
+                "tags": [
+                    "directories",
+                    "aastra",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of contacts",
+                        "schema": {
+                            "$ref": "#/definitions/AastraIPPhoneTextMenu"
+                        },
+                        "examples": {
+                            "text/xml": "<AastraIPPhoneTextMenu style='none' destroyOnExit='yes'> <MenuItem> <Prompt>PrevPage</Prompt> <URI>https://xivo-dird:9489/0.1/directories/lookup/default_phone/aastra?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URI></MenuItem> <MenuItem> <Prompt>Alice</Prompt> <URI>Dial:5555555555</URI> </MenuItem> <MenuItem><Prompt>NextPage</Prompt> <URI>https://xivo-dird:9489/0.1/directories/lookup/default_phone/aastra?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URI> </AastraIPPhoneTextMenu>"
+                        }
+                    },
+                    "400": {
+                        "description": "The limit or offset should be positive",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Term"
+                    },
+                    {
+                        "$ref": "#/parameters/Limit16"
+                    },
+                    {
+                        "$ref": "#/parameters/Offset"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    },
+                    {
+                        "$ref": "#/parameters/ProxyUrl"
+                    }
+                ]
+            }
+        },
         "/directories/menu/{profile}/cisco": {
             "get": {
                 "summary": "Extends the directories menu for Cisco Unified IP Phones",
@@ -59,25 +160,13 @@
                 },
                 "parameters": [
                     {
-                        "name": "profile",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The profile defines the list of directories to query and how the results are displayed. Used to generate lookup URL",
-                        "required": true
+                        "$ref": "#/parameters/Profile"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     },
                     {
-                        "name": "Proxy-URL",
-                        "in": "header",
-                        "type": "string",
-                        "required": false,
-                        "description": "URL that will be integrated in the XML response. (not working on swagger 2.1"
+                        "$ref": "#/parameters/ProxyUrl"
                     }
                 ]
             }
@@ -114,25 +203,13 @@
                 },
                 "parameters": [
                     {
-                        "name": "profile",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The profile defines the list of directories to query and how the results are displayed. Used to generate lookup URL",
-                        "required": true
+                        "$ref": "#/parameters/Profile"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     },
                     {
-                        "name": "Proxy-URL",
-                        "in": "header",
-                        "type": "string",
-                        "required": false,
-                        "description": "URL that will be integrated in the XML response. (not working on swagger 2.1"
+                        "$ref": "#/parameters/ProxyUrl"
                     }
                 ]
             }
@@ -140,7 +217,7 @@
         "/directories/lookup/{profile}/cisco": {
             "get": {
                 "summary": "Search for contacts with Cisco Unified IP Phones",
-                "description": " The `lookup` query will return a list of result matching the searched term formated for Cisco Unified IP Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `cisco_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "description": "The `lookup` query will return a list of result matching the searched term formated for Cisco Unified IP Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `cisco_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "cisco_lookup",
                 "tags": [
                     "directories",
@@ -152,12 +229,12 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "XML to extend the directories menu",
+                        "description": "A list of contacts",
                         "schema": {
                             "$ref": "#/definitions/CiscoIPPhoneDirectory"
                         },
                         "examples": {
-                            "text/xml": " <CiscoIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> </CiscoIPPhoneDirectory><SoftKeyItem> <Name>PrevPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> <Position>2</Position> </SoftKeyItem> <SoftKeyItem> <Name>Exit</Name> <URL>SoftKey:Exit</URL> <Position>3</Position> </SoftKeyItem> <SoftKeyItem> <Name>NextPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> <Position>4</Position> </SoftKeyItem> </CiscoIPPhoneDirectory>"
+                            "text/xml": "<CiscoIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> <SoftKeyItem> <Name>PrevPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> <Position>2</Position> </SoftKeyItem> <SoftKeyItem> <Name>Exit</Name> <URL>SoftKey:Exit</URL> <Position>3</Position> </SoftKeyItem> <SoftKeyItem> <Name>NextPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> <Position>4</Position> </SoftKeyItem> </CiscoIPPhoneDirectory>"
                         }
                     },
                     "400": {
@@ -175,48 +252,340 @@
                 },
                 "parameters": [
                     {
-                        "name": "profile",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The profile defines the list of directories to query and how the results are displayed. Used to generate lookup URL",
-                        "required": true
+                        "$ref": "#/parameters/Profile"
                     },
                     {
-                        "name": "term",
-                        "in": "query",
-                        "type": "string",
-                        "description": "A search term to look for",
-                        "required": false
+                        "$ref": "#/parameters/Term"
                     },
                     {
-                        "name": "limit",
-                        "in": "query",
-                        "type": "integer",
-                        "description": "The limit defines the number of individual objects that are returned",
-                        "default": 16,
-                        "required": false
+                        "$ref": "#/parameters/Limit16"
                     },
                     {
-                        "name": "offset",
-                        "in": "query",
-                        "type": "integer",
-                        "description": "The offset defines the offsets the start by the number specified",
-                        "default": 0,
-                        "required": false
+                        "$ref": "#/parameters/Offset"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     },
                     {
-                        "name": "Proxy-URL",
-                        "in": "header",
-                        "type": "string",
-                        "required": false,
-                        "description": "URL that will be integrated in the XML response. (not working on swagger 2.1)"
+                        "$ref": "#/parameters/ProxyUrl"
+                    }
+                ]
+            }
+        },
+        "/directories/input/{profile}/polycom": {
+            "get": {
+                "summary": "Given informations about how make request lookup for Polycom Phones",
+                "description": "The `input` query will return a XML to give informations about how make request lookup for Polycom Phones.",
+                "operationId": "polycom_input",
+                "tags": [
+                    "directories",
+                    "polycom",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HTML to make request lookup",
+                        "schema": {
+                            "$ref": "#/definitions/PolycomIPPhoneInput"
+                        },
+                        "examples": {
+                            "text/xml": "<html> <head> <title>XiVO Search</title> </head> <body> <form action='https://proxy-url' method='get' accept-charset='utf-8'> <span class='fm-desc clearboth'> <label id='lb-name' for='it-name'>Name or number:</label> </span> <input type='text' name='term' id='it-term' size='15' value='' /> <input type='hidden' name='xivo_user_uuid' value='000000-0000' /> <input type='submit' name='submit' id='it-submit' class='itb-submit' value='Search' /> </form> </body> </html>"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    },
+                    {
+                        "$ref": "#/parameters/ProxyUrl"
+                    }
+                ]
+            }
+        },
+        "/directories/lookup/{profile}/polycom": {
+            "get": {
+                "summary": "Search for contacts with Polycom Phones",
+                "description": "The `lookup` query will return a list of result matching the searched term formated for Polycom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `polycom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "operationId": "polycom_lookup",
+                "tags": [
+                    "directories",
+                    "polycom",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/html"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of contacts",
+                        "schema": {
+                            "$ref": "#/definitions/PolycomIPPhoneDirectory"
+                        },
+                        "examples": {
+                            "text/xml": "<html> <head> <title>XiVO Search</title> </head> <body> <ol> <li>[<a href='https://xivo-dird:9489/0.1/directories/lookup/default_phone/polycom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1' title='Previous'>Previous</a>]<br /></li> <li><a href='tel://5555555555'>Alice</a><br /></li>  <li>[<a href='https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2' title='Next'>Next</a>]<br /></li> </ol> </body> </html>"
+                        }
+                    },
+                    "400": {
+                        "description": "The limit or offset should be positive",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Term"
+                    },
+                    {
+                        "$ref": "#/parameters/Limit16"
+                    },
+                    {
+                        "$ref": "#/parameters/Offset"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    },
+                    {
+                        "$ref": "#/parameters/ProxyUrl"
+                    }
+                ]
+            }
+        },
+        "/directories/input/{profile}/snom": {
+            "get": {
+                "summary": "Given informations about how make request lookup for Snom Phones",
+                "description": "The `input` query will return a XML to give informations about how make request lookup for Snom Phones.",
+                "operationId": "aastra_input",
+                "tags": [
+                    "directories",
+                    "snom",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "XML to make request lookup",
+                        "schema": {
+                            "$ref": "#/definitions/SnomIPPhoneInput"
+                        },
+                        "examples": {
+                            "text/xml": "<SnomIPPhoneInput> <Title>XiVO Search</Title> <Prompt>Name or number</Prompt> <URL>http://proxy-url?xivo_user_uuid=00000000-0000-0000-0000-000000000000</URL> <InputItem> <DisplayName>Name or number</DisplayName> <QueryStringParam>term</QueryStringParam> <DefaultValue /> <InputFlags>A</InputFlags> </InputItem> </CiscoIPPhoneInput>"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    },
+                    {
+                        "$ref": "#/parameters/ProxyUrl"
+                    }
+                ]
+            }
+        },
+        "/directories/lookup/{profile}/snom": {
+            "get": {
+                "summary": "Search for contacts with Snom Phones",
+                "description": "The `lookup` query will return a list of result matching the searched term formated for Snom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `snom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "operationId": "cisco_lookup",
+                "tags": [
+                    "directories",
+                    "snom",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of contacts",
+                        "schema": {
+                            "$ref": "#/definitions/SnomIPPhoneDirectory"
+                        },
+                        "examples": {
+                            "text/xml": "<SnomIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> <SoftKeyItem> <Label>PrevPage</Label> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/snom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> <Name>F2</Name> </SoftKeyItem> <SoftKeyItem> <Label>NextPage</Label> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/snom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> <Name>F4</Name> </SoftKeyItem> </SnomIPPhoneDirectory>"
+                        }
+                    },
+                    "400": {
+                        "description": "The limit or offset should be positive",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Term"
+                    },
+                    {
+                        "$ref": "#/parameters/Limit16"
+                    },
+                    {
+                        "$ref": "#/parameters/Offset"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    },
+                    {
+                        "$ref": "#/parameters/ProxyUrl"
+                    }
+                ]
+            }
+        },
+        "/directories/lookup/{profile}/thomson": {
+            "get": {
+                "summary": "Search for contacts with Thomson Phones",
+                "description": "The `lookup` query will return a list of result matching the searched term formated for Thomson Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `thomson_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "operationId": "cisco_lookup",
+                "tags": [
+                    "directories",
+                    "thomson",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of contacts",
+                        "schema": {
+                            "$ref": "#/definitions/ThomsonPhoneBook"
+                        },
+                        "examples": {
+                            "text/xml": "<ThomsonPhoneBook> <MenuItem> <Item>previous-page</Item> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/snom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> </MenuItem> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> <MenuItem> <Item>next-page</Item> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/snom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> </MenuItem> </ThomsonPhoneBook>"
+                        }
+                    },
+                    "400": {
+                        "description": "The limit or offset should be positive",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Term"
+                    },
+                    {
+                        "$ref": "#/parameters/Limit8"
+                    },
+                    {
+                        "$ref": "#/parameters/Offset"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    },
+                    {
+                        "$ref": "#/parameters/ProxyUrl"
+                    }
+                ]
+            }
+        },
+        "/directories/lookup/{profile}/yealink": {
+            "get": {
+                "summary": "Search for contacts with Yealink Phones",
+                "description": "The `lookup` query will return a list of result matching the searched term formated for Yealink Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `yealink_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "operationId": "cisco_lookup",
+                "tags": [
+                    "directories",
+                    "yealink",
+                    "phone directories"
+                ],
+                "produces": [
+                    "text/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of contacts",
+                        "schema": {
+                            "$ref": "#/definitions/YealinkIPPhoneDirectory"
+                        },
+                        "examples": {
+                            "text/xml": "<YealinkIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> </YealinkIPPhoneDirectory>"
+                        }
+                    },
+                    "400": {
+                        "description": "The limit or offset should be positive",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Term"
+                    },
+                    {
+                        "$ref": "#/parameters/Limit"
+                    },
+                    {
+                        "$ref": "#/parameters/Offset"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    },
+                    {
+                        "$ref": "#/parameters/ProxyUrl"
                     }
                 ]
             }
@@ -224,7 +593,7 @@
         "/directories/lookup/{profile}": {
             "get": {
                 "summary": "Search for contacts",
-                "description": " The `lookup` query will return a list of result matching the searched term. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "description": "The `lookup` query will return a list of result matching the searched term. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "lookup",
                 "tags": [
                     "directories"
@@ -804,6 +1173,67 @@
                     }
                 }
             }
+        }
+    },
+    "parameters": {
+        "Limit": {
+            "name": "limit",
+            "in": "query",
+            "type": "integer",
+            "description": "The limit defines the number of individual objects that are returned",
+            "required": false
+        },
+        "Limit8": {
+            "name": "limit",
+            "in": "query",
+            "type": "integer",
+            "description": "The limit defines the number of individual objects that are returned",
+            "default": 8,
+            "required": false
+        },
+        "Limit16": {
+            "name": "limit",
+            "in": "query",
+            "type": "integer",
+            "description": "The limit defines the number of individual objects that are returned",
+            "default": 16,
+            "required": false
+        },
+        "Offset": {
+            "name": "offset",
+            "in": "query",
+            "type": "integer",
+            "description": "The offset defines the offsets the start by the number specified",
+            "default": 0,
+            "required": false
+        },
+        "Profile": {
+            "name": "profile",
+            "in": "path",
+            "type": "string",
+            "description": "The profile defines the list of directories to query and how the results are displayed. Used to generate lookup URL",
+            "required": true
+        },
+        "ProxyUrl": {
+            "name": "Proxy-URL",
+            "in": "header",
+            "type": "string",
+            "required": false,
+            "description": "URL that will be integrated in the XML response. (not working on swagger 2.1)"
+        },
+        "Term": {
+            "name": "term",
+            "in": "query",
+            "type": "string",
+            "description": "A search term to look for",
+            "required": true
+        },
+        "Token": {
+            "name": "X-Auth-Token",
+            "in": "header",
+            "type": "string",
+            "required": true,
+            "description": "Authentication token obtained from xivo-auth."
         }
     },
     "definitions": {

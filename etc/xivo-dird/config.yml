@@ -59,7 +59,12 @@ enabled_plugins:
         - default_json
         - headers_view
         - personal_view
+        - aastra_view
         - cisco_view
+        - polycom_view
+        - snom_view
+        - thomson_view
+        - yealink_view
 
 views:
     displays:

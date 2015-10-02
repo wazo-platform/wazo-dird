@@ -41,7 +41,12 @@ setup(
             'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
         ],
         'xivo_dird.views': [
+            'aastra_view = xivo_dird.plugins.aastra_view:AastraViewPlugin',
             'cisco_view = xivo_dird.plugins.cisco_view:CiscoViewPlugin',
+            'polycom_view = xivo_dird.plugins.polycom_view:PolycomViewPlugin',
+            'snom_view = xivo_dird.plugins.snom_view:SnomViewPlugin',
+            'thomson_view = xivo_dird.plugins.thomson_view:ThomsonViewPlugin',
+            'yealink_view = xivo_dird.plugins.yealink_view:YealinkViewPlugin',
             'default_json = xivo_dird.plugins.default_json_view:JsonViewPlugin',
             'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
             'personal_view = xivo_dird.plugins.personal_view:PersonalViewPlugin',
