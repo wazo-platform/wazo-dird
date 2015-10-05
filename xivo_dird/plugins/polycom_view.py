@@ -34,7 +34,7 @@ TEMPLATE_FOLDER = os.path.join(CURRENT_PATH, 'lookup_templates')
 TEMPLATE_POLYCOM_INPUT = "polycom_input.jinja"
 TEMPLATE_POLYCOM_RESULTS = "polycom_results.jinja"
 
-CONTENT_TYPE = 'text/html'
+CONTENT_TYPE = 'text/html; charset=UTF-8'
 MAX_ITEM_PER_PAGE = 16
 
 
