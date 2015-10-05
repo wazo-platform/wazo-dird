@@ -334,3 +334,85 @@ class BaseDirdIntegrationTest(unittest.TestCase):
         response = self.get_lookup_cisco_result(profile, proxy, term, token, limit, offset)
         assert_that(response.status_code, equal_to(200))
         return response.text
+
+    @classmethod
+    def get_input_aastra_result(self, profile, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/input/{profile}/aastra'
+        result = requests.get(url.format(profile=profile),
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_lookup_aastra_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/aastra'
+        params = {'term': term, 'limit': limit, 'offset': offset}
+        result = requests.get(url.format(profile=profile),
+                              params=params,
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_input_polycom_result(self, profile, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/input/{profile}/polycom'
+        result = requests.get(url.format(profile=profile),
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_lookup_polycom_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/polycom'
+        params = {'term': term, 'limit': limit, 'offset': offset}
+        result = requests.get(url.format(profile=profile),
+                              params=params,
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_input_snom_result(self, profile, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/input/{profile}/snom'
+        result = requests.get(url.format(profile=profile),
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_lookup_snom_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/snom'
+        params = {'term': term, 'limit': limit, 'offset': offset}
+        result = requests.get(url.format(profile=profile),
+                              params=params,
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_lookup_thomson_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/thomson'
+        params = {'term': term, 'limit': limit, 'offset': offset}
+        result = requests.get(url.format(profile=profile),
+                              params=params,
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
+
+    @classmethod
+    def get_lookup_yealink_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/yealink'
+        params = {'term': term, 'limit': limit, 'offset': offset}
+        result = requests.get(url.format(profile=profile),
+                              params=params,
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result

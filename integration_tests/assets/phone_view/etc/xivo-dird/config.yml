@@ -5,7 +5,12 @@ enabled_plugins:
         - lookup
     views:
         - default_json
+        - aastra_view
         - cisco_view
+        - polycom_view
+        - snom_view
+        - thomson_view
+        - yealink_view
 
 views:
     displays:

@@ -102,3 +102,35 @@ class TestPhoneView(BaseDirdIntegrationTest):
         result = self.get_lookup_cisco_result(profile=self.profile, token=VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))
+
+    def test_aastra_input_route(self):
+        result = self.get_input_aastra_result(profile=self.profile, token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))
+
+    def test_aastra_lookup_route(self):
+        result = self.get_lookup_aastra_result(profile=self.profile, term='Alice', token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))
+
+    def test_polycom_input_route(self):
+        result = self.get_input_polycom_result(profile=self.profile, token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))
+
+    def test_polycom_lookup_route(self):
+        result = self.get_lookup_polycom_result(profile=self.profile, term='Alice', token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))
+
+    def test_snom_input_route(self):
+        result = self.get_input_snom_result(profile=self.profile, token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))
+
+    def test_snom_lookup_route(self):
+        result = self.get_lookup_snom_result(profile=self.profile, term='Alice', token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))
+
+    def test_thomson_lookup_route(self):
+        result = self.get_lookup_thomson_result(profile=self.profile, term='Alice', token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))
+
+    def test_yealink_lookup_route(self):
+        result = self.get_lookup_yealink_result(profile=self.profile, term='Alice', token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))
