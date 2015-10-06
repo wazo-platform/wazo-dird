@@ -3,3 +3,4 @@ pyhamcrest
 python-ldap
 nose
 sh
+xivo-test-helpers

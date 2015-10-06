@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import subprocess
-import unittest
 import requests
 import os
 import json
@@ -24,6 +22,7 @@ import logging
 
 from hamcrest import assert_that
 from hamcrest import equal_to
+from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +33,8 @@ except ImportError:
     # when disable_warnings did not exist, warnings also did not exist
     pass
 
-ASSETS_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
-CA_CERT = os.path.join(ASSETS_ROOT, '_common', 'ssl', 'server.crt')
+ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
+CA_CERT = os.path.join(ASSET_ROOT, '_common', 'ssl', 'server.crt')
 
 VALID_TOKEN = 'valid-token'
 VALID_TOKEN_1 = 'valid-token-1'
@@ -43,48 +42,10 @@ VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_3 = 'valid-token-3'
 
 
-class BaseDirdIntegrationTest(unittest.TestCase):
+class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
-    @classmethod
-    def launch_dird_with_asset(cls):
-        cls.container_name = cls.asset
-        asset_path = os.path.join(ASSETS_ROOT, cls.asset)
-        cls.cur_dir = os.getcwd()
-        os.chdir(asset_path)
-        cls._run_cmd('docker-compose rm --force')
-        cls._run_cmd('docker-compose run --rm sync')
-
-    @classmethod
-    def dird_status(cls):
-        dird_id = cls._run_cmd('docker-compose ps -q dird').strip()
-        status = cls._run_cmd('docker inspect {container}'.format(container=dird_id))
-        return json.loads(status)
-
-    @classmethod
-    def dird_logs(cls):
-        dird_id = cls._run_cmd('docker-compose ps -q dird').strip()
-        status = cls._run_cmd('docker logs {container}'.format(container=dird_id))
-        return status
-
-    @classmethod
-    def stop_dird_with_asset(cls):
-        cls._run_cmd('docker-compose kill')
-        os.chdir(cls.cur_dir)
-
-    @staticmethod
-    def _run_cmd(cmd):
-        process = subprocess.Popen(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        out, _ = process.communicate()
-        logger.info(out)
-        return out
-
-    @classmethod
-    def setUpClass(cls):
-        cls.launch_dird_with_asset()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.stop_dird_with_asset()
+    assets_root = ASSET_ROOT
+    service = 'dird'
 
     @classmethod
     def get_lookup_result(self, term, profile, token=None):

@@ -103,8 +103,8 @@ class TestCoreSourceLoadingWithABrokenBackend(BaseDirdIntegrationTest):
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
-        assert_that(self.dird_logs(), contains_string('Failed to load back-end'))
-        assert_that(self.dird_logs(), contains_string('has no name'))
+        assert_that(self.service_logs(), contains_string('Failed to load back-end'))
+        assert_that(self.service_logs(), contains_string('has no name'))
 
 
 class TestDisplay(BaseDirdIntegrationTest):
