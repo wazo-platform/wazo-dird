@@ -3,6 +3,20 @@
 
 from setuptools import setup
 from setuptools import find_packages
+from setuptools.command.install_lib import install_lib as _install_lib
+from distutils.command.build import build as _build
+from babel.messages import frontend as babel
+
+
+class build(_build):
+    sub_commands = [('compile_catalog', None)] + _build.sub_commands
+
+
+class install_lib(_install_lib):
+    def run(self):
+        self.run_command('compile_catalog')
+        _install_lib.run(self)
+
 
 setup(
     name='xivo-dird',
@@ -20,10 +34,16 @@ setup(
     include_package_data=True,
     zip_safe=False,
     package_data={
-        'xivo_dird.swagger': ['*.json'],
+        'xivo_dird.swagger': ['*.json']
     },
 
     scripts=['bin/xivo-dird'],
+
+    cmdclass={'build': build, 'install_lib': install_lib,
+              'compile_catalog': babel.compile_catalog,
+              'extract_messages': babel.extract_messages,
+              'init_catalog': babel.init_catalog,
+              'update_catalog': babel.update_catalog},
 
     entry_points={
         'xivo_dird.services': [
