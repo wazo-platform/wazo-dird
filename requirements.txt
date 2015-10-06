@@ -1,4 +1,6 @@
 cherrypy==3.2.2
+babel==1.3
+flask-babel==0.9
 flask-cors==1.10.3
 flask-restful==0.3.4
 flask==0.10.1
