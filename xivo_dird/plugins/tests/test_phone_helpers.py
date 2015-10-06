@@ -105,9 +105,10 @@ class TestDisplay(TestCase):
 
     def setUp(self):
         self.name = ['name1', 'name2']
-        self.number = [{
+        self.number = [
+            {
                 'field': ['number1', 'number2'],
-             }
+            }
         ]
         self.config = {
             'name': self.name,
@@ -123,6 +124,57 @@ class TestDisplay(TestCase):
         display_results = self._format_results(fields)
 
         assert_that(display_results, equal_to([('John', '1')]))
+
+    def test_format_results_return_strip_number(self):
+        fields = {
+            'name1': u'John',
+            'number1': u'1(418)-555.1234',
+        }
+        display_results = self._format_results(fields)
+
+        assert_that(display_results, equal_to([('John', u'14185551234')]))
+
+    def test_format_results_return_none_when_number_with_unauthorized_characters(self):
+        fields = {
+            'name1': u'John',
+            'number1': u'()abcd',
+        }
+        display_results = self._format_results(fields)
+
+        assert_that(display_results, equal_to([]))
+
+    def test_format_results_return_special_number_when_pattern_matchs(self):
+        fields = {
+            'name1': u'John',
+            'number1': u'+33(0)123456789',
+        }
+        display_results = self._format_results(fields)
+
+        assert_that(display_results, equal_to([(u'John', u'0033123456789')]))
+
+    def test_format_results_return_number_with_special_characters(self):
+        fields1 = {
+            'name1': u'John',
+            'number1': u'*10',
+        }
+        display_results1 = self._format_results(fields1)
+
+        fields2 = {
+            'name1': u'John',
+            'number1': u'#10',
+        }
+        display_results2 = self._format_results(fields2)
+
+        fields3 = {
+            'name1': u'John',
+            'number1': u'+10',
+        }
+
+        display_results3 = self._format_results(fields3)
+
+        assert_that(display_results1, equal_to([(u'John', u'*10')]))
+        assert_that(display_results2, equal_to([(u'John', u'#10')]))
+        assert_that(display_results3, equal_to([(u'John', u'+10')]))
 
     def test_results_have_attributes(self):
         fields = {
@@ -235,7 +287,7 @@ class TestDisplay(TestCase):
                         'phone1'
                     ],
                     'name_format': '{name}',
-                 }
+                }
             ]
         }
 
