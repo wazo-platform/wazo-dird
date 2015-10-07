@@ -21,9 +21,9 @@ from collections import namedtuple
 from operator import attrgetter
 from xivo_dird.core.exception import InvalidConfigError
 
-NUMBER_WITH_PARANTHESES_REGEX = re.compile(r'[^\d*#+\(\)]+')
+INVALID_CHARACTERS_REGEX = re.compile(r'[^\d*#+\(\)]+')
 SPECIAL_NUMBER_REGEX = re.compile(r'^\+(\d+)\(\d+\)(\d+)$')
-PARANTHESES_REGEX = re.compile(r'[\(\)]')
+PARENTHESES_REGEX = re.compile(r'[\(\)]')
 
 
 def new_phone_display_from_config(views_config):
@@ -133,10 +133,10 @@ class _Display(object):
         return None
 
     def _extract_number_from_pretty_number(self, pretty_number):
-        number_with_parantheses = NUMBER_WITH_PARANTHESES_REGEX.sub('', pretty_number)
+        number_with_parentheses = INVALID_CHARACTERS_REGEX.sub('', pretty_number)
         # Convert numbers +33(0)123456789 to 0033123456789
-        number_with_parantheses = SPECIAL_NUMBER_REGEX.sub(r'00\1\2', number_with_parantheses)
-        return PARANTHESES_REGEX.sub('', number_with_parantheses)
+        number_with_parentheses = SPECIAL_NUMBER_REGEX.sub(r'00\1\2', number_with_parentheses)
+        return PARENTHESES_REGEX.sub('', number_with_parentheses)
 
     @classmethod
     def new_from_config(cls, display_config):
