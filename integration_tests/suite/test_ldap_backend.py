@@ -96,6 +96,7 @@ class TestLDAP(BaseDirdIntegrationTest):
         Contact('Alice', 'Wonderland', '1001', 'Lyon'),
         Contact('Bob', 'Barker', '1002', 'Lyon'),
         Contact('Connor', 'Manson', '1003', 'QC'),
+        Contact('François', 'Hollande', '1004', 'QC'),
     ]
     entry_uuids = []
 
@@ -120,6 +121,12 @@ class TestLDAP(BaseDirdIntegrationTest):
 
         assert_that(result['results'][0]['column_values'],
                     contains('Alice', 'Wonderland', '1001'))
+
+    def test_lookup_with_non_ascii_characters(self):
+        result = self.lookup(u'ç', 'default')
+
+        assert_that(result['results'][0]['column_values'],
+                    contains(u'François', 'Hollande', '1004'))
 
     def test_no_result(self):
         result = self.lookup('frack', 'default')
@@ -165,6 +172,16 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
                     contains(u'Charlé', 'Doe', '1003'))
 
     def test_no_result_because_of_the_custom_filter(self):
+        result = self.lookup('alice', 'default')
+
+        assert_that(result['results'], empty())
+
+
+class TestLDAPServiceIsDown(BaseDirdIntegrationTest):
+
+    asset = 'ldap_service_down'
+
+    def test_lookup(self):
         result = self.lookup('alice', 'default')
 
         assert_that(result['results'], empty())
