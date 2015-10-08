@@ -32,6 +32,7 @@ setup(
     packages=find_packages(),
 
     include_package_data=True,
+    setup_requires=['babel'],
     zip_safe=False,
     package_data={
         'xivo_dird.swagger': ['*.json']
