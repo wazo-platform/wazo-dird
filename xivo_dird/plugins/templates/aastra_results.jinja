@@ -2,7 +2,7 @@
 <AastraIPPhoneTextMenu style="none" destroyOnExit="yes">
 {% if offset_previous is not none -%}
 <MenuItem>
- <Prompt>Previous Page</Prompt>
+ <Prompt>{{ gettext('Previous Page') }}</Prompt>
  <URI>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_previous|e }}</URI>
 </MenuItem>
 {% endif -%}
@@ -14,14 +14,14 @@
  </MenuItem>
 {% else -%}
  <MenuItem>
-  <Prompt>No entries</Prompt>
+  <Prompt>{{ gettext('No entries') }}</Prompt>
   <URI></URI>
  </MenuItem>
 {% endfor -%}
 
 {% if offset_next is not none -%}
 <MenuItem>
- <Prompt>Next Page</Prompt>
+ <Prompt>{{ gettext('Next Page') }}</Prompt>
  <URI>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_next|e }}</URI>
 </MenuItem>
 {% endif -%}

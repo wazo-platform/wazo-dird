@@ -7,14 +7,14 @@
  </DirectoryEntry>
 {% else -%}
  <DirectoryEntry>
-  <Name>No entries</Name>
+  <Name>{{ gettext('No entries') }}</Name>
   <Telephone></Telephone>
  </DirectoryEntry>
 {% endfor -%}
 
 {% if offset_previous is not none -%}
 <SoftKeyItem>
-<Label>PrevPage</Label>
+<Label>{{ gettext('PrevPage') }}</Label>
 <URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_previous|e }}</URL>
 <Name>F2</Name>
 </SoftKeyItem>
@@ -22,7 +22,7 @@
 
 {% if offset_next is not none -%}
 <SoftKeyItem>
-<Label>NextPage</Label>
+<Label>{{ gettext('NextPage') }}</Label>
 <URL>{{ xivo_proxy_url|e }}?xivo_user_uuid={{ xivo_user_uuid|e }}&amp;term={{ term|e }}&amp;limit={{ limit|e }}&amp;offset={{ offset_next|e }}</URL>
 <Name>F4</Name>
 </SoftKeyItem>

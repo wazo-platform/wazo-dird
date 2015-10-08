@@ -22,6 +22,8 @@ import os
 
 from cherrypy import wsgiserver
 from flask import Flask
+from flask import request
+from flask.ext.babel import Babel
 from flask_restful import Api
 from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
@@ -31,6 +33,7 @@ from xivo_dird.swagger.resource import SwaggerResource
 
 
 VERSION = 0.1
+TEMPLATE_FOLDER = 'plugins/templates'
 
 logger = logging.getLogger(__name__)
 api = Api(prefix='/{}'.format(VERSION))
@@ -40,7 +43,15 @@ class CoreRestApi(object):
 
     def __init__(self, config):
         self.config = config
-        self.app = Flask('xivo_dird')
+        self.app = Flask('xivo_dird', template_folder=TEMPLATE_FOLDER)
+        self.babel = Babel(self.app)
+        self.app.config['BABEL_DEFAULT_LOCALE'] = 'en'
+
+        @self.babel.localeselector
+        def get_locale():
+            translations = [str(translation) for translation in self.babel.list_translations()]
+            return request.accept_languages.best_match(translations)
+
         http_helpers.add_logger(self.app, logger)
         self.app.after_request(http_helpers.log_request)
         self.app.wsgi_app = ProxyFix(self.app.wsgi_app)
