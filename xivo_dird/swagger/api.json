@@ -74,7 +74,7 @@
             "get": {
                 "summary": "Search for contacts with Aastra Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Aastra Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `aastra_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
-                "operationId": "cisco_lookup",
+                "operationId": "aastra_lookup",
                 "tags": [
                     "directories",
                     "aastra",
@@ -167,6 +167,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -210,6 +213,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -268,6 +274,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -311,6 +320,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -369,6 +381,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -377,7 +392,7 @@
             "get": {
                 "summary": "Given informations about how make request lookup for Snom Phones",
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Snom Phones.",
-                "operationId": "aastra_input",
+                "operationId": "snom_input",
                 "tags": [
                     "directories",
                     "snom",
@@ -412,6 +427,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -420,7 +438,7 @@
             "get": {
                 "summary": "Search for contacts with Snom Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Snom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `snom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
-                "operationId": "cisco_lookup",
+                "operationId": "snom_lookup",
                 "tags": [
                     "directories",
                     "snom",
@@ -470,6 +488,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -478,7 +499,7 @@
             "get": {
                 "summary": "Search for contacts with Thomson Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Thomson Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `thomson_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
-                "operationId": "cisco_lookup",
+                "operationId": "thomson_lookup",
                 "tags": [
                     "directories",
                     "thomson",
@@ -528,6 +549,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -536,7 +560,7 @@
             "get": {
                 "summary": "Search for contacts with Yealink Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Yealink Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `yealink_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
-                "operationId": "cisco_lookup",
+                "operationId": "yealink_lookup",
                 "tags": [
                     "directories",
                     "yealink",
@@ -586,6 +610,9 @@
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
+                    },
+                    {
+                        "$ref": "#/parameters/AcceptLanguage"
                     }
                 ]
             }
@@ -1176,6 +1203,13 @@
         }
     },
     "parameters": {
+        "AcceptLanguage": {
+            "name": "Accept-Language",
+            "in": "header",
+            "type": "string",
+            "required": false,
+            "description": "The language to translate the query results in"
+        },
         "Limit": {
             "name": "limit",
             "in": "query",
