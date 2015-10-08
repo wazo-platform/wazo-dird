@@ -1,3 +1,5 @@
+babel
+flask-babel
 docker-compose
 pyhamcrest
 python-ldap
