@@ -54,6 +54,13 @@ class TestPhone(BaseDirdIntegrationTest):
 
         assert_that(results, equal_to([('No entries', '')]))
 
+    def test_fallback_multiple_results(self):
+        xml_content = self.get_lookup_cisco(term='Etie', profile='test_fallback', token=VALID_TOKEN)
+
+        results = self._get_directory_entries(xml_content)
+
+        assert_that(results, equal_to([('Etienne', '501'), ('Etienne', '502')]))
+
     def test_results_are_sorted(self):
         xml_content = self.get_lookup_cisco(term='A', profile='test_sorted', token=VALID_TOKEN)
 
