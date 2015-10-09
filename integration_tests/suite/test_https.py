@@ -26,14 +26,14 @@ class TestHTTPSMissingCertificate(BaseDirdIntegrationTest):
 
     def test_given_inexisting_SSL_certificate_when_dird_starts_then_dird_stops(self):
         for _ in range(5):
-            status = self.dird_status()[0]
+            status = self.service_status()[0]
             if not status['State']['Running']:
                 break
             time.sleep(1)
         else:
             self.fail('xivo-dird did not stop while missing SSL certificate')
 
-        log = self.dird_logs()
+        log = self.service_logs()
         assert_that(log, contains_string("No such file or directory: '/etc/ssl/server.crt'"))
 
 
@@ -42,12 +42,12 @@ class TestHTTPSMissingPrivateKey(BaseDirdIntegrationTest):
 
     def test_given_inexisting_SSL_private_key_when_dird_starts_then_dird_stops(self):
         for _ in range(2):
-            status = self.dird_status()[0]
+            status = self.service_status()[0]
             if not status['State']['Running']:
                 break
             time.sleep(1)
         else:
             self.fail('xivo-dird did not stop while missing SSL private key')
 
-        log = self.dird_logs()
+        log = self.service_logs()
         assert_that(log, contains_string("No such file or directory: '/etc/ssl/server.key'"))
