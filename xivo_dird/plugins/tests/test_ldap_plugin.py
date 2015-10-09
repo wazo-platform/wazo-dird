@@ -499,10 +499,10 @@ class TestLDAPResultFormatter(unittest.TestCase):
         formatter = self._new_formatter(has_binary_uuid=False)
 
         raw_results = [
-            ('dn', {'entryUUID': ['0123'], 'givenName': ['John']}),
+            ('dn', {'entryUUID': ['0123'], 'givenName': ['Gr\xc3\xa9goire']}),
         ]
         expected_results = [
-            self.SourceResult({'entryUUID': '0123', 'givenName': 'John'})
+            self.SourceResult({'entryUUID': u'0123', 'givenName': u'Grégoire'})
         ]
 
         results = formatter.format(raw_results)
@@ -534,7 +534,7 @@ class TestLDAPResultFormatter(unittest.TestCase):
             (None, ['ldap://b.example.com/cn=test,dc=lan-quebec,dc=avencall,dc=com??sub']),
         ]
         expected_results = [
-            self.SourceResult({'entryUUID': '0123', 'givenName': 'John'})
+            self.SourceResult({'entryUUID': u'0123', 'givenName': u'John'})
         ]
 
         results = formatter.format(raw_results)
