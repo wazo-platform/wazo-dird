@@ -292,7 +292,7 @@ class _LDAPResultFormatter(object):
         return results
 
     def _format_one_result(self, attrs):
-        fields = dict((name, values[0]) for name, values in attrs.iteritems())
+        fields = dict((name, unicode(values[0], 'utf-8')) for name, values in attrs.iteritems())
 
         if self._bin_uuid and self._unique_column in fields:
             fields[self._unique_column] = str(uuid.UUID(bytes=fields[self._unique_column]))
