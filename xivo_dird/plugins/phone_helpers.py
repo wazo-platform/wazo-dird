@@ -30,7 +30,7 @@ def new_phone_lookup_service_from_args(args):
     return _PhoneLookupService(lookup_service, formatters)
 
 
-_DisplayResult = namedtuple('_DisplayResult', ['name', 'number'])
+_PhoneFormattedResult = namedtuple('_PhoneFormattedResult', ['name', 'number'])
 
 
 class _PhoneLookupService(object):
@@ -45,14 +45,14 @@ class _PhoneLookupService(object):
             raise ProfileNotFoundError(profile)
 
         lookup_results = self._lookup_service.lookup(term, profile, {}, token_infos)
-        display_results = formatter.format_results(lookup_results)
-        display_results.sort(key=attrgetter('name', 'number'))
+        formatted_results = formatter.format_results(lookup_results)
+        formatted_results.sort(key=attrgetter('name', 'number'))
 
         return {
-            'results': display_results[offset:offset+limit] if limit is not None else display_results[offset:],
+            'results': formatted_results[offset:offset+limit] if limit is not None else formatted_results[offset:],
             'limit': limit,
             'offset': offset,
-            'next_offset': self._next_offset(offset, limit, len(display_results)),
+            'next_offset': self._next_offset(offset, limit, len(formatted_results)),
             'previous_offset': self._previous_offset(offset, limit)
         }
 
@@ -116,7 +116,7 @@ class _PhoneResultFormatter(object):
             else:
                 display_name = name
 
-            out.append(_DisplayResult(display_name, number))
+            out.append(_PhoneFormattedResult(display_name, number))
 
     def _get_value_from_candidates(self, fields, candidates):
         for candidate in candidates:

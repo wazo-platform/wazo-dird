@@ -19,36 +19,36 @@ from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, sentinel
 from unittest import TestCase
 from xivo_dird.core.exception import InvalidConfigError, ProfileNotFoundError
-from xivo_dird.plugins.phone_helpers import _DisplayResult, _PhoneLookupService,\
+from xivo_dird.plugins.phone_helpers import _PhoneFormattedResult, _PhoneLookupService,\
     _PhoneResultFormatter, _new_formatters_from_config
 
 
 class TestPhoneLookupService(TestCase):
 
     def setUp(self):
-        self.display_results = [
-            _DisplayResult(u'Alice', u'1'),
-            _DisplayResult(u'Bob', u'2'),
-            _DisplayResult(u'Carol', u'3'),
+        self.formatted_results = [
+            _PhoneFormattedResult(u'Alice', u'1'),
+            _PhoneFormattedResult(u'Bob', u'2'),
+            _PhoneFormattedResult(u'Carol', u'3'),
         ]
         self.profile_name = 'profile1'
         self.formatter = Mock(_PhoneResultFormatter)
-        self.formatter.format_results.return_value = self.display_results
+        self.formatter.format_results.return_value = self.formatted_results
         self.formatters = {self.profile_name: self.formatter}
         self.lookup_service = Mock()
         self.phone_lookup_service = _PhoneLookupService(self.lookup_service, self.formatters)
 
     def test_lookup(self):
-        display_results = [
-            _DisplayResult(u'Bob', u'2'),
-            _DisplayResult(u'Alice', u'1'),
+        formatted_results = [
+            _PhoneFormattedResult(u'Bob', u'2'),
+            _PhoneFormattedResult(u'Alice', u'1'),
         ]
-        # return a copy of display_results to test that sorting works
-        self.formatter.format_results.side_effect = lambda _: list(display_results)
+        # return a copy of formatted_results to test that sorting works
+        self.formatter.format_results.side_effect = lambda _: list(formatted_results)
 
         results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos)
 
-        assert_that(results['results'], equal_to(sorted(display_results)))
+        assert_that(results['results'], equal_to(sorted(formatted_results)))
         self.lookup_service.lookup.assert_called_once_with('foo', self.profile_name, {}, sentinel.token_infos)
         self.formatter.format_results.assert_called_once_with(self.lookup_service.lookup.return_value)
 
@@ -61,7 +61,7 @@ class TestPhoneLookupService(TestCase):
 
         results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos, limit)
 
-        assert_that(results['results'], equal_to(self.display_results[:1]))
+        assert_that(results['results'], equal_to(self.formatted_results[:1]))
         assert_that(results['limit'], equal_to(limit))
 
     def test_lookup_offset(self):
@@ -70,24 +70,24 @@ class TestPhoneLookupService(TestCase):
 
         results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos, limit, offset)
 
-        assert_that(results['results'], equal_to(self.display_results[1:2]))
+        assert_that(results['results'], equal_to(self.formatted_results[1:2]))
         assert_that(results['offset'], equal_to(offset))
         assert_that(results['previous_offset'], equal_to(0))
         assert_that(results['next_offset'], equal_to(2))
 
     def test_lookup_return_no_next_offset_when_has_no_more_results(self):
         offset = 0
-        limit = len(self.display_results)
+        limit = len(self.formatted_results)
 
         results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos, limit, offset)
 
-        assert_that(results['results'], equal_to(self.display_results))
+        assert_that(results['results'], equal_to(self.formatted_results))
         assert_that(results['next_offset'], is_(None))
 
     def test_lookup_return_no_previous_offset_when_has_no_previous_results(self):
         results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos)
 
-        assert_that(results['results'], equal_to(self.display_results))
+        assert_that(results['results'], equal_to(self.formatted_results))
         assert_that(results['previous_offset'], is_(None))
 
 
@@ -111,60 +111,60 @@ class TestPhoneResultFormatter(TestCase):
             'number1': '1',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([('John', '1')]))
+        assert_that(formatted_results, equal_to([('John', '1')]))
 
     def test_format_results_return_strip_number(self):
         fields = {
             'name1': u'John',
             'number1': u'1(418)-555.1234',
         }
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([('John', u'14185551234')]))
+        assert_that(formatted_results, equal_to([('John', u'14185551234')]))
 
     def test_format_results_return_none_when_number_with_unauthorized_characters(self):
         fields = {
             'name1': u'John',
             'number1': u'()abcd',
         }
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([]))
+        assert_that(formatted_results, equal_to([]))
 
     def test_format_results_return_special_number_when_pattern_matchs(self):
         fields = {
             'name1': u'John',
             'number1': u'+33(0)123456789',
         }
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([(u'John', u'0033123456789')]))
+        assert_that(formatted_results, equal_to([(u'John', u'0033123456789')]))
 
     def test_format_results_return_number_with_special_characters(self):
         fields1 = {
             'name1': u'John',
             'number1': u'*10',
         }
-        display_results1 = self._format_results(fields1)
+        formatted_results1 = self._format_results(fields1)
 
         fields2 = {
             'name1': u'John',
             'number1': u'#10',
         }
-        display_results2 = self._format_results(fields2)
+        formatted_results2 = self._format_results(fields2)
 
         fields3 = {
             'name1': u'John',
             'number1': u'+10',
         }
 
-        display_results3 = self._format_results(fields3)
+        formatted_results3 = self._format_results(fields3)
 
-        assert_that(display_results1, equal_to([(u'John', u'*10')]))
-        assert_that(display_results2, equal_to([(u'John', u'#10')]))
-        assert_that(display_results3, equal_to([(u'John', u'+10')]))
+        assert_that(formatted_results1, equal_to([(u'John', u'*10')]))
+        assert_that(formatted_results2, equal_to([(u'John', u'#10')]))
+        assert_that(formatted_results3, equal_to([(u'John', u'+10')]))
 
     def test_results_have_attributes(self):
         fields = {
@@ -172,10 +172,10 @@ class TestPhoneResultFormatter(TestCase):
             'number1': '1',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results[0].name, equal_to('John'))
-        assert_that(display_results[0].number, equal_to('1'))
+        assert_that(formatted_results[0].name, equal_to('John'))
+        assert_that(formatted_results[0].number, equal_to('1'))
 
     def test_format_results_use_fallback_name(self):
         fields = {
@@ -183,9 +183,9 @@ class TestPhoneResultFormatter(TestCase):
             'number1': '1',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([('James', '1')]))
+        assert_that(formatted_results, equal_to([('James', '1')]))
 
     def test_format_results_use_fallback_name_when_name_is_false(self):
         fields = {
@@ -194,18 +194,18 @@ class TestPhoneResultFormatter(TestCase):
             'number1': '1',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([('James', '1')]))
+        assert_that(formatted_results, equal_to([('James', '1')]))
 
     def test_format_results_no_name(self):
         fields = {
             'number1': '1',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([]))
+        assert_that(formatted_results, equal_to([]))
 
     def test_format_results_use_fallback_number(self):
         fields = {
@@ -213,18 +213,18 @@ class TestPhoneResultFormatter(TestCase):
             'number2': '2',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([('John', '2')]))
+        assert_that(formatted_results, equal_to([('John', '2')]))
 
     def test_format_results_no_number(self):
         fields = {
             'name1': 'John',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([]))
+        assert_that(formatted_results, equal_to([]))
 
     def test_format_results_multiple(self):
         self.number.append({
@@ -236,9 +236,9 @@ class TestPhoneResultFormatter(TestCase):
             'mobile1': '3',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([('John', '1'), ('John', '3')]))
+        assert_that(formatted_results, equal_to([('John', '1'), ('John', '3')]))
 
     def test_format_results_multiple_missing_first(self):
         self.number.append({
@@ -249,9 +249,9 @@ class TestPhoneResultFormatter(TestCase):
             'mobile1': '3',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([('John', '3')]))
+        assert_that(formatted_results, equal_to([('John', '3')]))
 
     def test_format_results_with_name_format(self):
         self.number[0]['name_format'] = '{name}-{number}'
@@ -260,9 +260,9 @@ class TestPhoneResultFormatter(TestCase):
             'number1': '1',
         }
 
-        display_results = self._format_results(fields)
+        formatted_results = self._format_results(fields)
 
-        assert_that(display_results, equal_to([('John-1', '1')]))
+        assert_that(formatted_results, equal_to([('John-1', '1')]))
 
     def test_new_from_config(self):
         config = {
