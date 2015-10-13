@@ -40,7 +40,6 @@ class SnomViewPlugin(BaseViewPlugin):
         phone_display = new_phone_display_from_config(args['config'])
         lookup_service = args['services'].get('lookup')
         if lookup_service:
-            PhoneInput.configure(lookup_service)
             PhoneLookup.configure(lookup_service, phone_display)
             api.add_resource(PhoneInput, self.snom_input, endpoint='SnomPhoneInput',
                              resource_class_args=(TEMPLATE_SNOM_INPUT, CONTENT_TYPE))

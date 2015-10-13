@@ -42,8 +42,6 @@ class CiscoViewPlugin(BaseViewPlugin):
         phone_display = new_phone_display_from_config(args['config'])
         lookup_service = args['services'].get('lookup')
         if lookup_service:
-            PhoneMenu.configure(lookup_service)
-            PhoneInput.configure(lookup_service)
             PhoneLookup.configure(lookup_service, phone_display)
             api.add_resource(PhoneMenu, self.cisco_menu, endpoint='CiscoPhoneMenu',
                              resource_class_args=(TEMPLATE_CISCO_MENU, CONTENT_TYPE))

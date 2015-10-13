@@ -38,12 +38,6 @@ def _error(code, msg):
 
 class PhoneMenu(AuthResource):
 
-    lookup_service = None
-
-    @classmethod
-    def configure(cls, lookup_service):
-        cls.lookup_service = lookup_service
-
     def __init__(self, template, content_type):
         self.template = template
         self.content_type = content_type
@@ -63,12 +57,6 @@ class PhoneMenu(AuthResource):
 
 
 class PhoneInput(AuthResource):
-
-    lookup_service = None
-
-    @classmethod
-    def configure(cls, lookup_service):
-        cls.lookup_service = lookup_service
 
     def __init__(self, template, content_type):
         self.template = template

@@ -40,7 +40,6 @@ class PolycomViewPlugin(BaseViewPlugin):
         phone_display = new_phone_display_from_config(args['config'])
         lookup_service = args['services'].get('lookup')
         if lookup_service:
-            PhoneInput.configure(lookup_service)
             PhoneLookup.configure(lookup_service, phone_display)
             api.add_resource(PhoneInput, self.polycom_input, endpoint='PolycomPhoneInput',
                              resource_class_args=(TEMPLATE_POLYCOM_INPUT, CONTENT_TYPE))
