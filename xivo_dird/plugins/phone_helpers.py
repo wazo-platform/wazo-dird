@@ -21,10 +21,6 @@ from collections import namedtuple
 from operator import attrgetter
 from xivo_dird.core.exception import InvalidConfigError
 
-INVALID_CHARACTERS_REGEX = re.compile(r'[^\d*#+\(\)]+')
-SPECIAL_NUMBER_REGEX = re.compile(r'^\+(\d+)\(\d+\)(\d+)$')
-PARENTHESES_REGEX = re.compile(r'[\(\)]')
-
 
 def new_phone_lookup_service_from_args(args):
     # args is the same "args" argument that is passed to the load method of view plugins
@@ -128,6 +124,10 @@ class _PhoneDisplay(object):
 
 class _Display(object):
 
+    _INVALID_CHARACTERS_REGEX = re.compile(r'[^\d*#+\(\)]+')
+    _SPECIAL_NUMBER_REGEX = re.compile(r'^\+(\d+)\(\d+\)(\d+)$')
+    _PARENTHESES_REGEX = re.compile(r'[\(\)]')
+
     def __init__(self, name_config, number_config):
         self._name_config = name_config
         self._number_config = number_config
@@ -168,10 +168,10 @@ class _Display(object):
         return None
 
     def _extract_number_from_pretty_number(self, pretty_number):
-        number_with_parentheses = INVALID_CHARACTERS_REGEX.sub('', pretty_number)
+        number_with_parentheses = self._INVALID_CHARACTERS_REGEX.sub('', pretty_number)
         # Convert numbers +33(0)123456789 to 0033123456789
-        number_with_parentheses = SPECIAL_NUMBER_REGEX.sub(r'00\1\2', number_with_parentheses)
-        return PARENTHESES_REGEX.sub('', number_with_parentheses)
+        number_with_parentheses = self._SPECIAL_NUMBER_REGEX.sub(r'00\1\2', number_with_parentheses)
+        return self._PARENTHESES_REGEX.sub('', number_with_parentheses)
 
     @classmethod
     def new_from_config(cls, display_config):
