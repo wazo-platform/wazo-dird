@@ -15,14 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import logging
-
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core.rest_api import api
 from xivo_dird.plugins.phone_helpers import new_phone_lookup_service_from_args
 from xivo_dird.plugins.phone_view import PhoneLookup
-
-logger = logging.getLogger(__name__)
 
 TEMPLATE_YEALINK_RESULTS = "yealink_results.jinja"
 
