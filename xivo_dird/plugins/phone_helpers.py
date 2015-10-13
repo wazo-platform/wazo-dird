@@ -19,7 +19,7 @@ import re
 
 from collections import namedtuple
 from operator import attrgetter
-from xivo_dird.core.exception import InvalidConfigError
+from xivo_dird.core.exception import InvalidConfigError, ProfileNotFoundError
 
 
 def new_phone_lookup_service_from_args(args):
@@ -84,8 +84,11 @@ class _PhoneDisplay(object):
         self._profile_to_display = profile_to_display
 
     def get_display(self, profile):
-        display_name = self._profile_to_display[profile]
-        return self._displays[display_name]
+        try:
+            display_name = self._profile_to_display[profile]
+            return self._displays[display_name]
+        except KeyError:
+            raise ProfileNotFoundError(profile)
 
     @classmethod
     def new_from_config(cls, views_config):

@@ -26,6 +26,7 @@ from time import time
 
 from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
+from xivo_dird.core.exception import ProfileNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +100,11 @@ class PhoneLookup(AuthResource):
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
-        results = self.phone_lookup_service.lookup(term, profile, token_infos=token_infos,
-                                                   limit=limit, offset=offset)
+        try:
+            results = self.phone_lookup_service.lookup(term, profile, token_infos=token_infos,
+                                                       limit=limit, offset=offset)
+        except ProfileNotFoundError:
+            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
 
         response_xml = render_template(self.template,
                                        results=results['results'],

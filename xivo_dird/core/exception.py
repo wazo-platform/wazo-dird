@@ -16,6 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 
+class ProfileNotFoundError(Exception):
+
+    pass
+
+
 class InvalidConfigError(Exception):
 
     def __init__(self, location_path, msg):

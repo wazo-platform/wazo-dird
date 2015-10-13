@@ -103,6 +103,11 @@ class TestPhoneView(BaseDirdIntegrationTest):
 
         assert_that(result.status_code, equal_to(400))
 
+    def test_that_lookup_return_404_when_unknown_profile(self):
+        result = self.get_lookup_cisco_result(profile='quiproquo', term='alice', token=VALID_TOKEN)
+
+        assert_that(result.status_code, equal_to(404))
+
     def test_aastra_input_route(self):
         result = self.get_input_aastra_result(profile=self.profile, token=VALID_TOKEN)
         assert_that(result.status_code, equal_to((200)))

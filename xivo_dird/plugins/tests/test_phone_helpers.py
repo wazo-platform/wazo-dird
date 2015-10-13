@@ -18,7 +18,7 @@
 from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, sentinel
 from unittest import TestCase
-from xivo_dird.core.exception import InvalidConfigError
+from xivo_dird.core.exception import InvalidConfigError, ProfileNotFoundError
 from xivo_dird.plugins.phone_helpers import _PhoneLookupService, _PhoneDisplay,\
     _Display, _DisplayResult
 
@@ -112,6 +112,17 @@ class TestPhoneDisplay(TestCase):
         result = phone_display.get_display(self.profile_name)
 
         assert_that(result, is_(self.display))
+
+    def test_get_display_unknown_profile(self):
+        displays = {
+            self.display_name: self.display,
+        }
+        profile_to_display = {
+            self.profile_name: 'unknown_display',
+        }
+        phone_display = _PhoneDisplay(displays, profile_to_display)
+
+        self.assertRaises(ProfileNotFoundError, phone_display.get_display, self.profile_name)
 
     @patch('xivo_dird.plugins.phone_helpers._Display')
     def test_new_from_config(self, mock_Display):
