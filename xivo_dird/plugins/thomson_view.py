@@ -19,7 +19,7 @@ import logging
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core.rest_api import api
-from xivo_dird.plugins.phone_helpers import new_phone_display_from_config
+from xivo_dird.plugins.phone_helpers import new_phone_lookup_service_from_args
 from xivo_dird.plugins.phone_view import PhoneLookup
 
 logger = logging.getLogger(__name__)
@@ -35,9 +35,7 @@ class ThomsonViewPlugin(BaseViewPlugin):
     thomson_lookup = '/directories/lookup/<profile>/thomson'
 
     def load(self, args=None):
-        phone_display = new_phone_display_from_config(args['config'])
-        lookup_service = args['services'].get('lookup')
-        if lookup_service:
-            PhoneLookup.configure(lookup_service, phone_display)
-            api.add_resource(PhoneLookup, self.thomson_lookup, endpoint='ThomsonPhoneLookup',
-                             resource_class_args=(TEMPLATE_THOMSON_RESULTS, CONTENT_TYPE, MAX_ITEM_PER_PAGE))
+        phone_lookup_service = new_phone_lookup_service_from_args(args)
+        api.add_resource(PhoneLookup, self.thomson_lookup, endpoint='ThomsonPhoneLookup',
+                         resource_class_args=(TEMPLATE_THOMSON_RESULTS, CONTENT_TYPE,
+                                              phone_lookup_service, MAX_ITEM_PER_PAGE))

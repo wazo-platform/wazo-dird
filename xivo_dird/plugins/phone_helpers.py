@@ -26,8 +26,59 @@ SPECIAL_NUMBER_REGEX = re.compile(r'^\+(\d+)\(\d+\)(\d+)$')
 PARENTHESES_REGEX = re.compile(r'[\(\)]')
 
 
-def new_phone_display_from_config(views_config):
-    return _PhoneDisplay.new_from_config(views_config)
+def new_phone_lookup_service_from_args(args):
+    # args is the same "args" argument that is passed to the load method of view plugins
+    lookup_service = args['services']['lookup']
+    views_config = args['config']
+    phone_display = _PhoneDisplay.new_from_config(views_config)
+    return _PhoneLookupService(lookup_service, phone_display)
+
+
+_DisplayResult = namedtuple('_DisplayResult', ['name', 'number'])
+
+
+class _PhoneLookupService(object):
+
+    def __init__(self, lookup_service, phone_display):
+        self._lookup_service = lookup_service
+        self._phone_display = phone_display
+
+    def lookup(self, term, profile, token_infos, limit=None, offset=0):
+        display = self._phone_display.get_display(profile)
+        lookup_results = self._lookup_service.lookup(term, profile, {}, token_infos)
+        display_results = display.format_results(lookup_results)
+        display_results.sort(key=attrgetter('name', 'number'))
+
+        return {
+            'results': display_results[offset:offset+limit] if limit is not None else display_results[offset:],
+            'limit': limit,
+            'offset': offset,
+            'next_offset': self._next_offset(offset, limit, len(display_results)),
+            'previous_offset': self._previous_offset(offset, limit)
+        }
+
+    def _next_offset(self, offset, limit, results_count):
+        if limit is None:
+            return None
+
+        next_offset = offset + limit
+        if next_offset >= results_count:
+            return None
+
+        return next_offset
+
+    def _previous_offset(self, offset, limit):
+        if offset == 0:
+            return None
+
+        if limit is None:
+            return None
+
+        previous_offset = offset - limit
+        if previous_offset < 0:
+            return 0
+
+        return previous_offset
 
 
 class _PhoneDisplay(object):
@@ -36,15 +87,7 @@ class _PhoneDisplay(object):
         self._displays = displays
         self._profile_to_display = profile_to_display
 
-    def format_results(self, profile, lookup_results):
-        display = self._get_display(profile)
-        return display.format_results(lookup_results)
-
-    def get_transform_function(self, profile):
-        display = self._get_display(profile)
-        return display.transform_results
-
-    def _get_display(self, profile):
+    def get_display(self, profile):
         display_name = self._profile_to_display[profile]
         return self._displays[display_name]
 
@@ -83,9 +126,6 @@ class _PhoneDisplay(object):
         return cls(displays, profile_to_display)
 
 
-_DisplayResult = namedtuple('_DisplayResult', ['name', 'number'])
-
-
 class _Display(object):
 
     def __init__(self, name_config, number_config):
@@ -97,11 +137,6 @@ class _Display(object):
         for lookup_result in lookup_results:
             self._format_result(lookup_result.fields, results)
         return results
-
-    def transform_results(self, lookup_results):
-        display_results = self.format_results(lookup_results)
-        display_results.sort(key=attrgetter('name', 'number'))
-        return display_results
 
     def _format_result(self, fields, out):
         name = self._get_value_from_candidates(fields, self._name_config)

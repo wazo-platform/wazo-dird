@@ -78,17 +78,10 @@ class PhoneInput(AuthResource):
 
 class PhoneLookup(AuthResource):
 
-    lookup_service = None
-    phone_display = None
-
-    @classmethod
-    def configure(cls, lookup_service, phone_display):
-        cls.lookup_service = lookup_service
-        cls.phone_display = phone_display
-
-    def __init__(self, template, content_type, max_item_per_page=None):
+    def __init__(self, template, content_type, phone_lookup_service, max_item_per_page=None):
         self.template = template
         self.content_type = content_type
+        self.phone_lookup_service = phone_lookup_service
 
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('limit', type=natural, required=False, default=max_item_per_page, location='args')
@@ -106,9 +99,8 @@ class PhoneLookup(AuthResource):
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
-        transform_func = self.phone_display.get_transform_function(profile)
-        results = self.lookup_service.lookup2(term, profile, args={}, token_infos=token_infos,
-                                              limit=limit, offset=offset, transform_func=transform_func)
+        results = self.phone_lookup_service.lookup(term, profile, token_infos=token_infos,
+                                                   limit=limit, offset=offset)
 
         response_xml = render_template(self.template,
                                        results=results['results'],

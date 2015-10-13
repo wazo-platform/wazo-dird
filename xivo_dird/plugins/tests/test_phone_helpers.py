@@ -15,11 +15,77 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, sentinel
 from unittest import TestCase
 from xivo_dird.core.exception import InvalidConfigError
-from xivo_dird.plugins.phone_helpers import _PhoneDisplay, _Display
+from xivo_dird.plugins.phone_helpers import _PhoneLookupService, _PhoneDisplay,\
+    _Display, _DisplayResult
+
+
+class TestPhoneLookupService(TestCase):
+
+    def setUp(self):
+        self.display_results = [
+            _DisplayResult(u'Alice', u'1'),
+            _DisplayResult(u'Bob', u'2'),
+            _DisplayResult(u'Carol', u'3'),
+        ]
+        self.display = Mock(_Display)
+        self.display.format_results.return_value = self.display_results
+        self.phone_display = Mock(_PhoneDisplay)
+        self.phone_display.get_display.return_value = self.display
+        self.lookup_service = Mock()
+        self.phone_lookup_service = _PhoneLookupService(self.lookup_service, self.phone_display)
+
+    def test_lookup(self):
+        display_results = [
+            _DisplayResult(u'Bob', u'2'),
+            _DisplayResult(u'Alice', u'1'),
+        ]
+        # return a copy of display_results to test that sorting works
+        self.display.format_results.side_effect = lambda _: list(display_results)
+
+        results = self.phone_lookup_service.lookup('foo', sentinel.profile, sentinel.token_infos)
+
+        assert_that(results['results'], equal_to(sorted(display_results)))
+        self.lookup_service.lookup.assert_called_once_with('foo', sentinel.profile, {}, sentinel.token_infos)
+        self.phone_display.get_display.assert_called_once_with(sentinel.profile)
+        self.display.format_results.assert_called_once_with(self.lookup_service.lookup.return_value)
+
+    def test_lookup_limit(self):
+        limit = 1
+
+        results = self.phone_lookup_service.lookup('foo', sentinel.profile, sentinel.token_infos, limit)
+
+        assert_that(results['results'], equal_to(self.display_results[:1]))
+        assert_that(results['limit'], equal_to(limit))
+
+    def test_lookup_offset(self):
+        offset = 1
+        limit = 1
+
+        results = self.phone_lookup_service.lookup('foo', sentinel.profile, sentinel.token_infos, limit, offset)
+
+        assert_that(results['results'], equal_to(self.display_results[1:2]))
+        assert_that(results['offset'], equal_to(offset))
+        assert_that(results['previous_offset'], equal_to(0))
+        assert_that(results['next_offset'], equal_to(2))
+
+    def test_lookup_return_no_next_offset_when_has_no_more_results(self):
+        offset = 0
+        limit = len(self.display_results)
+
+        results = self.phone_lookup_service.lookup('foo', sentinel.profile, sentinel.token_infos, limit, offset)
+
+        assert_that(results['results'], equal_to(self.display_results))
+        assert_that(results['next_offset'], is_(None))
+
+    def test_lookup_return_no_previous_offset_when_has_no_previous_results(self):
+        results = self.phone_lookup_service.lookup('foo', sentinel.profile, sentinel.token_infos)
+
+        assert_that(results['results'], equal_to(self.display_results))
+        assert_that(results['previous_offset'], is_(None))
 
 
 class TestPhoneDisplay(TestCase):
@@ -34,19 +100,18 @@ class TestPhoneDisplay(TestCase):
             'displays_phone': {},
         }
 
-    def test_format_results(self):
+    def test_get_display(self):
         displays = {
-            self.display_name: self.display
+            self.display_name: self.display,
         }
         profile_to_display = {
             self.profile_name: self.display_name,
         }
         phone_display = _PhoneDisplay(displays, profile_to_display)
 
-        results = phone_display.format_results(self.profile_name, self.lookup_results)
+        result = phone_display.get_display(self.profile_name)
 
-        self.display.format_results.assert_called_once_with(self.lookup_results)
-        assert_that(results, equal_to(self.display.format_results.return_value))
+        assert_that(result, is_(self.display))
 
     @patch('xivo_dird.plugins.phone_helpers._Display')
     def test_new_from_config(self, mock_Display):
