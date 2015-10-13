@@ -104,6 +104,7 @@ class PhoneLookup(AuthResource):
             results = self.phone_lookup_service.lookup(term, profile, token_infos=token_infos,
                                                        limit=limit, offset=offset)
         except ProfileNotFoundError:
+            logger.warning('phone lookup failed: unknown profile %r', profile)
             return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
 
         response_xml = render_template(self.template,
