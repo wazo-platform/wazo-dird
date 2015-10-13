@@ -40,9 +40,9 @@ class _PhoneLookupService(object):
         self._phone_display = phone_display
 
     def lookup(self, term, profile, token_infos, limit=None, offset=0):
-        display = self._phone_display.get_display(profile)
+        formatter = self._phone_display.get_display(profile)
         lookup_results = self._lookup_service.lookup(term, profile, {}, token_infos)
-        display_results = display.format_results(lookup_results)
+        display_results = formatter.format_results(lookup_results)
         display_results.sort(key=attrgetter('name', 'number'))
 
         return {
@@ -79,14 +79,14 @@ class _PhoneLookupService(object):
 
 class _PhoneDisplay(object):
 
-    def __init__(self, displays, profile_to_display):
-        self._displays = displays
+    def __init__(self, formatters, profile_to_display):
+        self._formatters = formatters
         self._profile_to_display = profile_to_display
 
     def get_display(self, profile):
         try:
             display_name = self._profile_to_display[profile]
-            return self._displays[display_name]
+            return self._formatters[display_name]
         except KeyError:
             raise ProfileNotFoundError(profile)
 
@@ -104,9 +104,9 @@ class _PhoneDisplay(object):
         if not isinstance(displays_config, dict):
             raise InvalidConfigError('views/displays_phone', 'expected dict: was {}'.format(displays_config))
 
-        displays = {}
+        formatters = {}
         for display_name, display_config in displays_config.iteritems():
-            displays[display_name] = _Display.new_from_config(display_config)
+            formatters[display_name] = _PhoneResultFormatter.new_from_config(display_config)
 
         profile_to_display = views_config.get('profile_to_display_phone', {})
         if not isinstance(profile_to_display, dict):
@@ -118,14 +118,14 @@ class _PhoneDisplay(object):
                 raise InvalidConfigError('views/profile_to_display_phone/{}'.format(profile_name),
                                          'expected basestring: was {}'.format(basestring))
 
-            if display_name not in displays:
+            if display_name not in formatters:
                 raise InvalidConfigError('views/profile_to_display_phone/{}'.format(profile_name),
                                          'undefined display {}'.format(display_name))
 
-        return cls(displays, profile_to_display)
+        return cls(formatters, profile_to_display)
 
 
-class _Display(object):
+class _PhoneResultFormatter(object):
 
     _INVALID_CHARACTERS_REGEX = re.compile(r'[^\d*#+\(\)]+')
     _SPECIAL_NUMBER_REGEX = re.compile(r'^\+(\d+)\(\d+\)(\d+)$')

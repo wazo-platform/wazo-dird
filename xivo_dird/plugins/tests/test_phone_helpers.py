@@ -20,7 +20,7 @@ from mock import Mock, patch, sentinel
 from unittest import TestCase
 from xivo_dird.core.exception import InvalidConfigError, ProfileNotFoundError
 from xivo_dird.plugins.phone_helpers import _PhoneLookupService, _PhoneDisplay,\
-    _Display, _DisplayResult
+    _PhoneResultFormatter, _DisplayResult
 
 
 class TestPhoneLookupService(TestCase):
@@ -31,10 +31,10 @@ class TestPhoneLookupService(TestCase):
             _DisplayResult(u'Bob', u'2'),
             _DisplayResult(u'Carol', u'3'),
         ]
-        self.display = Mock(_Display)
-        self.display.format_results.return_value = self.display_results
+        self.formatter = Mock(_PhoneResultFormatter)
+        self.formatter.format_results.return_value = self.display_results
         self.phone_display = Mock(_PhoneDisplay)
-        self.phone_display.get_display.return_value = self.display
+        self.phone_display.get_display.return_value = self.formatter
         self.lookup_service = Mock()
         self.phone_lookup_service = _PhoneLookupService(self.lookup_service, self.phone_display)
 
@@ -44,14 +44,14 @@ class TestPhoneLookupService(TestCase):
             _DisplayResult(u'Alice', u'1'),
         ]
         # return a copy of display_results to test that sorting works
-        self.display.format_results.side_effect = lambda _: list(display_results)
+        self.formatter.format_results.side_effect = lambda _: list(display_results)
 
         results = self.phone_lookup_service.lookup('foo', sentinel.profile, sentinel.token_infos)
 
         assert_that(results['results'], equal_to(sorted(display_results)))
         self.lookup_service.lookup.assert_called_once_with('foo', sentinel.profile, {}, sentinel.token_infos)
         self.phone_display.get_display.assert_called_once_with(sentinel.profile)
-        self.display.format_results.assert_called_once_with(self.lookup_service.lookup.return_value)
+        self.formatter.format_results.assert_called_once_with(self.lookup_service.lookup.return_value)
 
     def test_lookup_limit(self):
         limit = 1
@@ -93,8 +93,8 @@ class TestPhoneDisplay(TestCase):
     def setUp(self):
         self.display_name = 'display1'
         self.profile_name = 'profile1'
-        self.display = Mock(_Display)
-        self.display.format_results.return_value = [Mock()]
+        self.formatter = Mock(_PhoneResultFormatter)
+        self.formatter.format_results.return_value = [Mock()]
         self.lookup_results = [Mock()]
         self.config = {
             'displays_phone': {},
@@ -102,7 +102,7 @@ class TestPhoneDisplay(TestCase):
 
     def test_get_display(self):
         displays = {
-            self.display_name: self.display,
+            self.display_name: self.formatter,
         }
         profile_to_display = {
             self.profile_name: self.display_name,
@@ -111,11 +111,11 @@ class TestPhoneDisplay(TestCase):
 
         result = phone_display.get_display(self.profile_name)
 
-        assert_that(result, is_(self.display))
+        assert_that(result, is_(self.formatter))
 
     def test_get_display_unknown_profile(self):
         displays = {
-            self.display_name: self.display,
+            self.display_name: self.formatter,
         }
         profile_to_display = {
             self.profile_name: 'unknown_display',
@@ -124,7 +124,7 @@ class TestPhoneDisplay(TestCase):
 
         self.assertRaises(ProfileNotFoundError, phone_display.get_display, self.profile_name)
 
-    @patch('xivo_dird.plugins.phone_helpers._Display')
+    @patch('xivo_dird.plugins.phone_helpers._PhoneResultFormatter')
     def test_new_from_config(self, mock_Display):
         views_config = {
             'displays_phone': {
@@ -135,7 +135,7 @@ class TestPhoneDisplay(TestCase):
         phone_display = _PhoneDisplay.new_from_config(views_config)
 
         mock_Display.new_from_config.assert_called_once_with(sentinel.default_display)
-        assert_that(phone_display._displays, equal_to({'default': mock_Display.new_from_config.return_value}))
+        assert_that(phone_display._formatters, equal_to({'default': mock_Display.new_from_config.return_value}))
         assert_that(phone_display._profile_to_display, equal_to({}))
 
     def test_new_from_config_invalid_type(self):
@@ -177,7 +177,7 @@ class TestPhoneDisplay(TestCase):
             self.fail('InvalidConfigError not raised')
 
 
-class TestDisplay(TestCase):
+class TestPhoneResultFormatter(TestCase):
 
     def setUp(self):
         self.name = ['name1', 'name2']
@@ -367,10 +367,10 @@ class TestDisplay(TestCase):
             ]
         }
 
-        display = _Display.new_from_config(config)
+        formatter = _PhoneResultFormatter.new_from_config(config)
 
-        assert_that(display._name_config, equal_to(config['name']))
-        assert_that(display._number_config, equal_to(config['number']))
+        assert_that(formatter._name_config, equal_to(config['name']))
+        assert_that(formatter._number_config, equal_to(config['number']))
 
     def test_new_from_config_invalid_type(self):
         config = None
@@ -438,14 +438,14 @@ class TestDisplay(TestCase):
         self._assert_invalid_config(self.config, 'views/displays_phone/number/0/name_format')
 
     def _format_results(self, fields):
-        display = _Display(self.name, self.number)
+        formatter = _PhoneResultFormatter(self.name, self.number)
         lookup_result = Mock()
         lookup_result.fields = fields
-        return display.format_results([lookup_result])
+        return formatter.format_results([lookup_result])
 
     def _assert_invalid_config(self, config, location_path):
         try:
-            _Display.new_from_config(config)
+            _PhoneResultFormatter.new_from_config(config)
         except InvalidConfigError as e:
             assert_that(e.location_path, equal_to(location_path))
         else:
