@@ -91,68 +91,6 @@ class TestPhoneLookupService(TestCase):
         assert_that(results['previous_offset'], is_(None))
 
 
-class TestNewFormattersFromConfig(TestCase):
-
-    def setUp(self):
-        self.config = {
-            'displays_phone': {},
-        }
-
-    @patch('xivo_dird.plugins.phone_helpers._PhoneResultFormatter')
-    def test_new_from_config(self, mock_Display):
-        views_config = {
-            'displays_phone': {
-                'default': sentinel.default_display,
-            },
-            'profile_to_display_phone': {
-                'foo': 'default',
-            }
-        }
-
-        formatters = _new_formatters_from_config(views_config)
-
-        mock_Display.new_from_config.assert_called_once_with(sentinel.default_display)
-        assert_that(formatters, equal_to({'foo': mock_Display.new_from_config.return_value}))
-
-    def test_new_from_config_invalid_type(self):
-        config = None
-
-        self._assert_invalid_config(config, 'views')
-
-    def test_new_from_config_missing_displays_phone_key(self):
-        del self.config['displays_phone']
-
-        self._assert_invalid_config(self.config, 'views')
-
-    def test_new_from_config_displays_phone_invalid_type(self):
-        self.config['displays_phone'] = 'foo'
-
-        self._assert_invalid_config(self.config, 'views/displays_phone')
-
-    def test_new_from_config_profile_to_display_phone_invalid_type(self):
-        self.config['profile_to_display_phone'] = 'foo'
-
-        self._assert_invalid_config(self.config, 'views/profile_to_display_phone')
-
-    def test_new_from_config_profile_to_display_phone_invalid_item_type(self):
-        self.config['profile_to_display_phone'] = {'default': None}
-
-        self._assert_invalid_config(self.config, 'views/profile_to_display_phone/default')
-
-    def test_new_from_config_profile_to_display_phone_missing_display(self):
-        self.config['profile_to_display_phone'] = {'foo': 'anchovy'}
-
-        self._assert_invalid_config(self.config, 'views/profile_to_display_phone/foo')
-
-    def _assert_invalid_config(self, config, location_path):
-        try:
-            _new_formatters_from_config(config)
-        except InvalidConfigError as e:
-            assert_that(e.location_path, equal_to(location_path))
-        else:
-            self.fail('InvalidConfigError not raised')
-
-
 class TestPhoneResultFormatter(TestCase):
 
     def setUp(self):
@@ -422,6 +360,68 @@ class TestPhoneResultFormatter(TestCase):
     def _assert_invalid_config(self, config, location_path):
         try:
             _PhoneResultFormatter.new_from_config(config)
+        except InvalidConfigError as e:
+            assert_that(e.location_path, equal_to(location_path))
+        else:
+            self.fail('InvalidConfigError not raised')
+
+
+class TestNewFormattersFromConfig(TestCase):
+
+    def setUp(self):
+        self.config = {
+            'displays_phone': {},
+        }
+
+    @patch('xivo_dird.plugins.phone_helpers._PhoneResultFormatter')
+    def test_new_from_config(self, mock_Display):
+        views_config = {
+            'displays_phone': {
+                'default': sentinel.default_display,
+            },
+            'profile_to_display_phone': {
+                'foo': 'default',
+            }
+        }
+
+        formatters = _new_formatters_from_config(views_config)
+
+        mock_Display.new_from_config.assert_called_once_with(sentinel.default_display)
+        assert_that(formatters, equal_to({'foo': mock_Display.new_from_config.return_value}))
+
+    def test_new_from_config_invalid_type(self):
+        config = None
+
+        self._assert_invalid_config(config, 'views')
+
+    def test_new_from_config_missing_displays_phone_key(self):
+        del self.config['displays_phone']
+
+        self._assert_invalid_config(self.config, 'views')
+
+    def test_new_from_config_displays_phone_invalid_type(self):
+        self.config['displays_phone'] = 'foo'
+
+        self._assert_invalid_config(self.config, 'views/displays_phone')
+
+    def test_new_from_config_profile_to_display_phone_invalid_type(self):
+        self.config['profile_to_display_phone'] = 'foo'
+
+        self._assert_invalid_config(self.config, 'views/profile_to_display_phone')
+
+    def test_new_from_config_profile_to_display_phone_invalid_item_type(self):
+        self.config['profile_to_display_phone'] = {'default': None}
+
+        self._assert_invalid_config(self.config, 'views/profile_to_display_phone/default')
+
+    def test_new_from_config_profile_to_display_phone_missing_display(self):
+        self.config['profile_to_display_phone'] = {'foo': 'anchovy'}
+
+        self._assert_invalid_config(self.config, 'views/profile_to_display_phone/foo')
+
+    def _assert_invalid_config(self, config, location_path):
+        try:
+            _new_formatters_from_config(config)
         except InvalidConfigError as e:
             assert_that(e.location_path, equal_to(location_path))
         else:
