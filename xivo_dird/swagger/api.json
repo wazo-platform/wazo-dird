@@ -51,10 +51,7 @@
                         }
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -94,19 +91,13 @@
                         }
                     },
                     "400": {
-                        "description": "The limit or offset should be positive",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/LimitOffsetInvalid"
                     },
                     "404": {
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -155,10 +146,7 @@
                         }
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -201,10 +189,7 @@
                         }
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -247,19 +232,13 @@
                         }
                     },
                     "400": {
-                        "description": "The limit or offset should be positive",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/LimitOffsetInvalid"
                     },
                     "404": {
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -311,10 +290,7 @@
                         }
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -357,19 +333,13 @@
                         }
                     },
                     "400": {
-                        "description": "The limit or offset should be positive",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/LimitOffsetInvalid"
                     },
                     "404": {
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -421,10 +391,7 @@
                         }
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -467,19 +434,13 @@
                         }
                     },
                     "400": {
-                        "description": "The limit or offset should be positive",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/LimitOffsetInvalid"
                     },
                     "404": {
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -531,19 +492,13 @@
                         }
                     },
                     "400": {
-                        "description": "The limit or offset should be positive",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/LimitOffsetInvalid"
                     },
                     "404": {
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -595,19 +550,13 @@
                         }
                     },
                     "400": {
-                        "description": "The limit or offset should be positive",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/LimitOffsetInvalid"
                     },
                     "404": {
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
@@ -654,33 +603,18 @@
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
                     {
-                        "name": "profile",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The profile defines the list of directories to query and how the results are displayed",
-                        "required": true
+                        "$ref": "#/parameters/Profile"
                     },
                     {
-                        "name": "term",
-                        "in": "query",
-                        "type": "string",
-                        "description": "A search term to look for",
-                        "required": true
+                        "$ref": "#/parameters/Term"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -704,26 +638,15 @@
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
                     {
-                        "name": "profile",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The profile defines the list of directories to query and how the results are displayed",
-                        "required": true
+                        "$ref": "#/parameters/Profile"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -748,26 +671,15 @@
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
                     {
-                        "name": "profile",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The profile defines the list of directories to query and how the results are displayed",
-                        "required": true
+                        "$ref": "#/parameters/Profile"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -786,33 +698,18 @@
                         "description": "Favorite added."
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
                     {
-                        "name": "directory",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The directory where the contact is stored.",
-                        "required": true
+                        "$ref": "#/parameters/Directory"
                     },
                     {
-                        "name": "contact",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The ID of the contact. This ID is unique within the {directory}.",
-                        "required": true
+                        "$ref": "#/parameters/FavoriteID"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ]
             },
@@ -835,33 +732,18 @@
                         }
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
                     {
-                        "name": "directory",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The directory where the contact is stored.",
-                        "required": true
+                        "$ref": "#/parameters/Directory"
                     },
                     {
-                        "name": "contact",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The ID of the contact. This ID is unique within the {directory}.",
-                        "required": true
+                        "$ref": "#/parameters/FavoriteID"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -886,26 +768,15 @@
                         "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 },
                 "parameters": [
                     {
-                        "name": "profile",
-                        "in": "path",
-                        "type": "string",
-                        "description": "The profile defines the list of directories to query and how the results are displayed",
-                        "required": true
+                        "$ref": "#/parameters/Profile"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -933,11 +804,7 @@
                         "description": "Format of the response body"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -955,10 +822,7 @@
                         "description": "No contacts are available (CSV format only)."
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             },
@@ -979,11 +843,7 @@
                         }
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -994,10 +854,7 @@
                         }
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             },
@@ -1009,11 +866,7 @@
                 ],
                 "parameters": [
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -1021,10 +874,7 @@
                         "description": "The personal contacts was purged."
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             }
@@ -1039,18 +889,10 @@
                 ],
                 "parameters": [
                     {
-                        "name": "contact_id",
-                        "in": "path",
-                        "type": "string",
-                        "required": true,
-                        "description": "The ID of the personal contact."
+                        "$ref": "#/parameters/PersonalContactID"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -1061,13 +903,10 @@
                         }
                     },
                     "404": {
-                        "description": "The personal contact does not exist"
+                        "$ref": "#/responses/PersonalContactIDInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             },
@@ -1080,18 +919,10 @@
                 ],
                 "parameters": [
                     {
-                        "name": "contact_id",
-                        "in": "path",
-                        "type": "string",
-                        "required": true,
-                        "description": "The ID of the personal contact."
+                        "$ref": "#/parameters/PersonalContactID"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     },
                     {
                         "name": "contact",
@@ -1111,13 +942,10 @@
                         }
                     },
                     "404": {
-                        "description": "The personal contact does not exist"
+                        "$ref": "#/responses/PersonalContactIDInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             },
@@ -1129,18 +957,10 @@
                 ],
                 "parameters": [
                     {
-                        "name": "contact_id",
-                        "in": "path",
-                        "type": "string",
-                        "required": true,
-                        "description": "The ID of the personal contact."
+                        "$ref": "#/parameters/PersonalContactID"
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "in": "header",
-                        "type": "string",
-                        "required": true,
-                        "description": "Authentication token obtained from xivo-auth."
+                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -1148,13 +968,10 @@
                         "description": "The personal contact was removed."
                     },
                     "404": {
-                        "description": "The personal contact does not exist"
+                        "$ref": "#/responses/PersonalContactIDInvalid"
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             }
@@ -1178,11 +995,7 @@
                         }
                     },
                     {
-                        "name": "X-Auth-Token",
-                        "description": "Authentication token obtained from xivo-auth.",
-                        "in": "header",
-                        "type": "string",
-                        "required": true
+                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -1199,18 +1012,33 @@
                         }
                     },
                     "503": {
-                        "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             }
         }
     },
     "responses":{
-        "ProfileInvalid":{
+        "ProfileInvalid": {
             "description": "The profile does not exist",
+            "schema": {
+                "$ref": "#/definitions/Error"
+            }
+        },
+        "AnotherServiceUnavailable": {
+            "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+            "schema": {
+                "$ref": "#/definitions/Error"
+            }
+        },
+        "LimitOffsetInvalid": {
+            "description": "The limit or offset should be positive",
+            "schema": {
+                "$ref": "#/definitions/Error"
+            }
+        },
+        "PersonalContactIDInvalid": {
+            "description": "The personal contact does not exist",
             "schema": {
                 "$ref": "#/definitions/Error"
             }
@@ -1223,6 +1051,20 @@
             "type": "string",
             "required": false,
             "description": "The language to translate the query results in"
+        },
+        "Directory": {
+            "name": "directory",
+            "in": "path",
+            "type": "string",
+            "description": "The directory where the contact is stored.",
+            "required": true
+        },
+        "FavoriteID": {
+            "name": "contact",
+            "in": "path",
+            "type": "string",
+            "description": "The ID of the contact. This ID is unique within the {directory}.",
+            "required": true
         },
         "Limit": {
             "name": "limit",
@@ -1254,6 +1096,13 @@
             "description": "The offset defines the offsets the start by the number specified",
             "default": 0,
             "required": false
+        },
+        "PersonalContactID": {
+            "name": "contact_id",
+            "in": "path",
+            "type": "string",
+            "required": true,
+            "description": "The ID of the personal contact."
         },
         "Profile": {
             "name": "profile",
