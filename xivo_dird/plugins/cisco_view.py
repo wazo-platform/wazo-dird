@@ -15,14 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import logging
-
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core.rest_api import api
-from xivo_dird.plugins.phone_helpers import new_phone_display_from_config
+from xivo_dird.plugins.phone_helpers import new_phone_lookup_service_from_args
 from xivo_dird.plugins.phone_view import PhoneMenu, PhoneInput, PhoneLookup
-
-logger = logging.getLogger(__name__)
 
 TEMPLATE_CISCO_MENU = "cisco_menu.jinja"
 TEMPLATE_CISCO_INPUT = "cisco_input.jinja"
@@ -39,15 +35,11 @@ class CiscoViewPlugin(BaseViewPlugin):
     cisco_lookup = '/directories/lookup/<profile>/cisco'
 
     def load(self, args=None):
-        phone_display = new_phone_display_from_config(args['config'])
-        lookup_service = args['services'].get('lookup')
-        if lookup_service:
-            PhoneMenu.configure(lookup_service)
-            PhoneInput.configure(lookup_service)
-            PhoneLookup.configure(lookup_service, phone_display)
-            api.add_resource(PhoneMenu, self.cisco_menu, endpoint='CiscoPhoneMenu',
-                             resource_class_args=(TEMPLATE_CISCO_MENU, CONTENT_TYPE))
-            api.add_resource(PhoneInput, self.cisco_input, endpoint='CiscoPhoneInput',
-                             resource_class_args=(TEMPLATE_CISCO_INPUT, CONTENT_TYPE))
-            api.add_resource(PhoneLookup, self.cisco_lookup, endpoint='CiscoPhoneLookup',
-                             resource_class_args=(TEMPLATE_CISCO_RESULTS, CONTENT_TYPE, MAX_ITEM_PER_PAGE))
+        phone_lookup_service = new_phone_lookup_service_from_args(args)
+        api.add_resource(PhoneMenu, self.cisco_menu, endpoint='CiscoPhoneMenu',
+                         resource_class_args=(TEMPLATE_CISCO_MENU, CONTENT_TYPE))
+        api.add_resource(PhoneInput, self.cisco_input, endpoint='CiscoPhoneInput',
+                         resource_class_args=(TEMPLATE_CISCO_INPUT, CONTENT_TYPE))
+        api.add_resource(PhoneLookup, self.cisco_lookup, endpoint='CiscoPhoneLookup',
+                         resource_class_args=(TEMPLATE_CISCO_RESULTS, CONTENT_TYPE,
+                                              phone_lookup_service, MAX_ITEM_PER_PAGE))

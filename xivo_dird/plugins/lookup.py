@@ -82,19 +82,6 @@ class _LookupService(object):
                 results.append(result)
         return results
 
-    def lookup2(self, term, profile, args, token_infos, limit=None, offset=0, transform_func=None):
-        # This function has been added in 15.16 and should be removed in 15.17. Do not use it.
-        results = self.lookup(term, profile, args, token_infos)
-        if transform_func:
-            results = transform_func(results)
-
-        total_results = {'results': results[offset:offset+limit] if limit is not None else results[offset:],
-                         'limit': limit,
-                         'offset': offset,
-                         'next_offset': self._next_offset(offset, limit, len(results)),
-                         'previous_offset': self._previous_offset(offset, limit)}
-        return total_results
-
     def _source_by_profile(self, profile):
         try:
             source_names = self._config(profile)['sources']
@@ -103,26 +90,3 @@ class _LookupService(object):
             return []
         else:
             return [self._sources[name] for name in source_names if name in self._sources]
-
-    def _next_offset(self, offset, limit, results_count):
-        if limit is None:
-            return None
-
-        next_offset = offset + limit
-        if next_offset >= results_count:
-            return None
-
-        return next_offset
-
-    def _previous_offset(self, offset, limit):
-        if offset == 0:
-            return None
-
-        if limit is None:
-            return None
-
-        previous_offset = offset - limit
-        if previous_offset < 0:
-            return 0
-
-        return previous_offset

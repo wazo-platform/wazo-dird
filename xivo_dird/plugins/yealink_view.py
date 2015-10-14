@@ -15,14 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import logging
-
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core.rest_api import api
-from xivo_dird.plugins.phone_helpers import new_phone_display_from_config
+from xivo_dird.plugins.phone_helpers import new_phone_lookup_service_from_args
 from xivo_dird.plugins.phone_view import PhoneLookup
-
-logger = logging.getLogger(__name__)
 
 TEMPLATE_YEALINK_RESULTS = "yealink_results.jinja"
 
@@ -34,9 +30,7 @@ class YealinkViewPlugin(BaseViewPlugin):
     yealink_lookup = '/directories/lookup/<profile>/yealink'
 
     def load(self, args=None):
-        phone_display = new_phone_display_from_config(args['config'])
-        lookup_service = args['services'].get('lookup')
-        if lookup_service:
-            PhoneLookup.configure(lookup_service, phone_display)
-            api.add_resource(PhoneLookup, self.yealink_lookup, endpoint='YealinkPhoneLookup',
-                             resource_class_args=(TEMPLATE_YEALINK_RESULTS, CONTENT_TYPE))
+        phone_lookup_service = new_phone_lookup_service_from_args(args)
+        api.add_resource(PhoneLookup, self.yealink_lookup, endpoint='YealinkPhoneLookup',
+                         resource_class_args=(TEMPLATE_YEALINK_RESULTS, CONTENT_TYPE,
+                                              phone_lookup_service))
