@@ -99,6 +99,9 @@
                             "$ref": "#/definitions/Error"
                         }
                     },
+                    "404": {
+                        "$ref": "#/responses/ProfileInvalid"
+                    },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
@@ -249,6 +252,9 @@
                             "$ref": "#/definitions/Error"
                         }
                     },
+                    "404": {
+                        "$ref": "#/responses/ProfileInvalid"
+                    },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
@@ -355,6 +361,9 @@
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
+                    },
+                    "404": {
+                        "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
@@ -463,6 +472,9 @@
                             "$ref": "#/definitions/Error"
                         }
                     },
+                    "404": {
+                        "$ref": "#/responses/ProfileInvalid"
+                    },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
@@ -523,6 +535,9 @@
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
+                    },
+                    "404": {
+                        "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
@@ -585,6 +600,9 @@
                             "$ref": "#/definitions/Error"
                         }
                     },
+                    "404": {
+                        "$ref": "#/responses/ProfileInvalid"
+                    },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
                         "schema": {
@@ -633,10 +651,7 @@
                         }
                     },
                     "404": {
-                        "description": "The lookup profile does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
@@ -686,10 +701,7 @@
                         }
                     },
                     "404": {
-                        "description": "Invalid profile",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
@@ -733,10 +745,7 @@
                         }
                     },
                     "404": {
-                        "description": "Invalid profile",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
@@ -874,10 +883,7 @@
                         }
                     },
                     "404": {
-                        "description": "Invalid profile",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
+                        "$ref": "#/responses/ProfileInvalid"
                     },
                     "503": {
                         "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
@@ -1199,6 +1205,14 @@
                         }
                     }
                 }
+            }
+        }
+    },
+    "responses":{
+        "ProfileInvalid":{
+            "description": "The profile does not exist",
+            "schema": {
+                "$ref": "#/definitions/Error"
             }
         }
     },
