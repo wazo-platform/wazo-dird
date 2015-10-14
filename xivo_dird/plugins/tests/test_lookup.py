@@ -21,7 +21,6 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
-from hamcrest import is_
 from hamcrest import not_
 from hamcrest import none
 from mock import Mock

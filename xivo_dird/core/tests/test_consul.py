@@ -217,7 +217,7 @@ class TestTreeFromConsul(TestCase):
         assert_that(result, equal_to({
             'key': {
                 'subkey': 'value'
-                },
+            },
             'other_key': {
                 'subkey': 'other_value'
             }

@@ -72,9 +72,9 @@ class _SourceResult(object):
             self.fields[column] = value
 
     def __eq__(self, other):
-        return (self.source == other.source
-                and self.fields == other.fields
-                and self.relations == other.relations)
+        return (self.source == other.source and
+                self.fields == other.fields and
+                self.relations == other.relations)
 
     def __ne__(self, other):
         return not self == other
