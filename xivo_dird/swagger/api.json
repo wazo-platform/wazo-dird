@@ -640,6 +640,38 @@
                 ]
             }
         },
+        "/directories/reverse/{profile}": {
+            "get": {
+                "summary": "Search for contact by number",
+                "description": "The `reverse` query will return a contact matching the searched exten. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `reverse` plugin and all configured sources for the given profile.",
+                "operationId": "reverse",
+                "tags": [
+                    "directories"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A contact",
+                        "schema": {
+                            "$ref": "#/definitions/Reverse"
+                        }
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/Exten"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    }
+                ]
+            }
+        },
         "/directories/favorites/{profile}": {
             "get": {
                 "summary": "List favorite contacts",
@@ -1048,6 +1080,13 @@
             "description": "The directory where the contact is stored.",
             "required": true
         },
+        "Exten": {
+            "name": "exten",
+            "in": "query",
+            "type": "string",
+            "description": "A search exten to look for",
+            "required": true
+        },
         "FavoriteID": {
             "name": "contact",
             "in": "path",
@@ -1302,6 +1341,25 @@
                     }
                 }
             }
+        },
+        "Reverse": {
+            "properties": {
+                "display": {
+                    "type": "string"
+                },
+                "exten": {
+                    "type": "string",
+                    "description": "A search exten to look for"
+                },
+                "source": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "display",
+                "exten",
+                "source"
+            ]
         },
         "CiscoIPPhoneDirectory": {
             "properties": {
