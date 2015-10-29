@@ -33,7 +33,6 @@
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Aastra Phones.",
                 "operationId": "aastra_input",
                 "tags": [
-                    "directories",
                     "aastra",
                     "phone directories"
                 ],
@@ -73,7 +72,6 @@
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Aastra Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `aastra_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "aastra_lookup",
                 "tags": [
-                    "directories",
                     "aastra",
                     "phone directories"
                 ],
@@ -128,7 +126,6 @@
                 "description": "The `menu` query will return a XML to extend the directories menu for Cisco Unified IP Phones.",
                 "operationId": "cisco_menu",
                 "tags": [
-                    "directories",
                     "cisco",
                     "phone directories"
                 ],
@@ -171,7 +168,6 @@
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Cisco Unified IP Phones.",
                 "operationId": "cisco_input",
                 "tags": [
-                    "directories",
                     "cisco",
                     "phone directories"
                 ],
@@ -214,7 +210,6 @@
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Cisco Unified IP Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `cisco_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "cisco_lookup",
                 "tags": [
-                    "directories",
                     "cisco",
                     "phone directories"
                 ],
@@ -272,7 +267,6 @@
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Polycom Phones.",
                 "operationId": "polycom_input",
                 "tags": [
-                    "directories",
                     "polycom",
                     "phone directories"
                 ],
@@ -315,7 +309,6 @@
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Polycom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `polycom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "polycom_lookup",
                 "tags": [
-                    "directories",
                     "polycom",
                     "phone directories"
                 ],
@@ -373,7 +366,6 @@
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Snom Phones.",
                 "operationId": "snom_input",
                 "tags": [
-                    "directories",
                     "snom",
                     "phone directories"
                 ],
@@ -416,7 +408,6 @@
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Snom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `snom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "snom_lookup",
                 "tags": [
-                    "directories",
                     "snom",
                     "phone directories"
                 ],
@@ -474,7 +465,6 @@
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Thomson Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `thomson_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "thomson_lookup",
                 "tags": [
-                    "directories",
                     "thomson",
                     "phone directories"
                 ],
@@ -532,7 +522,6 @@
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Yealink Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `yealink_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "yealink_lookup",
                 "tags": [
-                    "directories",
                     "yealink",
                     "phone directories"
                 ],
