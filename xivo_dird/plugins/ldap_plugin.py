@@ -49,6 +49,11 @@ class LDAPPlugin(BaseSourcePlugin):
 
         return self._search_and_format(filter_str)
 
+    def first_match(self, term, args=None):
+        filter_str = self._ldap_config.build_first_match_filter(term)
+
+        return self._first_match_and_format(filter_str)
+
     def list(self, uids, args=None):
         # XXX what is the character encoding used in uids ?
         if not self._ldap_config.unique_column():
@@ -65,6 +70,18 @@ class LDAPPlugin(BaseSourcePlugin):
             raw_results = self._ldap_client.search(filter_str)
 
         return self._ldap_result_formatter.format(raw_results)
+
+    def _first_match_and_format(self, filter_str):
+        with self._lock:
+            raw_results = self._ldap_client.search(filter_str, 1)
+
+        if not raw_results:
+            return None
+
+        dn, attrs = raw_results[0]
+        if not dn:
+            return None
+        return self._ldap_result_formatter.format_one_result(attrs)
 
 
 class _LDAPFactory(object):
@@ -88,7 +105,8 @@ class _LDAPConfig(object):
 
     def __init__(self, config):
         if not config.get('ldap_custom_filter') and not config.get(BaseSourcePlugin.SEARCHED_COLUMNS):
-            raise LookupError("%s need a searched_columns OR ldap_custom_filter in it's configuration" % config.get('name'))
+            raise LookupError("%s need a searched_columns OR"
+                              "ldap_custom_filter in it's configuration" % config.get('name'))
 
         self._config = config
 
@@ -103,6 +121,12 @@ class _LDAPConfig(object):
 
     def format_columns(self):
         return self._config.get(BaseSourcePlugin.FORMAT_COLUMNS)
+
+    def first_matched_columns(self):
+        return self._config.get(BaseSourcePlugin.FIRST_MATCHED_COLUMNS, [])
+
+    def searched_columns(self):
+        return self._config.get(BaseSourcePlugin.SEARCHED_COLUMNS, [])
 
     def ldap_uri(self):
         return self._config['ldap_uri']
@@ -138,27 +162,50 @@ class _LDAPConfig(object):
         return attributes
 
     def build_search_filter(self, term):
-        # Note that this function might return an invalid filter if the config
-        # use an incorrectly written custom filter.
         term_escaped = escape_filter_chars(term)
-
         ldap_custom_filter = self._config.get('ldap_custom_filter')
-        searched_columns = self._config.get(BaseSourcePlugin.SEARCHED_COLUMNS)
+        searched_columns = self.searched_columns()
 
         if ldap_custom_filter and searched_columns:
             custom_filter = self._build_search_filter_from_custom_filter(term_escaped)
             generated_filter = self._build_search_filter_from_searched_columns(term_escaped)
-            return u'(&{custom}{generated})'.format(custom=custom_filter, generated=generated_filter)
+            return self._build_filter_from_custom_and_generated_filter(custom_filter, generated_filter)
         elif ldap_custom_filter:
             return self._build_search_filter_from_custom_filter(term_escaped)
         elif searched_columns:
             return self._build_search_filter_from_searched_columns(term_escaped)
+        return None
+
+    def build_first_match_filter(self, term):
+        term_escaped = escape_filter_chars(term)
+        ldap_custom_filter = self._config.get('ldap_custom_filter')
+        first_matched_columns = self.first_matched_columns()
+
+        if ldap_custom_filter and first_matched_columns:
+            custom_filter = self._build_search_filter_from_custom_filter(term_escaped)
+            generated_filter = self._build_exact_search_filter_from_first_matched_columns(term_escaped)
+            return self._build_filter_from_custom_and_generated_filter(custom_filter, generated_filter)
+        elif ldap_custom_filter:
+            return self._build_search_filter_from_custom_filter(term_escaped)
+        elif first_matched_columns:
+            return self._build_exact_search_filter_from_first_matched_columns(term_escaped)
+        return None
+
+    def _build_filter_from_custom_and_generated_filter(self, custom_filter, generated_filter):
+        return u'(&{custom}{generated})'.format(custom=custom_filter, generated=generated_filter)
 
     def _build_search_filter_from_custom_filter(self, term_escaped):
         return self._config['ldap_custom_filter'].replace('%Q', term_escaped)
 
     def _build_search_filter_from_searched_columns(self, term_escaped):
-        l = list('(%s=*%s*)' % (attr, term_escaped) for attr in self._config[BaseSourcePlugin.SEARCHED_COLUMNS])
+        l = list('(%s=*%s*)' % (attr, term_escaped) for attr in self.searched_columns())
+        return self._build_filter_from_list(l)
+
+    def _build_exact_search_filter_from_first_matched_columns(self, term_escaped):
+        l = list('(%s=%s)' % (attr, term_escaped) for attr in self.first_matched_columns())
+        return self._build_filter_from_list(l)
+
+    def _build_filter_from_list(self, l):
         if len(l) == 1:
             return l[0]
         else:
@@ -173,11 +220,7 @@ class _LDAPConfig(object):
         l = []
         for uid in self._convert_uids(uids):
             l.append('(%s=%s)' % (unique_column, uid))
-
-        if len(l) == 1:
-            return l[0]
-        else:
-            return '(|%s)' % ''.join(l)
+        return self._build_filter_from_list(l)
 
     def _convert_uids(self, uids):
         if self.has_binary_uuid():
@@ -231,7 +274,7 @@ class _LDAPClient(object):
         self._ldap_obj.unbind_s()
         self._ldap_obj = None
 
-    def search(self, filter_str):
+    def search(self, filter_str, limit=-1):
         if self._is_set_up():
             retry = True
         else:
@@ -240,26 +283,27 @@ class _LDAPClient(object):
                 return []
             retry = False
 
-        results = self._search(filter_str)
+        results = self._search(filter_str, limit)
         if not self._is_set_up() and retry:
             self._set_up()
             if not self._is_set_up():
                 return []
-            results = self._search(filter_str)
+            results = self._search(filter_str, limit)
 
         return results
 
-    def _search(self, filter_str):
+    def _search(self, filter_str, limit):
         results = []
 
         encoded_filter_str = filter_str.encode('utf-8')
         encoded_base_dn = self._base_dn.encode('utf-8')
 
         try:
-            results = self._ldap_obj.search_s(encoded_base_dn,
-                                              ldap.SCOPE_SUBTREE,
-                                              encoded_filter_str,
-                                              self._attributes)
+            results = self._ldap_obj.search_ext_s(encoded_base_dn,
+                                                  ldap.SCOPE_SUBTREE,
+                                                  encoded_filter_str,
+                                                  self._attributes,
+                                                  sizelimit=limit)
         except ldap.FILTER_ERROR:
             logger.warning('LDAP "%s": search error: invalid filter "%s"', self._name, filter_str)
         except ldap.NO_SUCH_OBJECT:
@@ -287,11 +331,11 @@ class _LDAPResultFormatter(object):
         for dn, attrs in raw_results:
             if not dn:
                 continue
-            results.append(self._format_one_result(attrs))
+            results.append(self.format_one_result(attrs))
 
         return results
 
-    def _format_one_result(self, attrs):
+    def format_one_result(self, attrs):
         fields = {}
         for name, values in attrs.iteritems():
             value = values[0]

@@ -58,6 +58,18 @@ class TestPhonebookPlugin(unittest.TestCase):
         self.pbook_result_converter.convert_all.assert_called_once_with(sentinel.search_result)
         self.assertIs(result, sentinel.convert_all_result)
 
+    def test_first_match(self):
+        exten = u'123456'
+        self.pbook_client.first_match.return_value = sentinel.first_match_result
+        self.pbook_result_converter.convert.return_value = sentinel.convert_result
+
+        self.pbook_plugin.load(self.config)
+        result = self.pbook_plugin.first_match(exten)
+
+        self.pbook_client.first_match.assert_called_once_with(exten.encode('UTF-8'))
+        self.pbook_result_converter.convert.assert_called_once_with(sentinel.first_match_result)
+        self.assertIs(result, sentinel.convert_result)
+
 
 class _TestPhonebookFactory(unittest.TestCase):
 
@@ -176,7 +188,10 @@ class TestPhonebookClient(unittest.TestCase):
 
         result = self.pbook_client.search('foo')
 
-        mock_requests.get.assert_called_once_with(self.url, auth=ANY, params={'act': 'search', 'search': 'foo'}, timeout=self.timeout, verify=False)
+        mock_requests.get.assert_called_once_with(self.url,
+                                                  auth=ANY,
+                                                  params={'act': 'search', 'search': 'foo'},
+                                                  timeout=self.timeout, verify=False)
         response.json.assert_called_once_with()
         self.assertIs(result, sentinel.json)
 
@@ -209,6 +224,20 @@ class TestPhonebookClient(unittest.TestCase):
         result = self.pbook_client.search('foo')
 
         self.assertEqual(result, [])
+
+    def test_first_match_return_first_element(self):
+        self.pbook_client._search = Mock()
+        self.pbook_client._search.return_value = [sentinel.result_1, sentinel.result_2]
+
+        result = self.pbook_client.first_match('123456')
+        self.assertIs(result, sentinel.result_1)
+
+    def test_first_match_return_None_if_no_match(self):
+        self.pbook_client._search = Mock()
+        self.pbook_client._search.return_value = []
+
+        result = self.pbook_client.first_match('123456')
+        self.assertIs(result, None)
 
     def test_new_auth(self):
         auth = self.pbook_client._new_auth(self.pbook_config)

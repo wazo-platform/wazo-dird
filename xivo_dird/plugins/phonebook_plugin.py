@@ -41,6 +41,14 @@ class PhonebookPlugin(BaseSourcePlugin):
 
         return self._pbook_result_converter.convert_all(self._pbook_client.search(term))
 
+    def first_match(self, term, args=None):
+        term = term.encode('utf-8')
+        result = self._pbook_client.first_match(term)
+
+        if result is not None:
+            return self._pbook_result_converter.convert(result)
+        return result
+
 
 class _PhonebookFactory(object):
 
@@ -106,6 +114,13 @@ class _PhonebookClient(object):
         return None
 
     def search(self, term):
+        return self._search(term)
+
+    def first_match(self, term):
+        results = self._search(term)
+        return results[0] if results else None
+
+    def _search(self, term):
         contacts = []
         params = {'act': 'search', 'search': term}
         try:

@@ -55,16 +55,15 @@ class PersonalBackend(BaseSourcePlugin):
         )
         self._SourceResult = lambda contact: result_class(remove_empty_values(contact))
         self._searched_columns = config['config'].get(self.SEARCHED_COLUMNS, [])
+        self._first_matched_columns = config['config'].get(self.FIRST_MATCHED_COLUMNS, [])
         self._config = config['main_config']
 
     def search(self, term, args=None):
         logger.debug('Searching personal contacts with %s', term)
         matching_contact_ids = set()
         user_uuid = args['token_infos']['auth_id']
-        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
-        with self._consul(token=args['token_infos']['token']) as consul:
-            _, contacts = consul.kv.get(consul_key, recurse=True)
-        contacts_tree = tree_from_consul(consul_key, contacts)
+        token = args['token_infos']['token']
+        contacts_tree = self._get_personal_contacts_tree(user_uuid, token)
         for contact_id, attribute in itertools.product(contacts_tree, self._searched_columns):
             attribute_value = contacts_tree[contact_id].get(attribute)
             if not attribute_value:
@@ -73,6 +72,17 @@ class PersonalBackend(BaseSourcePlugin):
                 matching_contact_ids.add(contact_id)
 
         return [self._SourceResult(contacts_tree[contact_id]) for contact_id in matching_contact_ids]
+
+    def first_match(self, term, args=None):
+        user_uuid = args['token_infos']['auth_id']
+        token = args['token_infos']['token']
+        contacts_tree = self._get_personal_contacts_tree(user_uuid, token)
+
+        for contact_id, attribute in itertools.product(contacts_tree, self._first_matched_columns):
+            attribute_value = contacts_tree[contact_id].get(attribute)
+            if term == attribute_value:
+                return self._SourceResult(contacts_tree[contact_id])
+        return None
 
     def list(self, source_entry_ids, args):
         logger.debug('Listing personal contacts')
@@ -87,6 +97,12 @@ class PersonalBackend(BaseSourcePlugin):
                 if consul_dict:
                     contacts.append(self._SourceResult(dict_from_consul(contact_key, consul_dict)))
         return contacts
+
+    def _get_personal_contacts_tree(self, user_uuid, token):
+        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
+        with self._consul(token=token) as consul:
+            _, contacts = consul.kv.get(consul_key, recurse=True)
+        return tree_from_consul(consul_key, contacts)
 
     @contextmanager
     def _consul(self, token):

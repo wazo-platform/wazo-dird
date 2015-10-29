@@ -72,6 +72,32 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_result_formatter.format.assert_called_once_with(sentinel.search_result)
         self.assertIs(result, sentinel.format_result)
 
+    def test_first_match(self):
+        exten = u'123456'
+        self.ldap_config.build_first_match_filter.return_value = sentinel.filter
+        self.ldap_client.search.return_value = [(sentinel.result_1_dn, sentinel.result_1_attrs), sentinel.result_2]
+        self.ldap_result_formatter.format_one_result.return_value = sentinel.format_result
+
+        self.ldap_plugin.load(self.config)
+        result = self.ldap_plugin.first_match(exten)
+
+        self.ldap_config.build_first_match_filter.assert_called_once_with(exten.encode('UTF-8'))
+        self.ldap_client.search.assert_called_once_with(sentinel.filter, 1)
+        self.ldap_result_formatter.format_one_result.assert_called_once_with(sentinel.result_1_attrs)
+        self.assertIs(result, sentinel.format_result)
+
+    def test_first_match_return_none_when_no_match(self):
+        exten = u'123456'
+        self.ldap_config.build_first_match_filter.return_value = sentinel.filter
+        self.ldap_client.search.return_value = []
+
+        self.ldap_plugin.load(self.config)
+        result = self.ldap_plugin.first_match(exten)
+
+        self.ldap_config.build_first_match_filter.assert_called_once_with(exten.encode('UTF-8'))
+        self.ldap_client.search.assert_called_once_with(sentinel.filter, 1)
+        self.assertIs(result, None)
+
     def test_list_empty(self):
         uids = []
         self.ldap_config.build_list_filter.return_value = None
@@ -446,33 +472,33 @@ class TestLDAPClient(unittest.TestCase):
         self.ldap_obj.unbind_s.assert_called_once_with()
 
     def test_search(self):
-        self.ldap_obj.search_s.return_value = sentinel
+        self.ldap_obj.search_ext_s.return_value = sentinel
 
         result = self.ldap_client.search('foo')
 
-        self.ldap_obj.search_s.assert_called_once_with(self.base_dn, ANY, 'foo', self.attributes)
+        self.ldap_obj.search_ext_s.assert_called_once_with(self.base_dn, ANY, 'foo', self.attributes, sizelimit=-1)
         self.assertEqual(1, self.ldap_obj_factory.call_count)
         self.assertIs(result, sentinel)
 
     def test_search_on_filter_error(self):
-        self.ldap_obj.search_s.side_effect = ldap.FILTER_ERROR('moo')
+        self.ldap_obj.search_ext_s.side_effect = ldap.FILTER_ERROR('moo')
 
         self.ldap_client.set_up()
         result = self.ldap_client.search('foo')
 
         self.assertEqual(result, [])
         self.assertEqual(1, self.ldap_obj_factory.call_count)
-        self.assertEqual(1, self.ldap_obj.search_s.call_count)
+        self.assertEqual(1, self.ldap_obj.search_ext_s.call_count)
 
     def test_search_on_server_down_error(self):
-        self.ldap_obj.search_s.side_effect = ldap.SERVER_DOWN('moo')
+        self.ldap_obj.search_ext_s.side_effect = ldap.SERVER_DOWN('moo')
 
         self.ldap_client.set_up()
         result = self.ldap_client.search('foo')
 
         self.assertEqual(result, [])
         self.assertEqual(2, self.ldap_obj_factory.call_count)
-        self.assertEqual(2, self.ldap_obj.search_s.call_count)
+        self.assertEqual(2, self.ldap_obj.search_ext_s.call_count)
 
     def test_multiple_search(self):
         self.ldap_client.search('foo')
@@ -480,7 +506,7 @@ class TestLDAPClient(unittest.TestCase):
         self.ldap_client.search('foobar')
 
         self.assertEqual(1, self.ldap_obj.simple_bind_s.call_count)
-        self.assertEqual(3, self.ldap_obj.search_s.call_count)
+        self.assertEqual(3, self.ldap_obj.search_ext_s.call_count)
 
 
 class TestLDAPResultFormatter(unittest.TestCase):
@@ -540,6 +566,17 @@ class TestLDAPResultFormatter(unittest.TestCase):
         results = formatter.format(raw_results)
 
         self.assertEqual(expected_results, results)
+
+    def test_format_one_result(self):
+        formatter = self._new_formatter(has_binary_uuid=False)
+
+        raw_result = ('dn', {'entryUUID': ['0123'], 'givenName': ['Gr\xc3\xa9goire']})
+        expected_result = self.SourceResult({'entryUUID': u'0123', 'givenName': u'Grégoire'})
+
+        dn, attrs = raw_result
+        result = formatter.format_one_result(attrs)
+
+        self.assertEqual(expected_result, result)
 
     def _new_formatter(self, has_binary_uuid):
         self.ldap_config.has_binary_uuid.return_value = has_binary_uuid

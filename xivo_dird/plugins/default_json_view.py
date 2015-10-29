@@ -32,6 +32,9 @@ logger = logging.getLogger(__name__)
 parser = reqparse.RequestParser()
 parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
+parser_reverse = reqparse.RequestParser()
+parser_reverse.add_argument('exten', type=unicode, required=True, location='args')
+
 
 def _error(code, msg):
     logger.error(msg)
@@ -43,6 +46,7 @@ def _error(code, msg):
 class JsonViewPlugin(BaseViewPlugin):
 
     lookup_url = '/directories/lookup/<profile>'
+    reverse_url = '/directories/reverse/<profile>'
     favorites_read_url = '/directories/favorites/<profile>'
     favorites_write_url = '/directories/favorites/<directory>/<contact>'
     personal_url = '/directories/personal/<profile>'
@@ -53,6 +57,7 @@ class JsonViewPlugin(BaseViewPlugin):
 
         favorite_service = args['services'].get('favorites')
         lookup_service = args['services'].get('lookup')
+        reverse_service = args['services'].get('reverse')
         personal_service = args['services'].get('personal')
 
         if lookup_service:
@@ -63,6 +68,13 @@ class JsonViewPlugin(BaseViewPlugin):
             api.add_resource(Lookup, self.lookup_url)
         else:
             logger.error('%s disabled: no service plugin `lookup`', self.lookup_url)
+
+        if reverse_service:
+            Reverse.configure(reverse_service=reverse_service)
+
+            api.add_resource(Reverse, self.reverse_url)
+        else:
+            logger.error('%s disabled: no service plugin `reverse`', self.reverse_url)
 
         if favorite_service:
             FavoritesRead.configure(displays=displays,
@@ -127,6 +139,37 @@ class Lookup(AuthResource):
         response = formatter.format_results(raw_results, favorites)
 
         response.update({'term': term})
+
+        return response
+
+
+class Reverse(AuthResource):
+    reverse_service = None
+
+    @classmethod
+    def configure(cls, reverse_service):
+        cls.reverse_service = reverse_service
+
+    def get(self, profile):
+        args = parser_reverse.parse_args()
+        exten = args['exten']
+
+        logger.info('Reverse for %s with profile %s', exten, profile)
+
+        # TODO check if profile exists
+
+        token = request.headers['X-Auth-Token']
+        token_infos = auth.client().token.get(token)
+
+        raw_result = self.reverse_service.reverse(exten, profile, args={}, token_infos=token_infos)
+
+        response = {'display': None,
+                    'exten': exten,
+                    'source': None}
+
+        if raw_result is not None:
+            response['display'] = raw_result.fields.get('reverse')
+            response['source'] = raw_result.source
 
         return response
 

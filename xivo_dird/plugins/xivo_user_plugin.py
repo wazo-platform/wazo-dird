@@ -35,6 +35,7 @@ class XivoUserPlugin(BaseSourcePlugin):
 
     def load(self, args):
         self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
+        self._first_matched_columns = args['config'].get(self.FIRST_MATCHED_COLUMNS, [])
         self.name = args['config']['name']
 
         confd_config = args['config']['confd_config']
@@ -61,6 +62,20 @@ class XivoUserPlugin(BaseSourcePlugin):
             return False
 
         return [entry for entry in entries if match_fn(entry)]
+
+    def first_match(self, term, args=None):
+        entries = self._fetch_entries(term)
+
+        def match_fn(entry):
+            for column in self._first_matched_columns:
+                if term == entry.fields.get(column):
+                    return True
+            return False
+
+        for entry in entries:
+            if match_fn(entry):
+                return entry
+        return None
 
     def list(self, unique_ids, args=None):
         entries = self._fetch_entries()

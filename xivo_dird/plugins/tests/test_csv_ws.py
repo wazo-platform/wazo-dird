@@ -42,14 +42,35 @@ class TestCSVWSPlugin(unittest.TestCase):
                                  'lastname',
                              ]}}
         term = u'dédé'
-        expected_url = u'http://example.com:8000/ws?firstname=dédé&lastname=dédé'
+        expected_params = {'firstname': u'dédé', 'lastname': u'dédé'}
 
         source = CSVWSPlugin()
         source.load(config)
 
         source.search(term)
 
-        mocked_requests.get.assert_called_once_with(expected_url, timeout=s.timeout)
+        mocked_requests.get.assert_called_once_with(lookup_url, params=expected_params, timeout=s.timeout)
+
+    @patch('xivo_dird.plugins.csv_ws.requests')
+    def test_that_first_match_queries_the_lookup_url(self, mocked_requests):
+        lookup_url = u'http://example.com:8000/ws'
+        config = {'config': {'lookup_url': lookup_url,
+                             'name': 'my-ws-source',
+                             'timeout': s.timeout,
+                             'searched_columns': [
+                                 'firstname',
+                                 'lastname',
+                             ],
+                             'first_matched_columns': ['exten']}}
+        term = u'1234'
+        expected_params = {'exten': '1234'}
+
+        source = CSVWSPlugin()
+        source.load(config)
+
+        source.first_match(term)
+
+        mocked_requests.get.assert_called_once_with(lookup_url, params=expected_params, timeout=s.timeout)
 
     def test_that_list_returns_an_empty_list_if_no_unique_column(self):
         config = {'config': {'lookup_url': 'the_lookup_url',

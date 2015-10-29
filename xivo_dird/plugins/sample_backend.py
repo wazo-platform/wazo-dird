@@ -25,6 +25,7 @@ class SamplePlugin(BaseSourcePlugin):
         'id': 1,
         'firstname': 'John',
         'lastname': 'Doe',
+        'number': '555',
         'description': 'It works but this xivo-dird installation is still using the default configuration',
     }
 
@@ -37,3 +38,6 @@ class SamplePlugin(BaseSourcePlugin):
 
     def search(self, term, args=None):
         return [self._result]
+
+    def first_match(self, term, args=None):
+        return self._result

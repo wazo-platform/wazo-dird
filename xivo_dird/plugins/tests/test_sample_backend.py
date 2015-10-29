@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2014-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ import unittest
 from ..sample_backend import SamplePlugin
 from hamcrest import assert_that
 from hamcrest import contains
+from hamcrest import equal_to
 from xivo_dird import make_result_class
 
 
@@ -37,6 +38,7 @@ class TestSampleBackend(unittest.TestCase):
             'id': 1,
             'firstname': 'John',
             'lastname': 'Doe',
+            'number': '555',
             'description': 'It works but this xivo-dird installation is still using the default configuration',
         })
 
@@ -44,3 +46,18 @@ class TestSampleBackend(unittest.TestCase):
         results = self.source.search('anything')
 
         assert_that(results, contains(only_result))
+
+    def test_first_match(self):
+        SourceResult = make_result_class('sample_directory', 'id')
+        only_result = SourceResult({
+            'id': 1,
+            'firstname': 'John',
+            'lastname': 'Doe',
+            'number': '555',
+            'description': 'It works but this xivo-dird installation is still using the default configuration',
+        })
+
+        self.source.load({})
+        result = self.source.first_match('555')
+
+        assert_that(result, equal_to(only_result))

@@ -69,6 +69,30 @@ class TestPersonalBackend(TestCase):
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
+    @patch('xivo_dird.plugins.personal_backend.Consul')
+    def test_that_first_match_calls_consul_get(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = Mock(), []
+        source = PersonalBackend()
+        source.load({'config': {'name': 'personal'},
+                     'main_config': {'consul': {'host': 'localhost'}}})
+
+        source.first_match('555', {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
+
+        assert_that(consul.kv.get.call_count, greater_than(0))
+
+    @patch('xivo_dird.plugins.personal_backend.Consul')
+    def test_that_first_match_return_none_if_no_match(self, consul_init):
+        consul = consul_init.return_value
+        consul.kv.get.return_value = Mock(), []
+        source = PersonalBackend()
+        source.load({'config': {'name': 'personal'},
+                     'main_config': {'consul': {'host': 'localhost'}}})
+
+        result = source.first_match('555', {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
+
+        assert_that(result, equal_to(None))
+
 
 class TestMatch(TestCase):
 

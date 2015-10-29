@@ -61,6 +61,7 @@ class BaseSourcePlugin(object):
 
     # These string are expected in the configuration
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in
+    FIRST_MATCHED_COLUMNS = 'first_matched_columns'  # These columns are the ones we search for reverse lookup
     FORMAT_COLUMNS = 'format_columns'
     UNIQUE_COLUMN = 'unique_column'  # This is the column that make an entry unique
 
@@ -82,6 +83,21 @@ class BaseSourcePlugin(object):
         '''
         The search method should return a list of dict containing the search
         results.
+
+        The results should include the columns that are expected by the display.
+        When columns from the source do not match the columns from the display,
+        the `format_columns` dictionary can be used by the administrator
+        to add or modify columns.
+
+        If the backend has a `unique_column` configuration, a new column will be
+        added with a `__unique_id` header containing the unique key.
+        '''
+
+    @abc.abstractmethod
+    def first_match(self, exten, args=None):
+        '''
+        The first_match method should return a dict containing the first matched
+        result.
 
         The results should include the columns that are expected by the display.
         When columns from the source do not match the columns from the display,

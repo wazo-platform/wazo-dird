@@ -34,10 +34,9 @@ class CSVWSPlugin(BaseSourcePlugin):
 
         self._name = config['config']['name']
         self._list_url = config['config'].get('list_url')
-        lookup_params = '&'.join(['%s={term}' % param
-                                  for param
-                                  in config['config'].get(self.SEARCHED_COLUMNS, [])])
-        self._lookup_url = unicode('?'.join([config['config']['lookup_url'], lookup_params]))
+        self._lookup_url = config['config']['lookup_url']
+        self._first_matched_columns = config['config'].get(self.FIRST_MATCHED_COLUMNS, [])
+        self._searched_columns = config['config'].get(self.SEARCHED_COLUMNS, [])
         self._unique_column = config['config'].get(self.UNIQUE_COLUMN)
         self._SourceResult = make_result_class(
             config['config']['name'],
@@ -49,10 +48,11 @@ class CSVWSPlugin(BaseSourcePlugin):
 
     def search(self, term, args=None):
         logger.debug('Searching CSV WS `%s` with `%s`', self._name, term)
-        url = self._lookup_url.format(term=term)
+        url = self._lookup_url
+        params = {column: term for column in self._searched_columns}
 
         try:
-            response = requests.get(url, timeout=self._timeout)
+            response = requests.get(url, params=params, timeout=self._timeout)
         except RequestException as e:
             logger.error('Error connecting to %s: %s', url, e)
             return []
@@ -64,6 +64,26 @@ class CSVWSPlugin(BaseSourcePlugin):
         return [self._SourceResult(result)
                 for result in self._reader.from_text(response.text)
                 if result]
+
+    def first_match(self, term, args=None):
+        url = self._lookup_url
+        params = {column: term for column in self._first_matched_columns}
+
+        try:
+            response = requests.get(url, params=params, timeout=self._timeout)
+        except RequestException as e:
+            logger.error('Error connecting to %s: %s', url, e)
+            return None
+
+        if response.status_code != 200:
+            logger.debug('GET %s %s', url, response.status_code)
+            return None
+
+        for result in self._reader.from_text(response.text):
+            for column in self._first_matched_columns:
+                if term == result.get(column):
+                    return self._SourceResult(result)
+        return None
 
     def list(self, source_entry_ids, args=None):
         logger.debug('Listing contacts %s from CSV WS `%s`', source_entry_ids, self._name)

@@ -184,6 +184,34 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         assert_that(results, contains(self.alice_result))
 
+    def test_first_match(self):
+        config = {
+            'file': self.fname,
+            'unique_column': 'clientno',
+            'first_matched_columns': ['number'],
+            'name': self.name,
+        }
+
+        self.source.load({'config': config})
+
+        result = self.source.first_match('5555556666')
+
+        assert_that(result, equal_to(self.charles_result))
+
+    def test_first_match_when_no_match(self):
+        config = {
+            'file': self.fname,
+            'unique_column': 'clientno',
+            'reverse_searched_columns': ['number'],
+            'name': self.name,
+        }
+
+        self.source.load({'config': config})
+
+        results = self.source.first_match('555555666')
+
+        assert_that(results, equal_to(None))
+
     def test_list_no_unique(self):
         config = {
             'file': self.fname,

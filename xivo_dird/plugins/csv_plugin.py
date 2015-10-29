@@ -57,11 +57,20 @@ class CSVPlugin(BaseSourcePlugin):
         return self._name
 
     def search(self, term, args=None):
-        if 'searched_columns' not in self._config:
+        if self.SEARCHED_COLUMNS not in self._config:
             return []
 
         fn = partial(self._low_case_match_entry, term.lower(), self._config[self.SEARCHED_COLUMNS])
         return self._list_from_predicate(fn)
+
+    def first_match(self, term, args=None):
+        if self.FIRST_MATCHED_COLUMNS not in self._config:
+            return None
+
+        for entry in self._content:
+            if self._exact_match_entry(term, self._config[self.FIRST_MATCHED_COLUMNS], entry):
+                return self._SourceResult(entry)
+        return None
 
     def list(self, unique_ids, args=None):
         if not self._has_unique_id:
@@ -99,6 +108,13 @@ class CSVPlugin(BaseSourcePlugin):
         values = (entry[col].lower() for col in columns if col)
         for value in values:
             if term in value:
+                return True
+        return False
+
+    def _exact_match_entry(self, term, columns, entry):
+        values = (entry[col] for col in columns if col)
+        for value in values:
+            if term == value:
                 return True
         return False
 
