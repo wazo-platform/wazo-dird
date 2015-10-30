@@ -4,6 +4,7 @@ enabled_plugins:
     services:
         - lookup
         - favorites
+        - reverse
     views:
         - default_json
 
@@ -28,6 +29,10 @@ services:
             sources:
                 - test_ldap
     favorites:
+        default:
+            sources:
+                - test_ldap
+    reverse:
         default:
             sources:
                 - test_ldap

@@ -17,8 +17,12 @@
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
-from hamcrest import (assert_that, contains, contains_inanyorder,
-                      has_entry, has_length)
+from hamcrest import assert_that
+from hamcrest import contains
+from hamcrest import contains_inanyorder
+from hamcrest import equal_to
+from hamcrest import has_entry
+from hamcrest import has_length
 
 
 class TestCSVWSBackend(BaseDirdIntegrationTest):
@@ -31,6 +35,11 @@ class TestCSVWSBackend(BaseDirdIntegrationTest):
         assert_that(results['results'][0],
                     has_entry('column_values', contains(u'Andrée-Anne', 'Smith', '5551231111', False)))
         assert_that(results['results'], has_length(1))
+
+    def test_reverse_lookup(self):
+        results = self.reverse('5551231111', 'default')
+
+        assert_that(results['display'], equal_to(u'Andrée-Anne Smith'))
 
     def test_that_no_result_returns_an_empty_list(self):
         results = self.lookup('henry', 'default')

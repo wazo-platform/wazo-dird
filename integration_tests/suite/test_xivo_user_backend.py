@@ -37,6 +37,11 @@ class TestXivoUser(BaseDirdIntegrationTest):
         assert_that(result['results'][0]['column_values'],
                     contains('Bob', 'Dylan', '1000', None))
 
+    def test_that_the_reverse_lookup_returns_the_expected_result(self):
+        result = self.reverse('1000', 'default')
+
+        assert_that(result['display'], equal_to('Bob Dylan'))
+
     def test_that_relations_are_present(self):
         result = self.lookup('john', 'default')
 

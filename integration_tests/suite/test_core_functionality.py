@@ -23,13 +23,13 @@ from .base_dird_integration_test import VALID_TOKEN
 from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import contains
-from hamcrest import contains_string
 from hamcrest import contains_inanyorder
+from hamcrest import contains_string
 from hamcrest import equal_to
+from hamcrest import has_item
+from hamcrest import has_length
 from hamcrest import is_in
 from hamcrest import is_not
-from hamcrest import has_length
-from hamcrest import has_key
 
 
 class TestCoreSourceManagement(BaseDirdIntegrationTest):
@@ -53,6 +53,32 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
+
+
+class TestReverse(BaseDirdIntegrationTest):
+
+    asset = 'multiple_sources'
+
+    def test_reverse_when_no_result(self):
+        result = self.reverse('1234', 'default')
+
+        expected_result = {'display': None, 'exten': '1234', 'source': None}
+
+        assert_that(result, equal_to(expected_result))
+
+    def test_reverse_when_multi_result(self):
+        result = self.reverse('1111', 'default')
+        possible_results = [{'display': 'Alice Alan', 'exten': '1111', 'source': 'third_csv'},
+                            {'display': 'qwerty azerty', 'exten': '1111', 'source': 'my_csv'},
+                            {'display': 'qwerty azerty', 'exten': '1111', 'source': 'second_csv'}]
+
+        assert_that(possible_results, has_item(result))
+
+    def test_reverse_when_multi_columns(self):
+        result = self.reverse('11112', 'default')
+        expected_result = {'display': 'Alice Alan', 'exten': '11112', 'source': 'third_csv'}
+
+        assert_that(result, equal_to(expected_result))
 
 
 class TestLookupWhenASourceFails(BaseDirdIntegrationTest):

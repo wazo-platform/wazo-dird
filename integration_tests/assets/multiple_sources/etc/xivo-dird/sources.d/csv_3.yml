@@ -6,3 +6,8 @@ searched_columns:
     - firstname
     - lastname
     - number
+first_matched_columns:
+    - number
+    - mobile
+format_columns:
+    reverse: "{firstname} {lastname}"

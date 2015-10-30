@@ -4,6 +4,7 @@ enabled_plugins:
     services:
         - lookup
         - favorites
+        - reverse
     views:
         - default_json
         - headers_view
@@ -61,6 +62,11 @@ services:
         test:
             sources:
                 - my_csv
+        default:
+            sources:
+                - my_csv
+            timeout: 0.5
+    reverse:
         default:
             sources:
                 - my_csv

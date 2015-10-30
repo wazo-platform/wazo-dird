@@ -26,6 +26,7 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import empty
+from hamcrest import equal_to
 from hamcrest import has_entry
 
 Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
@@ -127,6 +128,11 @@ class TestLDAP(BaseDirdIntegrationTest):
 
         assert_that(result['results'][0]['column_values'],
                     contains(u'François', 'Hollande', '1004'))
+
+    def test_reverse_lookup(self):
+        result = self.reverse('1001', 'default')
+
+        assert_that(result['display'], equal_to('Alice Wonderland'))
 
     def test_no_result(self):
         result = self.lookup('frack', 'default')

@@ -5,7 +5,10 @@ unique_column: id
 searched_columns:
     - fn
     - ln
+first_matched_columns:
+    - num
 format_columns:
     lastname: "{ln}"
     firstname: "{fn}"
     number: "{num}"
+    reverse: "{fn} {ln}"

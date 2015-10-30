@@ -3,6 +3,7 @@ enabled_plugins:
         - xivo
     services:
         - lookup
+        - reverse
     views:
         - default_json
 
@@ -28,6 +29,10 @@ views:
 
 services:
     lookup:
+        default:
+            sources:
+                - xivo_america
+    reverse:
         default:
             sources:
                 - xivo_america

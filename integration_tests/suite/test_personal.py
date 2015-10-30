@@ -232,6 +232,7 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
         cls.post_personal({'firstname': 'Etienne'})
         cls.post_personal({'firstname': 'john', 'lastname': 'john', 'company': 'john'})
         cls.post_personal({'firstname': 'empty-column', 'lastname': ''})
+        cls.post_personal({'firstname': 'Elice', 'lastname': 'Wowo', 'number': '123456'})
 
     def test_that_lookup_includes_personal_contacts(self):
         result = self.lookup('ali', 'default')
@@ -268,6 +269,11 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'empty-column', None, None, False))))
+
+    def test_reverse_lookup(self):
+        result = self.reverse('123456', 'default')
+
+        assert_that(result['display'], equal_to('Elice Wowo'))
 
 
 class TestEditPersonal(BaseDirdIntegrationTest):
@@ -314,7 +320,11 @@ class TestEditInvalidPersonal(BaseDirdIntegrationTest):
     def test_that_edit_personal_contact_with_invalid_values_return_404(self):
         contact = self.post_personal({'firstname': 'Ursule', 'lastname': 'Uparlende'})
 
-        result = self.put_personal_result(contact['id'], {'firstname': 'Ulga', 'company': 'acme', '.': 'invalid'}, VALID_TOKEN)
+        result = self.put_personal_result(contact['id'],
+                                          {'firstname': 'Ulga',
+                                           'company': 'acme',
+                                           '.': 'invalid'},
+                                          VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))
 

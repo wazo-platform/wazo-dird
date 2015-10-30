@@ -20,6 +20,7 @@ from .base_dird_integration_test import BaseDirdIntegrationTest
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
+from hamcrest import equal_to
 from hamcrest import has_entry
 
 
@@ -32,6 +33,11 @@ class TestCSVBackend(BaseDirdIntegrationTest):
 
         assert_that(result['results'][0]['column_values'],
                     contains('Alice', 'AAA', '5555555555', True))
+
+    def test_reverse_lookup(self):
+        result = self.reverse('5555555555', 'default')
+
+        assert_that(result['display'], equal_to('Alice AAA'))
 
     def test_that_asking_csv_favorites_returns_contacts(self):
         self.put_favorite('my_csv', '1')

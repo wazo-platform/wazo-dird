@@ -7,3 +7,7 @@ unique_column: id
 searched_columns:
   - firstname
   - lastname
+first_matched_columns:
+  - number
+format_columns:
+    reverse: '{firstname} {lastname}'

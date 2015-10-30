@@ -4,7 +4,10 @@ file: /tmp/data/test.csv
 searched_columns:
     - ln
     - fn
+first_matched_columns:
+    - num
 format_columns:
     lastname: "{ln}"
     firstname: "{fn}"
     number: "{num}"
+    reverse: "{fn} {ln}"

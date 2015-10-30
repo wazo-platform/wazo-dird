@@ -3,6 +3,8 @@ name: xivo_america
 searched_columns:
   - firstname
   - lastname
+first_matched_columns:
+  - exten
 confd_config:
   host: confd
   port: 8000
@@ -10,3 +12,4 @@ confd_config:
   https: false
 format_columns:
     number: "{exten}"
+    reverse: "{firstname} {lastname}"
