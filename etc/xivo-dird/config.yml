@@ -57,6 +57,7 @@ enabled_plugins:
         - favorites
         - lookup
         - personal
+        - reverse
     views:
         - default_json
         - headers_view
