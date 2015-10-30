@@ -52,6 +52,7 @@ setup(
             'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
             'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
             'personal = xivo_dird.plugins.personal_service:PersonalServicePlugin',
+            'reverse = xivo_dird.plugins.reverse_service:ReverseServicePlugin',
         ],
         'xivo_dird.backends': [
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
