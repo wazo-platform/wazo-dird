@@ -165,10 +165,12 @@ class Reverse(AuthResource):
 
         response = {'display': None,
                     'exten': exten,
+                    'fields': {},
                     'source': None}
 
         if raw_result is not None:
             response['display'] = raw_result.fields.get('reverse')
+            response['fields'] = raw_result.fields
             response['source'] = raw_result.source
 
         return response

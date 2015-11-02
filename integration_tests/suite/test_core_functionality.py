@@ -59,26 +59,43 @@ class TestReverse(BaseDirdIntegrationTest):
 
     asset = 'multiple_sources'
 
+    def setUp(self):
+        self.alice_expected_fields = {'clientno': '1',
+                                      'firstname': 'Alice',
+                                      'lastname': 'Alan',
+                                      'number': '1111',
+                                      'mobile': '11112',
+                                      'reverse': 'Alice Alan'}
+        self.qwerty_expected_fields = {'fn': 'qwerty',
+                                       'ln': 'azerty',
+                                       'num': '1111',
+                                       'reverse': 'qwerty azerty'}
+
     def test_reverse_when_no_result(self):
         result = self.reverse('1234', 'default')
 
-        expected_result = {'display': None, 'exten': '1234', 'source': None}
+        expected_result = {'display': None, 'exten': '1234', 'source': None, 'fields': {}}
 
         assert_that(result, equal_to(expected_result))
 
     def test_reverse_when_multi_result(self):
         result = self.reverse('1111', 'default')
-        possible_results = [{'display': 'Alice Alan', 'exten': '1111', 'source': 'third_csv'},
-                            {'display': 'qwerty azerty', 'exten': '1111', 'source': 'my_csv'},
-                            {'display': 'qwerty azerty', 'exten': '1111', 'source': 'second_csv'}]
+        alice_result = {'display': 'Alice Alan', 'exten': '1111', 'source': 'third_csv',
+                        'fields': self.alice_expected_fields}
+        qwerty_result_1 = {'display': 'qwerty azerty', 'exten': '1111', 'source': 'my_csv',
+                           'fields': self.qwerty_expected_fields}
+        qwerty_result_2 = {'display': 'qwerty azerty', 'exten': '1111', 'source': 'second_csv',
+                           'fields': self.qwerty_expected_fields}
+        possible_results = [alice_result, qwerty_result_1, qwerty_result_2]
 
         assert_that(possible_results, has_item(result))
 
     def test_reverse_when_multi_columns(self):
         result = self.reverse('11112', 'default')
-        expected_result = {'display': 'Alice Alan', 'exten': '11112', 'source': 'third_csv'}
+        alice_result = {'display': 'Alice Alan', 'exten': '11112', 'source': 'third_csv',
+                        'fields': self.alice_expected_fields}
 
-        assert_that(result, equal_to(expected_result))
+        assert_that(result, equal_to(alice_result))
 
 
 class TestLookupWhenASourceFails(BaseDirdIntegrationTest):

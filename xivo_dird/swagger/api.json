@@ -1353,14 +1353,20 @@
                 },
                 "source": {
                     "type": "string"
+                },
+                "fields": {
+                    "description": "Fields defined for each source",
+                    "$ref": "#/definitions/ResultFields"
                 }
             },
             "required": [
                 "display",
                 "exten",
+                "fields",
                 "source"
             ]
         },
+        "ResultFields": {},
         "CiscoIPPhoneDirectory": {
             "properties": {
                 "DirectoryEntry": {
