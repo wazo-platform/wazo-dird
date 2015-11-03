@@ -12,7 +12,7 @@ git+https://github.com/xivo-pbx/xivo-lib-python.git
 git+https://github.com/xivo-pbx/xivo-lib-rest-client.git  # from xivo-{auth,confd}-client
 jinja2==2.6
 psycopg2==2.4.5  # from xivo-dao
-python-consul==0.4.2
+python-consul
 python-ldap==2.4.10
 pyyaml==3.10
 requests==2.0.0

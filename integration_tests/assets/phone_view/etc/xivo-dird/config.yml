@@ -57,5 +57,6 @@ auth:
     port: 9497
 
 consul:
+    scheme: http
     host: consul
     port: 8500
