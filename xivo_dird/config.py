@@ -29,8 +29,10 @@ _DEFAULT_CONFIG = {
     },
     'config_file': '/etc/xivo-dird/config.yml',
     'consul': {
+        'scheme': 'https',
         'host': 'localhost',
         'port': 8500,
+        'verify': '/usr/share/xivo-certs/server.crt',
     },
     'extra_config_files': '/etc/xivo-dird/conf.d/',
     'debug': False,

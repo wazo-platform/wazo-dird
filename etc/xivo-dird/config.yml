@@ -40,8 +40,10 @@ auth:
 
 # Connection info to the contact storage server (Consul)
 consul:
+    scheme: https
     host: localhost
     port: 8500
+    verify: /usr/share/xivo-certs/server.crt
 
 enabled_plugins:
     backends:
