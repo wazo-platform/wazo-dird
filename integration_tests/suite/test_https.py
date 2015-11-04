@@ -26,7 +26,7 @@ class TestHTTPSMissingCertificate(BaseDirdIntegrationTest):
 
     def test_given_inexisting_SSL_certificate_when_dird_starts_then_dird_stops(self):
         for _ in range(5):
-            status = self.service_status()[0]
+            status = self.service_status()
             if not status['State']['Running']:
                 break
             time.sleep(1)
@@ -42,7 +42,7 @@ class TestHTTPSMissingPrivateKey(BaseDirdIntegrationTest):
 
     def test_given_inexisting_SSL_private_key_when_dird_starts_then_dird_stops(self):
         for _ in range(2):
-            status = self.service_status()[0]
+            status = self.service_status()
             if not status['State']['Running']:
                 break
             time.sleep(1)
