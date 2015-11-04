@@ -26,7 +26,7 @@ auth:
     - "./ssl:/etc/ssl"
   command: "python /tmp/mock-xivo-auth.py 9497"
 consul:
-  image: nickstenning/flask
+  image: p0bailey/docker-flask
   expose:
     - "8500"
   volumes:

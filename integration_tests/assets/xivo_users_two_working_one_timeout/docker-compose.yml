@@ -27,7 +27,7 @@ america:
     - "./confd_data:/tmp"
   command: "/tmp/run_confd america"
 europe:
-  image: nickstenning/flask
+  image: p0bailey/docker-flask
   volumes:
     - "./confd_data:/tmp"
   command: "/tmp/run_confd_timeout 3"
