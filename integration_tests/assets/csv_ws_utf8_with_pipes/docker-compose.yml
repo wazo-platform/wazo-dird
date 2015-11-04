@@ -27,7 +27,7 @@ ws:
     - "./scripts/ws.py:/tmp/ws.py"
   command: "python /tmp/ws.py '|' 'utf-8'"
 auth:
-  image: xivo-auth-mock
+  image: p0bailey/docker-flask
   links:
     - consul
   ports:
