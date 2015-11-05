@@ -54,7 +54,7 @@ To run the unittests
 You need:
 
     - docker
-    % pip install -r test-requirements.txt
+    % pip install -r integration_tests/test-requirements.txt
 
 A docker image named `dird-test` is required to execute the test suite.
 To build this image execute:
@@ -68,7 +68,7 @@ but it only needs to be run when dependencies of xivo-dird change in any way
 
 To execute the integration tests execute:
 
-    % nosetests integration_tests
+    % make test
 
 For developers, when adding/removing a plugin:
 
