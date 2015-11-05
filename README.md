@@ -29,7 +29,7 @@ using:
 
 The xivo/xivo-dird image can be built using the following command:
 
-    % docker build -t xivo/xivo-dird
+    % docker build -t xivo/xivo-dird .
 
 The `xivo/xivo-dird` image contains a configuration file to listen to HTTP
 requests on "0.0.0.0". To change this behavior, create or edit the file
