@@ -19,19 +19,20 @@ To update existing translations catalog:
 
     % python setup.py update_catalog
 
-Edit file `xivo_dird/translations/<locale>/LC_MESSAGES/messages.po` and compile using:
+Edit file `xivo_dird/translations/<locale>/LC_MESSAGES/messages.po` and compile
+using:
 
     % python setup.py compile_catalog
 
 
 ## Docker
 
-The xivo/dird image can be built using the following command:
+The xivo/xivo-dird image can be built using the following command:
 
-   % docker build -t xivo/dird .
+   % docker build -t xivo/xivo-dird .
 
-The `xivo/dird` image contains a configuration file to listen to HTTP requests
-on "0.0.0.0". To change this behavior, remove or edit the file
+The `xivo/xivo-dird` image contains a configuration file to listen to HTTP
+requests on "0.0.0.0". To change this behavior, create or edit the file
 `/etc/xivo-dird/conf.d/listen.yml`
 
 
