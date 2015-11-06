@@ -69,6 +69,9 @@ class TestReverse(BaseDirdIntegrationTest):
         self.qwerty_expected_fields = {'fn': 'qwerty',
                                        'ln': 'azerty',
                                        'num': '1111',
+                                       'firstname': 'qwerty',
+                                       'lastname': 'azerty',
+                                       'number': '1111',
                                        'reverse': 'qwerty azerty'}
 
     def test_reverse_when_no_result(self):
