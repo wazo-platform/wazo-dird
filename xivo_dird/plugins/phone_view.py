@@ -24,7 +24,6 @@ from flask_restful.inputs import natural
 from flask_restful import reqparse
 from time import time
 
-from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
 from xivo_dird.core.exception import ProfileNotFoundError
 
@@ -43,12 +42,8 @@ class PhoneMenu(AuthResource):
         self.template = template
         self.content_type = content_type
 
-    def get(self, profile):
+    def get(self, profile, xivo_user_uuid):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('menu'))
-
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
         response_xml = render_template(self.template,
                                        xivo_proxy_url=proxy_url,
@@ -63,12 +58,8 @@ class PhoneInput(AuthResource):
         self.template = template
         self.content_type = content_type
 
-    def get(self, profile):
+    def get(self, profile, xivo_user_uuid):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('input'))
-
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
         response_xml = render_template(self.template,
                                        xivo_proxy_url=proxy_url,
@@ -89,20 +80,21 @@ class PhoneLookup(AuthResource):
         self.parser.add_argument('offset', type=natural, required=False, default=0, location='args')
         self.parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
-    def get(self, profile):
+    def get(self, profile, xivo_user_uuid):
         args = self.parser.parse_args()
         term = args['term']
         offset = args['offset']
         limit = args['limit']
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('lookup'))
-
         token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid'] or ''
 
         try:
-            results = self.phone_lookup_service.lookup(term, profile, token_infos=token_infos,
-                                                       limit=limit, offset=offset)
+            results = self.phone_lookup_service.lookup(term,
+                                                       profile,
+                                                       xivo_user_uuid=xivo_user_uuid,
+                                                       token=token,
+                                                       limit=limit,
+                                                       offset=offset)
         except ProfileNotFoundError:
             logger.warning('phone lookup failed: unknown profile %r', profile)
             return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))

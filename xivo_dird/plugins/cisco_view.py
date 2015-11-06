@@ -30,9 +30,9 @@ MAX_ITEM_PER_PAGE = 16
 
 class CiscoViewPlugin(BaseViewPlugin):
 
-    cisco_menu = '/directories/menu/<profile>/cisco'
-    cisco_input = '/directories/input/<profile>/cisco'
-    cisco_lookup = '/directories/lookup/<profile>/cisco'
+    cisco_menu = '/directories/menu/<profile>/<xivo_user_uuid>/cisco'
+    cisco_input = '/directories/input/<profile>/<xivo_user_uuid>/cisco'
+    cisco_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/cisco'
 
     def load(self, args=None):
         phone_lookup_service = new_phone_lookup_service_from_args(args)

@@ -27,7 +27,7 @@
         "application/json"
     ],
     "paths": {
-        "/directories/input/{profile}/aastra": {
+        "/directories/input/{profile}/{xivo_user_uuid}/aastra": {
             "get": {
                 "summary": "Given informations about how make request lookup for Aastra Phones",
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Aastra Phones.",
@@ -58,6 +58,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Token"
                     },
                     {
@@ -66,7 +69,7 @@
                 ]
             }
         },
-        "/directories/lookup/{profile}/aastra": {
+        "/directories/lookup/{profile}/{xivo_user_uuid}/aastra": {
             "get": {
                 "summary": "Search for contacts with Aastra Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Aastra Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `aastra_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
@@ -103,6 +106,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Term"
                     },
                     {
@@ -120,7 +126,7 @@
                 ]
             }
         },
-        "/directories/menu/{profile}/cisco": {
+        "/directories/menu/{profile}/{xivo_user_uuid}/cisco": {
             "get": {
                 "summary": "Extends the directories menu for Cisco Unified IP Phones",
                 "description": "The `menu` query will return a XML to extend the directories menu for Cisco Unified IP Phones.",
@@ -151,6 +157,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Token"
                     },
                     {
@@ -162,7 +171,7 @@
                 ]
             }
         },
-        "/directories/input/{profile}/cisco": {
+        "/directories/input/{profile}/{xivo_user_uuid}/cisco": {
             "get": {
                 "summary": "Given informations about how make request lookup for Cisco Unified IP Phones",
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Cisco Unified IP Phones.",
@@ -193,6 +202,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Token"
                     },
                     {
@@ -204,7 +216,7 @@
                 ]
             }
         },
-        "/directories/lookup/{profile}/cisco": {
+        "/directories/lookup/{profile}/{xivo_user_uuid}/cisco": {
             "get": {
                 "summary": "Search for contacts with Cisco Unified IP Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Cisco Unified IP Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `cisco_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
@@ -241,6 +253,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Term"
                     },
                     {
@@ -261,7 +276,7 @@
                 ]
             }
         },
-        "/directories/input/{profile}/polycom": {
+        "/directories/input/{profile}/{xivo_user_uuid}/polycom": {
             "get": {
                 "summary": "Given informations about how make request lookup for Polycom Phones",
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Polycom Phones.",
@@ -292,6 +307,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Token"
                     },
                     {
@@ -303,7 +321,7 @@
                 ]
             }
         },
-        "/directories/lookup/{profile}/polycom": {
+        "/directories/lookup/{profile}/{xivo_user_uuid}/polycom": {
             "get": {
                 "summary": "Search for contacts with Polycom Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Polycom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `polycom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
@@ -340,6 +358,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Term"
                     },
                     {
@@ -360,7 +381,7 @@
                 ]
             }
         },
-        "/directories/input/{profile}/snom": {
+        "/directories/input/{profile}/{xivo_user_uuid}/snom": {
             "get": {
                 "summary": "Given informations about how make request lookup for Snom Phones",
                 "description": "The `input` query will return a XML to give informations about how make request lookup for Snom Phones.",
@@ -391,6 +412,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Token"
                     },
                     {
@@ -402,7 +426,7 @@
                 ]
             }
         },
-        "/directories/lookup/{profile}/snom": {
+        "/directories/lookup/{profile}/{xivo_user_uuid}/snom": {
             "get": {
                 "summary": "Search for contacts with Snom Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Snom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `snom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
@@ -439,6 +463,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Term"
                     },
                     {
@@ -459,7 +486,7 @@
                 ]
             }
         },
-        "/directories/lookup/{profile}/thomson": {
+        "/directories/lookup/{profile}/{xivo_user_uuid}/thomson": {
             "get": {
                 "summary": "Search for contacts with Thomson Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Thomson Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `thomson_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
@@ -496,6 +523,9 @@
                         "$ref": "#/parameters/Profile"
                     },
                     {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
                         "$ref": "#/parameters/Term"
                     },
                     {
@@ -516,7 +546,7 @@
                 ]
             }
         },
-        "/directories/lookup/{profile}/yealink": {
+        "/directories/lookup/{profile}/{xivo_user_uuid}yealink": {
             "get": {
                 "summary": "Search for contacts with Yealink Phones",
                 "description": "The `lookup` query will return a list of result matching the searched term formated for Yealink Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `yealink_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
@@ -551,6 +581,9 @@
                 "parameters": [
                     {
                         "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/XivoUserUUID"
                     },
                     {
                         "$ref": "#/parameters/Term"

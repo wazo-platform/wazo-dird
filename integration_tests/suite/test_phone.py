@@ -16,6 +16,7 @@
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 from .base_dird_integration_test import VALID_TOKEN
+from .base_dird_integration_test import VALID_UUID
 from xml.dom.minidom import parseString as parse_xml
 
 from hamcrest import assert_that
@@ -27,42 +28,42 @@ class TestPhone(BaseDirdIntegrationTest):
     asset = 'phone'
 
     def test_no_fallback_no_multiple_results(self):
-        xml_content = self.get_lookup_cisco(term='Ali', profile='test_fallback', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Ali', token=VALID_TOKEN)
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Alice', '101')]))
 
     def test_fallback_no_multiple_results(self):
-        xml_content = self.get_lookup_cisco(term='Bob', profile='test_fallback', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Bob', token=VALID_TOKEN)
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Bobby', '201')]))
 
     def test_no_fallback_multiple_results(self):
-        xml_content = self.get_lookup_cisco(term='Char', profile='test_fallback', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Char', token=VALID_TOKEN)
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Charles', '301'), ('Charles', '302')]))
 
     def test_no_results(self):
-        xml_content = self.get_lookup_cisco(term='Dia', profile='test_fallback', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Dia', token=VALID_TOKEN)
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('No entries', '')]))
 
     def test_fallback_multiple_results(self):
-        xml_content = self.get_lookup_cisco(term='Etie', profile='test_fallback', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Eti', token=VALID_TOKEN)
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Etienne', '501'), ('Etienne', '502')]))
 
     def test_results_are_sorted(self):
-        xml_content = self.get_lookup_cisco(term='A', profile='test_sorted', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco('test_sorted', VALID_UUID, term='A', token=VALID_TOKEN)
 
         results = self._get_directory_entries(xml_content)
 

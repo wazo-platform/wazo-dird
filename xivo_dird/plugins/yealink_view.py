@@ -27,7 +27,7 @@ CONTENT_TYPE = 'text/xml'
 
 class YealinkViewPlugin(BaseViewPlugin):
 
-    yealink_lookup = '/directories/lookup/<profile>/yealink'
+    yealink_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/yealink'
 
     def load(self, args=None):
         phone_lookup_service = new_phone_lookup_service_from_args(args)

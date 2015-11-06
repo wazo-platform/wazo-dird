@@ -29,8 +29,8 @@ MAX_ITEM_PER_PAGE = 16
 
 class SnomViewPlugin(BaseViewPlugin):
 
-    snom_input = '/directories/input/<profile>/snom'
-    snom_lookup = '/directories/lookup/<profile>/snom'
+    snom_input = '/directories/input/<profile>/<xivo_user_uuid>/snom'
+    snom_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/snom'
 
     def load(self, args=None):
         phone_lookup_service = new_phone_lookup_service_from_args(args)
