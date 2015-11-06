@@ -65,7 +65,7 @@ class TestPersonalBackend(TestCase):
         source.load({'config': {'name': 'personal'},
                      'main_config': {'consul': {'host': 'localhost'}}})
 
-        source.search('alice', {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
+        source.search('alice', {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 

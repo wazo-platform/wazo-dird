@@ -39,12 +39,12 @@ class _PhoneLookupService(object):
         self._lookup_service = lookup_service
         self._formatters = formatters
 
-    def lookup(self, term, profile, token_infos, limit=None, offset=0):
+    def lookup(self, term, profile, xivo_user_uuid, token, limit=None, offset=0):
         formatter = self._formatters.get(profile)
         if formatter is None:
             raise ProfileNotFoundError(profile)
 
-        lookup_results = self._lookup_service.lookup(term, profile, {}, token_infos)
+        lookup_results = self._lookup_service.lookup(term, profile, xivo_user_uuid, {}, token)
         formatted_results = formatter.format_results(lookup_results)
         formatted_results.sort(key=attrgetter('name', 'number'))
 

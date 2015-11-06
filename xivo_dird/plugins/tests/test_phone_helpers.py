@@ -31,10 +31,10 @@ class TestPhoneLookupService(TestCase):
             _PhoneFormattedResult(u'Bob', u'2'),
             _PhoneFormattedResult(u'Carol', u'3'),
         ]
-        self.profile_name = 'profile1'
+        self.profile = 'profile1'
         self.formatter = Mock(_PhoneResultFormatter)
         self.formatter.format_results.return_value = self.formatted_results
-        self.formatters = {self.profile_name: self.formatter}
+        self.formatters = {self.profile: self.formatter}
         self.lookup_service = Mock()
         self.phone_lookup_service = _PhoneLookupService(self.lookup_service, self.formatters)
 
@@ -46,20 +46,20 @@ class TestPhoneLookupService(TestCase):
         # return a copy of formatted_results to test that sorting works
         self.formatter.format_results.side_effect = lambda _: list(formatted_results)
 
-        results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos)
+        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token)
 
         assert_that(results['results'], equal_to(sorted(formatted_results)))
-        self.lookup_service.lookup.assert_called_once_with('foo', self.profile_name, {}, sentinel.token_infos)
+        self.lookup_service.lookup.assert_called_once_with('foo', self.profile, sentinel.uuid, {}, sentinel.token)
         self.formatter.format_results.assert_called_once_with(self.lookup_service.lookup.return_value)
 
     def test_lookup_raise_when_unknown_profile(self):
         self.assertRaises(ProfileNotFoundError,
-                          self.phone_lookup_service.lookup, 'foo', 'unknown_profile', sentinel.token_infos)
+                          self.phone_lookup_service.lookup, 'foo', 'unknown_profile', sentinel.uuid, sentinel.token)
 
     def test_lookup_limit(self):
         limit = 1
 
-        results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos, limit)
+        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token, limit)
 
         assert_that(results['results'], equal_to(self.formatted_results[:1]))
         assert_that(results['limit'], equal_to(limit))
@@ -68,7 +68,7 @@ class TestPhoneLookupService(TestCase):
         offset = 1
         limit = 1
 
-        results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos, limit, offset)
+        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token, limit, offset)
 
         assert_that(results['results'], equal_to(self.formatted_results[1:2]))
         assert_that(results['offset'], equal_to(offset))
@@ -79,13 +79,13 @@ class TestPhoneLookupService(TestCase):
         offset = 0
         limit = len(self.formatted_results)
 
-        results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos, limit, offset)
+        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token, limit, offset)
 
         assert_that(results['results'], equal_to(self.formatted_results))
         assert_that(results['next_offset'], is_(None))
 
     def test_lookup_return_no_previous_offset_when_has_no_previous_results(self):
-        results = self.phone_lookup_service.lookup('foo', self.profile_name, sentinel.token_infos)
+        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token)
 
         assert_that(results['results'], equal_to(self.formatted_results))
         assert_that(results['previous_offset'], is_(None))

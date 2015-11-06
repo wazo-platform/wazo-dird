@@ -61,9 +61,10 @@ class PersonalBackend(BaseSourcePlugin):
     def search(self, term, args=None):
         logger.debug('Searching personal contacts with %s', term)
         matching_contact_ids = set()
-        user_uuid = args['token_infos']['auth_id']
-        token = args['token_infos']['token']
+        token = args['token']
+        user_uuid = args['auth_id']
         contacts_tree = self._get_personal_contacts_tree(user_uuid, token)
+
         for contact_id, attribute in itertools.product(contacts_tree, self._searched_columns):
             attribute_value = contacts_tree[contact_id].get(attribute)
             if not attribute_value:

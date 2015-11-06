@@ -90,10 +90,11 @@ class TestLookupService(unittest.TestCase):
         }
         s = _LookupService(config, {'source': source})
 
-        s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        s.lookup(sentinel.term, 'my_profile', sentinel.uuid, {}, sentinel.token)
 
         source.search.assert_called_once_with(sentinel.term,
-                                              {'token_infos': sentinel.token_infos})
+                                              {'token': sentinel.token,
+                                               'auth_id': sentinel.uuid})
 
         s.stop()
 
@@ -116,7 +117,7 @@ class TestLookupService(unittest.TestCase):
 
         s = _LookupService(config, sources)
 
-        results = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        results = s.lookup(sentinel.term, 'my_profile', sentinel.uuid, {}, sentinel.token)
 
         expected_results = [{'f': 1}, {'f': 3}]
 
@@ -147,7 +148,7 @@ class TestLookupService(unittest.TestCase):
 
         s = _LookupService(config, sources)
 
-        results = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        results = s.lookup(sentinel.term, 'my_profile', sentinel.uuid, {}, sentinel.token)
 
         expected_results = [{'f': 1}]
 
@@ -161,7 +162,7 @@ class TestLookupService(unittest.TestCase):
     def test_when_the_profile_is_not_configured(self):
         s = _LookupService({}, {})
 
-        result = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        result = s.lookup(sentinel.term, 'my_profile', sentinel.uuid, {}, sentinel.token)
 
         assert_that(result, contains())
 
@@ -170,7 +171,7 @@ class TestLookupService(unittest.TestCase):
     def test_when_the_sources_are_not_configured(self):
         s = _LookupService({'my_profile': {}}, {})
 
-        result = s.lookup(sentinel.term, 'my_profile', {}, sentinel.token_infos)
+        result = s.lookup(sentinel.term, 'my_profile', sentinel.uuid, {}, sentinel.token)
 
         assert_that(result, contains())
 
