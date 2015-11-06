@@ -75,14 +75,18 @@ class TestReverse(BaseDirdIntegrationTest):
                                        'reverse': 'qwerty azerty'}
 
     def test_reverse_when_no_result(self):
-        result = self.reverse('1234', 'default')
+        result = self.reverse('1234', 'default', 'me')
 
         expected_result = {'display': None, 'exten': '1234', 'source': None, 'fields': {}}
 
         assert_that(result, equal_to(expected_result))
 
-    def test_reverse_when_multi_result(self):
-        result = self.reverse('1111', 'default')
+    def test_reverse_with_xivo_user_uuid(self):
+        result = self.get_reverse_result('1111', 'default', 'uuid', VALID_TOKEN)
+        assert_that(result.status_code, equal_to(200))
+
+    def test_reverse_when_multi_result_with_alias_me(self):
+        result = self.reverse('1111', 'default', 'me')
         alice_result = {'display': 'Alice Alan', 'exten': '1111', 'source': 'third_csv',
                         'fields': self.alice_expected_fields}
         qwerty_result_1 = {'display': 'qwerty azerty', 'exten': '1111', 'source': 'my_csv',
@@ -94,7 +98,7 @@ class TestReverse(BaseDirdIntegrationTest):
         assert_that(possible_results, has_item(result))
 
     def test_reverse_when_multi_columns(self):
-        result = self.reverse('11112', 'default')
+        result = self.reverse('11112', 'default', 'me')
         alice_result = {'display': 'Alice Alan', 'exten': '11112', 'source': 'third_csv',
                         'fields': self.alice_expected_fields}
 

@@ -78,18 +78,18 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
-    def get_reverse_result(self, exten, profile, token=None):
+    def get_reverse_result(self, exten, profile, xivo_user_uuid, token=None):
         params = {'exten': exten}
-        url = u'https://localhost:9489/0.1/directories/reverse/{profile}'
-        result = requests.get(url.format(profile=profile),
+        url = u'https://localhost:9489/0.1/directories/reverse/{profile}/{xivo_user_uuid}'
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
 
     @classmethod
-    def reverse(self, exten, profile, token=VALID_TOKEN):
-        response = self.get_reverse_result(exten, profile, token=token)
+    def reverse(self, exten, profile, xivo_user_uuid, token=VALID_TOKEN):
+        response = self.get_reverse_result(exten, profile, xivo_user_uuid, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 

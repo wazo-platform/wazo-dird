@@ -640,11 +640,46 @@
                 ]
             }
         },
-        "/directories/reverse/{profile}": {
+        "/directories/reverse/{profile}/{xivo_user_uuid}": {
             "get": {
                 "summary": "Search for contact by number",
                 "description": "The `reverse` query will return a contact matching the searched exten. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `reverse` plugin and all configured sources for the given profile.",
                 "operationId": "reverse",
+                "tags": [
+                    "directories"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A contact",
+                        "schema": {
+                            "$ref": "#/definitions/Reverse"
+                        }
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                },
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Profile"
+                    },
+                    {
+                        "$ref": "#/parameters/XivoUserUUID"
+                    },
+                    {
+                        "$ref": "#/parameters/Exten"
+                    },
+                    {
+                        "$ref": "#/parameters/Token"
+                    }
+                ]
+            }
+        },
+        "/directories/reverse/{profile}/me": {
+            "get": {
+                "summary": "Search for contact by number",
+                "description": "The `reverse` query will return a contact matching the searched exten. The result will be retrieved from all configured directories for the given profile and token informations.\n\n\nThis route is provided by the `default_json_view` plugin using the `reverse` plugin and all configured sources for the given profile.",
+                "operationId": "reverse_me",
                 "tags": [
                     "directories"
                 ],
@@ -1159,6 +1194,13 @@
             "type": "string",
             "required": true,
             "description": "Authentication token obtained from xivo-auth."
+        },
+        "XivoUserUUID": {
+            "name": "xivo_user_uuid",
+            "in": "path",
+            "type": "string",
+            "description": "The XiVO user uuid on which the result is associated (e.g. used to search in personal contacts)",
+            "required": true
         }
     },
     "definitions": {

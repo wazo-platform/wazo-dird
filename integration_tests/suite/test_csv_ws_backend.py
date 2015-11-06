@@ -37,7 +37,7 @@ class TestCSVWSBackend(BaseDirdIntegrationTest):
         assert_that(results['results'], has_length(1))
 
     def test_reverse_lookup(self):
-        results = self.reverse('5551231111', 'default')
+        results = self.reverse('5551231111', 'default', 'me')
 
         assert_that(results['display'], equal_to(u'Andrée-Anne Smith'))
 

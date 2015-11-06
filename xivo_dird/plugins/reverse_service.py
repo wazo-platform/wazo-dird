@@ -55,10 +55,11 @@ class _ReverseService(object):
     def stop(self):
         self._executor.shutdown()
 
-    def reverse(self, exten, profile, args, token_infos):
+    def reverse(self, exten, profile, args, xivo_user_uuid, token):
         futures = []
         for source in self._source_by_profile(profile):
-            args['token_infos'] = token_infos
+            args['token'] = token
+            args['auth_id'] = xivo_user_uuid
             futures.append(self._async_reverse(source, exten, args))
 
         params = {}

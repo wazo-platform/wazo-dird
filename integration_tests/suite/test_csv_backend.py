@@ -35,7 +35,7 @@ class TestCSVBackend(BaseDirdIntegrationTest):
                     contains('Alice', 'AAA', '5555555555', True))
 
     def test_reverse_lookup(self):
-        result = self.reverse('5555555555', 'default')
+        result = self.reverse('5555555555', 'default', 'me')
 
         assert_that(result['display'], equal_to('Alice AAA'))
 

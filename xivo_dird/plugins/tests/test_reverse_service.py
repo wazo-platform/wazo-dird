@@ -77,7 +77,7 @@ class TestReverseServicePlugin(unittest.TestCase):
 
 class TestReverseService(unittest.TestCase):
 
-    def test_that_reverse_passes_down_token_infos(self):
+    def test_that_reverse_passes_down_infos(self):
         source = Mock(first_match=Mock(return_value=[{'f': 1}]))
         config = {
             'services': {
@@ -90,10 +90,10 @@ class TestReverseService(unittest.TestCase):
         }
         s = _ReverseService(config, {'source': source})
 
-        s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos)
+        s.reverse(sentinel.exten, 'my_profile', {}, sentinel.uuid, sentinel.token)
 
         source.first_match.assert_called_once_with(sentinel.exten,
-                                                   {'token_infos': sentinel.token_infos})
+                                                   {'token': sentinel.token, 'auth_id': sentinel.uuid})
 
         s.stop()
 
@@ -116,7 +116,7 @@ class TestReverseService(unittest.TestCase):
 
         s = _ReverseService(config, sources)
 
-        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos)
+        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos, sentinel.uuid)
 
         expected_result = [{'f': 1}, {'f': 3}]
 
@@ -145,7 +145,7 @@ class TestReverseService(unittest.TestCase):
 
         s = _ReverseService(config, sources)
 
-        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos)
+        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos, sentinel.uuid)
 
         expected_result = {'f': 1}
 
@@ -159,7 +159,7 @@ class TestReverseService(unittest.TestCase):
     def test_when_the_profile_is_not_configured(self):
         s = _ReverseService({}, {})
 
-        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos)
+        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos, sentinel.uuid)
 
         assert_that(result, is_(none()))
 
@@ -168,7 +168,7 @@ class TestReverseService(unittest.TestCase):
     def test_when_the_sources_are_not_configured(self):
         s = _ReverseService({'my_profile': {}}, {})
 
-        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos)
+        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.token_infos, sentinel.uuid)
 
         assert_that(result, is_(none()))
 

@@ -77,7 +77,7 @@ class TestPersonalBackend(TestCase):
         source.load({'config': {'name': 'personal'},
                      'main_config': {'consul': {'host': 'localhost'}}})
 
-        source.first_match('555', {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
+        source.first_match('555', {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
@@ -89,7 +89,7 @@ class TestPersonalBackend(TestCase):
         source.load({'config': {'name': 'personal'},
                      'main_config': {'consul': {'host': 'localhost'}}})
 
-        result = source.first_match('555', {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
+        result = source.first_match('555', {'token': 'valid-token', 'auth_id': 'my-uuid'})
 
         assert_that(result, equal_to(None))
 

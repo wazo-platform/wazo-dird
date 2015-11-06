@@ -46,7 +46,7 @@ def _error(code, msg):
 class JsonViewPlugin(BaseViewPlugin):
 
     lookup_url = '/directories/lookup/<profile>'
-    reverse_url = '/directories/reverse/<profile>'
+    reverse_url = '/directories/reverse/<profile>/<xivo_user_uuid>'
     favorites_read_url = '/directories/favorites/<profile>'
     favorites_write_url = '/directories/favorites/<directory>/<contact>'
     personal_url = '/directories/personal/<profile>'
@@ -150,7 +150,8 @@ class Reverse(AuthResource):
     def configure(cls, reverse_service):
         cls.reverse_service = reverse_service
 
-    def get(self, profile):
+    def get(self, profile, xivo_user_uuid):
+        token = request.headers['X-Auth-Token']
         args = parser_reverse.parse_args()
         exten = args['exten']
 
@@ -158,10 +159,10 @@ class Reverse(AuthResource):
 
         # TODO check if profile exists
 
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        if xivo_user_uuid == 'me':
+            xivo_user_uuid = _get_user_uuid_from_token(token)
 
-        raw_result = self.reverse_service.reverse(exten, profile, args={}, token_infos=token_infos)
+        raw_result = self.reverse_service.reverse(exten, profile, args={}, xivo_user_uuid=xivo_user_uuid, token=token)
 
         response = {'display': None,
                     'exten': exten,
@@ -308,6 +309,10 @@ class _ResultFormatter(object):
             return False
 
         return source_entry_id in self._favorites[result.source]
+
+
+def _get_user_uuid_from_token(token):
+    return auth.client().token.get(token)['auth_id']
 
 
 class _FavoriteResultFormatter(_ResultFormatter):

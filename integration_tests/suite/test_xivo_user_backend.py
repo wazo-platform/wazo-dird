@@ -38,7 +38,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
                     contains('Bob', 'Dylan', '1000', None))
 
     def test_that_the_reverse_lookup_returns_the_expected_result(self):
-        result = self.reverse('1000', 'default')
+        result = self.reverse('1000', 'default', 'me')
 
         assert_that(result['display'], equal_to('Bob Dylan'))
 

@@ -130,7 +130,7 @@ class TestLDAP(BaseDirdIntegrationTest):
                     contains(u'François', 'Hollande', '1004'))
 
     def test_reverse_lookup(self):
-        result = self.reverse('1001', 'default')
+        result = self.reverse('1001', 'default', 'me')
 
         assert_that(result['display'], equal_to('Alice Wonderland'))
 

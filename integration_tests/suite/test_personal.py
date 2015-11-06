@@ -25,11 +25,13 @@ from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import empty
 from hamcrest import equal_to
-from hamcrest import has_entry
 from hamcrest import has_entries
+from hamcrest import has_entry
 from hamcrest import has_item
 from hamcrest import has_items
 from hamcrest import has_key
+from hamcrest import is_
+from hamcrest import none
 from hamcrest import not_
 
 
@@ -270,10 +272,20 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains(u'empty-column', None, None, False))))
 
-    def test_reverse_lookup(self):
-        result = self.reverse('123456', 'default')
+    def test_reverse_lookup_with_alias_me(self):
+        result = self.reverse('123456', 'default', 'me')
 
         assert_that(result['display'], equal_to('Elice Wowo'))
+
+    def test_reverse_lookup_with_xivo_user_uuid(self):
+        result = self.reverse('123456', 'default', 'uuid')
+
+        assert_that(result['display'], equal_to('Elice Wowo'))
+
+    def test_reverse_lookup_with_invalid_xivo_user_uuid(self):
+        result = self.reverse('123456', 'default', 'invalid_xivo_user_uuid')
+
+        assert_that(result['display'], is_(none()))
 
 
 class TestEditPersonal(BaseDirdIntegrationTest):

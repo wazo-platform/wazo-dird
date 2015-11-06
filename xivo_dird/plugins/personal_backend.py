@@ -74,8 +74,8 @@ class PersonalBackend(BaseSourcePlugin):
         return [self._SourceResult(contacts_tree[contact_id]) for contact_id in matching_contact_ids]
 
     def first_match(self, term, args=None):
-        user_uuid = args['token_infos']['auth_id']
-        token = args['token_infos']['token']
+        user_uuid = args['auth_id']
+        token = args['token']
         contacts_tree = self._get_personal_contacts_tree(user_uuid, token)
 
         for contact_id, attribute in itertools.product(contacts_tree, self._first_matched_columns):
