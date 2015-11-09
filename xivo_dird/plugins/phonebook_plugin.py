@@ -76,6 +76,9 @@ class _PhonebookConfig(object):
     def format_columns(self):
         return self._config[BaseSourcePlugin.FORMAT_COLUMNS]
 
+    def first_matched_columns(self):
+        return self._config[BaseSourcePlugin.FIRST_MATCHED_COLUMNS]
+
     def looked_up_keys(self):
         results = set()
 
@@ -105,6 +108,8 @@ class _PhonebookClient(object):
         self._url = pbook_config.phonebook_url()
         self._timeout = pbook_config.phonebook_timeout()
         self._auth = self._new_auth(pbook_config)
+        self._first_matched_fetchers = [_Fetcher(key, pbook_config.name())
+                                        for key in pbook_config.first_matched_columns()]
 
     def _new_auth(self, pbook_config):
         username = pbook_config.phonebook_username()
@@ -113,14 +118,16 @@ class _PhonebookClient(object):
             return requests.auth.HTTPBasicAuth(username, password)
         return None
 
-    def search(self, term):
-        return self._search(term)
-
     def first_match(self, term):
-        results = self._search(term)
-        return results[0] if results else None
+        results = self.search(term)
 
-    def _search(self, term):
+        for result in results:
+            for fetcher in self._first_matched_fetchers:
+                if fetcher(result) == term:
+                    return result
+        return None
+
+    def search(self, term):
         contacts = []
         params = {'act': 'search', 'search': term}
         try:

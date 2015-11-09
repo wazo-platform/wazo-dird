@@ -120,6 +120,20 @@ class TestPhonebookConfig(unittest.TestCase):
 
         self.assertRaises(Exception, phonebook_config.format_columns)
 
+    def test_first_matched_columns(self):
+        value = ['phonebook.exten']
+
+        phonebook_config = _PhonebookConfig({
+            BaseSourcePlugin.FIRST_MATCHED_COLUMNS: value,
+        })
+
+        self.assertEqual(value, phonebook_config.first_matched_columns())
+
+    def test_first_matched_columns_when_absent(self):
+        phonebook_config = _PhonebookConfig({})
+
+        self.assertRaises(Exception, phonebook_config.first_matched_columns)
+
     def test_looked_up_keys(self):
         value = {'firstname': '{phonebook.firstname}',
                  'name': '{phonebook.firstname} {phonebook.lastname}'}
@@ -172,11 +186,13 @@ class TestPhonebookClient(unittest.TestCase):
         self.username = 'admin'
         self.password = 'foobar'
         self.timeout = 1.1
+        self.first_matched_columns = ['phonebook.exten', 'phonebook.office']
         self.pbook_config = Mock(_PhonebookConfig)
         self.pbook_config.phonebook_url.return_value = self.url
         self.pbook_config.phonebook_username.return_value = self.username
         self.pbook_config.phonebook_password.return_value = self.password
         self.pbook_config.phonebook_timeout.return_value = self.timeout
+        self.pbook_config.first_matched_columns.return_value = self.first_matched_columns
         self.pbook_client = _PhonebookClient(self.pbook_config)
 
     @patch('xivo_dird.plugins.phonebook_plugin.requests')
@@ -225,16 +241,9 @@ class TestPhonebookClient(unittest.TestCase):
 
         self.assertEqual(result, [])
 
-    def test_first_match_return_first_element(self):
-        self.pbook_client._search = Mock()
-        self.pbook_client._search.return_value = [sentinel.result_1, sentinel.result_2]
-
-        result = self.pbook_client.first_match('123456')
-        self.assertIs(result, sentinel.result_1)
-
     def test_first_match_return_None_if_no_match(self):
-        self.pbook_client._search = Mock()
-        self.pbook_client._search.return_value = []
+        self.pbook_client.search = Mock()
+        self.pbook_client.search.return_value = []
 
         result = self.pbook_client.first_match('123456')
         self.assertIs(result, None)
