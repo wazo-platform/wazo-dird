@@ -66,6 +66,7 @@ class CSVWSPlugin(BaseSourcePlugin):
                 if result]
 
     def first_match(self, term, args=None):
+        logger.debug('First matching CSV WS `%s` with `%s`', self._name, term)
         url = self._lookup_url
         params = {column: term for column in self._first_matched_columns}
 
