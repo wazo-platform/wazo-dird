@@ -18,6 +18,7 @@
 import logging
 
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError
 from concurrent.futures import as_completed
 from xivo_dird import BaseServicePlugin
 from xivo_dird import helpers
@@ -66,11 +67,14 @@ class _ReverseService(object):
         if 'timeout' in self._config(profile):
             params['timeout'] = self._config(profile)['timeout']
 
-        for future in as_completed(futures, **params):
-            if future.result() is not None:
-                for other_future in futures:
-                    other_future.cancel()
-                return future.result()
+        try:
+            for future in as_completed(futures, **params):
+                if future.result() is not None:
+                    for other_future in futures:
+                        other_future.cancel()
+                    return future.result()
+        except TimeoutError:
+            logger.info('Timeout on reverse lookup for exten: %s', exten)
         return None
 
     def _config(self, profile):

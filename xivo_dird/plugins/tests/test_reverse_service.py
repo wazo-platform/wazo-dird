@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import time
 import unittest
 
 from hamcrest import assert_that
@@ -123,6 +124,26 @@ class TestReverseService(unittest.TestCase):
         assert_that(sources['source_2'].first_match.call_count, equal_to(0))
 
         assert_that(expected_result, has_item(result))
+
+        s.stop()
+
+    def test_that_reverse_first_match_return_none_when_timeout_reached(self):
+        source = Mock(first_match=Mock(side_effect=lambda x, y: time.sleep(0.1)))
+        config = {
+            'services': {
+                'reverse': {
+                    'my_profile': {
+                        'sources': ['source'],
+                        'timeout': 0.0001
+                    }
+                }
+            }
+        }
+        s = _ReverseService(config, {'source': source})
+
+        result = s.reverse(sentinel.exten, 'my_profile', {}, sentinel.uuid, sentinel.token)
+
+        assert_that(result, is_(none()))
 
         s.stop()
 
