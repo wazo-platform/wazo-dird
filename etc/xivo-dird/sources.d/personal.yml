@@ -13,3 +13,7 @@ format_columns:
     nom: '{firstname} {lastname}'
     display_name: '{firstname} {lastname}'
     phone: '{number}'
+    mobile: '{mobile}'
+    email: '{email}'
+    fax: '{fax}'
+    company: '{company}'
