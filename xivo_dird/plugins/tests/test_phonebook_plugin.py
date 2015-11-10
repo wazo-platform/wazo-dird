@@ -129,11 +129,6 @@ class TestPhonebookConfig(unittest.TestCase):
 
         self.assertEqual(value, phonebook_config.first_matched_columns())
 
-    def test_first_matched_columns_when_absent(self):
-        phonebook_config = _PhonebookConfig({})
-
-        self.assertRaises(Exception, phonebook_config.first_matched_columns)
-
     def test_looked_up_keys(self):
         value = {'firstname': '{phonebook.firstname}',
                  'name': '{phonebook.firstname} {phonebook.lastname}'}
