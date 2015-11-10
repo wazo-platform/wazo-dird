@@ -77,7 +77,7 @@ class _PhonebookConfig(object):
         return self._config[BaseSourcePlugin.FORMAT_COLUMNS]
 
     def first_matched_columns(self):
-        return self._config[BaseSourcePlugin.FIRST_MATCHED_COLUMNS]
+        return self._config.get(BaseSourcePlugin.FIRST_MATCHED_COLUMNS, [])
 
     def looked_up_keys(self):
         results = set()
