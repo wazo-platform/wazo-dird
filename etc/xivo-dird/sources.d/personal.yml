@@ -9,11 +9,11 @@ searched_columns:
     - mobile
     - number
 format_columns:
-    name: '{firstname} {lastname}'
-    nom: '{firstname} {lastname}'
+    company: '{company}'
     display_name: '{firstname} {lastname}'
-    phone: '{number}'
-    mobile: '{mobile}'
     email: '{email}'
     fax: '{fax}'
-    company: '{company}'
+    mobile: '{mobile}'
+    name: '{firstname} {lastname}'
+    nom: '{firstname} {lastname}'
+    phone: '{number}'
