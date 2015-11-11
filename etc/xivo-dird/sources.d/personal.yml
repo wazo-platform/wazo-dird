@@ -13,7 +13,7 @@ format_columns:
     display_name: '{firstname} {lastname}'
     email: '{email}'
     fax: '{fax}'
-    mobile: '{mobile}'
     name: '{firstname} {lastname}'
     nom: '{firstname} {lastname}'
     phone: '{number}'
+    phone_mobile: '{mobile}'
