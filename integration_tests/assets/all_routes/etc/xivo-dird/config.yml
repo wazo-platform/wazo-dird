@@ -1,59 +1,60 @@
 enabled_plugins:
-    backends:
-        - sample
-    services:
-        - lookup
-        - favorites
-        - personal
-    views:
-        - default_json
-        - headers_view
-        - personal_view
+  backends:
+    - sample
+  services:
+    - lookup
+    - favorites
+    - personal
+  views:
+    - default_json
+    - headers_view
+    - personal_view
 
 views:
-    displays:
-        default_display:
-            -
-                title: Firstname
-                default: Unknown
-                field: firstname
-            -
-                title: Lastname
-                default: Unknown
-                field: lastname
-            -
-                title: Number
-                default:
-                field: number
-            -
-                field: favorite
-                type: favorite
-    profile_to_display:
-        default: default_display
+  displays:
+    default_display:
+      -
+        title: Firstname
+        default: Unknown
+        field: firstname
+      -
+        title: Lastname
+        default: Unknown
+        field: lastname
+      -
+        title: Number
+        default:
+        field: number
+      -
+        field: favorite
+        type: favorite
+  profile_to_display:
+    default: default_display
 
 services:
-    lookup:
-        default:
-            sources:
-                - sample
-            timeout: 0.5
-    favorites:
-        default:
-            sources:
-                - sample
-            timeout: 0.5
+  lookup:
+    default:
+      sources:
+        - sample
+      timeout: 0.5
+  favorites:
+    default:
+      sources:
+        - sample
+      timeout: 0.5
 
 rest_api:
-       listen: 0.0.0.0
-       port: 9489
-       certificate: /etc/ssl/server.crt
-       private_key: /etc/ssl/server.key
+  https:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /etc/ssl/server.crt
+    private_key: /etc/ssl/server.key
 
 auth:
-    host: auth
-    port: 9497
+  host: auth
+  port: 9497
 
 consul:
-    scheme: http
-    host: consul
-    port: 8500
+  scheme: http
+  host: consul
+  port: 8500

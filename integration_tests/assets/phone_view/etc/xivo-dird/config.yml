@@ -1,62 +1,63 @@
 enabled_plugins:
-    backends:
-        - csv
-    services:
-        - lookup
-    views:
-        - default_json
-        - aastra_view
-        - cisco_view
-        - polycom_view
-        - snom_view
-        - thomson_view
-        - yealink_view
+  backends:
+    - csv
+  services:
+    - lookup
+  views:
+    - default_json
+    - aastra_view
+    - cisco_view
+    - polycom_view
+    - snom_view
+    - thomson_view
+    - yealink_view
 
 views:
-    displays:
-        default_display:
-            -
-                title: Firstname
-                field: firstname
-            -
-                title: Lastname
-                field: lastname
-            -
-                title: Number
-                field: number
-            -
-                title: Favorite
-                type: favorite
-    displays_phone:
-        default:
-            name:
-                - display_name
-            number:
-                -
-                    field:
-                        - phone
-    profile_to_display:
-        default: default_display
-    profile_to_display_phone:
-        default: default
+  displays:
+    default_display:
+      -
+        title: Firstname
+        field: firstname
+      -
+        title: Lastname
+        field: lastname
+      -
+        title: Number
+        field: number
+      -
+        title: Favorite
+        type: favorite
+  displays_phone:
+    default:
+      name:
+        - display_name
+      number:
+        -
+          field:
+            - phone
+  profile_to_display:
+    default: default_display
+  profile_to_display_phone:
+    default: default
 
 services:
-    lookup:
-        default:
-            sources:
-                - test_csv
+  lookup:
+    default:
+      sources:
+        - test_csv
 
 rest_api:
-       listen: 0.0.0.0
-       port: 9489
-       certificate: /etc/ssl/server.crt
-       private_key: /etc/ssl/server.key
+  https:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /etc/ssl/server.crt
+    private_key: /etc/ssl/server.key
 
 auth:
-    host: auth
-    port: 9497
+  host: auth
+  port: 9497
 
 consul:
-    scheme: http
-    host: consul
-    port: 8500
+  scheme: http
+  host: consul
+  port: 8500

@@ -1,45 +1,46 @@
 enabled_plugins:
-    backends:
-        - xivo
-    services:
-        - lookup
-    views:
-        - default_json
+  backends:
+    - xivo
+  services:
+    - lookup
+  views:
+    - default_json
 
 views:
-    displays:
-        default_display:
-            -
-                title: Firstname
-                field: firstname
-            -
-                title: Lastname
-                field: lastname
-            -
-                title: Number
-                default:
-                field: exten
-            -
-                title: Mobile
-                default:
-                mobile_phone_number:
-    profile_to_display:
-        default: default_display
+  displays:
+    default_display:
+      -
+        title: Firstname
+        field: firstname
+      -
+        title: Lastname
+        field: lastname
+      -
+        title: Number
+        default:
+        field: exten
+      -
+        title: Mobile
+        default:
+        mobile_phone_number:
+  profile_to_display:
+    default: default_display
 
 services:
-    lookup:
-        default:
-            sources:
-                - xivo_america
-                - xivo_asia
-                - xivo_europe
+  lookup:
+    default:
+      sources:
+        - xivo_america
+        - xivo_asia
+        - xivo_europe
 
 rest_api:
-       listen: 0.0.0.0
-       port: 9489
-       certificate: /etc/ssl/server.crt
-       private_key: /etc/ssl/server.key
+  https:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /etc/ssl/server.crt
+    private_key: /etc/ssl/server.key
 
 auth:
-    host: auth
-    port: 9497
+  host: auth
+  port: 9497

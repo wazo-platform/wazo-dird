@@ -70,16 +70,18 @@ class CoreRestApi(object):
     def run(self):
         self.api.init_app(self.app)
 
-        bind_addr = (self.config['listen'], self.config['port'])
+        https_config = self.config['https']
 
-        _check_file_readable(self.config['certificate'])
-        _check_file_readable(self.config['private_key'])
+        bind_addr = (https_config['listen'], https_config['port'])
+
+        _check_file_readable(https_config['certificate'])
+        _check_file_readable(https_config['private_key'])
         wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': self.app})
         server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr,
                                                wsgi_app=wsgi_app)
-        server.ssl_adapter = http_helpers.ssl_adapter(self.config['certificate'],
-                                                      self.config['private_key'],
-                                                      self.config.get('ciphers'))
+        server.ssl_adapter = http_helpers.ssl_adapter(https_config['certificate'],
+                                                      https_config['private_key'],
+                                                      https_config.get('ciphers'))
         logger.debug('WSGIServer starting... uid: %s, listen: %s:%s', os.getuid(), bind_addr[0], bind_addr[1])
         for route in http_helpers.list_routes(self.app):
             logger.debug(route)

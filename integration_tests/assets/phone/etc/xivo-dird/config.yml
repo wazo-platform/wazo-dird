@@ -1,55 +1,56 @@
 enabled_plugins:
-    backends:
-        - csv
-    services:
-        - lookup
-    views:
-        - cisco_view
+  backends:
+    - csv
+  services:
+    - lookup
+  views:
+    - cisco_view
 
 views:
-    displays_phone:
-        default:
-            name:
-                - display_name
-            number:
-                -
-                    field:
-                        - phone
-        test_fallback:
-            name:
-                - display_name
-                - display_name1
-            number:
-                -
-                    field:
-                        - phone
-                -
-                    field:
-                        - phone1
-    profile_to_display_phone:
-        test_fallback: test_fallback
-        test_sorted: default
+  displays_phone:
+    default:
+      name:
+        - display_name
+      number:
+        -
+          field:
+            - phone
+    test_fallback:
+      name:
+        - display_name
+        - display_name1
+      number:
+        -
+          field:
+            - phone
+        -
+          field:
+            - phone1
+  profile_to_display_phone:
+    test_fallback: test_fallback
+    test_sorted: default
 
 services:
-    lookup:
-        test_fallback:
-            sources:
-                - test_fallback
-        test_sorted:
-            sources:
-                - test_sorted
+  lookup:
+    test_fallback:
+      sources:
+        - test_fallback
+    test_sorted:
+      sources:
+        - test_sorted
 
 rest_api:
-       listen: 0.0.0.0
-       port: 9489
-       certificate: /etc/ssl/server.crt
-       private_key: /etc/ssl/server.key
+  https:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /etc/ssl/server.crt
+    private_key: /etc/ssl/server.key
 
 auth:
-    host: auth
-    port: 9497
+  host: auth
+  port: 9497
 
 consul:
-    scheme: http
-    host: consul
-    port: 8500
+  scheme: http
+  host: consul
+  port: 8500

@@ -1,56 +1,57 @@
 enabled_plugins:
-    backends:
-        - csv
-    services:
-        - lookup
-        - favorites
-    views:
-        - default_json
+  backends:
+    - csv
+  services:
+    - lookup
+    - favorites
+  views:
+    - default_json
 
 views:
-    displays:
-        default_display:
-            -
-                title: Firstname
-                default: Unknown
-                field: firstname
-            -
-                title: Lastname
-                default: Unknown
-                field: lastname
-            -
-                title: Number
-                default:
-                field: number
-            -
-                title: Favorite
-                type: favorite
-    profile_to_display:
-        default: default_display
+  displays:
+    default_display:
+      -
+        title: Firstname
+        default: Unknown
+        field: firstname
+      -
+        title: Lastname
+        default: Unknown
+        field: lastname
+      -
+        title: Number
+        default:
+        field: number
+      -
+        title: Favorite
+        type: favorite
+  profile_to_display:
+    default: default_display
 
 services:
-    lookup:
-        default:
-            sources:
-                - csv
-                - csv_2
-    favorites:
-        default:
-            sources:
-                - csv
-                - csv_2
+  lookup:
+    default:
+      sources:
+        - csv
+        - csv_2
+  favorites:
+    default:
+      sources:
+        - csv
+        - csv_2
 
 rest_api:
-       listen: 0.0.0.0
-       port: 9489
-       certificate: /etc/ssl/server.crt
-       private_key: /etc/ssl/server.key
+  https:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /etc/ssl/server.crt
+    private_key: /etc/ssl/server.key
 
 auth:
-    host: auth
-    port: 9497
+  host: auth
+  port: 9497
 
 consul:
-    scheme: http
-    host: consul
-    port: 8500
+  scheme: http
+  host: consul
+  port: 8500

@@ -11,6 +11,9 @@ source_config_dir: /etc/xivo-dird/sources.d
 # REST API server
 rest_api:
 
+  # HTTPS Configuration
+  https:
+
     # Listening address
     listen: 0.0.0.0
 
@@ -24,123 +27,123 @@ rest_api:
     # SSL ciphers
     ciphers: "ALL:!aNULL:!eNULL:!LOW:!EXP:!RC4:!3DES:!SEED:+HIGH:+MEDIUM"
 
-    #CORS configuration. See Flask-CORS documentation for other values.
-    cors:
+  #CORS configuration. See Flask-CORS documentation for other values.
+  cors:
 
-        #Enabled by default
-        enabled: True
+    #Enabled by default
+    enabled: True
 
-        #Allow JSON preflight requests
-        allow_headers: Content-Type, X-Auth-Token
+    #Allow JSON preflight requests
+    allow_headers: Content-Type, X-Auth-Token
 
 # Connection info to the authentication server
 auth:
-    host: localhost
-    port: 9497
+  host: localhost
+  port: 9497
 
 # Connection info to the contact storage server (Consul)
 consul:
-    scheme: https
-    host: localhost
-    port: 8500
-    verify: /usr/share/xivo-certs/server.crt
+  scheme: https
+  host: localhost
+  port: 8500
+  verify: /usr/share/xivo-certs/server.crt
 
 enabled_plugins:
-    backends:
-        - personal
-        - xivo
-        - phonebook
-        - csv
-        - csv_ws
-        - ldap
-    services:
-        - favorites
-        - lookup
-        - personal
-        - reverse
-    views:
-        - default_json
-        - headers_view
-        - personal_view
-        - aastra_view
-        - cisco_view
-        - polycom_view
-        - snom_view
-        - thomson_view
-        - yealink_view
+  backends:
+    - personal
+    - xivo
+    - phonebook
+    - csv
+    - csv_ws
+    - ldap
+  services:
+    - favorites
+    - lookup
+    - personal
+    - reverse
+  views:
+    - default_json
+    - headers_view
+    - personal_view
+    - aastra_view
+    - cisco_view
+    - polycom_view
+    - snom_view
+    - thomson_view
+    - yealink_view
 
 views:
-    displays:
-        default_display:
-            -
-                title: Name
-                field: name
-                type: name
-            -
-                title: Number
-                field: phone
-                type: number
-            -
-                title: Mobile
-                field: phone_mobile
-                type: callable
-            -
-                title: Favorite
-                field: favorite
-                type: favorite
-            -
-                title: Personal
-                field: personal
-                type: personal
-    displays_phone:
-        default:
-            name:
-                - display_name
-                - display_name1
-                - display_name2
-            number:
-                -
-                    field:
-                        - phone
-                        - phone1
-                        - phone2
-                -
-                    field:
-                        - phone_office
-                        - phone_office1
-                        - phone_office2
-                    name_format: "{name} (Office)"
-                -
-                    field:
-                        - phone_mobile
-                        - phone_mobile1
-                        - phone_mobile2
-                    name_format: "{name} (Mobile)"
-                -
-                    field:
-                        - phone_home
-                        - phone_home1
-                        - phone_home2
-                    name_format: "{name} (Home)"
-                -
-                    field:
-                        - phone_other
-                        - phone_other1
-                        - phone_other2
-                    name_format: "{name} (Other)"
-    profile_to_display:
-        default: default_display
-    profile_to_display_phone:
-        default_phone: default
+  displays:
+    default_display:
+      -
+        title: Name
+        field: name
+        type: name
+      -
+        title: Number
+        field: phone
+        type: number
+      -
+        title: Mobile
+        field: phone_mobile
+        type: callable
+      -
+        title: Favorite
+        field: favorite
+        type: favorite
+      -
+        title: Personal
+        field: personal
+        type: personal
+  displays_phone:
+    default:
+      name:
+        - display_name
+        - display_name1
+        - display_name2
+      number:
+        -
+          field:
+            - phone
+            - phone1
+            - phone2
+        -
+          field:
+            - phone_office
+            - phone_office1
+            - phone_office2
+          name_format: "{name} (Office)"
+        -
+          field:
+            - phone_mobile
+            - phone_mobile1
+            - phone_mobile2
+          name_format: "{name} (Mobile)"
+        -
+          field:
+            - phone_home
+            - phone_home1
+            - phone_home2
+          name_format: "{name} (Home)"
+        -
+          field:
+            - phone_other
+            - phone_other1
+            - phone_other2
+          name_format: "{name} (Other)"
+  profile_to_display:
+    default: default_display
+  profile_to_display_phone:
+    default_phone: default
 
 services:
-    lookup:
-        default_phone:
-            sources:
-                - xivodir
-                - internal
-            timeout: 0.5
-    favorites:
-        default:
-            sources:
-                - personal
+  lookup:
+    default_phone:
+      sources:
+        - xivodir
+        - internal
+      timeout: 0.5
+  favorites:
+    default:
+      sources:
+        - personal
