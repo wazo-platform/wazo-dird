@@ -78,11 +78,11 @@ views:
                 type: name
             -
                 title: Number
-                field: number
+                field: phone
                 type: number
             -
                 title: Mobile
-                field: mobile
+                field: phone_mobile
                 type: callable
             -
                 title: Favorite
