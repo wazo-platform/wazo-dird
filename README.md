@@ -74,3 +74,8 @@ To execute the integration tests execute:
 For developers, when adding/removing a plugin:
 
     % make egg-info
+
+
+### Generate .tx/config
+
+    % tx set --auto-local -r xivo.xivo-dird 'xivo_dird/translations/<lang>/LC_MESSAGES/messages.po' --source-lang en --type PO --source-file xivo_dird/messages.pot --execute
