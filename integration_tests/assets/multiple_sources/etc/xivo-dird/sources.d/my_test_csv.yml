@@ -7,6 +7,6 @@ first_matched_columns:
     - num
 format_columns:
     lastname: "{ln}"
-    firstname: "{num}"
-    number: "{fn}"
+    firstname: "{fn}"
+    number: "{num}"
     reverse: "{fn} {ln}"
