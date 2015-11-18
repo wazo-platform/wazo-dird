@@ -44,7 +44,7 @@ class _SourceResult(object):
 
     def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
         self._formatter = _NoKeyErrorFormatter()
-        self.fields = fields
+        self.fields = dict(fields)
         source_entry_id = self.get_unique() if self._unique_column else None
         self.relations = {'xivo_id': xivo_id,
                           'agent_id': agent_id,
