@@ -9,7 +9,8 @@
              "firstname": "John",
              "lastname": "Doe",
              "exten": "1234",
-             "mobile_phone_number": "+14184765458"
+             "mobile_phone_number": "+14184765458",
+             "voicemail_number": null
         },
         {
              "id": 2,
@@ -18,7 +19,8 @@
              "firstname": "Mary",
              "lastname": "Sue",
              "exten": "1465",
-             "mobile_phone_number": ""
+             "mobile_phone_number": "",
+             "voicemail_number": null
         },
         {
              "id": 42,
@@ -27,7 +29,8 @@
              "firstname": "Bob",
              "lastname": "Dylan",
              "exten": "1000",
-             "mobile_phone_number": ""
+             "mobile_phone_number": "",
+             "voicemail_number": "1234"
         },
         {
              "id": 100,
@@ -36,7 +39,8 @@
              "firstname": "Charles",
              "lastname": "Kenedy",
              "exten": "",
-             "mobile_phone_number": ""
+             "mobile_phone_number": "",
+             "voicemail_number": null
         }
     ]
 }

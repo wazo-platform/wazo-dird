@@ -24,6 +24,10 @@ views:
         title: Mobile
         default:
         mobile_phone_number:
+      -
+        title: Voicemail
+        field: voicemail
+        type: voicemail
   profile_to_display:
     default: default_display
 

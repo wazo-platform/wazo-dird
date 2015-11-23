@@ -26,7 +26,8 @@ logger = logging.getLogger(__name__)
 
 class XivoUserPlugin(BaseSourcePlugin):
 
-    _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield', 'description', 'mobile_phone_number']
+    _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield',
+                   'description', 'mobile_phone_number', 'voicemail_number']
 
     def __init__(self, ConfdClientClass=Client):
         self._ConfdClientClass = ConfdClientClass
