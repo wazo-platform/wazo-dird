@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_UUID
 
 from hamcrest import assert_that
 from hamcrest import contains
@@ -35,7 +36,7 @@ class TestCSVBackend(BaseDirdIntegrationTest):
                     contains('Alice', 'AAA', '5555555555', True))
 
     def test_reverse_lookup(self):
-        result = self.reverse('5555555555', 'default', 'me')
+        result = self.reverse('5555555555', 'default', VALID_UUID)
 
         assert_that(result['display'], equal_to('Alice AAA'))
 

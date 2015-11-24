@@ -18,6 +18,7 @@
 import time
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_UUID
 
 from hamcrest import assert_that
 from hamcrest import contains
@@ -38,7 +39,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
                     contains('Bob', 'Dylan', '1000', None))
 
     def test_that_the_reverse_lookup_returns_the_expected_result(self):
-        result = self.reverse('1000', 'default', 'me')
+        result = self.reverse('1000', 'default', VALID_UUID)
 
         assert_that(result['display'], equal_to('Bob Dylan'))
 

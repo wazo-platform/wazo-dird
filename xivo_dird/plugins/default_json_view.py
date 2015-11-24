@@ -159,9 +159,6 @@ class Reverse(AuthResource):
 
         # TODO check if profile exists
 
-        if xivo_user_uuid == 'me':
-            xivo_user_uuid = _get_user_uuid_from_token(token)
-
         raw_result = self.reverse_service.reverse(exten, profile, args={}, xivo_user_uuid=xivo_user_uuid, token=token)
 
         response = {'display': None,
@@ -309,10 +306,6 @@ class _ResultFormatter(object):
             return False
 
         return source_entry_id in self._favorites[result.source]
-
-
-def _get_user_uuid_from_token(token):
-    return auth.client().token.get(token)['auth_id']
 
 
 class _FavoriteResultFormatter(_ResultFormatter):

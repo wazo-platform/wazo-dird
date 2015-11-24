@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_UUID
 from .base_dird_integration_test import VALID_TOKEN
 from .base_dird_integration_test import VALID_TOKEN_1
 from .base_dird_integration_test import VALID_TOKEN_2
@@ -273,7 +274,7 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
             has_entry('column_values', contains(u'empty-column', None, None, False))))
 
     def test_reverse_lookup_with_alias_me(self):
-        result = self.reverse('123456', 'default', 'me')
+        result = self.reverse('123456', 'default', VALID_UUID)
 
         assert_that(result['display'], equal_to('Elice Wowo'))
 

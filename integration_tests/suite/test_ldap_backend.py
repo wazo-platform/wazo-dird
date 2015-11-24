@@ -19,6 +19,7 @@ import ldap
 import time
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_UUID
 
 from collections import namedtuple
 from ldap.modlist import addModlist
@@ -130,7 +131,7 @@ class TestLDAP(BaseDirdIntegrationTest):
                     contains(u'François', 'Hollande', '1004'))
 
     def test_reverse_lookup(self):
-        result = self.reverse('1001', 'default', 'me')
+        result = self.reverse('1001', 'default', VALID_UUID)
 
         assert_that(result['display'], equal_to('Alice Wonderland'))
 
