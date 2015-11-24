@@ -675,38 +675,6 @@
                 ]
             }
         },
-        "/directories/reverse/{profile}/me": {
-            "get": {
-                "summary": "Search for contact by number",
-                "description": "The `reverse` query will return a contact matching the searched exten. The result will be retrieved from all configured directories for the given profile and token informations.\n\n\nThis route is provided by the `default_json_view` plugin using the `reverse` plugin and all configured sources for the given profile.",
-                "operationId": "reverse_me",
-                "tags": [
-                    "directories"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "A contact",
-                        "schema": {
-                            "$ref": "#/definitions/Reverse"
-                        }
-                    },
-                    "503": {
-                        "$ref": "#/responses/AnotherServiceUnavailable"
-                    }
-                },
-                "parameters": [
-                    {
-                        "$ref": "#/parameters/Profile"
-                    },
-                    {
-                        "$ref": "#/parameters/Exten"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
-                    }
-                ]
-            }
-        },
         "/directories/favorites/{profile}": {
             "get": {
                 "summary": "List favorite contacts",
