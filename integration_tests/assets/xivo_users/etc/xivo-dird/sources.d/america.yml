@@ -13,3 +13,4 @@ confd_config:
 format_columns:
     number: "{exten}"
     reverse: "{firstname} {lastname}"
+    voicemail: "{voicemail_number}"

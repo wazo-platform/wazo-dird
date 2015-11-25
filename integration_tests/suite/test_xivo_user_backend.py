@@ -36,7 +36,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
         result = self.lookup('dyl', 'default')
 
         assert_that(result['results'][0]['column_values'],
-                    contains('Bob', 'Dylan', '1000', None))
+                    contains('Bob', 'Dylan', '1000', None, '1234'))
 
     def test_that_the_reverse_lookup_returns_the_expected_result(self):
         result = self.reverse('1000', 'default', VALID_UUID)
