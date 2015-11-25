@@ -1,5 +1,8 @@
 type: personal
 name: personal
+first_matched_columns:
+    - number
+    - mobile
 searched_columns:
     - company
     - email
@@ -17,3 +20,4 @@ format_columns:
     nom: '{firstname} {lastname}'
     phone: '{number}'
     phone_mobile: '{mobile}'
+    reverse: '{firstname} {lastname}'
