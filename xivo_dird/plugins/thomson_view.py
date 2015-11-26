@@ -28,7 +28,7 @@ MAX_ITEM_PER_PAGE = 8
 
 class ThomsonViewPlugin(BaseViewPlugin):
 
-    thomson_lookup = '/directories/lookup/<profile>/thomson'
+    thomson_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/thomson'
 
     def load(self, args=None):
         phone_lookup_service = new_phone_lookup_service_from_args(args)

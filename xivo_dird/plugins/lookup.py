@@ -65,10 +65,11 @@ class _LookupService(object):
         future.name = source.name
         return future
 
-    def lookup(self, term, profile, args, token_infos):
+    def lookup(self, term, profile, xivo_user_uuid, args, token):
         futures = []
         for source in self._source_by_profile(profile):
-            args['token_infos'] = token_infos
+            args['token'] = token
+            args['auth_id'] = xivo_user_uuid
             futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}

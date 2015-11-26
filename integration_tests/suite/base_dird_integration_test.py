@@ -43,6 +43,8 @@ VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_3 = 'valid-token-3'
 
+VALID_UUID = 'uuid'
+
 
 class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
@@ -268,40 +270,41 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
-    def get_menu_cisco_result(self, profile, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/menu/{profile}/cisco'
-        result = requests.get(url.format(profile=profile),
+    def get_menu_cisco_result(self, profile, xivo_user_uuid, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/menu/{profile}/{xivo_user_uuid}/cisco'
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
         return result
 
     @classmethod
-    def get_menu_cisco(self, profile, proxy=None, token=VALID_TOKEN):
-        response = self.get_menu_cisco_result(profile, proxy, token)
+    def get_menu_cisco(self, profile, xivo_user_uuid, proxy=None, token=VALID_TOKEN):
+        response = self.get_menu_cisco_result(profile, xivo_user_uuid, proxy, token)
         assert_that(response.status_code, equal_to(200))
         return response.text
 
     @classmethod
-    def get_input_cisco_result(self, profile, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/input/{profile}/cisco'
-        result = requests.get(url.format(profile=profile),
+    def get_input_cisco_result(self, profile, xivo_user_uuid, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/input/{profile}/{xivo_user_uuid}/cisco'
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
         return result
 
     @classmethod
-    def get_input_cisco(self, profile, proxy=None, token=VALID_TOKEN):
-        response = self.get_input_cisco_result(profile, proxy, token)
+    def get_input_cisco(self, profile, xivo_user_uuid, proxy=None, token=VALID_TOKEN):
+        response = self.get_input_cisco_result(profile, xivo_user_uuid, proxy, token)
         assert_that(response.status_code, equal_to(200))
         return response.text
 
     @classmethod
-    def get_lookup_cisco_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/cisco'
+    def get_lookup_cisco_result(self, profile, xivo_user_uuid,
+                                proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/cisco'
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile),
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -309,25 +312,26 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_lookup_cisco(self, profile, term, proxy=None, token=VALID_TOKEN, limit=None, offset=None):
-        response = self.get_lookup_cisco_result(profile, proxy, term, token, limit, offset)
+    def get_lookup_cisco(self, profile, xivo_user_uuid, term, proxy=None, token=VALID_TOKEN, limit=None, offset=None):
+        response = self.get_lookup_cisco_result(profile, xivo_user_uuid, proxy, term, token, limit, offset)
         assert_that(response.status_code, equal_to(200))
         return response.text
 
     @classmethod
-    def get_input_aastra_result(self, profile, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/input/{profile}/aastra'
-        result = requests.get(url.format(profile=profile),
+    def get_input_aastra_result(self, profile, xivo_user_uuid, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/input/{profile}/{xivo_user_uuid}/aastra'
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
         return result
 
     @classmethod
-    def get_lookup_aastra_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/aastra'
+    def get_lookup_aastra_result(self, profile, xivo_user_uuid,
+                                 proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/aastra'
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile),
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -335,19 +339,20 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_input_polycom_result(self, profile, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/input/{profile}/polycom'
-        result = requests.get(url.format(profile=profile),
+    def get_input_polycom_result(self, profile, xivo_user_uuid, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/input/{profile}/{xivo_user_uuid}/polycom'
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
         return result
 
     @classmethod
-    def get_lookup_polycom_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/polycom'
+    def get_lookup_polycom_result(self, profile, xivo_user_uuid,
+                                  proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/polycom'
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile),
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -355,19 +360,20 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_input_snom_result(self, profile, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/input/{profile}/snom'
-        result = requests.get(url.format(profile=profile),
+    def get_input_snom_result(self, profile, xivo_user_uuid, proxy=None, token=None):
+        url = 'https://localhost:9489/0.1/directories/input/{profile}/{xivo_user_uuid}/snom'
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
         return result
 
     @classmethod
-    def get_lookup_snom_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/snom'
+    def get_lookup_snom_result(self, profile, xivo_user_uuid,
+                               proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/snom'
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile),
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -375,10 +381,11 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_lookup_thomson_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/thomson'
+    def get_lookup_thomson_result(self, profile, xivo_user_uuid,
+                                  proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/thomson'
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile),
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -386,10 +393,11 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_lookup_yealink_result(self, profile, proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/yealink'
+    def get_lookup_yealink_result(self, profile, xivo_user_uuid,
+                                  proxy=None, term=None, token=None, limit=None, offset=None):
+        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/yealink'
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile),
+        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},

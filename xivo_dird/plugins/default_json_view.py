@@ -124,11 +124,13 @@ class Lookup(AuthResource):
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
+        xivo_user_uuid = token_infos['auth_id']
 
         raw_results = self.lookup_service.lookup(term,
                                                  profile,
+                                                 xivo_user_uuid,
                                                  args={},
-                                                 token_infos=token_infos)
+                                                 token=token)
         try:
             favorites = self.favorite_service.favorite_ids(profile, token_infos)
         except self.favorite_service.FavoritesServiceException as e:

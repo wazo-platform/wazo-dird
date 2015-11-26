@@ -29,8 +29,8 @@ MAX_ITEM_PER_PAGE = 16
 
 class AastraViewPlugin(BaseViewPlugin):
 
-    aastra_input = '/directories/input/<profile>/aastra'
-    aastra_lookup = '/directories/lookup/<profile>/aastra'
+    aastra_input = '/directories/input/<profile>/<xivo_user_uuid>/aastra'
+    aastra_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/aastra'
 
     def load(self, args=None):
         phone_lookup_service = new_phone_lookup_service_from_args(args)
