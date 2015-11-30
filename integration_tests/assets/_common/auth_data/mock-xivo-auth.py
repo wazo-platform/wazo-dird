@@ -1,6 +1,7 @@
 import sys
 
 from flask import Flask, jsonify
+from flask import request
 
 app = Flask(__name__)
 
@@ -12,12 +13,19 @@ tokens = {'valid-token': 'uuid',
           'valid-token-1': 'uuid-1',
           'valid-token-2': 'uuid-2'}
 
+VALID_ACL = 'acl:dird.directories.reverse.default.uuid'
+
 
 @app.route("/0.1/token/valid-token", methods=['HEAD'])
 @app.route("/0.1/token/valid-token-1", methods=['HEAD'])
 @app.route("/0.1/token/valid-token-2", methods=['HEAD'])
 def token_head():
-    return '', 204
+    required_acl = request.args.get('scope', None)
+    if required_acl is None:
+        return '', 204
+    if required_acl == VALID_ACL:
+        return '', 204
+    return '', 401
 
 
 @app.route("/0.1/token/<token>", methods=['GET'])

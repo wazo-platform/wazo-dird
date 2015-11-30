@@ -25,6 +25,7 @@ from time import time
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
 from xivo_dird.core.auth import AuthResource
+from xivo_dird.core.auth import required_acl
 from xivo_dird.core.rest_api import api
 
 logger = logging.getLogger(__name__)
@@ -152,6 +153,7 @@ class Reverse(AuthResource):
     def configure(cls, reverse_service):
         cls.reverse_service = reverse_service
 
+    @required_acl('acl:dird.directories.reverse.{profile}.{xivo_user_uuid}')
     def get(self, profile, xivo_user_uuid):
         token = request.headers['X-Auth-Token']
         args = parser_reverse.parse_args()

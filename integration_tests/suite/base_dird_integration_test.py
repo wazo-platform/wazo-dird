@@ -37,13 +37,12 @@ ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
 CA_CERT = os.path.join(ASSET_ROOT, '_common', 'ssl', 'server.crt')
 
 VALID_UUID = 'uuid'
+VALID_UUID_1 = 'uuid-1'
 
 VALID_TOKEN = 'valid-token'
 VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_3 = 'valid-token-3'
-
-VALID_UUID = 'uuid'
 
 
 class BaseDirdIntegrationTest(AssetLaunchingTestCase):
