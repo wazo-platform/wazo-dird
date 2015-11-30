@@ -53,7 +53,7 @@ class TestAuthentication(BaseDirdIntegrationTest):
     def test_valid_auth_with_invalid_acl_gives_401(self):
         result = self.get_reverse_result('1234', 'default', VALID_UUID_1, token=VALID_TOKEN_1)
 
-        assert_that(result.status_code, equal_to(401))
+        assert_that(result.status_code, equal_to(403))
 
 
 class TestAuthenticationError(BaseDirdIntegrationTest):
