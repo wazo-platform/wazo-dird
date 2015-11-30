@@ -13,13 +13,13 @@ tokens = {'valid-token': 'uuid',
           'valid-token-1': 'uuid-1',
           'valid-token-2': 'uuid-2'}
 
-VALID_ACLS = ['acl:dird.directories.reverse.default.uuid',
-              'acl:dird.directories.menu.default.uuid',
-              'acl:dird.directories.menu.menu.uuid',
-              'acl:dird.directories.input.default.uuid',
-              'acl:dird.directories.input.input.uuid',
-              'acl:dird.directories.lookup.default.uuid',
-              'acl:dird.directories.lookup.quiproquo.uuid',
+VALID_ACLS = ['dird.directories.reverse.default.uuid',
+              'dird.directories.menu.default.uuid',
+              'dird.directories.menu.menu.uuid',
+              'dird.directories.input.default.uuid',
+              'dird.directories.input.input.uuid',
+              'dird.directories.lookup.default.uuid',
+              'dird.directories.lookup.quiproquo.uuid',
               ]
 
 
