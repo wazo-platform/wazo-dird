@@ -155,6 +155,18 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         assert_that(result, contains(SOURCE_2))
 
+    def test_that_search_uses_extra_search_params(self):
+        config = dict(DEFAULT_ARGS)
+        config['config']['extra_search_params'] = {'context': 'inside'}
+
+        self._source.load(DEFAULT_ARGS)
+
+        self._source.search(term='paul')
+
+        self._confd_client.users.list.assert_called_once_with(view='directory',
+                                                              search='paul',
+                                                              context='inside')
+
     def test_first_match(self):
         self._source._first_matched_columns = ['exten']
 

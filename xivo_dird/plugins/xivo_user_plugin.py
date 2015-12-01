@@ -33,6 +33,7 @@ class XivoUserPlugin(BaseSourcePlugin):
         self._ConfdClientClass = ConfdClientClass
         self._client = None
         self._uuid = None
+        self._search_params = {'view': 'directory'}
 
     def load(self, args):
         self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
@@ -46,6 +47,8 @@ class XivoUserPlugin(BaseSourcePlugin):
         self._SourceResult = make_result_class(
             self.name, 'id',
             format_columns=args['config'].get(self.FORMAT_COLUMNS))
+
+        self._search_params.update(args['config'].get('extra_search_params', {}))
 
         logger.info('XiVO %s successfully loaded', args['config']['name'])
 
@@ -114,10 +117,10 @@ class XivoUserPlugin(BaseSourcePlugin):
         return self._uuid
 
     def _fetch_users(self, term=None):
+        search_params = dict(self._search_params)
         if term:
-            users = self._client.users.list(view='directory', search=term)
-        else:
-            users = self._client.users.list(view='directory')
+            search_params['search'] = term
+        users = self._client.users.list(**search_params)
         return (user for user in users['items'])
 
     def _source_result_from_entry(self, entry, uuid):
