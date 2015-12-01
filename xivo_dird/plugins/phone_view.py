@@ -25,6 +25,7 @@ from flask_restful import reqparse
 from time import time
 
 from xivo_dird.core.auth import AuthResource
+from xivo_dird.core.auth import required_acl
 from xivo_dird.core.exception import ProfileNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ class PhoneMenu(AuthResource):
         self.template = template
         self.content_type = content_type
 
+    @required_acl('dird.directories.menu.{profile}.{xivo_user_uuid}')
     def get(self, profile, xivo_user_uuid):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('menu'))
 
@@ -58,6 +60,7 @@ class PhoneInput(AuthResource):
         self.template = template
         self.content_type = content_type
 
+    @required_acl('dird.directories.input.{profile}.{xivo_user_uuid}')
     def get(self, profile, xivo_user_uuid):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('input'))
 
@@ -80,6 +83,7 @@ class PhoneLookup(AuthResource):
         self.parser.add_argument('offset', type=natural, required=False, default=0, location='args')
         self.parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
 
+    @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}')
     def get(self, profile, xivo_user_uuid):
         args = self.parser.parse_args()
         term = args['term']

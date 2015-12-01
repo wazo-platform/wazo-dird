@@ -16,7 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_UUID
+from .base_dird_integration_test import VALID_UUID_1
 from .base_dird_integration_test import VALID_TOKEN
+from .base_dird_integration_test import VALID_TOKEN_1
 
 from hamcrest import assert_that
 from hamcrest import contains_string
@@ -41,6 +44,16 @@ class TestAuthentication(BaseDirdIntegrationTest):
         result = self.get_headers_result('default', token='invalid-token')
 
         assert_that(result.status_code, equal_to(401))
+
+    def test_valid_auth_with_valid_acl_gives_result(self):
+        result = self.get_reverse_result('1234', 'default', VALID_UUID, token=VALID_TOKEN)
+
+        assert_that(result.status_code, equal_to(200))
+
+    def test_valid_auth_with_invalid_acl_gives_401(self):
+        result = self.get_reverse_result('1234', 'default', VALID_UUID_1, token=VALID_TOKEN_1)
+
+        assert_that(result.status_code, equal_to(403))
 
 
 class TestAuthenticationError(BaseDirdIntegrationTest):

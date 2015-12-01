@@ -29,13 +29,21 @@ from xivo_auth_client import Client
 logger = logging.getLogger(__name__)
 
 
+def required_acl(acl):
+    def wrapper(func):
+        func.acl = acl
+        return func
+    return wrapper
+
+
 def verify_token(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         token = request.headers.get('X-Auth-Token', '')
 
         try:
-            token_is_valid = client().token.is_valid(token)
+            acl = getattr(func, 'acl', '')
+            token_is_valid = client().token.is_valid(token, acl.format(**kwargs))
         except requests.RequestException as e:
             auth_host = current_app.config['auth']['host']
             auth_port = current_app.config['auth']['port']
