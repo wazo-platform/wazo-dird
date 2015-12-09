@@ -1,4 +1,4 @@
-xivo-dird (12.22~20120914.180644.1b6b0ae-2) squeeze-xivo-skaro-dev; urgency=low
+xivo-dird (12.22~20120914.180644.1b6b0ae) xivo-dev; urgency=low
 
   * fix depends, now on xivo-lib-python
 
