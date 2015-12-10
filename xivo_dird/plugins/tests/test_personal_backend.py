@@ -97,24 +97,24 @@ class TestPersonalBackend(TestCase):
 class TestMatch(TestCase):
 
     def test_that_empty_strings_match(self):
-        assert_that(match('', ''))
+        assert_that(match(u'', u''))
 
     def test_that_empty_string_matches_non_empty(self):
-        assert_that(match('', 'a'))
+        assert_that(match(u'', u'a'))
 
     def test_that_different_string_dont_match(self):
-        assert_that(not_(match('a', 'b')))
+        assert_that(not_(match(u'a', u'b')))
 
     def test_that_substring_matches_superstring(self):
-        assert_that(not_(match('abc', 'zabcd')))
+        assert_that(not_(match(u'abc', u'zabcd')))
 
     def test_that_lowercase_matches_uppercase(self):
-        assert_that(not_(match('abc', 'ZABCD')))
-        assert_that(not_(match('ABC', 'zabcd')))
+        assert_that(not_(match(u'abc', u'ZABCD')))
+        assert_that(not_(match(u'ABC', u'zabcd')))
 
     def test_that_non_ascii_matches_ascii(self):
-        assert_that(not_(match('café', 'cafe')))
-        assert_that(not_(match('cafe', 'café')))
+        assert_that(not_(match(u'café', u'cafe')))
+        assert_that(not_(match(u'cafe', u'café')))
 
 
 class TestRemoveEmptyValues(TestCase):
