@@ -117,6 +117,7 @@ class _FavoritesService(object):
         return ls_from_consul(source_key, keys)
 
     def new_favorite(self, source, contact_id, token_infos):
+        contact_id = contact_id.encode('utf-8')
         key = FAVORITE_KEY.format(user_uuid=token_infos['auth_id'], source=source, contact_id=contact_id)
         with self._consul() as consul:
             consul.kv.put(key, value=contact_id, token=token_infos['token'])
