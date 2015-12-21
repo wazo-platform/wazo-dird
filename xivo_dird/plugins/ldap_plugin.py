@@ -100,7 +100,7 @@ class _LDAPConfig(object):
 
     DEFAULT_LDAP_USERNAME = ''
     DEFAULT_LDAP_PASSWORD = ''
-    DEFAULT_LDAP_NETWORK_TIMEOUT = 0.1
+    DEFAULT_LDAP_NETWORK_TIMEOUT = 0.3
     DEFAULT_LDAP_TIMEOUT = 1.0
 
     def __init__(self, config):
