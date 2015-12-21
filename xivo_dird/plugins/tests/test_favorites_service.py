@@ -260,3 +260,16 @@ class TestFavoritesService(unittest.TestCase):
                           'unknown_source', 'unknown_contact', {'token': s.token, 'auth_id': s.auth_id})
 
         service.stop()
+
+    @patch('xivo_dird.plugins.favorites_service.Consul')
+    def test_that_new_favorite_does_not_send_unicode_to_consul(self, consul_init):
+        consul = consul_init.return_value
+        service = _FavoritesService({'consul': {'host': 'localhost'}}, {})
+        key = 'xivo/private/uuid/contacts/favorites/source/contact_unicodé'
+        token_infos = {'token': s.token, 'auth_id': 'uuid'}
+
+        service.new_favorite('source', u'contact_unicodé', token_infos)
+
+        consul.kv.put.assert_called_once_with(key, value='contact_unicodé', token=s.token)
+
+        service.stop()
