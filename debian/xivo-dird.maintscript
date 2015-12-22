@@ -2,3 +2,5 @@
 
 mv_conffile /etc/xivo-dird/xivo-dird.yml /etc/xivo-dird/config.yml 14.23
 rm_conffile /etc/xivo-dird/sources.d/xivo_users.yml 15.14
+rm_conffile /etc/default/xivo-dird 15.20
+rm_conffile /etc/init.d/xivo-dird 15.20
