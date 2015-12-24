@@ -2,6 +2,7 @@
 Description=xivo-dird server
 ConditionPathExists=!/var/lib/xivo/disabled
 After=network.target postgresql.service xivo-confgend.service
+Wants=postgresql.service xivo-confgend.service
 
 [Service]
 Type=forking
