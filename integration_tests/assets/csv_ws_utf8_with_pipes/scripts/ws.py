@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@ from flask import Flask, request, Response
 
 
 app = Flask(__name__)
+
+context = ('/etc/ssl/server.crt', '/etc/ssl/server.key')
 
 headers = ['id', 'firstname', 'lastname', 'number']
 entries = [
@@ -68,7 +70,7 @@ def ws():
 
 
 def main():
-    app.run(host='0.0.0.0', port=9485)
+    app.run(host='0.0.0.0', port=9485, ssl_context=context)
 
 
 if __name__ == '__main__':

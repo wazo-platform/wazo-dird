@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,6 +29,10 @@ from hamcrest import has_length
 class TestCSVWSBackend(BaseDirdIntegrationTest):
 
     asset = 'csv_ws_utf8_with_pipes'
+
+    def test_that_verify_certificate_false(self):
+        results = self.lookup(u'Ben', 'default')
+        assert_that(results['results'], has_length(1))
 
     def test_that_searching_for_result_with_non_ascii(self):
         results = self.lookup(u'dré', 'default')

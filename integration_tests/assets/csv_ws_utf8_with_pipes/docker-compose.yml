@@ -25,6 +25,7 @@ ws:
     - "9485:9485"
   volumes:
     - "./scripts/ws.py:/tmp/ws.py"
+    - "../_common/ssl:/etc/ssl"
   command: "python /tmp/ws.py '|' 'utf-8'"
 auth:
   image: p0bailey/docker-flask
