@@ -28,7 +28,7 @@ from hamcrest import has_length
 
 class TestCSVWSBackend(BaseDirdIntegrationTest):
 
-    asset = 'csv_ws_utf8_with_pipes'
+    asset = 'csv_ws_utf8_with_pipes_with_ssl'
 
     def test_that_verify_certificate_false(self):
         results = self.lookup(u'Ben', 'default')
