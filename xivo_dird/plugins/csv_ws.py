@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ class CSVWSPlugin(BaseSourcePlugin):
             config['config'].get(self.FORMAT_COLUMNS, {}))
         self._timeout = config['config'].get('timeout', 10)
         self._delimiter = config['config'].get('delimiter', ',')
+        self._verify_certificate = config['config'].get('verify_certificate', True)
         self._reader = _CSVReader(self._delimiter)
 
     def search(self, term, args=None):
@@ -52,7 +53,7 @@ class CSVWSPlugin(BaseSourcePlugin):
         params = {column: term for column in self._searched_columns}
 
         try:
-            response = requests.get(url, params=params, timeout=self._timeout)
+            response = requests.get(url, params=params, timeout=self._timeout, verify=self._verify_certificate)
         except RequestException as e:
             logger.error('Error connecting to %s: %s', url, e)
             return []
@@ -71,7 +72,7 @@ class CSVWSPlugin(BaseSourcePlugin):
         params = {column: term for column in self._first_matched_columns}
 
         try:
-            response = requests.get(url, params=params, timeout=self._timeout)
+            response = requests.get(url, params=params, timeout=self._timeout, verify=self._verify_certificate)
         except RequestException as e:
             logger.error('Error connecting to %s: %s', url, e)
             return None
@@ -92,7 +93,7 @@ class CSVWSPlugin(BaseSourcePlugin):
             return []
 
         try:
-            response = requests.get(self._list_url, timeout=self._timeout)
+            response = requests.get(self._list_url, timeout=self._timeout, verify=self._verify_certificate)
         except RequestException as e:
             logger.error('Error connecting to %s: %s', self._list_url, e)
             return []
