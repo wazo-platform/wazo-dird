@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ class TestCSVWSPlugin(unittest.TestCase):
 
         source.search(term)
 
-        mocked_requests.get.assert_called_once_with(lookup_url, params=expected_params, timeout=s.timeout)
+        mocked_requests.get.assert_called_once_with(lookup_url, params=expected_params, timeout=s.timeout, verify=True)
 
     @patch('xivo_dird.plugins.csv_ws.requests')
     def test_that_first_match_queries_the_lookup_url(self, mocked_requests):
@@ -70,7 +70,7 @@ class TestCSVWSPlugin(unittest.TestCase):
 
         source.first_match(term)
 
-        mocked_requests.get.assert_called_once_with(lookup_url, params=expected_params, timeout=s.timeout)
+        mocked_requests.get.assert_called_once_with(lookup_url, params=expected_params, timeout=s.timeout, verify=True)
 
     def test_that_list_returns_an_empty_list_if_no_unique_column(self):
         config = {'config': {'lookup_url': 'the_lookup_url',
@@ -110,4 +110,4 @@ class TestCSVWSPlugin(unittest.TestCase):
 
         source.list([1, 2, 3])
 
-        mocked_requests.get.assert_called_once_with('the_list_url', timeout=s.timeout)
+        mocked_requests.get.assert_called_once_with('the_list_url', timeout=s.timeout, verify=True)
