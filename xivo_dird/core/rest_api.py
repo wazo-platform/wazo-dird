@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -72,8 +72,6 @@ class CoreRestApi(object):
 
         bind_addr = (https_config['listen'], https_config['port'])
 
-        _check_file_readable(https_config['certificate'])
-        _check_file_readable(https_config['private_key'])
         wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': self.app})
         server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr,
                                                wsgi_app=wsgi_app)
@@ -88,8 +86,3 @@ class CoreRestApi(object):
             server.start()
         except KeyboardInterrupt:
             server.stop()
-
-
-def _check_file_readable(file_path):
-    with open(file_path, 'r'):
-        pass
