@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,16 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_TOKEN
-from .base_dird_integration_test import VALID_TOKEN_1
-from .base_dird_integration_test import VALID_TOKEN_2
+import requests
 
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entry
+from xivo_test_helpers import until
+
+from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_TOKEN
+from .base_dird_integration_test import VALID_TOKEN_1
+from .base_dird_integration_test import VALID_TOKEN_2
 
 
 class TestAddRemoveFavorites(BaseDirdIntegrationTest):
@@ -63,7 +66,7 @@ class TestFavoritesPersistence(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'
 
-    def test_that_personal_are_saved_across_dird_restart(self):
+    def test_that_favorites_are_saved_across_dird_restart(self):
         self.put_favorite('my_csv', '1')
 
         result = self.favorites('default')

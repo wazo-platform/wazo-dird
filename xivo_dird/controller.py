@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,8 +17,9 @@
 
 import logging
 
-from xivo_dird.core.rest_api import CoreRestApi
+from xivo_dird.core import auth
 from xivo_dird.core import plugin_manager
+from xivo_dird.core.rest_api import CoreRestApi
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +27,8 @@ logger = logging.getLogger(__name__)
 class Controller(object):
     def __init__(self, config):
         self.config = config
-        self.rest_api = CoreRestApi(self.config['rest_api'])
-        self.rest_api.app.config['auth'] = config['auth']
+        self.rest_api = CoreRestApi(self.config)
+        auth.set_auth_config(self.config['auth'])
         self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
                                                    self.config)
         self.services = plugin_manager.load_services(self.config,

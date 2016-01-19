@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,11 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_UUID
-from .base_dird_integration_test import VALID_TOKEN
-from .base_dird_integration_test import VALID_TOKEN_1
-from .base_dird_integration_test import VALID_TOKEN_2
+import requests
 
 from hamcrest import all_of
 from hamcrest import assert_that
@@ -34,6 +30,13 @@ from hamcrest import has_key
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_
+from xivo_test_helpers import until
+
+from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_UUID
+from .base_dird_integration_test import VALID_TOKEN
+from .base_dird_integration_test import VALID_TOKEN_1
+from .base_dird_integration_test import VALID_TOKEN_2
 
 
 class TestListPersonal(BaseDirdIntegrationTest):
