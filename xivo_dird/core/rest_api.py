@@ -19,14 +19,19 @@ from datetime import timedelta
 
 import logging
 import os
+import time
 
 from cherrypy import wsgiserver
 from flask import Flask
 from flask import request
 from flask.ext.babel import Babel
 from flask_restful import Api
+from flask_restful import Resource
 from flask_cors import CORS
+from functools import wraps
+from xivo import auth_helpers
 from xivo import http_helpers
+from xivo import rest_api_helpers
 
 from xivo_dird.swagger.resource import SwaggerResource
 
@@ -36,12 +41,13 @@ TEMPLATE_FOLDER = 'plugins/templates'
 
 logger = logging.getLogger(__name__)
 api = Api(prefix='/{}'.format(VERSION))
+auth_verifier = auth_helpers.AuthVerifier()
 
 
 class CoreRestApi(object):
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, global_config):
+        self.config = global_config['rest_api']
         self.app = Flask('xivo_dird', template_folder=TEMPLATE_FOLDER)
         self.babel = Babel(self.app)
         self.app.config['BABEL_DEFAULT_LOCALE'] = 'en'
@@ -58,6 +64,7 @@ class CoreRestApi(object):
         self.load_cors()
         self.api = api
         SwaggerResource.add_resource(api)
+        auth_verifier.set_config(global_config['auth'])
 
     def load_cors(self):
         cors_config = dict(self.config.get('cors', {}))
@@ -86,3 +93,27 @@ class CoreRestApi(object):
             server.start()
         except KeyboardInterrupt:
             server.stop()
+
+
+def handle_api_exception(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except rest_api_helpers.APIException as error:
+            response = {
+                'reason': [error.message],
+                'timestamp': time.time(),
+                'status_code': error.status_code,
+            }
+            logger.error('%s: %s', error.message, error.details)
+            return response, error.status_code
+    return wrapper
+
+
+class ErrorCatchingResource(Resource):
+    method_decorators = [handle_api_exception] + Resource.method_decorators
+
+
+class AuthResource(ErrorCatchingResource):
+    method_decorators = [auth_verifier.verify_token] + ErrorCatchingResource.method_decorators

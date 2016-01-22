@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ class TestAuthenticationError(BaseDirdIntegrationTest):
         result = self.get_headers_result('default', token=VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(503))
-        assert_that(result.json()['reason'][0], contains_string('inexisting-auth-server:9497'))
+        assert_that(result.json()['reason'][0], contains_string('Authentication server unreachable'))
 
 
 class TestAuthenticationCoverage(BaseDirdIntegrationTest):

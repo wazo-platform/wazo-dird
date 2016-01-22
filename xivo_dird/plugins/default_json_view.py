@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@ from time import time
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
-from xivo_dird.core.auth import AuthResource
 from xivo_dird.core.auth import required_acl
 from xivo_dird.core.rest_api import api
+from xivo_dird.core.rest_api import AuthResource
 
 logger = logging.getLogger(__name__)
 

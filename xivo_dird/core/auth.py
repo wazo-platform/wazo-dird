@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,58 +15,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
-import requests
 
-from flask import current_app
-from flask import request
-from flask_restful import Resource
-from flask_restful import abort
-from functools import wraps
-from time import time
-
+from xivo import auth_helpers
 from xivo_auth_client import Client
 
 logger = logging.getLogger(__name__)
 
-
-def required_acl(acl):
-    def wrapper(func):
-        func.acl = acl
-        return func
-    return wrapper
+auth_config = None
+auth_client = None
+required_acl = auth_helpers.required_acl
 
 
-def verify_token(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        token = request.headers.get('X-Auth-Token', '')
-
-        try:
-            acl = getattr(func, 'acl', '')
-            token_is_valid = client().token.is_valid(token, acl.format(**kwargs))
-        except requests.RequestException as e:
-            auth_host = current_app.config['auth']['host']
-            auth_port = current_app.config['auth']['port']
-            message = 'Could not connect to authentication server on {host}:{port}: {error}'.format(host=auth_host, port=auth_port, error=e)
-            logger.exception(message)
-            return {
-                'reason': [message],
-                'timestamp': [time()],
-                'status_code': 503,
-            }, 503
-
-        if token_is_valid:
-            return func(*args, **kwargs)
-
-        abort(401)
-    return wrapper
+def set_auth_config(config):
+    global auth_config
+    auth_config = config
 
 
 def client():
-    auth_host = current_app.config['auth']['host']
-    auth_port = current_app.config['auth']['port']
-    return Client(auth_host, auth_port)
-
-
-class AuthResource(Resource):
-    method_decorators = [verify_token]
+    global auth_client
+    if not auth_client:
+        auth_client = Client(**auth_config)
+    return auth_client
