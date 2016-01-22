@@ -1,4 +1,4 @@
-.PHONY: test-setup clean sync-context
+.PHONY: test-setup build-dird egg-info test
 
 test-setup: egg-info build-dird
 	docker pull python:2.7
