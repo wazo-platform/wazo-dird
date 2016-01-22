@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import requests
-
 from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import contains
@@ -30,7 +28,6 @@ from hamcrest import has_key
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_
-from xivo_test_helpers import until
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 from .base_dird_integration_test import VALID_UUID
