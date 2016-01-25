@@ -38,7 +38,7 @@ requests on "0.0.0.0". To change this behavior, create or edit the file
 
 ## Testing
 
-xivo-dird contains unittests and integration tests
+xivo-dird contains unittests and integration tests.
 
 ### unittests
 
