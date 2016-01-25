@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import itertools
 import ldap
 import logging
 import re
@@ -224,8 +225,12 @@ class _LDAPConfig(object):
 
     def _convert_uids(self, uids):
         if self.has_binary_uuid():
-            return [uuid.UUID(uid).bytes for uid in uids]
+            return [self._convert_binary_uid(uid) for uid in uids]
         return uids
+
+    def _convert_binary_uid(self, uid):
+        uid = uuid.UUID(uid).hex
+        return ''.join(character for byte in zip(itertools.repeat('\\'), uid[::2], uid[1::2]) for character in byte)
 
 
 class _LDAPClient(object):
