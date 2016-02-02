@@ -13,7 +13,7 @@ jinja2==2.7.3
 pyopenssl==0.14  # from xivo-lib-python
 python-consul==0.4.7
 python-ldap==2.4.10
-pyyaml==3.11
+pyyaml==3.11  # from xivo-lib-py
 requests==2.4.3
 stevedore==0.14.1
 unidecode==0.04.16
