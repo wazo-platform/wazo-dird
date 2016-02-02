@@ -16,14 +16,14 @@
 
 import logging
 
-from xivo import auth_helpers
+from xivo import auth_verifier
 from xivo_auth_client import Client
 
 logger = logging.getLogger(__name__)
 
 auth_config = None
 auth_client = None
-required_acl = auth_helpers.required_acl
+required_acl = auth_verifier.required_acl
 
 
 def set_auth_config(config):

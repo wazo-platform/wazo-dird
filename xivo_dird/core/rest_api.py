@@ -29,7 +29,7 @@ from flask_restful import Api
 from flask_restful import Resource
 from flask_cors import CORS
 from functools import wraps
-from xivo import auth_helpers
+from xivo.auth_verifier import AuthVerifier
 from xivo import http_helpers
 from xivo import rest_api_helpers
 
@@ -41,7 +41,7 @@ TEMPLATE_FOLDER = 'plugins/templates'
 
 logger = logging.getLogger(__name__)
 api = Api(prefix='/{}'.format(VERSION))
-auth_verifier = auth_helpers.AuthVerifier()
+auth_verifier = AuthVerifier()
 
 
 class CoreRestApi(object):
