@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class XivoUserPlugin(BaseSourcePlugin):
 
-    _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield',
+    _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield', 'email',
                    'description', 'mobile_phone_number', 'voicemail_number']
 
     def __init__(self, ConfdClientClass=Client):
