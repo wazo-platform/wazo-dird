@@ -9,6 +9,7 @@
              "firstname": "John",
              "lastname": "Doe",
              "exten": "1234",
+             "email": "john@doe.com",
              "mobile_phone_number": "+14184765458"
         },
         {
@@ -18,6 +19,7 @@
              "firstname": "Mary",
              "lastname": "Sue",
              "exten": "1465",
+             "email": "",
              "mobile_phone_number": ""
         },
         {
@@ -27,6 +29,7 @@
              "firstname": "Bob",
              "lastname": "Dylan",
              "exten": "1000",
+             "email": "",
              "mobile_phone_number": ""
         },
         {
@@ -36,6 +39,7 @@
              "firstname": "Charles",
              "lastname": "Kenedy",
              "exten": "",
+             "email": "",
              "mobile_phone_number": ""
         }
     ]

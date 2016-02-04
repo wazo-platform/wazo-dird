@@ -9,6 +9,7 @@
              "firstname": "Bob",
              "lastname": "Dylan",
              "exten": "1632",
+             "email": "bob@dylan.com",
              "mobile_phone_number": "0634321243"
         },
         {
@@ -18,6 +19,7 @@
              "firstname": "Charles",
              "lastname": "European",
              "exten": "9012",
+             "email": "",
              "mobile_phone_number": ""
         }
     ]
