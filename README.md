@@ -36,40 +36,27 @@ requests on "0.0.0.0". To change this behavior, create or edit the file
 `/etc/xivo-dird/conf.d/listen.yml`
 
 
-## Testing
+Running unit tests
+------------------
 
-xivo-dird contains unittests and integration tests.
+```
+apt-get install libpq-dev python-dev libffi-dev libyaml-dev libldap2-dev libsasl2-dev
+pip install tox
+tox --recreate -e py27
+```
 
-### unittests
 
-Dependencies to run the unittests are in the `requirements.txt` file.
+Running integration tests
+-------------------------
 
-    % pip install -r requirements.txt -r test-requirements.txt
+You need Docker installed.
 
-To run the unittests
-
-    % nosetests xivo_dird
-
-### Integration tests
-
-You need:
-
-    - docker
-    % pip install -r integration_tests/test-requirements.txt
-
-A docker image named `dird-test` is required to execute the test suite.
-To build this image execute:
-
-    % cd integration_tests
-    % make test-setup
-
-`make test-setup` downloads a bunch of Docker images so it takes a long time,
-but it only needs to be run when dependencies of xivo-dird change in any way
-(new Python library, new server connection, etc.)
-
-To execute the integration tests execute:
-
-    % make test
+```
+cd integration_tests
+pip install -U -r test-requirements.txt
+make test-setup
+make test
+```
 
 For developers, when adding/removing a plugin:
 
