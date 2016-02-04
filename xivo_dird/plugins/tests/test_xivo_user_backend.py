@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -60,6 +60,7 @@ CONFD_USER_1 = {
         }
 
     ],
+    "email": "louis-jean@aucun.com",
     "mobile_phone_number": "5555551234",
     "voicemail_number": "1234",
 }
@@ -71,6 +72,7 @@ SOURCE_1 = SourceResult(
      'lastname': '',
      'userfield': None,
      'description': None,
+     'email': 'louis-jean@aucun.com',
      'mobile_phone_number': '5555551234',
      'voicemail_number': '1234'},
     xivo_id=UUID,
@@ -98,6 +100,7 @@ CONFD_USER_2 = {
             "rel": "lines"
         },
     ],
+    'email': '',
     "mobile_phone_number": "",
     "voicemail_number": None,
 }
@@ -107,6 +110,7 @@ SOURCE_2 = SourceResult(
      'exten': '1234',
      'firstname': 'Paul',
      'lastname': '',
+     'email': '',
      'mobile_phone_number': '',
      'userfield': '555',
      'description': 'here',
@@ -262,6 +266,7 @@ class TestXivoUserBackendInitialisation(_BaseTest):
                                  'exten': '1234',
                                  'firstname': 'Paul',
                                  'lastname': '',
+                                 'email': '',
                                  'mobile_phone_number': '',
                                  'voicemail_number': None,
                                  'userfield': '555',
