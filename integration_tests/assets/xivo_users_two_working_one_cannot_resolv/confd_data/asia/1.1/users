@@ -9,6 +9,7 @@
              "firstname": "Alice",
              "lastname": null,
              "exten": "6543",
+             "email": "",
              "mobile_phone_number": ""
         }
     ]

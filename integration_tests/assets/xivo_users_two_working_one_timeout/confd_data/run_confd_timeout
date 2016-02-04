@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@ def users():
                 "firstname": "Bob",
                 "lastname": "Dylan",
                 "exten": "1632",
+                "email": "bob@dylan.com",
                 "mobile_phone_number": "0634321243"
             },
             {
@@ -57,6 +58,7 @@ def users():
                 "firstname": "Charles",
                 "lastname": "European",
                 "exten": "9012",
+                "email": "",
                 "mobile_phone_number": ""
             }
         ]
