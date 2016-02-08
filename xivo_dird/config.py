@@ -155,7 +155,5 @@ def _validate_views_displays(displays, logger):
 
 
 def _multiple_profile_type_number(profile):
-    cpt = 0
-    for values in profile:
-        cpt += 1 if values.get('type') == 'number' else 0
-    return True if cpt > 1 else False
+    column_types = [values.get('type') for values in profile]
+    return column_types.count('number') > 1
