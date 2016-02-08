@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,6 +69,7 @@ _DEFAULT_CONFIG = {
 def load(logger, argv):
     cli_config = _parse_cli_args(argv)
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
+    _validate_configuration(file_config, logger)
     reinterpreted_config = _get_reinterpreted_raw_values(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
     source_dir_configuration = _load_source_config_dir(logger, ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
     return ChainMap(reinterpreted_config, source_dir_configuration, cli_config, file_config, _DEFAULT_CONFIG)
@@ -141,3 +142,18 @@ def _get_reinterpreted_raw_values(config):
         result['log_level'] = get_log_level_by_name(log_level)
 
     return result
+
+
+def _validate_configuration(config, logger):
+    _validate_views_displays(config.get('views', {}).get('displays', {}), logger)
+
+
+def _validate_views_displays(displays, logger):
+    for profile, values in displays.iteritems():
+        if _multiple_profile_type_number(values):
+            logger.warning('%s: Only one type: \'number\' is supported per profile', profile)
+
+
+def _multiple_profile_type_number(profile):
+    column_types = [values.get('type') for values in profile]
+    return column_types.count('number') > 1
