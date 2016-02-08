@@ -25,4 +25,4 @@ ONBUILD ADD ./contribs/docker/certs /usr/share/xivo-certs
 
 EXPOSE 9489
 
-CMD xivo-dird -d -f
+CMD ["xivo-dird", "-fd"]
