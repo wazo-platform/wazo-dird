@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
                                          'agent_id': 3,
                                          'endpoint_id': 2,
                                          'user_id': 1,
+                                         'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
                                          'source_entry_id': '1'}))
 
     def test_no_result(self):
@@ -107,6 +108,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': 42,
                               'user_id': 100,
+                              'user_uuid': 'ce36bbb4-ae97-4f7d-8a36-d82b96120418',
                               'source_entry_id': '100'},
                 'source': 'xivo_europe',
             },
@@ -116,6 +118,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': 2,
                               'user_id': 2,
+                              'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                               'source_entry_id': '2'},
                 'source': 'xivo_america',
             },
@@ -125,6 +128,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': None,
                               'user_id': 100,
+                              'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                               'source_entry_id': '100'},
                 'source': 'xivo_america',
             }
@@ -145,6 +149,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': 3,
                               'endpoint_id': 2,
                               'user_id': 1,
+                              'user_uuid': '7c12f90e-7391-4514-b482-5b75b57772e1',
                               'source_entry_id': '1'},
                 'source': 'xivo_asia',
             },
@@ -154,6 +159,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
                               'agent_id': 3,
                               'endpoint_id': 2,
                               'user_id': 1,
+                              'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
                               'source_entry_id': '1'},
                 'source': 'xivo_america',
             }
@@ -176,6 +182,7 @@ class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
                               'agent_id': 3,
                               'endpoint_id': 2,
                               'user_id': 1,
+                              'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
                               'source_entry_id': '1'},
                 'source': 'xivo_america',
             },
@@ -198,6 +205,7 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': 2,
                               'user_id': 2,
+                              'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                               'source_entry_id': '2'},
                 'source': 'xivo_america',
             },
@@ -207,6 +215,7 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': None,
                               'user_id': 100,
+                              'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                               'source_entry_id': '100'},
                 'source': 'xivo_america',
             }
@@ -229,6 +238,7 @@ class TestXivoUserMultipleXivoOneTimeout(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': 2,
                               'user_id': 2,
+                              'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                               'source_entry_id': '2'},
                 'source': 'xivo_america',
             },
@@ -238,6 +248,7 @@ class TestXivoUserMultipleXivoOneTimeout(BaseDirdIntegrationTest):
                               'agent_id': None,
                               'endpoint_id': None,
                               'user_id': 100,
+                              'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                               'source_entry_id': '100'},
                 'source': 'xivo_america',
             }

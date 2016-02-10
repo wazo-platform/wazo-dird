@@ -128,4 +128,5 @@ class XivoUserPlugin(BaseSourcePlugin):
                                   xivo_id=uuid,
                                   agent_id=entry['agent_id'],
                                   user_id=entry['id'],
+                                  user_uuid=entry['uuid'],
                                   endpoint_id=entry['line_id'])

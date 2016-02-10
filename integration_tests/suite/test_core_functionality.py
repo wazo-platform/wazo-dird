@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +32,13 @@ from hamcrest import has_length
 from hamcrest import is_in
 from hamcrest import is_not
 
+EMPTY_RELATIONS = {'xivo_id': None,
+                   'user_id': None,
+                   'user_uuid': None,
+                   'endpoint_id': None,
+                   'agent_id': None,
+                   'source_entry_id': None}
+
 
 class TestCoreSourceManagement(BaseDirdIntegrationTest):
 
@@ -44,12 +51,15 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
         expected_results = [
             {'column_values': ['Alice', 'AAA', '5555555555'],
              'source': 'my_csv',
-             'relations': {'xivo_id': None, 'user_id': None,
-                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
+             'relations': EMPTY_RELATIONS},
             {'column_values': ['Alice', 'Alan', '1111'],
              'source': 'third_csv',
-             'relations': {'xivo_id': None, 'user_id': None,
-                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': '1'}},
+             'relations': {'xivo_id': None,
+                           'user_id': None,
+                           'user_uuid': None,
+                           'endpoint_id': None,
+                           'agent_id': None,
+                           'source_entry_id': '1'}},
         ]
 
         assert_that(result['results'],
@@ -127,12 +137,9 @@ class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):
     def test_multiple_source_from_the_same_backend(self):
         result = self.lookup('lice', 'default')
 
-        expected_results = [
-            {'column_values': ['Alice', 'AAA', '5555555555'],
-             'source': 'my_csv',
-             'relations': {'xivo_id': None, 'user_id': None,
-                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
-        ]
+        expected_results = [{'column_values': ['Alice', 'AAA', '5555555555'],
+                             'source': 'my_csv',
+                             'relations': EMPTY_RELATIONS}]
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
@@ -160,12 +167,9 @@ class TestCoreSourceLoadingWithABrokenBackend(BaseDirdIntegrationTest):
     def test_with_a_broken_backend(self):
         result = self.lookup('lice', 'default')
 
-        expected_results = [
-            {'column_values': ['Alice', 'AAA', '5555555555'],
-             'source': 'my_csv',
-             'relations': {'xivo_id': None, 'user_id': None,
-                           'endpoint_id': None, 'agent_id': None, 'source_entry_id': None}},
-        ]
+        expected_results = [{'column_values': ['Alice', 'AAA', '5555555555'],
+                             'source': 'my_csv',
+                             'relations': EMPTY_RELATIONS}]
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
@@ -224,13 +228,9 @@ class TestWithAnotherConfigDir(BaseDirdIntegrationTest):
     def test_that_dird_can_load_source_plugins_in_another_dir(self):
         result = self.lookup('lice', 'default')
 
-        expected_results = [
-            {'column_values': ['Alice', 'AAA', '5555555555'],
-             'source': 'my_csv',
-             'relations': {'xivo_id': None, 'user_id': None,
-                           'endpoint_id': None, 'agent_id': None,
-                           'source_entry_id': None}},
-        ]
+        expected_results = [{'column_values': ['Alice', 'AAA', '5555555555'],
+                             'source': 'my_csv',
+                             'relations': EMPTY_RELATIONS}]
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))

@@ -37,6 +37,9 @@ DEFAULT_ARGS = {'config': {'confd_config': CONFD_CONFIG,
                            'searched_columns': ['firstname', 'lastname']}}
 UUID = 'my-xivo-uuid'
 
+UUID_1 = '55abf77c-5744-44a0-9c36-34da29f647cb'
+UUID_2 = '22f51ae2-296d-4340-a7d5-3567ae66df73'
+
 SourceResult = make_result_class(DEFAULT_ARGS['config']['name'],
                                  unique_column='id')
 
@@ -45,6 +48,7 @@ CONFD_USER_1 = {
     "exten": '666',
     "firstname": "Louis-Jean",
     "id": 226,
+    'uuid': UUID_1,
     "lastname": "",
     "line_id": 123,
     'userfield': None,
@@ -78,6 +82,7 @@ SOURCE_1 = SourceResult(
     xivo_id=UUID,
     agent_id=42,
     user_id=226,
+    user_uuid=UUID_1,
     endpoint_id=123,
 )
 
@@ -86,6 +91,7 @@ CONFD_USER_2 = {
     "exten": '1234',
     "firstname": "Paul",
     "id": 227,
+    'uuid': UUID_2,
     "lastname": "",
     "line_id": 320,
     'userfield': '555',
@@ -117,6 +123,7 @@ SOURCE_2 = SourceResult(
      'voicemail_number': None},
     xivo_id=UUID,
     user_id=227,
+    user_uuid=UUID_2,
     endpoint_id=320,
 )
 

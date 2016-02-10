@@ -4,13 +4,15 @@
     [
         {
              "id": 1,
+             "uuid": "7c12f90e-7391-4514-b482-5b75b57772e1",
              "line_id": 2,
              "agent_id": 3,
              "firstname": "Alice",
              "lastname": null,
              "exten": "6543",
              "email": "",
-             "mobile_phone_number": ""
+             "mobile_phone_number": "",
+             "voicemail_number": null
         }
     ]
 }

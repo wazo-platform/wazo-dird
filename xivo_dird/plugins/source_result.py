@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,13 +42,14 @@ class _SourceResult(object):
     source = None
     _format_columns = {}
 
-    def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, endpoint_id=None):
+    def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, user_uuid=None, endpoint_id=None):
         self._formatter = _NoKeyErrorFormatter()
         self.fields = dict(fields)
         source_entry_id = self.get_unique() if self._unique_column else None
         self.relations = {'xivo_id': xivo_id,
                           'agent_id': agent_id,
                           'user_id': user_id,
+                          'user_uuid': user_uuid,
                           'endpoint_id': endpoint_id,
                           'source_entry_id': source_entry_id}
 
@@ -80,12 +81,13 @@ class _SourceResult(object):
         return not self == other
 
     def __repr__(self):
-        return '%s(%s, %s, %s, %s, %s)' % (self.__class__.__name__,
-                                           self.fields,
-                                           self.relations['xivo_id'],
-                                           self.relations['agent_id'],
-                                           self.relations['user_id'],
-                                           self.relations['endpoint_id'])
+        return '%s(%s, %s, %s, %s, %s, %s)' % (self.__class__.__name__,
+                                               self.fields,
+                                               self.relations['xivo_id'],
+                                               self.relations['agent_id'],
+                                               self.relations['user_id'],
+                                               self.relations['user_uuid'],
+                                               self.relations['endpoint_id'])
 
 
 def make_result_class(source_name, unique_column=None, format_columns=None, is_deletable=False, is_personal=False):
