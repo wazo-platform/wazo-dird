@@ -253,24 +253,3 @@ class TestXivoUserBackendInitialisation(_BaseTest):
         self._FakedConfdClient.assert_called_once_with(**confd_config)
 
         assert_that(self._source._client, self._confd_client)
-
-    def test_make_source_result_from_entry(self):
-        entry = CONFD_USER_2
-        SourceResult = make_result_class('my_test_xivo')
-
-        self._source._SourceResult = SourceResult
-
-        result = self._source._source_result_from_entry(entry, UUID)
-
-        expected = SourceResult({'id': 227,
-                                 'exten': '1234',
-                                 'firstname': 'Paul',
-                                 'lastname': '',
-                                 'email': '',
-                                 'mobile_phone_number': '',
-                                 'voicemail_number': None,
-                                 'userfield': '555',
-                                 'description': 'here'},
-                                xivo_id=UUID, user_id=227, endpoint_id=320)
-
-        assert_that(result, equal_to(expected))
