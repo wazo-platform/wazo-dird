@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ from mock import ANY
 from mock import call
 from mock import Mock
 from mock import patch
+from uuid import uuid4
 
 from xivo_dird import make_result_class
 from xivo_dird.plugins.default_json_view import DisabledFavoriteService
@@ -41,6 +42,9 @@ from xivo_dird.plugins.default_json_view import Personal
 from xivo_dird.plugins.default_json_view import _ResultFormatter
 from xivo_dird.plugins.default_json_view import make_displays
 from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
+
+UUID1 = str(uuid4())
+UUID2 = str(uuid4())
 
 
 class TestJsonViewPlugin(BaseHTTPViewTestCase):
@@ -217,12 +221,12 @@ class TestFormatResult(unittest.TestCase):
                                      'firstname': 'Alice',
                                      'lastname': 'AAA',
                                      'telephoneNumber': '5555555555'},
-                                    self.xivo_id, None, None, None)
+                                    self.xivo_id, None, None, None, None)
         result2 = self.SourceResult({'id': 'user_id',
                                      'firstname': 'Bob',
                                      'lastname': 'BBB',
                                      'telephoneNumber': '5555556666'},
-                                    self.xivo_id, 'agent_id', 'user_id', 'endpoint_id')
+                                    self.xivo_id, 'agent_id', 'user_id', UUID1, 'endpoint_id')
         display = [
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
             DisplayColumn('Lastname', None, '', 'lastname'),
@@ -240,6 +244,7 @@ class TestFormatResult(unittest.TestCase):
                 'relations': {'xivo_id': self.xivo_id,
                               'agent_id': None,
                               'user_id': None,
+                              'user_uuid': None,
                               'endpoint_id': None,
                               'source_entry_id': '1'},
                 'source': self.source_name,
@@ -249,6 +254,7 @@ class TestFormatResult(unittest.TestCase):
                 'relations': {'xivo_id': self.xivo_id,
                               'agent_id': 'agent_id',
                               'user_id': 'user_id',
+                              'user_uuid': UUID1,
                               'endpoint_id': 'endpoint_id',
                               'source_entry_id': 'user_id'},
                 'source': self.source_name,
@@ -260,12 +266,12 @@ class TestFormatResult(unittest.TestCase):
                                      'firstname': 'Alice',
                                      'lastname': 'AAA',
                                      'telephoneNumber': '5555555555'},
-                                    self.xivo_id, None, 1, None)
+                                    self.xivo_id, None, 1, UUID1, None)
         result2 = self.SourceResult({'id': 2,
                                      'firstname': 'Bob',
                                      'lastname': 'BBB',
                                      'telephoneNumber': '5555556666'},
-                                    self.xivo_id, 'agent_id', 2, 'endpoint_id')
+                                    self.xivo_id, 'agent_id', 2, UUID2, 'endpoint_id')
         display = [
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
             DisplayColumn('Lastname', None, '', 'lastname'),
@@ -286,12 +292,12 @@ class TestFormatResult(unittest.TestCase):
                                      'firstname': 'Alice',
                                      'lastname': 'AAA',
                                      'telephoneNumber': '5555555555'},
-                                    self.xivo_id, None, 1, None)
+                                    self.xivo_id, None, 1, UUID1, None)
         result2 = self.SourceResult({'id': 2,
                                      'firstname': 'Bob',
                                      'lastname': 'BBB',
                                      'telephoneNumber': '5555556666'},
-                                    self.xivo_id, 'agent_id', 2, 'endpoint_id')
+                                    self.xivo_id, 'agent_id', 2, UUID2, 'endpoint_id')
         result3 = make_result_class(
             'personal_source',
             unique_column='id',

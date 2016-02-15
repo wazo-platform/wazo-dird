@@ -4,6 +4,7 @@
     [
         {
              "id": 42,
+             "uuid": "8d0acfe6-054e-4d84-93c3-6d283937a7c9",
              "line_id": 3,
              "agent_id": 2,
              "firstname": "Bob",
@@ -14,6 +15,7 @@
         },
         {
              "id": 100,
+             "uuid": "ce36bbb4-ae97-4f7d-8a36-d82b96120418",
              "line_id": 42,
              "agent_id": null,
              "firstname": "Charles",

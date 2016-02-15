@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ class TestSourceResult(unittest.TestCase):
             'xivo_id': self.xivo_id,
             'agent_id': None,
             'user_id': None,
+            'user_uuid': None,
             'endpoint_id': None,
             'source_entry_id': None,
         }
@@ -59,15 +60,18 @@ class TestSourceResult(unittest.TestCase):
         assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
                                            'agent_id': sentinel.agent_id,
                                            'user_id': None,
+                                           'user_uuid': None,
                                            'endpoint_id': None,
                                            'source_entry_id': None}))
 
     def test_user_relation(self):
-        r = _SourceResult(self.fields, sentinel.xivo_id, user_id=sentinel.user_id)
+        r = _SourceResult(self.fields, sentinel.xivo_id,
+                          user_id=sentinel.user_id, user_uuid=sentinel.user_uuid)
 
         assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
                                            'agent_id': None,
                                            'user_id': sentinel.user_id,
+                                           'user_uuid': sentinel.user_uuid,
                                            'endpoint_id': None,
                                            'source_entry_id': None}))
 
@@ -77,6 +81,7 @@ class TestSourceResult(unittest.TestCase):
         assert_that(r.relations, equal_to({'xivo_id': sentinel.xivo_id,
                                            'agent_id': None,
                                            'user_id': None,
+                                           'user_uuid': None,
                                            'endpoint_id': sentinel.endpoint_id,
                                            'source_entry_id': None}))
 
