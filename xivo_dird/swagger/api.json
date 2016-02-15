@@ -1319,6 +1319,9 @@
                 "user_id": {
                     "type": "string"
                 },
+                "user_uuid": {
+                    "type": "string"
+                },
                 "endpoint_id": {
                     "type": "string"
                 },
