@@ -26,6 +26,18 @@
     "produces": [
         "application/json"
     ],
+    "securityDefinitions": {
+        "xivo_auth_token": {
+            "type": "apiKey",
+            "name": "X-Auth-Token",
+            "in": "header"
+        }
+    },
+    "security": [
+        {
+            "xivo_auth_token": []
+        }
+    ],
     "paths": {
         "/directories/input/{profile}/{xivo_user_uuid}/aastra": {
             "get": {
@@ -59,9 +71,6 @@
                     },
                     {
                         "$ref": "#/parameters/XivoUserUUID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
@@ -118,9 +127,6 @@
                         "$ref": "#/parameters/Offset"
                     },
                     {
-                        "$ref": "#/parameters/Token"
-                    },
-                    {
                         "$ref": "#/parameters/ProxyUrl"
                     }
                 ]
@@ -158,9 +164,6 @@
                     },
                     {
                         "$ref": "#/parameters/XivoUserUUID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
@@ -203,9 +206,6 @@
                     },
                     {
                         "$ref": "#/parameters/XivoUserUUID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
@@ -265,9 +265,6 @@
                         "$ref": "#/parameters/Offset"
                     },
                     {
-                        "$ref": "#/parameters/Token"
-                    },
-                    {
                         "$ref": "#/parameters/ProxyUrl"
                     },
                     {
@@ -308,9 +305,6 @@
                     },
                     {
                         "$ref": "#/parameters/XivoUserUUID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
@@ -370,9 +364,6 @@
                         "$ref": "#/parameters/Offset"
                     },
                     {
-                        "$ref": "#/parameters/Token"
-                    },
-                    {
                         "$ref": "#/parameters/ProxyUrl"
                     },
                     {
@@ -413,9 +404,6 @@
                     },
                     {
                         "$ref": "#/parameters/XivoUserUUID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
@@ -475,9 +463,6 @@
                         "$ref": "#/parameters/Offset"
                     },
                     {
-                        "$ref": "#/parameters/Token"
-                    },
-                    {
                         "$ref": "#/parameters/ProxyUrl"
                     },
                     {
@@ -533,9 +518,6 @@
                     },
                     {
                         "$ref": "#/parameters/Offset"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     },
                     {
                         "$ref": "#/parameters/ProxyUrl"
@@ -595,9 +577,6 @@
                         "$ref": "#/parameters/Offset"
                     },
                     {
-                        "$ref": "#/parameters/Token"
-                    },
-                    {
                         "$ref": "#/parameters/ProxyUrl"
                     },
                     {
@@ -634,9 +613,6 @@
                     },
                     {
                         "$ref": "#/parameters/Term"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -666,9 +642,6 @@
                 "parameters": [
                     {
                         "$ref": "#/parameters/Profile"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -701,9 +674,6 @@
                     },
                     {
                         "$ref": "#/parameters/Exten"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -734,9 +704,6 @@
                 "parameters": [
                     {
                         "$ref": "#/parameters/Profile"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -764,9 +731,6 @@
                     },
                     {
                         "$ref": "#/parameters/FavoriteID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ]
             },
@@ -798,9 +762,6 @@
                     },
                     {
                         "$ref": "#/parameters/FavoriteID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -831,9 +792,6 @@
                 "parameters": [
                     {
                         "$ref": "#/parameters/Profile"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ]
             }
@@ -859,9 +817,6 @@
                         "default": "application/json",
                         "required": false,
                         "description": "Format of the response body"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -898,9 +853,6 @@
                         "schema": {
                             "$ref": "#/definitions/PersonalBody"
                         }
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -920,11 +872,6 @@
                 "operationId": "purge_personal",
                 "tags": [
                     "personal"
-                ],
-                "parameters": [
-                    {
-                        "$ref": "#/parameters/Token"
-                    }
                 ],
                 "responses": {
                     "204": {
@@ -947,9 +894,6 @@
                 "parameters": [
                     {
                         "$ref": "#/parameters/PersonalContactID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -977,9 +921,6 @@
                 "parameters": [
                     {
                         "$ref": "#/parameters/PersonalContactID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     },
                     {
                         "name": "contact",
@@ -1015,9 +956,6 @@
                 "parameters": [
                     {
                         "$ref": "#/parameters/PersonalContactID"
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -1050,9 +988,6 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    {
-                        "$ref": "#/parameters/Token"
                     }
                 ],
                 "responses": {
@@ -1188,13 +1123,6 @@
             "type": "string",
             "description": "A search term to look for",
             "required": true
-        },
-        "Token": {
-            "name": "X-Auth-Token",
-            "in": "header",
-            "type": "string",
-            "required": true,
-            "description": "Authentication token obtained from xivo-auth."
         },
         "XivoUserUUID": {
             "name": "xivo_user_uuid",
