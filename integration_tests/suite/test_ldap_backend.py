@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -182,6 +182,18 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
         result = self.lookup('alice', 'default')
 
         assert_that(result['results'], empty())
+
+
+class TestLDAPServiceIsInnactive(BaseDirdIntegrationTest):
+
+    asset = 'ldap_service_innactive'
+
+    def test_lookup(self):
+        result = self.lookup('alice', 'default')
+
+        start = time.time()
+        assert_that(result['results'], empty())
+        assert_that(time.time() - start < 3, 'dird should block on the ldap')
 
 
 class TestLDAPServiceIsDown(BaseDirdIntegrationTest):

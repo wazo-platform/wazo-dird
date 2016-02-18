@@ -1,6 +1,7 @@
 .PHONY: test-setup build-dird egg-info test
 
 test-setup: egg-info build-dird
+	docker pull alpine
 	docker pull python:2.7
 	docker pull p0bailey/docker-flask
 	docker pull nickstenning/slapd
