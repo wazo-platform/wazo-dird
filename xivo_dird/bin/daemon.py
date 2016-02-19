@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -74,7 +74,11 @@ def main(argv):
     controller = Controller(config)
 
     with pidfile_context(config['pid_filename'], config['foreground']):
-        controller.run()
+        try:
+            controller.run()
+        except KeyboardInterrupt:
+            # exit without stack trace
+            pass
 
 
 if __name__ == '__main__':
