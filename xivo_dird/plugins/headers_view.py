@@ -21,6 +21,7 @@ from collections import namedtuple
 from time import time
 
 from xivo_dird import BaseViewPlugin
+from xivo_dird.core.auth import required_acl
 from xivo_dird.core.rest_api import api
 from xivo_dird.core.rest_api import AuthResource
 
@@ -44,6 +45,7 @@ class Headers(AuthResource):
     def configure(cls, displays):
         cls.displays = displays
 
+    @required_acl('dird.directories.lookup.{profile}.headers.read')
     def get(self, profile):
         logger.debug('header request on profile %s', profile)
         if profile not in self.displays:

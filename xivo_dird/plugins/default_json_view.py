@@ -114,6 +114,7 @@ class Lookup(AuthResource):
         if favorite_service:
             cls.favorite_service = favorite_service
 
+    @required_acl('dird.directories.lookup.{profile}.read')
     def get(self, profile):
         args = parser.parse_args()
         term = args['term']
@@ -187,6 +188,7 @@ class FavoritesRead(AuthResource):
         cls.displays = displays
         cls.favorites_service = favorites_service
 
+    @required_acl('dird.directories.favorites.{profile}.read')
     def get(self, profile):
         logger.debug('Listing favorites with profile %s', profile)
         if profile not in self.displays:
@@ -212,6 +214,7 @@ class FavoritesWrite(AuthResource):
     def configure(cls, favorites_service):
         cls.favorites_service = favorites_service
 
+    @required_acl('dird.directories.favorites.{directory}.{contact}.update')
     def put(self, directory, contact):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
@@ -222,6 +225,7 @@ class FavoritesWrite(AuthResource):
             return _error(503, str(e))
         return '', 204
 
+    @required_acl('dird.directories.favorites.{directory}.{contact}.delete')
     def delete(self, directory, contact):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
@@ -248,6 +252,7 @@ class Personal(AuthResource):
         if favorite_service:
             cls.favorite_service = favorite_service
 
+    @required_acl('dird.directories.personal.{profile}.read')
     def get(self, profile):
         logger.debug('Listing personal with profile %s', profile)
         token = request.headers.get('X-Auth-Token', '')

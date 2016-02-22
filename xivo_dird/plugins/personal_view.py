@@ -28,6 +28,7 @@ from xivo.unicode_csv import UnicodeDictReader
 from xivo.unicode_csv import UnicodeDictWriter
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
+from xivo_dird.core.auth import required_acl
 from xivo_dird.core.rest_api import api
 from xivo_dird.core.rest_api import AuthResource
 
@@ -83,6 +84,7 @@ class PersonalAll(AuthResource):
     def configure(cls, personal_service):
         cls.personal_service = personal_service
 
+    @required_acl('dird.personal.create')
     @catch_service_error
     def post(self):
         token = request.headers['X-Auth-Token']
@@ -99,6 +101,7 @@ class PersonalAll(AuthResource):
             }
             return error, 400
 
+    @required_acl('dird.personal.read')
     @catch_service_error
     def get(self):
         token = request.headers['X-Auth-Token']
@@ -113,6 +116,7 @@ class PersonalAll(AuthResource):
 
         return self.contacts_formatter(mimetype)(contacts)
 
+    @required_acl('dird.personal.delete')
     @catch_service_error
     def delete(self):
         token = request.headers['X-Auth-Token']
@@ -160,6 +164,7 @@ class PersonalOne(AuthResource):
     def configure(cls, personal_service):
         cls.personal_service = personal_service
 
+    @required_acl('dird.personal.{contact_id}.read')
     @catch_service_error
     def get(self, contact_id):
         token = request.headers['X-Auth-Token']
@@ -175,6 +180,7 @@ class PersonalOne(AuthResource):
             }
             return error, 404
 
+    @required_acl('dird.personal.{contact_id}.update')
     @catch_service_error
     def put(self, contact_id):
         token = request.headers['X-Auth-Token']
@@ -198,6 +204,7 @@ class PersonalOne(AuthResource):
             }
             return error, 400
 
+    @required_acl('dird.personal.{contact_id}.delete')
     @catch_service_error
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']
@@ -222,6 +229,7 @@ class PersonalImport(AuthResource):
     def configure(cls, personal_service):
         cls.personal_service = personal_service
 
+    @required_acl('dird.personal.import.create')
     def post(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
