@@ -5,10 +5,12 @@ enabled_plugins:
     - lookup
     - favorites
     - personal
+    - reverse
   views:
     - default_json
     - headers_view
     - personal_view
+    - cisco_view
 
 views:
   displays:
@@ -28,8 +30,19 @@ views:
       -
         field: favorite
         type: favorite
+  displays_phone:
+    default:
+      name:
+        - display_name
+      number:
+        -
+          field:
+            - phone
+
   profile_to_display:
     default: default_display
+  profile_to_display_phone:
+    default_phone: default
 
 services:
   lookup:
