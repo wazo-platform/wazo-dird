@@ -42,7 +42,7 @@
         "/directories/input/{profile}/{xivo_user_uuid}/aastra": {
             "get": {
                 "summary": "Given informations about how make request lookup for Aastra Phones",
-                "description": "The `input` query will return a XML to give informations about how make request lookup for Aastra Phones.",
+                "description": "**Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}`\n\nThe `input` query will return a XML to give informations about how make request lookup for Aastra Phones.",
                 "operationId": "aastra_input",
                 "tags": [
                     "aastra",
@@ -81,7 +81,7 @@
         "/directories/lookup/{profile}/{xivo_user_uuid}/aastra": {
             "get": {
                 "summary": "Search for contacts with Aastra Phones",
-                "description": "The `lookup` query will return a list of result matching the searched term formated for Aastra Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `aastra_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "description": "**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}`\n\nThe `lookup` query will return a list of result matching the searched term formated for Aastra Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `aastra_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "aastra_lookup",
                 "tags": [
                     "aastra",
@@ -135,7 +135,7 @@
         "/directories/menu/{profile}/{xivo_user_uuid}/cisco": {
             "get": {
                 "summary": "Extends the directories menu for Cisco Unified IP Phones",
-                "description": "The `menu` query will return a XML to extend the directories menu for Cisco Unified IP Phones.",
+                "description": "**Required ACL:** `dird.directories.menu.{profile}.{xivo_user_uuid}`\n\nThe `menu` query will return a XML to extend the directories menu for Cisco Unified IP Phones.",
                 "operationId": "cisco_menu",
                 "tags": [
                     "cisco",
@@ -177,7 +177,7 @@
         "/directories/input/{profile}/{xivo_user_uuid}/cisco": {
             "get": {
                 "summary": "Given informations about how make request lookup for Cisco Unified IP Phones",
-                "description": "The `input` query will return a XML to give informations about how make request lookup for Cisco Unified IP Phones.",
+                "description": "**Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}`\n\nThe `input` query will return a XML to give informations about how make request lookup for Cisco Unified IP Phones.",
                 "operationId": "cisco_input",
                 "tags": [
                     "cisco",
@@ -219,7 +219,7 @@
         "/directories/lookup/{profile}/{xivo_user_uuid}/cisco": {
             "get": {
                 "summary": "Search for contacts with Cisco Unified IP Phones",
-                "description": "The `lookup` query will return a list of result matching the searched term formated for Cisco Unified IP Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `cisco_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "description": "**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}`\n\nThe `lookup` query will return a list of result matching the searched term formated for Cisco Unified IP Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `cisco_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "cisco_lookup",
                 "tags": [
                     "cisco",
@@ -276,7 +276,7 @@
         "/directories/input/{profile}/{xivo_user_uuid}/polycom": {
             "get": {
                 "summary": "Given informations about how make request lookup for Polycom Phones",
-                "description": "The `input` query will return a XML to give informations about how make request lookup for Polycom Phones.",
+                "description": "**Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}`\n\nThe `input` query will return a XML to give informations about how make request lookup for Polycom Phones.",
                 "operationId": "polycom_input",
                 "tags": [
                     "polycom",
@@ -318,7 +318,7 @@
         "/directories/lookup/{profile}/{xivo_user_uuid}/polycom": {
             "get": {
                 "summary": "Search for contacts with Polycom Phones",
-                "description": "The `lookup` query will return a list of result matching the searched term formated for Polycom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `polycom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "description": "**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}`\n\nThe `lookup` query will return a list of result matching the searched term formated for Polycom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `polycom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "polycom_lookup",
                 "tags": [
                     "polycom",
@@ -375,7 +375,7 @@
         "/directories/input/{profile}/{xivo_user_uuid}/snom": {
             "get": {
                 "summary": "Given informations about how make request lookup for Snom Phones",
-                "description": "The `input` query will return a XML to give informations about how make request lookup for Snom Phones.",
+                "description": "**Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}`\n\nThe `input` query will return a XML to give informations about how make request lookup for Snom Phones.",
                 "operationId": "snom_input",
                 "tags": [
                     "snom",
@@ -417,7 +417,7 @@
         "/directories/lookup/{profile}/{xivo_user_uuid}/snom": {
             "get": {
                 "summary": "Search for contacts with Snom Phones",
-                "description": "The `lookup` query will return a list of result matching the searched term formated for Snom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `snom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "description": "**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}`\n\nThe `lookup` query will return a list of result matching the searched term formated for Snom Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `snom_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "snom_lookup",
                 "tags": [
                     "snom",
@@ -474,7 +474,7 @@
         "/directories/lookup/{profile}/{xivo_user_uuid}/thomson": {
             "get": {
                 "summary": "Search for contacts with Thomson Phones",
-                "description": "The `lookup` query will return a list of result matching the searched term formated for Thomson Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `thomson_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "description": "**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}`\n\nThe `lookup` query will return a list of result matching the searched term formated for Thomson Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `thomson_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "thomson_lookup",
                 "tags": [
                     "thomson",
@@ -528,10 +528,10 @@
                 ]
             }
         },
-        "/directories/lookup/{profile}/{xivo_user_uuid}yealink": {
+        "/directories/lookup/{profile}/{xivo_user_uuid}/yealink": {
             "get": {
                 "summary": "Search for contacts with Yealink Phones",
-                "description": "The `lookup` query will return a list of result matching the searched term formated for Yealink Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `yealink_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
+                "description": "**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}`\n\nThe `lookup` query will return a list of result matching the searched term formated for Yealink Phones. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `yealink_view` plugin using the `lookup` plugin and all configured sources for the given profile.",
                 "operationId": "yealink_lookup",
                 "tags": [
                     "yealink",
@@ -649,7 +649,7 @@
         "/directories/reverse/{profile}/{xivo_user_uuid}": {
             "get": {
                 "summary": "Search for contact by number",
-                "description": "The `reverse` query will return a contact matching the searched exten. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `reverse` plugin and all configured sources for the given profile.",
+                "description": "**Required ACL:** `dird.directories.reverse.{profile}.{xivo_user_uuid}`\n\nThe `reverse` query will return a contact matching the searched exten. The result will be retrieved from all configured directories for the given profile.\n\n\nThis route is provided by the `default_json_view` plugin using the `reverse` plugin and all configured sources for the given profile.",
                 "operationId": "reverse",
                 "tags": [
                     "directories"
