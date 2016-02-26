@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ VALID_UUID_1 = 'uuid-1'
 VALID_TOKEN = 'valid-token'
 VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
-VALID_TOKEN_3 = 'valid-token-3'
+VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
 
 
 class BaseDirdIntegrationTest(AssetLaunchingTestCase):

@@ -30,29 +30,19 @@ tokens = {'valid-token': 'uuid',
           'valid-token-1': 'uuid-1',
           'valid-token-2': 'uuid-2'}
 
-VALID_ACLS = ['dird.directories.reverse.default.uuid',
-              'dird.directories.reverse.default.invalid_uuid',
-              'dird.directories.menu.default.uuid',
-              'dird.directories.menu.menu.uuid',
-              'dird.directories.input.default.uuid',
-              'dird.directories.input.input.uuid',
-              'dird.directories.lookup.default.uuid',
-              'dird.directories.lookup.quiproquo.uuid',
-              'dird.directories.lookup.test_fallback.uuid',
-              'dird.directories.lookup.test_sorted.uuid',
-              ]
+tokens_acl = {'valid-token-no-acl', ''}
 
 
-@app.route("/0.1/token/valid-token", methods=['HEAD'])
-@app.route("/0.1/token/valid-token-1", methods=['HEAD'])
-@app.route("/0.1/token/valid-token-2", methods=['HEAD'])
-def token_head():
-    required_acl = request.args.get('scope')
-    if not required_acl:
+@app.route("/0.1/token/<token>", methods=['HEAD'])
+def token_head(token):
+    if token in tokens:
         return '', 204
-    if required_acl in VALID_ACLS:
-        return '', 204
-    return '', 403
+
+    if token in tokens_acl:
+        if tokens_acl[token] == request.args.get('scope'):
+            return '', 204
+        return '', 403
+    return '', 404
 
 
 @app.route("/0.1/token/<token>", methods=['GET'])
