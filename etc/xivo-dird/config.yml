@@ -43,13 +43,13 @@ auth:
 
 # Event bus (AMQP) connection information
 bus:
-    username: guest
-    password: guest
-    host: localhost
-    port: 5672
-    exchange_name: xivo
-    exchange_type: topic
-    exchange_durable: True
+  username: guest
+  password: guest
+  host: localhost
+  port: 5672
+  exchange_name: xivo
+  exchange_type: topic
+  exchange_durable: True
 
 # Connection info to the contact storage server (Consul)
 consul:
