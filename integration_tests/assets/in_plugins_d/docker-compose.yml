@@ -12,8 +12,9 @@ dird:
   ports:
     - "9489:9489"
   volumes:
-    - "./etc/xivo-dird:/etc/xivo-dird"
-    - "../../..:/usr/src/xivo-dird"
+    - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
+    - "./etc/xivo-dird/plugins_d:/etc/xivo-dird/plugins_d"
+    - "./etc/xivo-dird/plugins.d:/etc/xivo-dird/plugins.d"
     - "./ssl:/etc/ssl"
     - "./tmp/data/:/tmp/data"
 auth:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,8 +36,9 @@ class TestController(TestCase):
 
     def test_run_starts_rest_api(self):
         config = self._create_config(**{
-            'rest_api': {'listen': '127.0.0.1', 'port': '9489'},
+            'rest_api': {'https': {'listen': '127.0.0.1', 'port': '9489'}},
             'debug': s.debug,
+            'service_discovery': {'enabled': False},
         })
         controller = Controller(config)
         controller.run()

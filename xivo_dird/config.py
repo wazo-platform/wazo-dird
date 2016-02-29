@@ -22,6 +22,7 @@ from xivo.config_helper import parse_config_dir, read_config_file_hierarchy
 from xivo.http_helpers import DEFAULT_CIPHERS
 from xivo.xivo_logging import get_log_level_by_name
 
+_DEFAULT_HTTPS_PORT = 9489
 _DEFAULT_CONFIG = {
     'auth': {
         'host': 'localhost',
@@ -48,7 +49,7 @@ _DEFAULT_CONFIG = {
     'rest_api': {
         'https': {
             'listen': '0.0.0.0',
-            'port': 9489,
+            'port': _DEFAULT_HTTPS_PORT,
             'certificate': '/usr/share/xivo-certs/server.crt',
             'private_key': '/usr/share/xivo-certs/server.key',
             'ciphers': DEFAULT_CIPHERS,
@@ -63,6 +64,25 @@ _DEFAULT_CONFIG = {
     'user': 'www-data',
     'views': {},
     'sources': {},
+    'bus': {
+        'username': 'guest',
+        'password': 'guest',
+        'host': 'localhost',
+        'port': 5672,
+        'exchange_name': 'xivo',
+        'exchange_type': 'topic',
+        'exchange_durable': True,
+    },
+    'service_discovery': {
+        'enabled': True,
+        'advertise_address': 'localhost',
+        'advertise_port': _DEFAULT_HTTPS_PORT,
+        'advertise_address_interface': 'eth0',
+        'refresh_interval': 25,
+        'retry_interval': 2,
+        'ttl_interval': 30,
+        'extra_tags': [],
+    },
 }
 
 

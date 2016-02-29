@@ -16,15 +16,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import os
+import sys
+import signal
 
+from functools import partial
+
+from xivo.consul_helpers import ServiceCatalogRegistration
 from xivo_dird.core import auth
 from xivo_dird.core import plugin_manager
 from xivo_dird.core.rest_api import CoreRestApi
 
+from .service_discovery import self_check
+
 logger = logging.getLogger(__name__)
 
 
+def _signal_handler(signum, frame):
+    sys.exit(0)
+
+
 class Controller(object):
+
     def __init__(self, config):
         self.config = config
         self.rest_api = CoreRestApi(self.config)
@@ -44,4 +57,16 @@ class Controller(object):
 
     def run(self):
         logger.debug('xivo-dird running...')
-        self.rest_api.run()
+        xivo_uuid = os.getenv('XIVO_UUID')
+        if not xivo_uuid and self.config['service_discovery']['enabled']:
+            logger.error('undefined environment variable XIVO_UUID')
+            sys.exit(1)
+
+        signal.signal(signal.SIGTERM, _signal_handler)
+        with ServiceCatalogRegistration('xivo-dird',
+                                        xivo_uuid,
+                                        self.config.get('consul'),
+                                        self.config.get('service_discovery'),
+                                        self.config.get('bus'),
+                                        partial(self_check, self.config['rest_api']['https']['port'])):
+            self.rest_api.run()

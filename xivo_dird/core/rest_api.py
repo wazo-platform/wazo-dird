@@ -91,7 +91,7 @@ class CoreRestApi(object):
 
         try:
             server.start()
-        except KeyboardInterrupt:
+        finally:
             server.stop()
 
 
