@@ -18,7 +18,6 @@
 import logging
 import uuid
 
-from consul import Consul
 from consul import ConsulException
 from contextlib import contextmanager
 from requests.exceptions import RequestException
@@ -29,6 +28,7 @@ from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
 from xivo_dird.core.consul import dict_from_consul
 from xivo_dird.core.consul import dict_to_consul
 from xivo_dird.core.consul import ls_from_consul
+from xivo_dird.core.consul import new_consul
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ class _PersonalService(object):
     @contextmanager
     def _consul(self, token):
         try:
-            yield Consul(token=token, **self._config['consul'])
+            yield new_consul(self._config, token=token)
         except ConsulException as e:
             raise self.PersonalServiceException('Error from Consul: {}'.format(str(e)))
         except RequestException as e:

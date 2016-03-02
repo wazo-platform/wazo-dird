@@ -31,7 +31,7 @@ from ..personal_backend import remove_empty_values
 
 class TestPersonalBackend(TestCase):
 
-    @patch('xivo_dird.plugins.personal_backend.Consul')
+    @patch('xivo_dird.plugins.personal_backend.new_consul')
     def test_that_list_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = Mock(), []
@@ -43,7 +43,7 @@ class TestPersonalBackend(TestCase):
 
         assert_that(consul.kv.get.call_count, greater_than(1))
 
-    @patch('xivo_dird.plugins.personal_backend.Consul')
+    @patch('xivo_dird.plugins.personal_backend.new_consul')
     def test_that_list_sets_attribute_personal_and_deletable(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = Mock(), [{'Key': 'my/key',
@@ -57,7 +57,7 @@ class TestPersonalBackend(TestCase):
         assert_that(result, has_item(has_property('is_personal', True)))
         assert_that(result, has_item(has_property('is_deletable', True)))
 
-    @patch('xivo_dird.plugins.personal_backend.Consul')
+    @patch('xivo_dird.plugins.personal_backend.new_consul')
     def test_that_search_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = Mock(), []
@@ -69,7 +69,7 @@ class TestPersonalBackend(TestCase):
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.personal_backend.Consul')
+    @patch('xivo_dird.plugins.personal_backend.new_consul')
     def test_that_first_match_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = Mock(), []
@@ -81,7 +81,7 @@ class TestPersonalBackend(TestCase):
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.personal_backend.Consul')
+    @patch('xivo_dird.plugins.personal_backend.new_consul')
     def test_that_first_match_return_none_if_no_match(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = Mock(), []
