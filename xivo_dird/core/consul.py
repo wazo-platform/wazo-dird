@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,8 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from __future__ import absolute_import
+
 import logging
 import urllib
+
+from consul import Consul
 
 PERSONAL_CONTACTS_KEY = 'xivo/private/{user_uuid}/contacts/personal/'
 PERSONAL_CONTACT_KEY = 'xivo/private/{user_uuid}/contacts/personal/{contact_uuid}/'
@@ -72,3 +76,9 @@ def dict_to_consul(prefix, dict_):
         full_key = urllib.quote('{}{}'.format(prefix, key))
         result[full_key] = value.encode('utf-8')
     return result
+
+
+def new_consul(config, token):
+    consul_config = dict(config['consul'])
+    consul_config['token'] = token
+    return Consul(**consul_config)

@@ -54,7 +54,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
         MockedPersonalService.assert_called_once_with(s.config, {})
         assert_that(service, equal_to(MockedPersonalService.return_value))
 
-    @patch('xivo_dird.plugins.personal_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.new_consul')
     def test_that_create_contact_calls_consul_put(self, consul_init):
         consul = consul_init.return_value
         service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
@@ -63,7 +63,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         assert_that(consul.kv.put.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.personal_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.new_consul')
     def test_that_list_contacts_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), ['/my/key/', 'my/other/key/'])
@@ -74,7 +74,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.personal_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.new_consul')
     def test_that_list_contacts_raw_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [])
@@ -84,7 +84,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.personal_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.new_consul')
     def test_that_get_contact_calls_consul_get(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [])
@@ -94,7 +94,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         assert_that(consul.kv.get.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.personal_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.new_consul')
     def test_that_edit_contact_calls_consul_put(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [])
@@ -104,7 +104,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         assert_that(consul.kv.put.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.personal_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.new_consul')
     def test_that_edit_contact_does_not_accept_modifying_contact_id(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [])
@@ -115,7 +115,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         assert_that(result, has_entry('id', 'contact-id'))
 
-    @patch('xivo_dird.plugins.personal_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.new_consul')
     def test_that_remove_contact_calls_consul_delete(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [])
@@ -125,7 +125,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
         assert_that(consul.kv.delete.call_count, greater_than(0))
 
-    @patch('xivo_dird.plugins.personal_service.Consul')
+    @patch('xivo_dird.plugins.personal_service.new_consul')
     def test_that_purge_contacts_calls_consul_delete(self, consul_init):
         consul = consul_init.return_value
         consul.kv.get.return_value = (Mock(), [])

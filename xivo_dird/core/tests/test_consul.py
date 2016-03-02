@@ -19,12 +19,15 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import equal_to
 from hamcrest import has_entries
+from hamcrest import same_instance
+from mock import patch
 from unittest import TestCase
 
 from ..consul import dict_from_consul
 from ..consul import ls_from_consul
 from ..consul import tree_from_consul
 from ..consul import dict_to_consul
+from ..consul import new_consul
 
 
 class TestDictFromConsul(TestCase):
@@ -301,3 +304,20 @@ class TestDictToConsul(TestCase):
         assert_that(result, has_entries({
             '%25%3F%23/%25%3F%23': 'value1'
         }))
+
+
+class TestNewConsul(TestCase):
+
+    @patch('xivo_dird.core.consul.Consul')
+    def test_new_consul(self, consul_init):
+        consul_config = {
+            'host': 'example.org',
+            'token': 'cfg_token',
+        }
+        consul_config_copy = dict(consul_config)
+
+        consul = new_consul({'consul': consul_config}, 'arg_token')
+
+        assert_that(consul, same_instance(consul_init.return_value))
+        assert_that(consul_config, equal_to(consul_config_copy))
+        consul_init.assert_called_once_with(token='arg_token', host='example.org')

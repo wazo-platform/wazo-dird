@@ -18,8 +18,6 @@
 import itertools
 import logging
 
-from consul import Consul
-
 from contextlib import contextmanager
 from unidecode import unidecode
 from xivo_dird import BaseSourcePlugin
@@ -27,6 +25,7 @@ from xivo_dird import make_result_class
 from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
 from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
 from xivo_dird.core.consul import dict_from_consul
+from xivo_dird.core.consul import new_consul
 from xivo_dird.core.consul import tree_from_consul
 
 logger = logging.getLogger(__name__)
@@ -108,4 +107,4 @@ class PersonalBackend(BaseSourcePlugin):
 
     @contextmanager
     def _consul(self, token):
-        yield Consul(token=token, **self._config['consul'])
+        yield new_consul(self._config, token=token)
