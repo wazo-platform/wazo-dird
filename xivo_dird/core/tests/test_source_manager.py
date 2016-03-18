@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ from xivo_dird.core.source_manager import SourceManager
 
 class TestSourceManager(unittest.TestCase):
 
-    @patch('stevedore.enabled.EnabledExtensionManager')
+    @patch('xivo_dird.core.source_manager.NamedExtensionManager')
     def test_that_load_sources_loads_the_enabled_and_configured_sources(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
         enabled_backends = [
@@ -44,11 +44,12 @@ class TestSourceManager(unittest.TestCase):
 
         extension_manager_init.assert_called_once_with(
             namespace='xivo_dird.backends',
-            check_func=manager.should_load_backend,
+            names=enabled_backends,
+            name_order=True,
             invoke_on_load=False)
         extension_manager.map.assert_called_once_with(ANY, sources_by_type)
 
-    @patch('stevedore.enabled.EnabledExtensionManager')
+    @patch('xivo_dird.core.source_manager.NamedExtensionManager')
     def test_load_sources_returns_dict_of_sources(self, extension_manager_init):
         enabled_backends = [
             'ldap',
@@ -61,20 +62,6 @@ class TestSourceManager(unittest.TestCase):
         result = manager.load_sources()
 
         assert_that(result, equal_to(s.sources))
-
-    def test_should_load_backend(self):
-        enabled_backends = [
-            'ldap',
-        ]
-        backend_1 = Mock()
-        backend_1.name = 'ldap'
-        backend_2 = Mock()
-        backend_2.name = 'xivo_phonebook'
-
-        manager = SourceManager(enabled_backends, {'sources': {}})
-
-        assert_that(manager.should_load_backend(backend_1), is_(True))
-        assert_that(manager.should_load_backend(backend_2), is_(False))
 
     def test_load_sources_using_backend_calls_load_on_all_sources_using_this_backend(self):
         config1 = {'type': 'backend', 'name': 'source1'}
