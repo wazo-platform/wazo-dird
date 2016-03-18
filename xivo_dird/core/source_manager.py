@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 import logging
 
 from collections import defaultdict
-from stevedore import enabled
+from stevedore.named import NamedExtensionManager
 
 
 logger = logging.getLogger(__name__)
@@ -35,13 +35,11 @@ class SourceManager(object):
         self._sources = {}
         self._config = config
 
-    def should_load_backend(self, extension):
-        return extension.name in self._enabled_backends
-
     def load_sources(self):
-        manager = enabled.EnabledExtensionManager(
+        manager = NamedExtensionManager(
             namespace=self._namespace,
-            check_func=self.should_load_backend,
+            names=self._enabled_backends,
+            name_order=True,
             invoke_on_load=False,
         )
         configs_by_backend = self.group_configs_by_backend(self._source_configs)

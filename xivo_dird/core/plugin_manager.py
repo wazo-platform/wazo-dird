@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 
 import logging
 
-from stevedore import enabled
+from stevedore.named import NamedExtensionManager
 
 from xivo_dird.core.source_manager import SourceManager
 
@@ -27,10 +27,10 @@ services_extension_manager = None
 
 def load_services(config, enabled_services, sources):
     global services_extension_manager
-    check_func = lambda extension: extension.name in enabled_services
-    services_extension_manager = enabled.EnabledExtensionManager(
+    services_extension_manager = NamedExtensionManager(
         namespace='xivo_dird.services',
-        check_func=check_func,
+        names=enabled_services,
+        name_order=True,
         invoke_on_load=True)
 
     return dict(services_extension_manager.map(load_service_extension, config, sources))
@@ -54,10 +54,10 @@ def load_sources(enabled_backends, source_configs):
 
 
 def load_views(config, enabled_views, services, rest_api):
-    check_func = lambda extension: extension.name in enabled_views
-    extension_manager = enabled.EnabledExtensionManager(
+    extension_manager = NamedExtensionManager(
         namespace='xivo_dird.views',
-        check_func=check_func,
+        names=enabled_views,
+        name_order=True,
         invoke_on_load=True)
 
     extension_manager.map(load_view_extension, config, services, rest_api)
