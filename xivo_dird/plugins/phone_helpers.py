@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ class _PhoneLookupService(object):
         formatted_results.sort(key=attrgetter('name', 'number'))
 
         return {
-            'results': formatted_results[offset:offset+limit] if limit is not None else formatted_results[offset:],
+            'results': formatted_results[offset:offset + limit] if limit is not None else formatted_results[offset:],
             'limit': limit,
             'offset': offset,
             'next_offset': self._next_offset(offset, limit, len(formatted_results)),

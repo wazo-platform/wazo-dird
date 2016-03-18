@@ -77,7 +77,7 @@ class TestConfig(TestCase):
         profile = [
             {'title': 'Number', 'type': 'number'},
             {'title': 'Mobile', 'type': 'number'},
-            ]
+        ]
         result = config._multiple_profile_type_number(profile)
 
         assert_that(result, equal_to(True))
@@ -85,7 +85,7 @@ class TestConfig(TestCase):
     def test_multiple_profile_type_number_return_false(self, _):
         profile = [
             {'title': 'Number', 'type': 'number'},
-            ]
+        ]
         result = config._multiple_profile_type_number(profile)
 
         assert_that(result, equal_to(False))
