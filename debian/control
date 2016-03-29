@@ -21,6 +21,7 @@ Package: xivo-libdird
 Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
+         postgresql-9.4,
          xivo-lib-python,
          python-jinja2,
          python-ldap,
