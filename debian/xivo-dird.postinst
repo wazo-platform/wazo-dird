@@ -4,33 +4,18 @@ set -e
 
 LOG_FILENAME='/var/log/xivo-dird.log'
 PG_USER='asterisk'
+PG_USER_PASSWORD='proformatique'
 DB_NAME='asterisk'
+PG_DB_URI='postgresql:///postgres'
 
 pg_is_running () {
 	pg_lsclusters --no-header | grep -q online
 }
 
-pg_user_exists () {
-	sudo -u postgres psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$PG_USER'" | grep -q '1'
-}
-
-create_pg_user () {
-	sudo -u postgres psql -c "CREATE ROLE \"$PG_USER\" WITH LOGIN PASSWORD 'proformatique'"
-}
-
-db_exists () {
-	sudo -u postgres psql -lt | awk -F'|' '{ print $1 }' | grep -q " $DB_NAME "
-}
-
-create_db () {
-	sudo -u postgres psql -c "CREATE DATABASE \"$DB_NAME\" WITH OWNER \"$PG_USER\" ENCODING 'UTF8'"
-}
-
 case "$1" in
 	configure)
 		if pg_is_running ; then
-			pg_user_exists || create_pg_user
-			db_exists || create_db
+			xivo-dird-init-db --user postgres --db $DB_NAME --owner $PG_USER --password $PG_USER_PASSWORD --uri $PG_DB_URI
 		fi
 
 		# add user www-data
