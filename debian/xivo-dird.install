@@ -1,4 +1,6 @@
 debian/tmp/usr/bin/xivo-dird usr/bin/
 bin/xivo-dird-init-db usr/bin/
 etc/*  etc/
-migrations/ usr/share/xivo-dird
+migrations/ usr/share/xivo-dird/
+alembic/ usr/share/xivo-dird/
+alembic.ini usr/share/xivo-dird/
