@@ -54,16 +54,29 @@ class PersonalContactSearchEngine(object):
         self._searched_columns = searched_columns or []
 
     def find_personal_contacts(self, xivo_user_uuid, term):
-        query = (self._session.query(ContactFields.contact_uuid)
-                 .join(Contact)
-                 .join(User)
-                 .filter(self._new_search_filter(xivo_user_uuid, term)))
-        matching_contacts = query.all()
+        filter_ = self._new_search_filter(xivo_user_uuid, term)
+        matching_uuids = self._find_personal_contact_uuids_with_filter(filter_)
+        matching_contacts = self._list_contacts_by_uuid(matching_uuids)
+        return matching_contacts
 
-        if not matching_contacts:
+    def list_personal_contacts(self, xivo_user_uuid):
+        filter_ = self._new_list_filter(xivo_user_uuid)
+        matching_uuids = self._find_personal_contact_uuids_with_filter(filter_)
+        matching_contacts = self._list_contacts_by_uuid(matching_uuids)
+        return matching_contacts
+
+    def _find_personal_contact_uuids_with_filter(self, filter_):
+        matching_uuids = (self._session.query(ContactFields.contact_uuid)
+                          .join(Contact)
+                          .join(User)
+                          .filter(filter_))
+        return [uuid for uuid in matching_uuids.all()]
+
+    def _list_contacts_by_uuid(self, uuids):
+        if not uuids:
             return []
 
-        contact_fields = self._session.query(ContactFields).filter(ContactFields.contact_uuid.in_(matching_contacts)).all()
+        contact_fields = self._session.query(ContactFields).filter(ContactFields.contact_uuid.in_(uuids)).all()
         result = {}
         for contact_field in contact_fields:
             uuid = contact_field.contact_uuid
@@ -72,6 +85,9 @@ class PersonalContactSearchEngine(object):
             result[uuid][contact_field.name] = contact_field.value
 
         return result.values()
+
+    def _new_list_filter(self, xivo_user_uuid):
+        return User.xivo_user_uuid == xivo_user_uuid
 
     def _new_search_filter(self, xivo_user_uuid, term):
         if not self._searched_columns:

@@ -20,7 +20,7 @@ import uuid
 import unittest
 import os
 
-from hamcrest import assert_that, contains, empty
+from hamcrest import assert_that, contains, contains_inanyorder, empty
 from mock import ANY
 
 from sqlalchemy.orm import sessionmaker
@@ -41,6 +41,9 @@ CONTACT_1 = {'firtname': 'Finley',
 CONTACT_2 = {'firstname': 'Rain',
              'lastname': 'Ora',
              'number': '5555550001'}
+CONTACT_3 = {'firstname': 'Foo',
+             'lastname': 'Bar',
+             'number': '5555550002'}
 
 
 def expected(contact, unique_column='id'):
@@ -75,6 +78,30 @@ class TestContacts(unittest.TestCase):
         database.Base.metadata.reflect()
         database.Base.metadata.drop_all()
         database.Base.metadata.create_all()
+
+    @with_user_uuid
+    def test_that_listing_personal_contacts_returns_all_contacts(self, xivo_user_uuid):
+        engine = database.PersonalContactSearchEngine(Session, searched_columns=['firstname'])
+
+        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+
+        result = engine.list_personal_contacts(xivo_user_uuid)
+
+        assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_2)))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_that_listing_personal_contacts_only_the_users_contact(self, uuid_1, uuid_2):
+        engine = database.PersonalContactSearchEngine(Session, searched_columns=['firstname'])
+
+        self._insert_personal_contacts(uuid_1, CONTACT_1, CONTACT_2)
+        self._insert_personal_contacts(uuid_2, CONTACT_1, CONTACT_3)
+
+        result = engine.list_personal_contacts(uuid_1)
+        assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_2)))
+
+        result = engine.list_personal_contacts(uuid_2)
+        assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_3)))
 
     @with_user_uuid
     def test_that_searching_for_a_contact_returns_its_fields(self, xivo_user_uuid):
