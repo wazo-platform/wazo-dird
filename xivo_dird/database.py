@@ -48,29 +48,40 @@ class ContactFields(Base):
 
 class PersonalContactSearchEngine(object):
 
-    def __init__(self, Session, unique_column='id', searched_columns=None):
+    def __init__(self, Session, unique_column='id', searched_columns=None, first_match_columns=None):
         self._Session = Session
         self._unique_column = unique_column
         self._searched_columns = searched_columns or []
+        self._first_match_columns = first_match_columns or []
+
+    def find_first_personal_contact(self, xivo_user_uuid, term):
+        filter_ = self._new_strict_filter(xivo_user_uuid, term, self._first_match_columns)
+        matching_contacts = self._find_personal_contacts_with_filter(filter_, limit=1)
+        return matching_contacts
 
     def find_personal_contacts(self, xivo_user_uuid, term):
-        filter_ = self._new_search_filter(xivo_user_uuid, term)
-        matching_uuids = self._find_personal_contact_uuids_with_filter(filter_)
-        matching_contacts = self._list_contacts_by_uuid(matching_uuids)
+        filter_ = self._new_search_filter(xivo_user_uuid, term, self._searched_columns)
+        matching_contacts = self._find_personal_contacts_with_filter(filter_)
         return matching_contacts
 
     def list_personal_contacts(self, xivo_user_uuid):
         filter_ = self._new_list_filter(xivo_user_uuid)
-        matching_uuids = self._find_personal_contact_uuids_with_filter(filter_)
-        matching_contacts = self._list_contacts_by_uuid(matching_uuids)
+        matching_contacts = self._find_personal_contacts_with_filter(filter_)
         return matching_contacts
 
-    def _find_personal_contact_uuids_with_filter(self, filter_):
-        matching_uuids = (self._session.query(distinct(ContactFields.contact_uuid))
-                          .join(Contact)
-                          .join(User)
-                          .filter(filter_))
-        return [uuid for uuid in matching_uuids.all()]
+    def _find_personal_contacts_with_filter(self, filter_, limit=None):
+        base_query = (self._session.query(distinct(ContactFields.contact_uuid))
+                      .join(Contact)
+                      .join(User)
+                      .filter(filter_))
+        if limit:
+            query = base_query.limit(limit)
+        else:
+            query = base_query
+
+        uuids = [uuid for uuid in query.all()]
+
+        return self._list_contacts_by_uuid(uuids)
 
     def _list_contacts_by_uuid(self, uuids):
         if not uuids:
@@ -89,14 +100,22 @@ class PersonalContactSearchEngine(object):
     def _new_list_filter(self, xivo_user_uuid):
         return User.xivo_user_uuid == xivo_user_uuid
 
-    def _new_search_filter(self, xivo_user_uuid, term):
-        if not self._searched_columns:
+    def _new_search_filter(self, xivo_user_uuid, term, columns):
+        if not columns:
             return False
 
         pattern = '%{}%'.format(term)
         return and_(User.xivo_user_uuid == xivo_user_uuid,
                     ContactFields.value.ilike(pattern),
-                    ContactFields.name.in_(self._searched_columns))
+                    ContactFields.name.in_(columns))
+
+    def _new_strict_filter(self, xivo_user_uuid, term, columns):
+        if not columns:
+            return False
+
+        return and_(User.xivo_user_uuid == xivo_user_uuid,
+                    ContactFields.value == term,
+                    ContactFields.name.in_(columns))
 
     @property
     def _session(self):

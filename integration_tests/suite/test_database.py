@@ -20,7 +20,7 @@ import uuid
 import unittest
 import os
 
-from hamcrest import assert_that, contains, contains_inanyorder, empty
+from hamcrest import assert_that, any_of, contains, contains_inanyorder, empty
 from mock import ANY
 
 from sqlalchemy.orm import sessionmaker
@@ -43,7 +43,7 @@ CONTACT_2 = {'firstname': 'Rain',
              'number': '5555550001'}
 CONTACT_3 = {'firstname': 'Foo',
              'lastname': 'Bar',
-             'number': '5555550002'}
+             'number': '5555550001'}
 
 
 def expected(contact, unique_column='id'):
@@ -78,6 +78,16 @@ class TestContacts(unittest.TestCase):
         database.Base.metadata.reflect()
         database.Base.metadata.drop_all()
         database.Base.metadata.create_all()
+
+    @with_user_uuid
+    def test_that_find_first_returns_a_contact(self, xivo_user_uuid):
+        engine = database.PersonalContactSearchEngine(Session, first_match_columns=['number'])
+
+        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2, CONTACT_3)
+
+        result = engine.find_first_personal_contact(xivo_user_uuid, '5555550001')
+
+        assert_that(result, contains(any_of(expected(CONTACT_2), expected(CONTACT_3))))
 
     @with_user_uuid
     def test_that_listing_personal_contacts_returns_all_contacts(self, xivo_user_uuid):
