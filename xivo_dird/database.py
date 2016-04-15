@@ -46,24 +46,29 @@ class ContactFields(Base):
     contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
 
 
-def find_personal_contacts(session, xivo_user_uuid, term):
-    pattern = '%{}%'.format(term)
-    query = (session.query(ContactFields.contact_uuid)
-             .join(Contact)
-             .join(User)
-             .filter(and_(User.xivo_user_uuid == xivo_user_uuid,
-                          ContactFields.value.ilike(pattern))))
-    matching_contacts = query.all()
+class PersonalContactSearchEngine(object):
 
-    if not matching_contacts:
-        return []
+    def __init__(self, session):
+        self._session = session
 
-    contact_fields = session.query(ContactFields).filter(ContactFields.contact_uuid.in_(matching_contacts)).all()
-    result = {}
-    for contact_field in contact_fields:
-        uuid = contact_field.contact_uuid
-        if uuid not in result:
-            result[uuid] = {'id': uuid}
-        result[uuid][contact_field.name] = contact_field.value
+    def find_personal_contacts(self, xivo_user_uuid, term):
+        pattern = '%{}%'.format(term)
+        query = (self._session.query(ContactFields.contact_uuid)
+                 .join(Contact)
+                 .join(User)
+                 .filter(and_(User.xivo_user_uuid == xivo_user_uuid,
+                              ContactFields.value.ilike(pattern))))
+        matching_contacts = query.all()
 
-    return result.values()
+        if not matching_contacts:
+            return []
+
+        contact_fields = self._session.query(ContactFields).filter(ContactFields.contact_uuid.in_(matching_contacts)).all()
+        result = {}
+        for contact_field in contact_fields:
+            uuid = contact_field.contact_uuid
+            if uuid not in result:
+                result[uuid] = {'id': uuid}
+            result[uuid][contact_field.name] = contact_field.value
+
+        return result.values()

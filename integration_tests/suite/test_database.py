@@ -79,9 +79,11 @@ class TestContacts(unittest.TestCase):
 
     @with_user_uuid
     def test_that_searching_for_a_contact_returns_its_fields(self, xivo_user_uuid):
+        engine = database.PersonalContactSearchEngine(self.session)
+
         self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
-        result = database.find_personal_contacts(self.session, xivo_user_uuid, 'rai')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
 
         assert_that(result, contains(expected(CONTACT_2)))
 
