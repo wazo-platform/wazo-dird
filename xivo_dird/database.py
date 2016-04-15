@@ -56,18 +56,15 @@ class PersonalContactSearchEngine(object):
 
     def find_first_personal_contact(self, xivo_user_uuid, term):
         filter_ = self._new_strict_filter(xivo_user_uuid, term, self._first_match_columns)
-        matching_contacts = self._find_personal_contacts_with_filter(filter_, limit=1)
-        return matching_contacts
+        return self._find_personal_contacts_with_filter(filter_, limit=1)
 
     def find_personal_contacts(self, xivo_user_uuid, term):
         filter_ = self._new_search_filter(xivo_user_uuid, term, self._searched_columns)
-        matching_contacts = self._find_personal_contacts_with_filter(filter_)
-        return matching_contacts
+        return self._find_personal_contacts_with_filter(filter_)
 
     def list_personal_contacts(self, xivo_user_uuid, uuids):
         filter_ = self._new_list_filter(xivo_user_uuid, uuids)
-        matching_contacts = self._find_personal_contacts_with_filter(filter_)
-        return matching_contacts
+        return self._find_personal_contacts_with_filter(filter_)
 
     def _find_personal_contacts_with_filter(self, filter_, limit=None):
         base_query = (self._session.query(distinct(ContactFields.contact_uuid))
