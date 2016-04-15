@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import functools
 import uuid
 import unittest
 import os
@@ -34,6 +35,33 @@ Session = sessionmaker()
 def new_uuid():
     return str(uuid.uuid4())
 
+CONTACT_1 = {'firtname': 'Finley',
+             'lastname': 'Shelley',
+             'number': '5555551111'}
+CONTACT_2 = {'firstname': 'Rain',
+             'lastname': 'Ora',
+             'number': '5555550001'}
+
+
+def expected(contact):
+    result = {'id': ANY}
+    result.update(contact)
+    return result
+
+
+def with_user_uuid(f):
+    uuid = new_uuid()
+
+    @functools.wraps(f)
+    def wrapped(self, *args, **kwargs):
+        user = database.User(xivo_user_uuid=uuid)
+        self.session.add(user)
+        self.session.flush()
+        result = f(self, uuid, *args, **kwargs)
+        self.session.query(database.User).filter(database.User.xivo_user_uuid == uuid).delete()
+        return result
+    return wrapped
+
 
 class TestContacts(unittest.TestCase):
 
@@ -49,28 +77,17 @@ class TestContacts(unittest.TestCase):
     def setUp(self):
         self.session = Session()
 
-    def test_that_searching_for_a_contact_returns_its_fields(self):
-        xivo_user_uuid = new_uuid()
-        contacts = [{'firtname': 'Finley',
-                     'lastname': 'Shelley',
-                     'number': '5555551111'},
-                    {'firstname': 'Rain',
-                     'lastname': 'Ora',
-                     'number': '5555550001'}]
-        self._insert_personal_contacts(xivo_user_uuid, contacts)
+    @with_user_uuid
+    def test_that_searching_for_a_contact_returns_its_fields(self, xivo_user_uuid):
+        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
         result = database.find_personal_contacts(self.session, xivo_user_uuid, 'rai')
 
-        expected = dict(contacts[1])
-        expected['id'] = ANY
-        assert_that(result, contains(expected))
+        assert_that(result, contains(expected(CONTACT_2)))
 
-    def _insert_personal_contacts(self, xivo_user_uuid, contacts):
-        user = database.User(xivo_user_uuid=xivo_user_uuid)
-        self.session.add(user)
-        self.session.flush()
+    def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
         for contact in contacts:
-            dird_contact = database.Contact(user_uuid=user.xivo_user_uuid)
+            dird_contact = database.Contact(user_uuid=xivo_user_uuid)
             self.session.add(dird_contact)
             self.session.flush()
             for name, value in contact.iteritems():
