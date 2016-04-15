@@ -68,7 +68,7 @@ def with_user_uuid(f):
     return wrapped
 
 
-class TestContacts(unittest.TestCase):
+class TestPersonalContactSearchEngine(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
