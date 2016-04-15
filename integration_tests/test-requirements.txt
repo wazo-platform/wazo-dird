@@ -6,3 +6,5 @@ python-ldap
 nose
 sh
 xivo-test-helpers
+mock
+psycopg2
