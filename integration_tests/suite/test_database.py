@@ -90,28 +90,39 @@ class TestContacts(unittest.TestCase):
         assert_that(result, contains(any_of(expected(CONTACT_2), expected(CONTACT_3))))
 
     @with_user_uuid
-    def test_that_listing_personal_contacts_returns_all_contacts(self, xivo_user_uuid):
+    def test_that_listing_personal_contacts_returns_the_searched_contacts(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(Session, searched_columns=['firstname'])
 
-        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+        ids = self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
-        result = engine.list_personal_contacts(xivo_user_uuid)
-
+        result = engine.list_personal_contacts(xivo_user_uuid, ids)
         assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_2)))
+
+        result = engine.list_personal_contacts(xivo_user_uuid, ids[:1])
+        assert_that(result, contains(expected(CONTACT_1)))
+
+        result = engine.list_personal_contacts(xivo_user_uuid, ids[1:])
+        assert_that(result, contains(expected(CONTACT_2)))
 
     @with_user_uuid
     @with_user_uuid
     def test_that_listing_personal_contacts_only_the_users_contact(self, uuid_1, uuid_2):
         engine = database.PersonalContactSearchEngine(Session, searched_columns=['firstname'])
 
-        self._insert_personal_contacts(uuid_1, CONTACT_1, CONTACT_2)
-        self._insert_personal_contacts(uuid_2, CONTACT_1, CONTACT_3)
+        ids_1 = self._insert_personal_contacts(uuid_1, CONTACT_1, CONTACT_2)
+        ids_2 = self._insert_personal_contacts(uuid_2, CONTACT_1, CONTACT_3)
 
-        result = engine.list_personal_contacts(uuid_1)
+        result = engine.list_personal_contacts(uuid_1, ids_1)
         assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_2)))
 
-        result = engine.list_personal_contacts(uuid_2)
+        result = engine.list_personal_contacts(uuid_2, ids_2)
         assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_3)))
+
+        result = engine.list_personal_contacts(uuid_1, ids_2)
+        assert_that(result, empty())
+
+        result = engine.list_personal_contacts(uuid_2, ids_1)
+        assert_that(result, empty())
 
     @with_user_uuid
     def test_that_searching_for_a_contact_returns_its_fields(self, xivo_user_uuid):
@@ -157,12 +168,15 @@ class TestContacts(unittest.TestCase):
         assert_that(result, empty())
 
     def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
+        ids = []
         session = Session()
         for contact in contacts:
             dird_contact = database.Contact(user_uuid=xivo_user_uuid)
             session.add(dird_contact)
             session.flush()
+            ids.append(dird_contact.uuid)
             for name, value in contact.iteritems():
                 field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
                 session.add(field)
         session.commit()
+        return ids

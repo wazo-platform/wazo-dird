@@ -64,8 +64,8 @@ class PersonalContactSearchEngine(object):
         matching_contacts = self._find_personal_contacts_with_filter(filter_)
         return matching_contacts
 
-    def list_personal_contacts(self, xivo_user_uuid):
-        filter_ = self._new_list_filter(xivo_user_uuid)
+    def list_personal_contacts(self, xivo_user_uuid, uuids):
+        filter_ = self._new_list_filter(xivo_user_uuid, uuids)
         matching_contacts = self._find_personal_contacts_with_filter(filter_)
         return matching_contacts
 
@@ -97,8 +97,12 @@ class PersonalContactSearchEngine(object):
 
         return result.values()
 
-    def _new_list_filter(self, xivo_user_uuid):
-        return User.xivo_user_uuid == xivo_user_uuid
+    def _new_list_filter(self, xivo_user_uuid, uuids):
+        if not uuids:
+            return False
+
+        return and_(User.xivo_user_uuid == xivo_user_uuid,
+                    ContactFields.contact_uuid.in_(uuids))
 
     def _new_search_filter(self, xivo_user_uuid, term, columns):
         if not columns:
