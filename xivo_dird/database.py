@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from sqlalchemy import and_, Column, ForeignKey, Integer, String, text, Text
+from sqlalchemy import and_, Column, distinct, ForeignKey, Integer, String, text, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -66,7 +66,7 @@ class PersonalContactSearchEngine(object):
         return matching_contacts
 
     def _find_personal_contact_uuids_with_filter(self, filter_):
-        matching_uuids = (self._session.query(ContactFields.contact_uuid)
+        matching_uuids = (self._session.query(distinct(ContactFields.contact_uuid))
                           .join(Contact)
                           .join(User)
                           .filter(filter_))
