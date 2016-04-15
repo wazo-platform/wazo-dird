@@ -55,10 +55,12 @@ def with_user_uuid(f):
     @functools.wraps(f)
     def wrapped(self, *args, **kwargs):
         user = database.User(xivo_user_uuid=uuid)
-        self.session.add(user)
-        self.session.flush()
+        session = Session()
+        session.add(user)
+        session.commit()
         result = f(self, uuid, *args, **kwargs)
-        self.session.query(database.User).filter(database.User.xivo_user_uuid == uuid).delete()
+        session.query(database.User).filter(database.User.xivo_user_uuid == uuid).delete()
+        session.commit()
         return result
     return wrapped
 
@@ -74,12 +76,9 @@ class TestContacts(unittest.TestCase):
         database.Base.metadata.drop_all()
         database.Base.metadata.create_all()
 
-    def setUp(self):
-        self.session = Session()
-
     @with_user_uuid
     def test_that_searching_for_a_contact_returns_its_fields(self, xivo_user_uuid):
-        engine = database.PersonalContactSearchEngine(self.session, searched_columns=['firstname'])
+        engine = database.PersonalContactSearchEngine(Session, searched_columns=['firstname'])
 
         self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
@@ -90,7 +89,7 @@ class TestContacts(unittest.TestCase):
     @with_user_uuid
     def test_that_the_unique_column_is_named_correctly(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(
-            self.session, unique_column='uuid', searched_columns=['firstname'])
+            Session, unique_column='uuid', searched_columns=['firstname'])
 
         self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
@@ -101,7 +100,7 @@ class TestContacts(unittest.TestCase):
     @with_user_uuid
     def test_that_find_searches_only_in_searched_columns(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(
-            self.session, unique_column='uuid', searched_columns=['lastname'])
+            Session, unique_column='uuid', searched_columns=['lastname'])
 
         self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
@@ -112,7 +111,7 @@ class TestContacts(unittest.TestCase):
     @with_user_uuid
     def test_that_no_searched_columns_does_not_search(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(
-            self.session, unique_column='uuid', searched_columns=[])
+            Session, unique_column='uuid', searched_columns=[])
 
         self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
@@ -121,11 +120,12 @@ class TestContacts(unittest.TestCase):
         assert_that(result, empty())
 
     def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
+        session = Session()
         for contact in contacts:
             dird_contact = database.Contact(user_uuid=xivo_user_uuid)
-            self.session.add(dird_contact)
-            self.session.flush()
+            session.add(dird_contact)
+            session.flush()
             for name, value in contact.iteritems():
                 field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
-                self.session.add(field)
-        self.session.flush()
+                session.add(field)
+        session.commit()

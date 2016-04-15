@@ -48,8 +48,8 @@ class ContactFields(Base):
 
 class PersonalContactSearchEngine(object):
 
-    def __init__(self, session, unique_column='id', searched_columns=None):
-        self._session = session
+    def __init__(self, Session, unique_column='id', searched_columns=None):
+        self._Session = Session
         self._unique_column = unique_column
         self._searched_columns = searched_columns or []
 
@@ -81,3 +81,7 @@ class PersonalContactSearchEngine(object):
         return and_(User.xivo_user_uuid == xivo_user_uuid,
                     ContactFields.value.ilike(pattern),
                     ContactFields.name.in_(self._searched_columns))
+
+    @property
+    def _session(self):
+        return self._Session()
