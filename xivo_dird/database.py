@@ -67,6 +67,9 @@ class PersonalContactSearchEngine(object):
         return self._find_personal_contacts_with_filter(filter_)
 
     def _find_personal_contacts_with_filter(self, filter_, limit=None):
+        if filter_ is False:
+            return []
+
         base_query = (self._session.query(distinct(ContactFields.contact_uuid))
                       .join(Contact)
                       .join(User)
