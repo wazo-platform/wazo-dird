@@ -48,16 +48,16 @@ class ContactFields(Base):
 
 class PersonalContactSearchEngine(object):
 
-    def __init__(self, session):
+    def __init__(self, session, unique_column='id', searched_columns=None):
         self._session = session
+        self._unique_column = unique_column
+        self._searched_columns = searched_columns or []
 
     def find_personal_contacts(self, xivo_user_uuid, term):
-        pattern = '%{}%'.format(term)
         query = (self._session.query(ContactFields.contact_uuid)
                  .join(Contact)
                  .join(User)
-                 .filter(and_(User.xivo_user_uuid == xivo_user_uuid,
-                              ContactFields.value.ilike(pattern))))
+                 .filter(self._new_search_filter(xivo_user_uuid, term)))
         matching_contacts = query.all()
 
         if not matching_contacts:
@@ -68,7 +68,16 @@ class PersonalContactSearchEngine(object):
         for contact_field in contact_fields:
             uuid = contact_field.contact_uuid
             if uuid not in result:
-                result[uuid] = {'id': uuid}
+                result[uuid] = {self._unique_column: uuid}
             result[uuid][contact_field.name] = contact_field.value
 
         return result.values()
+
+    def _new_search_filter(self, xivo_user_uuid, term):
+        if not self._searched_columns:
+            return False
+
+        pattern = '%{}%'.format(term)
+        return and_(User.xivo_user_uuid == xivo_user_uuid,
+                    ContactFields.value.ilike(pattern),
+                    ContactFields.name.in_(self._searched_columns))

@@ -20,7 +20,7 @@ import uuid
 import unittest
 import os
 
-from hamcrest import assert_that, contains
+from hamcrest import assert_that, contains, empty
 from mock import ANY
 
 from sqlalchemy.orm import sessionmaker
@@ -43,8 +43,8 @@ CONTACT_2 = {'firstname': 'Rain',
              'number': '5555550001'}
 
 
-def expected(contact):
-    result = {'id': ANY}
+def expected(contact, unique_column='id'):
+    result = {unique_column: ANY}
     result.update(contact)
     return result
 
@@ -79,13 +79,46 @@ class TestContacts(unittest.TestCase):
 
     @with_user_uuid
     def test_that_searching_for_a_contact_returns_its_fields(self, xivo_user_uuid):
-        engine = database.PersonalContactSearchEngine(self.session)
+        engine = database.PersonalContactSearchEngine(self.session, searched_columns=['firstname'])
 
         self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
         result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
 
         assert_that(result, contains(expected(CONTACT_2)))
+
+    @with_user_uuid
+    def test_that_the_unique_column_is_named_correctly(self, xivo_user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            self.session, unique_column='uuid', searched_columns=['firstname'])
+
+        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+
+        result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
+
+        assert_that(result, contains(expected(CONTACT_2, 'uuid')))
+
+    @with_user_uuid
+    def test_that_find_searches_only_in_searched_columns(self, xivo_user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            self.session, unique_column='uuid', searched_columns=['lastname'])
+
+        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+
+        result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
+
+        assert_that(result, empty())
+
+    @with_user_uuid
+    def test_that_no_searched_columns_does_not_search(self, xivo_user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            self.session, unique_column='uuid', searched_columns=[])
+
+        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+
+        result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
+
+        assert_that(result, empty())
 
     def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
         for contact in contacts:
