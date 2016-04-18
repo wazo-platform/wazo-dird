@@ -53,16 +53,15 @@ def expected(contact):
 
 
 def with_user_uuid(f):
-    uuid = new_uuid()
-
     @functools.wraps(f)
     def wrapped(self, *args, **kwargs):
-        user = database.User(xivo_user_uuid=uuid)
+        user_uuid = new_uuid()
+        user = database.User(xivo_user_uuid=user_uuid)
         session = Session()
         session.add(user)
         session.commit()
-        result = f(self, uuid, *args, **kwargs)
-        session.query(database.User).filter(database.User.xivo_user_uuid == uuid).delete()
+        result = f(self, user_uuid, *args, **kwargs)
+        session.query(database.User).filter(database.User.xivo_user_uuid == user_uuid).delete()
         session.commit()
         return result
     return wrapped
@@ -104,6 +103,14 @@ class TestContactCRUD(unittest.TestCase):
         assert_that(result, equal_to(expected(CONTACT_1)))
 
         contact_list = database.list_personal_contacts(self._session, owner)
+        assert_that(contact_list, contains(expected(CONTACT_1)))
+
+    @with_user_uuid
+    def test_that_create_personal_contact_creates_a_contact_with_an_existing_owner(self, xivo_user_uuid):
+        result = database.create_personal_contact(self._session, xivo_user_uuid, CONTACT_1)
+        assert_that(result, equal_to(expected(CONTACT_1)))
+
+        contact_list = database.list_personal_contacts(self._session, xivo_user_uuid)
         assert_that(contact_list, contains(expected(CONTACT_1)))
 
 

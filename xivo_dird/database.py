@@ -47,7 +47,7 @@ class ContactFields(Base):
 
 
 def _get_dird_user(session, xivo_user_uuid):
-    user = session.query(User).filter(xivo_user_uuid == xivo_user_uuid).first()
+    user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
     if user:
         return user
     else:
@@ -72,7 +72,7 @@ def _list_contacts_by_uuid(session, uuids):
 
 
 def list_personal_contacts(session, xivo_user_uuid):
-    contact_uuids = [uuid for (uuid,) in session.query(Contact.uuid).filter(Contact.user_uuid == xivo_user_uuid).all()]
+    contact_uuids = [uuid for (uuid,) in session.query(distinct(Contact.uuid)).filter(Contact.user_uuid == xivo_user_uuid).all()]
     return _list_contacts_by_uuid(session, contact_uuids)
 
 
