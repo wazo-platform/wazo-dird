@@ -46,11 +46,53 @@ class ContactFields(Base):
     contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
 
 
+def _get_dird_user(session, xivo_user_uuid):
+    user = session.query(User).filter(xivo_user_uuid == xivo_user_uuid).first()
+    if user:
+        return user
+    else:
+        user = User(xivo_user_uuid=xivo_user_uuid)
+        session.add(user)
+        session.flush()
+        return user
+
+
+def _list_contacts_by_uuid(session, uuids):
+    if not uuids:
+        return []
+
+    contact_fields = session.query(ContactFields).filter(ContactFields.contact_uuid.in_(uuids)).all()
+    result = {}
+    for contact_field in contact_fields:
+        uuid = contact_field.contact_uuid
+        if uuid not in result:
+            result[uuid] = {'id': uuid}
+        result[uuid][contact_field.name] = contact_field.value
+    return result.values()
+
+
+def list_personal_contacts(session, xivo_user_uuid):
+    contact_uuids = [uuid for (uuid,) in session.query(Contact.uuid).filter(Contact.user_uuid == xivo_user_uuid).all()]
+    return _list_contacts_by_uuid(session, contact_uuids)
+
+
+def create_personal_contact(session, xivo_user_uuid, contact_info):
+    user = _get_dird_user(session, xivo_user_uuid)
+    contact = Contact(user_uuid=user.xivo_user_uuid)
+    session.add(contact)
+    session.flush()
+    for name, value in contact_info.iteritems():
+        session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
+    session.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
+    session.commit()
+    contact_info['id'] = contact.uuid
+    return contact_info
+
+
 class PersonalContactSearchEngine(object):
 
-    def __init__(self, Session, unique_column='id', searched_columns=None, first_match_columns=None):
+    def __init__(self, Session, searched_columns=None, first_match_columns=None):
         self._Session = Session
-        self._unique_column = unique_column
         self._searched_columns = searched_columns or []
         self._first_match_columns = first_match_columns or []
 
@@ -79,23 +121,9 @@ class PersonalContactSearchEngine(object):
         else:
             query = base_query
 
-        uuids = [uuid for uuid in query.all()]
+        uuids = [uuid for (uuid,) in query.all()]
 
-        return self._list_contacts_by_uuid(uuids)
-
-    def _list_contacts_by_uuid(self, uuids):
-        if not uuids:
-            return []
-
-        contact_fields = self._session.query(ContactFields).filter(ContactFields.contact_uuid.in_(uuids)).all()
-        result = {}
-        for contact_field in contact_fields:
-            uuid = contact_field.contact_uuid
-            if uuid not in result:
-                result[uuid] = {self._unique_column: uuid}
-            result[uuid][contact_field.name] = contact_field.value
-
-        return result.values()
+        return _list_contacts_by_uuid(self._session, uuids)
 
     def _new_list_filter(self, xivo_user_uuid, uuids):
         if not uuids:

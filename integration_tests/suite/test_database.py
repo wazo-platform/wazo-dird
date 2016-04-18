@@ -20,11 +20,11 @@ import uuid
 import unittest
 import os
 
-from hamcrest import assert_that, any_of, contains, contains_inanyorder, empty
+from hamcrest import assert_that, any_of, contains, contains_inanyorder, empty, equal_to
 from mock import ANY
 
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from xivo_dird import database
 
@@ -46,8 +46,8 @@ CONTACT_3 = {'firstname': 'Foo',
              'number': '5555550001'}
 
 
-def expected(contact, unique_column='id'):
-    result = {unique_column: ANY}
+def expected(contact):
+    result = {'id': ANY}
     result.update(contact)
     return result
 
@@ -68,16 +68,50 @@ def with_user_uuid(f):
     return wrapped
 
 
+db_initialized = False
+
+
+def setup():
+    global db_initialized
+    if db_initialized is True:
+        return
+
+    db_uri = os.getenv('DB_URI', None)
+    engine = create_engine(db_uri)
+    database.Base.metadata.bind = engine
+    database.Base.metadata.reflect()
+    database.Base.metadata.drop_all()
+    database.Base.metadata.create_all()
+    db_initialized = True
+
+
+class TestContactCRUD(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        setup()
+
+    def setUp(self):
+        self._session = Session()
+
+    def tearDown(self):
+        self._session.close()
+
+    def test_that_create_personal_contact_creates_a_contact_and_the_owner(self):
+        owner = new_uuid()
+
+        result = database.create_personal_contact(self._session, owner, CONTACT_1)
+        assert_that(result, equal_to(expected(CONTACT_1)))
+
+        contact_list = database.list_personal_contacts(self._session, owner)
+        assert_that(contact_list, contains(expected(CONTACT_1)))
+
+
 class TestPersonalContactSearchEngine(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        db_uri = os.getenv('DB_URI', None)
-        engine = create_engine(db_uri)
-        database.Base.metadata.bind = engine
-        database.Base.metadata.reflect()
-        database.Base.metadata.drop_all()
-        database.Base.metadata.create_all()
+        setup()
 
     @with_user_uuid
     def test_that_find_first_returns_a_contact(self, xivo_user_uuid):
@@ -135,20 +169,8 @@ class TestPersonalContactSearchEngine(unittest.TestCase):
         assert_that(result, contains(expected(CONTACT_2)))
 
     @with_user_uuid
-    def test_that_the_unique_column_is_named_correctly(self, xivo_user_uuid):
-        engine = database.PersonalContactSearchEngine(
-            Session, unique_column='uuid', searched_columns=['firstname'])
-
-        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
-
-        result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
-
-        assert_that(result, contains(expected(CONTACT_2, 'uuid')))
-
-    @with_user_uuid
     def test_that_find_searches_only_in_searched_columns(self, xivo_user_uuid):
-        engine = database.PersonalContactSearchEngine(
-            Session, unique_column='uuid', searched_columns=['lastname'])
+        engine = database.PersonalContactSearchEngine(Session, searched_columns=['lastname'])
 
         self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
@@ -158,8 +180,7 @@ class TestPersonalContactSearchEngine(unittest.TestCase):
 
     @with_user_uuid
     def test_that_no_searched_columns_does_not_search(self, xivo_user_uuid):
-        engine = database.PersonalContactSearchEngine(
-            Session, unique_column='uuid', searched_columns=[])
+        engine = database.PersonalContactSearchEngine(Session, searched_columns=[])
 
         self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
 
