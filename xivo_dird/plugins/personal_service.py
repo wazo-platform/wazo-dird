@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,24 +16,27 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
-import uuid
 
 from consul import ConsulException
 from contextlib import contextmanager
 from requests.exceptions import RequestException
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo_dird import BaseServicePlugin
+from xivo_dird import database
 from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
 from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
 from xivo_dird.core.consul import dict_from_consul
 from xivo_dird.core.consul import dict_to_consul
-from xivo_dird.core.consul import ls_from_consul
 from xivo_dird.core.consul import new_consul
 
 logger = logging.getLogger(__name__)
 
 
 UNIQUE_COLUMN = 'id'
+
+Session = scoped_session(sessionmaker())
 
 
 class PersonalServicePlugin(BaseServicePlugin):
@@ -47,6 +50,9 @@ class PersonalServicePlugin(BaseServicePlugin):
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
+        db_uri = 'postgresql://asterisk:proformatique@localhost/asterisk'
+        engine = create_engine(db_uri)
+        Session.configure(bind=engine)
         return _PersonalService(config, sources)
 
 
@@ -73,8 +79,7 @@ class _PersonalService(object):
 
     def create_contact(self, contact_infos, token_infos):
         self.validate_contact(contact_infos)
-        contact_id = str(uuid.uuid4())
-        return self._create_contact(contact_id, contact_infos, token_infos)
+        return database.create_personal_contact(Session(), token_infos['xivo_user_uuid'], contact_infos)
 
     def get_contact(self, contact_id, token_infos):
         with self._consul(token=token_infos['token']) as consul:
@@ -107,25 +112,12 @@ class _PersonalService(object):
             consul.kv.delete(consul_key, recurse=True)
 
     def list_contacts(self, token_infos):
-        user_uuid = token_infos['auth_id']
-        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
-        with self._consul(token_infos['token']) as consul:
-            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
-            contact_ids = ls_from_consul(consul_key, contact_keys)
-            contacts = self._source.list(contact_ids, {'token_infos': token_infos})
-        return contacts
+        contacts = database.list_personal_contacts(Session(), token_infos['xivo_user_uuid'])
+        formatted_contacts = self._source.format_contacts(contacts)
+        return formatted_contacts
 
     def list_contacts_raw(self, token_infos):
-        user_uuid = token_infos['auth_id']
-        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
-        contacts = []
-        with self._consul(token=token_infos['token']) as consul:
-            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
-            contact_keys = contact_keys or []
-            for key_prefix in contact_keys:
-                _, consul_dict = consul.kv.get(key_prefix, recurse=True)
-                contacts.append(dict_from_consul(key_prefix, consul_dict))
-        return contacts
+        return database.list_personal_contacts(Session(), token_infos['xivo_user_uuid'])
 
     @contextmanager
     def _consul(self, token):

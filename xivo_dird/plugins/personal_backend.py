@@ -52,7 +52,6 @@ class PersonalBackend(BaseSourcePlugin):
         engine = create_engine(db_uri)
         Session.configure(bind=engine)
         self._search_engine = database.PersonalContactSearchEngine(Session,
-                                                                   unique_column,
                                                                    searched_columns,
                                                                    first_match_columns)
 
@@ -61,23 +60,23 @@ class PersonalBackend(BaseSourcePlugin):
         # TODO: make this the xivo_user_uuid
         user_uuid = args['auth_id']
         matching_contacts = self._search_engine.find_personal_contacts(user_uuid, term)
-        return self._format_contacts(matching_contacts)
+        return self.format_contacts(matching_contacts)
 
     def first_match(self, term, args=None):
         logger.debug('First matching personal contacts with %s', term)
         # TODO: make this the xivo_user_uuid
         user_uuid = args['auth_id']
         matching_contacts = self._search_engine.find_first_personal_contact(user_uuid, term)
-        return self._format_contacts(matching_contacts)
+        return self.format_contacts(matching_contacts)
 
     def list(self, source_entry_ids, args):
         logger.debug('Listing personal contacts')
         # TODO: make this the xivo_user_uuid
         user_uuid = args['token_infos']['auth_id']
         matching_contacts = self._search_engine.list_personal_contacts(user_uuid, source_entry_ids)
-        return self._format_contacts(matching_contacts)
+        return self.format_contacts(matching_contacts)
 
-    def _format_contacts(self, contacts):
+    def format_contacts(self, contacts):
         return [self._SourceResult(contact) for contact in contacts]
 
     @staticmethod
