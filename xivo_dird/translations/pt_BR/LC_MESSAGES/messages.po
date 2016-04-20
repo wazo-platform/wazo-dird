@@ -3,14 +3,15 @@
 # This file is distributed under the same license as the xivo-dird project.
 # 
 # Translators:
+# Mike Vidal <mikenit.waze@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: XiVO\n"
 "Report-Msgid-Bugs-To: dev@avencall.com\n"
 "POT-Creation-Date: 2015-10-06 09:46-0400\n"
-"PO-Revision-Date: 2015-11-16 18:58+0000\n"
-"Last-Translator: XiVO Dev Team <dev@avencall.com>\n"
-"Language-Team: Portuguese (Brazil) (http://www.transifex.com/avencall/xivo/language/pt_BR/)\n"
+"PO-Revision-Date: 2016-04-16 23:08+0000\n"
+"Last-Translator: Mike Vidal <mikenit.waze@gmail.com>\n"
+"Language-Team: Portuguese (Brazil) (http://www.transifex.com/proformatique/xivo/language/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -24,18 +25,18 @@ msgstr ""
 #: xivo_dird/plugins/templates/polycom_results.jinja:4
 #: xivo_dird/plugins/templates/snom_input.jinja:3
 msgid "XiVO Search"
-msgstr ""
+msgstr "Procurar XiVO"
 
 #: xivo_dird/plugins/templates/aastra_input.jinja:4
 #: xivo_dird/plugins/templates/polycom_input.jinja:9
 #: xivo_dird/plugins/templates/snom_input.jinja:4
 msgid "Name or number:"
-msgstr ""
+msgstr "Nome ou número:"
 
 #: xivo_dird/plugins/templates/aastra_results.jinja:5
 #: xivo_dird/plugins/templates/polycom_results.jinja:9
 msgid "Previous Page"
-msgstr ""
+msgstr "Pag Anterior"
 
 #: xivo_dird/plugins/templates/aastra_results.jinja:17
 #: xivo_dird/plugins/templates/cisco_results.jinja:10
@@ -44,41 +45,41 @@ msgstr ""
 #: xivo_dird/plugins/templates/thomson_results.jinja:10
 #: xivo_dird/plugins/templates/yealink_results.jinja:10
 msgid "No entries"
-msgstr ""
+msgstr "Sem resultado"
 
 #: xivo_dird/plugins/templates/aastra_results.jinja:24
 #: xivo_dird/plugins/templates/polycom_results.jinja:19
 msgid "Next Page"
-msgstr ""
+msgstr "Próxima pag"
 
 #: xivo_dird/plugins/templates/cisco_input.jinja:4
 #: xivo_dird/plugins/templates/cisco_input.jinja:7
 #: xivo_dird/plugins/templates/snom_input.jinja:7
 msgid "Name or number"
-msgstr ""
+msgstr "Nome ou número"
 
 #: xivo_dird/plugins/templates/cisco_menu.jinja:4
 msgid "XiVO Directory"
-msgstr ""
+msgstr "Diretório XiVO"
 
 #: xivo_dird/plugins/templates/cisco_results.jinja:17
 msgid "Dial"
-msgstr ""
+msgstr "Discar"
 
 #: xivo_dird/plugins/templates/cisco_results.jinja:24
 #: xivo_dird/plugins/templates/snom_results.jinja:17
 msgid "PrevPage"
-msgstr ""
+msgstr "PagAnt"
 
 #: xivo_dird/plugins/templates/cisco_results.jinja:31
 msgid "Exit"
-msgstr ""
+msgstr "Sair"
 
 #: xivo_dird/plugins/templates/cisco_results.jinja:38
 #: xivo_dird/plugins/templates/snom_results.jinja:25
 msgid "NextPage"
-msgstr ""
+msgstr "ProxPag"
 
 #: xivo_dird/plugins/templates/polycom_input.jinja:13
 msgid "Search"
-msgstr ""
+msgstr "Procurar"
