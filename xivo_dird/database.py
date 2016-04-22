@@ -21,6 +21,12 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
+class NoSuchPersonalContact(ValueError):
+    def __init__(self, contact_id):
+        message = "No such personal contact: {}".format(contact_id)
+        ValueError.__init__(self, message)
+
+
 class User(Base):
 
     __tablename__ = 'dird_user'
@@ -87,6 +93,29 @@ def create_personal_contact(session, xivo_user_uuid, contact_info):
     session.commit()
     contact_info['id'] = contact.uuid
     return contact_info
+
+
+def get_personal_contact(session, xivo_user_uuid, contact_uuid):
+    filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
+                   ContactFields.contact_uuid == contact_uuid)
+    contact_uuids = (session.query(distinct(ContactFields.contact_uuid))
+                     .join(Contact)
+                     .join(User)
+                     .filter(filter_))
+
+    for contact in _list_contacts_by_uuid(session, contact_uuids):
+        return contact
+
+    raise NoSuchPersonalContact(contact_uuid)
+
+
+def delete_personal_contact(session, xivo_user_uuid, contact_uuid):
+    filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
+                   ContactFields.contact_uuid == contact_uuid)
+    contacts = session.query(Contact).join(ContactFields).join(User).filter(filter_).all()
+    for contact in contacts:
+        session.delete(contact)
+    session.commit()
 
 
 class PersonalContactSearchEngine(object):

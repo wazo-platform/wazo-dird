@@ -20,7 +20,15 @@ import uuid
 import unittest
 import os
 
-from hamcrest import assert_that, any_of, contains, contains_inanyorder, empty, equal_to
+from hamcrest import (assert_that,
+                      any_of,
+                      calling,
+                      contains,
+                      contains_inanyorder,
+                      empty,
+                      equal_to,
+                      not_,
+                      raises)
 from mock import ANY
 
 from sqlalchemy.engine import create_engine
@@ -84,7 +92,24 @@ def setup():
     db_initialized = True
 
 
-class TestContactCRUD(unittest.TestCase):
+class _BaseTest(unittest.TestCase):
+
+    def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
+        ids = []
+        session = Session()
+        for contact in contacts:
+            dird_contact = database.Contact(user_uuid=xivo_user_uuid)
+            session.add(dird_contact)
+            session.flush()
+            ids.append(dird_contact.uuid)
+            for name, value in contact.iteritems():
+                field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
+                session.add(field)
+        session.commit()
+        return ids
+
+
+class TestContactCRUD(_BaseTest):
 
     @classmethod
     def setUpClass(cls):
@@ -113,8 +138,43 @@ class TestContactCRUD(unittest.TestCase):
         contact_list = database.list_personal_contacts(self._session, xivo_user_uuid)
         assert_that(contact_list, contains(expected(CONTACT_1)))
 
+    @with_user_uuid
+    def test_get_personal_contact(self, xivo_user_uuid):
+        contact_uuid, _, __ = self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2, CONTACT_3)
 
-class TestPersonalContactSearchEngine(unittest.TestCase):
+        result = database.get_personal_contact(self._session, xivo_user_uuid, contact_uuid)
+
+        assert_that(result, equal_to(expected(CONTACT_1)))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_get_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
+        contact_uuid, _, __ = self._insert_personal_contacts(user_1_uuid, CONTACT_1, CONTACT_2, CONTACT_3)
+
+        assert_that(calling(database.get_personal_contact).with_args(self._session, user_2_uuid, contact_uuid),
+                    raises(database.NoSuchPersonalContact))
+
+    @with_user_uuid
+    def test_delete_personal_contact(self, xivo_user_uuid):
+        contact_uuid, = self._insert_personal_contacts(xivo_user_uuid, CONTACT_1)
+
+        database.delete_personal_contact(self._session, xivo_user_uuid, contact_uuid)
+
+        assert_that(calling(database.get_personal_contact).with_args(self._session, xivo_user_uuid, contact_uuid),
+                    raises(database.NoSuchPersonalContact))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_delete_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
+        contact_uuid, = self._insert_personal_contacts(user_1_uuid, CONTACT_1)
+
+        database.delete_personal_contact(self._session, user_2_uuid, contact_uuid)
+
+        assert_that(calling(database.get_personal_contact).with_args(self._session, user_1_uuid, contact_uuid),
+                    not_(raises(database.NoSuchPersonalContact)))
+
+
+class TestPersonalContactSearchEngine(_BaseTest):
 
     @classmethod
     def setUpClass(cls):
@@ -194,17 +254,3 @@ class TestPersonalContactSearchEngine(unittest.TestCase):
         result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
 
         assert_that(result, empty())
-
-    def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
-        ids = []
-        session = Session()
-        for contact in contacts:
-            dird_contact = database.Contact(user_uuid=xivo_user_uuid)
-            session.add(dird_contact)
-            session.flush()
-            ids.append(dird_contact.uuid)
-            for name, value in contact.iteritems():
-                field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
-                session.add(field)
-        session.commit()
-        return ids
