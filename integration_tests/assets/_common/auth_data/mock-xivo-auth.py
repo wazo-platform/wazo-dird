@@ -24,7 +24,7 @@ app = Flask(__name__)
 
 port = int(sys.argv[1])
 
-context = ('/etc/ssl/server.crt', '/etc/ssl/server.key')
+context = ('/usr/local/share/ssl/auth/server.crt', '/usr/local/share/ssl/auth/server.key')
 
 tokens = {'valid-token': 'uuid',
           'valid-token-1': 'uuid-1',
