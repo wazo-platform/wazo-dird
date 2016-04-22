@@ -173,6 +173,21 @@ class TestContactCRUD(_BaseTest):
         assert_that(calling(database.get_personal_contact).with_args(self._session, user_1_uuid, contact_uuid),
                     not_(raises(database.NoSuchPersonalContact)))
 
+    @with_user_uuid
+    @with_user_uuid
+    def test_delete_all_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
+        contact_uuid_1, = self._insert_personal_contacts(user_1_uuid, CONTACT_1)
+        contact_uuid_2, contact_uuid_3 = self._insert_personal_contacts(user_2_uuid, CONTACT_2, CONTACT_3)
+
+        database.delete_all_personal_contacts(self._session, user_2_uuid)
+
+        assert_that(calling(database.get_personal_contact).with_args(self._session, user_1_uuid, contact_uuid_1),
+                    not_(raises(database.NoSuchPersonalContact)))
+        assert_that(calling(database.get_personal_contact).with_args(self._session, user_2_uuid, contact_uuid_2),
+                    raises(database.NoSuchPersonalContact))
+        assert_that(calling(database.get_personal_contact).with_args(self._session, user_2_uuid, contact_uuid_3),
+                    raises(database.NoSuchPersonalContact))
+
 
 class TestPersonalContactSearchEngine(_BaseTest):
 

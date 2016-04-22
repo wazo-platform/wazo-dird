@@ -109,6 +109,14 @@ def get_personal_contact(session, xivo_user_uuid, contact_uuid):
     raise NoSuchPersonalContact(contact_uuid)
 
 
+def delete_all_personal_contacts(session, xivo_user_uuid):
+    filter_ = User.xivo_user_uuid == xivo_user_uuid
+    contacts = session.query(Contact).join(User).filter(filter_).all()
+    for contact in contacts:
+        session.delete(contact)
+    session.commit()
+
+
 def delete_personal_contact(session, xivo_user_uuid, contact_uuid):
     filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
                    ContactFields.contact_uuid == contact_uuid)
