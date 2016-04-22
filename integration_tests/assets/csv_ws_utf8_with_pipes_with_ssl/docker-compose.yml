@@ -18,6 +18,7 @@ dird:
   volumes:
     - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
     - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"
+    - "../../..:/usr/src/xivo-dird"
     - "../_common/ssl:/etc/ssl"
 ws:
   image: p0bailey/docker-flask

@@ -14,6 +14,7 @@ dird:
   volumes:
     - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
     - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"
+    - "../../..:/usr/src/xivo-dird"
     - "./ssl:/etc/ssl"
   links:
     - auth
