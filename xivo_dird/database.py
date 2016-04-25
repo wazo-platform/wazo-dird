@@ -111,15 +111,16 @@ def get_personal_contact(session, xivo_user_uuid, contact_uuid):
 
 def delete_all_personal_contacts(session, xivo_user_uuid):
     filter_ = User.xivo_user_uuid == xivo_user_uuid
-    contacts = session.query(Contact).join(User).filter(filter_).all()
-    for contact in contacts:
-        session.delete(contact)
-    session.commit()
+    return _delete_personal_contacts_with_filter(session, filter_)
 
 
 def delete_personal_contact(session, xivo_user_uuid, contact_uuid):
     filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
                    ContactFields.contact_uuid == contact_uuid)
+    return _delete_personal_contacts_with_filter(session, filter_)
+
+
+def _delete_personal_contacts_with_filter(session, filter_):
     contacts = session.query(Contact).join(ContactFields).join(User).filter(filter_).all()
     for contact in contacts:
         session.delete(contact)

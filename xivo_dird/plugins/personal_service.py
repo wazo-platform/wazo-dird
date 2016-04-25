@@ -17,19 +17,11 @@
 
 import logging
 
-from consul import ConsulException
-from contextlib import contextmanager
-from requests.exceptions import RequestException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo_dird import BaseServicePlugin
 from xivo_dird import database
-from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
-from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
-from xivo_dird.core.consul import dict_from_consul
-from xivo_dird.core.consul import dict_to_consul
-from xivo_dird.core.consul import new_consul
 
 logger = logging.getLogger(__name__)
 
@@ -58,13 +50,10 @@ class PersonalServicePlugin(BaseServicePlugin):
 
 class _PersonalService(object):
 
+    NoSuchPersonalContact = database.NoSuchPersonalContact
+
     class PersonalServiceException(Exception):
         pass
-
-    class NoSuchPersonalContact(ValueError):
-        def __init__(self, contact_id):
-            message = "No such personal contact: {}".format(contact_id)
-            ValueError.__init__(self, message)
 
     class InvalidPersonalContact(ValueError):
         def __init__(self, errors):
@@ -82,34 +71,20 @@ class _PersonalService(object):
         return database.create_personal_contact(Session(), token_infos['xivo_user_uuid'], contact_infos)
 
     def get_contact(self, contact_id, token_infos):
-        with self._consul(token=token_infos['token']) as consul:
-            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise self.NoSuchPersonalContact(contact_id)
-            consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
-                                                     contact_uuid=contact_id)
-            _, consul_dict = consul.kv.get(consul_key, recurse=True)
-        return dict_from_consul(consul_key, consul_dict)
+        return database.get_personal_contact(Session(), token_infos['xivo_user_uuid'], contact_id)
 
     def edit_contact(self, contact_id, contact_infos, token_infos):
         self.validate_contact(contact_infos)
-        with self._consul(token=token_infos['token']) as consul:
-            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise self.NoSuchPersonalContact(contact_id)
-        self.remove_contact(contact_id, token_infos)
-        return self._create_contact(contact_id, contact_infos, token_infos)
+        session = Session()
+        user_uuid = token_infos['xivo_user_uuid']
+        database.delete_personal_contact(session, user_uuid, contact_infos['id'])
+        return database.create_personal_contact(session, user_uuid, contact_infos)
 
     def remove_contact(self, contact_id, token_infos):
-        with self._consul(token=token_infos['token']) as consul:
-            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise self.NoSuchPersonalContact(contact_id)
-            consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
-                                                     contact_uuid=contact_id)
-            consul.kv.delete(consul_key, recurse=True)
+        database.delete_personal_contact(Session(), token_infos['xivo_user_uuid'], contact_id)
 
     def purge_contacts(self, token_infos):
-        with self._consul(token=token_infos['token']) as consul:
-            consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=token_infos['auth_id'],)
-            consul.kv.delete(consul_key, recurse=True)
+        database.delete_all_personal_contacts(Session(), token_infos['xivo_user_uuid'])
 
     def list_contacts(self, token_infos):
         contacts = database.list_personal_contacts(Session(), token_infos['xivo_user_uuid'])
@@ -118,31 +93,6 @@ class _PersonalService(object):
 
     def list_contacts_raw(self, token_infos):
         return database.list_personal_contacts(Session(), token_infos['xivo_user_uuid'])
-
-    @contextmanager
-    def _consul(self, token):
-        try:
-            yield new_consul(self._config, token=token)
-        except ConsulException as e:
-            raise self.PersonalServiceException('Error from Consul: {}'.format(str(e)))
-        except RequestException as e:
-            raise self.PersonalServiceException('Error while connecting to Consul: {}'.format(str(e)))
-
-    def _contact_exists(self, consul, user_uuid, contact_id):
-        consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=user_uuid,
-                                                 contact_uuid=contact_id)
-        _, result = consul.kv.get(consul_key, keys=True)
-        return result is not None
-
-    def _create_contact(self, contact_id, contact_infos, token_infos):
-        result = dict(contact_infos)
-        result[UNIQUE_COLUMN] = contact_id
-        with self._consul(token=token_infos['token']) as consul:
-            prefix = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
-                                                 contact_uuid=contact_id)
-            for consul_key, value in dict_to_consul(prefix, result).iteritems():
-                consul.kv.put(consul_key, value)
-        return result
 
     @staticmethod
     def validate_contact(contact_infos):
