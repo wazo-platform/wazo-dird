@@ -26,7 +26,8 @@ _DEFAULT_HTTPS_PORT = 9489
 _DEFAULT_CONFIG = {
     'auth': {
         'host': 'localhost',
-        'port': 9497
+        'port': 9497,
+        'verify_certificate': '/usr/share/xivo-certs/server.crt'
     },
     'config_file': '/etc/xivo-dird/config.yml',
     'consul': {
