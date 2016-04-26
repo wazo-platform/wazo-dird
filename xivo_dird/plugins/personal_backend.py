@@ -76,9 +76,9 @@ class PersonalBackend(BaseSourcePlugin):
     def _new_search_engine(self, db_uri, searched_columns, first_match_columns):
         engine = create_engine(db_uri)
         Session.configure(bind=engine)
-        self._search_engine = database.PersonalContactSearchEngine(Session,
-                                                                   searched_columns,
-                                                                   first_match_columns)
+        return database.PersonalContactSearchEngine(Session,
+                                                    searched_columns,
+                                                    first_match_columns)
 
     @staticmethod
     def _remove_empty_values(dict_):

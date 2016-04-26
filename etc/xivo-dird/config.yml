@@ -8,6 +8,9 @@ extra_config_files: /etc/xivo-dird/conf.d/
 
 source_config_dir: /etc/xivo-dird/sources.d
 
+# Database use for the storage of personal contacts and favorites
+db_uri: postgresql://asterisk:proformatique@localhost/asterisk
+
 # REST API server
 rest_api:
 

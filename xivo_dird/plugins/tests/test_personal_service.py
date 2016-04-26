@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,21 +17,27 @@
 
 import unittest
 
+from uuid import uuid4
 from hamcrest import assert_that
 from hamcrest import equal_to
-from hamcrest import greater_than
 from hamcrest import not_
 from hamcrest import none
-from hamcrest import has_entry
 from hamcrest import is_
 from mock import Mock
 from mock import patch
 from mock import sentinel as s
+
+from xivo_dird import database
 from xivo_dird.plugins.personal_service import PersonalServicePlugin
 from xivo_dird.plugins.personal_service import _PersonalService
 
+SOME_UUID = str(uuid4())
+
 
 class TestPersonalServicePlugin(unittest.TestCase):
+
+    def setUp(self):
+        self._crud = Mock(database.PersonalContactCRUD)
 
     def test_load_no_config(self):
         plugin = PersonalServicePlugin()
@@ -40,100 +46,73 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
     def test_that_load_returns_a_service(self):
         plugin = PersonalServicePlugin()
+        plugin._new_personal_contact_crud = Mock()
 
-        service = plugin.load({'config': s.config, 'sources': {}})
+        service = plugin.load({'config': {'db_uri': s.db_uri}, 'sources': {}})
 
         assert_that(service, not_(none()))
 
     @patch('xivo_dird.plugins.personal_service._PersonalService')
     def test_that_load_injects_config_and_sources_to_the_service(self, MockedPersonalService):
         plugin = PersonalServicePlugin()
+        plugin._new_personal_contact_crud = Mock()
 
-        service = plugin.load({'config': s.config, 'sources': {}})
+        config = {'db_uri': s.db_uri}
+        service = plugin.load({'config': config, 'sources': {}})
 
-        MockedPersonalService.assert_called_once_with(s.config, {})
+        MockedPersonalService.assert_called_once_with(config, {}, plugin._new_personal_contact_crud.return_value)
         assert_that(service, equal_to(MockedPersonalService.return_value))
 
-    @patch('xivo_dird.plugins.personal_service.new_consul')
-    def test_that_create_contact_calls_consul_put(self, consul_init):
-        consul = consul_init.return_value
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+    def test_that_create_contact_calls_crud_create_contact(self):
+        service = _PersonalService({}, {}, crud=self._crud)
 
-        service.create_contact({'eyes': 'violet'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        service.create_contact({'eyes': 'violet'}, {'token': 'valid-token',
+                                                    'xivo_user_uuid': SOME_UUID})
 
-        assert_that(consul.kv.put.call_count, greater_than(0))
+        self._crud.create_personal_contact.assert_called_once_with(SOME_UUID, {'eyes': 'violet'})
 
-    @patch('xivo_dird.plugins.personal_service.new_consul')
-    def test_that_list_contacts_calls_consul_get(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = (Mock(), ['/my/key/', 'my/other/key/'])
-        source = Mock(backend='personal')
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {'personal': source})
+    def test_that_list_contacts_calls_crud_list_personal_contacts(self):
+        service = _PersonalService({}, {'personal': Mock(backend='personal')}, crud=self._crud)
 
-        service.list_contacts({'token': 'valid-token', 'auth_id': 'my-uuid'})
+        service.list_contacts({'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 
-        assert_that(consul.kv.get.call_count, greater_than(0))
+        self._crud.list_personal_contacts.assert_called_once_with(SOME_UUID)
 
-    @patch('xivo_dird.plugins.personal_service.new_consul')
-    def test_that_list_contacts_raw_calls_consul_get(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = (Mock(), [])
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+    def test_that_list_contacts_raw_calls_crud_list_personal_contacts(self):
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
 
-        service.list_contacts_raw({'token': 'valid-token', 'auth_id': 'my-uuid'})
+        service.list_contacts_raw({'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 
-        assert_that(consul.kv.get.call_count, greater_than(0))
+        self._crud.list_personal_contacts.assert_called_once_with(SOME_UUID)
 
-    @patch('xivo_dird.plugins.personal_service.new_consul')
-    def test_that_get_contact_calls_consul_get(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = (Mock(), [])
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+    def test_that_get_contact_calls_crud_get_personal_contact(self):
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
 
-        service.get_contact('contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        service.get_contact('contact-id', {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 
-        assert_that(consul.kv.get.call_count, greater_than(0))
+        self._crud.get_personal_contact.assert_called_once_with(SOME_UUID, 'contact-id')
 
-    @patch('xivo_dird.plugins.personal_service.new_consul')
-    def test_that_edit_contact_calls_consul_put(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = (Mock(), [])
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+    def test_that_edit_contact_calls_crud_edit_contact(self):
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
 
-        service.edit_contact('contact-id', {'firstname': 'Alice'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        service.edit_contact('contact-id', {'firstname': 'Alice'}, {'token': 'valid-token',
+                                                                    'xivo_user_uuid': SOME_UUID})
 
-        assert_that(consul.kv.put.call_count, greater_than(0))
+        self._crud.edit_personal_contact.assert_called_once_with(SOME_UUID, 'contact-id', {'firstname': 'Alice'})
 
-    @patch('xivo_dird.plugins.personal_service.new_consul')
-    def test_that_edit_contact_does_not_accept_modifying_contact_id(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = (Mock(), [])
-        consul.kv.put.return_value = (Mock(), [])
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+    def test_that_remove_contact_calls_crud_delete_personal_contact(self):
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
 
-        result = service.edit_contact('contact-id', {'id': 'new-id', 'firstname': 'Alice'}, {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        service.remove_contact('my-contact-id', {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 
-        assert_that(result, has_entry('id', 'contact-id'))
+        self._crud.delete_personal_contact.assert_called_once_with(SOME_UUID, 'my-contact-id')
 
-    @patch('xivo_dird.plugins.personal_service.new_consul')
-    def test_that_remove_contact_calls_consul_delete(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = (Mock(), [])
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
+    def test_that_purge_contacts_calls_crud_delete_all_personal_contacts(self):
+        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
 
-        service.remove_contact('my-contact-id', {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        service.purge_contacts({'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 
-        assert_that(consul.kv.delete.call_count, greater_than(0))
-
-    @patch('xivo_dird.plugins.personal_service.new_consul')
-    def test_that_purge_contacts_calls_consul_delete(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = (Mock(), [])
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {})
-
-        service.purge_contacts({'token': 'valid-token', 'auth_id': 'my-uuid'})
-
-        assert_that(consul.kv.delete.call_count, greater_than(0))
+        self._crud.delete_all_personal_contacts(SOME_UUID)
 
 
 class TestValidateContact(unittest.TestCase):

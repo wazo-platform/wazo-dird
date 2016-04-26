@@ -28,8 +28,6 @@ logger = logging.getLogger(__name__)
 
 UNIQUE_COLUMN = 'id'
 
-Session = scoped_session(sessionmaker())
-
 
 class PersonalServicePlugin(BaseServicePlugin):
 
@@ -42,10 +40,15 @@ class PersonalServicePlugin(BaseServicePlugin):
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
-        db_uri = 'postgresql://asterisk:proformatique@localhost/asterisk'
+        crud = self._new_personal_contact_crud(config['db_uri'])
+
+        return _PersonalService(config, sources, crud)
+
+    def _new_personal_contact_crud(self, db_uri):
+        self._Session = scoped_session(sessionmaker())
         engine = create_engine(db_uri)
-        Session.configure(bind=engine)
-        return _PersonalService(config, sources)
+        self._Session.configure(bind=engine)
+        return database.PersonalContactCRUD(self._Session)
 
 
 class _PersonalService(object):
@@ -61,38 +64,36 @@ class _PersonalService(object):
             ValueError.__init__(self, message)
             self.errors = errors
 
-    def __init__(self, config, sources):
+    def __init__(self, config, sources, crud):
+        self._crud = crud
         self._config = config
         self._source = next((source for source in sources.itervalues() if source.backend == 'personal'),
                             DisabledPersonalSource())
 
     def create_contact(self, contact_infos, token_infos):
         self.validate_contact(contact_infos)
-        return database.create_personal_contact(Session(), token_infos['xivo_user_uuid'], contact_infos)
+        return self._crud.create_personal_contact(token_infos['xivo_user_uuid'], contact_infos)
 
     def get_contact(self, contact_id, token_infos):
-        return database.get_personal_contact(Session(), token_infos['xivo_user_uuid'], contact_id)
+        return self._crud.get_personal_contact(token_infos['xivo_user_uuid'], contact_id)
 
     def edit_contact(self, contact_id, contact_infos, token_infos):
         self.validate_contact(contact_infos)
-        session = Session()
-        user_uuid = token_infos['xivo_user_uuid']
-        database.delete_personal_contact(session, user_uuid, contact_infos['id'])
-        return database.create_personal_contact(session, user_uuid, contact_infos)
+        return self._crud.edit_personal_contact(token_infos['xivo_user_uuid'], contact_id, contact_infos)
 
     def remove_contact(self, contact_id, token_infos):
-        database.delete_personal_contact(Session(), token_infos['xivo_user_uuid'], contact_id)
+        self._crud.delete_personal_contact(token_infos['xivo_user_uuid'], contact_id)
 
     def purge_contacts(self, token_infos):
-        database.delete_all_personal_contacts(Session(), token_infos['xivo_user_uuid'])
+        self._crud.delete_all_personal_contacts(token_infos['xivo_user_uuid'])
 
     def list_contacts(self, token_infos):
-        contacts = database.list_personal_contacts(Session(), token_infos['xivo_user_uuid'])
+        contacts = self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
         formatted_contacts = self._source.format_contacts(contacts)
         return formatted_contacts
 
     def list_contacts_raw(self, token_infos):
-        return database.list_personal_contacts(Session(), token_infos['xivo_user_uuid'])
+        return self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
 
     @staticmethod
     def validate_contact(contact_infos):

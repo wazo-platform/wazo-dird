@@ -115,33 +115,30 @@ class _BaseTest(unittest.TestCase):
 class TestContactCRUD(_BaseTest):
 
     def setUp(self):
-        self._session = Session()
-
-    def tearDown(self):
-        self._session.close()
+        self._crud = database.PersonalContactCRUD(Session)
 
     def test_that_create_personal_contact_creates_a_contact_and_the_owner(self):
         owner = new_uuid()
 
-        result = database.create_personal_contact(self._session, owner, CONTACT_1)
+        result = self._crud.create_personal_contact(owner, CONTACT_1)
         assert_that(result, equal_to(expected(CONTACT_1)))
 
-        contact_list = database.list_personal_contacts(self._session, owner)
+        contact_list = self._crud.list_personal_contacts(owner)
         assert_that(contact_list, contains(expected(CONTACT_1)))
 
     @with_user_uuid
     def test_that_create_personal_contact_creates_a_contact_with_an_existing_owner(self, xivo_user_uuid):
-        result = database.create_personal_contact(self._session, xivo_user_uuid, CONTACT_1)
+        result = self._crud.create_personal_contact(xivo_user_uuid, CONTACT_1)
         assert_that(result, equal_to(expected(CONTACT_1)))
 
-        contact_list = database.list_personal_contacts(self._session, xivo_user_uuid)
+        contact_list = self._crud.list_personal_contacts(xivo_user_uuid)
         assert_that(contact_list, contains(expected(CONTACT_1)))
 
     @with_user_uuid
     def test_get_personal_contact(self, xivo_user_uuid):
         contact_uuid, _, __ = self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2, CONTACT_3)
 
-        result = database.get_personal_contact(self._session, xivo_user_uuid, contact_uuid)
+        result = self._crud.get_personal_contact(xivo_user_uuid, contact_uuid)
 
         assert_that(result, equal_to(expected(CONTACT_1)))
 
@@ -150,16 +147,16 @@ class TestContactCRUD(_BaseTest):
     def test_get_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
         contact_uuid, _, __ = self._insert_personal_contacts(user_1_uuid, CONTACT_1, CONTACT_2, CONTACT_3)
 
-        assert_that(calling(database.get_personal_contact).with_args(self._session, user_2_uuid, contact_uuid),
+        assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid),
                     raises(database.NoSuchPersonalContact))
 
     @with_user_uuid
     def test_delete_personal_contact(self, xivo_user_uuid):
         contact_uuid, = self._insert_personal_contacts(xivo_user_uuid, CONTACT_1)
 
-        database.delete_personal_contact(self._session, xivo_user_uuid, contact_uuid)
+        self._crud.delete_personal_contact(xivo_user_uuid, contact_uuid)
 
-        assert_that(calling(database.get_personal_contact).with_args(self._session, xivo_user_uuid, contact_uuid),
+        assert_that(calling(self._crud.get_personal_contact).with_args(xivo_user_uuid, contact_uuid),
                     raises(database.NoSuchPersonalContact))
 
     @with_user_uuid
@@ -167,9 +164,9 @@ class TestContactCRUD(_BaseTest):
     def test_delete_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
         contact_uuid, = self._insert_personal_contacts(user_1_uuid, CONTACT_1)
 
-        database.delete_personal_contact(self._session, user_2_uuid, contact_uuid)
+        self._crud.delete_personal_contact(user_2_uuid, contact_uuid)
 
-        assert_that(calling(database.get_personal_contact).with_args(self._session, user_1_uuid, contact_uuid),
+        assert_that(calling(self._crud.get_personal_contact).with_args(user_1_uuid, contact_uuid),
                     not_(raises(database.NoSuchPersonalContact)))
 
     @with_user_uuid
@@ -178,13 +175,13 @@ class TestContactCRUD(_BaseTest):
         contact_uuid_1, = self._insert_personal_contacts(user_1_uuid, CONTACT_1)
         contact_uuid_2, contact_uuid_3 = self._insert_personal_contacts(user_2_uuid, CONTACT_2, CONTACT_3)
 
-        database.delete_all_personal_contacts(self._session, user_2_uuid)
+        self._crud.delete_all_personal_contacts(user_2_uuid)
 
-        assert_that(calling(database.get_personal_contact).with_args(self._session, user_1_uuid, contact_uuid_1),
+        assert_that(calling(self._crud.get_personal_contact).with_args(user_1_uuid, contact_uuid_1),
                     not_(raises(database.NoSuchPersonalContact)))
-        assert_that(calling(database.get_personal_contact).with_args(self._session, user_2_uuid, contact_uuid_2),
+        assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid_2),
                     raises(database.NoSuchPersonalContact))
-        assert_that(calling(database.get_personal_contact).with_args(self._session, user_2_uuid, contact_uuid_3),
+        assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid_3),
                     raises(database.NoSuchPersonalContact))
 
 

@@ -52,17 +52,6 @@ class ContactFields(Base):
     contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
 
 
-def _get_dird_user(session, xivo_user_uuid):
-    user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
-    if user:
-        return user
-    else:
-        user = User(xivo_user_uuid=xivo_user_uuid)
-        session.add(user)
-        session.flush()
-        return user
-
-
 def _list_contacts_by_uuid(session, uuids):
     if not uuids:
         return []
@@ -77,54 +66,76 @@ def _list_contacts_by_uuid(session, uuids):
     return result.values()
 
 
-def list_personal_contacts(session, xivo_user_uuid):
-    contact_uuids = [uuid for (uuid,) in session.query(distinct(Contact.uuid)).filter(Contact.user_uuid == xivo_user_uuid).all()]
-    return _list_contacts_by_uuid(session, contact_uuids)
+class PersonalContactCRUD(object):
 
+    def __init__(self, Session):
+        self._Session = Session
 
-def create_personal_contact(session, xivo_user_uuid, contact_info):
-    user = _get_dird_user(session, xivo_user_uuid)
-    contact = Contact(user_uuid=user.xivo_user_uuid)
-    session.add(contact)
-    session.flush()
-    for name, value in contact_info.iteritems():
-        session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
-    session.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
-    session.commit()
-    contact_info['id'] = contact.uuid
-    return contact_info
+    def list_personal_contacts(self, xivo_user_uuid):
+        session = self._new_session()
+        query = session.query(distinct(Contact.uuid)).filter(Contact.user_uuid == xivo_user_uuid)
+        contact_uuids = [uuid for (uuid,) in query.all()]
+        return _list_contacts_by_uuid(session, contact_uuids)
 
+    def create_personal_contact(self, xivo_user_uuid, contact_info):
+        session = self._new_session()
+        user = self._get_dird_user(session, xivo_user_uuid)
+        contact = Contact(user_uuid=user.xivo_user_uuid)
+        session.add(contact)
+        session.flush()
+        for name, value in contact_info.iteritems():
+            session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
+            session.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
+            # flush here and commit before returning?
+            session.commit()
+        contact_info['id'] = contact.uuid
+        return contact_info
 
-def get_personal_contact(session, xivo_user_uuid, contact_uuid):
-    filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
-                   ContactFields.contact_uuid == contact_uuid)
-    contact_uuids = (session.query(distinct(ContactFields.contact_uuid))
-                     .join(Contact)
-                     .join(User)
-                     .filter(filter_))
+    def edit_personal_contact(self, xivo_user_uuid, contact, contact_info):
+        pass
 
-    for contact in _list_contacts_by_uuid(session, contact_uuids):
-        return contact
+    def get_personal_contact(self, xivo_user_uuid, contact_uuid):
+        session = self._new_session()
+        filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
+                       ContactFields.contact_uuid == contact_uuid)
+        contact_uuids = (session.query(distinct(ContactFields.contact_uuid))
+                         .join(Contact)
+                         .join(User)
+                         .filter(filter_))
 
-    raise NoSuchPersonalContact(contact_uuid)
+        for contact in _list_contacts_by_uuid(session, contact_uuids):
+            return contact
 
+        raise NoSuchPersonalContact(contact_uuid)
 
-def delete_all_personal_contacts(session, xivo_user_uuid):
-    filter_ = User.xivo_user_uuid == xivo_user_uuid
-    return _delete_personal_contacts_with_filter(session, filter_)
+    def delete_all_personal_contacts(self, xivo_user_uuid):
+        filter_ = User.xivo_user_uuid == xivo_user_uuid
+        return self._delete_personal_contacts_with_filter(filter_)
 
+    def delete_personal_contact(self, xivo_user_uuid, contact_uuid):
+        filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
+                       ContactFields.contact_uuid == contact_uuid)
+        return self._delete_personal_contacts_with_filter(filter_)
 
-def delete_personal_contact(session, xivo_user_uuid, contact_uuid):
-    filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
-                   ContactFields.contact_uuid == contact_uuid)
-    return _delete_personal_contacts_with_filter(session, filter_)
+    def _delete_personal_contacts_with_filter(self, filter_):
+        session = self._new_session()
+        contacts = session.query(Contact).join(ContactFields).join(User).filter(filter_).all()
+        for contact in contacts:
+            session.delete(contact)
+        session.commit()
 
+    def _get_dird_user(self, session, xivo_user_uuid):
+        user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
+        if user:
+            return user
+        else:
+            user = User(xivo_user_uuid=xivo_user_uuid)
+            session.add(user)
+            session.flush()
+            return user
 
-def _delete_personal_contacts_with_filter(session, filter_):
-    contacts = session.query(Contact).join(ContactFields).join(User).filter(filter_).all()
-    for contact in contacts:
-        session.delete(contact)
-    session.commit()
+    def _new_session(self):
+        return self._Session()
 
 
 class PersonalContactSearchEngine(object):
