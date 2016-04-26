@@ -80,19 +80,25 @@ class PersonalContactCRUD(object):
     def create_personal_contact(self, xivo_user_uuid, contact_info):
         session = self._new_session()
         user = self._get_dird_user(session, xivo_user_uuid)
-        contact = Contact(user_uuid=user.xivo_user_uuid)
+        contact_args = {'user_uuid': user.xivo_user_uuid}
+        contact_uuid = contact_info.get('id')
+        if contact_uuid:
+            contact_args['uuid'] = contact_uuid
+        contact = Contact(**contact_args)
         session.add(contact)
         session.flush()
         for name, value in contact_info.iteritems():
             session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
             session.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
-            # flush here and commit before returning?
-            session.commit()
+            session.flush()
         contact_info['id'] = contact.uuid
+        session.commit()
         return contact_info
 
-    def edit_personal_contact(self, xivo_user_uuid, contact, contact_info):
-        pass
+    def edit_personal_contact(self, xivo_user_uuid, contact_id, contact_info):
+        self.delete_personal_contact(xivo_user_uuid, contact_id)
+        contact_info['id'] = contact_id
+        return self.create_personal_contact(xivo_user_uuid, contact_info)
 
     def get_personal_contact(self, xivo_user_uuid, contact_uuid):
         session = self._new_session()
