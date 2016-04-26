@@ -35,6 +35,10 @@ The `xivo/xivo-dird` image contains a configuration file to listen to HTTP
 requests on "0.0.0.0". To change this behavior, create or edit the file
 `/etc/xivo-dird/conf.d/listen.yml`
 
+The xivo/xivo-dird-db image can be build using the following command:
+
+    % docker build -f contribs/docker/Dockerfile-db -t xivo/xivo-dird-db .
+
 
 Running unit tests
 ------------------
