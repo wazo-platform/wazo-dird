@@ -17,6 +17,7 @@ case "$1" in
 	configure)
 		if pg_is_running ; then
 			xivo-dird-init-db --user postgres --db $DB_NAME --owner $PG_USER --password $PG_USER_PASSWORD --uri $PG_DB_URI
+			sudo -u postgres psql -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";' asterisk
 			echo "Upgrading xivo-dird database ..."
 			(cd $DIRD_ALEMBIC_INI_PATH && alembic -c alembic.ini upgrade head)
 		fi
