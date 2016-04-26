@@ -18,6 +18,7 @@
 import sys
 import argparse
 import psycopg2
+import time
 
 from xivo.user_rights import change_user
 
@@ -64,7 +65,16 @@ def main():
     if args.user:
         change_user(args.user)
 
-    conn = psycopg2.connect(args.uri)
+    for _ in xrange(40):
+        try:
+            conn = psycopg2.connect(args.uri)
+            break
+        except psycopg2.OperationalError:
+            time.sleep(0.25)
+    else:
+        print >> sys.stderr, 'Failed to connect to postgres'
+        sys.exit(1)
+
     conn.autocommit = True
     with conn:
         with conn.cursor() as cursor:
