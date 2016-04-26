@@ -1,6 +1,6 @@
-.PHONY: test-setup build-dird egg-info test
+.PHONY: test-setup build-dird build-db-image egg-info test
 
-test-setup: egg-info build-dird
+test-setup: egg-info build-dird build-db-image
 	docker pull alpine
 	docker pull python:2.7
 	docker pull p0bailey/docker-flask
@@ -10,6 +10,9 @@ test-setup: egg-info build-dird
 build-dird:
 	docker build -t xivo/xivo-dird ..
 	docker build --no-cache -t xivo-dird-test -f docker/Dockerfile-dird-test ..
+
+build-db-image:
+	docker build -f ../contribs/docker/Dockerfile-db -t xivo/xivo-dird-db ..
 
 egg-info:
 	cd .. && python setup.py egg_info
