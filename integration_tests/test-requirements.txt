@@ -7,4 +7,8 @@ nose
 sh
 xivo-test-helpers
 mock
+
+# for database tests
+-e ..
 psycopg2
+sqlalchemy==0.9.8

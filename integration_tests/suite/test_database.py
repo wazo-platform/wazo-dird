@@ -17,8 +17,8 @@
 
 import functools
 import uuid
-import unittest
 import os
+import unittest
 
 from hamcrest import (assert_that,
                       any_of,
@@ -36,6 +36,7 @@ from sqlalchemy.orm import sessionmaker
 
 from xivo_dird import database
 
+from .base_dird_integration_test import BaseDirdIntegrationTest
 
 Session = sessionmaker()
 
@@ -75,21 +76,23 @@ def with_user_uuid(f):
     return wrapped
 
 
-db_initialized = False
+class DBStarter(BaseDirdIntegrationTest):
+
+    asset = 'database'
 
 
 def setup():
-    global db_initialized
-    if db_initialized is True:
-        return
-
-    db_uri = os.getenv('DB_URI', None)
+    DBStarter.setUpClass()
+    db_uri = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:15432')
     engine = create_engine(db_uri)
     database.Base.metadata.bind = engine
     database.Base.metadata.reflect()
     database.Base.metadata.drop_all()
     database.Base.metadata.create_all()
-    db_initialized = True
+
+
+def teardown():
+    DBStarter.tearDownClass()
 
 
 class _BaseTest(unittest.TestCase):
@@ -110,10 +113,6 @@ class _BaseTest(unittest.TestCase):
 
 
 class TestContactCRUD(_BaseTest):
-
-    @classmethod
-    def setUpClass(cls):
-        setup()
 
     def setUp(self):
         self._session = Session()
@@ -190,10 +189,6 @@ class TestContactCRUD(_BaseTest):
 
 
 class TestPersonalContactSearchEngine(_BaseTest):
-
-    @classmethod
-    def setUpClass(cls):
-        setup()
 
     @with_user_uuid
     def test_that_find_first_returns_a_contact(self, xivo_user_uuid):
