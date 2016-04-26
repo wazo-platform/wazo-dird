@@ -31,15 +31,12 @@ Session = scoped_session(sessionmaker())
 
 class PersonalBackend(BaseSourcePlugin):
 
-    def load(self, config):
+    def load(self, config, search_engine=None):
         logger.debug('Loading personal source')
 
         unique_column = 'id'
-        searched_columns = config['config'].get(self.SEARCHED_COLUMNS)
-        first_match_columns = config['config'].get(self.FIRST_MATCHED_COLUMNS)
         source_name = config['config']['name']
         format_columns = config['config'].get(self.FORMAT_COLUMNS, {})
-        db_uri = config['config']['db_uri']
 
         result_class = make_result_class(
             source_name,
@@ -49,35 +46,39 @@ class PersonalBackend(BaseSourcePlugin):
             is_deletable=True
         )
         self._SourceResult = lambda contact: result_class(self._remove_empty_values(contact))
-        engine = create_engine(db_uri)
-        Session.configure(bind=engine)
-        self._search_engine = database.PersonalContactSearchEngine(Session,
-                                                                   searched_columns,
-                                                                   first_match_columns)
+        self._search_engine = search_engine or self._new_search_engine(config['config']['db_uri'],
+                                                                       config['config'].get(self.SEARCHED_COLUMNS),
+                                                                       config['config'].get(self.FIRST_MATCHED_COLUMNS))
 
     def search(self, term, args=None):
         logger.debug('Searching personal contacts with %s', term)
-        # TODO: make this the xivo_user_uuid
-        user_uuid = args['auth_id']
+        user_uuid = args['xivo_user_uuid']
         matching_contacts = self._search_engine.find_personal_contacts(user_uuid, term)
         return self.format_contacts(matching_contacts)
 
     def first_match(self, term, args=None):
         logger.debug('First matching personal contacts with %s', term)
-        # TODO: make this the xivo_user_uuid
-        user_uuid = args['auth_id']
+        user_uuid = args['xivo_user_uuid']
         matching_contacts = self._search_engine.find_first_personal_contact(user_uuid, term)
-        return self.format_contacts(matching_contacts)
+        if not matching_contacts:
+            return None
+        return next(iter(self.format_contacts(matching_contacts)))
 
     def list(self, source_entry_ids, args):
         logger.debug('Listing personal contacts')
-        # TODO: make this the xivo_user_uuid
-        user_uuid = args['token_infos']['auth_id']
+        user_uuid = args['token_infos']['xivo_user_uuid']
         matching_contacts = self._search_engine.list_personal_contacts(user_uuid, source_entry_ids)
         return self.format_contacts(matching_contacts)
 
     def format_contacts(self, contacts):
         return [self._SourceResult(contact) for contact in contacts]
+
+    def _new_search_engine(self, db_uri, searched_columns, first_match_columns):
+        engine = create_engine(db_uri)
+        Session.configure(bind=engine)
+        self._search_engine = database.PersonalContactSearchEngine(Session,
+                                                                   searched_columns,
+                                                                   first_match_columns)
 
     @staticmethod
     def _remove_empty_values(dict_):
