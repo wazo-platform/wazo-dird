@@ -44,16 +44,6 @@ Session = sessionmaker()
 def new_uuid():
     return str(uuid.uuid4())
 
-CONTACT_1 = {'firtname': 'Finley',
-             'lastname': 'Shelley',
-             'number': '5555551111'}
-CONTACT_2 = {'firstname': 'Rain',
-             'lastname': 'Ora',
-             'number': '5555550001'}
-CONTACT_3 = {'firstname': 'Foo',
-             'lastname': 'Bar',
-             'number': '5555550001'}
-
 
 def expected(contact):
     result = {'id': ANY}
@@ -97,6 +87,29 @@ def teardown():
 
 class _BaseTest(unittest.TestCase):
 
+    def setUp(self):
+        self._contact_1 = {'firtname': 'Finley',
+                           'lastname': 'Shelley',
+                           'number': '5555551111'}
+        self._contact_2 = {'firstname': 'Rain',
+                           'lastname': 'Ora',
+                           'number': '5555550001'}
+        self._contact_3 = {'firstname': 'Foo',
+                           'lastname': 'Bar',
+                           'number': '5555550001'}
+
+    @property
+    def contact_1(self):
+        return dict(self._contact_1)
+
+    @property
+    def contact_2(self):
+        return dict(self._contact_2)
+
+    @property
+    def contact_3(self):
+        return dict(self._contact_3)
+
     def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
         ids = []
         session = Session()
@@ -115,44 +128,48 @@ class _BaseTest(unittest.TestCase):
 class TestContactCRUD(_BaseTest):
 
     def setUp(self):
+        super(TestContactCRUD, self).setUp()
         self._crud = database.PersonalContactCRUD(Session)
 
     def test_that_create_personal_contact_creates_a_contact_and_the_owner(self):
         owner = new_uuid()
 
-        result = self._crud.create_personal_contact(owner, CONTACT_1)
-        assert_that(result, equal_to(expected(CONTACT_1)))
+        result = self._crud.create_personal_contact(owner, self.contact_1)
+        assert_that(result, equal_to(expected(self.contact_1)))
 
         contact_list = self._crud.list_personal_contacts(owner)
-        assert_that(contact_list, contains(expected(CONTACT_1)))
+        assert_that(contact_list, contains(expected(self.contact_1)))
 
     @with_user_uuid
     def test_that_create_personal_contact_creates_a_contact_with_an_existing_owner(self, xivo_user_uuid):
-        result = self._crud.create_personal_contact(xivo_user_uuid, CONTACT_1)
-        assert_that(result, equal_to(expected(CONTACT_1)))
+        result = self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)
+        assert_that(result, equal_to(expected(self.contact_1)))
 
         contact_list = self._crud.list_personal_contacts(xivo_user_uuid)
-        assert_that(contact_list, contains(expected(CONTACT_1)))
+        assert_that(contact_list, contains(expected(self.contact_1)))
 
     @with_user_uuid
     def test_get_personal_contact(self, xivo_user_uuid):
-        contact_uuid, _, __ = self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2, CONTACT_3)
+        contact_uuid, _, __ = self._insert_personal_contacts(xivo_user_uuid,
+                                                             self.contact_1,
+                                                             self.contact_2,
+                                                             self.contact_3)
 
         result = self._crud.get_personal_contact(xivo_user_uuid, contact_uuid)
 
-        assert_that(result, equal_to(expected(CONTACT_1)))
+        assert_that(result, equal_to(expected(self.contact_1)))
 
     @with_user_uuid
     @with_user_uuid
     def test_get_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
-        contact_uuid, _, __ = self._insert_personal_contacts(user_1_uuid, CONTACT_1, CONTACT_2, CONTACT_3)
+        contact_uuid, _, __ = self._insert_personal_contacts(user_1_uuid, self.contact_1, self.contact_2, self.contact_3)
 
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid),
                     raises(database.NoSuchPersonalContact))
 
     @with_user_uuid
     def test_delete_personal_contact(self, xivo_user_uuid):
-        contact_uuid, = self._insert_personal_contacts(xivo_user_uuid, CONTACT_1)
+        contact_uuid, = self._insert_personal_contacts(xivo_user_uuid, self.contact_1)
 
         self._crud.delete_personal_contact(xivo_user_uuid, contact_uuid)
 
@@ -162,7 +179,7 @@ class TestContactCRUD(_BaseTest):
     @with_user_uuid
     @with_user_uuid
     def test_delete_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
-        contact_uuid, = self._insert_personal_contacts(user_1_uuid, CONTACT_1)
+        contact_uuid, = self._insert_personal_contacts(user_1_uuid, self.contact_1)
 
         self._crud.delete_personal_contact(user_2_uuid, contact_uuid)
 
@@ -172,8 +189,8 @@ class TestContactCRUD(_BaseTest):
     @with_user_uuid
     @with_user_uuid
     def test_delete_all_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
-        contact_uuid_1, = self._insert_personal_contacts(user_1_uuid, CONTACT_1)
-        contact_uuid_2, contact_uuid_3 = self._insert_personal_contacts(user_2_uuid, CONTACT_2, CONTACT_3)
+        contact_uuid_1, = self._insert_personal_contacts(user_1_uuid, self.contact_1)
+        contact_uuid_2, contact_uuid_3 = self._insert_personal_contacts(user_2_uuid, self.contact_2, self.contact_3)
 
         self._crud.delete_all_personal_contacts(user_2_uuid)
 
@@ -191,40 +208,40 @@ class TestPersonalContactSearchEngine(_BaseTest):
     def test_that_find_first_returns_a_contact(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(Session, first_match_columns=['number'])
 
-        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2, CONTACT_3)
+        self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2, self.contact_3)
 
         result = engine.find_first_personal_contact(xivo_user_uuid, '5555550001')
 
-        assert_that(result, contains(any_of(expected(CONTACT_2), expected(CONTACT_3))))
+        assert_that(result, contains(any_of(expected(self.contact_2), expected(self.contact_3))))
 
     @with_user_uuid
     def test_that_listing_personal_contacts_returns_the_searched_contacts(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(Session, searched_columns=['firstname'])
 
-        ids = self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+        ids = self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
         result = engine.list_personal_contacts(xivo_user_uuid, ids)
-        assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_2)))
+        assert_that(result, contains_inanyorder(expected(self.contact_1), expected(self.contact_2)))
 
         result = engine.list_personal_contacts(xivo_user_uuid, ids[:1])
-        assert_that(result, contains(expected(CONTACT_1)))
+        assert_that(result, contains(expected(self.contact_1)))
 
         result = engine.list_personal_contacts(xivo_user_uuid, ids[1:])
-        assert_that(result, contains(expected(CONTACT_2)))
+        assert_that(result, contains(expected(self.contact_2)))
 
     @with_user_uuid
     @with_user_uuid
     def test_that_listing_personal_contacts_only_the_users_contact(self, uuid_1, uuid_2):
         engine = database.PersonalContactSearchEngine(Session, searched_columns=['firstname'])
 
-        ids_1 = self._insert_personal_contacts(uuid_1, CONTACT_1, CONTACT_2)
-        ids_2 = self._insert_personal_contacts(uuid_2, CONTACT_1, CONTACT_3)
+        ids_1 = self._insert_personal_contacts(uuid_1, self.contact_1, self.contact_2)
+        ids_2 = self._insert_personal_contacts(uuid_2, self.contact_1, self.contact_3)
 
         result = engine.list_personal_contacts(uuid_1, ids_1)
-        assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_2)))
+        assert_that(result, contains_inanyorder(expected(self.contact_1), expected(self.contact_2)))
 
         result = engine.list_personal_contacts(uuid_2, ids_2)
-        assert_that(result, contains_inanyorder(expected(CONTACT_1), expected(CONTACT_3)))
+        assert_that(result, contains_inanyorder(expected(self.contact_1), expected(self.contact_3)))
 
         result = engine.list_personal_contacts(uuid_1, ids_2)
         assert_that(result, empty())
@@ -236,17 +253,17 @@ class TestPersonalContactSearchEngine(_BaseTest):
     def test_that_searching_for_a_contact_returns_its_fields(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(Session, searched_columns=['firstname'])
 
-        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+        self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
         result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
 
-        assert_that(result, contains(expected(CONTACT_2)))
+        assert_that(result, contains(expected(self.contact_2)))
 
     @with_user_uuid
     def test_that_find_searches_only_in_searched_columns(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(Session, searched_columns=['lastname'])
 
-        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+        self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
         result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
 
@@ -256,7 +273,7 @@ class TestPersonalContactSearchEngine(_BaseTest):
     def test_that_no_searched_columns_does_not_search(self, xivo_user_uuid):
         engine = database.PersonalContactSearchEngine(Session, searched_columns=[])
 
-        self._insert_personal_contacts(xivo_user_uuid, CONTACT_1, CONTACT_2)
+        self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
         result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
 
