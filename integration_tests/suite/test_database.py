@@ -114,7 +114,8 @@ class _BaseTest(unittest.TestCase):
         ids = []
         session = Session()
         for contact in contacts:
-            dird_contact = database.Contact(user_uuid=xivo_user_uuid)
+            hash_ = database.compute_contact_hash(contact)
+            dird_contact = database.Contact(user_uuid=xivo_user_uuid, hash=hash_)
             session.add(dird_contact)
             session.flush()
             ids.append(dird_contact.uuid)
@@ -147,6 +148,19 @@ class TestContactCRUD(_BaseTest):
 
         contact_list = self._crud.list_personal_contacts(xivo_user_uuid)
         assert_that(contact_list, contains(expected(self.contact_1)))
+
+    @with_user_uuid
+    def test_that_personal_contacts_are_unique(self, xivo_user_uuid):
+        self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)
+        assert_that(calling(self._crud.create_personal_contact).with_args(xivo_user_uuid, self.contact_1),
+                    raises(database.DuplicatePersonalContact))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_that_personal_contacts_can_be_duplicated_between_users(self, user_uuid_1, user_uuid_2):
+        self._crud.create_personal_contact(user_uuid_1, self.contact_1)
+        assert_that(calling(self._crud.create_personal_contact).with_args(user_uuid_2, self.contact_1),
+                    not_(raises(database.DuplicatePersonalContact)))
 
     @with_user_uuid
     def test_get_personal_contact(self, xivo_user_uuid):

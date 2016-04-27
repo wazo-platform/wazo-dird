@@ -15,8 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from sqlalchemy import and_, Column, distinct, ForeignKey, Integer, String, text, Text
+import hashlib
+import json
+
+from sqlalchemy import and_, Column, distinct, ForeignKey, Integer, schema, String, text, Text
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import IntegrityError
 
 Base = declarative_base()
 
@@ -25,6 +29,10 @@ class NoSuchPersonalContact(ValueError):
     def __init__(self, contact_id):
         message = "No such personal contact: {}".format(contact_id)
         ValueError.__init__(self, message)
+
+
+class DuplicatePersonalContact(Exception):
+    pass
 
 
 class User(Base):
@@ -37,9 +45,11 @@ class User(Base):
 class Contact(Base):
 
     __tablename__ = 'dird_contact'
+    __table_args__ = (schema.UniqueConstraint('user_uuid', 'hash'),)
 
     uuid = Column(String(38), server_default=text('uuid_generate_v4()'), primary_key=True)
     user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'), nullable=False)
+    hash = Column(String(40), nullable=False)
 
 
 class ContactFields(Base):
@@ -66,6 +76,13 @@ def _list_contacts_by_uuid(session, uuids):
     return result.values()
 
 
+def compute_contact_hash(contact_info):
+    d = dict(contact_info)
+    d.pop('id', None)
+    string_representation = json.dumps(d, sort_keys=True)
+    return hashlib.sha1(string_representation).hexdigest()
+
+
 class PersonalContactCRUD(object):
 
     def __init__(self, Session):
@@ -80,13 +97,18 @@ class PersonalContactCRUD(object):
     def create_personal_contact(self, xivo_user_uuid, contact_info):
         session = self._new_session()
         user = self._get_dird_user(session, xivo_user_uuid)
-        contact_args = {'user_uuid': user.xivo_user_uuid}
+        hash_ = compute_contact_hash(contact_info)
+        contact_args = {'user_uuid': user.xivo_user_uuid,
+                        'hash': hash_}
         contact_uuid = contact_info.get('id')
         if contact_uuid:
             contact_args['uuid'] = contact_uuid
         contact = Contact(**contact_args)
         session.add(contact)
-        session.flush()
+        try:
+            session.flush()
+        except IntegrityError:
+            raise DuplicatePersonalContact()
         for name, value in contact_info.iteritems():
             session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
             session.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
