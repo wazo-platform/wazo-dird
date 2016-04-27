@@ -18,6 +18,7 @@
 import hashlib
 import json
 
+from contextlib import contextmanager
 from sqlalchemy import and_, Column, distinct, ForeignKey, Integer, schema, String, text, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError
@@ -83,39 +84,49 @@ def compute_contact_hash(contact_info):
     return hashlib.sha1(string_representation).hexdigest()
 
 
-class PersonalContactCRUD(object):
+class _BaseDAO(object):
 
     def __init__(self, Session):
         self._Session = Session
 
+    @contextmanager
+    def new_session(self):
+        session = self._Session()
+        yield session
+        session.commit()
+
+
+class PersonalContactCRUD(_BaseDAO):
+
     def list_personal_contacts(self, xivo_user_uuid):
-        session = self._new_session()
-        query = session.query(distinct(Contact.uuid)).filter(Contact.user_uuid == xivo_user_uuid)
-        contact_uuids = [uuid for (uuid,) in query.all()]
-        return _list_contacts_by_uuid(session, contact_uuids)
+        with self.new_session() as s:
+            query = s.query(distinct(Contact.uuid)).filter(Contact.user_uuid == xivo_user_uuid)
+            contact_uuids = [uuid for (uuid,) in query.all()]
+            return _list_contacts_by_uuid(s, contact_uuids)
 
     def create_personal_contact(self, xivo_user_uuid, contact_info):
-        session = self._new_session()
-        user = self._get_dird_user(session, xivo_user_uuid)
-        hash_ = compute_contact_hash(contact_info)
-        contact_args = {'user_uuid': user.xivo_user_uuid,
-                        'hash': hash_}
-        contact_uuid = contact_info.get('id')
-        if contact_uuid:
-            contact_args['uuid'] = contact_uuid
-        contact = Contact(**contact_args)
-        session.add(contact)
-        try:
-            session.flush()
-        except IntegrityError:
-            raise DuplicatePersonalContact()
-        for name, value in contact_info.iteritems():
-            session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
-            session.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
-            session.flush()
-        contact_info['id'] = contact.uuid
-        session.commit()
-        return contact_info
+        with self.new_session() as s:
+            user = self._get_dird_user(s, xivo_user_uuid)
+            hash_ = compute_contact_hash(contact_info)
+            contact_args = {'user_uuid': user.xivo_user_uuid,
+                            'hash': hash_}
+            contact_uuid = contact_info.get('id')
+            if contact_uuid:
+                contact_args['uuid'] = contact_uuid
+            contact = Contact(**contact_args)
+            s.add(contact)
+            try:
+                s.flush()
+            except IntegrityError:
+                s.rollback()
+                return self._get_personal_contact_by_hash(s, xivo_user_uuid, hash_)
+
+            for name, value in contact_info.iteritems():
+                s.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
+                s.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
+
+            contact_info['id'] = contact.uuid
+            return contact_info
 
     def edit_personal_contact(self, xivo_user_uuid, contact_id, contact_info):
         self.delete_personal_contact(xivo_user_uuid, contact_id)
@@ -123,18 +134,25 @@ class PersonalContactCRUD(object):
         return self.create_personal_contact(xivo_user_uuid, contact_info)
 
     def get_personal_contact(self, xivo_user_uuid, contact_uuid):
-        session = self._new_session()
-        filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
-                       ContactFields.contact_uuid == contact_uuid)
-        contact_uuids = (session.query(distinct(ContactFields.contact_uuid))
-                         .join(Contact)
-                         .join(User)
-                         .filter(filter_))
+        with self.new_session() as s:
+            filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
+                           ContactFields.contact_uuid == contact_uuid)
+            contact_uuids = (s.query(distinct(ContactFields.contact_uuid))
+                             .join(Contact)
+                             .join(User)
+                             .filter(filter_))
 
-        for contact in _list_contacts_by_uuid(session, contact_uuids):
-            return contact
+            for contact in _list_contacts_by_uuid(s, contact_uuids):
+                return contact
 
         raise NoSuchPersonalContact(contact_uuid)
+
+    def _get_personal_contact_by_hash(self, session, xivo_user_uuid, hash_):
+        filter_ = and_(Contact.user_uuid == xivo_user_uuid,
+                       Contact.hash == hash_)
+        contact_uuids = session.query(Contact.uuid).filter(filter_)
+        for contact in _list_contacts_by_uuid(session, contact_uuids):
+            return contact
 
     def delete_all_personal_contacts(self, xivo_user_uuid):
         filter_ = User.xivo_user_uuid == xivo_user_uuid
@@ -146,11 +164,10 @@ class PersonalContactCRUD(object):
         return self._delete_personal_contacts_with_filter(filter_)
 
     def _delete_personal_contacts_with_filter(self, filter_):
-        session = self._new_session()
-        contacts = session.query(Contact).join(ContactFields).join(User).filter(filter_).all()
-        for contact in contacts:
-            session.delete(contact)
-        session.commit()
+        with self.new_session() as s:
+            contacts = s.query(Contact).join(ContactFields).join(User).filter(filter_).all()
+            for contact in contacts:
+                s.delete(contact)
 
     def _get_dird_user(self, session, xivo_user_uuid):
         user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
@@ -162,14 +179,11 @@ class PersonalContactCRUD(object):
             session.flush()
             return user
 
-    def _new_session(self):
-        return self._Session()
 
-
-class PersonalContactSearchEngine(object):
+class PersonalContactSearchEngine(_BaseDAO):
 
     def __init__(self, Session, searched_columns=None, first_match_columns=None):
-        self._Session = Session
+        super(PersonalContactSearchEngine, self).__init__(Session)
         self._searched_columns = searched_columns or []
         self._first_match_columns = first_match_columns or []
 
@@ -192,18 +206,19 @@ class PersonalContactSearchEngine(object):
         if filter_ is False:
             return []
 
-        base_query = (self._session.query(distinct(ContactFields.contact_uuid))
-                      .join(Contact)
-                      .join(User)
-                      .filter(filter_))
-        if limit:
-            query = base_query.limit(limit)
-        else:
-            query = base_query
+        with self.new_session() as s:
+            base_query = (s.query(distinct(ContactFields.contact_uuid))
+                          .join(Contact)
+                          .join(User)
+                          .filter(filter_))
+            if limit:
+                query = base_query.limit(limit)
+            else:
+                query = base_query
 
-        uuids = [uuid for (uuid,) in query.all()]
+            uuids = [uuid for (uuid,) in query.all()]
 
-        return _list_contacts_by_uuid(self._session, uuids)
+            return _list_contacts_by_uuid(s, uuids)
 
     def _new_list_filter(self, xivo_user_uuid, uuids):
         if not uuids:
@@ -231,7 +246,3 @@ class PersonalContactSearchEngine(object):
 
     def _new_user_contacts_filter(self, xivo_user_uuid):
         return User.xivo_user_uuid == xivo_user_uuid
-
-    @property
-    def _session(self):
-        return self._Session()
