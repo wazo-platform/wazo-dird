@@ -70,3 +70,11 @@ For developers, when adding/removing a plugin:
 ### Generate .tx/config
 
     % tx set --auto-local -r xivo.xivo-dird 'xivo_dird/translations/<lang>/LC_MESSAGES/messages.po' --source-lang en --type PO --source-file xivo_dird/messages.pot --execute
+
+
+Adding a new database migration
+-------------------------------
+
+To add a new migration script for the database use the following command:
+
+   % alembic -c alembic.ini revision -m "<description of the revision>"
