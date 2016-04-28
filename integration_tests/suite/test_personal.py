@@ -158,7 +158,7 @@ class TestPersonalPersistence(BaseDirdIntegrationTest):
         self.purge_personal()
 
     def test_that_personal_are_saved_across_dird_restart(self):
-        self.post_personal({})
+        self.post_personal({'firstname': 'Foo'})
 
         result_before = self.list_personal()
 
@@ -371,42 +371,3 @@ class TestGetPersonal(BaseDirdIntegrationTest):
 
         assert_that(contact_get, equal_to(contact_post))
         assert_that(contact_get, equal_to(contact_put))
-
-
-class TestConsulInternalError(BaseDirdIntegrationTest):
-    '''
-    This scenario may happen when the requested consul key is too long.
-    '''
-
-    asset = 'consul_500'
-
-    def test_when_consul_errors_that_personal_actions_return_503(self):
-        result = self.get_personal_result('unknown-id', 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.put_personal_result('unknown-id', {}, 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.post_personal_result({}, 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.delete_personal_result('unknown-id', 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.list_personal_result('valid-token')
-        assert_that(result.status_code, equal_to(503))
-
-
-class TestConsulUnreachable(BaseDirdIntegrationTest):
-
-    asset = 'no_consul'
-
-    def test_when_consul_errors_that_personal_actions_return_503(self):
-        result = self.get_personal_result('unknown-id', 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.put_personal_result('unknown-id', {}, 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.post_personal_result({}, 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.delete_personal_result('unknown-id', 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.list_personal_result('valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.get_personal_with_profile_result('default', 'valid-token')
-        assert_that(result.status_code, equal_to(503))

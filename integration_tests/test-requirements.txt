@@ -12,3 +12,4 @@ mock
 -e ..
 psycopg2
 sqlalchemy==0.9.8
+unidecode==0.04.16

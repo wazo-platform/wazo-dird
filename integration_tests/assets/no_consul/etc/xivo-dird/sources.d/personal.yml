@@ -3,3 +3,4 @@ name: personal
 searched_columns:
     - firstname
     - lastname
+db_uri: postgresql://asterisk:proformatique@db/asterisk

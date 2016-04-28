@@ -54,7 +54,7 @@ def token_get(token):
         'data': {
             'auth_id': tokens[token],
             'token': token,
-            'xivo_user_uuid': ''
+            'xivo_user_uuid': tokens[token],
         }
     })
 

@@ -1,5 +1,6 @@
 type: personal
 name: personal
+db_uri: postgresql://asterisk:proformatique@db/asterisk
 searched_columns:
     - firstname
     - lastname

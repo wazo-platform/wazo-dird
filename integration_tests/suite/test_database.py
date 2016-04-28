@@ -224,7 +224,7 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2, self.contact_3)
 
-        result = engine.find_first_personal_contact(xivo_user_uuid, '5555550001')
+        result = engine.find_first_personal_contact(xivo_user_uuid, u'5555550001')
 
         assert_that(result, contains(any_of(expected(self.contact_2), expected(self.contact_3))))
 

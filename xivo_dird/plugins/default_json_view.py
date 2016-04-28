@@ -126,7 +126,7 @@ class Lookup(AuthResource):
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['auth_id']
+        xivo_user_uuid = token_infos['xivo_user_uuid']
 
         raw_results = self.lookup_service.lookup(term,
                                                  profile,

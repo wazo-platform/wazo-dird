@@ -60,9 +60,8 @@ class PersonalBackend(BaseSourcePlugin):
         logger.debug('First matching personal contacts with %s', term)
         user_uuid = args['xivo_user_uuid']
         matching_contacts = self._search_engine.find_first_personal_contact(user_uuid, term)
-        if not matching_contacts:
-            return None
-        return next(iter(self.format_contacts(matching_contacts)))
+        for contact in self.format_contacts(matching_contacts):
+            return contact
 
     def list(self, source_entry_ids, args):
         logger.debug('Listing personal contacts')

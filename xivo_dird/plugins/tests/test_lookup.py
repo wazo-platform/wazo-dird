@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ class TestLookupService(unittest.TestCase):
 
         source.search.assert_called_once_with(sentinel.term,
                                               {'token': sentinel.token,
-                                               'auth_id': sentinel.uuid})
+                                               'xivo_user_uuid': sentinel.uuid})
 
         s.stop()
 
