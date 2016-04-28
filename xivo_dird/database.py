@@ -168,13 +168,18 @@ class PersonalContactCRUD(_BaseDAO):
     def delete_personal_contact(self, xivo_user_uuid, contact_uuid):
         filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
                        ContactFields.contact_uuid == contact_uuid)
-        return self._delete_personal_contacts_with_filter(filter_)
+        nb_deleted = self._delete_personal_contacts_with_filter(filter_)
+        if nb_deleted == 0:
+            raise NoSuchPersonalContact(contact_uuid)
 
     def _delete_personal_contacts_with_filter(self, filter_):
         with self.new_session() as s:
             contacts = s.query(Contact).join(ContactFields).join(User).filter(filter_).all()
+            deleted = 0
             for contact in contacts:
                 s.delete(contact)
+                deleted += 1
+            return deleted
 
     def _get_dird_user(self, session, xivo_user_uuid):
         user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()

@@ -197,10 +197,8 @@ class TestContactCRUD(_BaseTest):
     def test_delete_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
         contact_uuid, = self._insert_personal_contacts(user_1_uuid, self.contact_1)
 
-        self._crud.delete_personal_contact(user_2_uuid, contact_uuid)
-
-        assert_that(calling(self._crud.get_personal_contact).with_args(user_1_uuid, contact_uuid),
-                    not_(raises(database.NoSuchPersonalContact)))
+        assert_that(calling(self._crud.delete_personal_contact).with_args(user_2_uuid, contact_uuid),
+                    raises(database.NoSuchPersonalContact))
 
     @with_user_uuid
     @with_user_uuid
