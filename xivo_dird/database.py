@@ -112,34 +112,20 @@ class PersonalContactCRUD(_BaseDAO):
             return _list_contacts_by_uuid(s, contact_uuids)
 
     def create_personal_contact(self, xivo_user_uuid, contact_info):
-        with self.new_session() as s:
-            user = self._get_dird_user(s, xivo_user_uuid)
-            hash_ = compute_contact_hash(contact_info)
-            contact_args = {'user_uuid': user.xivo_user_uuid,
-                            'hash': hash_}
-            contact_uuid = contact_info.get('id')
-            if contact_uuid:
-                contact_args['uuid'] = contact_uuid
-            contact = Contact(**contact_args)
-            s.add(contact)
-            try:
-                s.flush()
-            except IntegrityError:
-                s.rollback()
-                return self._get_personal_contact_by_hash(s, xivo_user_uuid, hash_)
-
-            for name, value in contact_info.iteritems():
-                s.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
-                s.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
-
-            contact_info['id'] = contact.uuid
-            return contact_info
+        for contact in self.create_personal_contacts(xivo_user_uuid, [contact_info]):
+            return contact
 
     def create_personal_contacts(self, xivo_user_uuid, contact_infos):
+        hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
         with self.new_session() as s:
             user = self._get_dird_user(s, xivo_user_uuid)
-            for contact_info in contact_infos:
-                hash_ = compute_contact_hash(contact_info)
+            existing_hashes_and_id = self._find_existing_contact_by_hash(s, xivo_user_uuid, hash_and_contact.keys())
+            all_hashes = set(hash_and_contact.keys())
+            to_add = all_hashes - set(existing_hashes_and_id.keys())
+            existing = all_hashes - to_add
+
+            for hash_ in to_add:
+                contact_info = hash_and_contact[hash_]
                 contact_args = {'user_uuid': user.xivo_user_uuid,
                                 'hash': hash_}
                 contact_uuid = contact_info.get('id')
@@ -147,18 +133,26 @@ class PersonalContactCRUD(_BaseDAO):
                     contact_args['uuid'] = contact_uuid
                 contact = Contact(**contact_args)
                 s.add(contact)
-                try:
-                    s.flush()
-                except IntegrityError:
-                    s.rollback()
-                    return self._get_personal_contact_by_hash(s, xivo_user_uuid, hash_)
-
+                s.flush()
                 for name, value in contact_info.iteritems():
                     s.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
                     s.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
-
                 contact_info['id'] = contact.uuid
-            return contact_infos
+
+        for hash_ in existing:
+            contact_info = hash_and_contact[hash_]
+            contact_info['id'] = existing_hashes_and_id[hash_]
+
+        return contact_infos
+
+    def _find_existing_contact_by_hash(self, session, xivo_user_uuid, hashes):
+        if not hashes:
+            return {}
+
+        filter_ = and_(Contact.user_uuid == xivo_user_uuid,
+                       Contact.hash.in_(hashes))
+        pairs = session.query(Contact.hash, Contact.uuid).filter(filter_)
+        return {p.hash: p.uuid for p in pairs.all()}
 
     def edit_personal_contact(self, xivo_user_uuid, contact_id, contact_info):
         self.delete_personal_contact(xivo_user_uuid, contact_id)
