@@ -244,11 +244,7 @@ class PersonalImport(AuthResource):
             }
             return error, 400
 
-        logger.debug('Before mass import')
         created, errors = self._mass_import(csv_document, charset, token_infos)
-        logger.debug('after')
-
-        logger.debug('Created\n%s', created)
 
         if not created:
             error = {
