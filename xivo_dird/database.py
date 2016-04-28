@@ -135,6 +135,31 @@ class PersonalContactCRUD(_BaseDAO):
             contact_info['id'] = contact.uuid
             return contact_info
 
+    def create_personal_contacts(self, xivo_user_uuid, contact_infos):
+        with self.new_session() as s:
+            user = self._get_dird_user(s, xivo_user_uuid)
+            for contact_info in contact_infos:
+                hash_ = compute_contact_hash(contact_info)
+                contact_args = {'user_uuid': user.xivo_user_uuid,
+                                'hash': hash_}
+                contact_uuid = contact_info.get('id')
+                if contact_uuid:
+                    contact_args['uuid'] = contact_uuid
+                contact = Contact(**contact_args)
+                s.add(contact)
+                try:
+                    s.flush()
+                except IntegrityError:
+                    s.rollback()
+                    return self._get_personal_contact_by_hash(s, xivo_user_uuid, hash_)
+
+                for name, value in contact_info.iteritems():
+                    s.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
+                    s.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
+
+                contact_info['id'] = contact.uuid
+            return contact_infos
+
     def edit_personal_contact(self, xivo_user_uuid, contact_id, contact_info):
         self.delete_personal_contact(xivo_user_uuid, contact_id)
         contact_info['id'] = contact_id

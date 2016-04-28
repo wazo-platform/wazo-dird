@@ -19,6 +19,7 @@ import cStringIO
 import logging
 import re
 
+from functools import wraps
 from flask import request
 from flask import Response
 from flask_restful import reqparse
@@ -37,11 +38,8 @@ logger = logging.getLogger(__name__)
 CHARSET_REGEX = re.compile('.*; *charset *= *(.*)')
 
 
-class PersonalImportError(ValueError):
-    pass
-
-
 def catch_service_error(wrapped):
+    @wraps(wrapped)
     def wrapper(self, *args, **kwargs):
         try:
             return wrapped(self, *args, **kwargs)
@@ -246,7 +244,11 @@ class PersonalImport(AuthResource):
             }
             return error, 400
 
+        logger.debug('Before mass import')
         created, errors = self._mass_import(csv_document, charset, token_infos)
+        logger.debug('after')
+
+        logger.debug('Created\n%s', created)
 
         if not created:
             error = {
@@ -263,32 +265,5 @@ class PersonalImport(AuthResource):
         return result, 201
 
     def _mass_import(self, csv_document, encoding, token_infos):
-        created, errors = [], []
         reader = UnicodeDictReader(csv_document.split('\n'), encoding=encoding)
-        for contact_infos in reader:
-            try:
-                if None in contact_infos.keys():
-                    raise PersonalImportError('too many fields')
-                if None in contact_infos.values():
-                    raise PersonalImportError('missing fields')
-
-                contact = self.personal_service.create_contact(contact_infos, token_infos)
-                created.append(contact)
-
-            except self.personal_service.InvalidPersonalContact as e:
-                errors.append({
-                    'errors': e.errors,
-                    'line': reader.line_num
-                })
-            except self.personal_service.PersonalServiceException as e:
-                errors.append({
-                    'errors': [str(e)],
-                    'line': reader.line_num
-                })
-            except PersonalImportError as e:
-                errors.append({
-                    'errors': [str(e)],
-                    'line': reader.line_num
-                })
-
-        return created, errors
+        return self.personal_service.create_contacts(reader, token_infos)

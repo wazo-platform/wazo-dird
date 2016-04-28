@@ -29,6 +29,10 @@ logger = logging.getLogger(__name__)
 UNIQUE_COLUMN = 'id'
 
 
+class PersonalImportError(ValueError):
+    pass
+
+
 class PersonalServicePlugin(BaseServicePlugin):
 
     def load(self, args):
@@ -73,6 +77,25 @@ class _PersonalService(object):
     def create_contact(self, contact_infos, token_infos):
         self.validate_contact(contact_infos)
         return self._crud.create_personal_contact(token_infos['xivo_user_uuid'], contact_infos)
+
+    def create_contacts(self, contact_infos, token_infos):
+        errors = []
+        to_add = []
+        for i, contact_info in enumerate(contact_infos):
+            if None in contact_info.keys():
+                raise PersonalImportError('too many fields')
+            if None in contact_info.values():
+                raise PersonalImportError('missing fields')
+
+            try:
+                self.validate_contact(contact_info)
+                to_add.append(contact_info)
+            except self.InvalidPersonalContact as e:
+                errors.append({'errors': e.errors, 'line': i})
+            except PersonalImportError as e:
+                errors.append({'errors': [str(e)], 'line': i})
+
+        return self._crud.create_personal_contacts(token_infos['xivo_user_uuid'], to_add), errors
 
     def get_contact(self, contact_id, token_infos):
         return self._crud.get_personal_contact(token_infos['xivo_user_uuid'], contact_id)
