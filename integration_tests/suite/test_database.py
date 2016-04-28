@@ -88,15 +88,15 @@ def teardown():
 class _BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self._contact_1 = {'firtname': 'Finley',
-                           'lastname': 'Shelley',
-                           'number': '5555551111'}
-        self._contact_2 = {'firstname': 'Rain',
-                           'lastname': 'Ora',
-                           'number': '5555550001'}
-        self._contact_3 = {'firstname': 'Foo',
-                           'lastname': 'Bar',
-                           'number': '5555550001'}
+        self._contact_1 = {u'firtname': u'Finley',
+                           u'lastname': u'Shelley',
+                           u'number': u'5555551111'}
+        self._contact_2 = {u'firstname': u'Cédric',
+                           u'lastname': u'Ora',
+                           u'number': u'5555550001'}
+        self._contact_3 = {u'firstname': u'Foo',
+                           u'lastname': u'Bar',
+                           u'number': u'5555550001'}
 
     @property
     def contact_1(self):
@@ -271,8 +271,10 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
+        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
+        assert_that(result, contains(expected(self.contact_2)))
 
+        result = engine.find_personal_contacts(xivo_user_uuid, u'céd')
         assert_that(result, contains(expected(self.contact_2)))
 
     @with_user_uuid
@@ -281,7 +283,7 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
+        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
 
         assert_that(result, empty())
 
@@ -291,6 +293,6 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, 'rai')
+        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
 
         assert_that(result, empty())

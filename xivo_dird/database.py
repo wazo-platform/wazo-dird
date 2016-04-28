@@ -18,12 +18,19 @@
 import hashlib
 import json
 
+from unidecode import unidecode
 from contextlib import contextmanager
+
+from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from sqlalchemy import and_, Column, distinct, ForeignKey, Integer, schema, String, text, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError
 
 Base = declarative_base()
+
+
+class unaccent(ReturnTypeFromArgs):
+    pass
 
 
 class NoSuchPersonalContact(ValueError):
@@ -231,9 +238,9 @@ class PersonalContactSearchEngine(_BaseDAO):
         if not columns:
             return False
 
-        pattern = '%{}%'.format(term)
+        pattern = u'%{}%'.format(unidecode(term))
         return and_(User.xivo_user_uuid == xivo_user_uuid,
-                    ContactFields.value.ilike(pattern),
+                    unaccent(ContactFields.value).ilike(pattern),
                     ContactFields.name.in_(columns))
 
     def _new_strict_filter(self, xivo_user_uuid, term, columns):
@@ -241,7 +248,7 @@ class PersonalContactSearchEngine(_BaseDAO):
             return False
 
         return and_(User.xivo_user_uuid == xivo_user_uuid,
-                    ContactFields.value == term,
+                    unaccent(ContactFields.value) == unidecode(term),
                     ContactFields.name.in_(columns))
 
     def _new_user_contacts_filter(self, xivo_user_uuid):

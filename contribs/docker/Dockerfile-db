@@ -30,6 +30,7 @@ RUN $PG_CTL -o "--config-file=$PG_CONF" start \
     && while [ "$($PG_CTL status)" = "pg_ctl: no server running" ]; do sleep 1; done \
     && until ./bin/xivo-dird-init-db --user postgres --db asterisk --owner asterisk --password proformatique --uri "postgres:///postgres" ; do sleep 1; done \
     && sudo -u postgres psql -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";' asterisk \
+    && sudo -u postgres psql -c 'CREATE EXTENSION IF NOT EXISTS "unaccent";' asterisk \
     && (cd /usr/src/xivo-dird && alembic -c alembic.ini upgrade head) \
     && $PG_CTL -o "--config-file=$PG_CONF" stop
 
