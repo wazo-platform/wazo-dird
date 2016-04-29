@@ -59,9 +59,6 @@ class _PersonalService(object):
 
     NoSuchPersonalContact = database.NoSuchPersonalContact
 
-    class PersonalServiceException(Exception):
-        pass
-
     class InvalidPersonalContact(ValueError):
         def __init__(self, errors):
             message = "Invalid personal contact: {}".format(errors)

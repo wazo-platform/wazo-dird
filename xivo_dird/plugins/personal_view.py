@@ -19,7 +19,6 @@ import cStringIO
 import logging
 import re
 
-from functools import wraps
 from flask import request
 from flask import Response
 from flask_restful import reqparse
@@ -36,21 +35,6 @@ from xivo_dird.core.rest_api import AuthResource
 logger = logging.getLogger(__name__)
 
 CHARSET_REGEX = re.compile('.*; *charset *= *(.*)')
-
-
-def catch_service_error(wrapped):
-    @wraps(wrapped)
-    def wrapper(self, *args, **kwargs):
-        try:
-            return wrapped(self, *args, **kwargs)
-        except self.personal_service.PersonalServiceException as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 503,
-            }
-            return error, 503
-    return wrapper
 
 
 class PersonalViewPlugin(BaseViewPlugin):
@@ -83,7 +67,6 @@ class PersonalAll(AuthResource):
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.create')
-    @catch_service_error
     def post(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -100,7 +83,6 @@ class PersonalAll(AuthResource):
             return error, 400
 
     @required_acl('dird.personal.read')
-    @catch_service_error
     def get(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -115,7 +97,6 @@ class PersonalAll(AuthResource):
         return self.contacts_formatter(mimetype)(contacts)
 
     @required_acl('dird.personal.delete')
-    @catch_service_error
     def delete(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -163,7 +144,6 @@ class PersonalOne(AuthResource):
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.{contact_id}.read')
-    @catch_service_error
     def get(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -179,7 +159,6 @@ class PersonalOne(AuthResource):
             return error, 404
 
     @required_acl('dird.personal.{contact_id}.update')
-    @catch_service_error
     def put(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -203,7 +182,6 @@ class PersonalOne(AuthResource):
             return error, 400
 
     @required_acl('dird.personal.{contact_id}.delete')
-    @catch_service_error
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)

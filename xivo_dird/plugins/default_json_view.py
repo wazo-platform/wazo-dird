@@ -261,11 +261,7 @@ class Personal(AuthResource):
         if profile not in self.displays:
             return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
 
-        try:
-            raw_results = self.personal_service.list_contacts(token_infos)
-        except self.personal_service.PersonalServiceException as e:
-            return _error(503, str(e))
-
+        raw_results = self.personal_service.list_contacts(token_infos)
         favorites = self.favorite_service.favorite_ids(profile, token_infos)
         formatter = _ResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results, favorites)
