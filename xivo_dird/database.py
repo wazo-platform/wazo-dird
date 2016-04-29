@@ -165,7 +165,8 @@ class PersonalContactCRUD(_BaseDAO):
                 s.rollback()
                 raise DuplicatedContactException()
             contact_info['id'] = contact_id
-            return self._create_personal_contacts(s, xivo_user_uuid, [contact_info])
+            for contact in self._create_personal_contacts(s, xivo_user_uuid, [contact_info]):
+                return contact
 
     def get_personal_contact(self, xivo_user_uuid, contact_uuid):
         with self.new_session() as s:

@@ -180,6 +180,13 @@ class PersonalOne(AuthResource):
                 'status_code': 400,
             }
             return error, 400
+        except self.personal_service.DuplicatedContactException:
+            error = {
+                'reason': ['Modifying this contact would create a duplicate'],
+                'timestamp': [time()],
+                'status_code': 400,
+            }
+            return error, 400
 
     @required_acl('dird.personal.{contact_id}.delete')
     def delete(self, contact_id):

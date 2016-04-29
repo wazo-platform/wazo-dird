@@ -29,6 +29,8 @@ from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_
 
+from mock import ANY
+
 from .base_dird_integration_test import BaseDirdIntegrationTest
 from .base_dird_integration_test import VALID_UUID
 from .base_dird_integration_test import VALID_TOKEN
@@ -321,6 +323,21 @@ class TestEditPersonal(BaseDirdIntegrationTest):
                 'company': 'acme'
             })
         )))
+
+    def test_that_edit_cannot_duplicate_contacts(self):
+        contact_1 = self.post_personal({'firstname': u'Noémie', 'lastname': u'Narvidon'})
+        self.post_personal({'firstname': u'Paul', 'lastname': u'Narvidon'})
+
+        put_result = self.put_personal_result(contact_1['id'], {'firstname': u'Paul', 'lastname': u'Narvidon'}, VALID_TOKEN)
+        assert_that(put_result.status_code, equal_to(400))
+
+        list_result = self.list_personal()
+        assert_that(list_result['items'], contains_inanyorder({'id': ANY,
+                                                               'firstname': u'Noémie',
+                                                               'lastname': u'Narvidon'},
+                                                              {'id': ANY,
+                                                               'firstname': u'Paul',
+                                                               'lastname': u'Narvidon'}))
 
 
 class TestEditInvalidPersonal(BaseDirdIntegrationTest):

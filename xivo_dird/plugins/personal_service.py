@@ -58,6 +58,7 @@ class PersonalServicePlugin(BaseServicePlugin):
 class _PersonalService(object):
 
     NoSuchPersonalContact = database.NoSuchPersonalContact
+    DuplicatedContactException = database.DuplicatedContactException
 
     class InvalidPersonalContact(ValueError):
         def __init__(self, errors):
