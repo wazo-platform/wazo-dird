@@ -38,6 +38,10 @@ class NoSuchPersonalContact(ValueError):
         ValueError.__init__(self, message)
 
 
+class DuplicatedContactException(Exception):
+    pass
+
+
 class User(Base):
 
     __tablename__ = 'dird_user'
@@ -107,32 +111,36 @@ class PersonalContactCRUD(_BaseDAO):
             return _list_contacts_by_uuid(s, contact_uuids)
 
     def create_personal_contact(self, xivo_user_uuid, contact_info):
-        for contact in self.create_personal_contacts(xivo_user_uuid, [contact_info]):
-            return contact
+        with self.new_session() as s:
+            for contact in self._create_personal_contacts(s, xivo_user_uuid, [contact_info]):
+                return contact
 
     def create_personal_contacts(self, xivo_user_uuid, contact_infos):
-        hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
         with self.new_session() as s:
-            user = self._get_dird_user(s, xivo_user_uuid)
-            existing_hashes_and_id = self._find_existing_contact_by_hash(s, xivo_user_uuid, hash_and_contact.keys())
-            all_hashes = set(hash_and_contact.keys())
-            to_add = all_hashes - set(existing_hashes_and_id.keys())
-            existing = all_hashes - to_add
+            return self._create_personal_contacts(s, xivo_user_uuid, contact_infos)
 
-            for hash_ in to_add:
-                contact_info = hash_and_contact[hash_]
-                contact_args = {'user_uuid': user.xivo_user_uuid,
-                                'hash': hash_}
-                contact_uuid = contact_info.get('id')
-                if contact_uuid:
-                    contact_args['uuid'] = contact_uuid
-                contact = Contact(**contact_args)
-                s.add(contact)
-                s.flush()
-                for name, value in contact_info.iteritems():
-                    s.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
-                    s.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
-                contact_info['id'] = contact.uuid
+    def _create_personal_contacts(self, session, xivo_user_uuid, contact_infos):
+        hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
+        user = self._get_dird_user(session, xivo_user_uuid)
+        existing_hashes_and_id = self._find_existing_contact_by_hash(session, xivo_user_uuid, hash_and_contact.keys())
+        all_hashes = set(hash_and_contact.keys())
+        to_add = all_hashes - set(existing_hashes_and_id.keys())
+        existing = all_hashes - to_add
+
+        for hash_ in to_add:
+            contact_info = hash_and_contact[hash_]
+            contact_args = {'user_uuid': user.xivo_user_uuid,
+                            'hash': hash_}
+            contact_uuid = contact_info.get('id')
+            if contact_uuid:
+                contact_args['uuid'] = contact_uuid
+            contact = Contact(**contact_args)
+            session.add(contact)
+            session.flush()
+            for name, value in contact_info.iteritems():
+                session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
+                session.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
+            contact_info['id'] = contact.uuid
 
         for hash_ in existing:
             contact_info = hash_and_contact[hash_]
@@ -150,9 +158,14 @@ class PersonalContactCRUD(_BaseDAO):
         return {p.hash: p.uuid for p in pairs.all()}
 
     def edit_personal_contact(self, xivo_user_uuid, contact_id, contact_info):
-        self.delete_personal_contact(xivo_user_uuid, contact_id)
-        contact_info['id'] = contact_id
-        return self.create_personal_contact(xivo_user_uuid, contact_info)
+        with self.new_session() as s:
+            self._delete_personal_contact(s, xivo_user_uuid, contact_id)
+            hash_ = compute_contact_hash(contact_info)
+            if self._find_existing_contact_by_hash(s, xivo_user_uuid, [hash_]):
+                s.rollback()
+                raise DuplicatedContactException()
+            contact_info['id'] = contact_id
+            return self._create_personal_contacts(s, xivo_user_uuid, [contact_info])
 
     def get_personal_contact(self, xivo_user_uuid, contact_uuid):
         with self.new_session() as s:
@@ -169,24 +182,28 @@ class PersonalContactCRUD(_BaseDAO):
         raise NoSuchPersonalContact(contact_uuid)
 
     def delete_all_personal_contacts(self, xivo_user_uuid):
-        filter_ = User.xivo_user_uuid == xivo_user_uuid
-        return self._delete_personal_contacts_with_filter(filter_)
+        with self.new_session() as s:
+            filter_ = User.xivo_user_uuid == xivo_user_uuid
+            return self._delete_personal_contacts_with_filter(s, filter_)
 
     def delete_personal_contact(self, xivo_user_uuid, contact_uuid):
+        with self.new_session() as s:
+            self._delete_personal_contact(s, xivo_user_uuid, contact_uuid)
+
+    def _delete_personal_contact(self, session, xivo_user_uuid, contact_uuid):
         filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
                        ContactFields.contact_uuid == contact_uuid)
-        nb_deleted = self._delete_personal_contacts_with_filter(filter_)
+        nb_deleted = self._delete_personal_contacts_with_filter(session, filter_)
         if nb_deleted == 0:
             raise NoSuchPersonalContact(contact_uuid)
 
-    def _delete_personal_contacts_with_filter(self, filter_):
-        with self.new_session() as s:
-            contacts = s.query(Contact).join(ContactFields).join(User).filter(filter_).all()
-            deleted = 0
-            for contact in contacts:
-                s.delete(contact)
-                deleted += 1
-            return deleted
+    def _delete_personal_contacts_with_filter(self, session, filter_):
+        contacts = session.query(Contact).join(ContactFields).join(User).filter(filter_).all()
+        deleted = 0
+        for contact in contacts:
+            session.delete(contact)
+            deleted += 1
+        return deleted
 
     def _get_dird_user(self, session, xivo_user_uuid):
         user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()

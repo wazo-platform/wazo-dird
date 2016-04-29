@@ -157,6 +157,16 @@ class TestContactCRUD(_BaseTest):
         assert_that(contact_1_uuid, equal_to(contact_2_uuid))
 
     @with_user_uuid
+    def test_that_personal_contacts_remain_unique(self, xivo_user_uuid):
+        contact_1_uuid = self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)['id']
+        self._crud.create_personal_contact(xivo_user_uuid, self.contact_2)['id']
+
+        assert_that(calling(self._crud.edit_personal_contact).with_args(xivo_user_uuid, contact_1_uuid, self.contact_2),
+                    raises(database.DuplicatedContactException))
+        contact_list = self._crud.list_personal_contacts(xivo_user_uuid)
+        assert_that(contact_list, contains_inanyorder(expected(self.contact_1), expected(self.contact_2)))
+
+    @with_user_uuid
     @with_user_uuid
     def test_that_personal_contacts_can_be_duplicated_between_users(self, user_uuid_1, user_uuid_2):
         contact_1_uuid = self._crud.create_personal_contact(user_uuid_1, self.contact_1)['id']
