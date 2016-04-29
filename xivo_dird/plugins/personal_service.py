@@ -81,19 +81,19 @@ class _PersonalService(object):
     def create_contacts(self, contact_infos, token_infos):
         errors = []
         to_add = []
-        for i, contact_info in enumerate(contact_infos):
-            if None in contact_info.keys():
-                raise PersonalImportError('too many fields')
-            if None in contact_info.values():
-                raise PersonalImportError('missing fields')
-
+        for contact_info in contact_infos:
             try:
+                if None in contact_info.keys():
+                    raise PersonalImportError('too many fields')
+                if None in contact_info.values():
+                    raise PersonalImportError('missing fields')
+
                 self.validate_contact(contact_info)
                 to_add.append(contact_info)
             except self.InvalidPersonalContact as e:
-                errors.append({'errors': e.errors, 'line': i})
+                errors.append({'errors': e.errors, 'line': contact_infos.line_num})
             except PersonalImportError as e:
-                errors.append({'errors': [str(e)], 'line': i})
+                errors.append({'errors': [str(e)], 'line': contact_infos.line_num})
 
         return self._crud.create_personal_contacts(token_infos['xivo_user_uuid'], to_add), errors
 
