@@ -13,14 +13,16 @@ from alembic import op
 from sqlalchemy import Column, String, Text, Integer, ForeignKey
 
 table_name = 'dird_contact_fields'
+name_index = '{}_name_idx'.format(table_name)
+value_index = '{}_value_idx'.format(table_name)
 
 
 def upgrade():
     op.create_table(
         table_name,
         Column('id', Integer, primary_key=True),
-        Column('name', String(20), nullable=False),
-        Column('value', Text()),
+        Column('name', String(20), nullable=False, index=True),
+        Column('value', Text(), index=True),
         Column('contact_uuid', String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False),
     )
 

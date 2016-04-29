@@ -64,8 +64,8 @@ class ContactFields(Base):
     __tablename__ = 'dird_contact_fields'
 
     id = Column(Integer(), primary_key=True)
-    name = Column(String(20), nullable=False)
-    value = Column(Text())
+    name = Column(String(20), nullable=False, index=True)
+    value = Column(Text(), index=True)
     contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
 
 
