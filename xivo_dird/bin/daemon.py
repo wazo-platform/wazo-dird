@@ -18,9 +18,11 @@
 import logging
 import sys
 
+from xivo import xivo_logging
+from xivo.config_helper import set_xivo_uuid, UUIDNotFound
 from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
-from xivo import xivo_logging
+
 from xivo_dird.controller import Controller
 from xivo_dird.config import load as load_config
 
@@ -34,14 +36,17 @@ class _PreConfigLogger(object):
         def __init__(self):
             self._msg = []
 
-        def info(self, msg, *args, **kwargs):
-            self._msg.append((logging.INFO, msg, args, kwargs))
-
         def debug(self, msg, *args, **kwargs):
             self._msg.append((logging.DEBUG, msg, args, kwargs))
 
+        def info(self, msg, *args, **kwargs):
+            self._msg.append((logging.INFO, msg, args, kwargs))
+
         def warning(self, msg, *args, **kwargs):
             self._msg.append((logging.WARNING, msg, args, kwargs))
+
+        def error(self, msg, *args, **kwargs):
+            self._msg.append((logging.ERROR, msg, args, kwargs))
 
         def critical(self, msg, *args, **kwargs):
             self._msg.append((logging.CRITICAL, msg, args, kwargs))
@@ -66,10 +71,16 @@ def main(argv):
 
         xivo_logging.setup_logging(config['log_filename'], config['foreground'],
                                    config['debug'], config['log_level'])
-
     xivo_logging.silence_loggers(['Flask-Cors', 'urllib3'], logging.WARNING)
+
     if config['user']:
         change_user(config['user'])
+
+    try:
+        set_xivo_uuid(config, logger)
+    except UUIDNotFound:
+        if config['service_discovery']['enabled']:
+            raise
 
     controller = Controller(config)
 
