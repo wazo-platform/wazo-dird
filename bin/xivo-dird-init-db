@@ -44,12 +44,21 @@ def create_db(cursor, db_name, owner):
     cursor.execute(sql)
 
 
+def create_db_extensions(cursor):
+    sql = 'CREATE EXTENSION IF NOT EXISTS "{}"'
+    extensions = ['uuid-ossp', 'unaccent']
+    for extension in extensions:
+        cursor.execute(sql.format(extension))
+
+
 def _parse_cli_args(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--user', action='store',
                         help="The system user to use to connect to postgresql and create the user and database")
-    parser.add_argument('--uri', action='store', default='postgresql:///postgres',
-                        help="The DSN to use to connect to postgres and create the user and database")
+    parser.add_argument('--pg_db_uri', action='store', default='postgresql:///postgres',
+                        help="The DSN to connect to the postgres DB as an superuser")
+    parser.add_argument('--dird_db_uri', action='store', default='postgresql:///asterisk',
+                        help="The DSN to connect to the dird DB as an superuser")
     parser.add_argument('--db', action='store', default='asterisk',
                         help="The database name that will be created")
     parser.add_argument('--owner', action='store', default='asterisk',
@@ -67,7 +76,7 @@ def main():
 
     for _ in xrange(40):
         try:
-            conn = psycopg2.connect(args.uri)
+            conn = psycopg2.connect(args.pg_db_uri)
             break
         except psycopg2.OperationalError:
             time.sleep(0.25)
@@ -82,6 +91,11 @@ def main():
                 create_db_user(cursor, args.owner, args.password)
             if not db_exists(cursor, args.db):
                 create_db(cursor, args.db, args.owner)
+
+    conn = psycopg2.connect(args.dird_db_uri)
+    with conn:
+        with conn.cursor() as cursor:
+            create_db_extensions(cursor)
 
 
 if __name__ == '__main__':
