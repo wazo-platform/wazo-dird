@@ -12,7 +12,7 @@ Strip passphrase protection:
 
 Generate CSR for self-signing:
 
-   openssl req -new -key server.key -out server.csr
+   openssl req -new -key server.key -out server.csr -config openssl.cfg
 
 Create self-signed certificate for 1 year:
 

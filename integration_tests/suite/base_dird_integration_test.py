@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 requests.packages.urllib3.disable_warnings()
 
 ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
-CA_CERT = os.path.join(ASSET_ROOT, '_common', 'ssl', 'server.crt')
+CA_CERT = os.path.join(ASSET_ROOT, '_common', 'ssl', 'dird', 'server.crt')
 
 VALID_UUID = 'uuid'
 VALID_UUID_1 = 'uuid-1'

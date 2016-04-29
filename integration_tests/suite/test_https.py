@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ class TestHTTPSMissingCertificate(BaseDirdIntegrationTest):
             self.fail('xivo-dird did not stop while missing SSL certificate')
 
         log = self.service_logs()
-        assert_that(log, contains_string("No such file or directory: '/etc/ssl/server.crt'"))
+        assert_that(log, contains_string("No such file or directory: '/usr/local/share/ssl/dird/server.crt'"))
 
 
 class TestHTTPSMissingPrivateKey(BaseDirdIntegrationTest):
@@ -50,4 +50,4 @@ class TestHTTPSMissingPrivateKey(BaseDirdIntegrationTest):
             self.fail('xivo-dird did not stop while missing SSL private key')
 
         log = self.service_logs()
-        assert_that(log, contains_string("No such file or directory: '/etc/ssl/server.key'"))
+        assert_that(log, contains_string("No such file or directory: '/usr/local/share/ssl/dird/server.key'"))

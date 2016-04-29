@@ -18,7 +18,8 @@ dird:
   volumes:
     - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
     - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"
-    - "../_common/ssl:/etc/ssl"
+    - "../../..:/usr/src/xivo-dird"
+    - "../_common/ssl:/usr/local/share/ssl"
 ws:
   image: p0bailey/docker-flask
   ports:
@@ -32,7 +33,7 @@ auth:
     - "9497:9497"
   volumes:
     - "./auth_data:/tmp"
-    - "../_common/ssl:/etc/ssl"
+    - "../_common/ssl:/usr/local/share/ssl"
   command: "python /tmp/mock-xivo-auth.py 9497"
 consul:
   image: p0bailey/docker-flask
