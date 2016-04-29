@@ -24,7 +24,6 @@ from contextlib import contextmanager
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from sqlalchemy import and_, Column, distinct, ForeignKey, Integer, schema, String, text, Text
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.exc import IntegrityError
 
 Base = declarative_base()
 
@@ -37,10 +36,6 @@ class NoSuchPersonalContact(ValueError):
     def __init__(self, contact_id):
         message = "No such personal contact: {}".format(contact_id)
         ValueError.__init__(self, message)
-
-
-class DuplicatePersonalContact(Exception):
-    pass
 
 
 class User(Base):
@@ -172,13 +167,6 @@ class PersonalContactCRUD(_BaseDAO):
                 return contact
 
         raise NoSuchPersonalContact(contact_uuid)
-
-    def _get_personal_contact_by_hash(self, session, xivo_user_uuid, hash_):
-        filter_ = and_(Contact.user_uuid == xivo_user_uuid,
-                       Contact.hash == hash_)
-        contact_uuids = session.query(Contact.uuid).filter(filter_)
-        for contact in _list_contacts_by_uuid(session, contact_uuids):
-            return contact
 
     def delete_all_personal_contacts(self, xivo_user_uuid):
         filter_ = User.xivo_user_uuid == xivo_user_uuid
