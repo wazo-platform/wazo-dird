@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
-import os
 import sys
 import signal
 
@@ -56,15 +55,9 @@ class Controller(object):
         plugin_manager.unload_services()
 
     def run(self):
-        logger.debug('xivo-dird running...')
-        xivo_uuid = os.getenv('XIVO_UUID')
-        if not xivo_uuid and self.config['service_discovery']['enabled']:
-            logger.error('undefined environment variable XIVO_UUID')
-            sys.exit(1)
-
         signal.signal(signal.SIGTERM, _signal_handler)
         with ServiceCatalogRegistration('xivo-dird',
-                                        xivo_uuid,
+                                        self.config.get('uuid'),
                                         self.config.get('consul'),
                                         self.config.get('service_discovery'),
                                         self.config.get('bus'),
