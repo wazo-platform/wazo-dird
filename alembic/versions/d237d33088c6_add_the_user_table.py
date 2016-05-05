@@ -18,7 +18,7 @@ table_name = 'dird_user'
 
 def upgrade():
     op.create_table(table_name,
-                    Column('xivo_user_uuid', String(38), nullable=False, primary_key=True))
+                    Column('xivo_user_uuid', String(38), primary_key=True))
 
 
 def downgrade():

@@ -46,7 +46,7 @@ class User(Base):
 
     __tablename__ = 'dird_user'
 
-    xivo_user_uuid = Column(String(38), nullable=False, primary_key=True)
+    xivo_user_uuid = Column(String(38), primary_key=True)
 
 
 class Contact(Base):
