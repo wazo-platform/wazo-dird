@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,120 +16,69 @@
 
 from hamcrest import assert_that
 from hamcrest import equal_to
-from hamcrest import greater_than
 from hamcrest import has_item
 from hamcrest import has_property
-from hamcrest import not_
 from mock import Mock
-from mock import patch
 from unittest import TestCase
+from uuid import uuid4
 
-from ..personal_backend import match
+from xivo_dird import database
+
 from ..personal_backend import PersonalBackend
-from ..personal_backend import remove_empty_values
+
+SOME_UUID = str(uuid4())
+CONTACT_1 = {'id': str(uuid4()),
+             'firstname': 'Foo'}
+CONTACT_2 = {'firstname': 'Bar'}
 
 
 class TestPersonalBackend(TestCase):
 
-    @patch('xivo_dird.plugins.personal_backend.new_consul')
-    def test_that_list_calls_consul_get(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = Mock(), []
-        source = PersonalBackend()
-        source.load({'config': {'name': 'personal'},
-                     'main_config': {'consul': {'host': 'localhost'}}})
+    def setUp(self):
+        self._source = PersonalBackend()
+        self._search_engine = Mock(database.PersonalContactSearchEngine)
+        self._source.load({'config': {'name': 'personal'}}, search_engine=self._search_engine)
 
-        source.list(['1', '2'], {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
+    def test_that_list_calls_list_on_the_search_engine(self):
+        ids = ['1', '2']
+        self._search_engine.list_personal_contacts.return_value = [CONTACT_1, CONTACT_2]
 
-        assert_that(consul.kv.get.call_count, greater_than(1))
+        self._source.list(ids, {'token_infos': {'token': 'valid-token',
+                                                'xivo_user_uuid': SOME_UUID}})
 
-    @patch('xivo_dird.plugins.personal_backend.new_consul')
-    def test_that_list_sets_attribute_personal_and_deletable(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = Mock(), [{'Key': 'my/key',
-                                               'Value': 'my-value'}]
-        source = PersonalBackend()
-        source.load({'config': {'name': 'personal'},
-                     'main_config': {'consul': {'host': 'localhost'}}})
+        self._search_engine.list_personal_contacts.assert_called_once_with(SOME_UUID, ids)
 
-        result = source.list(['1'], {'token_infos': {'token': 'valid-token', 'auth_id': 'my-uuid'}})
+    def test_that_list_sets_attribute_personal_and_deletable(self):
+        self._search_engine.list_personal_contacts.return_value = [CONTACT_1]
+
+        result = self._source.list(['1'], {'token_infos': {'token': 'valid-token',
+                                                           'xivo_user_uuid': SOME_UUID}})
 
         assert_that(result, has_item(has_property('is_personal', True)))
         assert_that(result, has_item(has_property('is_deletable', True)))
 
-    @patch('xivo_dird.plugins.personal_backend.new_consul')
-    def test_that_search_calls_consul_get(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = Mock(), []
-        source = PersonalBackend()
-        source.load({'config': {'name': 'personal'},
-                     'main_config': {'consul': {'host': 'localhost'}}})
+    def test_that_search_calls_find_personal_contacts(self):
+        self._search_engine.find_personal_contacts.return_value = [CONTACT_1]
 
-        source.search('alice', {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        self._source.search('alice', {'token': 'valid-token',
+                                      'xivo_user_uuid': SOME_UUID})
 
-        assert_that(consul.kv.get.call_count, greater_than(0))
+        self._search_engine.find_personal_contacts.assert_called_once_with(SOME_UUID, 'alice')
 
-    @patch('xivo_dird.plugins.personal_backend.new_consul')
-    def test_that_first_match_calls_consul_get(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = Mock(), []
-        source = PersonalBackend()
-        source.load({'config': {'name': 'personal'},
-                     'main_config': {'consul': {'host': 'localhost'}}})
+    def test_that_first_match_calls_find_first_personal_contact(self):
+        self._search_engine.find_first_personal_contact.return_value = [CONTACT_1]
 
-        source.first_match('555', {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        result = self._source.first_match('555', {'token': 'valid-token',
+                                                  'xivo_user_uuid': SOME_UUID})
 
-        assert_that(consul.kv.get.call_count, greater_than(0))
+        self._search_engine.find_first_personal_contact.assert_called_once_with(SOME_UUID, '555')
+        assert_that(result.fields, equal_to(CONTACT_1))
 
-    @patch('xivo_dird.plugins.personal_backend.new_consul')
-    def test_that_first_match_return_none_if_no_match(self, consul_init):
-        consul = consul_init.return_value
-        consul.kv.get.return_value = Mock(), []
-        source = PersonalBackend()
-        source.load({'config': {'name': 'personal'},
-                     'main_config': {'consul': {'host': 'localhost'}}})
+    def test_that_first_match_return_none_if_no_match(self):
+        self._search_engine.find_first_personal_contact.return_value = []
 
-        result = source.first_match('555', {'token': 'valid-token', 'auth_id': 'my-uuid'})
+        result = self._source.first_match('555', {'token': 'valid-token',
+                                                  'xivo_user_uuid': SOME_UUID})
 
+        self._search_engine.find_first_personal_contact.assert_called_once_with(SOME_UUID, '555')
         assert_that(result, equal_to(None))
-
-
-class TestMatch(TestCase):
-
-    def test_that_empty_strings_match(self):
-        assert_that(match(u'', u''))
-
-    def test_that_empty_string_matches_non_empty(self):
-        assert_that(match(u'', u'a'))
-
-    def test_that_different_string_dont_match(self):
-        assert_that(not_(match(u'a', u'b')))
-
-    def test_that_substring_matches_superstring(self):
-        assert_that(not_(match(u'abc', u'zabcd')))
-
-    def test_that_lowercase_matches_uppercase(self):
-        assert_that(not_(match(u'abc', u'ZABCD')))
-        assert_that(not_(match(u'ABC', u'zabcd')))
-
-    def test_that_non_ascii_matches_ascii(self):
-        assert_that(not_(match(u'café', u'cafe')))
-        assert_that(not_(match(u'cafe', u'café')))
-
-
-class TestRemoveEmptyValues(TestCase):
-
-    def test_that_remove_empty_values_empty_returns_empty(self):
-        result = remove_empty_values({})
-
-        assert_that(result, equal_to({}))
-
-    def test_that_remove_empty_values_non_empty_returns_input(self):
-        result = remove_empty_values({'a': 'b', 'c': 'd'})
-
-        assert_that(result, equal_to({'a': 'b', 'c': 'd'}))
-
-    def test_that_remove_empty_values_with_empty_values_removes_empty_values(self):
-        result = remove_empty_values({'a': 'b', 'c': ''})
-
-        assert_that(result, equal_to({'a': 'b'}))

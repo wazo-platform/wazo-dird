@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,24 +16,21 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
-import uuid
 
-from consul import ConsulException
-from contextlib import contextmanager
-from requests.exceptions import RequestException
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo_dird import BaseServicePlugin
-from xivo_dird.core.consul import PERSONAL_CONTACTS_KEY
-from xivo_dird.core.consul import PERSONAL_CONTACT_KEY
-from xivo_dird.core.consul import dict_from_consul
-from xivo_dird.core.consul import dict_to_consul
-from xivo_dird.core.consul import ls_from_consul
-from xivo_dird.core.consul import new_consul
+from xivo_dird import database
 
 logger = logging.getLogger(__name__)
 
 
 UNIQUE_COLUMN = 'id'
+
+
+class PersonalImportError(ValueError):
+    pass
 
 
 class PersonalServicePlugin(BaseServicePlugin):
@@ -47,18 +44,21 @@ class PersonalServicePlugin(BaseServicePlugin):
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
-        return _PersonalService(config, sources)
+        crud = self._new_personal_contact_crud(config['db_uri'])
+
+        return _PersonalService(config, sources, crud)
+
+    def _new_personal_contact_crud(self, db_uri):
+        self._Session = scoped_session(sessionmaker())
+        engine = create_engine(db_uri)
+        self._Session.configure(bind=engine)
+        return database.PersonalContactCRUD(self._Session)
 
 
 class _PersonalService(object):
 
-    class PersonalServiceException(Exception):
-        pass
-
-    class NoSuchPersonalContact(ValueError):
-        def __init__(self, contact_id):
-            message = "No such personal contact: {}".format(contact_id)
-            ValueError.__init__(self, message)
+    NoSuchPersonalContact = database.NoSuchPersonalContact
+    DuplicatedContactException = database.DuplicatedContactException
 
     class InvalidPersonalContact(ValueError):
         def __init__(self, errors):
@@ -66,91 +66,55 @@ class _PersonalService(object):
             ValueError.__init__(self, message)
             self.errors = errors
 
-    def __init__(self, config, sources):
+    def __init__(self, config, sources, crud):
+        self._crud = crud
         self._config = config
         self._source = next((source for source in sources.itervalues() if source.backend == 'personal'),
                             DisabledPersonalSource())
 
     def create_contact(self, contact_infos, token_infos):
         self.validate_contact(contact_infos)
-        contact_id = str(uuid.uuid4())
-        return self._create_contact(contact_id, contact_infos, token_infos)
+        return self._crud.create_personal_contact(token_infos['xivo_user_uuid'], contact_infos)
+
+    def create_contacts(self, contact_infos, token_infos):
+        errors = []
+        to_add = []
+        for contact_info in contact_infos:
+            try:
+                if None in contact_info.keys():
+                    raise PersonalImportError('too many fields')
+                if None in contact_info.values():
+                    raise PersonalImportError('missing fields')
+
+                self.validate_contact(contact_info)
+                to_add.append(contact_info)
+            except self.InvalidPersonalContact as e:
+                errors.append({'errors': e.errors, 'line': contact_infos.line_num})
+            except PersonalImportError as e:
+                errors.append({'errors': [str(e)], 'line': contact_infos.line_num})
+
+        return self._crud.create_personal_contacts(token_infos['xivo_user_uuid'], to_add), errors
 
     def get_contact(self, contact_id, token_infos):
-        with self._consul(token=token_infos['token']) as consul:
-            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise self.NoSuchPersonalContact(contact_id)
-            consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
-                                                     contact_uuid=contact_id)
-            _, consul_dict = consul.kv.get(consul_key, recurse=True)
-        return dict_from_consul(consul_key, consul_dict)
+        return self._crud.get_personal_contact(token_infos['xivo_user_uuid'], contact_id)
 
     def edit_contact(self, contact_id, contact_infos, token_infos):
         self.validate_contact(contact_infos)
-        with self._consul(token=token_infos['token']) as consul:
-            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise self.NoSuchPersonalContact(contact_id)
-        self.remove_contact(contact_id, token_infos)
-        return self._create_contact(contact_id, contact_infos, token_infos)
+        return self._crud.edit_personal_contact(token_infos['xivo_user_uuid'], contact_id, contact_infos)
 
     def remove_contact(self, contact_id, token_infos):
-        with self._consul(token=token_infos['token']) as consul:
-            if not self._contact_exists(consul, token_infos['auth_id'], contact_id):
-                raise self.NoSuchPersonalContact(contact_id)
-            consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
-                                                     contact_uuid=contact_id)
-            consul.kv.delete(consul_key, recurse=True)
+        self._crud.delete_personal_contact(token_infos['xivo_user_uuid'], contact_id)
 
     def purge_contacts(self, token_infos):
-        with self._consul(token=token_infos['token']) as consul:
-            consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=token_infos['auth_id'],)
-            consul.kv.delete(consul_key, recurse=True)
+        self._crud.delete_all_personal_contacts(token_infos['xivo_user_uuid'])
 
     def list_contacts(self, token_infos):
-        user_uuid = token_infos['auth_id']
-        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
-        with self._consul(token_infos['token']) as consul:
-            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
-            contact_ids = ls_from_consul(consul_key, contact_keys)
-            contacts = self._source.list(contact_ids, {'token_infos': token_infos})
-        return contacts
+        contacts = self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
+        formatted_contacts = self._source.format_contacts(contacts)
+        return formatted_contacts
 
     def list_contacts_raw(self, token_infos):
-        user_uuid = token_infos['auth_id']
-        consul_key = PERSONAL_CONTACTS_KEY.format(user_uuid=user_uuid)
-        contacts = []
-        with self._consul(token=token_infos['token']) as consul:
-            _, contact_keys = consul.kv.get(consul_key, keys=True, separator='/')
-            contact_keys = contact_keys or []
-            for key_prefix in contact_keys:
-                _, consul_dict = consul.kv.get(key_prefix, recurse=True)
-                contacts.append(dict_from_consul(key_prefix, consul_dict))
-        return contacts
-
-    @contextmanager
-    def _consul(self, token):
-        try:
-            yield new_consul(self._config, token=token)
-        except ConsulException as e:
-            raise self.PersonalServiceException('Error from Consul: {}'.format(str(e)))
-        except RequestException as e:
-            raise self.PersonalServiceException('Error while connecting to Consul: {}'.format(str(e)))
-
-    def _contact_exists(self, consul, user_uuid, contact_id):
-        consul_key = PERSONAL_CONTACT_KEY.format(user_uuid=user_uuid,
-                                                 contact_uuid=contact_id)
-        _, result = consul.kv.get(consul_key, keys=True)
-        return result is not None
-
-    def _create_contact(self, contact_id, contact_infos, token_infos):
-        result = dict(contact_infos)
-        result[UNIQUE_COLUMN] = contact_id
-        with self._consul(token=token_infos['token']) as consul:
-            prefix = PERSONAL_CONTACT_KEY.format(user_uuid=token_infos['auth_id'],
-                                                 contact_uuid=contact_id)
-            for consul_key, value in dict_to_consul(prefix, result).iteritems():
-                consul.kv.put(consul_key, value)
-        return result
+        return self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
 
     @staticmethod
     def validate_contact(contact_infos):
@@ -162,39 +126,8 @@ class _PersonalService(object):
         if any(not hasattr(value, 'encode') for value in contact_infos.itervalues()):
             errors.append('all values must be strings')
 
-        if errors:
-            raise _PersonalService.InvalidPersonalContact(errors)
-        # from here we assume we have strings
-
-        if '.' in contact_infos:
-            errors.append('key `.` is invalid')
-
-        if any((('..' in key) for key in contact_infos)):
-            errors.append('.. is forbidden in keys')
-
-        if any('//' in key for key in contact_infos):
-            errors.append('// is forbidden in keys')
-
-        if any(key.startswith('/') for key in contact_infos):
-            errors.append('key must not start with /')
-
-        if any(key.endswith('/') for key in contact_infos):
-            errors.append('key must not end with /')
-
-        if any(key.startswith('./') for key in contact_infos):
-            errors.append('key must not start with ./')
-
-        if any(key.endswith('/.') for key in contact_infos):
-            errors.append('key must not end with /.')
-
-        if any('/./' in key for key in contact_infos):
-            errors.append('key must not contain /./')
-
-        try:
-            for key in contact_infos:
-                key.encode('ascii')
-        except UnicodeEncodeError:
-            errors.append('key must contain only ASCII characters')
+        if '' in contact_infos:
+            errors.append('"" is a forbidden in keys')
 
         if errors:
             raise _PersonalService.InvalidPersonalContact(errors)

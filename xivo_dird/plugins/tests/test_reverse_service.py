@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ class TestReverseService(unittest.TestCase):
         s.reverse(sentinel.exten, 'my_profile', {}, sentinel.uuid, sentinel.token)
 
         source.first_match.assert_called_once_with(sentinel.exten,
-                                                   {'token': sentinel.token, 'auth_id': sentinel.uuid})
+                                                   {'token': sentinel.token, 'xivo_user_uuid': sentinel.uuid})
 
         s.stop()
 

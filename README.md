@@ -35,6 +35,10 @@ The `xivo/xivo-dird` image contains a configuration file to listen to HTTP
 requests on "0.0.0.0". To change this behavior, create or edit the file
 `/etc/xivo-dird/conf.d/listen.yml`
 
+The xivo/xivo-dird-db image can be build using the following command:
+
+    % docker build -f contribs/docker/Dockerfile-db -t xivo/xivo-dird-db .
+
 
 Running unit tests
 ------------------
@@ -66,3 +70,11 @@ For developers, when adding/removing a plugin:
 ### Generate .tx/config
 
     % tx set --auto-local -r xivo.xivo-dird 'xivo_dird/translations/<lang>/LC_MESSAGES/messages.po' --source-lang en --type PO --source-file xivo_dird/messages.pot --execute
+
+
+Adding a new database migration
+-------------------------------
+
+To add a new migration script for the database use the following command:
+
+   % alembic -c alembic.ini revision -m "<description of the revision>"

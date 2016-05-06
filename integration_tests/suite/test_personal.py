@@ -29,6 +29,8 @@ from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_
 
+from mock import ANY
+
 from .base_dird_integration_test import BaseDirdIntegrationTest
 from .base_dird_integration_test import VALID_UUID
 from .base_dird_integration_test import VALID_TOKEN
@@ -84,9 +86,15 @@ class TestAddPersonal(BaseDirdIntegrationTest):
             has_entry('column_values', contains(u'Alice', None, None, False))))
 
     def test_that_adding_invalid_personal_returns_400(self):
-        result = self.post_personal_result({'.': 'invalid'}, VALID_TOKEN)
+        result = self.post_personal_result({'': 'invalid'}, VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))
+
+    def test_that_adding_duplicated_personal_returns_409(self):
+        self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN)
+        result = self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN)
+
+        assert_that(result.status_code, equal_to(409))
 
     def test_that_adding_personal_with_weird_attributes_is_ok(self):
         self.post_personal({
@@ -158,7 +166,7 @@ class TestPersonalPersistence(BaseDirdIntegrationTest):
         self.purge_personal()
 
     def test_that_personal_are_saved_across_dird_restart(self):
-        self.post_personal({})
+        self.post_personal({'firstname': 'Foo'})
 
         result_before = self.list_personal()
 
@@ -322,6 +330,21 @@ class TestEditPersonal(BaseDirdIntegrationTest):
             })
         )))
 
+    def test_that_edit_cannot_duplicate_contacts(self):
+        contact_1 = self.post_personal({'firstname': u'Noémie', 'lastname': u'Narvidon'})
+        self.post_personal({'firstname': u'Paul', 'lastname': u'Narvidon'})
+
+        put_result = self.put_personal_result(contact_1['id'], {'firstname': u'Paul', 'lastname': u'Narvidon'}, VALID_TOKEN)
+        assert_that(put_result.status_code, equal_to(409))
+
+        list_result = self.list_personal()
+        assert_that(list_result['items'], contains_inanyorder({'id': ANY,
+                                                               'firstname': u'Noémie',
+                                                               'lastname': u'Narvidon'},
+                                                              {'id': ANY,
+                                                               'firstname': u'Paul',
+                                                               'lastname': u'Narvidon'}))
+
 
 class TestEditInvalidPersonal(BaseDirdIntegrationTest):
 
@@ -336,7 +359,7 @@ class TestEditInvalidPersonal(BaseDirdIntegrationTest):
         result = self.put_personal_result(contact['id'],
                                           {'firstname': 'Ulga',
                                            'company': 'acme',
-                                           '.': 'invalid'},
+                                           '': 'invalid'},
                                           VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))
@@ -371,42 +394,3 @@ class TestGetPersonal(BaseDirdIntegrationTest):
 
         assert_that(contact_get, equal_to(contact_post))
         assert_that(contact_get, equal_to(contact_put))
-
-
-class TestConsulInternalError(BaseDirdIntegrationTest):
-    '''
-    This scenario may happen when the requested consul key is too long.
-    '''
-
-    asset = 'consul_500'
-
-    def test_when_consul_errors_that_personal_actions_return_503(self):
-        result = self.get_personal_result('unknown-id', 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.put_personal_result('unknown-id', {}, 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.post_personal_result({}, 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.delete_personal_result('unknown-id', 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.list_personal_result('valid-token')
-        assert_that(result.status_code, equal_to(503))
-
-
-class TestConsulUnreachable(BaseDirdIntegrationTest):
-
-    asset = 'no_consul'
-
-    def test_when_consul_errors_that_personal_actions_return_503(self):
-        result = self.get_personal_result('unknown-id', 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.put_personal_result('unknown-id', {}, 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.post_personal_result({}, 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.delete_personal_result('unknown-id', 'valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.list_personal_result('valid-token')
-        assert_that(result.status_code, equal_to(503))
-        result = self.get_personal_with_profile_result('default', 'valid-token')
-        assert_that(result.status_code, equal_to(503))

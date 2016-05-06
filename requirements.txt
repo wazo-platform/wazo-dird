@@ -1,3 +1,4 @@
+alembic==0.6.5
 babel==1.3
 cherrypy==3.7.0
 flask-babel==0.9
@@ -17,3 +18,5 @@ pyyaml==3.11  # from xivo-lib-py
 requests==2.4.3
 stevedore==0.14.1
 unidecode==0.04.16
+sqlalchemy==0.9.8
+psycopg2==2.5.4

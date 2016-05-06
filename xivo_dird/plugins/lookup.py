@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2014-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ class _LookupService(object):
         futures = []
         for source in self._source_by_profile(profile):
             args['token'] = token
-            args['auth_id'] = xivo_user_uuid
+            args['xivo_user_uuid'] = xivo_user_uuid
             futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}

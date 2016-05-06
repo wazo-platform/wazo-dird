@@ -37,24 +37,6 @@ logger = logging.getLogger(__name__)
 CHARSET_REGEX = re.compile('.*; *charset *= *(.*)')
 
 
-class PersonalImportError(ValueError):
-    pass
-
-
-def catch_service_error(wrapped):
-    def wrapper(self, *args, **kwargs):
-        try:
-            return wrapped(self, *args, **kwargs)
-        except self.personal_service.PersonalServiceException as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 503,
-            }
-            return error, 503
-    return wrapper
-
-
 class PersonalViewPlugin(BaseViewPlugin):
 
     personal_all_url = '/personal'
@@ -85,7 +67,6 @@ class PersonalAll(AuthResource):
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.create')
-    @catch_service_error
     def post(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -100,9 +81,15 @@ class PersonalAll(AuthResource):
                 'status_code': 400,
             }
             return error, 400
+        except self.personal_service.DuplicatedContactException:
+            error = {
+                'reason': ['Addind this contact would create a duplicate'],
+                'timestamp': [time()],
+                'status_code': 409,
+            }
+            return error, 409
 
     @required_acl('dird.personal.read')
-    @catch_service_error
     def get(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -117,7 +104,6 @@ class PersonalAll(AuthResource):
         return self.contacts_formatter(mimetype)(contacts)
 
     @required_acl('dird.personal.delete')
-    @catch_service_error
     def delete(self):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -165,7 +151,6 @@ class PersonalOne(AuthResource):
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.{contact_id}.read')
-    @catch_service_error
     def get(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -181,7 +166,6 @@ class PersonalOne(AuthResource):
             return error, 404
 
     @required_acl('dird.personal.{contact_id}.update')
-    @catch_service_error
     def put(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -203,9 +187,15 @@ class PersonalOne(AuthResource):
                 'status_code': 400,
             }
             return error, 400
+        except self.personal_service.DuplicatedContactException:
+            error = {
+                'reason': ['Modifying this contact would create a duplicate'],
+                'timestamp': [time()],
+                'status_code': 409,
+            }
+            return error, 409
 
     @required_acl('dird.personal.{contact_id}.delete')
-    @catch_service_error
     def delete(self, contact_id):
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
@@ -263,32 +253,5 @@ class PersonalImport(AuthResource):
         return result, 201
 
     def _mass_import(self, csv_document, encoding, token_infos):
-        created, errors = [], []
         reader = UnicodeDictReader(csv_document.split('\n'), encoding=encoding)
-        for contact_infos in reader:
-            try:
-                if None in contact_infos.keys():
-                    raise PersonalImportError('too many fields')
-                if None in contact_infos.values():
-                    raise PersonalImportError('missing fields')
-
-                contact = self.personal_service.create_contact(contact_infos, token_infos)
-                created.append(contact)
-
-            except self.personal_service.InvalidPersonalContact as e:
-                errors.append({
-                    'errors': e.errors,
-                    'line': reader.line_num
-                })
-            except self.personal_service.PersonalServiceException as e:
-                errors.append({
-                    'errors': [str(e)],
-                    'line': reader.line_num
-                })
-            except PersonalImportError as e:
-                errors.append({
-                    'errors': [str(e)],
-                    'line': reader.line_num
-                })
-
-        return created, errors
+        return self.personal_service.create_contacts(reader, token_infos)

@@ -3,9 +3,20 @@
 set -e
 
 LOG_FILENAME='/var/log/xivo-dird.log'
+DIRD_ALEMBIC_INI_PATH='/usr/share/xivo-dird'
+
+pg_is_running () {
+	pg_lsclusters --no-header | grep -q online
+}
 
 case "$1" in
 	configure)
+		if pg_is_running ; then
+			xivo-dird-init-db --user postgres
+			echo "Upgrading xivo-dird database ..."
+			(cd $DIRD_ALEMBIC_INI_PATH && alembic -c alembic.ini upgrade head)
+		fi
+
 		# add user www-data
 		if ! getent passwd www-data > /dev/null ; then
 			echo 'Adding system user for www-data' 1>&2
