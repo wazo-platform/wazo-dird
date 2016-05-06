@@ -24,15 +24,13 @@ RUN apt-get update \
     && mkdir -p /var/run/postgresql/9.4-main.pg_stat_tmp \
     && chown -R postgres:postgres /var/run/postgresql \
     && apt-get -y install $BUILD_PACKAGES \
-    && pip install -r requirements.txt
-
-RUN $PG_CTL -o "--config-file=$PG_CONF" start \
+    && pip install -r requirements.txt \
+    && $PG_CTL -o "--config-file=$PG_CONF" start \
     && while [ "$($PG_CTL status)" = "pg_ctl: no server running" ]; do sleep 1; done \
     && until ./bin/xivo-dird-init-db --user postgres ; do sleep 1; done \
     && (cd /usr/src/xivo-dird && alembic -c alembic.ini upgrade head) \
-    && $PG_CTL -o "--config-file=$PG_CONF" stop
-
-RUN apt-get purge -y $BUILD_PACKAGES \
+    && $PG_CTL -o "--config-file=$PG_CONF" stop \
+    && apt-get purge -y $BUILD_PACKAGES \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /usr/src/xivo-dird /var/lib/apt/lists/*
