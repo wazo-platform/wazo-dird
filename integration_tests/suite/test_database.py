@@ -151,10 +151,9 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     def test_that_personal_contacts_are_unique(self, xivo_user_uuid):
-        contact_1_uuid = self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)['id']
-        contact_2_uuid = self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)['id']
-
-        assert_that(contact_1_uuid, equal_to(contact_2_uuid))
+        self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)
+        assert_that(calling(self._crud.create_personal_contact).with_args(xivo_user_uuid, self.contact_1),
+                    raises(database.DuplicatedContactException))
 
     @with_user_uuid
     def test_that_personal_contacts_remain_unique(self, xivo_user_uuid):

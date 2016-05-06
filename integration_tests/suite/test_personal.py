@@ -90,6 +90,12 @@ class TestAddPersonal(BaseDirdIntegrationTest):
 
         assert_that(result.status_code, equal_to(400))
 
+    def test_that_adding_duplicated_personal_returns_409(self):
+        self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN)
+        result = self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN)
+
+        assert_that(result.status_code, equal_to(409))
+
     def test_that_adding_personal_with_weird_attributes_is_ok(self):
         self.post_personal({
             '%': '%',
@@ -329,7 +335,7 @@ class TestEditPersonal(BaseDirdIntegrationTest):
         self.post_personal({'firstname': u'Paul', 'lastname': u'Narvidon'})
 
         put_result = self.put_personal_result(contact_1['id'], {'firstname': u'Paul', 'lastname': u'Narvidon'}, VALID_TOKEN)
-        assert_that(put_result.status_code, equal_to(400))
+        assert_that(put_result.status_code, equal_to(409))
 
         list_result = self.list_personal()
         assert_that(list_result['items'], contains_inanyorder({'id': ANY,

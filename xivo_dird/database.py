@@ -112,20 +112,22 @@ class PersonalContactCRUD(_BaseDAO):
 
     def create_personal_contact(self, xivo_user_uuid, contact_info):
         with self.new_session() as s:
-            for contact in self._create_personal_contacts(s, xivo_user_uuid, [contact_info]):
+            for contact in self._create_personal_contacts(s, xivo_user_uuid, [contact_info], fail_on_duplicate=True):
                 return contact
 
     def create_personal_contacts(self, xivo_user_uuid, contact_infos):
         with self.new_session() as s:
             return self._create_personal_contacts(s, xivo_user_uuid, contact_infos)
 
-    def _create_personal_contacts(self, session, xivo_user_uuid, contact_infos):
+    def _create_personal_contacts(self, session, xivo_user_uuid, contact_infos, fail_on_duplicate=False):
         hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
         user = self._get_dird_user(session, xivo_user_uuid)
         existing_hashes_and_id = self._find_existing_contact_by_hash(session, xivo_user_uuid, hash_and_contact.keys())
         all_hashes = set(hash_and_contact.keys())
         to_add = all_hashes - set(existing_hashes_and_id.keys())
         existing = all_hashes - to_add
+        if existing and fail_on_duplicate:
+            raise DuplicatedContactException()
 
         for hash_ in to_add:
             contact_info = hash_and_contact[hash_]
