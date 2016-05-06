@@ -126,18 +126,8 @@ class _PersonalService(object):
         if any(not hasattr(value, 'encode') for value in contact_infos.itervalues()):
             errors.append('all values must be strings')
 
-        if errors:
-            raise _PersonalService.InvalidPersonalContact(errors)
-        # from here we assume we have strings
-
         if '' in contact_infos:
             errors.append('"" is a forbidden in keys')
-
-        try:
-            for key in contact_infos:
-                key.encode('ascii')
-        except UnicodeEncodeError:
-            errors.append('key must contain only ASCII characters')
 
         if errors:
             raise _PersonalService.InvalidPersonalContact(errors)

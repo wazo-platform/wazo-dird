@@ -117,14 +117,6 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
 class TestValidateContact(unittest.TestCase):
 
-    def test_that_validate_contact_refuses_non_ascii_key(self):
-        contact_infos = {
-            u'é': ''
-        }
-
-        exception = _PersonalService.InvalidPersonalContact
-        self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
-
     def test_that_validate_contact_refuses_empty_key(self):
         contact_infos = {
             '': 'Foobar'
