@@ -86,7 +86,7 @@ class TestAddPersonal(BaseDirdIntegrationTest):
             has_entry('column_values', contains(u'Alice', None, None, False))))
 
     def test_that_adding_invalid_personal_returns_400(self):
-        result = self.post_personal_result({'.': 'invalid'}, VALID_TOKEN)
+        result = self.post_personal_result({'': 'invalid'}, VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))
 
@@ -359,7 +359,7 @@ class TestEditInvalidPersonal(BaseDirdIntegrationTest):
         result = self.put_personal_result(contact['id'],
                                           {'firstname': 'Ulga',
                                            'company': 'acme',
-                                           '.': 'invalid'},
+                                           '': 'invalid'},
                                           VALID_TOKEN)
 
         assert_that(result.status_code, equal_to(400))

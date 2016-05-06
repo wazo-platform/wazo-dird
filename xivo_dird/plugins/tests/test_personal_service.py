@@ -117,17 +117,17 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
 class TestValidateContact(unittest.TestCase):
 
-    def test_that_validate_contact_refuses_dot_key(self):
+    def test_that_validate_contact_refuses_non_ascii_key(self):
         contact_infos = {
-            '.': '.'
+            u'é': ''
         }
 
         exception = _PersonalService.InvalidPersonalContact
         self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
 
-    def test_that_validate_contact_refuses_non_ascii_key(self):
+    def test_that_validate_contact_refuses_empty_key(self):
         contact_infos = {
-            u'é': ''
+            '': 'Foobar'
         }
 
         exception = _PersonalService.InvalidPersonalContact
@@ -148,25 +148,6 @@ class TestValidateContact(unittest.TestCase):
 
         exception = _PersonalService.InvalidPersonalContact
         self.assertRaises(exception, _PersonalService.validate_contact, contact_infos)
-
-    def test_that_validate_contact_refuses_path_related_keys(self):
-        exception = _PersonalService.InvalidPersonalContact
-        self.assertRaises(exception, _PersonalService.validate_contact, {'/': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'//': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'/abc': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'abc/': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'..': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'./././abc': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'./abc': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'abc/.': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'abcd./../../../abc': '..'})
-        self.assertRaises(exception, _PersonalService.validate_contact, {'abcd./../../..': '..'})
-
-    def test_that_validate_contact_accepts_keys_with_separators(self):
-        _PersonalService.validate_contact({'abcd.def.ghij': '..'})
-        _PersonalService.validate_contact({'.abcd.def.ghij.': '..'})
-        _PersonalService.validate_contact({'abcd/def/ghij': '..'})
-        _PersonalService.validate_contact({'abcd.def/ghi.jkl': '..'})
 
     def test_that_validate_contact_accepts_correct_contact(self):
         contact_infos = {
