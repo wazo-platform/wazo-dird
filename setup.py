@@ -5,7 +5,6 @@ from setuptools import setup
 from setuptools import find_packages
 from setuptools.command.install_lib import install_lib as _install_lib
 from distutils.command.build import build as _build
-from babel.messages import frontend as babel
 
 
 class build(_build):
@@ -18,6 +17,27 @@ class install_lib(_install_lib):
         _install_lib.run(self)
 
 
+class BabelWrapper(object):
+
+    def compile_catalog(self, *args, **kwargs):
+        return self.babel.compile_catalog(*args, **kwargs)
+
+    def extract_messages(self, *args, **kwargs):
+        return self.babel.extract_messages(*args, **kwargs)
+
+    def init_catalog(self, *args, **kwargs):
+        return self.babel.init_catalog(*args, **kwargs)
+
+    def update_catalog(self, *args, **kwargs):
+        return self.babel.update_catalog(*args, **kwargs)
+
+    @property
+    def babel(self):
+        from babel.messages import frontend as babel
+        return babel
+
+
+babel_wrapper = BabelWrapper()
 setup(
     name='xivo-dird',
     version='1.2',
@@ -41,11 +61,12 @@ setup(
 
     scripts=['bin/xivo-dird'],
 
-    cmdclass={'build': build, 'install_lib': install_lib,
-              'compile_catalog': babel.compile_catalog,
-              'extract_messages': babel.extract_messages,
-              'init_catalog': babel.init_catalog,
-              'update_catalog': babel.update_catalog},
+    cmdclass={'build': build,
+              'install_lib': install_lib,
+              'compile_catalog': babel_wrapper.compile_catalog,
+              'extract_messages': babel_wrapper.extract_messages,
+              'init_catalog': babel_wrapper.init_catalog,
+              'update_catalog': babel_wrapper.update_catalog},
 
     entry_points={
         'xivo_dird.services': [
