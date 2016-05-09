@@ -20,35 +20,8 @@ import argparse
 import psycopg2
 import time
 
+from xivo import db_helper
 from xivo.user_rights import change_user
-
-
-def db_user_exists(cursor, user):
-    cursor.execute("""SELECT 1 FROM pg_roles WHERE rolname=%s""", (user,))
-    row = cursor.fetchone()
-    return row and row[0] == 1
-
-
-def create_db_user(cursor, user, password):
-    sql = 'CREATE ROLE "{}" WITH LOGIN PASSWORD %s'.format(user)
-    cursor.execute(sql, (password,))
-
-def db_exists(cursor, name):
-    cursor.execute("""SELECT count(datname) FROM pg_catalog.pg_database WHERE datname=%s""", (name,))
-    row = cursor.fetchone()
-    return row and row[0] > 0
-
-
-def create_db(cursor, db_name, owner):
-    sql = """CREATE DATABASE "{}" WITH OWNER "{}" ENCODING 'UTF8'""".format(db_name, owner)
-    cursor.execute(sql)
-
-
-def create_db_extensions(cursor):
-    sql = 'CREATE EXTENSION IF NOT EXISTS "{}"'
-    extensions = ['uuid-ossp', 'unaccent']
-    for extension in extensions:
-        cursor.execute(sql.format(extension))
 
 
 def _parse_cli_args(args):
@@ -87,15 +60,15 @@ def main():
     conn.autocommit = True
     with conn:
         with conn.cursor() as cursor:
-            if not db_user_exists(cursor, args.owner):
-                create_db_user(cursor, args.owner, args.password)
-            if not db_exists(cursor, args.db):
-                create_db(cursor, args.db, args.owner)
+            if not db_helper.db_user_exists(cursor, args.owner):
+                db_helper.create_db_user(cursor, args.owner, args.password)
+            if not db_helper.db_exists(cursor, args.db):
+                db_helper.create_db(cursor, args.db, args.owner)
 
     conn = psycopg2.connect(args.dird_db_uri)
     with conn:
         with conn.cursor() as cursor:
-            create_db_extensions(cursor)
+            db_helper.create_db_extensions(cursor, ['uuid-ossp', 'unaccent'])
 
 
 if __name__ == '__main__':
