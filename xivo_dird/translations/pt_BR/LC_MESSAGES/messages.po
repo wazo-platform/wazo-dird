@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: XiVO\n"
 "Report-Msgid-Bugs-To: dev@avencall.com\n"
 "POT-Creation-Date: 2015-10-06 09:46-0400\n"
-"PO-Revision-Date: 2016-04-16 23:08+0000\n"
+"PO-Revision-Date: 2016-04-21 18:20+0000\n"
 "Last-Translator: Mike Vidal <mikenit.waze@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/proformatique/xivo/language/pt_BR/)\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,7 @@ msgstr ""
 #: xivo_dird/plugins/templates/polycom_results.jinja:4
 #: xivo_dird/plugins/templates/snom_input.jinja:3
 msgid "XiVO Search"
-msgstr "Procurar XiVO"
+msgstr "Pesquisa XiVO"
 
 #: xivo_dird/plugins/templates/aastra_input.jinja:4
 #: xivo_dird/plugins/templates/polycom_input.jinja:9
