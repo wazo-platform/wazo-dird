@@ -27,12 +27,14 @@ from hamcrest import (assert_that,
                       contains_inanyorder,
                       empty,
                       equal_to,
+                      is_,
                       not_,
                       raises)
 from mock import ANY
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import and_
 
 from xivo_dird import database
 
@@ -223,6 +225,47 @@ class TestContactCRUD(_BaseTest):
                     raises(database.NoSuchPersonalContact))
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid_3),
                     raises(database.NoSuchPersonalContact))
+
+
+class TestFavoriteCrud(_BaseTest):
+
+    def setUp(self):
+        super(TestFavoriteCrud, self).setUp()
+        self._crud = database.FavoriteCRUD(Session)
+
+    def test_that_create_creates_a_favorite(self):
+        xivo_user_uuid = new_uuid()
+        source_name = 'foobar'
+        contact_id = 'the-contact-id'
+
+        favorite = self._crud.create(xivo_user_uuid, source_name, contact_id)
+
+        assert_that(favorite.user_uuid, equal_to(xivo_user_uuid))
+        assert_that(favorite.contact_id, equal_to(contact_id))
+
+        assert_that(self._user_exists(xivo_user_uuid), is_(True))
+        assert_that(self._favorite_exists(xivo_user_uuid, source_name, contact_id))
+
+    def _user_exists(self, xivo_user_uuid):
+        session = Session()
+
+        user_uuid = session.query(database.User.xivo_user_uuid).filter(
+            database.User.xivo_user_uuid == xivo_user_uuid
+        ).scalar()
+
+        return user_uuid is not None
+
+    def _favorite_exists(self, xivo_user_uuid, source_name, contact_id):
+        session = Session()
+
+        favorite = (session.query(database.Favorite)
+                    .join(database.Source)
+                    .join(database.User)
+                    .filter(and_(database.User.xivo_user_uuid == xivo_user_uuid,
+                                 database.Source.name == source_name,
+                                 database.Favorite.contact_id == contact_id))).first()
+
+        return favorite is not None
 
 
 class TestPersonalContactSearchEngine(_BaseTest):
