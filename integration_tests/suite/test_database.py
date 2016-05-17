@@ -27,7 +27,6 @@ from hamcrest import (assert_that,
                       contains_inanyorder,
                       empty,
                       equal_to,
-                      is_,
                       not_,
                       raises)
 from mock import ANY
