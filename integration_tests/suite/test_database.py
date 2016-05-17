@@ -247,6 +247,28 @@ class TestFavoriteCrud(_BaseTest):
         assert_that(self._favorite_exists(xivo_user_uuid, source_name, contact_id))
 
     @with_user_uuid
+    @with_user_uuid
+    def test_get(self, user_1, user_2):
+        self._crud.create(user_1, 's1', '1')
+        self._crud.create(user_1, 's2', '1')
+        self._crud.create(user_1, 's1', '42')
+        self._crud.create(user_2, 's1', '42')
+        self._crud.create(user_2, 's3', '1')
+
+        fav_1 = self._crud.get(user_1)
+        fav_2 = self._crud.get(user_2)
+
+        assert_that(fav_1, contains_inanyorder(
+            ('s1', '1'),
+            ('s2', '1'),
+            ('s1', '42'),
+        ))
+        assert_that(fav_2, contains_inanyorder(
+            ('s1', '42'),
+            ('s3', '1'),
+        ))
+
+    @with_user_uuid
     def test_that_delete_removes_a_favorite(self, xivo_user_uuid):
         self._crud.create(xivo_user_uuid, 'source', 'the-contact-id')
 

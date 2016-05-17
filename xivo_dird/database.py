@@ -80,11 +80,10 @@ class ContactFields(Base):
 class Favorite(Base):
 
     __tablename__ = 'dird_favorite'
-    __table_args__ = (schema.UniqueConstraint('source_id', 'contact_id', 'user_uuid'),)
 
     source_id = Column(Integer(), ForeignKey('dird_source.id', ondelete='CASCADE'), primary_key=True)
     contact_id = Column(Text(), primary_key=True)
-    user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'), nullable=False)
+    user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'), primary_key=True)
 
 
 class Source(Base):
@@ -159,6 +158,11 @@ class FavoriteCRUD(_BaseDAO):
 
         if not deleted:
             raise NoSuchFavorite(contact_id)
+
+    def get(self, xivo_user_uuid):
+        with self.new_session() as s:
+            favorites = s.query(Favorite.contact_id, Source.name).join(Source).filter(Favorite.user_uuid == xivo_user_uuid)
+            return [(f.name, f.contact_id) for f in favorites.all()]
 
     def _get_source(self, session, source_name):
         source = session.query(Source).filter(Source.name == source_name).first()
