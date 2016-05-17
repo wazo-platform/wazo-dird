@@ -32,10 +32,18 @@ class unaccent(ReturnTypeFromArgs):
     pass
 
 
+class NoSuchFavorite(ValueError):
+
+    def __init__(self, contact_id):
+        message = "No such favorite: {}".format(contact_id)
+        super(NoSuchFavorite, self).__init__(message)
+
+
 class NoSuchPersonalContact(ValueError):
+
     def __init__(self, contact_id):
         message = "No such personal contact: {}".format(contact_id)
-        ValueError.__init__(self, message)
+        super(NoSuchPersonalContact, self).__init__(message)
 
 
 class DuplicatedContactException(Exception):
@@ -141,6 +149,16 @@ class FavoriteCRUD(_BaseDAO):
             s.add(favorite)
             s.commit()
             return favorite
+
+    def delete(self, xivo_user_uuid, contact_id):
+        with self.new_session() as s:
+            deleted = s.query(Favorite).filter(and_(Favorite.contact_id == contact_id,
+                                                    Favorite.user_uuid == xivo_user_uuid)).delete(synchronize_session=False)
+
+            s.commit()
+
+        if not deleted:
+            raise NoSuchFavorite(contact_id)
 
     def _get_source(self, session, source_name):
         source = session.query(Source).filter(Source.name == source_name).first()

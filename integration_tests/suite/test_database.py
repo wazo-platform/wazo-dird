@@ -243,8 +243,32 @@ class TestFavoriteCrud(_BaseTest):
         assert_that(favorite.user_uuid, equal_to(xivo_user_uuid))
         assert_that(favorite.contact_id, equal_to(contact_id))
 
-        assert_that(self._user_exists(xivo_user_uuid), is_(True))
+        assert_that(self._user_exists(xivo_user_uuid))
         assert_that(self._favorite_exists(xivo_user_uuid, source_name, contact_id))
+
+    @with_user_uuid
+    def test_that_delete_removes_a_favorite(self, xivo_user_uuid):
+        self._crud.create(xivo_user_uuid, 'source', 'the-contact-id')
+
+        self._crud.delete(xivo_user_uuid, 'the-contact-id')
+
+        assert_that(self._favorite_exists(xivo_user_uuid, 'source', 'the-contact-id'),
+                    equal_to(False))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_that_delete_does_not_remove_favorites_from_other_users(self, user_1, user_2):
+        self._crud.create(user_2, 'source', 'the-contact-id')
+
+        assert_that(calling(self._crud.delete).with_args(user_1, 'the-contact-id'),
+                    raises(database.NoSuchFavorite))
+
+        assert_that(self._favorite_exists(user_2, 'source', 'the-contact-id'))
+
+    @with_user_uuid
+    def test_that_delete_raises_if_not_found(self, xivo_user_uuid):
+        assert_that(calling(self._crud.delete).with_args(xivo_user_uuid, 'the-contact-id'),
+                    raises(database.NoSuchFavorite))
 
     def _user_exists(self, xivo_user_uuid):
         session = Session()
