@@ -159,10 +159,15 @@ class FavoriteCRUD(_BaseDAO):
                 raise DuplicatedFavoriteException()
             return favorite
 
-    def delete(self, xivo_user_uuid, contact_id):
+    def delete(self, xivo_user_uuid, source_name, contact_id):
+        deleted = 0
         with self.new_session() as s:
-            deleted = s.query(Favorite).filter(and_(Favorite.contact_id == contact_id,
-                                                    Favorite.user_uuid == xivo_user_uuid)).delete(synchronize_session=False)
+            favorites = s.query(Favorite).join(Source).filter(and_(Favorite.contact_id == contact_id,
+                                                                   Favorite.user_uuid == xivo_user_uuid,
+                                                                   Source.name == source_name))
+            for favorite in favorites:
+                s.delete(favorite)
+                deleted += 1
 
             s.commit()
 
