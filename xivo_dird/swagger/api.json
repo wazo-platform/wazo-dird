@@ -721,8 +721,8 @@
                     "204": {
                         "description": "Favorite added."
                     },
-                    "503": {
-                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    "409": {
+                        "$ref": "#/responses/DuplicateFavorite"
                     }
                 },
                 "parameters": [
@@ -1041,6 +1041,12 @@
         },
         "PersonalContactIDInvalid": {
             "description": "The personal contact does not exist",
+            "schema": {
+                "$ref": "#/definitions/Error"
+            }
+        },
+        "DuplicateFavorite": {
+            "description": "The contact has already been favorited",
             "schema": {
                 "$ref": "#/definitions/Error"
             }
