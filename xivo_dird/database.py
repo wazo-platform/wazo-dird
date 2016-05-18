@@ -22,7 +22,7 @@ from unidecode import unidecode
 from contextlib import contextmanager
 
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
-from sqlalchemy import and_, Column, distinct, ForeignKey, Integer, schema, String, text, Text
+from sqlalchemy import and_, Column, distinct, exc, ForeignKey, Integer, schema, String, text, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -47,6 +47,12 @@ class NoSuchPersonalContact(ValueError):
 
 
 class DuplicatedContactException(Exception):
+
+    pass
+
+
+class DuplicatedFavoriteException(Exception):
+
     pass
 
 
@@ -146,7 +152,11 @@ class FavoriteCRUD(_BaseDAO):
                                 contact_id=contact_id,
                                 user_uuid=user.xivo_user_uuid)
             s.add(favorite)
-            s.commit()
+            try:
+                s.commit()
+            except exc.IntegrityError:
+                s.rollback()
+                raise DuplicatedFavoriteException()
             return favorite
 
     def delete(self, xivo_user_uuid, contact_id):

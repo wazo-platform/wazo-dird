@@ -246,6 +246,13 @@ class TestFavoriteCrud(_BaseTest):
         assert_that(self._favorite_exists(xivo_user_uuid, source_name, contact_id))
 
     @with_user_uuid
+    def test_that_creating_the_same_favorite_raises(self, xivo_user_uuid):
+        source, contact_id = 'source', 'the-contact-id'
+        self._crud.create(xivo_user_uuid, source, contact_id)
+        assert_that(calling(self._crud.create).with_args(xivo_user_uuid, source, contact_id),
+                    raises(database.DuplicatedFavoriteException))
+
+    @with_user_uuid
     @with_user_uuid
     def test_get(self, user_1, user_2):
         self._crud.create(user_1, 's1', '1')
