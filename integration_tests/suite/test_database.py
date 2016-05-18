@@ -298,6 +298,13 @@ class TestFavoriteCrud(_BaseTest):
         assert_that(calling(self._crud.delete).with_args(xivo_user_uuid, 'source', 'the-contact-id'),
                     raises(database.NoSuchFavorite))
 
+    @with_user_uuid
+    def test_that_delete_from_an_unknown_source_raises(self, xivo_user_uuid):
+        self._crud.create(xivo_user_uuid, 'source', 'the-contact-id')
+
+        assert_that(calling(self._crud.delete).with_args(xivo_user_uuid, 'not-source', 'the-contact-id'),
+                    raises(database.NoSuchFavorite))
+
     def _user_exists(self, xivo_user_uuid):
         session = Session()
 

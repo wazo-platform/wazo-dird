@@ -160,19 +160,17 @@ class FavoriteCRUD(_BaseDAO):
             return favorite
 
     def delete(self, xivo_user_uuid, source_name, contact_id):
-        deleted = 0
         with self.new_session() as s:
-            favorites = s.query(Favorite).join(Source).filter(and_(Favorite.contact_id == contact_id,
-                                                                   Favorite.user_uuid == xivo_user_uuid,
-                                                                   Source.name == source_name))
-            for favorite in favorites:
-                s.delete(favorite)
-                deleted += 1
+            source_id = s.query(Source.id).filter(Source.name == source_name).scalar()
+            filter_ = and_(Favorite.contact_id == contact_id,
+                           Favorite.user_uuid == xivo_user_uuid,
+                           Favorite.source_id == source_id)
+            deleted = s.query(Favorite).filter(filter_).delete(synchronize_session=False)
 
             s.commit()
 
         if not deleted:
-            raise NoSuchFavorite(contact_id)
+            raise NoSuchFavorite((source_name, contact_id))
 
     def get(self, xivo_user_uuid):
         with self.new_session() as s:
