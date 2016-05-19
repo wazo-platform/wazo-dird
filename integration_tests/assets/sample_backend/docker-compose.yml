@@ -3,14 +3,14 @@ sync:
   links:
     - dird
     - auth
-    - consul
+    - db
   environment:
-    PORTS: "8500 9489 9497"
+    PORTS: "9489 9497 5432"
 dird:
   image: xivo-dird-test
   links:
     - auth
-    - consul
+    - db
   ports:
     - "9489:9489"
   volumes:
@@ -26,10 +26,7 @@ auth:
     - "./auth_data:/tmp"
     - "./ssl:/usr/local/share/ssl"
   command: "python /tmp/mock-xivo-auth.py 9497"
-consul:
-  image: p0bailey/docker-flask
-  expose:
-    - "8500"
-  volumes:
-    - "./consul_data:/tmp"
-  command: "python /tmp/mock-consul.py 8500"
+db:
+  image: xivo/xivo-dird-db
+  ports:
+    - "5432"

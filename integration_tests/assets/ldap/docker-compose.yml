@@ -2,7 +2,6 @@ sync:
   image: n3llyb0y/wait
   links:
     - auth
-    - consul
     - dird
     - slapd
   environment:
@@ -18,7 +17,7 @@ dird:
     - "./ssl:/usr/local/share/ssl"
   links:
     - auth
-    - consul
+    - db
     - slapd
 slapd:
   image: nickstenning/slapd
@@ -36,10 +35,7 @@ auth:
     - "./auth_data:/tmp"
     - "./ssl:/usr/local/share/ssl"
   command: "python /tmp/mock-xivo-auth.py 9497"
-consul:
-  image: p0bailey/docker-flask
-  expose:
-    - "8500"
-  volumes:
-    - "./consul_data:/tmp"
-  command: "python /tmp/mock-consul.py 8500"
+db:
+  image: xivo/xivo-dird-db
+  ports:
+    - "5432"

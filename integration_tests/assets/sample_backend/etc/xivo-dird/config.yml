@@ -33,6 +33,10 @@ services:
       sources:
         - sample_plugin
       timeout: 0.5
+  favorites:
+    default:
+      sources:
+        - sample_plugin
 
 rest_api:
   https:
@@ -45,8 +49,3 @@ auth:
   host: auth
   port: 9497
   verify_certificate: /usr/local/share/ssl/auth/server.crt
-
-consul:
-  scheme: http
-  host: consul
-  port: 8500
