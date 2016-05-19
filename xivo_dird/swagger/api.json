@@ -1028,7 +1028,7 @@
             }
         },
         "AnotherServiceUnavailable": {
-            "description": "Another service is unavailable (e.g. xivo-auth, consul, ...)",
+            "description": "Another service is unavailable (e.g. xivo-auth, postgresql, ...)",
             "schema": {
                 "$ref": "#/definitions/Error"
             }
