@@ -73,6 +73,8 @@ def main():
         except database.DuplicatedFavoriteException:
             pass
 
+    client.kv.delete(PRIVATE_KEY, recurse=True)
+
 
 if __name__ == '__main__':
     main()
