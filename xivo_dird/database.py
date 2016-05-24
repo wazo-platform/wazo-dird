@@ -121,6 +121,10 @@ def compute_contact_hash(contact_info):
     return hashlib.sha1(string_representation).hexdigest()
 
 
+def delete_user(session, xivo_user_uuid):
+    session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).delete()
+
+
 class _BaseDAO(object):
 
     def __init__(self, Session):
