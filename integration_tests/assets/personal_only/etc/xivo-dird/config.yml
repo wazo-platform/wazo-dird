@@ -6,6 +6,7 @@ enabled_plugins:
     - favorites
     - lookup
     - reverse
+    - cleanup
   views:
     - default_json
     - headers_view
@@ -54,3 +55,9 @@ auth:
   host: auth
   port: 9497
   verify_certificate: /usr/local/share/ssl/auth/server.crt
+
+bus:
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest

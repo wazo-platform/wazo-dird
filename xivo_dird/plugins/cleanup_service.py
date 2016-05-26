@@ -67,6 +67,7 @@ class _StorageCleanupService(object):
             self._bus_thread.join()
 
     def _start_consuming(self):
+        logger.debug('Connecting to %s', self._bus_url)
         with kombu.Connection(self._bus_url) as conn:
             self._consumer = _UserDeletedConsumer(conn, self)
             self._consumer.run()

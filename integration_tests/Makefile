@@ -6,6 +6,7 @@ test-setup: egg-info build-dird build-db-image
 	docker pull p0bailey/docker-flask
 	docker pull nickstenning/slapd
 	docker pull n3llyb0y/wait
+	docker pull rabbitmq
 
 build-dird:
 	docker build -t xivo/xivo-dird ..
