@@ -261,7 +261,6 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
     def test_that_favorites_returns_404(self):
         result = self.get_favorites_result('unknown', token=VALID_TOKEN)
 
-        print result, result.__dict__
         error = result.json()
 
         assert_that(result.status_code, equal_to(404))
