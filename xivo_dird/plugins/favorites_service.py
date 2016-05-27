@@ -60,7 +60,7 @@ class FavoritesServicePlugin(BaseServicePlugin):
             config = args['config']
             sources = args['sources']
         except KeyError:
-            msg = ('%s should be loaded with "config", "sources" and "db_uri" but received: %s'
+            msg = ('%s should be loaded with "config" and "sources" but received: %s'
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
