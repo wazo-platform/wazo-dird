@@ -98,7 +98,8 @@ class JsonViewPlugin(BaseViewPlugin):
 
 
 class DisabledFavoriteService(object):
-    def favorite_ids(self, profile, token_info):
+
+    def favorite_ids(self, profile, xivo_user_uuid):
         return []
 
 
@@ -133,12 +134,7 @@ class Lookup(AuthResource):
                                                  xivo_user_uuid,
                                                  args={},
                                                  token=token)
-        try:
-            favorites = self.favorite_service.favorite_ids(profile, token_infos)
-        except self.favorite_service.FavoritesServiceException as e:
-            logger.error('Error while listing favorites: %s', e)
-            favorites = []
-
+        favorites = self.favorite_service.favorite_ids(profile, xivo_user_uuid)
         formatter = _ResultFormatter(self.displays[profile])
         response = formatter.format_results(raw_results, favorites)
 
@@ -198,9 +194,9 @@ class FavoritesRead(AuthResource):
         token_infos = auth.client().token.get(token)
 
         try:
-            raw_results = self.favorites_service.favorites(profile, token_infos)
-        except self.favorites_service.FavoritesServiceException as e:
-            return _error(503, str(e))
+            raw_results = self.favorites_service.favorites(profile, token_infos['xivo_user_uuid'])
+        except self.favorites_service.NoSuchProfileException as e:
+            return _error(404, str(e))
 
         formatter = _FavoriteResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results)
@@ -220,9 +216,11 @@ class FavoritesWrite(AuthResource):
         token_infos = auth.client().token.get(token)
 
         try:
-            self.favorites_service.new_favorite(directory, contact, token_infos)
-        except self.favorites_service.FavoritesServiceException as e:
-            return _error(503, str(e))
+            self.favorites_service.new_favorite(directory, contact, token_infos['xivo_user_uuid'])
+        except self.favorites_service.DuplicatedFavoriteException:
+            return _error(409, 'Adding this favorite would create a duplicate')
+        except self.favorite_service.NoSuchSourceException as e:
+            return _error(404, str(e))
         return '', 204
 
     @required_acl('dird.directories.favorites.{directory}.{contact}.delete')
@@ -231,12 +229,11 @@ class FavoritesWrite(AuthResource):
         token_infos = auth.client().token.get(token)
 
         try:
-            self.favorites_service.remove_favorite(directory, contact, token_infos)
+            self.favorites_service.remove_favorite(directory, contact, token_infos['xivo_user_uuid'])
             return '', 204
-        except self.favorites_service.NoSuchFavorite as e:
+        except (self.favorites_service.NoSuchFavoriteException,
+                self.favorites_service.NoSuchSourceException) as e:
             return _error(404, str(e))
-        except self.favorites_service.FavoritesServiceException as e:
-            return _error(503, str(e))
 
 
 class Personal(AuthResource):
@@ -262,7 +259,10 @@ class Personal(AuthResource):
             return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
 
         raw_results = self.personal_service.list_contacts(token_infos)
-        favorites = self.favorite_service.favorite_ids(profile, token_infos)
+        try:
+            favorites = self.favorite_service.favorite_ids(profile, token_infos['xivo_user_uuid'])
+        except self.favorite_service.NoSuchProfileException as e:
+            return _error(404, str(e))
         formatter = _ResultFormatter(self.displays[profile])
         return formatter.format_results(raw_results, favorites)
 

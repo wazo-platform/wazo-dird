@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,25 +17,37 @@
 
 import logging
 
-from collections import namedtuple
+from collections import defaultdict
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+
 from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
-from consul import Consul
-from consul import ConsulException
-from contextlib import contextmanager
-from requests import RequestException
 
 from xivo_dird import BaseServicePlugin
-from xivo_dird import helpers
-from xivo_dird.core.consul import ls_from_consul
+from xivo_dird import database, helpers
 
 logger = logging.getLogger(__name__)
 
-ContactID = namedtuple('ContactID', ['source', 'id'])
 
-FAVORITES_SOURCE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}/'
-FAVORITE_KEY = 'xivo/private/{user_uuid}/contacts/favorites/{source}/{contact_id}'
+class _NoSuchProfileException(ValueError):
+
+    msg_tpl = 'No such profile in favorite service configuration: {}'
+
+    def __init__(self, profile):
+        msg = self.msg_tpl.format(profile)
+        super(_NoSuchProfileException, self).__init__(msg)
+
+
+class _NoSuchSourceException(ValueError):
+
+    msg_tpl = 'No such source: {}'
+
+    def __init__(self, source):
+        msg = self.msg_tpl.format(source)
+        super(_NoSuchSourceException, self).__init__(msg)
 
 
 class FavoritesServicePlugin(BaseServicePlugin):
@@ -52,8 +64,24 @@ class FavoritesServicePlugin(BaseServicePlugin):
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
-        self._service = _FavoritesService(config, sources)
+        try:
+            db_uri = config['db_uri']
+        except KeyError:
+            msg = '{} should be loaded with a config containing "db_uri" but received: {}'.format(
+                self.__class__.__name__, ','.join(config.keys())
+            )
+            raise ValueError(msg)
+
+        crud = self._new_favorite_crud(db_uri)
+
+        self._service = _FavoritesService(config, sources, crud)
         return self._service
+
+    def _new_favorite_crud(self, db_uri):
+        self._Session = scoped_session(sessionmaker())
+        engine = create_engine(db_uri)
+        self._Session.configure(bind=engine)
+        return database.FavoriteCRUD(self._Session)
 
     def unload(self):
         if self._service:
@@ -63,19 +91,22 @@ class FavoritesServicePlugin(BaseServicePlugin):
 
 class _FavoritesService(object):
 
-    class FavoritesServiceException(Exception):
-        pass
+    NoSuchFavoriteException = database.NoSuchFavorite
+    NoSuchProfileException = _NoSuchProfileException
+    NoSuchSourceException = _NoSuchSourceException
+    DuplicatedFavoriteException = database.DuplicatedFavoriteException
 
-    class NoSuchFavorite(ValueError):
-        def __init__(self, contact_id):
-            message = "No such favorite: {}".format(contact_id)
-            super(_FavoritesService.NoSuchFavorite, self).__init__(message)
-
-    def __init__(self, config, sources):
+    def __init__(self, config, sources, crud):
         self._config = config
         self._sources = sources
-        self._favorites = []
         self._executor = ThreadPoolExecutor(max_workers=10)
+        self._crud = crud
+        available_sources = set()
+        for source_config in config.get('services', {}).get('favorites', {}).itervalues():
+            for source in source_config.get('sources', []):
+                available_sources.add(source)
+        self._available_sources = list(available_sources)
+        self._configured_profiles = config.get('services', {}).get('favorites', {}).keys()
 
     def stop(self):
         self._executor.shutdown()
@@ -86,11 +117,15 @@ class _FavoritesService(object):
         future.name = source.name
         return future
 
-    def favorites(self, profile, token_infos):
+    def favorites(self, profile, xivo_user_uuid):
+        if profile not in self._configured_profiles:
+            raise self.NoSuchProfileException(profile)
+
+        args = {'token_infos': {'xivo_user_uuid': xivo_user_uuid}}
         futures = []
-        for source_name, ids in self.favorite_ids(profile, token_infos).iteritems():
+        for source_name, ids in self.favorite_ids(profile, xivo_user_uuid).iteritems():
             source = self._sources[source_name]
-            futures.append(self._async_list(source, ids, {'token_infos': token_infos}))
+            futures.append(self._async_list(source, ids, args))
 
         params = {'return_when': ALL_COMPLETED}
         if 'lookup_timeout' in self._config:
@@ -103,35 +138,33 @@ class _FavoritesService(object):
                 results.append(result)
         return results
 
-    def favorite_ids(self, profile, token_infos):
-        result = {}
-        for source in self._source_by_profile(profile):
-            ids = self._favorite_ids_in_source(token_infos['auth_id'], source.name, token_infos['token'])
-            result[source.name] = ids
+    def favorite_ids(self, profile, xivo_user_uuid):
+        if profile not in self._configured_profiles:
+            raise self.NoSuchProfileException(profile)
+
+        favorites = self._crud.get(xivo_user_uuid)
+        enabled_sources = [source.name for source in self._source_by_profile(profile)]
+
+        result = defaultdict(list)
+        for name, id_ in favorites:
+            if name not in enabled_sources:
+                continue
+            result[name].append(id_)
+
         return result
 
-    def _favorite_ids_in_source(self, uuid, source_name, token):
-        source_key = FAVORITES_SOURCE_KEY.format(user_uuid=uuid, source=source_name)
-        with self._consul() as consul:
-            _, keys = consul.kv.get(source_key, keys=True, token=token)
-        return ls_from_consul(source_key, keys)
+    def new_favorite(self, source, contact_id, xivo_user_uuid):
+        if source not in self._available_sources:
+            raise self.NoSuchSourceException(source)
 
-    def new_favorite(self, source, contact_id, token_infos):
         contact_id = contact_id.encode('utf-8')
-        key = FAVORITE_KEY.format(user_uuid=token_infos['auth_id'], source=source, contact_id=contact_id)
-        with self._consul() as consul:
-            consul.kv.put(key, value=contact_id, token=token_infos['token'])
+        self._crud.create(xivo_user_uuid, source, contact_id)
 
-    def remove_favorite(self, source, contact_id, token_infos):
-        key = FAVORITE_KEY.format(user_uuid=token_infos['auth_id'], source=source, contact_id=contact_id)
-        with self._consul() as consul:
-            _, value = consul.kv.get(key, token=token_infos['token'])
+    def remove_favorite(self, source, contact_id, xivo_user_uuid):
+        if source not in self._available_sources:
+            raise self.NoSuchSourceException(source)
 
-        if value is None:
-            raise self.NoSuchFavorite((source, contact_id))
-
-        with self._consul() as consul:
-            consul.kv.delete(key, token=token_infos['token'])
+        self._crud.delete(xivo_user_uuid, source, contact_id)
 
     def _source_by_profile(self, profile):
         favorites_config = self._config.get('services', {}).get('favorites', {})
@@ -142,12 +175,3 @@ class _FavoritesService(object):
             return []
         else:
             return [self._sources[name] for name in source_names if name in self._sources]
-
-    @contextmanager
-    def _consul(self):
-        try:
-            yield Consul(**self._config['consul'])
-        except ConsulException as e:
-            raise self.FavoritesServiceException('Error from Consul: {}'.format(str(e)))
-        except RequestException as e:
-            raise self.FavoritesServiceException('Error while connecting to Consul: {}'.format(str(e)))

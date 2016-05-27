@@ -2,16 +2,14 @@ sync:
   image: n3llyb0y/wait
   links:
     - auth
-    - consul
     - dird
     - db
   environment:
-    PORTS: "8500 9489 9497 5432"
+    PORTS: "9489 9497 5432"
 dird:
   image: xivo-dird-test
   links:
     - auth
-    - consul
     - db
   ports:
     - "9489:9489"
@@ -32,10 +30,3 @@ db:
   image: xivo/xivo-dird-db
   ports:
     - "5432"
-consul:
-  image: p0bailey/docker-flask
-  expose:
-    - "8500"
-  volumes:
-    - "./consul_data:/tmp"
-  command: "python /tmp/mock-consul.py 8500"

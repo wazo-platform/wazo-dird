@@ -53,11 +53,6 @@ auth:
   port: 9497
   verify_certificate: /usr/local/share/ssl/auth/server.crt
 
-consul:
-  scheme: http
-  host: consul
-  port: 8500
-
 sources:
   my_csv:
     type: csv

@@ -2,10 +2,9 @@ sync:
   image: n3llyb0y/wait
   links:
     - auth
-    - consul
     - dird
   environment:
-    PORTS: "8500 9489 9497"
+    PORTS: "9489 9497"
 dird:
   image: xivo-dird-test
   ports:
@@ -17,7 +16,6 @@ dird:
     - "./ssl:/usr/local/share/ssl"
   links:
     - auth
-    - consul
     - slapd
 slapd:
   image: alpine
@@ -30,10 +28,3 @@ auth:
     - "./auth_data:/tmp"
     - "./ssl:/usr/local/share/ssl"
   command: "python /tmp/mock-xivo-auth.py 9497"
-consul:
-  image: p0bailey/docker-flask
-  expose:
-    - "8500"
-  volumes:
-    - "./consul_data:/tmp"
-  command: "python /tmp/mock-consul.py 8500"

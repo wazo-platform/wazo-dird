@@ -33,6 +33,7 @@ from mock import ANY
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import and_
 
 from xivo_dird import database
 
@@ -223,6 +224,107 @@ class TestContactCRUD(_BaseTest):
                     raises(database.NoSuchPersonalContact))
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid_3),
                     raises(database.NoSuchPersonalContact))
+
+
+class TestFavoriteCrud(_BaseTest):
+
+    def setUp(self):
+        super(TestFavoriteCrud, self).setUp()
+        self._crud = database.FavoriteCRUD(Session)
+
+    def test_that_create_creates_a_favorite(self):
+        xivo_user_uuid = new_uuid()
+        source_name = 'foobar'
+        contact_id = 'the-contact-id'
+
+        favorite = self._crud.create(xivo_user_uuid, source_name, contact_id)
+
+        assert_that(favorite.user_uuid, equal_to(xivo_user_uuid))
+        assert_that(favorite.contact_id, equal_to(contact_id))
+
+        assert_that(self._user_exists(xivo_user_uuid))
+        assert_that(self._favorite_exists(xivo_user_uuid, source_name, contact_id))
+
+    @with_user_uuid
+    def test_that_creating_the_same_favorite_raises(self, xivo_user_uuid):
+        source, contact_id = 'source', 'the-contact-id'
+        self._crud.create(xivo_user_uuid, source, contact_id)
+        assert_that(calling(self._crud.create).with_args(xivo_user_uuid, source, contact_id),
+                    raises(database.DuplicatedFavoriteException))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_get(self, user_1, user_2):
+        self._crud.create(user_1, 's1', '1')
+        self._crud.create(user_1, 's2', '1')
+        self._crud.create(user_1, 's1', '42')
+        self._crud.create(user_2, 's1', '42')
+        self._crud.create(user_2, 's3', '1')
+
+        fav_1 = self._crud.get(user_1)
+        fav_2 = self._crud.get(user_2)
+
+        assert_that(fav_1, contains_inanyorder(
+            ('s1', '1'),
+            ('s2', '1'),
+            ('s1', '42'),
+        ))
+        assert_that(fav_2, contains_inanyorder(
+            ('s1', '42'),
+            ('s3', '1'),
+        ))
+
+    @with_user_uuid
+    def test_that_delete_removes_a_favorite(self, xivo_user_uuid):
+        self._crud.create(xivo_user_uuid, 'source', 'the-contact-id')
+
+        self._crud.delete(xivo_user_uuid, 'source', 'the-contact-id')
+
+        assert_that(self._favorite_exists(xivo_user_uuid, 'source', 'the-contact-id'),
+                    equal_to(False))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_that_delete_does_not_remove_favorites_from_other_users(self, user_1, user_2):
+        self._crud.create(user_2, 'source', 'the-contact-id')
+
+        assert_that(calling(self._crud.delete).with_args(user_1, 'source', 'the-contact-id'),
+                    raises(database.NoSuchFavorite))
+
+        assert_that(self._favorite_exists(user_2, 'source', 'the-contact-id'))
+
+    @with_user_uuid
+    def test_that_delete_raises_if_not_found(self, xivo_user_uuid):
+        assert_that(calling(self._crud.delete).with_args(xivo_user_uuid, 'source', 'the-contact-id'),
+                    raises(database.NoSuchFavorite))
+
+    @with_user_uuid
+    def test_that_delete_from_an_unknown_source_raises(self, xivo_user_uuid):
+        self._crud.create(xivo_user_uuid, 'source', 'the-contact-id')
+
+        assert_that(calling(self._crud.delete).with_args(xivo_user_uuid, 'not-source', 'the-contact-id'),
+                    raises(database.NoSuchFavorite))
+
+    def _user_exists(self, xivo_user_uuid):
+        session = Session()
+
+        user_uuid = session.query(database.User.xivo_user_uuid).filter(
+            database.User.xivo_user_uuid == xivo_user_uuid
+        ).scalar()
+
+        return user_uuid is not None
+
+    def _favorite_exists(self, xivo_user_uuid, source_name, contact_id):
+        session = Session()
+
+        favorite = (session.query(database.Favorite)
+                    .join(database.Source)
+                    .join(database.User)
+                    .filter(and_(database.User.xivo_user_uuid == xivo_user_uuid,
+                                 database.Source.name == source_name,
+                                 database.Favorite.contact_id == contact_id))).first()
+
+        return favorite is not None
 
 
 class TestPersonalContactSearchEngine(_BaseTest):

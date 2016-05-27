@@ -22,7 +22,7 @@ from unidecode import unidecode
 from contextlib import contextmanager
 
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
-from sqlalchemy import and_, Column, distinct, ForeignKey, Integer, schema, String, text, Text
+from sqlalchemy import and_, Column, distinct, exc, ForeignKey, Integer, schema, String, text, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -32,13 +32,27 @@ class unaccent(ReturnTypeFromArgs):
     pass
 
 
+class NoSuchFavorite(ValueError):
+
+    def __init__(self, contact_id):
+        message = "No such favorite: {}".format(contact_id)
+        super(NoSuchFavorite, self).__init__(message)
+
+
 class NoSuchPersonalContact(ValueError):
+
     def __init__(self, contact_id):
         message = "No such personal contact: {}".format(contact_id)
-        ValueError.__init__(self, message)
+        super(NoSuchPersonalContact, self).__init__(message)
 
 
 class DuplicatedContactException(Exception):
+
+    pass
+
+
+class DuplicatedFavoriteException(Exception):
+
     pass
 
 
@@ -67,6 +81,23 @@ class ContactFields(Base):
     name = Column(Text(), nullable=False, index=True)
     value = Column(Text(), index=True)
     contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
+
+
+class Favorite(Base):
+
+    __tablename__ = 'dird_favorite'
+
+    source_id = Column(Integer(), ForeignKey('dird_source.id', ondelete='CASCADE'), primary_key=True)
+    contact_id = Column(Text(), primary_key=True)
+    user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'), primary_key=True)
+
+
+class Source(Base):
+
+    __tablename__ = 'dird_source'
+
+    id = Column(Integer(), primary_key=True)
+    name = Column(Text(), nullable=False, unique=True)
 
 
 def _list_contacts_by_uuid(session, uuids):
@@ -100,6 +131,60 @@ class _BaseDAO(object):
         session = self._Session()
         yield session
         session.commit()
+
+    def _get_dird_user(self, session, xivo_user_uuid):
+        user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
+        if not user:
+            user = User(xivo_user_uuid=xivo_user_uuid)
+            session.add(user)
+            session.flush()
+
+        return user
+
+
+class FavoriteCRUD(_BaseDAO):
+
+    def create(self, xivo_user_uuid, source_name, contact_id):
+        with self.new_session() as s:
+            user = self._get_dird_user(s, xivo_user_uuid)
+            source = self._get_source(s, source_name)
+            favorite = Favorite(source_id=source.id,
+                                contact_id=contact_id,
+                                user_uuid=user.xivo_user_uuid)
+            s.add(favorite)
+            try:
+                s.commit()
+            except exc.IntegrityError:
+                s.rollback()
+                raise DuplicatedFavoriteException()
+            return favorite
+
+    def delete(self, xivo_user_uuid, source_name, contact_id):
+        with self.new_session() as s:
+            source_id = s.query(Source.id).filter(Source.name == source_name).scalar()
+            filter_ = and_(Favorite.contact_id == contact_id,
+                           Favorite.user_uuid == xivo_user_uuid,
+                           Favorite.source_id == source_id)
+            deleted = s.query(Favorite).filter(filter_).delete(synchronize_session=False)
+
+            s.commit()
+
+        if not deleted:
+            raise NoSuchFavorite((source_name, contact_id))
+
+    def get(self, xivo_user_uuid):
+        with self.new_session() as s:
+            favorites = s.query(Favorite.contact_id, Source.name).join(Source).filter(Favorite.user_uuid == xivo_user_uuid)
+            return [(f.name, f.contact_id) for f in favorites.all()]
+
+    def _get_source(self, session, source_name):
+        source = session.query(Source).filter(Source.name == source_name).first()
+        if not source:
+            source = Source(name=source_name)
+            session.add(source)
+            session.flush()
+
+        return source
 
 
 class PersonalContactCRUD(_BaseDAO):
@@ -207,16 +292,6 @@ class PersonalContactCRUD(_BaseDAO):
             session.delete(contact)
             deleted += 1
         return deleted
-
-    def _get_dird_user(self, session, xivo_user_uuid):
-        user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
-        if user:
-            return user
-        else:
-            user = User(xivo_user_uuid=xivo_user_uuid)
-            session.add(user)
-            session.flush()
-            return user
 
 
 class PersonalContactSearchEngine(_BaseDAO):

@@ -79,21 +79,21 @@ class TestPersonalServicePlugin(unittest.TestCase):
         self._crud.list_personal_contacts.assert_called_once_with(SOME_UUID)
 
     def test_that_list_contacts_raw_calls_crud_list_personal_contacts(self):
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
+        service = _PersonalService({}, {}, crud=self._crud)
 
         service.list_contacts_raw({'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 
         self._crud.list_personal_contacts.assert_called_once_with(SOME_UUID)
 
     def test_that_get_contact_calls_crud_get_personal_contact(self):
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
+        service = _PersonalService({}, {}, crud=self._crud)
 
         service.get_contact('contact-id', {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 
         self._crud.get_personal_contact.assert_called_once_with(SOME_UUID, 'contact-id')
 
     def test_that_edit_contact_calls_crud_edit_contact(self):
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
+        service = _PersonalService({}, {}, crud=self._crud)
 
         service.edit_contact('contact-id', {'firstname': 'Alice'}, {'token': 'valid-token',
                                                                     'xivo_user_uuid': SOME_UUID})
@@ -101,14 +101,14 @@ class TestPersonalServicePlugin(unittest.TestCase):
         self._crud.edit_personal_contact.assert_called_once_with(SOME_UUID, 'contact-id', {'firstname': 'Alice'})
 
     def test_that_remove_contact_calls_crud_delete_personal_contact(self):
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
+        service = _PersonalService({}, {}, crud=self._crud)
 
         service.remove_contact('my-contact-id', {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 
         self._crud.delete_personal_contact.assert_called_once_with(SOME_UUID, 'my-contact-id')
 
     def test_that_purge_contacts_calls_crud_delete_all_personal_contacts(self):
-        service = _PersonalService({'consul': {'host': 'localhost', 'port': 8500}}, {}, crud=self._crud)
+        service = _PersonalService({}, {}, crud=self._crud)
 
         service.purge_contacts({'token': 'valid-token', 'xivo_user_uuid': SOME_UUID})
 

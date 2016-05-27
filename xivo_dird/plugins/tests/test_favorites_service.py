@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,20 +17,27 @@
 
 import unittest
 
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import contains_inanyorder
-from hamcrest import equal_to
-from hamcrest import not_
-from hamcrest import none
-from mock import Mock
-from mock import patch
-from mock import sentinel as s
+from hamcrest import (assert_that,
+                      calling,
+                      contains,
+                      contains_inanyorder,
+                      equal_to,
+                      not_,
+                      none,
+                      raises)
+from mock import (ANY,
+                  Mock,
+                  patch,
+                  sentinel as s)
+from xivo_dird import database
 from xivo_dird.plugins.favorites_service import FavoritesServicePlugin
 from xivo_dird.plugins.favorites_service import _FavoritesService
 
 
 class TestFavoritesServicePlugin(unittest.TestCase):
+
+    def setUp(self):
+        self._config = {'db_uri': s.db_uri}
 
     def test_load_no_config(self):
         plugin = FavoritesServicePlugin()
@@ -40,13 +47,14 @@ class TestFavoritesServicePlugin(unittest.TestCase):
     def test_load_no_sources(self):
         plugin = FavoritesServicePlugin()
 
-        self.assertRaises(ValueError, plugin.load, {'config': s.sources})
+        self.assertRaises(ValueError, plugin.load, {'config': self._config})
 
     def test_that_load_returns_a_service(self):
         plugin = FavoritesServicePlugin()
 
-        service = plugin.load({'sources': s.sources,
-                               'config': s.config})
+        with patch.object(plugin, '_new_favorite_crud'):
+            service = plugin.load({'sources': s.sources,
+                                   'config': self._config})
 
         assert_that(service, not_(none()))
 
@@ -54,10 +62,11 @@ class TestFavoritesServicePlugin(unittest.TestCase):
     def test_that_load_injects_config_to_the_service(self, MockedFavoritesService):
         plugin = FavoritesServicePlugin()
 
-        service = plugin.load({'config': s.config,
-                               'sources': s.sources})
+        with patch.object(plugin, '_new_favorite_crud'):
+            service = plugin.load({'config': self._config,
+                                   'sources': s.sources})
 
-        MockedFavoritesService.assert_called_once_with(s.config, s.sources)
+        MockedFavoritesService.assert_called_once_with(self._config, s.sources, ANY)
         assert_that(service, equal_to(MockedFavoritesService.return_value))
 
     def test_no_error_on_unload_not_loaded(self):
@@ -68,7 +77,8 @@ class TestFavoritesServicePlugin(unittest.TestCase):
     @patch('xivo_dird.plugins.favorites_service._FavoritesService')
     def test_that_unload_stops_the_services(self, MockedFavoritesService):
         plugin = FavoritesServicePlugin()
-        plugin.load({'config': s.config, 'sources': s.sources})
+        with patch.object(plugin, '_new_favorite_crud'):
+            plugin.load({'config': self._config, 'sources': s.sources})
 
         plugin.unload()
 
@@ -77,38 +87,25 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
 class TestFavoritesService(unittest.TestCase):
 
-    @patch('xivo_dird.plugins.favorites_service.Consul')
-    def test_that_list_favorites_passes_down_token_infos(self, consul):
-        consul_mock = consul.return_value
-        consul_mock.kv.get.return_value = (None, [])
-        source = Mock(list=Mock(return_value=[{'f': 1}]))
-        source.name = 'source'
-        config = {
-            'services': {
-                'favorites': {
-                    'my_profile': {
-                        'sources': ['source']
-                    }
-                }
-            },
-            'consul': {
-                'host': 'localhost'
-            }
-        }
-        service = _FavoritesService(config, {'source': source})
-        token_infos = {'token': s.token, 'auth_id': s.auth_id}
+    def test_that_unavailable_source_raises_404(self):
+        config = {'services': {'favorites': {'my_profile': {'sources': ['one', 'two']}}}}
+        sources = {'one': Mock(), 'two': Mock(), 'three': Mock()}
+        crud = Mock(database.FavoriteCRUD)
 
-        service.favorites('my_profile', token_infos)
+        service = _FavoritesService(config, sources, crud)
 
-        source.list.assert_called_once_with([],
-                                            {'token_infos': token_infos})
+        assert_that(calling(service.new_favorite).with_args('three', 'the-id', s.xivo_user_uuid),
+                    raises(service.NoSuchSourceException))
+        assert_that(calling(service.remove_favorite).with_args('three', 'the-id', s.xivo_user_uuid),
+                    raises(service.NoSuchSourceException))
 
-        service.stop()
+    def test_that_favorites_searches_only_the_configured_sources(self):
+        def get(self_):
+            for ret in [('source_1', 'id1'),
+                        ('source_3', 'id3')]:
+                yield ret
 
-    @patch('xivo_dird.plugins.favorites_service.Consul')
-    def test_that_favorites_searches_only_the_configured_sources(self, consul):
-        consul_mock = consul.return_value
-        consul_mock.kv.get.return_value = (None, [])
+        crud = Mock(database.FavoriteCRUD, get=get)
         sources = {
             'source_1': Mock(list=Mock(return_value=[{'f': 1}])),
             'source_2': Mock(list=Mock(return_value=[{'f': 2}])),
@@ -125,14 +122,11 @@ class TestFavoritesService(unittest.TestCase):
                     }
                 }
             },
-            'consul': {
-                'host': 'localhost'
-            }
         }
 
-        service = _FavoritesService(config, sources)
+        service = _FavoritesService(config, sources, crud)
 
-        results = service.favorites('my_profile', {'token': s.token, 'auth_id': s.auth_id})
+        results = service.favorites('my_profile', s.xivo_user_uuid)
 
         expected_results = [{'f': 1}, {'f': 3}]
 
@@ -144,10 +138,13 @@ class TestFavoritesService(unittest.TestCase):
 
         service.stop()
 
-    @patch('xivo_dird.plugins.favorites_service.Consul')
-    def test_that_favorites_does_not_fail_if_one_config_is_not_correct(self, consul):
-        consul_mock = consul.return_value
-        consul_mock.kv.get.return_value = (None, [])
+    def test_that_favorites_does_not_fail_if_one_config_is_not_correct(self):
+        def get(self_):
+            for ret in [('source_1', 'id1'),
+                        ('source_2', 'id2')]:
+                yield ret
+
+        crud = Mock(database.FavoriteCRUD, get=get)
         sources = {
             'source_1': Mock(name='source_1', list=Mock(return_value=[{'f': 1}])),
             'source_2': Mock(name='source_2', list=Mock(return_value=[{'f': 2}])),
@@ -164,14 +161,11 @@ class TestFavoritesService(unittest.TestCase):
                     }
                 }
             },
-            'consul': {
-                'host': 'localhost'
-            }
         }
 
-        service = _FavoritesService(config, sources)
+        service = _FavoritesService(config, sources, crud)
 
-        results = service.favorites('my_profile', {'token': s.token, 'auth_id': s.auth_id})
+        results = service.favorites('my_profile', s.xivo_user_uuid)
 
         expected_results = [{'f': 1}]
 
@@ -182,41 +176,47 @@ class TestFavoritesService(unittest.TestCase):
 
         service.stop()
 
-    def test_when_the_profile_is_not_configured(self):
-        service = _FavoritesService({}, {})
+    def test_that_using_an_unconfigured_profile_raises(self):
+        config = {'services': {'favorites': {'profile_1': {}}}}
+        crud = Mock(database.FavoriteCRUD)
+        sources = {}
 
-        result = service.favorites('my_profile', token_infos={})
+        service = _FavoritesService(config, sources, crud)
 
-        assert_that(result, contains())
-
-        service.stop()
+        assert_that(calling(service.favorites).with_args('my_profile', s.xivo_user_uuid),
+                    raises(service.NoSuchProfileException))
+        assert_that(calling(service.favorites).with_args('my_profile', s.xivo_user_uuid),
+                    raises(service.NoSuchProfileException))
 
     def test_when_the_sources_are_not_configured(self):
-        service = _FavoritesService({'my_profile': {}}, {})
+        config = {'services': {'favorites': {'my_profile': {}}}}
+        service = _FavoritesService(config, {}, Mock(get=Mock(return_value=[('source', 'id')])))
 
-        result = service.favorites('my_profile', token_infos={})
+        result = service.favorites('my_profile', s.xivo_user_uuid)
 
         assert_that(result, contains())
-
-        service.stop()
 
     @patch('xivo_dird.plugins.favorites_service.ThreadPoolExecutor')
     def test_that_the_service_starts_the_thread_pool(self, MockedThreadPoolExecutor):
-        _FavoritesService({}, {})
+        _FavoritesService({}, {}, Mock())
 
         MockedThreadPoolExecutor.assert_called_once_with(max_workers=10)
 
     @patch('xivo_dird.plugins.favorites_service.ThreadPoolExecutor')
     def test_that_stop_shuts_down_the_thread_pool(self, MockedThreadPoolExecutor):
-        service = _FavoritesService({}, {})
+        service = _FavoritesService({}, {}, Mock())
 
         service.stop()
 
         MockedThreadPoolExecutor.return_value.shutdown.assert_called_once_with()
 
-    @patch('xivo_dird.plugins.favorites_service.Consul')
-    def test_that_favorites_are_listed_in_each_source_with_the_right_id_list(self, consul_init):
-        consul = consul_init.return_value
+    def test_that_favorites_are_listed_in_each_source_with_the_right_id_list(self):
+        def get(self_):
+            for ret in [('source_1', 'id1'),
+                        ('source_2', 'id2')]:
+                yield ret
+
+        crud = Mock(database.FavoriteCRUD, get=get)
         sources = {
             'source_1': Mock(list=Mock(return_value=['contact1'])),
             'source_2': Mock(list=Mock(return_value=['contact2'])),
@@ -232,44 +232,14 @@ class TestFavoritesService(unittest.TestCase):
                     }
                 }
             },
-            'consul': {
-                'host': 'localhost'
-            }
         }
-        consul.kv.get.side_effect = [
-            (Mock(), ['xivo/private/uuid/contacts/favorites/{source}/id1']),
-            (Mock(), ['xivo/private/uuid/contacts/favorites/{source}/id2']),
-        ]
-        service = _FavoritesService(config, sources)
+        service = _FavoritesService(config, sources, crud)
 
-        token_infos = {'token': s.token, 'auth_id': 'uuid'}
-        result = service.favorites('my_profile', token_infos)
+        result = service.favorites('my_profile', s.xivo_user_uuid)
 
-        sources['source_1'].list.assert_called_once_with(['id1'], {'token_infos': token_infos})
-        sources['source_2'].list.assert_called_once_with(['id2'], {'token_infos': token_infos})
+        args = {'token_infos': {'xivo_user_uuid': s.xivo_user_uuid}}
+        sources['source_1'].list.assert_called_once_with(['id1'], args)
+        sources['source_2'].list.assert_called_once_with(['id2'], args)
         assert_that(result, contains_inanyorder('contact1', 'contact2'))
-
-        service.stop()
-
-    @patch('xivo_dird.plugins.favorites_service.Consul')
-    def test_that_removing_unknown_favorites_raises_error(self, consul_init):
-        consul_init.return_value.kv.get.return_value = (None, None)
-        service = _FavoritesService({'consul': {'host': 'localhost'}}, {})
-
-        self.assertRaises(service.NoSuchFavorite, service.remove_favorite,
-                          'unknown_source', 'unknown_contact', {'token': s.token, 'auth_id': s.auth_id})
-
-        service.stop()
-
-    @patch('xivo_dird.plugins.favorites_service.Consul')
-    def test_that_new_favorite_does_not_send_unicode_to_consul(self, consul_init):
-        consul = consul_init.return_value
-        service = _FavoritesService({'consul': {'host': 'localhost'}}, {})
-        key = 'xivo/private/uuid/contacts/favorites/source/contact_unicodé'
-        token_infos = {'token': s.token, 'auth_id': 'uuid'}
-
-        service.new_favorite('source', u'contact_unicodé', token_infos)
-
-        consul.kv.put.assert_called_once_with(key, value='contact_unicodé', token=s.token)
 
         service.stop()
