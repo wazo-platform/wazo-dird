@@ -1,5 +1,4 @@
-# change for master after the merge
-https://github.com/xivo-pbx/xivo-bus/archive/6227-dird-storage-cleanup.zip
+https://github.com/xivo-pbx/xivo-bus/archive/master
 
 babel
 flask-babel

@@ -7,6 +7,7 @@ flask-restful==0.3.5
 flask==0.10.1
 futures==2.2.0
 git+https://github.com/xivo-pbx/xivo-auth-client.git
+git+https://github.com/xivo-pbx/xivo-bus.git
 git+https://github.com/xivo-pbx/xivo-confd-client.git
 git+https://github.com/xivo-pbx/xivo-lib-python.git
 git+https://github.com/xivo-pbx/xivo-lib-rest-client.git  # from xivo-{auth,confd}-client
