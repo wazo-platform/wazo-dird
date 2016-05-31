@@ -41,23 +41,18 @@ class Controller(object):
         self.config = config
         self.rest_api = CoreRestApi(self.config)
         auth.set_auth_config(self.config['auth'])
-        self._enabled_backends = self.config['enabled_plugins']['backends']
-        self._enabled_services = self.config['enabled_plugins']['services']
-        self._enabled_views = self.config['enabled_plugins']['views']
-        self._views = self.config['views']
-        self._https_port = self.config.get('rest_api', {}).get('https', {}).get('port')
 
     def __del__(self):
         plugin_manager.unload_services()
 
     def run(self):
-        self.sources = plugin_manager.load_sources(self._enabled_backends,
+        self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
                                                    self.config)
         self.services = plugin_manager.load_services(self.config,
-                                                     self._enabled_services,
+                                                     self.config['enabled_plugins']['services'],
                                                      self.sources)
-        plugin_manager.load_views(self._views,
-                                  self._enabled_views,
+        plugin_manager.load_views(self.config['views'],
+                                  self.config['enabled_plugins']['views'],
                                   self.services,
                                   self.rest_api)
 
@@ -67,5 +62,5 @@ class Controller(object):
                                         self.config.get('consul'),
                                         self.config.get('service_discovery'),
                                         self.config.get('bus'),
-                                        partial(self_check, self._https_port)):
+                                        partial(self_check, self.config['rest_api']['https']['port'])):
             self.rest_api.run()

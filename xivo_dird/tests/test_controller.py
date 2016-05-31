@@ -100,7 +100,7 @@ class TestController(TestCase):
         config['enabled_plugins'].setdefault('services', [])
         config['enabled_plugins'].setdefault('views', [])
         config.setdefault('sources', {})
-        config.setdefault('rest_api', Mock())
+        config.setdefault('rest_api', {'https': {'port': Mock()}})
         config.setdefault('services', Mock())
         config.setdefault('source_config_dir', Mock())
         config.setdefault('views', Mock())
