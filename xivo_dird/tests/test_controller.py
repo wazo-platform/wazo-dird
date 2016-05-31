@@ -40,19 +40,20 @@ class TestController(TestCase):
             'debug': s.debug,
             'service_discovery': {'enabled': False},
         })
-        controller = Controller(config)
-        controller.run()
+        Controller(config).run()
+
         self.rest_api.run.assert_called_once_with()
 
-    def test_init_loads_services(self):
+    def test_run_loads_services(self):
         config = self._create_config(**{
             'enabled_plugins': {
                 'services': s.enabled,
             },
             'services': s.config,
+            'service_discovery': {'enabled': False},
         })
 
-        Controller(config)
+        Controller(config).run()
 
         self.load_services.assert_called_once_with(config, s.enabled, ANY)
 
@@ -64,28 +65,30 @@ class TestController(TestCase):
 
         self.unload_services.assert_called_once_with()
 
-    def test_init_loads_sources(self):
+    def test_run_loads_sources(self):
         config = self._create_config(**{
             'enabled_plugins': {
                 'backends': s.enabled,
                 'services': []
             },
             'sources': s.source_configs,
+            'service_discovery': {'enabled': False},
         })
 
-        Controller(config)
+        Controller(config).run()
 
         self.load_sources.assert_called_once_with(s.enabled, config)
 
-    def test_init_loads_views(self):
+    def test_run_loads_views(self):
         config = self._create_config(**{
             'enabled_plugins': {
                 'views': s.enabled,
             },
             'views': s.config,
+            'service_discovery': {'enabled': False},
         })
 
-        Controller(config)
+        Controller(config).run()
 
         self.load_views.assert_called_once_with(s.config, s.enabled, ANY, self.rest_api)
 
