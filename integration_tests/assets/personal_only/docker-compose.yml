@@ -4,13 +4,16 @@ sync:
     - auth
     - dird
     - db
+    - rabbitmq
   environment:
     PORTS: "9489 9497 5432"
+    PORTS: "9489 9497 5432 15672"
 dird:
   image: xivo-dird-test
   links:
     - auth
     - db
+    - rabbitmq
   ports:
     - "9489:9489"
   volumes:
@@ -30,3 +33,10 @@ db:
   image: xivo/xivo-dird-db
   ports:
     - "5432"
+rabbitmq:
+  image: rabbitmq
+  expose:
+    - "5672"
+    - "15672"
+  ports:
+    - "5672:5672"

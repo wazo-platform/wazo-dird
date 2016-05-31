@@ -41,6 +41,11 @@ class Controller(object):
         self.config = config
         self.rest_api = CoreRestApi(self.config)
         auth.set_auth_config(self.config['auth'])
+
+    def __del__(self):
+        plugin_manager.unload_services()
+
+    def run(self):
         self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
                                                    self.config)
         self.services = plugin_manager.load_services(self.config,
@@ -51,10 +56,6 @@ class Controller(object):
                                   self.services,
                                   self.rest_api)
 
-    def __del__(self):
-        plugin_manager.unload_services()
-
-    def run(self):
         signal.signal(signal.SIGTERM, _signal_handler)
         with ServiceCatalogRegistration('xivo-dird',
                                         self.config.get('uuid'),

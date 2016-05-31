@@ -70,6 +70,7 @@ setup(
 
     entry_points={
         'xivo_dird.services': [
+            'cleanup = xivo_dird.plugins.cleanup_service:StorageCleanupServicePlugin',
             'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
             'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
             'personal = xivo_dird.plugins.personal_service:PersonalServicePlugin',

@@ -29,7 +29,12 @@ from hamcrest import is_
 from hamcrest import none
 from hamcrest import not_
 
+import kombu
+
 from mock import ANY
+
+from xivo_bus.resources.user import event
+from xivo_bus import Publisher, Marshaler
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 from .base_dird_integration_test import VALID_UUID
@@ -49,6 +54,41 @@ class TestListPersonal(BaseDirdIntegrationTest):
         result = self.list_personal()
 
         assert_that(result['items'], contains())
+
+
+class TestDeletedUser(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def setUp(self):
+        super(TestDeletedUser, self).setUp()
+        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(username='guest',
+                                                                        password='guest',
+                                                                        host='localhost',
+                                                                        port=5672)
+        self._connection = kombu.Connection(bus_url)
+        self._connection.connect()
+
+    def tearDown(self):
+        self._connection.release()
+        self.purge_personal()
+
+    def test_that_deleting_a_user_deletes_its_storage(self):
+        self.post_personal({'firstname': 'Alice'})
+
+        self._publish_user_deleted_event(VALID_UUID)
+
+        result = self.list_personal()
+
+        assert_that(result['items'], empty())
+
+    def _publish_user_deleted_event(self, uuid):
+        msg = event.DeleteUserEvent(42, uuid)
+        marshaler = Marshaler('the-xivo-uuid')
+        exchange = kombu.Exchange('xivo', type='topic')
+        producer = kombu.Producer(self._connection, exchange=exchange, auto_declare=True)
+        publisher = Publisher(producer, marshaler)
+        publisher.publish(msg)
 
 
 class TestAddPersonal(BaseDirdIntegrationTest):
