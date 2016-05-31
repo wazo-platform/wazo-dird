@@ -1,4 +1,4 @@
-https://github.com/xivo-pbx/xivo-bus/archive/master
+https://github.com/xivo-pbx/xivo-bus/archive/master.zip
 
 babel
 flask-babel
