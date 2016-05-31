@@ -87,7 +87,7 @@ class _UserDeletedConsumer(ConsumerMixin):
 
     def __init__(self, connection, service):
         self.connection = connection
-        self._queue = kombu.Queue(exchange=self._exchange, routing_key=self._routing_key)
+        self._queue = kombu.Queue(exchange=self._exchange, routing_key=self._routing_key, exclusive=True)
         self._service = service
 
     def get_consumers(self, Consumer, channel):
