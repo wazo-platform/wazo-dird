@@ -22,10 +22,28 @@ from unidecode import unidecode
 from contextlib import contextmanager
 
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
-from sqlalchemy import and_, Column, distinct, exc, ForeignKey, Integer, schema, String, text, Text
+from sqlalchemy import and_, Column, distinct, event, exc, ForeignKey, Integer, schema, String, text, Text
+from sqlalchemy.pool import Pool
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+
+
+# http://stackoverflow.com/questions/34828113/flask-sqlalchemy-losing-connection-after-restarting-of-db-server
+@event.listens_for(Pool, "checkout")
+def ping_connection(dbapi_connection, connection_record, connection_proxy):
+    cursor = dbapi_connection.cursor()
+    try:
+        cursor.execute("SELECT 1")
+    except:
+        # optional - dispose the whole pool
+        # instead of invalidating one at a time
+        # connection_proxy._pool.dispose()
+
+        # raise DisconnectionError - pool will try
+        # connecting again up to three times before raising.
+        raise exc.DisconnectionError()
+    cursor.close()
 
 
 class unaccent(ReturnTypeFromArgs):
