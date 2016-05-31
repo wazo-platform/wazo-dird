@@ -22,6 +22,8 @@ import threading
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from kombu.mixins import ConsumerMixin
+from xivo_bus.marshaler import InvalidMessage, Marshaler
+from xivo_bus.resources.user.event import DeleteUserEvent
 
 from xivo_dird import BaseServicePlugin
 from xivo_dird import database
@@ -95,8 +97,9 @@ class _UserDeletedConsumer(ConsumerMixin):
 
     def on_message(self, body, message):
         try:
-            xivo_user_uuid = body['data']['uuid']
-            self._service.remove_user(xivo_user_uuid)
-        except KeyError:
+            event = Marshaler.unmarshal_message(body, DeleteUserEvent)
+        except (InvalidMessage, KeyError):
             logger.exception('Ignoring the following malformed bus message: %s', body)
-        message.ack()
+        else:
+            self._service.remove_user(event.uuid)
+            message.ack()
