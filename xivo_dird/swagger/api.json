@@ -1018,6 +1018,132 @@
                     }
                 }
             }
+        },
+        "/phonebook": {
+            "get": {
+                "summary": "List all phonebooks",
+                "description": "**Required ACL:** `dird.phonebook.{entity}.read`",
+                "tags": ["phonebook"],
+                "responses": {
+                    "200": {
+                        "description": "List of phonebooks",
+                        "schema": {
+                            "type": "array",
+                            "items": {"$ref": "#/definitions/Phonebook"}
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new phonebook",
+                "description": "**Required ACL:** `dird.phonebook.{entity}.create`",
+                "operationId": "create_phonebook",
+                "tags": [
+                    "phonebook"
+                ],
+                "parameters": [
+                    {
+                        "name": "phonebook",
+                        "in": "body",
+                        "description": "The attributes of the phonebook",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PhonebookBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "The new phonebook",
+                        "schema": {
+                            "$ref": "#/definitions/Phonebook"
+                        }
+                    },
+                    "409": {
+                        "$ref": "#/responses/DuplicatePhonebook"
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                }
+            }
+        },
+        "/phonebook/{phonebook_id}": {
+            "get": {
+                "summary": "List all phonebooks",
+                "description": "**Required ACL:** `dird.phonebook.{entity}.{phonebook_id}.read`",
+                "tags": ["phonebook"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The phonebook attributes",
+                        "schema": {
+                            "$ref": "#/definitions/Phonebook"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Modify an existing phonebook",
+                "description": "**Required ACL:** `dird.phonebook.{entity}.{phonebook_id}.edit`",
+                "tags": ["phonebook"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    },
+                    {
+                        "name": "phonebook",
+                        "in": "body",
+                        "description": "The modified attributes of the phonebook",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PhonebookBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Phonebook updated"
+                    },
+                    "404": {
+                        "description": "Phonebook does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete an existing phonebook",
+                "description": "**Required ACL:** `dird.phonebook.{entity}.{phonebook_id}.delete`",
+                "tags": ["phonebook"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Phonebook deleted"
+                    },
+                    "404": {
+                        "description": "Phonebook does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                }
+            }
         }
     },
     "responses":{
@@ -1053,6 +1179,12 @@
         },
         "DuplicatePersonalContact": {
             "description": "The personal contact already exists",
+            "schema": {
+                "$ref": "#/definitions/Error"
+            }
+        },
+        "DuplicatePhonebook": {
+            "description": "This phonebook already exists",
             "schema": {
                 "$ref": "#/definitions/Error"
             }
@@ -1124,6 +1256,13 @@
             "type": "string",
             "required": true,
             "description": "The ID of the personal contact."
+        },
+        "PhonebookID": {
+            "name": "phonebookid",
+            "type": "integer",
+            "required": true,
+            "in": "path",
+            "description": "The phonebook's ID"
         },
         "Profile": {
             "name": "profile",
@@ -1335,6 +1474,39 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "PhonebookBody": {
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "entity": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "entity"
+            ]
+        },
+        "Phonebook": {
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "entity": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
                 }
             }
         },
