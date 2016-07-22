@@ -1019,11 +1019,16 @@
                 }
             }
         },
-        "/phonebook": {
+        "/tenants/{tenant}/phonebooks": {
             "get": {
-                "summary": "List all phonebooks",
-                "description": "**Required ACL:** `dird.phonebook.{entity}.read`",
+                "summary": "List all phonebooks for a given tenant",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.read`",
                 "tags": ["phonebook"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "List of phonebooks",
@@ -1036,12 +1041,15 @@
             },
             "post": {
                 "summary": "Create a new phonebook",
-                "description": "**Required ACL:** `dird.phonebook.{entity}.create`",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.create`",
                 "operationId": "create_phonebook",
                 "tags": [
                     "phonebook"
                 ],
                 "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
                     {
                         "name": "phonebook",
                         "in": "body",
@@ -1068,12 +1076,15 @@
                 }
             }
         },
-        "/phonebook/{phonebook_id}": {
+        "/tenants/{tenant}/phonebooks/{phonebook_id}": {
             "get": {
-                "summary": "List all phonebooks",
-                "description": "**Required ACL:** `dird.phonebook.{entity}.{phonebook_id}.read`",
+                "summary": "Get the attributes of a phonebook",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.read`",
                 "tags": ["phonebook"],
                 "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
                     {
                         "$ref": "#/parameters/PhonebookID"
                     }
@@ -1089,9 +1100,12 @@
             },
             "put": {
                 "summary": "Modify an existing phonebook",
-                "description": "**Required ACL:** `dird.phonebook.{entity}.{phonebook_id}.edit`",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.edit`",
                 "tags": ["phonebook"],
                 "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
                     {
                         "$ref": "#/parameters/PhonebookID"
                     },
@@ -1122,9 +1136,12 @@
             },
             "delete": {
                 "summary": "Delete an existing phonebook",
-                "description": "**Required ACL:** `dird.phonebook.{entity}.{phonebook_id}.delete`",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.delete`",
                 "tags": ["phonebook"],
                 "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
                     {
                         "$ref": "#/parameters/PhonebookID"
                     }
@@ -1135,6 +1152,158 @@
                     },
                     "404": {
                         "description": "Phonebook does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                }
+            }
+        },
+        "/tenants/{tenant}/phonebooks/{phonebook_id}/contacts": {
+            "get": {
+                "summary": "List all contacts for a given phonebook",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.*.read`",
+                "tags": ["phonebook"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of contacts",
+                        "schema": {
+                            "type": "array",
+                            "items": "object"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new contact",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.create`",
+                "operationId": "create_phonebook",
+                "tags": [
+                    "phonebook"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    },
+                    {
+                        "name": "contact",
+                        "in": "body",
+                        "description": "The attributes of the contact",
+                        "required": true,
+                        "type": "object"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "The new contact",
+                        "schema": {
+                            "$ref": "#/definitions/PhonebookContact"
+                        }
+                    },
+                    "409": {
+                        "$ref": "#/responses/DuplicatePhonebookContact"
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                }
+            }
+        },
+        "/tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_id}": {
+            "get": {
+                "summary": "Get the attributes of a contact",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.read`",
+                "tags": ["phonebook"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    },
+                    {
+                        "$ref": "#/parameters/ContactID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The contact attributes",
+                        "type": "object"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Modify an existing contact",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.update`",
+                "tags": ["phonebook"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    },
+                    {
+                        "$ref": "#/parameters/ContactID"
+                    },
+                    {
+                        "name": "phonebook",
+                        "in": "body",
+                        "description": "The modified attributes of the contact",
+                        "required": true,
+                        "type": "object"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Contact updated"
+                    },
+                    "404": {
+                        "description": "The contact or the phonebook does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete an existing contact",
+                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.delete`",
+                "tags": ["phonebook"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    },
+                    {
+                        "$ref": "#/parameters/ContactID"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Contact deleted"
+                    },
+                    "404": {
+                        "description": "The contact or the phonebook does not exist",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -1197,6 +1366,13 @@
             "type": "string",
             "required": false,
             "description": "The language to translate the query results in"
+        },
+        "ContactID": {
+            "name": "contact_id",
+            "in": "path",
+            "type": "string",
+            "required": true,
+            "description": "The ID of contact."
         },
         "Directory": {
             "name": "directory",
@@ -1277,6 +1453,13 @@
             "type": "string",
             "required": false,
             "description": "URL that will be integrated in the XML response. (not working on swagger 2.1)"
+        },
+        "Tenant": {
+            "name": "tenant",
+            "in": "path",
+            "type": "string",
+            "description": "The tenant defines the ownership of a given resource.",
+            "required": true
         },
         "Term": {
             "name": "term",
@@ -1482,16 +1665,12 @@
                 "name": {
                     "type": "string"
                 },
-                "entity": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 }
             },
             "required": [
-                "name",
-                "entity"
+                "name"
             ]
         },
         "Phonebook": {
@@ -1500,9 +1679,6 @@
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "entity": {
                     "type": "string"
                 },
                 "description": {
