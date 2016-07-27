@@ -41,7 +41,7 @@ class TestHTTPSMissingPrivateKey(BaseDirdIntegrationTest):
     asset = 'no-ssl-private-key'
 
     def test_given_inexisting_SSL_private_key_when_dird_starts_then_dird_stops(self):
-        for _ in range(2):
+        for _ in range(5):
             status = self.service_status()
             if not status['State']['Running']:
                 break
