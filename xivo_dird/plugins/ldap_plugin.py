@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -314,7 +314,7 @@ class _LDAPClient(object):
         except ldap.NO_SUCH_OBJECT:
             logger.warning('LDAP "%s": search error: no such object "%s"', self._name, self._ldap_config.ldap_base_dn())
         except ldap.TIMEOUT:
-            logger.warning('LDAP "%s": search error: timed out')
+            logger.warning('LDAP "%s": search error: timed out', self._name)
         except ldap.LDAPError as e:
             logger.error('LDAP "%s": search error: %r', self._name, e)
             self._tear_down()
