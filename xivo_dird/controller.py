@@ -62,5 +62,7 @@ class Controller(object):
                                         self.config.get('consul'),
                                         self.config.get('service_discovery'),
                                         self.config.get('bus'),
-                                        partial(self_check, self.config['rest_api']['https']['port'])):
+                                        partial(self_check,
+                                                self.config['rest_api']['https']['port'],
+                                                self.config['rest_api']['https']['certificate'])):
             self.rest_api.run()

@@ -36,7 +36,7 @@ class TestController(TestCase):
 
     def test_run_starts_rest_api(self):
         config = self._create_config(**{
-            'rest_api': {'https': {'listen': '127.0.0.1', 'port': '9489'}},
+            'rest_api': {'https': {'listen': '127.0.0.1', 'port': '9489', 'certificate': 'my-certificate'}},
             'debug': s.debug,
             'service_discovery': {'enabled': False},
         })
@@ -100,7 +100,7 @@ class TestController(TestCase):
         config['enabled_plugins'].setdefault('services', [])
         config['enabled_plugins'].setdefault('views', [])
         config.setdefault('sources', {})
-        config.setdefault('rest_api', {'https': {'port': Mock()}})
+        config.setdefault('rest_api', {'https': {'port': Mock(), 'certificate': 'my-certificate'}})
         config.setdefault('services', Mock())
         config.setdefault('source_config_dir', Mock())
         config.setdefault('views', Mock())
