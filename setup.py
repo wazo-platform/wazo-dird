@@ -96,6 +96,7 @@ setup(
             'default_json = xivo_dird.plugins.default_json_view:JsonViewPlugin',
             'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
             'personal_view = xivo_dird.plugins.personal_view:PersonalViewPlugin',
+            'phonebook_view = xivo_dird.plugins.phonebook_view:PhonebookViewPlugin',
         ],
     }
 )
