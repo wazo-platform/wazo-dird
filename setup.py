@@ -45,7 +45,7 @@ setup(
     description='XiVO Directory Daemon',
 
     author='Avencall',
-    author_email='dev@avencall.com',
+    author_email='dev@proformatique.com',
 
     url='https://github.com/xivo-pbx/xivo-dird',
 
@@ -74,6 +74,7 @@ setup(
             'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
             'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
             'personal = xivo_dird.plugins.personal_service:PersonalServicePlugin',
+            'phonebook = xivo_dird.plugins.phonebook_service:PhonebookServicePlugin',
             'reverse = xivo_dird.plugins.reverse_service:ReverseServicePlugin',
         ],
         'xivo_dird.backends': [

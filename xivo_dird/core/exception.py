@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,3 +27,9 @@ class InvalidConfigError(Exception):
         super(InvalidConfigError, self).__init__(location_path, msg)
         self.location_path = location_path
         self.msg = msg
+
+
+class InvalidPhonebookException(Exception):
+
+    def __init__(self, errors):
+        self.errors = errors
