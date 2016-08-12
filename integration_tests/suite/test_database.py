@@ -20,6 +20,7 @@ import uuid
 import os
 import unittest
 
+from contextlib import contextmanager, nested
 from hamcrest import (assert_that,
                       any_of,
                       calling,
@@ -33,7 +34,7 @@ from mock import ANY
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 
 from xivo_dird import database
 
@@ -125,6 +126,295 @@ class _BaseTest(unittest.TestCase):
                 session.add(field)
         session.commit()
         return ids
+
+
+class _BasePhonebookCRUDTest(_BaseTest):
+
+    def setUp(self):
+        super(_BasePhonebookCRUDTest, self).setUp()
+        self._crud = database.PhonebookCRUD(Session)
+
+    @contextmanager
+    def _new_phonebook(self, tenant, name, description=None, delete=True):
+        body = {'name': name}
+        if description:
+            body['description'] = description
+
+        phonebook = self._crud.create(tenant, body)
+        yield phonebook
+        if delete:
+            self._crud.delete(tenant, phonebook['id'])
+
+
+class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
+
+    def test_count(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a'),
+                    self._new_phonebook(tenant, 'b'),
+                    self._new_phonebook(tenant, 'c')) as phonebooks:
+            result = self._crud.count(tenant)
+
+        assert_that(result, equal_to(len(phonebooks)))
+
+    def test_that_an_unknown_tenant_returns_zero(self):
+        result = self._crud.count('unknown')
+
+        assert_that(result, equal_to(0))
+
+    def test_that_phonebooks_from_others_are_not_counted(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a'),
+                    self._new_phonebook(tenant, 'b'),
+                    self._new_phonebook('other', 'c')) as phonebooks:
+            result = self._crud.count(tenant)
+
+        assert_that(result, equal_to(len(phonebooks) - 1))
+
+    def test_that_only_matching_phonebooks_are_counted(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'ab'),
+                    self._new_phonebook(tenant, 'bc'),
+                    self._new_phonebook(tenant, 'cd')):
+            result = self._crud.count(tenant, search='b')
+
+        assert_that(result, equal_to(2))
+
+
+class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
+
+    def tearDown(self):
+        session = Session()
+        for phonebook in session.query(database.Phonebook).all():
+            session.delete(phonebook)
+        session.commit()
+        super(TestPhonebookCRUDCreate, self).tearDown()
+
+    def test_that_create_creates_a_phonebook_and_a_tenant(self):
+        tenant = 'default'
+        body = {'name': 'main',
+                'description': 'The main phonebook for "default"'}
+        expected = dict(body)
+        expected['id'] = ANY
+
+        result = self._crud.create(tenant, body)
+
+        assert_that(result, equal_to(expected))
+
+    def test_that_create_without_name_fails(self):
+        tenant = 'default'
+
+        assert_that(calling(self._crud.create).with_args(tenant, None),
+                    raises(Exception))
+        assert_that(calling(self._crud.create).with_args(tenant, {}),
+                    raises(Exception))
+        assert_that(calling(self._crud.create).with_args(tenant, {'name': ''}),
+                    raises(Exception))
+
+    def test_that_create_without_description(self):
+        tenant = 'default'
+        body = {'name': 'nodesc'}
+        expected = {'id': ANY,
+                    'name': 'nodesc',
+                    'description': None}
+
+        result = self._crud.create(tenant, body)
+
+        assert_that(result, equal_to(expected))
+
+    def test_that_create_with_invalid_fields_raises(self):
+        tenant = 'default'
+        body = {'name': 'nodesc', 'foo': 'bar'}
+
+        assert_that(calling(self._crud.create).with_args(tenant, body),
+                    raises(TypeError))
+
+    def test_that_create_raises_if_two_phonebook_have_the_same_name_and_tenant(self):
+        tenant = 'default'
+        body = {'name': 'new'}
+        self._crud.create(tenant, body)
+
+        assert_that(calling(self._crud.create).with_args(tenant, body),
+                    raises(database.DuplicatedPhonebookException))
+
+    def test_that_duplicate_tenants_are_not_created(self):
+        tenant = 'default'
+
+        self._crud.create(tenant, {'name': 'first'})
+        self._crud.create(tenant, {'name': 'second'})
+
+        session = Session()
+        tenant_count = session.query(func.count(database.Tenant.id)).filter(
+            database.Tenant.name == tenant).scalar()
+        assert_that(tenant_count, equal_to(1))
+
+
+class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
+
+    def test_that_delete_removes_the_phonebook(self):
+        tenant = 'default'
+        with self._new_phonebook(tenant, 'first', delete=False) as phonebook:
+            self._crud.delete(tenant, phonebook['id'])
+
+        phonebook_count = (Session()
+                           .query(func.count(database.Phonebook.id))
+                           .filter(database.Phonebook.id == phonebook['id'])
+                           .scalar())
+        assert_that(phonebook_count, equal_to(0))
+
+    def test_that_deleting_an_unknown_phonebook_raises(self):
+        assert_that(calling(self._crud.delete).with_args('tenant', 42),
+                    raises(database.NoSuchPhonebook))
+
+    def test_that_deleting_another_tenant_phonebook_is_not_possible(self):
+        tenant_a = 'a'
+        tenant_b = 'b'
+
+        with self._new_phonebook(tenant_a, 'main') as phonebook:
+            assert_that(calling(self._crud.delete).with_args(tenant_b, phonebook['id']),
+                        raises(database.NoSuchPhonebook))
+
+    def test_that_tenants_are_not_created_on_delete(self):
+        tenant_a = 'real'
+        tenant_b = 'unknown'
+
+        with self._new_phonebook(tenant_a, 'a') as phonebook:
+            try:
+                self._crud.delete(tenant_b, phonebook['id'])
+            except database.NoSuchPhonebook:
+                pass  # as expected
+
+        tenant_created = Session().query(
+            func.count(database.Tenant.id)).filter(database.Tenant.name == tenant_b).scalar() > 0
+
+        assert_that(tenant_created, equal_to(False))
+
+
+class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
+
+    def test_that_edit_changes_the_phonebook(self):
+        tenant = 'tenant'
+
+        with self._new_phonebook(tenant, 'name') as phonebook:
+            new_body = {'name': 'new_name', 'description': 'lol'}
+            result = self._crud.edit(tenant, phonebook['id'], new_body)
+
+        expected = dict(new_body)
+        expected['id'] = phonebook['id']
+
+        assert_that(result, equal_to(expected))
+
+    def test_that_invalid_keys_raise_an_exception(self):
+        tenant = 'tenant'
+
+        with self._new_phonebook(tenant, 'unknown fields') as phonebook:
+            new_body = {'foo': 'bar'}
+
+            assert_that(calling(self._crud.edit).with_args(tenant, phonebook['id'], new_body),
+                        raises(TypeError))
+
+    def test_that_editing_an_unknown_phonebook_raises(self):
+        tenant = 'tenant'
+
+        assert_that(calling(self._crud.edit).with_args(tenant, 42, {'name': 'test'}),
+                    raises(database.NoSuchPhonebook))
+
+    def test_that_editing_a_phonebook_from_another_tenant_raises(self):
+        with nested(self._new_phonebook('tenant_a', 'a'),
+                    self._new_phonebook('tenant_b', 'b')) as (phonebook_a, _):
+            assert_that(calling(self._crud.edit).with_args('tenant_b', phonebook_a['id'], {'name': 'foo'}),
+                        raises(database.NoSuchPhonebook))
+
+
+class TestPhonebookCRUDGet(_BasePhonebookCRUDTest):
+
+    def test_that_get_returns_the_phonebook(self):
+        with self._new_phonebook('tenant', 'a') as phonebook:
+            result = self._crud.get('tenant', phonebook['id'])
+
+        assert_that(result, equal_to(phonebook))
+
+    def test_that_get_with_an_unknown_id_raises(self):
+        assert_that(calling(self._crud.get).with_args('tenant', 42),
+                    raises(database.NoSuchPhonebook))
+
+    def test_that_get_from_another_tenant_raises(self):
+        with self._new_phonebook('tenant_a', 'a') as phonebook:
+            assert_that(calling(self._crud.get).with_args('tenant_b', phonebook['id']),
+                        raises(database.NoSuchPhonebook))
+
+
+class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
+
+    def test_that_all_phonebooks_are_listed(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a'),
+                    self._new_phonebook(tenant, 'b'),
+                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+            result = self._crud.list(tenant)
+        assert_that(result, contains_inanyorder(a, b, c))
+
+    def test_that_phonebooks_from_others_are_not_listed(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a'),
+                    self._new_phonebook(tenant, 'b'),
+                    self._new_phonebook('not_t', 'c')) as (a, b, _):
+            result = self._crud.list(tenant)
+        assert_that(result, contains_inanyorder(a, b))
+
+    def test_that_no_phonebooks_returns_an_empty_list(self):
+        result = self._crud.list('t')
+
+        assert_that(result, empty())
+
+    def test_that_phonebooks_can_be_ordered(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a', description='z'),
+                    self._new_phonebook(tenant, 'b', description='b'),
+                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+            result = self._crud.list(tenant, order='description')
+        assert_that(result, contains_inanyorder(b, a, c))
+
+    def test_that_phonebooks_order_with_invalid_field_raises(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a', description='z'),
+                    self._new_phonebook(tenant, 'b', description='b'),
+                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+            assert_that(calling(self._crud.list).with_args(tenant, order='foo'),
+                        raises(TypeError))
+
+    def test_that_phonebooks_can_be_ordered_in_any_order(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a', description='z'),
+                    self._new_phonebook(tenant, 'b', description='b'),
+                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+            result = self._crud.list(tenant, order='description', direction='desc')
+        assert_that(result, contains_inanyorder(a, b, c))
+
+    def test_that_phonebooks_can_be_limited(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a'),
+                    self._new_phonebook(tenant, 'b'),
+                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+            result = self._crud.list(tenant, limit=2)
+        assert_that(result, contains_inanyorder(a, b))
+
+    def test_that_an_offset_can_be_supplied(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'a'),
+                    self._new_phonebook(tenant, 'b'),
+                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+            result = self._crud.list(tenant, offset=2)
+        assert_that(result, contains_inanyorder(c))
+
+    def test_that_list_only_returns_matching_phonebooks(self):
+        tenant = 't'
+        with nested(self._new_phonebook(tenant, 'aa', description='foobar'),
+                    self._new_phonebook(tenant, 'bb'),
+                    self._new_phonebook(tenant, 'cc')) as (a, b, c):
+            result = self._crud.list(tenant, search='b')
+
+        assert_that(result, contains_inanyorder(a, b))
 
 
 class TestContactCRUD(_BaseTest):

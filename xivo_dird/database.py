@@ -22,7 +22,8 @@ from unidecode import unidecode
 from contextlib import contextmanager
 
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
-from sqlalchemy import and_, Column, distinct, event, exc, ForeignKey, Integer, schema, String, text, Text
+from sqlalchemy import (and_, Column, distinct, event, exc, ForeignKey,
+                        Integer, schema, String, text, Text, func, or_)
 from sqlalchemy.pool import Pool
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -57,6 +58,13 @@ class NoSuchFavorite(ValueError):
         super(NoSuchFavorite, self).__init__(message)
 
 
+class NoSuchPhonebook(ValueError):
+
+    def __init__(self, phonebook_id):
+        message = 'No such phonebook: {}'.format(phonebook_id)
+        super(NoSuchPhonebook, self).__init__(message)
+
+
 class NoSuchPersonalContact(ValueError):
 
     def __init__(self, contact_id):
@@ -70,6 +78,11 @@ class DuplicatedContactException(Exception):
 
 
 class DuplicatedFavoriteException(Exception):
+
+    pass
+
+
+class DuplicatedPhonebookException(Exception):
 
     pass
 
@@ -107,7 +120,23 @@ class Favorite(Base):
 
     source_id = Column(Integer(), ForeignKey('dird_source.id', ondelete='CASCADE'), primary_key=True)
     contact_id = Column(Text(), primary_key=True)
-    user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'), primary_key=True)
+    user_uuid = Column(String(38),
+                       ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'),
+                       primary_key=True)
+
+
+class Phonebook(Base):
+
+    __tablename__ = 'dird_phonebook'
+    __table_args__ = (
+        schema.UniqueConstraint('name', 'tenant_id'),
+        schema.CheckConstraint("name != ''"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text)
+    tenant_id = Column(Integer, ForeignKey('dird_tenant.id'))
 
 
 class Source(Base):
@@ -116,6 +145,17 @@ class Source(Base):
 
     id = Column(Integer(), primary_key=True)
     name = Column(Text(), nullable=False, unique=True)
+
+
+class Tenant(Base):
+
+    __tablename__ = 'dird_tenant'
+    __table_args__ = (
+        schema.CheckConstraint("name != ''"),
+    )
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), unique=True, nullable=False)
 
 
 def _list_contacts_by_uuid(session, uuids):
@@ -162,6 +202,119 @@ class _BaseDAO(object):
             session.flush()
 
         return user
+
+
+class PhonebookCRUD(_BaseDAO):
+
+    _default_sort_order = 'name'
+    _default_sort_direction = 'asc'
+
+    def count(self, tenant, search=None):
+        with self.new_session() as s:
+            return self._count_by_tenant(s, tenant, search)
+
+    def create(self, tenant, phonebook_body):
+        with self.new_session() as s:
+            tenant = self._get_or_create_tenant(s, tenant)
+            phonebook = Phonebook(tenant_id=tenant.id,
+                                  **phonebook_body)
+            s.add(phonebook)
+            try:
+                s.commit()
+            except exc.IntegrityError:
+                s.rollback()
+                raise DuplicatedPhonebookException()
+
+        return self._phonebook_to_dict(phonebook)
+
+    def delete(self, tenant, phonebook_id):
+        with self.new_session() as s:
+            phonebook = self._get_by_tenant_and_id(s, tenant, phonebook_id)
+            s.delete(phonebook)
+
+    def edit(self, tenant, phonebook_id, phonebook_body):
+        with self.new_session() as s:
+            phonebook = self._get_by_tenant_and_id(s, tenant, phonebook_id)
+            for attribute_name, value in phonebook_body.iteritems():
+                if not hasattr(phonebook, attribute_name):
+                    raise TypeError('{} has no attribute {}'.format(phonebook.__class__.__name__,
+                                                                    attribute_name))
+                setattr(phonebook, attribute_name, value)
+        return self._phonebook_to_dict(phonebook)
+
+    def get(self, tenant, phonebook_id):
+        with self.new_session() as s:
+            phonebook = self._get_by_tenant_and_id(s, tenant, phonebook_id)
+        return self._phonebook_to_dict(phonebook)
+
+    def list(self, tenant, order=None, direction=None, limit=None, offset=None, search=None):
+        with self.new_session() as s:
+            phonebooks = self._get_by_tenant(s, tenant, order, direction, limit, offset, search)
+        return [self._phonebook_to_dict(phonebook) for phonebook in phonebooks]
+
+    def _count_by_tenant(self, s, tenant, search):
+        filter_ = self._new_tenant_filter(s, tenant, search)
+        return s.query(func.count(Phonebook.id)).filter(filter_).scalar()
+
+    def _get_by_tenant(self, s, tenant, order, direction, limit, offset, search):
+        order_by_column_name = order or self._default_sort_order
+        try:
+            order_by_column = getattr(Phonebook, order_by_column_name)
+        except AttributeError:
+            raise TypeError('{} has no attribute {}'.format(Phonebook.__class__.__name__,
+                                                            order_by_column_name))
+        direction = direction or self._default_sort_direction
+        order_by_column_and_direction = getattr(order_by_column, direction)()
+        filter_ = self._new_tenant_filter(s, tenant, search)
+        return s.query(Phonebook).filter(filter_).order_by(
+            order_by_column_and_direction).limit(limit).offset(offset).all()
+
+    def _get_by_tenant_and_id(self, s, tenant, phonebook_id):
+        filter_ = self._new_filter_by_tenant_and_id(s, tenant, phonebook_id)
+        phonebook = s.query(Phonebook).filter(filter_).scalar()
+        if not phonebook:
+            raise NoSuchPhonebook(phonebook_id)
+
+        return phonebook
+
+    def _new_tenant_filter(self, s, tenant, search):
+        tenant = self._get_tenant(s, tenant)
+        if not tenant:
+            return False
+
+        if not search:
+            return Phonebook.tenant_id == tenant.id
+        else:
+            pattern = u'%{}%'.format(search)
+            return and_(Phonebook.tenant_id == tenant.id,
+                        or_(Phonebook.name.ilike(pattern),
+                            Phonebook.description.ilike(pattern)))
+
+    def _new_filter_by_tenant_and_id(self, s, tenant, phonebook_id):
+            tenant = self._get_tenant(s, tenant)
+            if not tenant:
+                return False
+
+            return and_(Phonebook.id == phonebook_id,
+                        Phonebook.tenant_id == tenant.id)
+
+    def _get_tenant(self, s, name):
+        return s.query(Tenant).filter(Tenant.name == name).first()
+
+    def _get_or_create_tenant(self, s, name):
+        tenant = self._get_tenant(s, name)
+        if not tenant:
+            tenant = Tenant(name=name)
+            s.add(tenant)
+            s.flush()
+
+        return tenant
+
+    @staticmethod
+    def _phonebook_to_dict(phonebook):
+        return {'id': phonebook.id,
+                'name': phonebook.name,
+                'description': phonebook.description}
 
 
 class FavoriteCRUD(_BaseDAO):
