@@ -65,11 +65,11 @@ class NoSuchPhonebook(ValueError):
         super(NoSuchPhonebook, self).__init__(message)
 
 
-class NoSuchPersonalContact(ValueError):
+class NoSuchContact(ValueError):
 
     def __init__(self, contact_id):
-        message = "No such personal contact: {}".format(contact_id)
-        super(NoSuchPersonalContact, self).__init__(message)
+        message = "No such contact: {}".format(contact_id)
+        super(NoSuchContact, self).__init__(message)
 
 
 class DuplicatedContactException(Exception):
@@ -475,7 +475,7 @@ class PersonalContactCRUD(_BaseDAO):
             for contact in _list_contacts_by_uuid(s, contact_uuids):
                 return contact
 
-        raise NoSuchPersonalContact(contact_uuid)
+        raise NoSuchContact(contact_uuid)
 
     def delete_all_personal_contacts(self, xivo_user_uuid):
         with self.new_session() as s:
@@ -491,7 +491,7 @@ class PersonalContactCRUD(_BaseDAO):
                        ContactFields.contact_uuid == contact_uuid)
         nb_deleted = self._delete_personal_contacts_with_filter(session, filter_)
         if nb_deleted == 0:
-            raise NoSuchPersonalContact(contact_uuid)
+            raise NoSuchContact(contact_uuid)
 
     def _delete_personal_contacts_with_filter(self, session, filter_):
         contacts = session.query(Contact).join(ContactFields).join(User).filter(filter_).all()

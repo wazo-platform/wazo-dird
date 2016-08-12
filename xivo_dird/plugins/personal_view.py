@@ -157,7 +157,7 @@ class PersonalOne(AuthResource):
         try:
             contact = self.personal_service.get_contact(contact_id, token_infos)
             return contact, 200
-        except self.personal_service.NoSuchPersonalContact as e:
+        except self.personal_service.NoSuchContact as e:
             error = {
                 'reason': [str(e)],
                 'timestamp': [time()],
@@ -173,7 +173,7 @@ class PersonalOne(AuthResource):
         try:
             contact = self.personal_service.edit_contact(contact_id, new_contact, token_infos)
             return contact, 200
-        except self.personal_service.NoSuchPersonalContact as e:
+        except self.personal_service.NoSuchContact as e:
             error = {
                 'reason': [str(e)],
                 'timestamp': [time()],
@@ -202,7 +202,7 @@ class PersonalOne(AuthResource):
         try:
             self.personal_service.remove_contact(contact_id, token_infos)
             return '', 204
-        except self.personal_service.NoSuchPersonalContact as e:
+        except self.personal_service.NoSuchContact as e:
             error = {
                 'reason': [str(e)],
                 'timestamp': [time()],

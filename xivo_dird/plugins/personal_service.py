@@ -57,7 +57,7 @@ class PersonalServicePlugin(BaseServicePlugin):
 
 class _PersonalService(object):
 
-    NoSuchPersonalContact = database.NoSuchPersonalContact
+    NoSuchContact = database.NoSuchContact
     DuplicatedContactException = database.DuplicatedContactException
 
     class InvalidPersonalContact(ValueError):

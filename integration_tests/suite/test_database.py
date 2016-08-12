@@ -535,7 +535,7 @@ class TestContactCRUD(_BaseTest):
         contact_uuid, _, __ = self._insert_personal_contacts(user_1_uuid, self.contact_1, self.contact_2, self.contact_3)
 
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid),
-                    raises(database.NoSuchPersonalContact))
+                    raises(database.NoSuchContact))
 
     @with_user_uuid
     def test_delete_personal_contact(self, xivo_user_uuid):
@@ -544,7 +544,7 @@ class TestContactCRUD(_BaseTest):
         self._crud.delete_personal_contact(xivo_user_uuid, contact_uuid)
 
         assert_that(calling(self._crud.get_personal_contact).with_args(xivo_user_uuid, contact_uuid),
-                    raises(database.NoSuchPersonalContact))
+                    raises(database.NoSuchContact))
 
     @with_user_uuid
     @with_user_uuid
@@ -552,7 +552,7 @@ class TestContactCRUD(_BaseTest):
         contact_uuid, = self._insert_personal_contacts(user_1_uuid, self.contact_1)
 
         assert_that(calling(self._crud.delete_personal_contact).with_args(user_2_uuid, contact_uuid),
-                    raises(database.NoSuchPersonalContact))
+                    raises(database.NoSuchContact))
 
     @with_user_uuid
     @with_user_uuid
@@ -563,11 +563,11 @@ class TestContactCRUD(_BaseTest):
         self._crud.delete_all_personal_contacts(user_2_uuid)
 
         assert_that(calling(self._crud.get_personal_contact).with_args(user_1_uuid, contact_uuid_1),
-                    not_(raises(database.NoSuchPersonalContact)))
+                    not_(raises(database.NoSuchContact)))
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid_2),
-                    raises(database.NoSuchPersonalContact))
+                    raises(database.NoSuchContact))
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid_3),
-                    raises(database.NoSuchPersonalContact))
+                    raises(database.NoSuchContact))
 
 
 class TestFavoriteCrud(_BaseTest):
