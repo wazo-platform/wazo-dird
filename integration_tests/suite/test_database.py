@@ -470,6 +470,47 @@ class TestPhonebookContactCRUDCreate(_BaseTest):
         assert_that(calling(self._crud.create).with_args('not-the-tenant', self._phonebook_id, self._body),
                     raises(database.NoSuchPhonebook))
 
+    def test_that_deleting_contact_removes_it(self):
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        self._crud.delete(self._tenant, self._phonebook_id, contact['id'])
+
+        assert_that(self._list_contacts(), not_(has_item(contact)))
+
+    def test_that_deleting_with_another_tenant_does_not_work(self):
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        assert_that(calling(self._crud.delete).with_args('not-the-tenant', self._phonebook_id, contact['id']),
+                    raises(database.NoSuchPhonebook))
+        assert_that(self._list_contacts(), has_item(contact))
+
+    def test_that_deleting_an_unknown_contact_raises(self):
+        unknown_contact_uuid = new_uuid()
+
+        assert_that(calling(self._crud.delete)
+                    .with_args(self._tenant, self._phonebook_id, unknown_contact_uuid),
+                    raises(database.NoSuchContact))
+
+    def test_that_get_returns_the_contact(self):
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        result = self._crud.get(self._tenant, self._phonebook_id, contact['id'])
+
+        assert_that(result, equal_to(contact))
+
+    def test_that_get_wont_work_with_the_wrong_phonebook_id(self):
+        other_phonebook = self._phonebook_crud.create(self._tenant, {'name': 'other'})
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        assert_that(calling(self._crud.get).with_args(self._tenant, other_phonebook['id'], contact['id']),
+                    raises(database.NoSuchContact))
+
+    def test_that_get_wont_work_with_the_wrong_tenant(self):
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        assert_that(calling(self._crud.get).with_args('not-the-tenant', self._phonebook_id, contact['id']),
+                    raises(database.NoSuchPhonebook))
+
 
 class TestContactCRUD(_BaseTest):
 

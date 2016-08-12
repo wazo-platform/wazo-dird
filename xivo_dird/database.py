@@ -230,6 +230,25 @@ class PhonebookContactCRUD(_BaseDAO):
 
         return contact_body
 
+    def delete(self, tenant, phonebook_id, contact_id):
+        with self.new_session() as s:
+            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
+            nb_deleted = s.query(Contact).filter(and_(Contact.phonebook_id == phonebook_id,
+                                                      Contact.uuid == contact_id)).delete()
+        if not nb_deleted:
+            raise NoSuchContact(contact_id)
+
+    def get(self, tenant, phonebook_id, contact_id):
+        with self.new_session() as s:
+            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
+            filter_ = and_(ContactFields.contact_uuid == contact_id,
+                           Contact.phonebook_id == phonebook_id)
+            fields = s.query(ContactFields).join(Contact).filter(filter_).all()
+            if not fields:
+                raise NoSuchContact(contact_id)
+
+            return {field.name: field.value for field in fields}
+
     def _assert_tenant_owns_phonebook(self, s, tenant, phonebook_id):
         # XXX: use a cache to avoid the query at each operation?
         if not s.query(Phonebook).join(Tenant).filter(and_(Phonebook.id == phonebook_id,
