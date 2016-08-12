@@ -97,10 +97,14 @@ class User(Base):
 class Contact(Base):
 
     __tablename__ = 'dird_contact'
-    __table_args__ = (schema.UniqueConstraint('user_uuid', 'hash'),)
+    __table_args__ = (
+        schema.UniqueConstraint('user_uuid', 'hash'),
+        schema.UniqueConstraint('phonebook_id', 'hash'),
+    )
 
     uuid = Column(String(38), server_default=text('uuid_generate_v4()'), primary_key=True)
-    user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'), nullable=False)
+    user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'))
+    phonebook_id = Column(Integer(), ForeignKey('dird_phonebook.id', ondelete='CASCADE'))
     hash = Column(String(40), nullable=False)
 
 
@@ -202,6 +206,35 @@ class _BaseDAO(object):
             session.flush()
 
         return user
+
+
+class PhonebookContactCRUD(_BaseDAO):
+
+    def create(self, tenant, phonebook_id, contact_body):
+        hash_ = compute_contact_hash(contact_body)
+        with self.new_session() as s:
+            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
+            contact_args = {'phonebook_id': phonebook_id,
+                            'hash': hash_}
+            contact = Contact(**contact_args)
+            s.add(contact)
+            try:
+                s.flush()
+            except exc.IntegrityError:
+                s.rollback()
+                raise DuplicatedContactException()
+            for name, value in contact_body.iteritems():
+                s.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
+                s.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
+            contact_body['id'] = contact.uuid
+
+        return contact_body
+
+    def _assert_tenant_owns_phonebook(self, s, tenant, phonebook_id):
+        # XXX: use a cache to avoid the query at each operation?
+        if not s.query(Phonebook).join(Tenant).filter(and_(Phonebook.id == phonebook_id,
+                                                           Tenant.name == tenant)).first():
+            raise NoSuchPhonebook(phonebook_id)
 
 
 class PhonebookCRUD(_BaseDAO):

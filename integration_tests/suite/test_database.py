@@ -20,6 +20,7 @@ import uuid
 import os
 import unittest
 
+from collections import defaultdict
 from contextlib import contextmanager, nested
 from hamcrest import (assert_that,
                       any_of,
@@ -28,6 +29,8 @@ from hamcrest import (assert_that,
                       contains_inanyorder,
                       empty,
                       equal_to,
+                      has_item,
+                      has_items,
                       not_,
                       raises)
 from mock import ANY
@@ -126,6 +129,13 @@ class _BaseTest(unittest.TestCase):
                 session.add(field)
         session.commit()
         return ids
+
+    def _list_contacts(self):
+        s = Session()
+        contacts = defaultdict(dict)
+        for field in s.query(database.ContactFields).all():
+            contacts[field.contact_uuid][field.name] = field.value
+        return contacts.values()
 
 
 class _BasePhonebookCRUDTest(_BaseTest):
@@ -415,6 +425,50 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
             result = self._crud.list(tenant, search='b')
 
         assert_that(result, contains_inanyorder(a, b))
+
+
+class TestPhonebookContactCRUDCreate(_BaseTest):
+
+    def setUp(self):
+        super(TestPhonebookContactCRUDCreate, self).setUp()
+        self._tenant = 'the-tenant'
+        self._crud = database.PhonebookContactCRUD(Session)
+        self._phonebook_crud = database.PhonebookCRUD(Session)
+        body = {'name': 'main', 'description': 'the integration test phonebook'}
+        self._phonebook = self._phonebook_crud.create(self._tenant, body)
+        self._phonebook_id = self._phonebook['id']
+        self._body = {'firstname': 'Foo',
+                      'lastname': 'bar',
+                      'number': '5555555555'}
+
+    def tearDown(self):
+        self._phonebook_crud.delete(self._tenant, self._phonebook_id)
+        super(TestPhonebookContactCRUDCreate, self).tearDown()
+
+    def test_that_a_phonebook_contact_can_be_created(self):
+        result = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        expected = dict(self._body)
+        expected['id'] = ANY
+        assert_that(result, equal_to(expected))
+        assert_that(self._list_contacts(), has_item(expected))
+
+    def test_that_duplicated_contacts_cannot_be_created(self):
+        self._crud.create(self._tenant, self._phonebook_id, self._body)
+        assert_that(calling(self._crud.create).with_args(self._tenant, self._phonebook_id, self._body),
+                    raises(database.DuplicatedContactException))
+
+    def test_that_duplicates_can_happen_in_different_phonebooks(self):
+        phonebook_2 = self._phonebook_crud.create(self._tenant, {'name': 'second'})
+
+        contact_1 = self._crud.create(self._tenant, self._phonebook_id, self._body)
+        contact_2 = self._crud.create(self._tenant, phonebook_2['id'], self._body)
+
+        assert_that(self._list_contacts(), has_items(contact_1, contact_2))
+
+    def test_that_a_tenant_can_only_create_in_his_phonebook(self):
+        assert_that(calling(self._crud.create).with_args('not-the-tenant', self._phonebook_id, self._body),
+                    raises(database.NoSuchPhonebook))
 
 
 class TestContactCRUD(_BaseTest):
