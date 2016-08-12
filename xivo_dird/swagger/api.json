@@ -1467,7 +1467,7 @@
             "description": "The ID of the personal contact."
         },
         "PhonebookID": {
-            "name": "phonebookid",
+            "name": "phonebook_id",
             "type": "integer",
             "required": true,
             "in": "path",
