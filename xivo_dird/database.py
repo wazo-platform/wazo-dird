@@ -192,6 +192,13 @@ class _BaseDAO(object):
     def __init__(self, Session):
         self._Session = Session
 
+    def flush_or_raise(self, session, Exception_, *args, **kwargs):
+        try:
+            session.flush()
+        except exc.IntegrityError:
+            session.rollback()
+            raise Exception_(*args, **kwargs)
+
     @contextmanager
     def new_session(self):
         session = self._Session()
@@ -218,11 +225,7 @@ class PhonebookContactCRUD(_BaseDAO):
                             'hash': hash_}
             contact = Contact(**contact_args)
             s.add(contact)
-            try:
-                s.flush()
-            except exc.IntegrityError:
-                s.rollback()
-                raise DuplicatedContactException()
+            self.flush_or_raise(s, DuplicatedContactException)
             self._add_field_to_contact(s, contact.uuid, contact_body)
 
         return contact_body
@@ -244,11 +247,7 @@ class PhonebookContactCRUD(_BaseDAO):
             if not contact:
                 raise NoSuchContact(contact_uuid)
             contact.hash = hash_
-            try:
-                s.flush()
-            except exc.IntegrityError:
-                s.rollback()
-                raise DuplicatedContactException()
+            self.flush_or_raise(s, DuplicatedContactException)
             s.query(ContactFields).filter(ContactFields.contact_uuid == contact_uuid).delete()
             self._add_field_to_contact(s, contact.uuid, contact_body)
 
@@ -292,11 +291,7 @@ class PhonebookCRUD(_BaseDAO):
             phonebook = Phonebook(tenant_id=tenant.id,
                                   **phonebook_body)
             s.add(phonebook)
-            try:
-                s.commit()
-            except exc.IntegrityError:
-                s.rollback()
-                raise DuplicatedPhonebookException()
+            self.flush_or_raise(s, DuplicatedPhonebookException)
 
         return self._phonebook_to_dict(phonebook)
 
@@ -400,11 +395,7 @@ class FavoriteCRUD(_BaseDAO):
                                 contact_id=contact_id,
                                 user_uuid=user.xivo_user_uuid)
             s.add(favorite)
-            try:
-                s.commit()
-            except exc.IntegrityError:
-                s.rollback()
-                raise DuplicatedFavoriteException()
+            self.flush_or_raise(s, DuplicatedFavoriteException)
             return favorite
 
     def delete(self, xivo_user_uuid, source_name, contact_id):
