@@ -18,7 +18,7 @@
 import unittest
 
 from hamcrest import (assert_that, calling, equal_to, raises)
-from mock import (Mock, patch, sentinel as s)
+from mock import Mock, sentinel as s
 
 from xivo_dird import database
 from xivo_dird.core.exception import InvalidPhonebookException
@@ -32,16 +32,6 @@ class TestPhonebookServicePlugin(unittest.TestCase):
     def setUp(self):
         self.args = {'config': {'db_uri': s.db_uri}}
 
-    @patch('xivo_dird.plugins.phonebook_service._PhonebookService')
-    def test_that_load_returns_a_service(self, PhonebookService):
-        plugin = Plugin()
-
-        with patch.object(plugin, '_new_phonebook_crud') as new_phonebook_crud:
-            service = plugin.load(self.args)
-
-        assert_that(service, equal_to(PhonebookService.return_value))
-        PhonebookService.assert_called_once_with(new_phonebook_crud.return_value)
-
     def test_that_loading_without_a_proper_config_raises(self):
         plugin = Plugin()
 
@@ -51,11 +41,13 @@ class TestPhonebookServicePlugin(unittest.TestCase):
                     raises(ValueError))
 
 
-class TestPhonebookService(unittest.TestCase):
+class TestPhonebookServicePhonebookAPI(unittest.TestCase):
 
     def setUp(self):
         self.phonebook_crud = Mock(database.PhonebookCRUD)
-        self.service = Service(self.phonebook_crud)
+        self.contact_crud = Mock(database.PhonebookContactCRUD)
+        self.service = Service(self.phonebook_crud,
+                               self.contact_crud)
 
     def test_list_phonebook(self):
         result = self.service.list_phonebook(s.tenant)
@@ -106,3 +98,49 @@ class TestPhonebookService(unittest.TestCase):
 
         assert_that(result, equal_to(self.phonebook_crud.get.return_value))
         self.phonebook_crud.get.assert_called_once_with(s.tenant, s.phonebook_id)
+
+
+class TestPhonebookServiceContactAPI(unittest.TestCase):
+
+    def setUp(self):
+        self.phonebook_crud = Mock(database.PhonebookCRUD)
+        self.contact_crud = Mock(database.PhonebookContactCRUD)
+        self.service = Service(self.phonebook_crud,
+                               self.contact_crud)
+
+    def test_count_contact(self):
+        result = self.service.count_contact(s.tenant, s.phonebook_id)
+
+        assert_that(result, equal_to(self.contact_crud.count.return_value))
+        self.contact_crud.count.assert_called_once_with(s.tenant, s.phonebook_id)
+
+    def test_count_contact_with_a_search_param(self):
+        result = self.service.count_contact(s.tenant, s.phonebook_id, search=s.search)
+
+        assert_that(result, equal_to(self.contact_crud.count.return_value))
+        self.contact_crud.count.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+
+    def test_create_contact(self):
+        result = self.service.create_contact(s.tenant, s.phonebook_id, s.contact_info)
+
+        assert_that(result, equal_to(self.contact_crud.create.return_value))
+        self.contact_crud.create.assert_called_once_with(s.tenant, s.phonebook_id, s.contact_info)
+
+    def test_edit_contact(self):
+        result = self.service.edit_contact(s.tenant, s.phonebook_id, s.contact_uuid, s.contact_info)
+
+        assert_that(result, equal_to(self.contact_crud.edit.return_value))
+        self.contact_crud.edit.assert_called_once_with(s.tenant, s.phonebook_id,
+                                                       s.contact_uuid, s.contact_info)
+
+    def test_delete_contact(self):
+        result = self.service.delete_contact(s.tenant, s.phonebook_id, s.contact_uuid)
+
+        assert_that(result, equal_to(self.contact_crud.delete.return_value))
+        self.contact_crud.delete.assert_called_once_with(s.tenant, s.phonebook_id, s.contact_uuid)
+
+    def test_get_contact(self):
+        result = self.service.get_contact(s.tenant, s.phonebook_id, s.contact_uuid)
+
+        assert_that(result, equal_to(self.contact_crud.get.return_value))
+        self.contact_crud.get.assert_called_once_with(s.tenant, s.phonebook_id, s.contact_uuid)

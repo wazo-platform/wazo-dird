@@ -48,27 +48,34 @@ class PhonebookServicePlugin(BaseServicePlugin):
             msg = '{} requires a "db_uri" in its configuration'.format(self.__class__.__name__)
             raise ValueError(msg)
 
-        phonebook_crud = self._new_phonebook_crud(self._db_uri)
+        Session = self._new_db_session(self._db_uri)
+        return _PhonebookService(database.PhonebookCRUD(Session),
+                                 database.PhonebookContactCRUD(Session))
 
-        return _PhonebookService(phonebook_crud)
-
-    def _new_phonebook_crud(self, db_uri):
+    def _new_db_session(self, db_uri):
         self._Session = scoped_session(sessionmaker())
         engine = create_engine(db_uri)
         self._Session.configure(bind=engine)
-        return database.PhonebookCRUD(self._Session)
+        return self._Session
 
 
 class _PhonebookService(object):
 
-    def __init__(self, phonebook_crud):
+    def __init__(self, phonebook_crud, contact_crud):
         self._phonebook_crud = phonebook_crud
+        self._contact_crud = contact_crud
 
     def list_phonebook(self, tenant, **params):
         return self._phonebook_crud.list(tenant, **params)
 
+    def count_contact(self, tenant, phonebook_id, **params):
+        return self._contact_crud.count(tenant, phonebook_id, **params)
+
     def count_phonebook(self, tenant, **params):
         return self._phonebook_crud.count(tenant, **params)
+
+    def create_contact(self, tenant, phonebook_id, contact_info):
+        return self._contact_crud.create(tenant, phonebook_id, contact_info)
 
     def create_phonebook(self, tenant, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)
@@ -76,14 +83,23 @@ class _PhonebookService(object):
             raise InvalidPhonebookException(errors)
         return self._phonebook_crud.create(tenant, body)
 
+    def edit_contact(self, tenant, phonebook_id, contact_uuid, contact_info):
+        return self._contact_crud.edit(tenant, phonebook_id, contact_uuid, contact_info)
+
     def edit_phonebook(self, tenant, phonebook_id, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)
         if errors:
             raise InvalidPhonebookException(errors)
         return self._phonebook_crud.edit(tenant, phonebook_id, body)
 
+    def delete_contact(self, tenant, phonebook_id, contact_uuid):
+        return self._contact_crud.delete(tenant, phonebook_id, contact_uuid)
+
     def delete_phonebook(self, tenant, phonebook_id):
         return self._phonebook_crud.delete(tenant, phonebook_id)
+
+    def get_contact(self, tenant, phonebook_id, contact_uuid):
+        return self._contact_crud.get(tenant, phonebook_id, contact_uuid)
 
     def get_phonebook(self, tenant, phonebook_id):
         return self._phonebook_crud.get(tenant, phonebook_id)
