@@ -583,6 +583,29 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
                     raises(database.NoSuchPhonebook))
 
 
+class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
+
+    def setUp(self):
+        super(TestPhonebookContactCRUDList, self).setUp()
+        self._contact_1 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'one', 'foo': 'bar'})
+        self._contact_2 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'two', 'foo': 'bar'})
+        self._contact_3 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'three', 'foo': 'bar'})
+
+    def test_that_listing_contacts_works(self):
+        result = self._crud.list(self._tenant, self._phonebook_id)
+
+        assert_that(result, contains_inanyorder(self._contact_1, self._contact_2, self._contact_3))
+
+    def test_that_only_the_tenant_can_list(self):
+        assert_that(calling(self._crud.list).with_args('not-the-tenant', self._phonebook_id),
+                    raises(database.NoSuchPhonebook))
+
+    def test_that_the_list_can_be_filtered(self):
+        result = self._crud.list(self._tenant, self._phonebook_id, search='o')
+
+        assert_that(result, contains_inanyorder(self._contact_1, self._contact_2))
+
+
 class TestContactCRUD(_BaseTest):
 
     def setUp(self):

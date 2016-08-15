@@ -20,6 +20,7 @@ import json
 
 from unidecode import unidecode
 from contextlib import contextmanager
+from collections import defaultdict
 
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from sqlalchemy import (and_, Column, distinct, event, exc, ForeignKey,
@@ -253,6 +254,26 @@ class PhonebookContactCRUD(_BaseDAO):
                 raise NoSuchContact(contact_id)
 
             return {field.name: field.value for field in fields}
+
+    def list(self, tenant, phonebook_id, search=None):
+        with self.new_session() as s:
+            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
+            base_filter = Contact.phonebook_id == phonebook_id
+            search_filter = ContactFields.value.ilike(u'%{}%'.format(search)) if search else True
+            matching_uuids = (s.query(distinct(ContactFields.contact_uuid))
+                              .join(Contact)
+                              .filter(and_(base_filter,
+                                           search_filter))).all()
+
+            if not matching_uuids:
+                return []
+
+            fields = s.query(ContactFields).filter(ContactFields.contact_uuid.in_(matching_uuids)).all()
+            result = defaultdict(dict)
+            for field in fields:
+                result[field.contact_uuid][field.name] = field.value
+
+            return result.values()
 
     def _add_field_to_contact(self, s, contact_uuid, contact_body):
         for name, value in contact_body.iteritems():
