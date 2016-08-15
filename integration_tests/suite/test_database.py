@@ -427,10 +427,10 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
         assert_that(result, contains_inanyorder(a, b))
 
 
-class TestPhonebookContactCRUDCreate(_BaseTest):
+class _BasePhonebookContactCRUDTest(_BaseTest):
 
     def setUp(self):
-        super(TestPhonebookContactCRUDCreate, self).setUp()
+        super(_BasePhonebookContactCRUDTest, self).setUp()
         self._tenant = 'the-tenant'
         self._crud = database.PhonebookContactCRUD(Session)
         self._phonebook_crud = database.PhonebookCRUD(Session)
@@ -443,7 +443,10 @@ class TestPhonebookContactCRUDCreate(_BaseTest):
 
     def tearDown(self):
         self._phonebook_crud.delete(self._tenant, self._phonebook_id)
-        super(TestPhonebookContactCRUDCreate, self).tearDown()
+        super(_BasePhonebookContactCRUDTest, self).tearDown()
+
+
+class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
 
     def test_that_a_phonebook_contact_can_be_created(self):
         result = self._crud.create(self._tenant, self._phonebook_id, self._body)
@@ -470,6 +473,9 @@ class TestPhonebookContactCRUDCreate(_BaseTest):
         assert_that(calling(self._crud.create).with_args('not-the-tenant', self._phonebook_id, self._body),
                     raises(database.NoSuchPhonebook))
 
+
+class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
+
     def test_that_deleting_contact_removes_it(self):
         contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
 
@@ -491,6 +497,9 @@ class TestPhonebookContactCRUDCreate(_BaseTest):
                     .with_args(self._tenant, self._phonebook_id, unknown_contact_uuid),
                     raises(database.NoSuchContact))
 
+
+class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
+
     def test_that_get_returns_the_contact(self):
         contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
 
@@ -509,6 +518,68 @@ class TestPhonebookContactCRUDCreate(_BaseTest):
         contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
 
         assert_that(calling(self._crud.get).with_args('not-the-tenant', self._phonebook_id, contact['id']),
+                    raises(database.NoSuchPhonebook))
+
+
+class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
+
+    def test_that_editing_a_contact_works(self):
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        new_body = {'firstname': 'Foo',
+                    'lastname': 'Bar',
+                    'number': '5551236666'}
+
+        result = self._crud.edit(self._tenant, self._phonebook_id, contact['id'], new_body)
+
+        expected = dict(new_body)
+        expected['id'] = ANY
+        assert_that(result, equal_to(expected))
+        assert_that(self._list_contacts(), has_item(expected))
+
+    def test_that_the_id_cannot_be_modified(self):
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        new_body = dict(contact)
+        new_body['id'] = new_uuid()
+
+        result = self._crud.edit(self._tenant, self._phonebook_id, contact['id'], new_body)
+
+        assert_that(result, equal_to(contact))
+        assert_that(self._list_contacts(), has_item(contact))
+        assert_that(self._list_contacts(), not(has_item(new_body)))
+
+    def test_that_duplicates_cannot_be_created(self):
+        self._crud.create(self._tenant, self._phonebook_id, {'name': 'Foo'})
+        contact_2 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'Bar'})
+
+        assert_that(calling(self._crud.edit)
+                    .with_args(self._tenant, self._phonebook_id, contact_2['id'], {'id': new_uuid(),
+                                                                                   'name': 'Foo'}),
+                    raises(database.DuplicatedContactException))
+
+    def test_that_the_phonebook_must_match_the_id(self):
+        other_phonebook = self._phonebook_crud.create(self._tenant, {'name': 'the other'})
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        new_body = {'firstname': 'Foo',
+                    'lastname': 'Bar',
+                    'number': '5551236666'}
+
+        other_phonebook_id = other_phonebook['id']
+        assert_that(calling(self._crud.edit)
+                    .with_args(self._tenant, other_phonebook_id, contact['id'], new_body),
+                    raises(database.NoSuchContact))
+
+    def test_that_the_tenant_must_match_the_id(self):
+        contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
+
+        new_body = {'firstname': 'Foo',
+                    'lastname': 'Bar',
+                    'number': '5551236666'}
+
+        assert_that(calling(self._crud.edit)
+                    .with_args('not-the-tenant', self._phonebook_id, contact['id'], new_body),
                     raises(database.NoSuchPhonebook))
 
 

@@ -223,10 +223,7 @@ class PhonebookContactCRUD(_BaseDAO):
             except exc.IntegrityError:
                 s.rollback()
                 raise DuplicatedContactException()
-            for name, value in contact_body.iteritems():
-                s.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
-                s.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
-            contact_body['id'] = contact.uuid
+            self._add_field_to_contact(s, contact.uuid, contact_body)
 
         return contact_body
 
@@ -238,21 +235,45 @@ class PhonebookContactCRUD(_BaseDAO):
         if not nb_deleted:
             raise NoSuchContact(contact_id)
 
+    def edit(self, tenant, phonebook_id, contact_uuid, contact_body):
+        hash_ = compute_contact_hash(contact_body)
+        with self.new_session() as s:
+            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
+            filter_ = and_(Contact.uuid == contact_uuid, Contact.phonebook_id == phonebook_id)
+            contact = s.query(Contact).filter(filter_).first()
+            if not contact:
+                raise NoSuchContact(contact_uuid)
+            contact.hash = hash_
+            try:
+                s.flush()
+            except exc.IntegrityError:
+                s.rollback()
+                raise DuplicatedContactException()
+            s.query(ContactFields).filter(ContactFields.contact_uuid == contact_uuid).delete()
+            self._add_field_to_contact(s, contact.uuid, contact_body)
+
+        return contact_body
+
     def get(self, tenant, phonebook_id, contact_id):
         with self.new_session() as s:
             self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
-            filter_ = and_(ContactFields.contact_uuid == contact_id,
-                           Contact.phonebook_id == phonebook_id)
+            filter_ = and_(ContactFields.contact_uuid == contact_id, Contact.phonebook_id == phonebook_id)
             fields = s.query(ContactFields).join(Contact).filter(filter_).all()
             if not fields:
                 raise NoSuchContact(contact_id)
 
             return {field.name: field.value for field in fields}
 
+    def _add_field_to_contact(self, s, contact_uuid, contact_body):
+        for name, value in contact_body.iteritems():
+            s.add(ContactFields(name=name, value=value, contact_uuid=contact_uuid))
+            s.add(ContactFields(name='id', value=contact_uuid, contact_uuid=contact_uuid))
+        contact_body['id'] = contact_uuid
+
     def _assert_tenant_owns_phonebook(self, s, tenant, phonebook_id):
         # XXX: use a cache to avoid the query at each operation?
-        if not s.query(Phonebook).join(Tenant).filter(and_(Phonebook.id == phonebook_id,
-                                                           Tenant.name == tenant)).first():
+        filter_ = and_(Phonebook.id == phonebook_id, Tenant.name == tenant)
+        if not s.query(Phonebook).join(Tenant).filter(filter_).first():
             raise NoSuchPhonebook(phonebook_id)
 
 
