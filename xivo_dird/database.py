@@ -221,9 +221,7 @@ class PhonebookContactCRUD(_BaseDAO):
         hash_ = compute_contact_hash(contact_body)
         with self.new_session() as s:
             self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
-            contact_args = {'phonebook_id': phonebook_id,
-                            'hash': hash_}
-            contact = Contact(**contact_args)
+            contact = Contact(phonebook_id=phonebook_id, hash=hash_)
             s.add(contact)
             self.flush_or_raise(s, DuplicatedContactException)
             self._add_field_to_contact(s, contact.uuid, contact_body)
@@ -232,20 +230,13 @@ class PhonebookContactCRUD(_BaseDAO):
 
     def delete(self, tenant, phonebook_id, contact_id):
         with self.new_session() as s:
-            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
-            nb_deleted = s.query(Contact).filter(and_(Contact.phonebook_id == phonebook_id,
-                                                      Contact.uuid == contact_id)).delete()
-        if not nb_deleted:
-            raise NoSuchContact(contact_id)
+            contact = self._get_contact(s, tenant, phonebook_id, contact_id)
+            s.delete(contact)
 
     def edit(self, tenant, phonebook_id, contact_uuid, contact_body):
         hash_ = compute_contact_hash(contact_body)
         with self.new_session() as s:
-            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
-            filter_ = and_(Contact.uuid == contact_uuid, Contact.phonebook_id == phonebook_id)
-            contact = s.query(Contact).filter(filter_).first()
-            if not contact:
-                raise NoSuchContact(contact_uuid)
+            contact = self._get_contact(s, tenant, phonebook_id, contact_uuid)
             contact.hash = hash_
             self.flush_or_raise(s, DuplicatedContactException)
             s.query(ContactFields).filter(ContactFields.contact_uuid == contact_uuid).delete()
@@ -274,6 +265,17 @@ class PhonebookContactCRUD(_BaseDAO):
         filter_ = and_(Phonebook.id == phonebook_id, Tenant.name == tenant)
         if not s.query(Phonebook).join(Tenant).filter(filter_).first():
             raise NoSuchPhonebook(phonebook_id)
+
+    def _get_contact(self, s, tenant, phonebook_id, contact_uuid):
+        self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
+        filter_ = self._new_contact_filter(phonebook_id, contact_uuid)
+        contact = s.query(Contact).filter(filter_).first()
+        if not contact:
+            raise NoSuchContact(contact_uuid)
+        return contact
+
+    def _new_contact_filter(self, phonebook_id, contact_uuid):
+        return and_(Contact.uuid == contact_uuid, Contact.phonebook_id == phonebook_id)
 
 
 class PhonebookCRUD(_BaseDAO):
