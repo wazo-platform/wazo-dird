@@ -247,7 +247,7 @@ class PhonebookContactCRUD(_BaseDAO):
     def get(self, tenant, phonebook_id, contact_id):
         with self.new_session() as s:
             self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
-            filter_ = and_(ContactFields.contact_uuid == contact_id, Contact.phonebook_id == phonebook_id)
+            filter_ = self._new_contact_filter(phonebook_id, contact_id)
             fields = s.query(ContactFields).join(Contact).filter(filter_).all()
             if not fields:
                 raise NoSuchContact(contact_id)
