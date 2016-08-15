@@ -606,6 +606,29 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
         assert_that(result, contains_inanyorder(self._contact_1, self._contact_2))
 
 
+class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
+
+    def setUp(self):
+        super(TestPhonebookContactCRUDCount, self).setUp()
+        self._contact_1 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'one', 'foo': 'bar'})
+        self._contact_2 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'two', 'foo': 'bar'})
+        self._contact_3 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'three', 'foo': 'bar'})
+
+    def test_that_counting_counts(self):
+        result = self._crud.count(self._tenant, self._phonebook_id)
+
+        assert_that(result, equal_to(3))
+
+    def test_that_counting_is_filtered(self):
+        result = self._crud.count(self._tenant, self._phonebook_id, search='o')
+
+        assert_that(result, equal_to(2))
+
+    def test_that_only_the_tenant_can_count(self):
+        assert_that(calling(self._crud.count).with_args('not-the-tenant', self._phonebook_id),
+                    raises(database.NoSuchPhonebook))
+
+
 class TestContactCRUD(_BaseTest):
 
     def setUp(self):

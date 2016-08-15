@@ -218,6 +218,11 @@ class _BaseDAO(object):
 
 class PhonebookContactCRUD(_BaseDAO):
 
+    def count(self, tenant, phonebook_id, search=None):
+        with self.new_session() as s:
+            query = func.count(distinct(ContactFields.contact_uuid))
+            return self._list_contacts(s, query, tenant, phonebook_id, search).scalar()
+
     def create(self, tenant, phonebook_id, contact_body):
         hash_ = compute_contact_hash(contact_body)
         with self.new_session() as s:
@@ -257,14 +262,8 @@ class PhonebookContactCRUD(_BaseDAO):
 
     def list(self, tenant, phonebook_id, search=None):
         with self.new_session() as s:
-            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
-            base_filter = Contact.phonebook_id == phonebook_id
-            search_filter = ContactFields.value.ilike(u'%{}%'.format(search)) if search else True
-            matching_uuids = (s.query(distinct(ContactFields.contact_uuid))
-                              .join(Contact)
-                              .filter(and_(base_filter,
-                                           search_filter))).all()
-
+            query = distinct(ContactFields.contact_uuid)
+            matching_uuids = self._list_contacts(s, query, tenant, phonebook_id, search).all()
             if not matching_uuids:
                 return []
 
@@ -273,7 +272,7 @@ class PhonebookContactCRUD(_BaseDAO):
             for field in fields:
                 result[field.contact_uuid][field.name] = field.value
 
-            return result.values()
+        return result.values()
 
     def _add_field_to_contact(self, s, contact_uuid, contact_body):
         for name, value in contact_body.iteritems():
@@ -294,6 +293,12 @@ class PhonebookContactCRUD(_BaseDAO):
         if not contact:
             raise NoSuchContact(contact_uuid)
         return contact
+
+    def _list_contacts(self, s, query, tenant, phonebook_id, search):
+        self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
+        base_filter = Contact.phonebook_id == phonebook_id
+        search_filter = ContactFields.value.ilike(u'%{}%'.format(search)) if search else True
+        return s.query(query).join(Contact).filter(and_(base_filter, search_filter))
 
     def _new_contact_filter(self, phonebook_id, contact_uuid):
         return and_(Contact.uuid == contact_uuid, Contact.phonebook_id == phonebook_id)
