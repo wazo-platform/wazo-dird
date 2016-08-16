@@ -18,6 +18,7 @@
 import time
 
 from flask import request
+from functools import wraps
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
@@ -89,31 +90,38 @@ class _ArgParser(object):
         return params
 
 
+def _default_error_route(f):
+
+    @wraps(f)
+    def decorator(self_, *args, **kwargs):
+        try:
+            return f(self_, *args, **kwargs)
+        except tuple(self_.error_code_map.keys()) as e:
+            code = self_.error_code_map.get(e.__class__)
+            return _make_error(str(e), code)
+    return decorator
+
+
 class ContactAll(_Resource):
 
-    _error_code_map = {InvalidContactException: 400,
-                       NoSuchPhonebook: 404,
-                       DuplicatedContactException: 409}
+    error_code_map = {InvalidContactException: 400,
+                      NoSuchPhonebook: 404,
+                      DuplicatedContactException: 409}
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
+    @_default_error_route
     def post(self, tenant, phonebook_id):
-        try:
-            return self.phonebook_service.create_contact(tenant, phonebook_id, request.json), 201
-        except tuple(self._error_code_map.keys()) as e:
-            code = self._error_code_map.get(e.__class__)
-            return _make_error(str(e), code)
+        return self.phonebook_service.create_contact(tenant, phonebook_id, request.json), 201
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
+    @_default_error_route
     def get(self, tenant, phonebook_id):
         parser = _ArgParser(request.args)
-        try:
-            count = self.phonebook_service.count_contact(tenant, phonebook_id, **parser.count_params())
-            contacts = self.phonebook_service.list_contact(tenant, phonebook_id, **parser.list_params())
-        except tuple(self._error_code_map.keys()) as e:
-            code = self._error_code_map.get(e.__class__)
-            return _make_error(str(e), code)
+        count = self.phonebook_service.count_contact(tenant, phonebook_id, **parser.count_params())
+        contacts = self.phonebook_service.list_contact(tenant, phonebook_id, **parser.list_params())
 
-        return {'items': contacts, 'total': count}, 200
+        return {'items': contacts,
+                'total': count}, 200
 
 
 class ContactOne(_Resource):
@@ -121,6 +129,9 @@ class ContactOne(_Resource):
 
 
 class PhonebookAll(_Resource):
+
+    error_code_map = {DuplicatedPhonebookException: 409,
+                      InvalidPhonebookException: 400}
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.read')
     def get(self, tenant):
@@ -132,42 +143,29 @@ class PhonebookAll(_Resource):
                 'total': count}
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.create')
+    @_default_error_route
     def post(self, tenant):
-        try:
-            new_phonebook = self.phonebook_service.create_phonebook(tenant, request.json)
-        except DuplicatedPhonebookException:
-            return _make_error('Adding this phonebook would create a duplicate', 409)
-        except InvalidPhonebookException as e:
-            return _make_error(e.errors, 400)
-
-        return new_phonebook, 201
+        return self.phonebook_service.create_phonebook(tenant, request.json), 201
 
 
 class PhonebookOne(_Resource):
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
-    def delete(self, tenant, phonebook_id):
-        try:
-            self.phonebook_service.delete_phonebook(tenant, phonebook_id)
-        except NoSuchPhonebook as e:
-            return _make_error(str(e), 404)
+    error_code_map = {DuplicatedPhonebookException: 409,
+                      InvalidPhonebookException: 400,
+                      NoSuchPhonebook: 404}
 
+    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
+    @_default_error_route
+    def delete(self, tenant, phonebook_id):
+        self.phonebook_service.delete_phonebook(tenant, phonebook_id)
         return '', 204
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
+    @_default_error_route
     def get(self, tenant, phonebook_id):
-        try:
-            return self.phonebook_service.get_phonebook(tenant, phonebook_id), 200
-        except NoSuchPhonebook as e:
-            return _make_error(str(e), 404)
+        return self.phonebook_service.get_phonebook(tenant, phonebook_id), 200
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
+    @_default_error_route
     def put(self, tenant, phonebook_id):
-        try:
-            return self.phonebook_service.edit_phonebook(tenant, phonebook_id, request.json), 200
-        except NoSuchPhonebook as e:
-            return _make_error(str(e), 404)
-        except InvalidPhonebookException as e:
-            return _make_error(e.errors, 400)
-        except DuplicatedPhonebookException:
-            return _make_error('Adding this phonebook would create a duplicate', 409)
+        return self.phonebook_service.edit_phonebook(tenant, phonebook_id, request.json), 200

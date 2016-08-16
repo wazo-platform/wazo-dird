@@ -150,7 +150,7 @@ class TestPhonebookAll(unittest.TestCase):
 
         result = self._post('tenant', {'name': 'name'})
 
-        expected = ({'reason': [s.error], 'timestamp': [ANY], 'status_code': 400}, 400)
+        expected = ({'reason': [str(s.error)], 'timestamp': [ANY], 'status_code': 400}, 400)
         assert_that(result, equal_to(expected))
 
     def test_that_duplicated_phonebooks_return_409(self):
@@ -158,7 +158,7 @@ class TestPhonebookAll(unittest.TestCase):
 
         response = self._post('tenant', {'name': 'duplicate'})
 
-        expected = ({'reason': ['Adding this phonebook would create a duplicate'],
+        expected = ({'reason': ['Duplicating phonebook'],
                      'timestamp': [ANY],
                      'status_code': 409}, 409)
         assert_that(response, equal_to(expected))
@@ -295,7 +295,7 @@ class TestPhonebookOne(unittest.TestCase):
 
         result = self._put(s.tenant, s.phonebook_id, s.body)
 
-        assert_that(result, equal_to(({'reason': [s.error],
+        assert_that(result, equal_to(({'reason': [str(s.error)],
                                        'timestamp': [ANY],
                                        'status_code': 400}, 400)))
         self.service.edit_phonebook.assert_called_once_with(s.tenant, s.phonebook_id, s.body)

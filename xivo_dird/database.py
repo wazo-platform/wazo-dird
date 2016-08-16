@@ -88,7 +88,10 @@ class DuplicatedFavoriteException(Exception):
 
 class DuplicatedPhonebookException(Exception):
 
-    pass
+    _msg = 'Duplicating phonebook'
+
+    def __init__(self):
+        super(DuplicatedPhonebookException, self).__init__(self._msg)
 
 
 class User(Base):
