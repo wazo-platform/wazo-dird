@@ -65,6 +65,18 @@ class _PhonebookService(object):
         self._phonebook_crud = phonebook_crud
         self._contact_crud = contact_crud
 
+    def list_contact(self, tenant, phonebook_id, limit=None, offset=None,
+                     order=None, direction=None, **params):
+        results = self._contact_crud.list(tenant, phonebook_id, **params)
+        if order:
+            reverse = direction == 'desc'
+            results = sorted(results, key=lambda x: x.get(order), reverse=reverse)
+        if offset:
+            results = results[offset:]
+        if limit:
+            results = results[:limit]
+        return results
+
     def list_phonebook(self, tenant, **params):
         return self._phonebook_crud.list(tenant, **params)
 

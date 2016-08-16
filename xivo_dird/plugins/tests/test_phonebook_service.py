@@ -17,7 +17,12 @@
 
 import unittest
 
-from hamcrest import (assert_that, calling, equal_to, raises)
+from hamcrest import (assert_that,
+                      calling,
+                      contains,
+                      contains_inanyorder,
+                      equal_to,
+                      raises)
 from mock import Mock, sentinel as s
 
 from xivo_dird import database
@@ -41,13 +46,16 @@ class TestPhonebookServicePlugin(unittest.TestCase):
                     raises(ValueError))
 
 
-class TestPhonebookServicePhonebookAPI(unittest.TestCase):
+class _BasePhonebookServiceTest(unittest.TestCase):
 
     def setUp(self):
         self.phonebook_crud = Mock(database.PhonebookCRUD)
         self.contact_crud = Mock(database.PhonebookContactCRUD)
         self.service = Service(self.phonebook_crud,
                                self.contact_crud)
+
+
+class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
 
     def test_list_phonebook(self):
         result = self.service.list_phonebook(s.tenant)
@@ -100,13 +108,7 @@ class TestPhonebookServicePhonebookAPI(unittest.TestCase):
         self.phonebook_crud.get.assert_called_once_with(s.tenant, s.phonebook_id)
 
 
-class TestPhonebookServiceContactAPI(unittest.TestCase):
-
-    def setUp(self):
-        self.phonebook_crud = Mock(database.PhonebookCRUD)
-        self.contact_crud = Mock(database.PhonebookContactCRUD)
-        self.service = Service(self.phonebook_crud,
-                               self.contact_crud)
+class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
 
     def test_count_contact(self):
         result = self.service.count_contact(s.tenant, s.phonebook_id)
@@ -144,3 +146,96 @@ class TestPhonebookServiceContactAPI(unittest.TestCase):
 
         assert_that(result, equal_to(self.contact_crud.get.return_value))
         self.contact_crud.get.assert_called_once_with(s.tenant, s.phonebook_id, s.contact_uuid)
+
+
+class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
+
+    def setUp(self):
+        super(TestPhonebookServiceContactList, self).setUp()
+        self._manolo = {'firstname': 'Manolo', 'lastname': 'Laporte-Carpentier', 'number': '5551111234'}
+        self._annabelle = {'firstname': 'Annabelle', 'lastname': 'Courval', 'number': '5552221234'}
+        self._gary_bob = {'firstname': 'Gary-Bob', 'lastname': 'Derome'}
+        self._antonin = {'firstname': 'Antonin', 'lastname': 'Mongeau', 'number': '5554441234'}
+        self._simon = {'firstname': 'Simon', 'lastname': "L'Espérance"}
+        self._contacts = [self._manolo, self._annabelle, self._gary_bob, self._antonin, self._simon]
+
+    def test_that_list_returns_the_db_result_when_no_pagination_or_sorting(self):
+        self.contact_crud.list.return_value = self._contacts
+
+        result = self.service.list_contact(s.tenant, s.phonebook_id, search=s.search)
+
+        self.contact_crud.list.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        assert_that(result, contains(*self._contacts))
+
+    def test_that_list_can_be_limited(self):
+        self.contact_crud.list.return_value = self._contacts
+
+        result = self.service.list_contact(s.tenant, s.phonebook_id, search=s.search, limit=2)
+
+        self.contact_crud.list.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        assert_that(result, contains(self._manolo, self._annabelle))
+
+    def test_that_list_can_have_an_offset(self):
+        self.contact_crud.list.return_value = self._contacts
+
+        result = self.service.list_contact(s.tenant, s.phonebook_id, search=s.search, offset=3)
+
+        self.contact_crud.list.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        assert_that(result, contains(self._antonin, self._simon))
+
+    def test_that_limit_and_offset_work_togeter(self):
+        self.contact_crud.list.return_value = self._contacts
+
+        result = self.service.list_contact(s.tenant, s.phonebook_id, search=s.search, offset=1, limit=2)
+
+        self.contact_crud.list.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        assert_that(result, contains(self._annabelle, self._gary_bob))
+
+    def test_that_results_can_be_ordered(self):
+        self.contact_crud.list.return_value = self._contacts
+
+        result = self.service.list_contact(s.tenant, s.phonebook_id, search=s.search, order='firstname')
+
+        self.contact_crud.list.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        assert_that(result, contains(self._annabelle,
+                                     self._antonin,
+                                     self._gary_bob,
+                                     self._manolo,
+                                     self._simon))
+
+    def test_that_results_can_be_ordered_by_an_unknown_column_with_no_effect(self):
+        self.contact_crud.list.return_value = self._contacts
+
+        result = self.service.list_contact(s.tenant, s.phonebook_id, search=s.search,
+                                           order='number', direction='desc')
+
+        self.contact_crud.list.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        assert_that(result, contains_inanyorder(self._manolo,
+                                                self._antonin,
+                                                self._annabelle,
+                                                self._gary_bob,  # no number
+                                                self._simon))    # no number
+
+    def test_that_the_direction_can_be_specified(self):
+        self.contact_crud.list.return_value = self._contacts
+
+        result = self.service.list_contact(s.tenant, s.phonebook_id, search=s.search,
+                                           order='firstname', direction='desc')
+
+        self.contact_crud.list.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        assert_that(result, contains(self._simon,
+                                     self._manolo,
+                                     self._gary_bob,
+                                     self._antonin,
+                                     self._annabelle))
+
+    def test_all(self):
+        self.contact_crud.list.return_value = self._contacts
+
+        result = self.service.list_contact(s.tenant, s.phonebook_id,
+                                           search=s.search,
+                                           order='lastname', direction='desc',
+                                           limit=3, offset=1)
+
+        self.contact_crud.list.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        assert_that(result, contains(self._manolo, self._simon, self._gary_bob))
