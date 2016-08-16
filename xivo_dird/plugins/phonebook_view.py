@@ -67,13 +67,44 @@ class ContactAll(_Resource):
                        NoSuchPhonebook: 404,
                        DuplicatedContactException: 409}
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebookks.{phonebook_id}.create')
+    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     def post(self, tenant, phonebook_id):
         try:
             return self.phonebook_service.create_contact(tenant, phonebook_id, request.json), 201
         except tuple(self._error_code_map.keys()) as e:
             code = self._error_code_map.get(e.__class__)
             return _make_error(str(e), code)
+
+    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
+    def get(self, tenant, phonebook_id):
+        params = {}
+        direction = request.args.get('direction')
+        limit = request.args.get('limit')
+        offset = request.args.get('offset')
+        order = request.args.get('order')
+        search = request.args.get('search')
+
+        if search:
+            params['search'] = search
+        count_params = dict(params)
+
+        if limit:
+            params['limit'] = int(limit)
+        if offset:
+            params['offset'] = int(offset)
+        if order:
+            params['order'] = order
+        if direction:
+            params['direction'] = direction
+
+        try:
+            count = self.phonebook_service.count_contact(tenant, phonebook_id, **count_params)
+            contacts = self.phonebook_service.list_contact(tenant, phonebook_id, **params)
+        except tuple(self._error_code_map.keys()) as e:
+            code = self._error_code_map.get(e.__class__)
+            return _make_error(str(e), code)
+
+        return {'items': contacts, 'total': count}, 200
 
 
 class ContactOne(_Resource):

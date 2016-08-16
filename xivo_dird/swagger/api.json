@@ -1184,6 +1184,21 @@
                 "tags": ["phonebook"],
                 "parameters": [
                     {
+                        "$ref": "#/parameters/order"
+                    },
+                    {
+                        "$ref": "#/parameters/direction"
+                    },
+                    {
+                        "$ref": "#/parameters/Limit"
+                    },
+                    {
+                        "$ref": "#/parameters/Offset"
+                    },
+                    {
+                        "$ref": "#/parameters/search"
+                    },
+                    {
                         "$ref": "#/parameters/Tenant"
                     },
                     {

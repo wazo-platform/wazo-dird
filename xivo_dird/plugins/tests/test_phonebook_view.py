@@ -67,12 +67,61 @@ class TestContactAll(unittest.TestCase):
 
         self._assert_error(result, 400, 'invalid')
 
+    def test_a_working_get(self):
+        self.service.list_contact.return_value = [s.contact_1, s.contact_2, s.contact_3]
+        self.service.count_contact.return_value = 3
+
+        result = self._get(s.tenant, s.phonebook_id)
+
+        assert_that(result, equal_to(({'total': 3,
+                                       'items': [s.contact_1, s.contact_2, s.contact_3]}, 200)))
+
+    def test_get_with_all_arguments(self):
+        contacts = self.service.list_contact.return_value = [s.contact_1]
+        total = self.service.count_contact.return_value = 3
+
+        result = self._get(s.tenant, s.phonebook_id, search=s.search,
+                           limit=s.limit, offset=s.offset, order=s.order, direction=s.direction)
+
+        assert_that(result, equal_to(({'total': total, 'items': contacts}, 200)))
+        self.service.count_contact.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
+        self.service.list_contact.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search,
+                                                          limit=s.limit, offset=s.offset,
+                                                          order=s.order, direction=s.direction)
+
+    def test_get_with_an_unknown_phonebook(self):
+        self.service.count_contact.side_effect = NoSuchPhonebook(s.phonebook_id)
+        self.service.list_contact.side_effect = NoSuchPhonebook(s.phonebook_id)
+
+        result = self._get(s.tenant, s.phonebook_id)
+
+        self._assert_error(result, 404, 'No such phonebook: {}'.format(s.phonebook_id))
+
     def _assert_error(self, result, status_code, msg):
         error = {'reason': [msg],
                  'timestamp': [ANY],
                  'status_code': status_code}
         assert_that(result, equal_to((error, status_code)))
         result = self._post(s.tenant, s.phonebook_id, s.body)
+
+    def _get(self, tenant, phonebook_id,
+             limit=None, offset=None,
+             order=None, direction=None,
+             search=None):
+        args = {}
+        if limit:
+            args['limit'] = limit
+        if offset:
+            args['offset'] = offset
+        if order:
+            args['order'] = order
+        if direction:
+            args['direction'] = direction
+        if search:
+            args['search'] = search
+
+        with patch('xivo_dird.plugins.phonebook_view.request', Mock(args=args)):
+            return self.view.get(tenant, phonebook_id)
 
     def _post(self, tenant, phonebook_id, body):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
