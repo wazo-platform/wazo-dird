@@ -21,9 +21,9 @@ from flask import request
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
-from xivo_dird.core.exception import InvalidPhonebookException
+from xivo_dird.core.exception import InvalidContactException, InvalidPhonebookException
 from xivo_dird.core.rest_api import api, AuthResource
-from xivo_dird.database import DuplicatedPhonebookException, NoSuchPhonebook
+from xivo_dird.database import DuplicatedContactException, DuplicatedPhonebookException, NoSuchPhonebook
 
 
 def _make_error(reason, status_code):
@@ -36,23 +36,51 @@ class PhonebookViewPlugin(BaseViewPlugin):
 
     phonebook_all_url = '/tenants/<string:tenant>/phonebooks'
     phonebook_one_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>'
+    contact_all_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts'
+    contact_one_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts/<contact_uuid>'
 
     def load(self, args=None):
         phonebook_service = args['services'].get('phonebook')
         if phonebook_service:
+            ContactAll.configure(phonebook_service)
+            ContactOne.configure(phonebook_service)
             PhonebookAll.configure(phonebook_service)
             PhonebookOne.configure(phonebook_service)
+            api.add_resource(ContactAll, self.contact_all_url)
+            api.add_resource(ContactOne, self.contact_one_url)
             api.add_resource(PhonebookAll, self.phonebook_all_url)
             api.add_resource(PhonebookOne, self.phonebook_one_url)
 
 
-class PhonebookAll(AuthResource):
+class _Resource(AuthResource):
 
     phonebook_service = None
 
     @classmethod
     def configure(cls, phonebook_service):
         cls.phonebook_service = phonebook_service
+
+
+class ContactAll(_Resource):
+
+    _error_code_map = {InvalidContactException: 400,
+                       NoSuchPhonebook: 404,
+                       DuplicatedContactException: 409}
+
+    @auth.required_acl('dird.tenants.{tenant}.phonebookks.{phonebook_id}.create')
+    def post(self, tenant, phonebook_id):
+        try:
+            return self.phonebook_service.create_contact(tenant, phonebook_id, request.json), 201
+        except tuple(self._error_code_map.keys()) as e:
+            code = self._error_code_map.get(e.__class__)
+            return _make_error(str(e), code)
+
+
+class ContactOne(_Resource):
+    pass
+
+
+class PhonebookAll(_Resource):
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.read')
     def get(self, tenant):
@@ -83,22 +111,16 @@ class PhonebookAll(AuthResource):
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.create')
     def post(self, tenant):
         try:
-            new_contact = self.phonebook_service.create_phonebook(tenant, request.json)
+            new_phonebook = self.phonebook_service.create_phonebook(tenant, request.json)
         except DuplicatedPhonebookException:
             return _make_error('Adding this phonebook would create a duplicate', 409)
         except InvalidPhonebookException as e:
             return _make_error(e.errors, 400)
 
-        return new_contact, 201
+        return new_phonebook, 201
 
 
-class PhonebookOne(AuthResource):
-
-    phonebook_service = None
-
-    @classmethod
-    def configure(cls, phonebook_service):
-        cls.phonebook_service = phonebook_service
+class PhonebookOne(_Resource):
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
     def delete(self, tenant, phonebook_id):

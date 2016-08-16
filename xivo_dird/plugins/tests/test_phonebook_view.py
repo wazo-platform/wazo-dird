@@ -20,11 +20,63 @@ import unittest
 from hamcrest import assert_that, equal_to
 from mock import ANY, Mock, sentinel as s, patch
 
-from ..phonebook_view import PhonebookAll, PhonebookOne
+from ..phonebook_view import ContactAll, PhonebookAll, PhonebookOne
 
-from xivo_dird.core.exception import InvalidPhonebookException
-from xivo_dird.database import DuplicatedPhonebookException, NoSuchPhonebook
+from xivo_dird.core.exception import InvalidContactException, InvalidPhonebookException
+from xivo_dird.database import DuplicatedContactException, DuplicatedPhonebookException, NoSuchPhonebook
 from xivo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
+
+
+class TestContactAll(unittest.TestCase):
+
+    def setUp(self):
+        self.service = Mock(PhonebookService)
+        self.view = ContactAll()
+        self.view.configure(self.service)
+        self.body = {'firstname': 'Foo',
+                     'lastname': 'Bar',
+                     'number': '5551231111'}
+
+    def test_a_workong_post(self):
+        result = self._post(s.tenant, s.phonebook_id, self.body)
+
+        self.service.create_contact.assert_called_once_with(s.tenant, s.phonebook_id, self.body)
+        expected = self.service.create_contact.return_value, 201
+        assert_that(result, equal_to(expected))
+
+    def test_creating_a_contact_in_an_unknown_phonebook(self):
+        self.service.create_contact.side_effect = NoSuchPhonebook(s.phonebook_id)
+
+        result = self._post(s.tenant, s.phonebook_id, self.body)
+
+        self.service.create_contact.assert_called_once_with(s.tenant, s.phonebook_id, self.body)
+        self._assert_error(result, 404, 'No such phonebook: {}'.format(s.phonebook_id))
+
+    def test_creating_a_duplicate_contact(self):
+        self.service.create_contact.side_effect = DuplicatedContactException
+
+        result = self._post(s.tenant, s.phonebook_id, self.body)
+
+        self.service.create_contact.assert_called_once_with(s.tenant, s.phonebook_id, self.body)
+        self._assert_error(result, 409, 'Duplicating contact')
+
+    def test_creating_an_invalid_contact(self):
+        self.service.create_contact.side_effect = InvalidContactException('invalid')
+
+        result = self._post(s.tenant, s.phonebook_id, {})
+
+        self._assert_error(result, 400, 'invalid')
+
+    def _assert_error(self, result, status_code, msg):
+        error = {'reason': [msg],
+                 'timestamp': [ANY],
+                 'status_code': status_code}
+        assert_that(result, equal_to((error, status_code)))
+        result = self._post(s.tenant, s.phonebook_id, s.body)
+
+    def _post(self, tenant, phonebook_id, body):
+        with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
+            return self.view.post(tenant, phonebook_id)
 
 
 class TestPhonebookAll(unittest.TestCase):

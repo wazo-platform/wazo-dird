@@ -75,7 +75,10 @@ class NoSuchContact(ValueError):
 
 class DuplicatedContactException(Exception):
 
-    pass
+    _msg = 'Duplicating contact'
+
+    def __init__(self):
+        super(DuplicatedContactException, self).__init__(self._msg)
 
 
 class DuplicatedFavoriteException(Exception):
