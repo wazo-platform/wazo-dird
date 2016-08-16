@@ -22,7 +22,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from marshmallow import fields, Schema, validate
 
 from xivo_dird import BaseServicePlugin, database
-from xivo_dird.core.exception import InvalidPhonebookException
+from xivo_dird.core.exception import InvalidContactException, InvalidPhonebookException
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +87,11 @@ class _PhonebookService(object):
         return self._phonebook_crud.count(tenant, **params)
 
     def create_contact(self, tenant, phonebook_id, contact_info):
+        if not contact_info:
+            raise InvalidContactException('Contacts cannot be empty')
+        if '' in contact_info:
+            raise InvalidContactException('Contacts cannot have empty keys')
+
         return self._contact_crud.create(tenant, phonebook_id, contact_info)
 
     def create_phonebook(self, tenant, phonebook_info):

@@ -26,7 +26,7 @@ from hamcrest import (assert_that,
 from mock import Mock, sentinel as s
 
 from xivo_dird import database
-from xivo_dird.core.exception import InvalidPhonebookException
+from xivo_dird.core.exception import InvalidContactException, InvalidPhonebookException
 
 from ..phonebook_service import (PhonebookServicePlugin as Plugin,
                                  _PhonebookService as Service)
@@ -123,10 +123,18 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
         self.contact_crud.count.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
 
     def test_create_contact(self):
-        result = self.service.create_contact(s.tenant, s.phonebook_id, s.contact_info)
+        body = {'firstname': 'foobar'}
+
+        result = self.service.create_contact(s.tenant, s.phonebook_id, body)
 
         assert_that(result, equal_to(self.contact_crud.create.return_value))
-        self.contact_crud.create.assert_called_once_with(s.tenant, s.phonebook_id, s.contact_info)
+        self.contact_crud.create.assert_called_once_with(s.tenant, s.phonebook_id, body)
+
+    def test_that_create_contact_raises_for_invalid_input(self):
+        invalid_bodies = [{'': 'Foo'}, {}]
+        for body in invalid_bodies:
+            assert_that(calling(self.service.create_contact).with_args(s.tenant, s.phonebook_id, body),
+                        raises(InvalidContactException))
 
     def test_edit_contact(self):
         result = self.service.edit_contact(s.tenant, s.phonebook_id, s.contact_uuid, s.contact_info)
