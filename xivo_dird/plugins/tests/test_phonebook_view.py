@@ -79,14 +79,15 @@ class TestContactAll(unittest.TestCase):
     def test_get_with_all_arguments(self):
         contacts = self.service.list_contact.return_value = [s.contact_1]
         total = self.service.count_contact.return_value = 3
+        offset, limit = 5, 3
 
         result = self._get(s.tenant, s.phonebook_id, search=s.search,
-                           limit=s.limit, offset=s.offset, order=s.order, direction=s.direction)
+                           limit=limit, offset=offset, order=s.order, direction=s.direction)
 
         assert_that(result, equal_to(({'total': total, 'items': contacts}, 200)))
         self.service.count_contact.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
         self.service.list_contact.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search,
-                                                          limit=s.limit, offset=s.offset,
+                                                          limit=limit, offset=offset,
                                                           order=s.order, direction=s.direction)
 
     def test_get_with_an_unknown_phonebook(self):

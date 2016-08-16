@@ -61,6 +61,34 @@ class _Resource(AuthResource):
         cls.phonebook_service = phonebook_service
 
 
+class _ArgParser(object):
+
+    def __init__(self, args):
+        self._search = args.get('search')
+        self._direction = args.get('direction')
+        self._limit = int(args.get('limit', 0))
+        self._offset = int(args.get('offset', 0))
+        self._order = args.get('order')
+
+    def count_params(self):
+        params = {}
+        if self._search:
+            params['search'] = self._search
+        return params
+
+    def list_params(self):
+        params = self.count_params()
+        if self._direction:
+            params['direction'] = self._direction
+        if self._order:
+            params['order'] = self._order
+        if self._limit:
+            params['limit'] = self._limit
+        if self._offset:
+            params['offset'] = self._offset
+        return params
+
+
 class ContactAll(_Resource):
 
     _error_code_map = {InvalidContactException: 400,
@@ -77,29 +105,10 @@ class ContactAll(_Resource):
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
     def get(self, tenant, phonebook_id):
-        params = {}
-        direction = request.args.get('direction')
-        limit = request.args.get('limit')
-        offset = request.args.get('offset')
-        order = request.args.get('order')
-        search = request.args.get('search')
-
-        if search:
-            params['search'] = search
-        count_params = dict(params)
-
-        if limit:
-            params['limit'] = int(limit)
-        if offset:
-            params['offset'] = int(offset)
-        if order:
-            params['order'] = order
-        if direction:
-            params['direction'] = direction
-
+        parser = _ArgParser(request.args)
         try:
-            count = self.phonebook_service.count_contact(tenant, phonebook_id, **count_params)
-            contacts = self.phonebook_service.list_contact(tenant, phonebook_id, **params)
+            count = self.phonebook_service.count_contact(tenant, phonebook_id, **parser.count_params())
+            contacts = self.phonebook_service.list_contact(tenant, phonebook_id, **parser.list_params())
         except tuple(self._error_code_map.keys()) as e:
             code = self._error_code_map.get(e.__class__)
             return _make_error(str(e), code)
@@ -115,26 +124,9 @@ class PhonebookAll(_Resource):
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.read')
     def get(self, tenant):
-        params = {}
-        direction = request.args.get('direction')
-        limit = request.args.get('limit')
-        offset = request.args.get('offset')
-        order = request.args.get('order')
-        search = request.args.get('search')
-
-        if search:
-            params['search'] = search
-        count = self.phonebook_service.count_phonebook(tenant, **params)
-
-        if limit:
-            params['limit'] = limit
-        if offset:
-            params['offset'] = offset
-        if order:
-            params['order'] = order
-        if direction:
-            params['direction'] = direction
-        phonebooks = self.phonebook_service.list_phonebook(tenant, **params)
+        parser = _ArgParser(request.args)
+        count = self.phonebook_service.count_phonebook(tenant, **parser.count_params())
+        phonebooks = self.phonebook_service.list_phonebook(tenant, **parser.list_params())
 
         return {'items': phonebooks,
                 'total': count}
