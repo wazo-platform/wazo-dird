@@ -1110,6 +1110,12 @@
                         "schema": {
                             "$ref": "#/definitions/Phonebook"
                         }
+                    },
+                    "404": {
+                        "description": "Phonebook does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 }
             },
