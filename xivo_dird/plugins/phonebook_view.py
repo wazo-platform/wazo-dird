@@ -123,7 +123,8 @@ def _default_error_route(f):
 
 class ContactAll(_Resource):
 
-    error_code_map = {InvalidContactException: 400,
+    error_code_map = {InvalidArgumentError: 400,
+                      InvalidContactException: 400,
                       NoSuchPhonebook: 404,
                       DuplicatedContactException: 409}
 
@@ -149,10 +150,12 @@ class ContactOne(_Resource):
 
 class PhonebookAll(_Resource):
 
-    error_code_map = {DuplicatedPhonebookException: 409,
+    error_code_map = {InvalidArgumentError: 400,
+                      DuplicatedPhonebookException: 409,
                       InvalidPhonebookException: 400}
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.read')
+    @_default_error_route
     def get(self, tenant):
         parser = _ArgParser(request.args)
         count = self.phonebook_service.count_phonebook(tenant, **parser.count_params())

@@ -98,12 +98,16 @@ class TestContactAll(unittest.TestCase):
 
         self._assert_error(result, 404, 'No such phonebook: {}'.format(s.phonebook_id))
 
+    def test_get_with_invalid_params(self):
+        result = self._get(s.tenant, s.phonebook_id, offset='foobar')
+
+        self._assert_error(result, 400, 'offset should be a positive integer')
+
     def _assert_error(self, result, status_code, msg):
         error = {'reason': [msg],
                  'timestamp': [ANY],
                  'status_code': status_code}
         assert_that(result, equal_to((error, status_code)))
-        result = self._post(s.tenant, s.phonebook_id, s.body)
 
     def _get(self, tenant, phonebook_id,
              limit=None, offset=None,
@@ -211,6 +215,17 @@ class TestPhonebookAll(unittest.TestCase):
         assert_that(result, equal_to(expected))
         self.service.list_phonebook.assert_called_once_with('tenant', search='foobar')
         self.service.count_phonebook.assert_called_once_with('tenant', search='foobar')
+
+    def test_get_with_invalid_params(self):
+        result = self._get('tenant', offset='foobar')
+
+        self._assert_error(result, 400, 'offset should be a positive integer')
+
+    def _assert_error(self, result, status_code, msg):
+        error = {'reason': [msg],
+                 'timestamp': [ANY],
+                 'status_code': status_code}
+        assert_that(result, equal_to((error, status_code)))
 
     def _get(self, tenant, limit=None, offset=None, order=None, direction=None, search=None):
         args = {}
