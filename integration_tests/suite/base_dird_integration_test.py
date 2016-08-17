@@ -39,6 +39,8 @@ VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
 
+DEFAULT_URL_PARAMS = {'scheme': 'https', 'host': 'localhost', 'version': '0.1', 'port': 9489}
+
 
 class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
@@ -132,6 +134,30 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         assert_that(response.status_code, equal_to(204))
 
     @classmethod
+    def post_phonebook(cls, tenant, phonebook_body, token=None):
+        token = token or VALID_TOKEN
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks'.format(tenant=tenant,
+                                                                                      **DEFAULT_URL_PARAMS)
+        response = requests.post(url,
+                                 data=json.dumps(phonebook_body),
+                                 headers={'X-Auth-Token': token,
+                                          'Content-Type': 'application/json'},
+                                 verify=CA_CERT)
+        return response.json()
+
+    @classmethod
+    def post_phonebook_contact(cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN):
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}/contacts'
+        response = requests.post(url.format(tenant=tenant,
+                                            phonebook_id=phonebook_id,
+                                            **DEFAULT_URL_PARAMS),
+                                 data=json.dumps(contact_body),
+                                 headers={'X-Auth-Token': token,
+                                          'Content-Type': 'application/json'},
+                                 verify=CA_CERT)
+        return response.json()
+
+    @classmethod
     def post_personal_result(self, personal_infos, token=None):
         url = 'https://localhost:9489/0.1/personal'
         result = requests.post(url,
@@ -179,6 +205,14 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
+    def list_phonebooks(cls, tenant, token=None):
+        token = token or VALID_TOKEN
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks'.format(tenant=tenant,
+                                                                                      **DEFAULT_URL_PARAMS)
+        response = requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
+        return response.json()['items']
+
+    @classmethod
     def export_personal_result(self, token=None):
         url = 'https://localhost:9489/0.1/personal'
         result = requests.get(url,
@@ -208,6 +242,37 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
+    def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}'
+        response = requests.get(url.format(tenant=tenant,
+                                           phonebook_id=phonebook_id,
+                                           **DEFAULT_URL_PARAMS),
+                                headers={'X-Auth-Token': token},
+                                verify=CA_CERT)
+        return response.json()
+
+    @classmethod
+    def get_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN):
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_id}'
+        response = requests.get(url.format(tenant=tenant,
+                                           phonebook_id=phonebook_id,
+                                           contact_id=contact_uuid,
+                                           **DEFAULT_URL_PARAMS),
+                                headers={'X-Auth-Token': token},
+                                verify=CA_CERT)
+        return response.json()
+
+    @classmethod
+    def list_phonebook_contacts(cls, tenant, phonebook_id, token=VALID_TOKEN):
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}/contacts'
+        response = requests.get(url.format(tenant=tenant,
+                                           phonebook_id=phonebook_id,
+                                           **DEFAULT_URL_PARAMS),
+                                headers={'X-Auth-Token': token},
+                                verify=CA_CERT)
+        return response.json()['items']
+
+    @classmethod
     def put_personal_result(self, personal_id, personal_infos, token=None):
         url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
         result = requests.put(url.format(contact_uuid=personal_id),
@@ -235,6 +300,13 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     def delete_personal(self, personal_id, token=VALID_TOKEN):
         response = self.delete_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(204))
+
+    @classmethod
+    def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}'
+        requests.delete(url.format(tenant=tenant, phonebook_id=phonebook_id, **DEFAULT_URL_PARAMS),
+                        headers={'X-Auth-Token': token},
+                        verify=CA_CERT)
 
     @classmethod
     def purge_personal_result(self, token=None):
