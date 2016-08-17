@@ -17,12 +17,12 @@
 
 import unittest
 
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, calling, equal_to, raises
 from mock import ANY, Mock, sentinel as s, patch
 
-from ..phonebook_view import ContactAll, PhonebookAll, PhonebookOne
+from ..phonebook_view import _ArgParser as ArgParser, ContactAll, PhonebookAll, PhonebookOne
 
-from xivo_dird.core.exception import InvalidContactException, InvalidPhonebookException
+from xivo_dird.core.exception import InvalidArgumentError, InvalidContactException, InvalidPhonebookException
 from xivo_dird.database import DuplicatedContactException, DuplicatedPhonebookException, NoSuchPhonebook
 from xivo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
 
@@ -37,7 +37,7 @@ class TestContactAll(unittest.TestCase):
                      'lastname': 'Bar',
                      'number': '5551231111'}
 
-    def test_a_workong_post(self):
+    def test_a_working_post(self):
         result = self._post(s.tenant, s.phonebook_id, self.body)
 
         self.service.create_contact.assert_called_once_with(s.tenant, s.phonebook_id, self.body)
@@ -79,16 +79,16 @@ class TestContactAll(unittest.TestCase):
     def test_get_with_all_arguments(self):
         contacts = self.service.list_contact.return_value = [s.contact_1]
         total = self.service.count_contact.return_value = 3
-        offset, limit = 5, 3
+        offset, limit, direction = 5, 3, 'asc'
 
         result = self._get(s.tenant, s.phonebook_id, search=s.search,
-                           limit=limit, offset=offset, order=s.order, direction=s.direction)
+                           limit=limit, offset=offset, order=s.order, direction=direction)
 
         assert_that(result, equal_to(({'total': total, 'items': contacts}, 200)))
         self.service.count_contact.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search)
         self.service.list_contact.assert_called_once_with(s.tenant, s.phonebook_id, search=s.search,
                                                           limit=limit, offset=offset,
-                                                          order=s.order, direction=s.direction)
+                                                          order=s.order, direction=direction)
 
     def test_get_with_an_unknown_phonebook(self):
         self.service.count_contact.side_effect = NoSuchPhonebook(s.phonebook_id)
@@ -313,3 +313,24 @@ class TestPhonebookOne(unittest.TestCase):
     def _put(self, tenant, phonebook_id, body):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
             return self.view.put(tenant, phonebook_id)
+
+
+class TestArgParser(unittest.TestCase):
+
+    def test_that_an_invalid_offset_will_raise(self):
+        invalid_offsets = ['foobar', -1, '-1']
+        for offset in invalid_offsets:
+            assert_that(calling(ArgParser).with_args({'offset': offset}),
+                        raises(InvalidArgumentError), 'Should have raised for {}'.format(offset))
+
+    def test_that_an_invalid_limit_will_raise(self):
+        invalid_limits = ['foobar', -1, '-1']
+        for limit in invalid_limits:
+            assert_that(calling(ArgParser).with_args({'limit': limit}),
+                        raises(InvalidArgumentError), 'Should have raised for {}'.format(limit))
+
+    def test_that_direction_should_be_asc_or_desc(self):
+        invalid_directions = ['ascending', 'up', 'descending', -1]
+        for direction in invalid_directions:
+            assert_that(calling(ArgParser).with_args({'direction': direction}),
+                        raises(InvalidArgumentError), 'Should have raised for {}'.format(direction))

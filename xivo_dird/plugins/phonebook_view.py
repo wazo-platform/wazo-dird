@@ -22,7 +22,7 @@ from functools import wraps
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
-from xivo_dird.core.exception import InvalidContactException, InvalidPhonebookException
+from xivo_dird.core.exception import InvalidArgumentError, InvalidContactException, InvalidPhonebookException
 from xivo_dird.core.rest_api import api, AuthResource
 from xivo_dird.database import DuplicatedContactException, DuplicatedPhonebookException, NoSuchPhonebook
 
@@ -66,9 +66,9 @@ class _ArgParser(object):
 
     def __init__(self, args):
         self._search = args.get('search')
-        self._direction = args.get('direction')
-        self._limit = int(args.get('limit', 0))
-        self._offset = int(args.get('offset', 0))
+        self._direction = self._get_string_from_valid_values(args, 'direction', ['asc', 'desc', None])
+        self._limit = self._get_positive_int(args, 'limit')
+        self._offset = self._get_positive_int(args, 'offset')
         self._order = args.get('order')
 
     def count_params(self):
@@ -88,6 +88,25 @@ class _ArgParser(object):
         if self._offset:
             params['offset'] = self._offset
         return params
+
+    @staticmethod
+    def _get_string_from_valid_values(args, name, valid_values):
+        value = args.get(name)
+        if value in valid_values:
+            return value
+
+        raise InvalidArgumentError('{} should be one of {}'.format(name, valid_values))
+
+    @staticmethod
+    def _get_positive_int(args, name):
+        try:
+            value = int(args.get(name, 0))
+            if value >= 0:
+                return value
+        except ValueError:
+            pass
+
+        raise InvalidArgumentError('{} should be a positive integer'.format(name))
 
 
 def _default_error_route(f):

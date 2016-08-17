@@ -21,6 +21,11 @@ class ProfileNotFoundError(Exception):
     pass
 
 
+class InvalidArgumentError(Exception):
+
+    pass
+
+
 class InvalidConfigError(Exception):
 
     def __init__(self, location_path, msg):
