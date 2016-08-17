@@ -1279,6 +1279,12 @@
                     "200": {
                         "description": "The contact attributes",
                         "type": "object"
+                    },
+                    "404": {
+                        "description": "The contact or the phonebook does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     }
                 }
             },
