@@ -24,7 +24,10 @@ from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
 from xivo_dird.core.exception import InvalidArgumentError, InvalidContactException, InvalidPhonebookException
 from xivo_dird.core.rest_api import api, AuthResource
-from xivo_dird.database import DuplicatedContactException, DuplicatedPhonebookException, NoSuchPhonebook
+from xivo_dird.database import (DuplicatedContactException,
+                                DuplicatedPhonebookException,
+                                NoSuchContact,
+                                NoSuchPhonebook)
 
 
 def _make_error(reason, status_code):
@@ -144,10 +147,6 @@ class ContactAll(_Resource):
                 'total': count}, 200
 
 
-class ContactOne(_Resource):
-    pass
-
-
 class PhonebookAll(_Resource):
 
     error_code_map = {InvalidArgumentError: 400,
@@ -168,6 +167,30 @@ class PhonebookAll(_Resource):
     @_default_error_route
     def post(self, tenant):
         return self.phonebook_service.create_phonebook(tenant, request.json), 201
+
+
+class ContactOne(_Resource):
+
+    error_code_map = {DuplicatedContactException: 409,
+                      InvalidContactException: 400,
+                      NoSuchContact: 404,
+                      NoSuchPhonebook: 404}
+
+    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read')
+    @_default_error_route
+    def get(self, tenant, phonebook_id, contact_uuid):
+        return self.phonebook_service.get_contact(tenant, phonebook_id, contact_uuid), 200
+
+    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.delete')
+    @_default_error_route
+    def delete(self, tenant, phonebook_id, contact_uuid):
+        self.phonebook_service.delete_contact(tenant, phonebook_id, contact_uuid)
+        return '', 204
+
+    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.update')
+    @_default_error_route
+    def put(self, tenant, phonebook_id, contact_uuid):
+        return self.phonebook_service.edit_contact(tenant, phonebook_id, contact_uuid, request.json), 200
 
 
 class PhonebookOne(_Resource):

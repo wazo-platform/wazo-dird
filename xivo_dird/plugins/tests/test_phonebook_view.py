@@ -20,10 +20,13 @@ import unittest
 from hamcrest import assert_that, calling, equal_to, raises
 from mock import ANY, Mock, sentinel as s, patch
 
-from ..phonebook_view import _ArgParser as ArgParser, ContactAll, PhonebookAll, PhonebookOne
+from ..phonebook_view import _ArgParser as ArgParser, ContactAll, ContactOne, PhonebookAll, PhonebookOne
 
 from xivo_dird.core.exception import InvalidArgumentError, InvalidContactException, InvalidPhonebookException
-from xivo_dird.database import DuplicatedContactException, DuplicatedPhonebookException, NoSuchPhonebook
+from xivo_dird.database import (DuplicatedContactException,
+                                DuplicatedPhonebookException,
+                                NoSuchContact,
+                                NoSuchPhonebook)
 from xivo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
 
 
@@ -36,12 +39,20 @@ class _HTTPErrorChecker(object):
         assert_that(result, equal_to((error, status_code)))
 
 
-class TestContactAll(unittest.TestCase, _HTTPErrorChecker):
+class _PhonebookViewTest(unittest.TestCase):
 
     def setUp(self):
         self.service = Mock(PhonebookService)
-        self.view = ContactAll()
+        self.view = self._View()
         self.view.configure(self.service)
+
+
+class TestContactAll(_PhonebookViewTest, _HTTPErrorChecker):
+
+    _View = ContactAll
+
+    def setUp(self):
+        super(TestContactAll, self).setUp()
         self.body = {'firstname': 'Foo',
                      'lastname': 'Bar',
                      'number': '5551231111'}
@@ -136,16 +147,9 @@ class TestContactAll(unittest.TestCase, _HTTPErrorChecker):
             return self.view.post(tenant, phonebook_id)
 
 
-class TestContactOne(unittest.TestCase):
-    pass
+class TestPhonebookAll(_PhonebookViewTest, _HTTPErrorChecker):
 
-
-class TestPhonebookAll(unittest.TestCase, _HTTPErrorChecker):
-
-    def setUp(self):
-        self.service = Mock(PhonebookService)
-        self.view = PhonebookAll()
-        self.view.configure(self.service)
+    _View = PhonebookAll
 
     def test_a_working_post(self):
         body = {'name': 'foo', 'description': 'bar'}
@@ -245,12 +249,78 @@ class TestPhonebookAll(unittest.TestCase, _HTTPErrorChecker):
             return self.view.post(tenant)
 
 
-class TestPhonebookOne(unittest.TestCase, _HTTPErrorChecker):
+class TestContactOne(_PhonebookViewTest, _HTTPErrorChecker):
 
-    def setUp(self):
-        self.service = Mock(PhonebookService)
-        self.view = PhonebookOne()
-        self.view.configure(self.service)
+    _View = ContactOne
+
+    def test_a_working_get(self):
+        result = self.view.get(s.tenant, s.phonebook_id, s.contact_uuid)
+
+        assert_that(result, equal_to((self.service.get_contact.return_value, 200)))
+
+    def test_get_with_an_unknown_phonebook(self):
+        self.service.get_contact.side_effect = NoSuchPhonebook(s.phonebook_id)
+
+        result = self.view.get(s.tenant, s.phonebook_id, s.contact_uuid)
+
+        self._assert_error(result, 404, 'No such phonebook: {}'.format(s.phonebook_id))
+
+    def test_get_with_an_unknown_contact(self):
+        self.service.get_contact.side_effect = NoSuchContact(s.contact_uuid)
+
+        result = self.view.get(s.tenant, s.phonebook_id, s.contact_uuid)
+
+        self._assert_error(result, 404, 'No such contact: {}'.format(s.contact_uuid))
+
+    def test_a_working_delete(self):
+
+        result = self.view.delete(s.tenant, s.phonebook_id, s.contact_uuid)
+
+        assert_that(result, equal_to(('', 204)))
+        self.service.delete_contact.assert_called_once_with(s.tenant, s.phonebook_id, s.contact_uuid)
+
+    def test_delete_with_an_unknown_phonebook(self):
+        self.service.delete_contact.side_effect = NoSuchPhonebook(s.phonebook_id)
+
+        result = self.view.delete(s.tenant, s.phonebook_id, s.contact_uuid)
+
+        self._assert_error(result, 404, 'No such phonebook: {}'.format(s.phonebook_id))
+
+    def test_delete_with_an_unknown_contact(self):
+        self.service.delete_contact.side_effect = NoSuchContact(s.contact_uuid)
+
+        result = self.view.delete(s.tenant, s.phonebook_id, s.contact_uuid)
+
+        self._assert_error(result, 404, 'No such contact: {}'.format(s.contact_uuid))
+
+    def test_a_working_put(self):
+        result = self._put(s.tenant, s.phonebook_id, s.contact_uuid, s.body)
+
+        assert_that(result, equal_to((self.service.edit_contact.return_value, 200)))
+        self.service.edit_contact.assert_called_once_with(s.tenant, s.phonebook_id, s.contact_uuid, s.body)
+
+    def test_a_put_that_would_create_a_duplicate(self):
+        self.service.edit_contact.side_effect = DuplicatedContactException
+
+        result = self._put(s.tenant, s.phonebook_id, s.contact_uuid, s.body)
+
+        self._assert_error(result, 409, 'Duplicating contact')
+
+    def test_a_put_with_an_invalid_body(self):
+        self.service.edit_contact.side_effect = InvalidContactException(s.error)
+
+        result = self._put(s.tenant, s.phonebook_id, s.contact_uuid, s.body)
+
+        self._assert_error(result, 400, str(s.error))
+
+    def _put(self, tenant, phonebook_id, contact_uuid, body):
+        with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
+            return self.view.put(tenant, phonebook_id, contact_uuid)
+
+
+class TestPhonebookOne(_PhonebookViewTest, _HTTPErrorChecker):
+
+    _View = PhonebookOne
 
     def test_a_working_get(self):
         result = self.view.get(s.tenant, s.phonebook_id)
