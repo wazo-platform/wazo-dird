@@ -137,11 +137,19 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
                         raises(InvalidContactException))
 
     def test_edit_contact(self):
-        result = self.service.edit_contact(s.tenant, s.phonebook_id, s.contact_uuid, s.contact_info)
+        body = {'firstname': 'Foobar'}
+        result = self.service.edit_contact(s.tenant, s.phonebook_id, s.contact_uuid, body)
 
         assert_that(result, equal_to(self.contact_crud.edit.return_value))
         self.contact_crud.edit.assert_called_once_with(s.tenant, s.phonebook_id,
-                                                       s.contact_uuid, s.contact_info)
+                                                       s.contact_uuid, body)
+
+    def test_that_edit_contact_raises_for_invalid_input(self):
+        invalid_bodies = [{'': 'Foo'}, {}]
+        for body in invalid_bodies:
+            assert_that(calling(self.service.edit_contact)
+                        .with_args(s.tenant, s.phonebook_id, s.contact_uuid, body),
+                        raises(InvalidContactException))
 
     def test_delete_contact(self):
         result = self.service.delete_contact(s.tenant, s.phonebook_id, s.contact_uuid)

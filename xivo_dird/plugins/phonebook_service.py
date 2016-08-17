@@ -87,11 +87,7 @@ class _PhonebookService(object):
         return self._phonebook_crud.count(tenant, **params)
 
     def create_contact(self, tenant, phonebook_id, contact_info):
-        if not contact_info:
-            raise InvalidContactException('Contacts cannot be empty')
-        if '' in contact_info:
-            raise InvalidContactException('Contacts cannot have empty keys')
-
+        self._validate_contact(contact_info)
         return self._contact_crud.create(tenant, phonebook_id, contact_info)
 
     def create_phonebook(self, tenant, phonebook_info):
@@ -101,6 +97,7 @@ class _PhonebookService(object):
         return self._phonebook_crud.create(tenant, body)
 
     def edit_contact(self, tenant, phonebook_id, contact_uuid, contact_info):
+        self._validate_contact(contact_info)
         return self._contact_crud.edit(tenant, phonebook_id, contact_uuid, contact_info)
 
     def edit_phonebook(self, tenant, phonebook_id, phonebook_info):
@@ -120,3 +117,10 @@ class _PhonebookService(object):
 
     def get_phonebook(self, tenant, phonebook_id):
         return self._phonebook_crud.get(tenant, phonebook_id)
+
+    @staticmethod
+    def _validate_contact(body):
+        if not body:
+            raise InvalidContactException('Contacts cannot be empty')
+        if '' in body:
+            raise InvalidContactException('Contacts cannot have empty keys')
