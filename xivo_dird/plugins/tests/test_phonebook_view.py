@@ -27,7 +27,16 @@ from xivo_dird.database import DuplicatedContactException, DuplicatedPhonebookEx
 from xivo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
 
 
-class TestContactAll(unittest.TestCase):
+class _HTTPErrorChecker(object):
+
+    def _assert_error(self, result, status_code, msg):
+        error = {'reason': [msg],
+                 'timestamp': [ANY],
+                 'status_code': status_code}
+        assert_that(result, equal_to((error, status_code)))
+
+
+class TestContactAll(unittest.TestCase, _HTTPErrorChecker):
 
     def setUp(self):
         self.service = Mock(PhonebookService)
@@ -103,12 +112,6 @@ class TestContactAll(unittest.TestCase):
 
         self._assert_error(result, 400, 'offset should be a positive integer')
 
-    def _assert_error(self, result, status_code, msg):
-        error = {'reason': [msg],
-                 'timestamp': [ANY],
-                 'status_code': status_code}
-        assert_that(result, equal_to((error, status_code)))
-
     def _get(self, tenant, phonebook_id,
              limit=None, offset=None,
              order=None, direction=None,
@@ -133,7 +136,11 @@ class TestContactAll(unittest.TestCase):
             return self.view.post(tenant, phonebook_id)
 
 
-class TestPhonebookAll(unittest.TestCase):
+class TestContactOne(unittest.TestCase):
+    pass
+
+
+class TestPhonebookAll(unittest.TestCase, _HTTPErrorChecker):
 
     def setUp(self):
         self.service = Mock(PhonebookService)
@@ -154,18 +161,14 @@ class TestPhonebookAll(unittest.TestCase):
 
         result = self._post('tenant', {'name': 'name'})
 
-        expected = ({'reason': [str(s.error)], 'timestamp': [ANY], 'status_code': 400}, 400)
-        assert_that(result, equal_to(expected))
+        self._assert_error(result, 400, str(s.error))
 
     def test_that_duplicated_phonebooks_return_409(self):
         self.service.create_phonebook.side_effect = DuplicatedPhonebookException
 
-        response = self._post('tenant', {'name': 'duplicate'})
+        result = self._post('tenant', {'name': 'duplicate'})
 
-        expected = ({'reason': ['Duplicating phonebook'],
-                     'timestamp': [ANY],
-                     'status_code': 409}, 409)
-        assert_that(response, equal_to(expected))
+        self._assert_error(result, 409, 'Duplicating phonebook')
 
     def test_a_working_get(self):
         self.service.list_phonebook.return_value = phonebooks = [s.phonebook_1, s.phonebook_2, s.phonebook_3]
@@ -221,12 +224,6 @@ class TestPhonebookAll(unittest.TestCase):
 
         self._assert_error(result, 400, 'offset should be a positive integer')
 
-    def _assert_error(self, result, status_code, msg):
-        error = {'reason': [msg],
-                 'timestamp': [ANY],
-                 'status_code': status_code}
-        assert_that(result, equal_to((error, status_code)))
-
     def _get(self, tenant, limit=None, offset=None, order=None, direction=None, search=None):
         args = {}
         if limit:
@@ -248,7 +245,7 @@ class TestPhonebookAll(unittest.TestCase):
             return self.view.post(tenant)
 
 
-class TestPhonebookOne(unittest.TestCase):
+class TestPhonebookOne(unittest.TestCase, _HTTPErrorChecker):
 
     def setUp(self):
         self.service = Mock(PhonebookService)
@@ -267,10 +264,7 @@ class TestPhonebookOne(unittest.TestCase):
 
         result = self.view.get(s.tenant, phonebook_id)
 
-        assert_that(result, equal_to(({'reason': ['No such phonebook: {}'.format(phonebook_id)],
-                                       'timestamp': [ANY],
-                                       'status_code': 404}, 404)))
-        self.service.get_phonebook.assert_called_once_with(s.tenant, phonebook_id)
+        self._assert_error(result, 404, 'No such phonebook: {}'.format(phonebook_id))
 
     def test_a_working_delete(self):
         result = self.view.delete(s.tenant, s.phonebook_id)
@@ -284,10 +278,7 @@ class TestPhonebookOne(unittest.TestCase):
 
         result = self.view.delete(s.tenant, phonebook_id)
 
-        assert_that(result, equal_to(({'reason': ['No such phonebook: {}'.format(phonebook_id)],
-                                       'timestamp': [ANY],
-                                       'status_code': 404}, 404)))
-        self.service.delete_phonebook.assert_called_once_with(s.tenant, phonebook_id)
+        self._assert_error(result, 404, 'No such phonebook: {}'.format(phonebook_id))
 
     def test_a_working_put(self):
         result = self._put(s.tenant, s.phonebook_id, s.body)
@@ -300,30 +291,21 @@ class TestPhonebookOne(unittest.TestCase):
 
         result = self._put(s.tenant, s.phonebook_id, s.body)
 
-        assert_that(result, equal_to(({'reason': ['No such phonebook: {}'.format(s.phonebook_id)],
-                                       'timestamp': [ANY],
-                                       'status_code': 404}, 404)))
-        self.service.edit_phonebook.assert_called_once_with(s.tenant, s.phonebook_id, s.body)
+        self._assert_error(result, 404, 'No such phonebook: {}'.format(s.phonebook_id))
 
     def test_put_with_an_invalid_body(self):
         self.service.edit_phonebook.side_effect = InvalidPhonebookException(s.error)
 
         result = self._put(s.tenant, s.phonebook_id, s.body)
 
-        assert_that(result, equal_to(({'reason': [str(s.error)],
-                                       'timestamp': [ANY],
-                                       'status_code': 400}, 400)))
-        self.service.edit_phonebook.assert_called_once_with(s.tenant, s.phonebook_id, s.body)
+        self._assert_error(result, 400, str(s.error))
 
     def test_a_put_that_would_create_a_duplicate(self):
         self.service.edit_phonebook.side_effect = DuplicatedPhonebookException
 
         result = self._put(s.tenant, s.phonebook_id, s.body)
 
-        assert_that(result, equal_to(({'reason': [ANY],
-                                       'timestamp': [ANY],
-                                       'status_code': 409}, 409)))
-        self.service.edit_phonebook.assert_called_once_with(s.tenant, s.phonebook_id, s.body)
+        self._assert_error(result, 409, 'Duplicating phonebook')
 
     def _put(self, tenant, phonebook_id, body):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
