@@ -38,11 +38,6 @@ rest_api:
     certificate: /usr/local/share/ssl/dird/server.crt
     private_key: /usr/local/share/ssl/dird/server.key
 
-auth:
-  host: auth
-  port: 9497
-  verify_certificate: /usr/local/share/ssl/auth/server.crt
-
 sources:
   my_csv:
     type: csv

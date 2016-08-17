@@ -3,6 +3,7 @@ FROM xivo/xivo-dird
 ADD . /usr/src/xivo-dird
 ADD integration_tests/assets/_common/etc/xivo-dird/conf.d/disable_service_discovery.yml /etc/xivo-dird/conf.d/disable_service_discovery.yml
 ADD integration_tests/assets/_common/etc/xivo-dird/conf.d/db_uri.yml /etc/xivo-dird/conf.d/db_uri.yml
+ADD integration_tests/assets/_common/etc/xivo-dird/conf.d/auth.yml /etc/xivo-dird/conf.d/auth.yml
 WORKDIR /usr/src/xivo-dird
 RUN python setup.py develop
 WORKDIR /usr/src/xivo-dird/integration_tests/docker/broken-plugins
