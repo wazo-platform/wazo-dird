@@ -1,0 +1,21 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - dird
+    - swagger-validator
+  environment:
+    PORTS: "9489 8080"
+
+dird:
+  image: xivo-dird-test
+  expose:
+    - 9489
+  volumes:
+    - "../../..:/usr/src/xivo-dird"
+
+swagger-validator:
+  image: swaggerapi/swagger-validator
+  ports:
+    - "18080:8080"
+  links:
+    - dird
