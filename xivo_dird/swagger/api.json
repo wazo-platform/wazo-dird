@@ -1022,7 +1022,7 @@
         "/tenants/{tenant}/phonebooks": {
             "get": {
                 "summary": "List all phonebooks for a given tenant",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.read`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.read`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
@@ -1059,7 +1059,7 @@
             },
             "post": {
                 "summary": "Create a new phonebook",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.create`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.create`",
                 "operationId": "create_phonebook",
                 "tags": [
                     "phonebook"
@@ -1100,7 +1100,7 @@
         "/tenants/{tenant}/phonebooks/{phonebook_id}": {
             "get": {
                 "summary": "Get the attributes of a phonebook",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.read`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.read`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
@@ -1130,7 +1130,7 @@
             },
             "put": {
                 "summary": "Modify an existing phonebook",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.edit`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.edit`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
@@ -1169,7 +1169,7 @@
             },
             "delete": {
                 "summary": "Delete an existing phonebook",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.delete`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
@@ -1201,7 +1201,7 @@
         "/tenants/{tenant}/phonebooks/{phonebook_id}/contacts": {
             "get": {
                 "summary": "List all contacts for a given phonebook",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
@@ -1241,7 +1241,7 @@
             },
             "post": {
                 "summary": "Create a new contact",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.create`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create`",
                 "operationId": "create_phonebook",
                 "tags": [
                     "phonebook"
@@ -1285,7 +1285,7 @@
         "/tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_id}": {
             "get": {
                 "summary": "Get the attributes of a contact",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.read`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.read`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
@@ -1316,7 +1316,7 @@
             },
             "put": {
                 "summary": "Modify an existing contact",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.update`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.update`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
@@ -1356,7 +1356,7 @@
             },
             "delete": {
                 "summary": "Delete an existing contact",
-                "description": "**Required ACL:** `dird.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.delete`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.delete`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
