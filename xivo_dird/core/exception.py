@@ -50,8 +50,6 @@ class InvalidContactException(Exception):
 
 class InvalidTenantException(Exception):
 
-    _msg = 'The tenant should be alphanumeric: {}'
-
     def __init__(self, tenant):
-        msg = self._msg.format(tenant)
-        super(InvalidTenantException, self).__init__(self, msg)
+        msg = u'The tenant should be alphanumeric: {}'.format(tenant)
+        super(InvalidTenantException, self).__init__(msg)
