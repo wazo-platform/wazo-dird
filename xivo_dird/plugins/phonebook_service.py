@@ -100,9 +100,10 @@ class _PhonebookService(object):
         return self._phonebook_crud.create(self._validate_tenant(tenant), body)
 
     def edit_contact(self, tenant, phonebook_id, contact_uuid, contact_info):
-        self._validate_contact(contact_info)
-        return self._contact_crud.edit(self._validate_tenant(tenant), phonebook_id,
-                                       contact_uuid, contact_info)
+        return self._contact_crud.edit(self._validate_tenant(tenant),
+                                       phonebook_id,
+                                       contact_uuid,
+                                       self._validate_contact(contact_info))
 
     def edit_phonebook(self, tenant, phonebook_id, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)

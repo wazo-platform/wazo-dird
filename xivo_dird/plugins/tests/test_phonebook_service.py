@@ -170,6 +170,15 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
         self.contact_crud.edit.assert_called_once_with('tenant', s.phonebook_id,
                                                        s.contact_uuid, body)
 
+    def test_that_edit_contact_ignores_the_id_field(self):
+        result = self.service.edit_contact('tenant', s.phonebook_id, s.contact_uuid,
+                                           {'firstname': 'alice',
+                                            'id': s.uuid})
+
+        assert_that(result, equal_to(self.contact_crud.edit.return_value))
+        self.contact_crud.edit.assert_called_once_with('tenant', s.phonebook_id,
+                                                       s.contact_uuid, {'firstname': 'alice'})
+
     def test_that_edit_contact_raises_for_invalid_input(self):
         invalid_bodies = [{'': 'Foo'}, {}]
         for body in invalid_bodies:
