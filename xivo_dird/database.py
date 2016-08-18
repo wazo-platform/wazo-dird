@@ -52,6 +52,12 @@ class unaccent(ReturnTypeFromArgs):
     pass
 
 
+class DatabaseServiceUnavailable(Exception):
+
+    def __init__(self):
+        super(DatabaseServiceUnavailable, self).__init__('Postgresql is unavailable')
+
+
 class NoSuchFavorite(ValueError):
 
     def __init__(self, contact_id):
@@ -212,6 +218,9 @@ class _BaseDAO(object):
         try:
             yield session
             session.commit()
+        except exc.OperationalError:
+            session.rollback()
+            raise DatabaseServiceUnavailable()
         except exc.SQLAlchemyError:
             session.rollback()
             raise

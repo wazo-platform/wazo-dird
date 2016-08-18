@@ -27,7 +27,8 @@ from xivo_dird.core.exception import (InvalidArgumentError,
                                       InvalidPhonebookException,
                                       InvalidTenantException)
 from xivo_dird.core.rest_api import api, AuthResource
-from xivo_dird.database import (DuplicatedContactException,
+from xivo_dird.database import (DatabaseServiceUnavailable,
+                                DuplicatedContactException,
                                 DuplicatedPhonebookException,
                                 NoSuchContact,
                                 NoSuchPhonebook)
@@ -133,6 +134,7 @@ class ContactAll(_Resource):
                       InvalidContactException: 400,
                       InvalidTenantException: 400,
                       NoSuchPhonebook: 404,
+                      DatabaseServiceUnavailable: 503,
                       DuplicatedContactException: 409}
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
@@ -156,6 +158,7 @@ class PhonebookAll(_Resource):
     error_code_map = {InvalidArgumentError: 400,
                       InvalidTenantException: 400,
                       DuplicatedPhonebookException: 409,
+                      DatabaseServiceUnavailable: 503,
                       InvalidPhonebookException: 400}
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.read')
@@ -179,6 +182,7 @@ class ContactOne(_Resource):
     error_code_map = {DuplicatedContactException: 409,
                       InvalidContactException: 400,
                       InvalidTenantException: 400,
+                      DatabaseServiceUnavailable: 503,
                       NoSuchContact: 404,
                       NoSuchPhonebook: 404}
 
@@ -201,7 +205,8 @@ class ContactOne(_Resource):
 
 class PhonebookOne(_Resource):
 
-    error_code_map = {DuplicatedPhonebookException: 409,
+    error_code_map = {DatabaseServiceUnavailable: 503,
+                      DuplicatedPhonebookException: 409,
                       InvalidPhonebookException: 400,
                       InvalidTenantException: 400,
                       NoSuchPhonebook: 404}

@@ -1054,6 +1054,9 @@
                     },
                     "400": {
                         "$ref": "#/responses/InvalidTenant"
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             },
@@ -1125,6 +1128,9 @@
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             },
@@ -1239,6 +1245,9 @@
                     },
                     "400": {
                         "$ref": "#/responses/InvalidTenant"
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             },
@@ -1314,6 +1323,9 @@
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
                     }
                 }
             },

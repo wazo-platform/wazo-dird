@@ -23,7 +23,8 @@ from mock import ANY, Mock, sentinel as s, patch
 from ..phonebook_view import _ArgParser as ArgParser, ContactAll, ContactOne, PhonebookAll, PhonebookOne
 
 from xivo_dird.core.exception import InvalidArgumentError, InvalidContactException, InvalidPhonebookException
-from xivo_dird.database import (DuplicatedContactException,
+from xivo_dird.database import (DatabaseServiceUnavailable,
+                                DuplicatedContactException,
                                 DuplicatedPhonebookException,
                                 NoSuchContact,
                                 NoSuchPhonebook)
@@ -117,6 +118,13 @@ class TestContactAll(_PhonebookViewTest, _HTTPErrorChecker):
         result = self._get(s.tenant, s.phonebook_id)
 
         self._assert_error(result, 404, 'No such phonebook: {}'.format(s.phonebook_id))
+
+    def test_when_postgresql_is_down(self):
+        self.service.count_contact.side_effect = DatabaseServiceUnavailable()
+
+        result = self._get(s.tenant, s.phonebook_id)
+
+        self._assert_error(result, 503, str(DatabaseServiceUnavailable()))
 
     def test_get_with_invalid_params(self):
         result = self._get(s.tenant, s.phonebook_id, offset='foobar')
@@ -228,6 +236,13 @@ class TestPhonebookAll(_PhonebookViewTest, _HTTPErrorChecker):
 
         self._assert_error(result, 400, 'offset should be a positive integer')
 
+    def test_when_postgresql_is_down(self):
+        self.service.list_phonebook.side_effect = DatabaseServiceUnavailable()
+
+        result = self._get(s.tenant)
+
+        self._assert_error(result, 503, str(DatabaseServiceUnavailable()))
+
     def _get(self, tenant, limit=None, offset=None, order=None, direction=None, search=None):
         args = {}
         if limit:
@@ -313,6 +328,13 @@ class TestContactOne(_PhonebookViewTest, _HTTPErrorChecker):
 
         self._assert_error(result, 400, str(s.error))
 
+    def test_when_postgresql_is_down(self):
+        self.service.edit_contact.side_effect = DatabaseServiceUnavailable()
+
+        result = self._put(s.tenant, s.phonebook_id, s.contact_uuid, s.body)
+
+        self._assert_error(result, 503, str(DatabaseServiceUnavailable()))
+
     def _put(self, tenant, phonebook_id, contact_uuid, body):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
             return self.view.put(tenant, phonebook_id, contact_uuid)
@@ -376,6 +398,13 @@ class TestPhonebookOne(_PhonebookViewTest, _HTTPErrorChecker):
         result = self._put(s.tenant, s.phonebook_id, s.body)
 
         self._assert_error(result, 409, 'Duplicating phonebook')
+
+    def test_when_postgresql_is_down(self):
+        self.service.edit_phonebook.side_effect = DatabaseServiceUnavailable()
+
+        result = self._put(s.tenant, s.phonebook_id, s.body)
+
+        self._assert_error(result, 503, str(DatabaseServiceUnavailable()))
 
     def _put(self, tenant, phonebook_id, body):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
