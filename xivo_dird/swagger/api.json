@@ -1329,7 +1329,7 @@
                         "$ref": "#/parameters/ContactID"
                     },
                     {
-                        "name": "phonebook",
+                        "name": "contact",
                         "in": "body",
                         "description": "The modified attributes of the contact",
                         "required": true,
