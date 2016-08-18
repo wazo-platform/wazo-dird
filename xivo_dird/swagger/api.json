@@ -1210,7 +1210,7 @@
         "/tenants/{tenant}/phonebooks/{phonebook_id}/contacts": {
             "get": {
                 "summary": "List all contacts for a given phonebook",
-                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read`",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read`",
                 "tags": ["phonebook"],
                 "parameters": [
                     {
