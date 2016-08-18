@@ -852,7 +852,7 @@
                         "description": "The attributes of the contact",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/PersonalBody"
+                            "$ref": "#/definitions/ContactBodySample"
                         }
                     }
                 ],
@@ -860,7 +860,7 @@
                     "201": {
                         "description": "The new personal contact",
                         "schema": {
-                            "$ref": "#/definitions/Personal"
+                            "$ref": "#/definitions/Contact"
                         }
                     },
                     "409": {
@@ -905,7 +905,7 @@
                     "200": {
                         "description": "The personal contact attributes.",
                         "schema": {
-                            "$ref": "#/definitions/Personal"
+                            "$ref": "#/definitions/Contact"
                         }
                     },
                     "404": {
@@ -933,7 +933,7 @@
                         "description": "The new attributes of the contact",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/PersonalBody"
+                            "$ref": "#/definitions/ContactBodySample"
                         }
                     }
                 ],
@@ -941,7 +941,7 @@
                     "200": {
                         "description": "The personal contact was edited.",
                         "schema": {
-                            "$ref": "#/definitions/Personal"
+                            "$ref": "#/definitions/Contact"
                         }
                     },
                     "404": {
@@ -1258,14 +1258,16 @@
                         "in": "body",
                         "description": "The attributes of the contact",
                         "required": true,
-                        "type": "object"
+                        "schema": {
+                            "$ref": "#/definitions/ContactBodySample"
+                        }
                     }
                 ],
                 "responses": {
                     "201": {
                         "description": "The new contact",
                         "schema": {
-                            "$ref": "#/definitions/PhonebookContact"
+                            "$ref": "#/definitions/Contact"
                         }
                     },
                     "400": {
@@ -1708,7 +1710,7 @@
                 }
             }
         },
-        "Personal": {
+        "Contact": {
             "properties": {
                 "id": {
                     "type": "string"
@@ -1727,7 +1729,7 @@
                 "$ref": "#/definitions/Personal"
             }
         },
-        "PersonalBody": {
+        "ContactBodySample": {
             "properties": {
                 "firstname": {
                     "type": "string"
