@@ -130,6 +130,11 @@ class _PhonebookService(object):
 
     @staticmethod
     def _validate_tenant(tenant):
-        if not tenant.isalnum():
-            raise InvalidTenantException('The tenant should be alphanumeric: {}'.format(tenant))
-        return tenant
+        try:
+            tenant.encode('ascii')
+            if tenant.isalnum():
+                return tenant
+        except UnicodeEncodeError:
+            pass
+
+        raise InvalidTenantException(tenant)

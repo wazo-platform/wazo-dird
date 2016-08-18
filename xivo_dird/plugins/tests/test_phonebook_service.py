@@ -111,7 +111,7 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
 
     def test_that_an_invalid_tenant_raises(self):
         body = {'name': 'foobar'}
-        invalid_tenants = ['', '/', '%2F', 'é']
+        invalid_tenants = ['', '/', '%2F', u'é']
         for tenant in invalid_tenants:
             assert_that(calling(self.service.get_phonebook).with_args(tenant, s.phonebook_id),
                         raises(InvalidTenantException))
@@ -184,7 +184,7 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
 
     def test_that_an_invalid_tenant_raises(self):
         body = {'firstname': 'foobar'}
-        invalid_tenants = ['', '/', '%2F', 'é']
+        invalid_tenants = ['', '/', '%2F', u'é']
         for tenant in invalid_tenants:
             assert_that(calling(self.service.get_contact).with_args(tenant, s.phonebook_id, s.contact_uuid),
                         raises(InvalidTenantException))
