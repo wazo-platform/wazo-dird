@@ -864,7 +864,7 @@
                         }
                     },
                     "409": {
-                        "$ref": "#/definitions/DuplicatePersonalContact"
+                        "$ref": "#/definitions/DuplicateContact"
                     },
                     "503": {
                         "$ref": "#/responses/AnotherServiceUnavailable"
@@ -948,7 +948,7 @@
                         "$ref": "#/responses/PersonalContactIDInvalid"
                     },
                     "409": {
-                        "$ref": "#/definitions/DuplicatePersonalContact"
+                        "$ref": "#/definitions/DuplicateContact"
                     },
                     "503": {
                         "$ref": "#/responses/AnotherServiceUnavailable"
@@ -1162,6 +1162,9 @@
                             "$ref": "#/definitions/Error"
                         }
                     },
+                    "409": {
+                        "$ref": "#/responses/DuplicatePhonebook"
+                    },
                     "503": {
                         "$ref": "#/responses/AnotherServiceUnavailable"
                     }
@@ -1274,7 +1277,7 @@
                         "$ref": "#/responses/InvalidTenant"
                     },
                     "409": {
-                        "$ref": "#/responses/DuplicatePhonebookContact"
+                        "$ref": "#/responses/DuplicateContact"
                     },
                     "503": {
                         "$ref": "#/responses/AnotherServiceUnavailable"
@@ -1349,6 +1352,9 @@
                             "$ref": "#/definitions/Error"
                         }
                     },
+                    "409": {
+                        "$ref": "#/responses/DuplicateContact"
+                    },
                     "503": {
                         "$ref": "#/responses/AnotherServiceUnavailable"
                     }
@@ -1420,8 +1426,8 @@
                 "$ref": "#/definitions/Error"
             }
         },
-        "DuplicatePersonalContact": {
-            "description": "The personal contact already exists",
+        "DuplicateContact": {
+            "description": "This contact already exists",
             "schema": {
                 "$ref": "#/definitions/Error"
             }
