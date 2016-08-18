@@ -406,12 +406,12 @@ class PhonebookCRUD(_BaseDAO):
                             Phonebook.description.ilike(pattern)))
 
     def _new_filter_by_tenant_and_id(self, s, tenant, phonebook_id):
-            tenant = self._get_tenant(s, tenant)
-            if not tenant:
-                return False
+        tenant = self._get_tenant(s, tenant)
+        if not tenant:
+            return False
 
-            return and_(Phonebook.id == phonebook_id,
-                        Phonebook.tenant_id == tenant.id)
+        return and_(Phonebook.id == phonebook_id,
+                    Phonebook.tenant_id == tenant.id)
 
     def _get_tenant(self, s, name):
         return s.query(Tenant).filter(Tenant.name == name).first()
