@@ -37,7 +37,7 @@ from mock import ANY
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, exc
 
 from xivo_dird import database
 
@@ -154,6 +154,29 @@ class _BasePhonebookCRUDTest(_BaseTest):
         yield phonebook
         if delete:
             self._crud.delete(tenant, phonebook['id'])
+
+
+class TestBaseDAO(_BaseTest):
+
+    def test_that_an_unexpected_error_does_not_block_the_current_Session(self):
+        dao = database._BaseDAO(Session)
+
+        try:
+            with dao.new_session() as s:
+                phonebook_1 = database.Phonebook()
+                s.add(phonebook_1)
+                s.commit()
+        except exc.SQLAlchemyError:
+            pass
+        else:
+            self.fail('The context manager should reraise the exception')
+
+        try:
+            with dao.new_session() as s:
+                phonebook = database.Phonebook(name='bar')
+                s.add(phonebook)
+        except exc.InvalidRequestError:
+            self.fail('Should not raise')
 
 
 class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):

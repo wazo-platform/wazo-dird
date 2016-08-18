@@ -209,8 +209,12 @@ class _BaseDAO(object):
     @contextmanager
     def new_session(self):
         session = self._Session()
-        yield session
-        session.commit()
+        try:
+            yield session
+            session.commit()
+        except exc.SQLAlchemyError:
+            session.rollback()
+            raise
 
     def _get_dird_user(self, session, xivo_user_uuid):
         user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
