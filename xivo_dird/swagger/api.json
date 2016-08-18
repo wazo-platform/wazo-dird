@@ -1051,6 +1051,9 @@
                             "type": "array",
                             "items": {"$ref": "#/definitions/Phonebook"}
                         }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
                     }
                 }
             },
@@ -1082,6 +1085,9 @@
                             "$ref": "#/definitions/Phonebook"
                         }
                     },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
+                    },
                     "409": {
                         "$ref": "#/responses/DuplicatePhonebook"
                     },
@@ -1110,6 +1116,9 @@
                         "schema": {
                             "$ref": "#/definitions/Phonebook"
                         }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
                     },
                     "404": {
                         "description": "Phonebook does not exist",
@@ -1144,6 +1153,9 @@
                     "204": {
                         "description": "Phonebook updated"
                     },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
+                    },
                     "404": {
                         "description": "Phonebook does not exist",
                         "schema": {
@@ -1170,6 +1182,9 @@
                 "responses": {
                     "204": {
                         "description": "Phonebook deleted"
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
                     },
                     "404": {
                         "description": "Phonebook does not exist",
@@ -1218,6 +1233,9 @@
                             "type": "array",
                             "items": "object"
                         }
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
                     }
                 }
             },
@@ -1250,6 +1268,9 @@
                             "$ref": "#/definitions/PhonebookContact"
                         }
                     },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
+                    },
                     "409": {
                         "$ref": "#/responses/DuplicatePhonebookContact"
                     },
@@ -1279,6 +1300,9 @@
                     "200": {
                         "description": "The contact attributes",
                         "type": "object"
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
                     },
                     "404": {
                         "description": "The contact or the phonebook does not exist",
@@ -1314,6 +1338,9 @@
                     "204": {
                         "description": "Contact updated"
                     },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
+                    },
                     "404": {
                         "description": "The contact or the phonebook does not exist",
                         "schema": {
@@ -1343,6 +1370,9 @@
                 "responses": {
                     "204": {
                         "description": "Contact deleted"
+                    },
+                    "400": {
+                        "$ref": "#/responses/InvalidTenant"
                     },
                     "404": {
                         "description": "The contact or the phonebook does not exist",
@@ -1396,6 +1426,12 @@
         },
         "DuplicatePhonebook": {
             "description": "This phonebook already exists",
+            "schema": {
+                "$ref": "#/definitions/Error"
+            }
+        },
+        "InvalidTenant": {
+            "description": "The tenant is not a valid ascii alphanumeric string",
             "schema": {
                 "$ref": "#/definitions/Error"
             }

@@ -22,7 +22,10 @@ from functools import wraps
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
-from xivo_dird.core.exception import InvalidArgumentError, InvalidContactException, InvalidPhonebookException
+from xivo_dird.core.exception import (InvalidArgumentError,
+                                      InvalidContactException,
+                                      InvalidPhonebookException,
+                                      InvalidTenantException)
 from xivo_dird.core.rest_api import api, AuthResource
 from xivo_dird.database import (DuplicatedContactException,
                                 DuplicatedPhonebookException,
@@ -128,6 +131,7 @@ class ContactAll(_Resource):
 
     error_code_map = {InvalidArgumentError: 400,
                       InvalidContactException: 400,
+                      InvalidTenantException: 400,
                       NoSuchPhonebook: 404,
                       DuplicatedContactException: 409}
 
@@ -150,6 +154,7 @@ class ContactAll(_Resource):
 class PhonebookAll(_Resource):
 
     error_code_map = {InvalidArgumentError: 400,
+                      InvalidTenantException: 400,
                       DuplicatedPhonebookException: 409,
                       InvalidPhonebookException: 400}
 
@@ -173,6 +178,7 @@ class ContactOne(_Resource):
 
     error_code_map = {DuplicatedContactException: 409,
                       InvalidContactException: 400,
+                      InvalidTenantException: 400,
                       NoSuchContact: 404,
                       NoSuchPhonebook: 404}
 
@@ -197,6 +203,7 @@ class PhonebookOne(_Resource):
 
     error_code_map = {DuplicatedPhonebookException: 409,
                       InvalidPhonebookException: 400,
+                      InvalidTenantException: 400,
                       NoSuchPhonebook: 404}
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
