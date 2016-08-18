@@ -75,10 +75,12 @@ enabled_plugins:
     - lookup
     - personal
     - reverse
+    - phonebook
   views:
     - default_json
     - headers_view
     - personal_view
+    - phonebook_view
     - aastra_view
     - cisco_view
     - polycom_view

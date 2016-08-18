@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,9 +21,35 @@ class ProfileNotFoundError(Exception):
     pass
 
 
+class InvalidArgumentError(Exception):
+
+    pass
+
+
 class InvalidConfigError(Exception):
 
     def __init__(self, location_path, msg):
         super(InvalidConfigError, self).__init__(location_path, msg)
         self.location_path = location_path
         self.msg = msg
+
+
+class InvalidPhonebookException(Exception):
+
+    def __init__(self, errors):
+        self.errors = errors
+
+    def __str__(self):
+        return str(self.errors)
+
+
+class InvalidContactException(Exception):
+
+    pass
+
+
+class InvalidTenantException(Exception):
+
+    def __init__(self, tenant):
+        msg = u'The tenant should be alphanumeric: {}'.format(tenant)
+        super(InvalidTenantException, self).__init__(msg)
