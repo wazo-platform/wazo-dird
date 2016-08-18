@@ -22,7 +22,9 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from marshmallow import fields, Schema, validate
 
 from xivo_dird import BaseServicePlugin, database
-from xivo_dird.core.exception import InvalidContactException, InvalidPhonebookException
+from xivo_dird.core.exception import (InvalidContactException,
+                                      InvalidPhonebookException,
+                                      InvalidTenantException)
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +69,7 @@ class _PhonebookService(object):
 
     def list_contact(self, tenant, phonebook_id, limit=None, offset=None,
                      order=None, direction=None, **params):
-        results = self._contact_crud.list(tenant, phonebook_id, **params)
+        results = self._contact_crud.list(self._validate_tenant(tenant), phonebook_id, **params)
         if order:
             reverse = direction == 'desc'
             results = sorted(results, key=lambda x: x.get(order), reverse=reverse)
@@ -78,45 +80,46 @@ class _PhonebookService(object):
         return results
 
     def list_phonebook(self, tenant, **params):
-        return self._phonebook_crud.list(tenant, **params)
+        return self._phonebook_crud.list(self._validate_tenant(tenant), **params)
 
     def count_contact(self, tenant, phonebook_id, **params):
-        return self._contact_crud.count(tenant, phonebook_id, **params)
+        return self._contact_crud.count(self._validate_tenant(tenant), phonebook_id, **params)
 
     def count_phonebook(self, tenant, **params):
-        return self._phonebook_crud.count(tenant, **params)
+        return self._phonebook_crud.count(self._validate_tenant(tenant), **params)
 
     def create_contact(self, tenant, phonebook_id, contact_info):
         self._validate_contact(contact_info)
-        return self._contact_crud.create(tenant, phonebook_id, contact_info)
+        return self._contact_crud.create(self._validate_tenant(tenant), phonebook_id, contact_info)
 
     def create_phonebook(self, tenant, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)
         if errors:
             raise InvalidPhonebookException(errors)
-        return self._phonebook_crud.create(tenant, body)
+        return self._phonebook_crud.create(self._validate_tenant(tenant), body)
 
     def edit_contact(self, tenant, phonebook_id, contact_uuid, contact_info):
         self._validate_contact(contact_info)
-        return self._contact_crud.edit(tenant, phonebook_id, contact_uuid, contact_info)
+        return self._contact_crud.edit(self._validate_tenant(tenant), phonebook_id,
+                                       contact_uuid, contact_info)
 
     def edit_phonebook(self, tenant, phonebook_id, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)
         if errors:
             raise InvalidPhonebookException(errors)
-        return self._phonebook_crud.edit(tenant, phonebook_id, body)
+        return self._phonebook_crud.edit(self._validate_tenant(tenant), phonebook_id, body)
 
     def delete_contact(self, tenant, phonebook_id, contact_uuid):
-        return self._contact_crud.delete(tenant, phonebook_id, contact_uuid)
+        return self._contact_crud.delete(self._validate_tenant(tenant), phonebook_id, contact_uuid)
 
     def delete_phonebook(self, tenant, phonebook_id):
-        return self._phonebook_crud.delete(tenant, phonebook_id)
+        return self._phonebook_crud.delete(self._validate_tenant(tenant), phonebook_id)
 
     def get_contact(self, tenant, phonebook_id, contact_uuid):
-        return self._contact_crud.get(tenant, phonebook_id, contact_uuid)
+        return self._contact_crud.get(self._validate_tenant(tenant), phonebook_id, contact_uuid)
 
     def get_phonebook(self, tenant, phonebook_id):
-        return self._phonebook_crud.get(tenant, phonebook_id)
+        return self._phonebook_crud.get(self._validate_tenant(tenant), phonebook_id)
 
     @staticmethod
     def _validate_contact(body):
@@ -124,3 +127,9 @@ class _PhonebookService(object):
             raise InvalidContactException('Contacts cannot be empty')
         if '' in body:
             raise InvalidContactException('Contacts cannot have empty keys')
+
+    @staticmethod
+    def _validate_tenant(tenant):
+        if not tenant.isalnum():
+            raise InvalidTenantException('The tenant should be alphanumeric: {}'.format(tenant))
+        return tenant
