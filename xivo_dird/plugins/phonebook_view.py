@@ -123,7 +123,7 @@ def _default_error_route(f):
             return f(self_, *args, **kwargs)
         except tuple(self_.error_code_map.keys()) as e:
             code = self_.error_code_map.get(e.__class__)
-            return _make_error(str(e), code)
+            return _make_error(unicode(e), code)
     return decorator
 
 
