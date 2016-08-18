@@ -89,8 +89,9 @@ class _PhonebookService(object):
         return self._phonebook_crud.count(self._validate_tenant(tenant), **params)
 
     def create_contact(self, tenant, phonebook_id, contact_info):
-        self._validate_contact(contact_info)
-        return self._contact_crud.create(self._validate_tenant(tenant), phonebook_id, contact_info)
+        return self._contact_crud.create(self._validate_tenant(tenant),
+                                         phonebook_id,
+                                         self._validate_contact(contact_info))
 
     def create_phonebook(self, tenant, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)
@@ -123,10 +124,12 @@ class _PhonebookService(object):
 
     @staticmethod
     def _validate_contact(body):
+        body.pop('id', None)
         if not body:
             raise InvalidContactException('Contacts cannot be empty')
         if '' in body:
             raise InvalidContactException('Contacts cannot have empty keys')
+        return body
 
     @staticmethod
     def _validate_tenant(tenant):
