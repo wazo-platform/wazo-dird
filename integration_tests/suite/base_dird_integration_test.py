@@ -134,8 +134,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         assert_that(response.status_code, equal_to(204))
 
     @classmethod
-    def post_phonebook(cls, tenant, phonebook_body, token=None):
-        token = token or VALID_TOKEN
+    def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN):
         url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks'.format(tenant=tenant,
                                                                                       **DEFAULT_URL_PARAMS)
         response = requests.post(url,
@@ -143,6 +142,18 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
                                  headers={'X-Auth-Token': token,
                                           'Content-Type': 'application/json'},
                                  verify=CA_CERT)
+        return response.json()
+
+    @classmethod
+    def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN):
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}'
+        response = requests.put(url.format(tenant=tenant,
+                                           phonebook_id=phonebook_id,
+                                           **DEFAULT_URL_PARAMS),
+                                data=json.dumps(phonebook_body),
+                                headers={'X-Auth-Token': token,
+                                         'Content-Type': 'application/json'},
+                                verify=CA_CERT)
         return response.json()
 
     @classmethod
@@ -155,6 +166,19 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
                                  headers={'X-Auth-Token': token,
                                           'Content-Type': 'application/json'},
                                  verify=CA_CERT)
+        return response.json()
+
+    @classmethod
+    def put_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN):
+        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_uuid}'
+        response = requests.put(url.format(tenant=tenant,
+                                           phonebook_id=phonebook_id,
+                                           contact_uuid=contact_uuid,
+                                           **DEFAULT_URL_PARAMS),
+                                data=json.dumps(contact_body),
+                                headers={'X-Auth-Token': token,
+                                         'Content-Type': 'application/json'},
+                                verify=CA_CERT)
         return response.json()
 
     @classmethod

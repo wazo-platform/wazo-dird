@@ -36,11 +36,14 @@ class TestPhonebookCRUD(BaseDirdIntegrationTest):
         assert_that(phonebook_1, equal_to(expected))
 
         phonebook_2 = self.post_phonebook(tenant_1, {'name': 'second'})
+        phonebook_2_modified = self.put_phonebook(tenant_1, phonebook_2['id'],
+                                                  {'name': 'second',
+                                                   'description': 'The second phonebook'})
 
-        assert_that(self.list_phonebooks(tenant_1), contains_inanyorder(phonebook_1, phonebook_2))
+        assert_that(self.list_phonebooks(tenant_1), contains_inanyorder(phonebook_1, phonebook_2_modified))
 
         self.delete_phonebook(tenant_2, phonebook_2['id'])
-        assert_that(self.list_phonebooks(tenant_1), contains_inanyorder(phonebook_1, phonebook_2))
+        assert_that(self.list_phonebooks(tenant_1), contains_inanyorder(phonebook_1, phonebook_2_modified))
 
         self.delete_phonebook(tenant_1, phonebook_2['id'])
         assert_that(self.list_phonebooks(tenant_1), contains_inanyorder(phonebook_1))
@@ -49,5 +52,8 @@ class TestPhonebookCRUD(BaseDirdIntegrationTest):
         assert_that(self.get_phonebook_contact(tenant_1, phonebook_1['id'], alice['id']),
                     equal_to(alice))
         bob = self.post_phonebook_contact(tenant_1, phonebook_1['id'], {'firstname': 'bob'})
+        bob_modified = self.put_phonebook_contact(tenant_1, phonebook_1['id'], bob['id'],
+                                                  {'firstname': 'bob',
+                                                   'lastname': 'Bibeau'})
         assert_that(self.list_phonebook_contacts(tenant_1, phonebook_1['id']),
-                    contains_inanyorder(alice, bob))
+                    contains_inanyorder(alice, bob_modified))
