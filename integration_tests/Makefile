@@ -7,6 +7,7 @@ test-setup: egg-info build-dird build-db-image
 	docker pull nickstenning/slapd
 	docker pull n3llyb0y/wait
 	docker pull rabbitmq
+	docker pull swaggerapi/swagger-validator
 
 build-dird:
 	docker build -t xivo/xivo-dird ..
