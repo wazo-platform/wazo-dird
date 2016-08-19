@@ -1237,10 +1237,9 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of contacts",
+                        "description": "A list of contacts",
                         "schema": {
-                            "type": "array",
-                            "items": "object"
+                            "$ref": "#/definitions/ContactList"
                         }
                     },
                     "400": {
@@ -1312,8 +1311,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "The contact attributes",
-                        "type": "object"
+                        "description": "The contact attributes"
                     },
                     "400": {
                         "$ref": "#/responses/InvalidTenant"
@@ -1348,7 +1346,9 @@
                         "in": "body",
                         "description": "The modified attributes of the contact",
                         "required": true,
-                        "type": "object"
+                        "schema": {
+                            "$ref": "#/definitions/ContactBodySample"
+                        }
                     }
                 ],
                 "responses": {
