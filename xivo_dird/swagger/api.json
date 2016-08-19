@@ -1053,7 +1053,7 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/responses/InvalidTenant"
+                        "$ref": "#/responses/InvalidParameters"
                     },
                     "503": {
                         "$ref": "#/responses/AnotherServiceUnavailable"
@@ -1089,7 +1089,7 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/responses/InvalidTenant"
+                        "$ref": "#/responses/InvalidParameters"
                     },
                     "409": {
                         "$ref": "#/responses/DuplicatePhonebook"
@@ -1160,7 +1160,7 @@
                         "description": "Phonebook updated"
                     },
                     "400": {
-                        "$ref": "#/responses/InvalidTenant"
+                        "$ref": "#/responses/InvalidParameters"
                     },
                     "404": {
                         "description": "Phonebook does not exist",
@@ -1243,7 +1243,7 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/responses/InvalidTenant"
+                        "$ref": "#/responses/InvalidParameters"
                     },
                     "503": {
                         "$ref": "#/responses/AnotherServiceUnavailable"
@@ -1282,7 +1282,7 @@
                         }
                     },
                     "400": {
-                        "$ref": "#/responses/InvalidTenant"
+                        "$ref": "#/responses/InvalidParameters"
                     },
                     "409": {
                         "$ref": "#/responses/DuplicateContact"
@@ -1356,7 +1356,7 @@
                         "description": "Contact updated"
                     },
                     "400": {
-                        "$ref": "#/responses/InvalidTenant"
+                        "$ref": "#/responses/InvalidParameters"
                     },
                     "404": {
                         "description": "The contact or the phonebook does not exist",
@@ -1408,6 +1408,12 @@
         }
     },
     "responses":{
+        "InvalidParameters": {
+            "description": "Invalid parameters",
+            "schema": {
+                "$ref": "#/definitions/Error"
+            }
+        },
         "ProfileInvalid": {
             "description": "The profile does not exist",
             "schema": {
