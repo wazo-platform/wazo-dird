@@ -19,7 +19,7 @@ import logging
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from marshmallow import fields, Schema, validate
+from marshmallow import fields, Schema, validate, pre_load
 
 from xivo_dird import BaseServicePlugin, database
 from xivo_dird.core.exception import (InvalidContactException,
@@ -32,6 +32,10 @@ logger = logging.getLogger(__name__)
 class _PhonebookSchema(Schema):
     name = fields.String(validate=validate.Length(min=1, max=255), required=True)
     description = fields.String(allow_none=True)
+
+    @pre_load
+    def ensure_dict(self, data):
+        return data or {}
 
 
 class PhonebookServicePlugin(BaseServicePlugin):

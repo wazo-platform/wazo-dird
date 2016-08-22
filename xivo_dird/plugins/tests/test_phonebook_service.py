@@ -79,7 +79,7 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
         assert_that(result, equal_to(self.phonebook_crud.count.return_value))
 
     def test_that_create_with_no_name_raises(self):
-        bodies = [{}, {'name': ''}, {'name': None}]
+        bodies = [{}, {'name': ''}, {'name': None}, None]
         for body in bodies:
             assert_that(calling(self.service.create_phonebook).with_args('tenant', body),
                         raises(InvalidPhonebookException))
