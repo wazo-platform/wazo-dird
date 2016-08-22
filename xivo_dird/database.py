@@ -582,18 +582,20 @@ class PersonalContactCRUD(_BaseDAO):
 
 class PhonebookContactSearchEngine(_BaseDAO):
 
-    def __init__(self, Session, searched_columns=None, first_match_columns=None):
+    def __init__(self, Session, tenant, phonebook_id, searched_columns=None, first_match_columns=None):
         super(PhonebookContactSearchEngine, self).__init__(Session)
         self._searched_columns = searched_columns
         self._first_match_columns = first_match_columns
+        self._tenant = tenant
+        self._phonebook_id = phonebook_id
 
-    def find_contacts(self, tenant, phonebook_id, term):
+    def find_contacts(self, term):
         pattern = u'%{}%'.format(term)
-        filter_ = self._new_search_filter(tenant, phonebook_id, pattern, self._searched_columns)
+        filter_ = self._new_search_filter(pattern, self._searched_columns)
         return self._find_contacts_with_filter(filter_)
 
-    def find_first_contact(self, tenant, phonebook_id, term):
-        filter_ = self._new_search_filter(tenant, phonebook_id, term, self._first_match_columns)
+    def find_first_contact(self, term):
+        filter_ = self._new_search_filter(term, self._first_match_columns)
         for contact in self._find_contacts_with_filter(filter_, limit=1):
             return contact
 
@@ -602,7 +604,10 @@ class PhonebookContactSearchEngine(_BaseDAO):
             query = (s.query(distinct(ContactFields.contact_uuid))
                      .join(Contact)
                      .join(Phonebook)
-                     .filter(filter_))
+                     .join(Tenant)
+                     .filter(and_(filter_,
+                                  Phonebook.id == self._phonebook_id,
+                                  Tenant.name == self._tenant)))
 
             if limit:
                 query = query.limit(limit)
@@ -611,7 +616,7 @@ class PhonebookContactSearchEngine(_BaseDAO):
 
             return _list_contacts_by_uuid(s, uuids)
 
-    def _new_search_filter(self, tenant, phonebook_id, pattern, columns):
+    def _new_search_filter(self, pattern, columns):
         if not columns:
             return False
 

@@ -870,40 +870,37 @@ class TestPhonebookContactSearchEngine(_BaseTest):
         ]
         [self.mia, self.vincent, self.jules, self.butch, self.jimmie] = [
             self.phonebook_contact_crud.create(self.tenant, self.phonebook_id, body) for body in bodies]
+        self.engine = database.PhonebookContactSearchEngine(Session,
+                                                            self.tenant,
+                                                            self.phonebook_id,
+                                                            searched_columns=['lastname'],
+                                                            first_match_columns=['number'])
 
     def tearDown(self):
         self.phonebook_crud.delete(self.tenant, self.phonebook_id)
         super(TestPhonebookContactSearchEngine, self).tearDown()
 
     def test_that_searching_personal_contacts_returns_the_searched_contacts(self):
-        engine = database.PhonebookContactSearchEngine(Session,
-                                                       searched_columns=['lastname'])
-
-        result = engine.find_contacts(self.tenant, self.phonebook_id, 'w')
+        result = self.engine.find_contacts('w')
 
         assert_that(result, contains_inanyorder(self.mia, self.jules))
 
     def test_that_none_matching_search_returns_an_empty_list(self):
-        engine = database.PhonebookContactSearchEngine(Session,
-                                                       searched_columns=['lastname'])
-
-        result = engine.find_contacts(self.tenant, self.phonebook_id, 'mia')  # lastname search
+        result = self.engine.find_contacts('mia')  # lastname search
 
         assert_that(result, empty())
 
     def test_that_no_searched_columns_does_not_search(self):
         engine = database.PhonebookContactSearchEngine(Session,
-                                                       searched_columns=None)
-
-        result = engine.find_contacts(self.tenant, self.phonebook_id, 'a')
+                                                       self.tenant,
+                                                       self.phonebook_id,
+                                                       first_match_columns=['number'])
+        result = engine.find_contacts('a')
 
         assert_that(result, empty())
 
     def test_that_find_first_returns_a_contact(self):
-        engine = database.PhonebookContactSearchEngine(Session,
-                                                       first_match_columns=['number'])
-
-        result = engine.find_first_contact(self.tenant, self.phonebook_id, '5553333333')
+        result = self.engine.find_first_contact('5553333333')
 
         assert_that(result, equal_to(self.jules))
 
