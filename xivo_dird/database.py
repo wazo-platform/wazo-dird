@@ -580,6 +580,45 @@ class PersonalContactCRUD(_BaseDAO):
         return deleted
 
 
+class PhonebookContactSearchEngine(_BaseDAO):
+
+    def __init__(self, Session, searched_columns=None, first_match_columns=None):
+        super(PhonebookContactSearchEngine, self).__init__(Session)
+        self._searched_columns = searched_columns
+        self._first_match_columns = first_match_columns
+
+    def find_contacts(self, tenant, phonebook_id, term):
+        pattern = u'%{}%'.format(term)
+        filter_ = self._new_search_filter(tenant, phonebook_id, pattern, self._searched_columns)
+        return self._find_contacts_with_filter(filter_)
+
+    def find_first_contact(self, tenant, phonebook_id, term):
+        filter_ = self._new_search_filter(tenant, phonebook_id, term, self._first_match_columns)
+        for contact in self._find_contacts_with_filter(filter_, limit=1):
+            return contact
+
+    def _find_contacts_with_filter(self, filter_, limit=None):
+        with self.new_session() as s:
+            query = (s.query(distinct(ContactFields.contact_uuid))
+                     .join(Contact)
+                     .join(Phonebook)
+                     .filter(filter_))
+
+            if limit:
+                query = query.limit(limit)
+
+            uuids = [uuid for (uuid,) in query.all()]
+
+            return _list_contacts_by_uuid(s, uuids)
+
+    def _new_search_filter(self, tenant, phonebook_id, pattern, columns):
+        if not columns:
+            return False
+
+        return and_(ContactFields.value.ilike(pattern),
+                    ContactFields.name.in_(columns))
+
+
 class PersonalContactSearchEngine(_BaseDAO):
 
     def __init__(self, Session, searched_columns=None, first_match_columns=None):
