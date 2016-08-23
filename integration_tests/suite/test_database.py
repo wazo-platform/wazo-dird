@@ -863,12 +863,13 @@ class TestPhonebookContactSearchEngine(_BaseTest):
         self.phonebook_id = self.phonebook_crud.create(self.tenant, {'name': 'test'})['id']
         bodies = [
             {'firstname': 'Mia', 'lastname': 'Wallace', 'number': '5551111111'},
+            {'firstname': 'Marcellus', 'lastname': 'Wallace', 'number': '5551111111'},
             {'firstname': 'Vincent', 'lastname': 'Vega', 'number': '5552222222'},
             {'firstname': 'Jules', 'lastname': 'Winnfield', 'number': '5553333333'},
             {'firstname': 'Butch', 'lastname': 'Coolidge'},
             {'firstname': 'Jimmie', 'lastname': 'Dimmick', 'number': '5554444444'},
         ]
-        [self.mia, self.vincent, self.jules, self.butch, self.jimmie] = [
+        [self.mia, self.marcellus, self.vincent, self.jules, self.butch, self.jimmie] = [
             self.phonebook_contact_crud.create(self.tenant, self.phonebook_id, body) for body in bodies]
         self.engine = database.PhonebookContactSearchEngine(Session,
                                                             self.tenant,
@@ -883,7 +884,7 @@ class TestPhonebookContactSearchEngine(_BaseTest):
     def test_that_searching_personal_contacts_returns_the_searched_contacts(self):
         result = self.engine.find_contacts('w')
 
-        assert_that(result, contains_inanyorder(self.mia, self.jules))
+        assert_that(result, contains_inanyorder(self.mia, self.marcellus, self.jules))
 
     def test_that_none_matching_search_returns_an_empty_list(self):
         result = self.engine.find_contacts('mia')  # lastname search
@@ -900,9 +901,9 @@ class TestPhonebookContactSearchEngine(_BaseTest):
         assert_that(result, empty())
 
     def test_that_find_first_returns_a_contact(self):
-        result = self.engine.find_first_contact('5553333333')
+        result = self.engine.find_first_contact('5551111111')
 
-        assert_that(result, equal_to(self.jules))
+        assert_that(result, any_of(self.mia, self.marcellus))
 
     def test_that_listing_contacts_works(self):
         result = self.engine.list_contacts([self.mia['id'], self.butch['id'], self.jimmie['id']])
