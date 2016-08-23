@@ -56,9 +56,6 @@
                         "description": "XML to make request lookup",
                         "schema": {
                             "$ref": "#/definitions/AastraIPPhoneInputScreen"
-                        },
-                        "examples": {
-                            "text/xml": "<AastraIPPhoneInputScreen> <Title>XiVO Search</Title> <Prompt>Name or number</Prompt> <URL>http://proxy-url?xivo_user_uuid=00000000-0000-0000-0000-000000000000</URL> <Parameter>term</Parameter> </AastraIPPhoneInputScreen>"
                         }
                     },
                     "503": {
@@ -95,9 +92,6 @@
                         "description": "A list of contacts",
                         "schema": {
                             "$ref": "#/definitions/AastraIPPhoneTextMenu"
-                        },
-                        "examples": {
-                            "text/xml": "<AastraIPPhoneTextMenu style='none' destroyOnExit='yes'> <MenuItem> <Prompt>PrevPage</Prompt> <URI>https://xivo-dird:9489/0.1/directories/lookup/default_phone/aastra?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URI></MenuItem> <MenuItem> <Prompt>Alice</Prompt> <URI>Dial:5555555555</URI> </MenuItem> <MenuItem><Prompt>NextPage</Prompt> <URI>https://xivo-dird:9489/0.1/directories/lookup/default_phone/aastra?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URI> </AastraIPPhoneTextMenu>"
                         }
                     },
                     "400": {
@@ -149,9 +143,6 @@
                         "description": "XML to extend the directories menu",
                         "schema": {
                             "$ref": "#/definitions/CiscoIPPhoneMenu"
-                        },
-                        "examples": {
-                            "text/xml": "<CiscoIPPhoneMenu> <MenuItem> <Name>XiVO Directory</Name> <URL>http://proxy-url?xivo_user_uuid=1234</URL> </MenuItem> </CiscoIPPhoneMenu>"
                         }
                     },
                     "503": {
@@ -191,9 +182,6 @@
                         "description": "XML to make request lookup",
                         "schema": {
                             "$ref": "#/definitions/CiscoIPPhoneInput"
-                        },
-                        "examples": {
-                            "text/xml": "<CiscoIPPhoneInput> <Title>XiVO Search</Title> <Prompt>Name or number</Prompt> <URL>http://proxy-url?xivo_user_uuid=00000000-0000-0000-0000-000000000000</URL> <InputItem> <DisplayName>Name or number</DisplayName> <QueryStringParam>term</QueryStringParam> <DefaultValue /> <InputFlags>A</InputFlags> </InputItem> </CiscoIPPhoneInput>"
                         }
                     },
                     "503": {
@@ -233,9 +221,6 @@
                         "description": "A list of contacts",
                         "schema": {
                             "$ref": "#/definitions/CiscoIPPhoneDirectory"
-                        },
-                        "examples": {
-                            "text/xml": "<CiscoIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> <SoftKeyItem> <Name>PrevPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> <Position>2</Position> </SoftKeyItem> <SoftKeyItem> <Name>Exit</Name> <URL>SoftKey:Exit</URL> <Position>3</Position> </SoftKeyItem> <SoftKeyItem> <Name>NextPage</Name> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> <Position>4</Position> </SoftKeyItem> </CiscoIPPhoneDirectory>"
                         }
                     },
                     "400": {
@@ -292,7 +277,7 @@
                             "$ref": "#/definitions/PolycomIPPhoneInput"
                         },
                         "examples": {
-                            "text/xml": "<html> <head> <title>XiVO Search</title> </head> <body> <form action='https://proxy-url' method='get' accept-charset='utf-8'> <span class='fm-desc clearboth'> <label id='lb-name' for='it-name'>Name or number:</label> </span> <input type='text' name='term' id='it-term' size='15' value='' /> <input type='hidden' name='xivo_user_uuid' value='000000-0000' /> <input type='submit' name='submit' id='it-submit' class='itb-submit' value='Search' /> </form> </body> </html>"
+                            "text/html": "<html> <head> <title>XiVO Search</title> </head> <body> <form action='https://proxy-url' method='get' accept-charset='utf-8'> <span class='fm-desc clearboth'> <label id='lb-name' for='it-name'>Name or number:</label> </span> <input type='text' name='term' id='it-term' size='15' value='' /> <input type='hidden' name='xivo_user_uuid' value='000000-0000' /> <input type='submit' name='submit' id='it-submit' class='itb-submit' value='Search' /> </form> </body> </html>"
                         }
                     },
                     "503": {
@@ -334,7 +319,7 @@
                             "$ref": "#/definitions/PolycomIPPhoneDirectory"
                         },
                         "examples": {
-                            "text/xml": "<html> <head> <title>XiVO Search</title> </head> <body> <ol> <li>[<a href='https://xivo-dird:9489/0.1/directories/lookup/default_phone/polycom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1' title='Previous'>Previous</a>]<br /></li> <li><a href='tel://5555555555'>Alice</a><br /></li>  <li>[<a href='https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2' title='Next'>Next</a>]<br /></li> </ol> </body> </html>"
+                            "text/html": "<html> <head> <title>XiVO Search</title> </head> <body> <ol> <li>[<a href='https://xivo-dird:9489/0.1/directories/lookup/default_phone/polycom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1' title='Previous'>Previous</a>]<br /></li> <li><a href='tel://5555555555'>Alice</a><br /></li>  <li>[<a href='https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2' title='Next'>Next</a>]<br /></li> </ol> </body> </html>"
                         }
                     },
                     "400": {
@@ -389,9 +374,6 @@
                         "description": "XML to make request lookup",
                         "schema": {
                             "$ref": "#/definitions/SnomIPPhoneInput"
-                        },
-                        "examples": {
-                            "text/xml": "<SnomIPPhoneInput> <Title>XiVO Search</Title> <Prompt>Name or number</Prompt> <URL>http://proxy-url?xivo_user_uuid=00000000-0000-0000-0000-000000000000</URL> <InputItem> <DisplayName>Name or number</DisplayName> <QueryStringParam>term</QueryStringParam> <DefaultValue /> <InputFlags>A</InputFlags> </InputItem> </CiscoIPPhoneInput>"
                         }
                     },
                     "503": {
@@ -431,9 +413,6 @@
                         "description": "A list of contacts",
                         "schema": {
                             "$ref": "#/definitions/SnomIPPhoneDirectory"
-                        },
-                        "examples": {
-                            "text/xml": "<SnomIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> <SoftKeyItem> <Label>PrevPage</Label> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/snom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> <Name>F2</Name> </SoftKeyItem> <SoftKeyItem> <Label>NextPage</Label> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/snom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> <Name>F4</Name> </SoftKeyItem> </SnomIPPhoneDirectory>"
                         }
                     },
                     "400": {
@@ -488,9 +467,6 @@
                         "description": "A list of contacts",
                         "schema": {
                             "$ref": "#/definitions/ThomsonPhoneBook"
-                        },
-                        "examples": {
-                            "text/xml": "<ThomsonPhoneBook> <MenuItem> <Item>previous-page</Item> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/snom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1</URL> </MenuItem> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> <MenuItem> <Item>next-page</Item> <URL>https://xivo-dird:9489/0.1/directories/lookup/default_phone/snom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2</URL> </MenuItem> </ThomsonPhoneBook>"
                         }
                     },
                     "400": {
@@ -545,9 +521,6 @@
                         "description": "A list of contacts",
                         "schema": {
                             "$ref": "#/definitions/YealinkIPPhoneDirectory"
-                        },
-                        "examples": {
-                            "text/xml": "<YealinkIPPhoneDirectory> <DirectoryEntry> <Name>Alice</Name> <Telephone>5555555555</Telephone> </DirectoryEntry> </YealinkIPPhoneDirectory>"
                         }
                     },
                     "400": {
@@ -1840,12 +1813,81 @@
             ]
         },
         "ResultFields": {},
+        "AastraIPPhoneInputScreen": {
+            "properties": {
+                "Title": {
+                    "type": "string"
+                },
+                "Prompt": {
+                    "type": "string"
+                },
+                "URL": {
+                    "type": "string"
+                },
+                "Parameter": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Title",
+                "Prompt",
+                "URL",
+                "Parameter"
+            ]
+        },
+        "AastraIPPhoneTextMenu": {
+            "properties": {
+                "style": {
+                    "type": "string",
+                    "xml": {
+                        "attribute": true
+                    }
+                },
+                "destroyOnExit": {
+                    "type": "string",
+                    "xml": {
+                        "attribute": true
+                    }
+                },
+                "MenuItem": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/AastraMenuItem"
+                    }
+                }
+            },
+            "required": [
+                "style",
+                "destroyOnExit",
+                "MenuItem"
+            ]
+        },
+        "AastraMenuItem": {
+            "properties": {
+                "Prompt": {
+                    "type": "string"
+                },
+                "URI": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Prompt",
+                "URI"
+            ]
+        },
         "CiscoIPPhoneDirectory": {
             "properties": {
                 "DirectoryEntry": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/CiscoDirectoryEntry"
+                    }
+                },
+                "SoftKeyItem": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CiscoSoftKeyItem"
                     }
                 }
             },
@@ -1865,6 +1907,24 @@
             "required": [
                 "Name",
                 "Telephone"
+            ]
+        },
+        "CiscoSoftKeyItem": {
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "URL": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "Name",
+                "URL",
+                "position"
             ]
         },
         "CiscoIPPhoneMenu": {
@@ -1907,6 +1967,8 @@
                 }
             },
             "required": [
+                "Title",
+                "Prompt",
                 "URL",
                 "InputItem"
             ]
@@ -1927,8 +1989,159 @@
                 }
             },
             "required": [
+                "DisplayName",
                 "QueryStringParam",
-                "DisplayName"
+                "DefaultValue",
+                "InputFlags"
+            ]
+        },
+        "SnomIPPhoneInput": {
+            "properties": {
+                "Title": {
+                    "type": "string"
+                },
+                "Prompt": {
+                    "type": "string"
+                },
+                "URL": {
+                    "type": "string"
+                },
+                "InputItem": {
+                    "$ref": "#/definitions/SnomInputItem"
+                }
+            },
+            "required": [
+                "Title",
+                "Prompt",
+                "URL",
+                "InputItem"
+            ]
+        },
+        "SnomInputItem": {
+            "properties": {
+                "DisplayName": {
+                    "type": "string"
+                },
+                "QueryStringParam": {
+                    "type": "string"
+                },
+                "DefaultValue":{
+                    "type": "string"
+                },
+                "InputFlags": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "DisplayName",
+                "QueryStringParam",
+                "DefaultValue",
+                "InputFlags"
+            ]
+        },
+        "SnomIPPhoneDirectory": {
+            "properties": {
+                "DirectoryEntry": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/SnomDirectoryEntry"
+                    }
+                },
+                "SoftKeyItem": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/SnomSoftKeyItem"
+                    }
+                }
+            },
+            "required": [
+                "DirectoryEntry"
+            ]
+        },
+        "SnomDirectoryEntry": {
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Telephone": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Name",
+                "Telephone"
+            ]
+        },
+        "SnomSoftKeyItem": {
+            "properties": {
+                "Label": {
+                    "type": "string"
+                },
+                "URL": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "Label",
+                "URL",
+                "Name"
+            ]
+        },
+        "ThomsonPhoneBook": {
+            "properties": {
+                "DirectoryEntry": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ThomsonDirectoryEntry"
+                    }
+                }
+            },
+            "required": [
+                "DirectoryEntry"
+            ]
+        },
+        "ThomsonDirectoryEntry": {
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Telephone": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Name",
+                "Telephone"
+            ]
+        },
+        "YealinkIPPhoneDirectory": {
+            "properties": {
+                "DirectoryEntry": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/YealinkDirectoryEntry"
+                    }
+                }
+            },
+            "required": [
+                "DirectoryEntry"
+            ]
+        },
+        "YealinkDirectoryEntry": {
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Telephone": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "Name",
+                "Telephone"
             ]
         }
     }
