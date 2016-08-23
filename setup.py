@@ -80,6 +80,7 @@ setup(
         'xivo_dird.backends': [
             'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
             'csv_ws = xivo_dird.plugins.csv_ws:CSVWSPlugin',
+            'dird_phonebook = xivo_dird.plugins.dird_phonebook:PhonebookPlugin',
             'ldap = xivo_dird.plugins.ldap_plugin:LDAPPlugin',
             'personal = xivo_dird.plugins.personal_backend:PersonalBackend',
             'phonebook = xivo_dird.plugins.phonebook_plugin:PhonebookPlugin',
