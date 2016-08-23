@@ -6,3 +6,4 @@
 cover/
 .eggs
 *.egg
+build/*

@@ -852,6 +852,74 @@ class TestFavoriteCrud(_BaseTest):
         return favorite is not None
 
 
+class TestPhonebookContactSearchEngine(_BaseTest):
+
+    tenant = 'tenant'
+
+    def setUp(self):
+        super(TestPhonebookContactSearchEngine, self).setUp()
+        self.phonebook_crud = database.PhonebookCRUD(Session)
+        self.phonebook_contact_crud = database.PhonebookContactCRUD(Session)
+        self.phonebook_id = self.phonebook_crud.create(self.tenant, {'name': 'test'})['id']
+        bodies = [
+            {'firstname': 'Mia', 'lastname': 'Wallace', 'number': '5551111111'},
+            {'firstname': 'Marcellus', 'lastname': 'Wallace', 'number': '5551111111'},
+            {'firstname': 'Vincent', 'lastname': 'Vega', 'number': '5552222222'},
+            {'firstname': 'Jules', 'lastname': 'Winnfield', 'number': '5553333333'},
+            {'firstname': 'Butch', 'lastname': 'Coolidge'},
+            {'firstname': 'Jimmie', 'lastname': 'Dimmick', 'number': '5554444444'},
+        ]
+        [self.mia, self.marcellus, self.vincent, self.jules, self.butch, self.jimmie] = [
+            self.phonebook_contact_crud.create(self.tenant, self.phonebook_id, body) for body in bodies]
+        self.engine = database.PhonebookContactSearchEngine(Session,
+                                                            self.tenant,
+                                                            self.phonebook_id,
+                                                            searched_columns=['lastname'],
+                                                            first_match_columns=['number'])
+
+    def tearDown(self):
+        self.phonebook_crud.delete(self.tenant, self.phonebook_id)
+        super(TestPhonebookContactSearchEngine, self).tearDown()
+
+    def test_that_searching_personal_contacts_returns_the_searched_contacts(self):
+        result = self.engine.find_contacts('w')
+
+        assert_that(result, contains_inanyorder(self.mia, self.marcellus, self.jules))
+
+    def test_that_none_matching_search_returns_an_empty_list(self):
+        result = self.engine.find_contacts('mia')  # lastname search
+
+        assert_that(result, empty())
+
+    def test_that_no_searched_columns_does_not_search(self):
+        engine = database.PhonebookContactSearchEngine(Session,
+                                                       self.tenant,
+                                                       self.phonebook_id,
+                                                       first_match_columns=['number'])
+        result = engine.find_contacts('a')
+
+        assert_that(result, empty())
+
+    def test_that_find_first_returns_a_contact(self):
+        result = self.engine.find_first_contact('5551111111')
+
+        assert_that(result, any_of(self.mia, self.marcellus))
+
+    def test_that_listing_contacts_works(self):
+        result = self.engine.list_contacts([self.mia['id'], self.butch['id'], self.jimmie['id']])
+
+        assert_that(result, contains_inanyorder(self.mia, self.butch, self.jimmie))
+
+    def test_that_listing_is_limited_to_the_current_phonebook_and_tenant(self):
+        shire_phonebook = self.phonebook_crud.create('lotr', {'name': 'shire'})
+        frodo = self.phonebook_contact_crud.create('lotr', shire_phonebook['id'],
+                                                   {'firstname': 'Frodo', 'lastname': 'Baggins'})
+
+        result = self.engine.list_contacts([self.mia['id'], frodo['id'], self.jimmie['id']])
+
+        assert_that(result, contains_inanyorder(self.mia, self.jimmie))
+
+
 class TestPersonalContactSearchEngine(_BaseTest):
 
     @with_user_uuid

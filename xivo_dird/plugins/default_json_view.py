@@ -219,7 +219,7 @@ class FavoritesWrite(AuthResource):
             self.favorites_service.new_favorite(directory, contact, token_infos['xivo_user_uuid'])
         except self.favorites_service.DuplicatedFavoriteException:
             return _error(409, 'Adding this favorite would create a duplicate')
-        except self.favorite_service.NoSuchSourceException as e:
+        except self.favorites_service.NoSuchSourceException as e:
             return _error(404, str(e))
         return '', 204
 

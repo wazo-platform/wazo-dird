@@ -70,6 +70,7 @@ enabled_plugins:
     - csv
     - csv_ws
     - ldap
+    - dird_phonebook
   services:
     - favorites
     - lookup
