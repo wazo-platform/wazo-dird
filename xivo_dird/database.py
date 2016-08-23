@@ -592,29 +592,41 @@ class PhonebookContactSearchEngine(_BaseDAO):
     def find_contacts(self, term):
         pattern = u'%{}%'.format(term)
         filter_ = self._new_search_filter(pattern, self._searched_columns)
-        return self._find_contacts_with_filter(filter_)
+        with self.new_session() as s:
+            return self._find_contacts_with_filter(s, filter_)
 
     def find_first_contact(self, term):
         filter_ = self._new_search_filter(term, self._first_match_columns)
-        for contact in self._find_contacts_with_filter(filter_, limit=1):
-            return contact
-
-    def _find_contacts_with_filter(self, filter_, limit=None):
         with self.new_session() as s:
-            query = (s.query(distinct(ContactFields.contact_uuid))
-                     .join(Contact)
-                     .join(Phonebook)
-                     .join(Tenant)
-                     .filter(and_(filter_,
-                                  Phonebook.id == self._phonebook_id,
-                                  Tenant.name == self._tenant)))
+            for contact in self._find_contacts_with_filter(s, filter_, limit=1):
+                return contact
 
-            if limit:
-                query = query.limit(limit)
+    def list_contacts(self, contact_uuids):
+        filter_ = self._new_list_filter(contact_uuids)
+        with self.new_session() as s:
+            return self._find_contacts_with_filter(s, filter_)
 
-            uuids = [uuid for (uuid,) in query.all()]
+    def _find_contacts_with_filter(self, s, filter_, limit=None):
+        query = (s.query(distinct(ContactFields.contact_uuid))
+                 .join(Contact)
+                 .join(Phonebook)
+                 .join(Tenant)
+                 .filter(and_(filter_,
+                              Phonebook.id == self._phonebook_id,
+                              Tenant.name == self._tenant)))
 
-            return _list_contacts_by_uuid(s, uuids)
+        if limit:
+            query = query.limit(limit)
+
+        uuids = [uuid for (uuid,) in query.all()]
+
+        return _list_contacts_by_uuid(s, uuids)
+
+    def _new_list_filter(self, contact_uuids):
+        if not contact_uuids:
+            return False
+
+        return ContactFields.contact_uuid.in_(contact_uuids)
 
     def _new_search_filter(self, pattern, columns):
         if not columns:

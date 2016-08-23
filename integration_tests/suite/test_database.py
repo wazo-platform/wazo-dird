@@ -904,6 +904,20 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
         assert_that(result, equal_to(self.jules))
 
+    def test_that_listing_contacts_works(self):
+        result = self.engine.list_contacts([self.mia['id'], self.butch['id'], self.jimmie['id']])
+
+        assert_that(result, contains_inanyorder(self.mia, self.butch, self.jimmie))
+
+    def test_that_listing_is_limited_to_the_current_phonebook_and_tenant(self):
+        shire_phonebook = self.phonebook_crud.create('lotr', {'name': 'shire'})
+        frodo = self.phonebook_contact_crud.create('lotr', shire_phonebook['id'],
+                                                   {'firstname': 'Frodo', 'lastname': 'Baggins'})
+
+        result = self.engine.list_contacts([self.mia['id'], frodo['id'], self.jimmie['id']])
+
+        assert_that(result, contains_inanyorder(self.mia, self.jimmie))
+
 
 class TestPersonalContactSearchEngine(_BaseTest):
 
