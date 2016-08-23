@@ -30,7 +30,7 @@ tokens = {'valid-token': 'uuid',
           'valid-token-1': 'uuid-1',
           'valid-token-2': 'uuid-2'}
 
-tokens_acl = {'valid-token-no-acl', ''}
+tokens_acl = {'valid-token-no-acl': ''}
 
 
 @app.route("/0.1/token/<token>", methods=['HEAD'])
