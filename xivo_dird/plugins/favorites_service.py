@@ -28,6 +28,7 @@ from concurrent.futures import wait
 
 from xivo_dird import BaseServicePlugin
 from xivo_dird import database, helpers
+from xivo_dird.core import exception
 
 logger = logging.getLogger(__name__)
 
@@ -91,10 +92,10 @@ class FavoritesServicePlugin(BaseServicePlugin):
 
 class _FavoritesService(object):
 
-    NoSuchFavoriteException = database.NoSuchFavorite
+    NoSuchFavoriteException = exception.NoSuchFavorite
     NoSuchProfileException = _NoSuchProfileException
     NoSuchSourceException = _NoSuchSourceException
-    DuplicatedFavoriteException = database.DuplicatedFavoriteException
+    DuplicatedFavoriteException = exception.DuplicatedFavoriteException
 
     def __init__(self, config, sources, crud):
         self._config = config

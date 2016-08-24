@@ -22,6 +22,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo_dird import BaseServicePlugin
 from xivo_dird import database
+from xivo_dird.core import exception
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +58,8 @@ class PersonalServicePlugin(BaseServicePlugin):
 
 class _PersonalService(object):
 
-    NoSuchContact = database.NoSuchContact
-    DuplicatedContactException = database.DuplicatedContactException
+    NoSuchContact = exception.NoSuchContact
+    DuplicatedContactException = exception.DuplicatedContactException
 
     class InvalidPersonalContact(ValueError):
         def __init__(self, errors):

@@ -22,16 +22,16 @@ from functools import wraps
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
-from xivo_dird.core.exception import (InvalidArgumentError,
+from xivo_dird.core.exception import (DatabaseServiceUnavailable,
+                                      DuplicatedContactException,
+                                      DuplicatedPhonebookException,
+                                      InvalidArgumentError,
                                       InvalidContactException,
                                       InvalidPhonebookException,
-                                      InvalidTenantException)
+                                      InvalidTenantException,
+                                      NoSuchContact,
+                                      NoSuchPhonebook)
 from xivo_dird.core.rest_api import api, AuthResource
-from xivo_dird.database import (DatabaseServiceUnavailable,
-                                DuplicatedContactException,
-                                DuplicatedPhonebookException,
-                                NoSuchContact,
-                                NoSuchPhonebook)
 
 
 def _make_error(reason, status_code):

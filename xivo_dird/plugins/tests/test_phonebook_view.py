@@ -22,12 +22,14 @@ from mock import ANY, Mock, sentinel as s, patch
 
 from ..phonebook_view import _ArgParser as ArgParser, ContactAll, ContactOne, PhonebookAll, PhonebookOne
 
-from xivo_dird.core.exception import InvalidArgumentError, InvalidContactException, InvalidPhonebookException
-from xivo_dird.database import (DatabaseServiceUnavailable,
-                                DuplicatedContactException,
-                                DuplicatedPhonebookException,
-                                NoSuchContact,
-                                NoSuchPhonebook)
+from xivo_dird.core.exception import (DatabaseServiceUnavailable,
+                                      DuplicatedContactException,
+                                      DuplicatedPhonebookException,
+                                      InvalidArgumentError,
+                                      InvalidContactException,
+                                      InvalidPhonebookException,
+                                      NoSuchContact,
+                                      NoSuchPhonebook)
 from xivo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
 
 
