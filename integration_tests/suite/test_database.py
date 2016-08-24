@@ -40,6 +40,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, func, exc
 
 from xivo_dird import database
+from xivo_dird.core.database import Base
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
@@ -80,10 +81,10 @@ def setup():
     DBStarter.setUpClass()
     db_uri = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:15432')
     engine = create_engine(db_uri)
-    database.Base.metadata.bind = engine
-    database.Base.metadata.reflect()
-    database.Base.metadata.drop_all()
-    database.Base.metadata.create_all()
+    Base.metadata.bind = engine
+    Base.metadata.reflect()
+    Base.metadata.drop_all()
+    Base.metadata.create_all()
 
 
 def teardown():
