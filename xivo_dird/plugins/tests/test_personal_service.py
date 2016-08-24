@@ -27,7 +27,7 @@ from mock import Mock
 from mock import patch
 from mock import sentinel as s
 
-from xivo_dird import database
+from xivo_dird.core import database
 from xivo_dird.plugins.personal_service import PersonalServicePlugin
 from xivo_dird.plugins.personal_service import _PersonalService
 

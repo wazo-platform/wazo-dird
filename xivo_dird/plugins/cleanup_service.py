@@ -26,7 +26,7 @@ from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.user.event import DeleteUserEvent
 
 from xivo_dird import BaseServicePlugin
-from xivo_dird import database
+from xivo_dird.core import database
 
 logger = logging.getLogger(__name__)
 

@@ -16,14 +16,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from .models import Base, Contact, ContactFields, Favorite, Phonebook, Source, Tenant, User
+from .dao import (delete_user,
+                  FavoriteCRUD,
+                  PersonalContactCRUD,
+                  PersonalContactSearchEngine,
+                  PhonebookCRUD,
+                  PhonebookContactCRUD,
+                  PhonebookContactSearchEngine)
 
 
 __all__ = [
     'Base',
     'Contact',
     'ContactFields',
+    'delete_user',
     'Favorite',
+    'FavoriteCRUD',
+    'PersonalContactCRUD',
+    'PersonalContactSearchEngine',
     'Phonebook',
+    'PhonebookCRUD',
+    'PhonebookContactCRUD',
+    'PhonebookContactSearchEngine',
     'Source',
     'Tenant',
     'User',

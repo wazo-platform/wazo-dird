@@ -26,9 +26,8 @@ from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 
-from xivo_dird import BaseServicePlugin
-from xivo_dird import database, helpers
-from xivo_dird.core import exception
+from xivo_dird import BaseServicePlugin, helpers
+from xivo_dird.core import database, exception
 
 logger = logging.getLogger(__name__)
 

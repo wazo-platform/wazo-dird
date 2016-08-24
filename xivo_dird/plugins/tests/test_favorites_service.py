@@ -29,7 +29,7 @@ from mock import (ANY,
                   Mock,
                   patch,
                   sentinel as s)
-from xivo_dird import database
+from xivo_dird.core import database
 from xivo_dird.plugins.favorites_service import FavoritesServicePlugin
 from xivo_dird.plugins.favorites_service import _FavoritesService
 

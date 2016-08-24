@@ -21,8 +21,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo_dird import BaseServicePlugin
-from xivo_dird import database
-from xivo_dird.core import exception
+from xivo_dird.core import database, exception
 
 logger = logging.getLogger(__name__)
 
