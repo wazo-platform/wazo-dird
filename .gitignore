@@ -7,3 +7,4 @@ cover/
 .eggs
 *.egg
 build/*
+*.noseids
