@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,76 +15,101 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_UUID
+import unittest
+import yaml
 
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
-from hamcrest import equal_to
-from hamcrest import has_entry
+from hamcrest import has_entries
+
+from .base_dird_integration_test import absolute_file_name, BackendWrapper
 
 
-class TestCSVBackend(BaseDirdIntegrationTest):
+class _BaseCSVFileTestCase(unittest.TestCase):
+
+    def setUp(self):
+        config_file = absolute_file_name(self.asset, self.source_config)
+        with open(config_file) as f:
+            config = {'config': yaml.load(f)}
+        config['config']['file'] = absolute_file_name(self.asset, config['config']['file'][1:])
+        self.backend = BackendWrapper('csv', config)
+
+
+class TestCSVBackend(_BaseCSVFileTestCase):
 
     asset = 'csv_with_multiple_displays'
+    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+
+    def setUp(self):
+        self._alice = {'id': '1', 'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
+        self._charles = {'id': '3', 'fn': 'Charles', 'ln': 'CCC', 'num': '555123555'}
+        super(TestCSVBackend, self).setUp()
 
     def test_that_searching_for_lice_return_Alice(self):
-        result = self.lookup('lice', 'default')
+        result = self.backend.search('lice')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains('Alice', 'AAA', '5555555555', True))
+        assert_that(result, contains(has_entries(**self._alice)))
 
     def test_reverse_lookup(self):
-        result = self.reverse('5555555555', 'default', VALID_UUID)
+        result = self.backend.first('5555555555')
 
-        assert_that(result['display'], equal_to('Alice AAA'))
+        assert_that(result, has_entries(**self._alice))
 
-    def test_that_asking_csv_favorites_returns_contacts(self):
-        self.put_favorite('my_csv', '1')
-        self.put_favorite('my_csv', '3')
+    def test_that_listing_by_ids_works(self):
+        unknown_id = '42'
 
-        result = self.favorites('default')
+        result = self.backend.list([self._alice['id'], self._charles['id'], unknown_id])
 
-        assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True)),
-            has_entry('column_values', contains('Charles', 'CCC', '555123555', True))))
+        assert_that(result, contains_inanyorder(has_entries(**self._alice),
+                                                has_entries(**self._charles)))
 
 
-class TestCSVNoUnique(BaseDirdIntegrationTest):
+class TestCSVNoUnique(_BaseCSVFileTestCase):
 
     asset = 'csv_with_no_unique_column'
+    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+
+    def setUp(self):
+        self._alice = {'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
+        super(TestCSVNoUnique, self).setUp()
 
     def test_lookup_should_work_without_unique_column(self):
-        result = self.lookup('lice', 'default')
+        result = self.backend.search('lice')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains('Alice', 'AAA', '5555555555'))
+        assert_that(result, contains(has_entries(**self._alice)))
 
 
-class TestCSVWithAccents(BaseDirdIntegrationTest):
+class TestCSVWithAccents(_BaseCSVFileTestCase):
 
     asset = 'csv_with_no_unique_column'
+    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+
+    def setUp(self):
+        self._pepe = {'fn': u'Pépé', 'ln': 'lol', 'num': '555'}
+        super(TestCSVWithAccents, self).setUp()
 
     def test_lookup_with_accents_in_term(self):
-        result = self.lookup(u'pép', 'default')
+        result = self.backend.search(u'pép')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains(u'Pépé', u'lol', u'555'))
+        assert_that(result, contains(has_entries(**self._pepe)))
 
     def test_lookup_with_accents_in_the_result(self):
-        result = self.lookup('lol', 'default')
+        result = self.backend.search('lol')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains(u'Pépé', u'lol', u'555'))
+        assert_that(result, contains(has_entries(**self._pepe)))
 
 
-class TestCSVSeparator(BaseDirdIntegrationTest):
+class TestCSVSeparator(_BaseCSVFileTestCase):
 
     asset = 'csv_with_pipes'
+    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+
+    def setUp(self):
+        self._alice = {'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
+        super(TestCSVSeparator, self).setUp()
 
     def test_lookup_with_pipe(self):
-        result = self.lookup('al', 'default')
+        result = self.backend.search('al')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains(u'Alice', u'AAA', u'5555555555'))
+        assert_that(result, contains(has_entries(**self._alice)))

@@ -37,17 +37,3 @@ rest_api:
     port: 9489
     certificate: /usr/local/share/ssl/dird/server.crt
     private_key: /usr/local/share/ssl/dird/server.key
-
-sources:
-  my_csv:
-    type: csv
-    name: my_csv
-    file: /tmp/data/test.csv
-    separator: "|"
-    searched_columns:
-      - fn
-      - ln
-    format_columns:
-      lastname: "{ln}"
-      firstname: "{fn}"
-      number: "{num}"

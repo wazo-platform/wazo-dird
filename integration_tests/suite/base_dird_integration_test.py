@@ -22,6 +22,8 @@ import logging
 
 from hamcrest import assert_that
 from hamcrest import equal_to
+from stevedore import DriverManager
+
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 
 logger = logging.getLogger(__name__)
@@ -40,6 +42,31 @@ VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
 
 DEFAULT_URL_PARAMS = {'scheme': 'https', 'host': 'localhost', 'version': '0.1', 'port': 9489}
+
+
+def absolute_file_name(asset_name, path):
+    return os.path.join(ASSET_ROOT, asset_name, path)
+
+
+class BackendWrapper(object):
+
+    def __init__(self, backend, config):
+        manager = DriverManager(namespace='xivo_dird.backends',
+                                name=backend,
+                                invoke_on_load=True)
+        self._source = manager.driver
+        self._source.load(config)
+
+    def search(self, term):
+        results = self._source.search(term)
+        return [r.fields for r in results]
+
+    def first(self, term):
+        return self._source.first_match(term).fields
+
+    def list(self, source_ids):
+        results = self._source.list(source_ids)
+        return [r.fields for r in results]
 
 
 class BaseDirdIntegrationTest(AssetLaunchingTestCase):
