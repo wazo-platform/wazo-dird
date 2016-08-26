@@ -21,7 +21,7 @@ import os
 import unittest
 
 from collections import defaultdict
-from contextlib import contextmanager, nested
+from contextlib import closing, contextmanager, nested
 from hamcrest import (assert_that,
                       any_of,
                       calling,
@@ -61,13 +61,12 @@ def with_user_uuid(f):
     def wrapped(self, *args, **kwargs):
         user_uuid = new_uuid()
         user = database.User(xivo_user_uuid=user_uuid)
-        session = Session()
-        session.add(user)
-        session.commit()
-        result = f(self, user_uuid, *args, **kwargs)
-        session.query(database.User).filter(database.User.xivo_user_uuid == user_uuid).delete()
-        session.commit()
-        session.close()
+        with closing(Session()) as session:
+            session.add(user)
+            session.commit()
+            result = f(self, user_uuid, *args, **kwargs)
+            session.query(database.User).filter(database.User.xivo_user_uuid == user_uuid).delete()
+            session.commit()
         return result
     return wrapped
 
@@ -118,26 +117,24 @@ class _BaseTest(unittest.TestCase):
 
     def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
         ids = []
-        session = Session()
-        for contact in contacts:
-            hash_ = database.dao.compute_contact_hash(contact)
-            dird_contact = database.Contact(user_uuid=xivo_user_uuid, hash=hash_)
-            session.add(dird_contact)
-            session.flush()
-            ids.append(dird_contact.uuid)
-            for name, value in contact.iteritems():
-                field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
-                session.add(field)
-        session.commit()
-        session.close()
+        with closing(Session()) as session:
+            for contact in contacts:
+                hash_ = database.dao.compute_contact_hash(contact)
+                dird_contact = database.Contact(user_uuid=xivo_user_uuid, hash=hash_)
+                session.add(dird_contact)
+                session.flush()
+                ids.append(dird_contact.uuid)
+                for name, value in contact.iteritems():
+                    field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
+                    session.add(field)
+                session.commit()
         return ids
 
     def _list_contacts(self):
-        s = Session()
-        contacts = defaultdict(dict)
-        for field in s.query(database.ContactFields).all():
-            contacts[field.contact_uuid][field.name] = field.value
-        s.close()
+        with closing(Session()) as s:
+            contacts = defaultdict(dict)
+            for field in s.query(database.ContactFields).all():
+                contacts[field.contact_uuid][field.name] = field.value
         return contacts.values()
 
 
@@ -220,11 +217,10 @@ class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
 class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
 
     def tearDown(self):
-        session = Session()
-        for phonebook in session.query(database.Phonebook).all():
-            session.delete(phonebook)
-        session.commit()
-        session.close()
+        with closing(Session()) as session:
+            for phonebook in session.query(database.Phonebook).all():
+                session.delete(phonebook)
+            session.commit()
         super(TestPhonebookCRUDCreate, self).tearDown()
 
     def test_that_create_creates_a_phonebook_and_a_tenant(self):
@@ -280,10 +276,10 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
         self._crud.create(tenant, {'name': 'first'})
         self._crud.create(tenant, {'name': 'second'})
 
-        session = Session()
-        tenant_count = session.query(func.count(database.Tenant.id)).filter(
-            database.Tenant.name == tenant).scalar()
-        session.close()
+        with closing(Session()) as session:
+            tenant_count = session.query(func.count(database.Tenant.id)).filter(
+                database.Tenant.name == tenant).scalar()
+
         assert_that(tenant_count, equal_to(1))
 
 
@@ -294,12 +290,12 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant, 'first', delete=False) as phonebook:
             self._crud.delete(tenant, phonebook['id'])
 
-        session = Session()
-        phonebook_count = (session
-                           .query(func.count(database.Phonebook.id))
-                           .filter(database.Phonebook.id == phonebook['id'])
-                           .scalar())
-        session.close()
+        with closing(Session()) as session:
+            phonebook_count = (session
+                               .query(func.count(database.Phonebook.id))
+                               .filter(database.Phonebook.id == phonebook['id'])
+                               .scalar())
+
         assert_that(phonebook_count, equal_to(0))
 
     def test_that_deleting_an_unknown_phonebook_raises(self):
@@ -324,10 +320,9 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
             except exception.NoSuchPhonebook:
                 pass  # as expected
 
-        session = Session()
-        tenant_created = session.query(
-            func.count(database.Tenant.id)).filter(database.Tenant.name == tenant_b).scalar() > 0
-        session.close()
+        with closing(Session()) as session:
+            tenant_created = session.query(
+                func.count(database.Tenant.id)).filter(database.Tenant.name == tenant_b).scalar() > 0
 
         assert_that(tenant_created, equal_to(False))
 
@@ -840,26 +835,22 @@ class TestFavoriteCrud(_BaseTest):
                     raises(exception.NoSuchFavorite))
 
     def _user_exists(self, xivo_user_uuid):
-        session = Session()
+        with closing(Session()) as session:
+            user_uuid = session.query(database.User.xivo_user_uuid).filter(
+                database.User.xivo_user_uuid == xivo_user_uuid
+            ).scalar()
 
-        user_uuid = session.query(database.User.xivo_user_uuid).filter(
-            database.User.xivo_user_uuid == xivo_user_uuid
-        ).scalar()
-
-        session.close()
         return user_uuid is not None
 
     def _favorite_exists(self, xivo_user_uuid, source_name, contact_id):
-        session = Session()
+        with closing(Session()) as session:
+            favorite = (session.query(database.Favorite)
+                        .join(database.Source)
+                        .join(database.User)
+                        .filter(and_(database.User.xivo_user_uuid == xivo_user_uuid,
+                                     database.Source.name == source_name,
+                                     database.Favorite.contact_id == contact_id))).first()
 
-        favorite = (session.query(database.Favorite)
-                    .join(database.Source)
-                    .join(database.User)
-                    .filter(and_(database.User.xivo_user_uuid == xivo_user_uuid,
-                                 database.Source.name == source_name,
-                                 database.Favorite.contact_id == contact_id))).first()
-
-        session.close()
         return favorite is not None
 
 
