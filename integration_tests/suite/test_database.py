@@ -67,6 +67,7 @@ def with_user_uuid(f):
         result = f(self, user_uuid, *args, **kwargs)
         session.query(database.User).filter(database.User.xivo_user_uuid == user_uuid).delete()
         session.commit()
+        session.close()
         return result
     return wrapped
 
@@ -79,7 +80,7 @@ class DBStarter(BaseDirdIntegrationTest):
 def setup():
     DBStarter.setUpClass()
     db_uri = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:15432')
-    engine = create_engine(db_uri, pool_size=20)
+    engine = create_engine(db_uri)
     database.Base.metadata.bind = engine
     database.Base.metadata.reflect()
     database.Base.metadata.drop_all()
@@ -128,6 +129,7 @@ class _BaseTest(unittest.TestCase):
                 field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
                 session.add(field)
         session.commit()
+        session.close()
         return ids
 
     def _list_contacts(self):
@@ -135,6 +137,7 @@ class _BaseTest(unittest.TestCase):
         contacts = defaultdict(dict)
         for field in s.query(database.ContactFields).all():
             contacts[field.contact_uuid][field.name] = field.value
+        s.close()
         return contacts.values()
 
 
@@ -221,6 +224,7 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
         for phonebook in session.query(database.Phonebook).all():
             session.delete(phonebook)
         session.commit()
+        session.close()
         super(TestPhonebookCRUDCreate, self).tearDown()
 
     def test_that_create_creates_a_phonebook_and_a_tenant(self):
@@ -279,6 +283,7 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
         session = Session()
         tenant_count = session.query(func.count(database.Tenant.id)).filter(
             database.Tenant.name == tenant).scalar()
+        session.close()
         assert_that(tenant_count, equal_to(1))
 
 
@@ -289,10 +294,12 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant, 'first', delete=False) as phonebook:
             self._crud.delete(tenant, phonebook['id'])
 
-        phonebook_count = (Session()
+        session = Session()
+        phonebook_count = (session
                            .query(func.count(database.Phonebook.id))
                            .filter(database.Phonebook.id == phonebook['id'])
                            .scalar())
+        session.close()
         assert_that(phonebook_count, equal_to(0))
 
     def test_that_deleting_an_unknown_phonebook_raises(self):
@@ -317,8 +324,10 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
             except exception.NoSuchPhonebook:
                 pass  # as expected
 
-        tenant_created = Session().query(
+        session = Session()
+        tenant_created = session.query(
             func.count(database.Tenant.id)).filter(database.Tenant.name == tenant_b).scalar() > 0
+        session.close()
 
         assert_that(tenant_created, equal_to(False))
 
@@ -837,6 +846,7 @@ class TestFavoriteCrud(_BaseTest):
             database.User.xivo_user_uuid == xivo_user_uuid
         ).scalar()
 
+        session.close()
         return user_uuid is not None
 
     def _favorite_exists(self, xivo_user_uuid, source_name, contact_id):
@@ -849,6 +859,7 @@ class TestFavoriteCrud(_BaseTest):
                                  database.Source.name == source_name,
                                  database.Favorite.contact_id == contact_id))).first()
 
+        session.close()
         return favorite is not None
 
 
