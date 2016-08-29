@@ -21,7 +21,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo.config_helper import read_config_file_hierarchy
-from xivo_dird import database
+from xivo_dird.core import database
 
 DEFAULT_CONFIG = {
     'config_file': '/etc/xivo-dird/config.yml',

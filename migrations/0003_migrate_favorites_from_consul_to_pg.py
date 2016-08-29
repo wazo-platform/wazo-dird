@@ -22,7 +22,8 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo.config_helper import read_config_file_hierarchy
 
-from xivo_dird import database
+from xivo_dird.core import database, exception
+
 
 DEFAULT_CONFIG = {
     'config_file': '/etc/xivo-dird/config.yml',
@@ -70,7 +71,7 @@ def main():
     for xivo_user_uuid, source, id_ in get_all_favorites(client):
         try:
             crud.create(xivo_user_uuid, source, id_)
-        except database.DuplicatedFavoriteException:
+        except exception.DuplicatedFavoriteException:
             pass
 
     client.kv.delete(PRIVATE_KEY, recurse=True)

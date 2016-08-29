@@ -23,12 +23,23 @@ from contextlib import contextmanager
 from collections import defaultdict
 
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
-from sqlalchemy import (and_, Column, distinct, event, exc, ForeignKey,
-                        Integer, schema, String, text, Text, func, or_)
+from sqlalchemy import and_, distinct, event, exc, func, or_
 from sqlalchemy.pool import Pool
-from sqlalchemy.ext.declarative import declarative_base
 
-Base = declarative_base()
+from xivo_dird.core.database import (Contact,
+                                     ContactFields,
+                                     Favorite,
+                                     Phonebook,
+                                     Source,
+                                     Tenant,
+                                     User)
+from xivo_dird.core.exception import (DatabaseServiceUnavailable,
+                                      DuplicatedContactException,
+                                      DuplicatedFavoriteException,
+                                      DuplicatedPhonebookException,
+                                      NoSuchContact,
+                                      NoSuchFavorite,
+                                      NoSuchPhonebook)
 
 
 # http://stackoverflow.com/questions/34828113/flask-sqlalchemy-losing-connection-after-restarting-of-db-server
@@ -50,129 +61,6 @@ def ping_connection(dbapi_connection, connection_record, connection_proxy):
 
 class unaccent(ReturnTypeFromArgs):
     pass
-
-
-class DatabaseServiceUnavailable(Exception):
-
-    def __init__(self):
-        super(DatabaseServiceUnavailable, self).__init__('Postgresql is unavailable')
-
-
-class NoSuchFavorite(ValueError):
-
-    def __init__(self, contact_id):
-        message = "No such favorite: {}".format(contact_id)
-        super(NoSuchFavorite, self).__init__(message)
-
-
-class NoSuchPhonebook(ValueError):
-
-    def __init__(self, phonebook_id):
-        message = 'No such phonebook: {}'.format(phonebook_id)
-        super(NoSuchPhonebook, self).__init__(message)
-
-
-class NoSuchContact(ValueError):
-
-    def __init__(self, contact_id):
-        message = "No such contact: {}".format(contact_id)
-        super(NoSuchContact, self).__init__(message)
-
-
-class DuplicatedContactException(Exception):
-
-    _msg = 'Duplicating contact'
-
-    def __init__(self):
-        super(DuplicatedContactException, self).__init__(self._msg)
-
-
-class DuplicatedFavoriteException(Exception):
-
-    pass
-
-
-class DuplicatedPhonebookException(Exception):
-
-    _msg = 'Duplicating phonebook'
-
-    def __init__(self):
-        super(DuplicatedPhonebookException, self).__init__(self._msg)
-
-
-class User(Base):
-
-    __tablename__ = 'dird_user'
-
-    xivo_user_uuid = Column(String(38), primary_key=True)
-
-
-class Contact(Base):
-
-    __tablename__ = 'dird_contact'
-    __table_args__ = (
-        schema.UniqueConstraint('user_uuid', 'hash'),
-        schema.UniqueConstraint('phonebook_id', 'hash'),
-    )
-
-    uuid = Column(String(38), server_default=text('uuid_generate_v4()'), primary_key=True)
-    user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'))
-    phonebook_id = Column(Integer(), ForeignKey('dird_phonebook.id', ondelete='CASCADE'))
-    hash = Column(String(40), nullable=False)
-
-
-class ContactFields(Base):
-
-    __tablename__ = 'dird_contact_fields'
-
-    id = Column(Integer(), primary_key=True)
-    name = Column(Text(), nullable=False, index=True)
-    value = Column(Text(), index=True)
-    contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
-
-
-class Favorite(Base):
-
-    __tablename__ = 'dird_favorite'
-
-    source_id = Column(Integer(), ForeignKey('dird_source.id', ondelete='CASCADE'), primary_key=True)
-    contact_id = Column(Text(), primary_key=True)
-    user_uuid = Column(String(38),
-                       ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'),
-                       primary_key=True)
-
-
-class Phonebook(Base):
-
-    __tablename__ = 'dird_phonebook'
-    __table_args__ = (
-        schema.UniqueConstraint('name', 'tenant_id'),
-        schema.CheckConstraint("name != ''"),
-    )
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False)
-    description = Column(Text)
-    tenant_id = Column(Integer, ForeignKey('dird_tenant.id'))
-
-
-class Source(Base):
-
-    __tablename__ = 'dird_source'
-
-    id = Column(Integer(), primary_key=True)
-    name = Column(Text(), nullable=False, unique=True)
-
-
-class Tenant(Base):
-
-    __tablename__ = 'dird_tenant'
-    __table_args__ = (
-        schema.CheckConstraint("name != ''"),
-    )
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), unique=True, nullable=False)
 
 
 def _list_contacts_by_uuid(session, uuids):

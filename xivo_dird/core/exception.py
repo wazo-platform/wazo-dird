@@ -16,6 +16,54 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 
+class DatabaseServiceUnavailable(Exception):
+
+    def __init__(self):
+        super(DatabaseServiceUnavailable, self).__init__('Postgresql is unavailable')
+
+
+class NoSuchFavorite(ValueError):
+
+    def __init__(self, contact_id):
+        message = "No such favorite: {}".format(contact_id)
+        super(NoSuchFavorite, self).__init__(message)
+
+
+class NoSuchPhonebook(ValueError):
+
+    def __init__(self, phonebook_id):
+        message = 'No such phonebook: {}'.format(phonebook_id)
+        super(NoSuchPhonebook, self).__init__(message)
+
+
+class NoSuchContact(ValueError):
+
+    def __init__(self, contact_id):
+        message = "No such contact: {}".format(contact_id)
+        super(NoSuchContact, self).__init__(message)
+
+
+class DuplicatedContactException(Exception):
+
+    _msg = 'Duplicating contact'
+
+    def __init__(self):
+        super(DuplicatedContactException, self).__init__(self._msg)
+
+
+class DuplicatedFavoriteException(Exception):
+
+    pass
+
+
+class DuplicatedPhonebookException(Exception):
+
+    _msg = 'Duplicating phonebook'
+
+    def __init__(self):
+        super(DuplicatedPhonebookException, self).__init__(self._msg)
+
+
 class ProfileNotFoundError(Exception):
 
     pass

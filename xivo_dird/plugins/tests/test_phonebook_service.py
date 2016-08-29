@@ -25,7 +25,7 @@ from hamcrest import (assert_that,
                       raises)
 from mock import Mock, sentinel as s
 
-from xivo_dird import database
+from xivo_dird.core import database
 from xivo_dird.core.exception import (InvalidContactException,
                                       InvalidPhonebookException,
                                       InvalidTenantException)

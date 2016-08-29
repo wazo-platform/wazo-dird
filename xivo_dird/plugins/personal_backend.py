@@ -22,7 +22,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo_dird import BaseSourcePlugin
 from xivo_dird import make_result_class
-from xivo_dird import database
+from xivo_dird.core import database
 
 logger = logging.getLogger(__name__)
 

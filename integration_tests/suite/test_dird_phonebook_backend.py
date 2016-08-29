@@ -24,7 +24,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from stevedore import DriverManager
 
-from xivo_dird import database
+from xivo_dird.core import database
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 Session = scoped_session(sessionmaker())

@@ -21,7 +21,7 @@ import os
 import unittest
 
 from collections import defaultdict
-from contextlib import contextmanager, nested
+from contextlib import closing, contextmanager, nested
 from hamcrest import (assert_that,
                       any_of,
                       calling,
@@ -39,7 +39,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import and_, func, exc
 
-from xivo_dird import database
+from xivo_dird.core import database, exception
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
@@ -61,12 +61,12 @@ def with_user_uuid(f):
     def wrapped(self, *args, **kwargs):
         user_uuid = new_uuid()
         user = database.User(xivo_user_uuid=user_uuid)
-        session = Session()
-        session.add(user)
-        session.commit()
-        result = f(self, user_uuid, *args, **kwargs)
-        session.query(database.User).filter(database.User.xivo_user_uuid == user_uuid).delete()
-        session.commit()
+        with closing(Session()) as session:
+            session.add(user)
+            session.commit()
+            result = f(self, user_uuid, *args, **kwargs)
+            session.query(database.User).filter(database.User.xivo_user_uuid == user_uuid).delete()
+            session.commit()
         return result
     return wrapped
 
@@ -117,24 +117,24 @@ class _BaseTest(unittest.TestCase):
 
     def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
         ids = []
-        session = Session()
-        for contact in contacts:
-            hash_ = database.compute_contact_hash(contact)
-            dird_contact = database.Contact(user_uuid=xivo_user_uuid, hash=hash_)
-            session.add(dird_contact)
-            session.flush()
-            ids.append(dird_contact.uuid)
-            for name, value in contact.iteritems():
-                field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
-                session.add(field)
-        session.commit()
+        with closing(Session()) as session:
+            for contact in contacts:
+                hash_ = database.dao.compute_contact_hash(contact)
+                dird_contact = database.Contact(user_uuid=xivo_user_uuid, hash=hash_)
+                session.add(dird_contact)
+                session.flush()
+                ids.append(dird_contact.uuid)
+                for name, value in contact.iteritems():
+                    field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
+                    session.add(field)
+                session.commit()
         return ids
 
     def _list_contacts(self):
-        s = Session()
-        contacts = defaultdict(dict)
-        for field in s.query(database.ContactFields).all():
-            contacts[field.contact_uuid][field.name] = field.value
+        with closing(Session()) as s:
+            contacts = defaultdict(dict)
+            for field in s.query(database.ContactFields).all():
+                contacts[field.contact_uuid][field.name] = field.value
         return contacts.values()
 
 
@@ -159,7 +159,7 @@ class _BasePhonebookCRUDTest(_BaseTest):
 class TestBaseDAO(_BaseTest):
 
     def test_that_an_unexpected_error_does_not_block_the_current_Session(self):
-        dao = database._BaseDAO(Session)
+        dao = database.dao._BaseDAO(Session)
 
         try:
             with dao.new_session() as s:
@@ -217,10 +217,10 @@ class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
 class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
 
     def tearDown(self):
-        session = Session()
-        for phonebook in session.query(database.Phonebook).all():
-            session.delete(phonebook)
-        session.commit()
+        with closing(Session()) as session:
+            for phonebook in session.query(database.Phonebook).all():
+                session.delete(phonebook)
+            session.commit()
         super(TestPhonebookCRUDCreate, self).tearDown()
 
     def test_that_create_creates_a_phonebook_and_a_tenant(self):
@@ -268,7 +268,7 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
         self._crud.create(tenant, body)
 
         assert_that(calling(self._crud.create).with_args(tenant, body),
-                    raises(database.DuplicatedPhonebookException))
+                    raises(exception.DuplicatedPhonebookException))
 
     def test_that_duplicate_tenants_are_not_created(self):
         tenant = 'default'
@@ -276,9 +276,10 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
         self._crud.create(tenant, {'name': 'first'})
         self._crud.create(tenant, {'name': 'second'})
 
-        session = Session()
-        tenant_count = session.query(func.count(database.Tenant.id)).filter(
-            database.Tenant.name == tenant).scalar()
+        with closing(Session()) as session:
+            tenant_count = session.query(func.count(database.Tenant.id)).filter(
+                database.Tenant.name == tenant).scalar()
+
         assert_that(tenant_count, equal_to(1))
 
 
@@ -289,15 +290,17 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant, 'first', delete=False) as phonebook:
             self._crud.delete(tenant, phonebook['id'])
 
-        phonebook_count = (Session()
-                           .query(func.count(database.Phonebook.id))
-                           .filter(database.Phonebook.id == phonebook['id'])
-                           .scalar())
+        with closing(Session()) as session:
+            phonebook_count = (session
+                               .query(func.count(database.Phonebook.id))
+                               .filter(database.Phonebook.id == phonebook['id'])
+                               .scalar())
+
         assert_that(phonebook_count, equal_to(0))
 
     def test_that_deleting_an_unknown_phonebook_raises(self):
         assert_that(calling(self._crud.delete).with_args('tenant', 42),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
 
     def test_that_deleting_another_tenant_phonebook_is_not_possible(self):
         tenant_a = 'a'
@@ -305,7 +308,7 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
 
         with self._new_phonebook(tenant_a, 'main') as phonebook:
             assert_that(calling(self._crud.delete).with_args(tenant_b, phonebook['id']),
-                        raises(database.NoSuchPhonebook))
+                        raises(exception.NoSuchPhonebook))
 
     def test_that_tenants_are_not_created_on_delete(self):
         tenant_a = 'real'
@@ -314,11 +317,12 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_a, 'a') as phonebook:
             try:
                 self._crud.delete(tenant_b, phonebook['id'])
-            except database.NoSuchPhonebook:
+            except exception.NoSuchPhonebook:
                 pass  # as expected
 
-        tenant_created = Session().query(
-            func.count(database.Tenant.id)).filter(database.Tenant.name == tenant_b).scalar() > 0
+        with closing(Session()) as session:
+            tenant_created = session.query(
+                func.count(database.Tenant.id)).filter(database.Tenant.name == tenant_b).scalar() > 0
 
         assert_that(tenant_created, equal_to(False))
 
@@ -350,13 +354,13 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
         tenant = 'tenant'
 
         assert_that(calling(self._crud.edit).with_args(tenant, 42, {'name': 'test'}),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
 
     def test_that_editing_a_phonebook_from_another_tenant_raises(self):
         with nested(self._new_phonebook('tenant_a', 'a'),
                     self._new_phonebook('tenant_b', 'b')) as (phonebook_a, _):
             assert_that(calling(self._crud.edit).with_args('tenant_b', phonebook_a['id'], {'name': 'foo'}),
-                        raises(database.NoSuchPhonebook))
+                        raises(exception.NoSuchPhonebook))
 
 
 class TestPhonebookCRUDGet(_BasePhonebookCRUDTest):
@@ -369,12 +373,12 @@ class TestPhonebookCRUDGet(_BasePhonebookCRUDTest):
 
     def test_that_get_with_an_unknown_id_raises(self):
         assert_that(calling(self._crud.get).with_args('tenant', 42),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
 
     def test_that_get_from_another_tenant_raises(self):
         with self._new_phonebook('tenant_a', 'a') as phonebook:
             assert_that(calling(self._crud.get).with_args('tenant_b', phonebook['id']),
-                        raises(database.NoSuchPhonebook))
+                        raises(exception.NoSuchPhonebook))
 
 
 class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
@@ -482,7 +486,7 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
     def test_that_duplicated_contacts_cannot_be_created(self):
         self._crud.create(self._tenant, self._phonebook_id, self._body)
         assert_that(calling(self._crud.create).with_args(self._tenant, self._phonebook_id, self._body),
-                    raises(database.DuplicatedContactException))
+                    raises(exception.DuplicatedContactException))
 
     def test_that_duplicates_can_happen_in_different_phonebooks(self):
         phonebook_2 = self._phonebook_crud.create(self._tenant, {'name': 'second'})
@@ -494,7 +498,7 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
 
     def test_that_a_tenant_can_only_create_in_his_phonebook(self):
         assert_that(calling(self._crud.create).with_args('not-the-tenant', self._phonebook_id, self._body),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
 
 
 class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
@@ -510,7 +514,7 @@ class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
         contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
 
         assert_that(calling(self._crud.delete).with_args('not-the-tenant', self._phonebook_id, contact['id']),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
         assert_that(self._list_contacts(), has_item(contact))
 
     def test_that_deleting_an_unknown_contact_raises(self):
@@ -518,7 +522,7 @@ class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
 
         assert_that(calling(self._crud.delete)
                     .with_args(self._tenant, self._phonebook_id, unknown_contact_uuid),
-                    raises(database.NoSuchContact))
+                    raises(exception.NoSuchContact))
 
 
 class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
@@ -535,13 +539,13 @@ class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
         contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
 
         assert_that(calling(self._crud.get).with_args(self._tenant, other_phonebook['id'], contact['id']),
-                    raises(database.NoSuchContact))
+                    raises(exception.NoSuchContact))
 
     def test_that_get_wont_work_with_the_wrong_tenant(self):
         contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
 
         assert_that(calling(self._crud.get).with_args('not-the-tenant', self._phonebook_id, contact['id']),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
 
 
 class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
@@ -579,7 +583,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
         assert_that(calling(self._crud.edit)
                     .with_args(self._tenant, self._phonebook_id, contact_2['id'], {'id': new_uuid(),
                                                                                    'name': 'Foo'}),
-                    raises(database.DuplicatedContactException))
+                    raises(exception.DuplicatedContactException))
 
     def test_that_the_phonebook_must_match_the_id(self):
         other_phonebook = self._phonebook_crud.create(self._tenant, {'name': 'the other'})
@@ -592,7 +596,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
         other_phonebook_id = other_phonebook['id']
         assert_that(calling(self._crud.edit)
                     .with_args(self._tenant, other_phonebook_id, contact['id'], new_body),
-                    raises(database.NoSuchContact))
+                    raises(exception.NoSuchContact))
 
     def test_that_the_tenant_must_match_the_id(self):
         contact = self._crud.create(self._tenant, self._phonebook_id, self._body)
@@ -603,7 +607,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
 
         assert_that(calling(self._crud.edit)
                     .with_args('not-the-tenant', self._phonebook_id, contact['id'], new_body),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
 
 
 class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
@@ -621,7 +625,7 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
 
     def test_that_only_the_tenant_can_list(self):
         assert_that(calling(self._crud.list).with_args('not-the-tenant', self._phonebook_id),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
 
     def test_that_the_list_can_be_filtered(self):
         result = self._crud.list(self._tenant, self._phonebook_id, search='o')
@@ -649,7 +653,7 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
 
     def test_that_only_the_tenant_can_count(self):
         assert_that(calling(self._crud.count).with_args('not-the-tenant', self._phonebook_id),
-                    raises(database.NoSuchPhonebook))
+                    raises(exception.NoSuchPhonebook))
 
 
 class TestContactCRUD(_BaseTest):
@@ -679,7 +683,7 @@ class TestContactCRUD(_BaseTest):
     def test_that_personal_contacts_are_unique(self, xivo_user_uuid):
         self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)
         assert_that(calling(self._crud.create_personal_contact).with_args(xivo_user_uuid, self.contact_1),
-                    raises(database.DuplicatedContactException))
+                    raises(exception.DuplicatedContactException))
 
     @with_user_uuid
     def test_that_personal_contacts_remain_unique(self, xivo_user_uuid):
@@ -687,7 +691,7 @@ class TestContactCRUD(_BaseTest):
         self._crud.create_personal_contact(xivo_user_uuid, self.contact_2)['id']
 
         assert_that(calling(self._crud.edit_personal_contact).with_args(xivo_user_uuid, contact_1_uuid, self.contact_2),
-                    raises(database.DuplicatedContactException))
+                    raises(exception.DuplicatedContactException))
         contact_list = self._crud.list_personal_contacts(xivo_user_uuid)
         assert_that(contact_list, contains_inanyorder(expected(self.contact_1), expected(self.contact_2)))
 
@@ -716,7 +720,7 @@ class TestContactCRUD(_BaseTest):
         contact_uuid, _, __ = self._insert_personal_contacts(user_1_uuid, self.contact_1, self.contact_2, self.contact_3)
 
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid),
-                    raises(database.NoSuchContact))
+                    raises(exception.NoSuchContact))
 
     @with_user_uuid
     def test_delete_personal_contact(self, xivo_user_uuid):
@@ -725,7 +729,7 @@ class TestContactCRUD(_BaseTest):
         self._crud.delete_personal_contact(xivo_user_uuid, contact_uuid)
 
         assert_that(calling(self._crud.get_personal_contact).with_args(xivo_user_uuid, contact_uuid),
-                    raises(database.NoSuchContact))
+                    raises(exception.NoSuchContact))
 
     @with_user_uuid
     @with_user_uuid
@@ -733,7 +737,7 @@ class TestContactCRUD(_BaseTest):
         contact_uuid, = self._insert_personal_contacts(user_1_uuid, self.contact_1)
 
         assert_that(calling(self._crud.delete_personal_contact).with_args(user_2_uuid, contact_uuid),
-                    raises(database.NoSuchContact))
+                    raises(exception.NoSuchContact))
 
     @with_user_uuid
     @with_user_uuid
@@ -744,11 +748,11 @@ class TestContactCRUD(_BaseTest):
         self._crud.delete_all_personal_contacts(user_2_uuid)
 
         assert_that(calling(self._crud.get_personal_contact).with_args(user_1_uuid, contact_uuid_1),
-                    not_(raises(database.NoSuchContact)))
+                    not_(raises(exception.NoSuchContact)))
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid_2),
-                    raises(database.NoSuchContact))
+                    raises(exception.NoSuchContact))
         assert_that(calling(self._crud.get_personal_contact).with_args(user_2_uuid, contact_uuid_3),
-                    raises(database.NoSuchContact))
+                    raises(exception.NoSuchContact))
 
 
 class TestFavoriteCrud(_BaseTest):
@@ -775,7 +779,7 @@ class TestFavoriteCrud(_BaseTest):
         source, contact_id = 'source', 'the-contact-id'
         self._crud.create(xivo_user_uuid, source, contact_id)
         assert_that(calling(self._crud.create).with_args(xivo_user_uuid, source, contact_id),
-                    raises(database.DuplicatedFavoriteException))
+                    raises(exception.DuplicatedFavoriteException))
 
     @with_user_uuid
     @with_user_uuid
@@ -814,40 +818,38 @@ class TestFavoriteCrud(_BaseTest):
         self._crud.create(user_2, 'source', 'the-contact-id')
 
         assert_that(calling(self._crud.delete).with_args(user_1, 'source', 'the-contact-id'),
-                    raises(database.NoSuchFavorite))
+                    raises(exception.NoSuchFavorite))
 
         assert_that(self._favorite_exists(user_2, 'source', 'the-contact-id'))
 
     @with_user_uuid
     def test_that_delete_raises_if_not_found(self, xivo_user_uuid):
         assert_that(calling(self._crud.delete).with_args(xivo_user_uuid, 'source', 'the-contact-id'),
-                    raises(database.NoSuchFavorite))
+                    raises(exception.NoSuchFavorite))
 
     @with_user_uuid
     def test_that_delete_from_an_unknown_source_raises(self, xivo_user_uuid):
         self._crud.create(xivo_user_uuid, 'source', 'the-contact-id')
 
         assert_that(calling(self._crud.delete).with_args(xivo_user_uuid, 'not-source', 'the-contact-id'),
-                    raises(database.NoSuchFavorite))
+                    raises(exception.NoSuchFavorite))
 
     def _user_exists(self, xivo_user_uuid):
-        session = Session()
-
-        user_uuid = session.query(database.User.xivo_user_uuid).filter(
-            database.User.xivo_user_uuid == xivo_user_uuid
-        ).scalar()
+        with closing(Session()) as session:
+            user_uuid = session.query(database.User.xivo_user_uuid).filter(
+                database.User.xivo_user_uuid == xivo_user_uuid
+            ).scalar()
 
         return user_uuid is not None
 
     def _favorite_exists(self, xivo_user_uuid, source_name, contact_id):
-        session = Session()
-
-        favorite = (session.query(database.Favorite)
-                    .join(database.Source)
-                    .join(database.User)
-                    .filter(and_(database.User.xivo_user_uuid == xivo_user_uuid,
-                                 database.Source.name == source_name,
-                                 database.Favorite.contact_id == contact_id))).first()
+        with closing(Session()) as session:
+            favorite = (session.query(database.Favorite)
+                        .join(database.Source)
+                        .join(database.User)
+                        .filter(and_(database.User.xivo_user_uuid == xivo_user_uuid,
+                                     database.Source.name == source_name,
+                                     database.Favorite.contact_id == contact_id))).first()
 
         return favorite is not None
 

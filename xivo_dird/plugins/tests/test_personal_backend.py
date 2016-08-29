@@ -22,7 +22,7 @@ from mock import Mock
 from unittest import TestCase
 from uuid import uuid4
 
-from xivo_dird import database
+from xivo_dird.core import database
 
 from ..personal_backend import PersonalBackend
 
