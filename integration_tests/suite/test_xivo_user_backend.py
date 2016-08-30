@@ -16,37 +16,58 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import time
+import yaml
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_UUID
+from .base_dird_integration_test import absolute_file_name, BaseDirdIntegrationTest, BackendWrapper
 
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
+from hamcrest import empty
 from hamcrest import has_entry
+from hamcrest import has_entries
 
 
-class TestXivoUser(BaseDirdIntegrationTest):
+class _BaseXiVOUserBackendTestCase(BaseDirdIntegrationTest):
+
+    def setUp(self):
+        config_file = absolute_file_name(self.asset, self.source_config)
+        with open(config_file) as f:
+            config = {'config': yaml.load(f)}
+        print config
+        self.backend = BackendWrapper('xivo', config)
+
+
+class TestXivoUser(_BaseXiVOUserBackendTestCase):
 
     asset = 'xivo_users'
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
+    source_config = 'etc/xivo-dird/sources.d/america.yml'
+
+    def setUp(self):
+        super(TestXivoUser, self).setUp()
+        self._dylan = {'id': 42,
+                       'firstname': 'Bob',
+                       'lastname': 'Dylan',
+                       'exten': '1000',
+                       'voicemail_number': '1234'}
 
     def test_that_the_lookup_returns_the_expected_result(self):
-        result = self.lookup('dyl', 'default')
+        results = self.backend.search('dyl')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains('Bob', 'Dylan', '1000', None, '1234'))
+        assert_that(results, contains(has_entries(**self._dylan)))
 
     def test_that_the_reverse_lookup_returns_the_expected_result(self):
-        result = self.reverse('1000', 'default', VALID_UUID)
+        result = self.backend.first('1000')
 
-        assert_that(result['display'], equal_to('Bob Dylan'))
+        assert_that(result, has_entries(**self._dylan))
 
     def test_that_relations_are_present(self):
-        result = self.lookup('john', 'default')
+        results = self.backend.search_raw('john')
+        print results
 
-        relations = result['results'][0]['relations']
+        relations = results[0].relations
         assert_that(relations, equal_to({'xivo_id': self.uuid,
                                          'agent_id': 3,
                                          'endpoint_id': 2,
@@ -55,9 +76,9 @@ class TestXivoUser(BaseDirdIntegrationTest):
                                          'source_entry_id': '1'}))
 
     def test_no_result(self):
-        result = self.lookup('frack', 'default')
+        results = self.backend.search('frack')
 
-        assert_that(result['results'], contains())
+        assert_that(results, empty())
 
 
 class TestXivoUserNoConfd(BaseDirdIntegrationTest):

@@ -58,8 +58,10 @@ class BackendWrapper(object):
         self._source.load(config)
 
     def search(self, term):
-        results = self._source.search(term)
-        return [r.fields for r in results]
+        return [r.fields for r in self.search_raw(term)]
+
+    def search_raw(self, term):
+        return self._source.search(term)
 
     def first(self, term):
         return self._source.first_match(term).fields

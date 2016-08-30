@@ -1,33 +1,13 @@
 sync:
   image: n3llyb0y/wait
   links:
-    - auth
-    - dird
     - confd
   environment:
-    PORTS: "9489 8000 9497"
-dird:
-  image: xivo-dird-test
-  ports:
-    - "9489:9489"
-  volumes:
-    - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
-    - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"
-    - "../../..:/usr/src/xivo-dird"
-    - "./ssl:/usr/local/share/ssl"
-  links:
-    - auth
-    - confd
+    PORTS: "8000"
 confd:
   image: python:2.7
   volumes:
     - "./confd_data:/tmp"
-  command: /tmp/run_confd
-auth:
-  image: p0bailey/docker-flask
   ports:
-    - "9497:9497"
-  volumes:
-    - "./auth_data:/tmp"
-    - "./ssl:/usr/local/share/ssl"
-  command: "python /tmp/mock-xivo-auth.py 9497"
+    - "8000:8000"
+  command: /tmp/run_confd
