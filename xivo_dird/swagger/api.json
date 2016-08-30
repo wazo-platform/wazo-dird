@@ -752,7 +752,7 @@
                     "200": {
                         "description": "A list of contacts",
                         "schema": {
-                            "$ref": "#/definitions/ContactList"
+                            "$ref": "#/definitions/PhonebookContactList"
                         }
                     },
                     "404": {
@@ -798,7 +798,7 @@
                         "schema": {
                             "properties": {
                                 "items": {
-                                    "$ref": "#/definitions/PersonalList"
+                                    "$ref": "#/definitions/PhonebookContactList"
                                 }
                             }
                         }
@@ -977,7 +977,7 @@
                     "201": {
                         "description": "At least one contact has been created.",
                         "schema": {
-                            "$ref": "#/definitions/PersonalImportResponse"
+                            "$ref": "#/definitions/ContactImportResponse"
                         }
                     },
                     "400": {
@@ -1212,7 +1212,7 @@
                     "200": {
                         "description": "A list of contacts",
                         "schema": {
-                            "$ref": "#/definitions/ContactList"
+                            "$ref": "#/definitions/PhonebookContactList"
                         }
                     },
                     "400": {
@@ -1259,6 +1259,51 @@
                     },
                     "409": {
                         "$ref": "#/responses/DuplicateContact"
+                    },
+                    "503": {
+                        "$ref": "#/responses/AnotherServiceUnavailable"
+                    }
+                }
+            }
+        },
+        "/tenants/{tenant}/phonebooks/{phonebook_id}/contacts/import": {
+            "post": {
+                "summary": "Import multiple contacts at once",
+                "description": "**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create`",
+                "operationId": "import_phonebook",
+                "tags": [
+                    "phonebook"
+                ],
+                "consumes": ["text/csv; charset=utf-8", "text/csv; charset=iso8859-15", "text/csv; charset=cp1252"],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/Tenant"
+                    },
+                    {
+                        "$ref": "#/parameters/PhonebookID"
+                    },
+                    {
+                        "name": "contacts",
+                        "description": "The attributes of the contacts in CSV format. The encoding must be set in the Content-Type header, via the `charset=` option. Field delimiter is `,`, quoting character is `\"` and line delimiter is `\\r\\n`",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "At least one contact has been created.",
+                        "schema": {
+                            "$ref": "#/definitions/ContactImportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Input could not be decoded, and no contacts were created.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
                     },
                     "503": {
                         "$ref": "#/responses/AnotherServiceUnavailable"
@@ -1707,7 +1752,7 @@
                 }
             }
         },
-        "Contact": {
+        "PhonebookContact": {
             "properties": {
                 "id": {
                     "type": "string"
@@ -1720,10 +1765,10 @@
                 }
             }
         },
-        "PersonalList": {
+        "PhonebookContactList": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/Personal"
+                "$ref": "#/definitions/PhonebookContact"
             }
         },
         "ContactBodySample": {
@@ -1736,20 +1781,20 @@
                 }
             }
         },
-        "PersonalImportResponse": {
+        "ContactImportResponse": {
             "properties": {
                 "created": {
-                    "$ref": "#/definitions/PersonalList"
+                    "$ref": "#/definitions/PhonebookContactList"
                 },
                 "failed": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/PersonalImportFailure"
+                        "$ref": "#/definitions/ContactImportFailure"
                     }
                 }
             }
         },
-        "PersonalImportFailure": {
+        "ContactImportFailure": {
             "properties": {
                 "line": {
                     "type": "integer"
