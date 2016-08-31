@@ -35,7 +35,6 @@ class _BaseXiVOUserBackendTestCase(BaseDirdIntegrationTest):
         config_file = absolute_file_name(self.asset, self.source_config)
         with open(config_file) as f:
             config = {'config': yaml.load(f)}
-        print config
         self.backend = BackendWrapper('xivo', config)
 
 
@@ -65,7 +64,6 @@ class TestXivoUser(_BaseXiVOUserBackendTestCase):
 
     def test_that_relations_are_present(self):
         results = self.backend.search_raw('john')
-        print results
 
         relations = results[0].relations
         assert_that(relations, equal_to({'xivo_id': self.uuid,
