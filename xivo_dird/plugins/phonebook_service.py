@@ -20,6 +20,7 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from marshmallow import fields, Schema, validate, pre_load
+from unidecode import unidecode
 
 from xivo_dird import BaseServicePlugin
 from xivo_dird.core import database
@@ -77,7 +78,7 @@ class _PhonebookService(object):
         results = self._contact_crud.list(self._validate_tenant(tenant), phonebook_id, **params)
         if order:
             reverse = direction == 'desc'
-            results = sorted(results, key=lambda x: x.get(order), reverse=reverse)
+            results = sorted(results, key=lambda x: unidecode(x.get(order, u'')), reverse=reverse)
         if offset:
             results = results[offset:]
         if limit:
