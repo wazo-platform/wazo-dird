@@ -15,71 +15,95 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_UUID
+import yaml
 
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import contains_inanyorder
-from hamcrest import equal_to
-from hamcrest import has_entry
-from hamcrest import has_length
+from hamcrest import (assert_that, contains, empty, has_entries)
+
+from .base_dird_integration_test import absolute_file_name, BaseDirdIntegrationTest, BackendWrapper
 
 
-class TestCSVWSBackend(BaseDirdIntegrationTest):
+class _BaseCSVWSBackend(BaseDirdIntegrationTest):
+
+    def setUp(self):
+        config_file = absolute_file_name(self.asset, self.source_config)
+        with open(config_file) as f:
+            config = {'config': yaml.load(f)}
+        self.backend = BackendWrapper('csv_ws', config)
+
+
+class TestCSVWSBackend(_BaseCSVWSBackend):
 
     asset = 'csv_ws_utf8_with_pipes_with_ssl'
+    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+
+    def setUp(self):
+        super(TestCSVWSBackend, self).setUp()
+        self._andree_anne = {'id': '1',
+                             'firstname': u'Andrée-Anne',
+                             'lastname': 'Smith',
+                             'number': '5551231111'}
+        self._benoit = {'id': '42',
+                        'firstname': u'Benoît',
+                        'lastname': 'Malone',
+                        'number': '5551232222'}
 
     def test_that_verify_certificate_false(self):
-        results = self.lookup(u'Ben', 'default')
-        assert_that(results['results'], has_length(1))
+        results = self.backend.search(u'Ben')
+
+        assert_that(results, contains(has_entries(**self._benoit)))
 
     def test_that_searching_for_result_with_non_ascii(self):
-        results = self.lookup(u'dré', 'default')
+        results = self.backend.search(u'dré')
 
-        assert_that(results['results'][0],
-                    has_entry('column_values', contains(u'Andrée-Anne', 'Smith', '5551231111', False)))
-        assert_that(results['results'], has_length(1))
+        assert_that(results, contains(has_entries(**self._andree_anne)))
 
     def test_reverse_lookup(self):
-        results = self.reverse('5551231111', 'default', VALID_UUID)
+        result = self.backend.first('5551231111')
 
-        assert_that(results['display'], equal_to(u'Andrée-Anne Smith'))
+        assert_that(result, has_entries(**self._andree_anne))
 
     def test_that_no_result_returns_an_empty_list(self):
-        results = self.lookup('henry', 'default')
+        results = self.backend.search('henry')
 
-        assert_that(results['results'], has_length(0))
+        assert_that(results, empty())
 
-    def test_that_results_can_be_favorited(self):
-        self.put_favorite('my_csv', '42')
+    def test_that_list_returns_a_contact(self):
+        unknown_id = '12'
 
-        result = self.favorites('default')
+        result = self.backend.list([self._benoit['id'], unknown_id])
 
-        assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'Benoît', 'Malone', '5551232222', True),)
-        ))
+        assert_that(result, contains(has_entries(**self._benoit)))
 
 
-class TestCSVWSBackend2(BaseDirdIntegrationTest):
+class TestCSVWSBackendComa(_BaseCSVWSBackend):
 
     asset = 'csv_ws_iso88591_with_coma'
+    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+
+    def setUp(self):
+        super(TestCSVWSBackendComa, self).setUp()
+        self._andree_anne = {'id': '1',
+                             'firstname': u'Andrée-Anne',
+                             'lastname': 'Smith',
+                             'number': '5551231111'}
+        self._benoit = {'id': '42',
+                        'firstname': u'Benoît',
+                        'lastname': 'Malone',
+                        'number': '5551232222'}
 
     def test_that_searching_for_result_with_non_ascii(self):
-        results = self.lookup(u'dré', 'default')
+        results = self.backend.search(u'dré')
 
-        assert_that(results['results'][0],
-                    has_entry('column_values', contains(u'Andrée-Anne', 'Smith', '5551231111', False)))
+        assert_that(results, contains(has_entries(**self._andree_anne)))
 
     def test_that_no_result_returns_an_empty_list(self):
-        results = self.lookup('henry', 'default')
+        results = self.backend.search('henry')
 
-        assert_that(results['results'], has_length(0))
+        assert_that(results, empty())
 
-    def test_that_results_can_be_favorited(self):
-        self.put_favorite('my_csv', '42')
+    def test_that_list_returns_a_contact(self):
+        unknown_id = 55
 
-        result = self.favorites('default')
+        result = self.backend.list([self._benoit['id'], unknown_id])
 
-        first_result = result['results'][0]['column_values']
-        assert_that(first_result, contains(u'Benoît', 'Malone', '5551232222', True))
+        assert_that(result, contains(has_entries(**self._benoit)))

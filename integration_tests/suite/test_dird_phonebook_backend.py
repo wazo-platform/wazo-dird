@@ -22,10 +22,9 @@ import unittest
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from stevedore import DriverManager
 
 from xivo_dird.core import database
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import BaseDirdIntegrationTest, BackendWrapper
 
 Session = scoped_session(sessionmaker())
 DB_URI = None
@@ -68,27 +67,6 @@ contact_bodies = [
     _new_contact('Ron', 'Weasley'),
 ]
 contacts = []
-
-
-class BackendWrapper(object):
-
-    def __init__(self, backend, config):
-        manager = DriverManager(namespace='xivo_dird.backends',
-                                name=backend,
-                                invoke_on_load=True)
-        self._source = manager.driver
-        self._source.load(config)
-
-    def search(self, term):
-        results = self._source.search(term)
-        return [r.fields for r in results]
-
-    def first(self, term):
-        return self._source.first_match(term).fields
-
-    def list(self, source_ids):
-        results = self._source.list(source_ids)
-        return [r.fields for r in results]
 
 
 class TestPhonebookBackend(unittest.TestCase):
