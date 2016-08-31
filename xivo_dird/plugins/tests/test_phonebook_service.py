@@ -222,11 +222,11 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 
     def setUp(self):
         super(TestPhonebookServiceContactList, self).setUp()
-        self._manolo = {'firstname': 'Manolo', 'lastname': 'Laporte-Carpentier', 'number': '5551111234'}
-        self._annabelle = {'firstname': 'Annabelle', 'lastname': 'Courval', 'number': '5552221234'}
-        self._gary_bob = {'firstname': 'Gary-Bob', 'lastname': 'Derome'}
-        self._antonin = {'firstname': 'Antonin', 'lastname': 'Mongeau', 'number': '5554441234'}
-        self._simon = {'firstname': 'Simon', 'lastname': "L'Espérance"}
+        self._manolo = {'firstname': u'Manolo', 'lastname': u'Laporte-Carpentier', 'number': u'5551111234'}
+        self._annabelle = {'firstname': u'Ännabelle', 'lastname': u'Courval', 'number': u'5552221234'}
+        self._gary_bob = {'firstname': u'Gary-Bob', 'lastname': u'Derome'}
+        self._antonin = {'firstname': u'Antonin', 'lastname': u'Mongeau', 'number': u'5554441234'}
+        self._simon = {'firstname': u'Simon', 'lastname': u"L'Espérance"}
         self._contacts = [self._manolo, self._annabelle, self._gary_bob, self._antonin, self._simon]
 
     def test_that_list_returns_the_db_result_when_no_pagination_or_sorting(self):
