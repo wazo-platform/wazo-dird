@@ -130,15 +130,24 @@ class _PhonebookService(object):
         return self._phonebook_crud.get(self._validate_tenant(tenant), phonebook_id)
 
     def import_contacts(self, tenant, phonebook_id, contacts):
-        pass
+        to_add, errors = [], []
+        for contact in contacts:
+            try:
+                to_add.append(self._validate_contact(contact))
+            except InvalidContactException:
+                errors.append(contact)
+
+        created, failed = self._contact_crud.create_many(tenant, phonebook_id, to_add)
+
+        return created, failed + errors
 
     @staticmethod
     def _validate_contact(body):
-        body.pop('id', None)
         if not body:
             raise InvalidContactException('Contacts cannot be empty')
         if '' in body:
             raise InvalidContactException('Contacts cannot have empty keys')
+        body.pop('id', None)
         return body
 
     @staticmethod
