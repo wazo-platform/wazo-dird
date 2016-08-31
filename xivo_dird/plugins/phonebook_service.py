@@ -129,6 +129,9 @@ class _PhonebookService(object):
     def get_phonebook(self, tenant, phonebook_id):
         return self._phonebook_crud.get(self._validate_tenant(tenant), phonebook_id)
 
+    def import_contacts(self, tenant, phonebook_id, contacts):
+        pass
+
     @staticmethod
     def _validate_contact(body):
         body.pop('id', None)

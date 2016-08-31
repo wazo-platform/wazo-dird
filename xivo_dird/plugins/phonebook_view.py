@@ -20,6 +20,8 @@ import time
 from flask import request
 from functools import wraps
 
+from xivo.unicode_csv import UnicodeDictReader
+
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
 from xivo_dird.core.exception import (DatabaseServiceUnavailable,
@@ -46,15 +48,18 @@ class PhonebookViewPlugin(BaseViewPlugin):
     phonebook_one_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>'
     contact_all_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts'
     contact_one_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts/<contact_uuid>'
+    contact_import_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts/import'
 
     def load(self, args=None):
         phonebook_service = args['services'].get('phonebook')
         if phonebook_service:
             ContactAll.configure(phonebook_service)
+            ContactImport.configure(phonebook_service)
             ContactOne.configure(phonebook_service)
             PhonebookAll.configure(phonebook_service)
             PhonebookOne.configure(phonebook_service)
             api.add_resource(ContactAll, self.contact_all_url)
+            api.add_resource(ContactImport, self.contact_import_url)
             api.add_resource(ContactOne, self.contact_one_url)
             api.add_resource(PhonebookAll, self.phonebook_all_url)
             api.add_resource(PhonebookOne, self.phonebook_one_url)
@@ -175,6 +180,19 @@ class PhonebookAll(_Resource):
     @_default_error_route
     def post(self, tenant):
         return self.phonebook_service.create_phonebook(tenant, request.json), 201
+
+
+class ContactImport(_Resource):
+
+    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
+    def post(self, tenant, phonebook_id):
+        charset = request.mimetype_params.get('charset', 'utf-8')
+        raw_data = request.data.split('\n')
+        to_add = [c for c in UnicodeDictReader(raw_data, encoding=charset)]
+
+        created, failed = self.phonebook_service.import_contacts(tenant, phonebook_id, to_add)
+
+        return {'created': created, 'failed': failed}
 
 
 class ContactOne(_Resource):
