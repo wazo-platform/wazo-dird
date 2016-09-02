@@ -147,6 +147,8 @@ class _PhonebookService(object):
             raise InvalidContactException('Contacts cannot be empty')
         if '' in body:
             raise InvalidContactException('Contacts cannot have empty keys')
+        if None in body:
+            raise InvalidContactException('Contacts cannot have null keys')
         body.pop('id', None)
         return body
 

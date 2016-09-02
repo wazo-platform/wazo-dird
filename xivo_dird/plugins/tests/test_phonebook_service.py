@@ -317,8 +317,9 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
         db_errors = [s.error_1, s.error_2]
         self.contact_crud.create_many.return_value = s.created, db_errors
 
-        contacts = [None, {}, {'': 'test'}, {'firstname': 'Foo'}]
+        invalids = [None, {}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
+        contacts = invalids + [{'firstname': 'Foo'}]
         created, errors = self.service.import_contacts(s.tenant, s.phonebook_id, contacts)
 
         assert_that(created, equal_to(s.created))
-        assert_that(errors, contains_inanyorder(s.error_1, s.error_2, None, {}, {'': 'test'}))
+        assert_that(errors, contains_inanyorder(*db_errors + invalids))

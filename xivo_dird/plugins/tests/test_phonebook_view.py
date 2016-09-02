@@ -483,6 +483,27 @@ Föo,Bar,1111
 
         self._assert_error(result, 400, Matcher('firstname', 'number'))
 
+    def test_that_invalid_contacts_are_managed_by_the_service(self):
+        self.service.import_contacts.return_value = s.created, s.errors
+        body = u'''\
+firstname,lastname,number
+Föo,Bar,1111,extra
+Alicé,AAA,2222
+Bob,BBB,3333
+'''.encode('utf-8')
+
+        as_list = [
+            {'firstname': u'Föo', 'lastname': 'Bar', 'number': '1111', None: ['extra']},
+            {'firstname': u'Alicé', 'lastname': 'AAA', 'number': '2222'},
+            {'firstname': 'Bob', 'lastname': 'BBB', 'number': '3333'},
+        ]
+
+        result = self._post(s.tenant, s.phonebook_id, body, 'utf-8')
+
+        assert_that(result, has_entries(created=s.created,
+                                        failed=s.errors))
+        self.service.import_contacts.assert_called_once_with(s.tenant, s.phonebook_id, as_list)
+
     def _post(self, tenant, phonebook_id, body, charset):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(data=body,
                                                                     args={},
