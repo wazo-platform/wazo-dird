@@ -461,6 +461,28 @@ Bob,BBB,3333
 
         self._assert_error(result, 400, 'unknown encoding: unknown')
 
+    def test_that_duplicate_columns_returns_an_error(self):
+        body = u'''\
+firstname,firstname,firstname,lastname,number,number
+Föo,Bar,1111
+'''.encode('utf-8')
+
+        result = self._post(s.tenant, s.phonebook_id, body, 'utf-8')
+
+        class Matcher(object):
+            _msg = 'duplicate columns'
+            def __init__(self, *args):
+                self._fields = sorted(args)
+
+            def __eq__(self, other):
+                msg, fields = other.split(': ')
+                return msg == self._msg and sorted(eval(fields)) == self._fields
+
+            def __ne__(self, other):
+                return not self == other
+
+        self._assert_error(result, 400, Matcher('firstname', 'number'))
+
     def _post(self, tenant, phonebook_id, body, charset):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(data=body,
                                                                     args={},

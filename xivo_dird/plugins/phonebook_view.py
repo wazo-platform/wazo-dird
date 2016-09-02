@@ -16,6 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import time
+import csv
 
 from flask import request
 from functools import wraps
@@ -188,6 +189,12 @@ class ContactImport(_Resource):
     def post(self, tenant, phonebook_id):
         charset = request.mimetype_params.get('charset', 'utf-8')
         raw_data = request.data.split('\n')
+        reader = csv.reader(raw_data)
+        fields = next(reader)
+        duplicates = list(set([f for f in fields if fields.count(f) > 1]))
+        if duplicates:
+            return _make_error('duplicate columns: {}'.format(duplicates), 400)
+
         try:
             to_add = [c for c in UnicodeDictReader(raw_data, encoding=charset)]
         except LookupError as e:
