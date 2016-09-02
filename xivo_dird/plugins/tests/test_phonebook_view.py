@@ -424,7 +424,7 @@ class TestPhonebookOne(_PhonebookViewTest, _HTTPErrorChecker):
             return self.view.put(tenant, phonebook_id)
 
 
-class TestContactImport(_PhonebookViewTest):
+class TestContactImport(_PhonebookViewTest, _HTTPErrorChecker):
 
     _View = ContactImport
 
@@ -448,6 +448,18 @@ Bob,BBB,3333
         assert_that(result, has_entries(created=s.created,
                                         failed=s.errors))
         self.service.import_contacts.assert_called_once_with(s.tenant, s.phonebook_id, as_list)
+
+    def test_with_an_unknown_charset(self):
+        body = u'''\
+firstname,lastname,number
+Föo,Bar,1111
+Alicé,AAA,2222
+Bob,BBB,3333
+'''.encode('utf-8')
+
+        result = self._post(s.tenant, s.phonebook_id, body, 'unknown')
+
+        self._assert_error(result, 400, 'unknown encoding: unknown')
 
     def _post(self, tenant, phonebook_id, body, charset):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(data=body,

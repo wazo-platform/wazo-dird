@@ -188,7 +188,13 @@ class ContactImport(_Resource):
     def post(self, tenant, phonebook_id):
         charset = request.mimetype_params.get('charset', 'utf-8')
         raw_data = request.data.split('\n')
-        to_add = [c for c in UnicodeDictReader(raw_data, encoding=charset)]
+        try:
+            to_add = [c for c in UnicodeDictReader(raw_data, encoding=charset)]
+        except LookupError as e:
+            if 'unknown encoding:' in str(e):
+                return _make_error(str(e), 400)
+            else:
+                raise
 
         created, failed = self.phonebook_service.import_contacts(tenant, phonebook_id, to_add)
 
