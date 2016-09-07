@@ -15,8 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import logging
 import time
 import csv
+import traceback
 
 from flask import request
 from functools import wraps
@@ -35,6 +37,8 @@ from xivo_dird.core.exception import (DatabaseServiceUnavailable,
                                       NoSuchContact,
                                       NoSuchPhonebook)
 from xivo_dird.core.rest_api import api, AuthResource
+
+logger = logging.getLogger(__name__)
 
 
 def _make_error(reason, status_code):
@@ -129,6 +133,8 @@ def _default_error_route(f):
         try:
             return f(self_, *args, **kwargs)
         except tuple(self_.error_code_map.keys()) as e:
+            logger.info('%s', e)
+            logger.debug('%s', traceback.format_exc())
             code = self_.error_code_map.get(e.__class__)
             return _make_error(unicode(e), code)
     return decorator
