@@ -137,7 +137,7 @@ class _PhonebookService(object):
             except InvalidContactException:
                 errors.append(contact)
 
-        created, failed = self._contact_crud.create_many(tenant, phonebook_id, to_add)
+        created, failed = self._contact_crud.create_many(self._validate_tenant(tenant), phonebook_id, to_add)
 
         return created, failed + errors
 
