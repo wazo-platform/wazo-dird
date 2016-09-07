@@ -965,7 +965,7 @@
                 "parameters": [
                     {
                         "name": "contacts",
-                        "description": "The attributes of the contacts in CSV format. The encoding must be set in the Content-Type header, via the `charset=` option. Field delimiter is `,`, quoting character is `\"` and line delimiter is `\\r\\n`",
+                        "description": "The attributes of the contacts in CSV format.\r\n* The encoding must be set in the Content-Type header, via the `charset=` option.\r\n* Field delimiter: `,`.\r\n* Quoting character: `\"`.\r\n* Line delimiter: `\\r\\n`.",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -1284,7 +1284,7 @@
                     },
                     {
                         "name": "contacts",
-                        "description": "The attributes of the contacts in CSV format. The encoding must be set in the Content-Type header, via the `charset=` option. Field delimiter is `,`, quoting character is `\"` and line delimiter is `\\r\\n`",
+                        "description": "The attributes of the contacts in CSV format.\r\n* The encoding must be set in the Content-Type header, via the `charset=` option.\r\n* Field delimiter: `,`.\r\n* Quoting character: `\"`.\r\n* Line delimiter: `\\r\\n`.",
                         "in": "body",
                         "required": true,
                         "schema": {
