@@ -319,7 +319,7 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
 
         invalids = [None, {}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
         contacts = invalids + [{'firstname': 'Foo'}]
-        created, errors = self.service.import_contacts(s.tenant, s.phonebook_id, contacts)
+        created, errors = self.service.import_contacts('tenant', s.phonebook_id, contacts)
 
         assert_that(created, equal_to(s.created))
         assert_that(errors, contains_inanyorder(*db_errors + invalids))
