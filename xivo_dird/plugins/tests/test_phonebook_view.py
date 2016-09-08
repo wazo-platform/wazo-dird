@@ -17,10 +17,21 @@
 
 import unittest
 
-from hamcrest import assert_that, calling, equal_to, raises
-from mock import ANY, Mock, sentinel as s, patch
+from hamcrest import (assert_that,
+                      calling,
+                      contains_inanyorder,
+                      empty,
+                      equal_to,
+                      has_entries,
+                      raises)
+from mock import ANY, Mock, patch, sentinel as s
 
-from ..phonebook_view import _ArgParser as ArgParser, ContactAll, ContactOne, PhonebookAll, PhonebookOne
+from ..phonebook_view import (_ArgParser as ArgParser,
+                              ContactAll,
+                              ContactImport,
+                              ContactOne,
+                              PhonebookAll,
+                              PhonebookOne)
 
 from xivo_dird.core.exception import (DatabaseServiceUnavailable,
                                       DuplicatedContactException,
@@ -411,6 +422,93 @@ class TestPhonebookOne(_PhonebookViewTest, _HTTPErrorChecker):
     def _put(self, tenant, phonebook_id, body):
         with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
             return self.view.put(tenant, phonebook_id)
+
+
+class TestContactImport(_PhonebookViewTest, _HTTPErrorChecker):
+
+    _View = ContactImport
+
+    def test_a_valid_import(self):
+        self.service.import_contacts.return_value = s.created, s.errors
+        body = u'''\
+firstname,lastname,number
+Föo,Bar,1111
+Alicé,AAA,2222
+Bob,BBB,3333
+'''.encode('utf-8')
+
+        as_list = [
+            {'firstname': u'Föo', 'lastname': 'Bar', 'number': '1111'},
+            {'firstname': u'Alicé', 'lastname': 'AAA', 'number': '2222'},
+            {'firstname': 'Bob', 'lastname': 'BBB', 'number': '3333'},
+        ]
+
+        result = self._post(s.tenant, s.phonebook_id, body, 'utf-8')
+
+        assert_that(result, has_entries(created=s.created,
+                                        failed=s.errors))
+        self.service.import_contacts.assert_called_once_with(s.tenant, s.phonebook_id, as_list)
+
+    def test_with_an_unknown_charset(self):
+        body = u'''\
+firstname,lastname,number
+Föo,Bar,1111
+Alicé,AAA,2222
+Bob,BBB,3333
+'''.encode('utf-8')
+
+        result = self._post(s.tenant, s.phonebook_id, body, 'unknown')
+
+        self._assert_error(result, 400, 'unknown encoding: unknown')
+
+    def test_that_duplicate_columns_returns_an_error(self):
+        body = u'''\
+firstname,firstname,firstname,lastname,number,number
+Föo,Bar,1111
+'''.encode('utf-8')
+
+        result = self._post(s.tenant, s.phonebook_id, body, 'utf-8')
+
+        class Matcher(object):
+            _msg = 'duplicate columns'
+            def __init__(self, *args):
+                self._fields = sorted(args)
+
+            def __eq__(self, other):
+                msg, fields = other.split(': ')
+                return msg == self._msg and sorted(eval(fields)) == self._fields
+
+            def __ne__(self, other):
+                return not self == other
+
+        self._assert_error(result, 400, Matcher('firstname', 'number'))
+
+    def test_that_invalid_contacts_are_managed_by_the_service(self):
+        self.service.import_contacts.return_value = s.created, s.errors
+        body = u'''\
+firstname,lastname,number
+Föo,Bar,1111,extra
+Alicé,AAA,2222
+Bob,BBB,3333
+'''.encode('utf-8')
+
+        as_list = [
+            {'firstname': u'Föo', 'lastname': 'Bar', 'number': '1111', None: ['extra']},
+            {'firstname': u'Alicé', 'lastname': 'AAA', 'number': '2222'},
+            {'firstname': 'Bob', 'lastname': 'BBB', 'number': '3333'},
+        ]
+
+        result = self._post(s.tenant, s.phonebook_id, body, 'utf-8')
+
+        assert_that(result, has_entries(created=s.created,
+                                        failed=s.errors))
+        self.service.import_contacts.assert_called_once_with(s.tenant, s.phonebook_id, as_list)
+
+    def _post(self, tenant, phonebook_id, body, charset):
+        with patch('xivo_dird.plugins.phonebook_view.request', Mock(data=body,
+                                                                    args={},
+                                                                    mimetype_params={'charset': charset})):
+            return self.view.post(tenant, phonebook_id)
 
 
 class TestArgParser(unittest.TestCase):

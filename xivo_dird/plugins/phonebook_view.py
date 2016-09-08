@@ -15,10 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import logging
 import time
+import csv
+import traceback
 
 from flask import request
 from functools import wraps
+
+from xivo.unicode_csv import UnicodeDictReader
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
@@ -33,6 +38,8 @@ from xivo_dird.core.exception import (DatabaseServiceUnavailable,
                                       NoSuchPhonebook)
 from xivo_dird.core.rest_api import api, AuthResource
 
+logger = logging.getLogger(__name__)
+
 
 def _make_error(reason, status_code):
     return {'reason': [reason],
@@ -46,15 +53,18 @@ class PhonebookViewPlugin(BaseViewPlugin):
     phonebook_one_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>'
     contact_all_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts'
     contact_one_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts/<contact_uuid>'
+    contact_import_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts/import'
 
     def load(self, args=None):
         phonebook_service = args['services'].get('phonebook')
         if phonebook_service:
             ContactAll.configure(phonebook_service)
+            ContactImport.configure(phonebook_service)
             ContactOne.configure(phonebook_service)
             PhonebookAll.configure(phonebook_service)
             PhonebookOne.configure(phonebook_service)
             api.add_resource(ContactAll, self.contact_all_url)
+            api.add_resource(ContactImport, self.contact_import_url)
             api.add_resource(ContactOne, self.contact_one_url)
             api.add_resource(PhonebookAll, self.phonebook_all_url)
             api.add_resource(PhonebookOne, self.phonebook_one_url)
@@ -123,6 +133,8 @@ def _default_error_route(f):
         try:
             return f(self_, *args, **kwargs)
         except tuple(self_.error_code_map.keys()) as e:
+            logger.info('%s', e)
+            logger.debug('%s', traceback.format_exc())
             code = self_.error_code_map.get(e.__class__)
             return _make_error(unicode(e), code)
     return decorator
@@ -175,6 +187,31 @@ class PhonebookAll(_Resource):
     @_default_error_route
     def post(self, tenant):
         return self.phonebook_service.create_phonebook(tenant, request.json), 201
+
+
+class ContactImport(_Resource):
+
+    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
+    def post(self, tenant, phonebook_id):
+        charset = request.mimetype_params.get('charset', 'utf-8')
+        raw_data = request.data.split('\n')
+        reader = csv.reader(raw_data)
+        fields = next(reader)
+        duplicates = list(set([f for f in fields if fields.count(f) > 1]))
+        if duplicates:
+            return _make_error('duplicate columns: {}'.format(duplicates), 400)
+
+        try:
+            to_add = [c for c in UnicodeDictReader(raw_data, encoding=charset)]
+        except LookupError as e:
+            if 'unknown encoding:' in str(e):
+                return _make_error(str(e), 400)
+            else:
+                raise
+
+        created, failed = self.phonebook_service.import_contacts(tenant, phonebook_id, to_add)
+
+        return {'created': created, 'failed': failed}
 
 
 class ContactOne(_Resource):

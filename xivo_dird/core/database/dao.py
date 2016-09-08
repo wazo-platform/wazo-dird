@@ -131,14 +131,29 @@ class PhonebookContactCRUD(_BaseDAO):
             return self._list_contacts(s, query, tenant, phonebook_id, search).scalar()
 
     def create(self, tenant, phonebook_id, contact_body):
-        hash_ = compute_contact_hash(contact_body)
         with self.new_session() as s:
             self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
-            contact = Contact(phonebook_id=phonebook_id, hash=hash_)
-            s.add(contact)
-            self.flush_or_raise(s, DuplicatedContactException)
-            self._add_field_to_contact(s, contact.uuid, contact_body)
+            return self._create_one(s, tenant, phonebook_id, contact_body)
 
+    def create_many(self, tenant, phonebook_id, body):
+        created = []
+        errors = []
+        with self.new_session() as s:
+            self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
+            for contact_body in body:
+                try:
+                    contact = self._create_one(s, tenant, phonebook_id, contact_body)
+                    created.append(contact)
+                except Exception:
+                    errors.append(contact_body)
+        return created, errors
+
+    def _create_one(self, session, tenant, phonebook_id, contact_body):
+        hash_ = compute_contact_hash(contact_body)
+        contact = Contact(phonebook_id=phonebook_id, hash=hash_)
+        session.add(contact)
+        self.flush_or_raise(session, DuplicatedContactException)
+        self._add_field_to_contact(session, contact.uuid, contact_body)
         return contact_body
 
     def delete(self, tenant, phonebook_id, contact_id):

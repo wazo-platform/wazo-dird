@@ -31,6 +31,7 @@ from hamcrest import (assert_that,
                       equal_to,
                       has_item,
                       has_items,
+                      has_entries,
                       not_,
                       raises)
 from mock import ANY
@@ -499,6 +500,40 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
     def test_that_a_tenant_can_only_create_in_his_phonebook(self):
         assert_that(calling(self._crud.create).with_args('not-the-tenant', self._phonebook_id, self._body),
                     raises(exception.NoSuchPhonebook))
+
+
+class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
+
+    def test_that_I_can_create_many_contacts(self):
+        contact_1 = self._new_contact('Foo', 'Bar', '5555551111')
+        contact_2 = self._new_contact('Alice', 'AAA', '5555552222')
+        contact_3 = self._new_contact('Bob', 'BBB', '5555553333')
+        body = [contact_1, contact_2, contact_3]
+
+        created, errors = self._crud.create_many(self._tenant, self._phonebook_id, body)
+
+        assert_that(created, contains_inanyorder(has_entries(**contact_1),
+                                                 has_entries(**contact_2),
+                                                 has_entries(**contact_3)))
+        assert_that(errors, empty())
+
+    def test_that_an_error_does_not_break_the_whole_import(self):
+        contact_1 = self._new_contact('Foo', 'Bar', '5555551111')
+        contact_2 = self._new_contact('Foo', 'Bar', '5555551111')
+        contact_3 = self._new_contact('Bob', 'BBB', '5555553333')
+        body = [contact_1, contact_2, contact_3]
+
+        created, errors = self._crud.create_many(self._tenant, self._phonebook_id, body)
+
+        assert_that(created, contains_inanyorder(has_entries(**contact_1),
+                                                has_entries(**contact_3)))
+        assert_that(errors, contains_inanyorder(has_entries(**contact_2)))
+
+    @staticmethod
+    def _new_contact(firstname, lastname, number):
+        return {'firstname': firstname,
+                'lastname': lastname,
+                'number': number}
 
 
 class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
