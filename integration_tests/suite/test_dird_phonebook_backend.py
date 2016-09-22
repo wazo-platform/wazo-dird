@@ -98,6 +98,20 @@ class TestPhonebookBackend(unittest.TestCase):
     def tearDown(self):
         self.phonebook_crud.delete(self.tenant, self.phonebook['id'])
 
+    def test_a_config_without_phonebook_id(self):
+        config = {'config': {'name': 'dird_phonebook',
+                             'db_uri': DB_URI,
+                             'tenant': self.tenant,
+                             'phonebook_name': 'hogwarts',
+                             'searched_columns': ['firstname', 'lastname'],
+                             'first_matched_columns': ['number']}}
+
+        backend = BackendWrapper('dird_phonebook', config)
+
+        result = backend.search('grid')
+
+        assert_that(result, contains(self.hagrid))
+
     def test_that_searching_for_grid_returns_agrid(self):
         result = self.backend.search('grid')
 

@@ -38,9 +38,18 @@ class PhonebookPlugin(BaseSourcePlugin):
         searched_columns = config['config'].get(self.SEARCHED_COLUMNS)
         first_matched_columns = config['config'].get(self.FIRST_MATCHED_COLUMNS)
         tenant = config['config']['tenant']
-        phonebook_id = config['config']['phonebook_id']
         engine = create_engine(db_uri)
         Session.configure(bind=engine)
+        if 'phonebook_id' not in config['config']:
+            phonebook_name = config['config']['phonebook_name']
+            crud = database.PhonebookCRUD(Session)
+            phonebooks = crud.list(tenant, search=phonebook_name)
+            for phonebook in phonebooks:
+                if phonebook['name'] == phonebook_name:
+                    phonebook_id = phonebook['id']
+                    break
+        else:
+            phonebook_id = config['config']['phonebook_id']
         self._search_engine = database.PhonebookContactSearchEngine(
             Session, tenant, phonebook_id, searched_columns, first_matched_columns
         )
