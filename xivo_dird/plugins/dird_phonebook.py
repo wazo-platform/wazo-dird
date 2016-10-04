@@ -22,38 +22,39 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo_dird import BaseSourcePlugin, make_result_class
 from xivo_dird.core import database
+from xivo_dird.core.exception import InvalidConfigError
 
 logger = logging.getLogger(__name__)
 
 
 class PhonebookPlugin(BaseSourcePlugin):
 
+    def __init__(self, *args, **kwargs):
+        self._crud = None
+        self._tenant = None
+        self._source_name = None
+        super(PhonebookPlugin, self).__init__(*args, **kwargs)
+
     def load(self, config):
         logger.debug('Loading phonebook source')
         Session = scoped_session(sessionmaker())
         unique_column = 'id'
-        source_name = config['config']['name']
+        self._source_name = config['config']['name']
         format_columns = config['config'].get(self.FORMAT_COLUMNS, {})
         db_uri = config['config']['db_uri']
         searched_columns = config['config'].get(self.SEARCHED_COLUMNS)
         first_matched_columns = config['config'].get(self.FIRST_MATCHED_COLUMNS)
-        tenant = config['config']['tenant']
+        self._tenant = config['config']['tenant']
         engine = create_engine(db_uri)
         Session.configure(bind=engine)
-        if 'phonebook_id' not in config['config']:
-            phonebook_name = config['config']['phonebook_name']
-            crud = database.PhonebookCRUD(Session)
-            phonebooks = crud.list(tenant, search=phonebook_name)
-            for phonebook in phonebooks:
-                if phonebook['name'] == phonebook_name:
-                    phonebook_id = phonebook['id']
-                    break
-        else:
-            phonebook_id = config['config']['phonebook_id']
+        self._crud = database.PhonebookCRUD(Session)
+
+        phonebook_id = self._get_phonebook_id(config['config'])
+
         self._search_engine = database.PhonebookContactSearchEngine(
-            Session, tenant, phonebook_id, searched_columns, first_matched_columns
+            Session, self._tenant, phonebook_id, searched_columns, first_matched_columns
         )
-        self._SourceResult = make_result_class(source_name, unique_column, format_columns)
+        self._SourceResult = make_result_class(self._source_name, unique_column, format_columns)
 
     def search(self, term, *args, **kwargs):
         logger.debug('Searching phonebook contact with %s', term)
@@ -73,3 +74,16 @@ class PhonebookPlugin(BaseSourcePlugin):
 
     def format_contacts(self, contacts):
         return [self._SourceResult(c) for c in contacts]
+
+    def _get_phonebook_id(self, config):
+        if 'phonebook_id' in config:
+            return config['phonebook_id']
+
+        phonebook_name = config['phonebook_name']
+        phonebooks = self._crud.list(self._tenant, search=phonebook_name)
+        for phonebook in phonebooks:
+            if phonebook['name'] == phonebook_name:
+                return phonebook['id']
+
+        raise InvalidConfigError('sources/{}/phonebook_name'.format(self._source_name),
+                                 'unknown phonebook {}'.format(phonebook_name))
