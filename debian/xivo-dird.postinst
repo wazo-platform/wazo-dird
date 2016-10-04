@@ -15,6 +15,11 @@ case "$1" in
 			xivo-dird-init-db --user postgres
 			echo "Upgrading xivo-dird database ..."
 			(cd $DIRD_ALEMBIC_INI_PATH && alembic -c alembic.ini upgrade head)
+
+			# Phonebook migration from the webi to xivo-dird
+			if [ -e "/var/lib/xivo-upgrade/phonebook_dump.json" ]; then
+				/usr/share/xivo-dird/migrations/0004-migrate-phonebook-from-webi-to-dird.py
+			fi
 		fi
 
 		if [ ! -e "$LOG_FILENAME" ]; then
