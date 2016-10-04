@@ -130,10 +130,10 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
 class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
 
     def test_count_contact(self):
-        result = self.service.count_contact('tenant', s.phonebook_id)
+        result = self.service.count_contact('te_nant', s.phonebook_id)
 
         assert_that(result, equal_to(self.contact_crud.count.return_value))
-        self.contact_crud.count.assert_called_once_with('tenant', s.phonebook_id)
+        self.contact_crud.count.assert_called_once_with('te_nant', s.phonebook_id)
 
     def test_count_contact_with_a_search_param(self):
         result = self.service.count_contact('tenant', s.phonebook_id, search=s.search)
