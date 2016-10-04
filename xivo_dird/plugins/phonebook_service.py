@@ -32,7 +32,7 @@ from xivo_dird.core.exception import (InvalidContactException,
 logger = logging.getLogger(__name__)
 
 
-VALID_TENANT = re.compile(r'(?:[\w\-]+)$')
+VALID_TENANT = re.compile(r'^[a-z0-9_\.-]+$')
 
 
 class _PhonebookSchema(Schema):
