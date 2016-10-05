@@ -40,13 +40,13 @@ DEFAULT_PHONEBOOK = 'xivo'
 
 def _get_or_create_phonebook(crud, entity, name):
     try:
-        return crud.create(entity, {'name': DEFAULT_PHONEBOOK})['id']
+        return crud.create(entity, {'name': name})['id']
     except exception.DuplicatedPhonebookException:
-        for phonebook in crud.list(entity, search=DEFAULT_PHONEBOOK):
-            if phonebook['name'] == DEFAULT_PHONEBOOK:
+        for phonebook in crud.list(entity, search=name):
+            if phonebook['name'] == name:
                 return phonebook['id']
 
-    msg = "Failed to create of find phonebook {} for tenant {}".format(DEFAULT_PHONEBOOK, entity)
+    msg = "Failed to create of find phonebook {} for tenant {}".format(name, entity)
     raise RuntimeError(msg)
 
 
