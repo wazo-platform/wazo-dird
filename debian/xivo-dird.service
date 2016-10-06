@@ -1,6 +1,5 @@
 [Unit]
 Description=xivo-dird server
-ConditionPathExists=!/var/lib/xivo/disabled
 After=network.target postgresql.service xivo-confgend.service
 Before=monit.service
 
