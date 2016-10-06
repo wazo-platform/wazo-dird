@@ -22,18 +22,6 @@ case "$1" in
 		fi
 		chown www-data: "$LOG_FILENAME"
 
-		# xivo-dird used to rely on nginx. When upgrading from such a version,
-		# we want nginx to forget about xivo-dird.
-		set +e
-		# Return 100 if nginx is not installed (which is valid, think docker).
-		invoke-rc.d --query --quiet nginx reload
-		status=$?
-		if [ $status -ne 100 ] ; then
-			# May temporarily fail during upgrade because SSL certs have moved.
-			invoke-rc.d nginx reload
-		fi
-		set -e
-
 		# source_to_display_columns migration
 		files=$(grep -rIn 'source_to_display' /etc/xivo-dird/sources.d/* | awk -F ':' '{print $1}')
 		for file in $files; do
