@@ -56,7 +56,7 @@ setup(
     install_requires=['babel'],
     zip_safe=False,
     package_data={
-        'xivo_dird.swagger': ['*.json']
+        'xivo_dird.swagger': ['*.yml']
     },
 
     scripts=['bin/xivo-dird'],

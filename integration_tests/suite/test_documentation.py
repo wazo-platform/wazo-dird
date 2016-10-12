@@ -27,7 +27,7 @@ class TestDocumentation(BaseDirdIntegrationTest):
     asset = 'documentation'
 
     def test_documentation_errors(self):
-        api_url = 'https://dird:9489/0.1/api/api.json'
+        api_url = 'https://dird:9489/0.1/api/api.yml'
         self.validate_api(api_url)
 
     def validate_api(self, url):
