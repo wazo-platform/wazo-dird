@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2016 Avencall
+# Copyright (C) 2016 Proformatique
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 parser = reqparse.RequestParser()
 parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
+parser.add_argument('exclude', action='append', required=False, location='args')
 
 parser_reverse = reqparse.RequestParser()
 parser_reverse.add_argument('exten', type=unicode, required=True, location='args')
@@ -119,6 +121,7 @@ class Lookup(AuthResource):
     def get(self, profile):
         args = parser.parse_args()
         term = args['term']
+        exclude = args.get('exclude', [])
 
         logger.info('Lookup for %s with profile %s', term, profile)
 
@@ -129,10 +132,14 @@ class Lookup(AuthResource):
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid']
 
+        args = {}
+        if exclude:
+            args['exclude'] = exclude
+
         raw_results = self.lookup_service.lookup(term,
                                                  profile,
                                                  xivo_user_uuid,
-                                                 args={},
+                                                 args=args,
                                                  token=token)
         favorites = self.favorite_service.favorite_ids(profile, xivo_user_uuid)
         formatter = _ResultFormatter(self.displays[profile])

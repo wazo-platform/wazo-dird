@@ -28,6 +28,7 @@ from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import contains_string
 from hamcrest import equal_to
+from hamcrest import empty
 from hamcrest import has_item
 from hamcrest import has_length
 from hamcrest import is_in
@@ -64,9 +65,14 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(self.alice_aaa, self.alice_alan))
 
     def test_excluding_a_source(self):
-        result = self.lookup('lice', 'default', exclude='third_csv')
+        result = self.lookup('lice', 'default', exclude=['third_csv'])
 
         assert_that(result['results'], contains(self.alice_aaa))
+
+    def test_excluding_multiple_sources(self):
+        result = self.lookup('lice', 'default', exclude=['third_csv', 'my_csv'])
+
+        assert_that(result['results'], empty())
 
 
 class TestReverse(BaseDirdIntegrationTest):
