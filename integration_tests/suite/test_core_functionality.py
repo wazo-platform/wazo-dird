@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2015-2016 Avencall
+# Copyright (C) 2016 Proformatique
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,26 +45,28 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
 
     asset = 'multiple_sources'
 
+    alice_aaa = {'column_values': ['Alice', 'AAA', '5555555555'],
+                 'source': 'my_csv',
+                 'relations': EMPTY_RELATIONS}
+    alice_alan = {'column_values': ['Alice', 'Alan', '1111'],
+                  'source': 'third_csv',
+                  'relations': {'xivo_id': None,
+                                'user_id': None,
+                                'user_uuid': None,
+                                'endpoint_id': None,
+                                'agent_id': None,
+                                'source_entry_id': '1'}}
+
     def test_multiple_source_from_the_same_backend(self):
         result = self.lookup('lice', 'default')
 
         # second_csv does not search in column firstname
-        expected_results = [
-            {'column_values': ['Alice', 'AAA', '5555555555'],
-             'source': 'my_csv',
-             'relations': EMPTY_RELATIONS},
-            {'column_values': ['Alice', 'Alan', '1111'],
-             'source': 'third_csv',
-             'relations': {'xivo_id': None,
-                           'user_id': None,
-                           'user_uuid': None,
-                           'endpoint_id': None,
-                           'agent_id': None,
-                           'source_entry_id': '1'}},
-        ]
+        assert_that(result['results'], contains_inanyorder(self.alice_aaa, self.alice_alan))
 
-        assert_that(result['results'],
-                    contains_inanyorder(*expected_results))
+    def test_excluding_a_source(self):
+        result = self.lookup('lice', 'default', exclude='third_csv')
+
+        assert_that(result['results'], contains(self.alice_aaa))
 
 
 class TestReverse(BaseDirdIntegrationTest):
