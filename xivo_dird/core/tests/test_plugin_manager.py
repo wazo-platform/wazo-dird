@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from collections import defaultdict
-from hamcrest import assert_that, equal_to, has_entries
+from hamcrest import assert_that, calling, equal_to, has_entries, raises, not_
 from mock import Mock, patch, sentinel as s
 from unittest import TestCase
 
@@ -75,6 +75,11 @@ class TestPluginManagerServices(TestCase):
         plugin_manager.unload_services()
 
         plugin_manager.services_extension_manager.map_method.assert_called_once_with('unload')
+
+    def test_that_unload_services_does_nothing_when_load_services_has_not_been_run(self):
+        with patch('xivo_dird.core.plugin_manager.services_extension_manager', None):
+            assert_that(calling(plugin_manager.unload_services),
+                        not_(raises(Exception)))
 
 
 class TestPluginManagerSources(TestCase):

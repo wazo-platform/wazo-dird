@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import re
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -29,6 +30,9 @@ from xivo_dird.core.exception import (InvalidContactException,
                                       InvalidTenantException)
 
 logger = logging.getLogger(__name__)
+
+
+VALID_TENANT = re.compile(r'^[a-z0-9_\.-]+$')
 
 
 class _PhonebookSchema(Schema):
@@ -156,7 +160,7 @@ class _PhonebookService(object):
     def _validate_tenant(tenant):
         try:
             tenant.encode('ascii')
-            if tenant.isalnum():
+            if VALID_TENANT.match(tenant):
                 return tenant
         except UnicodeEncodeError:
             pass

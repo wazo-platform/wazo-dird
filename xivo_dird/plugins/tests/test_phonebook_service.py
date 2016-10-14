@@ -130,24 +130,24 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
 class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
 
     def test_count_contact(self):
-        result = self.service.count_contact('tenant', s.phonebook_id)
+        result = self.service.count_contact('te_nant', s.phonebook_id)
 
         assert_that(result, equal_to(self.contact_crud.count.return_value))
-        self.contact_crud.count.assert_called_once_with('tenant', s.phonebook_id)
+        self.contact_crud.count.assert_called_once_with('te_nant', s.phonebook_id)
 
     def test_count_contact_with_a_search_param(self):
-        result = self.service.count_contact('tenant', s.phonebook_id, search=s.search)
+        result = self.service.count_contact('te-nant', s.phonebook_id, search=s.search)
 
         assert_that(result, equal_to(self.contact_crud.count.return_value))
-        self.contact_crud.count.assert_called_once_with('tenant', s.phonebook_id, search=s.search)
+        self.contact_crud.count.assert_called_once_with('te-nant', s.phonebook_id, search=s.search)
 
     def test_create_contact(self):
         body = {'firstname': 'foobar'}
 
-        result = self.service.create_contact('tenant', s.phonebook_id, body)
+        result = self.service.create_contact('te.nant', s.phonebook_id, body)
 
         assert_that(result, equal_to(self.contact_crud.create.return_value))
-        self.contact_crud.create.assert_called_once_with('tenant', s.phonebook_id, body)
+        self.contact_crud.create.assert_called_once_with('te.nant', s.phonebook_id, body)
 
     def test_that_the_id_field_should_be_ignored_on_create(self):
         result = self.service.create_contact('tenant', s.phonebook_id, {'firstname': 'bob',

@@ -46,7 +46,8 @@ def load_service_extension(extension, config, sources):
 
 
 def unload_services():
-    services_extension_manager.map_method('unload')
+    if services_extension_manager:
+        services_extension_manager.map_method('unload')
 
 
 def load_sources(enabled_backends, source_configs):
