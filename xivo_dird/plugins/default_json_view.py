@@ -18,10 +18,11 @@
 
 import logging
 
+from time import time
+
 from collections import namedtuple
 from flask import request
 from flask_restful import reqparse
-from time import time
 
 from xivo_dird import BaseViewPlugin
 from xivo_dird.core import auth
@@ -37,6 +38,7 @@ parser.add_argument('exclude', action='append', required=False, location='args')
 
 parser_reverse = reqparse.RequestParser()
 parser_reverse.add_argument('exten', type=unicode, required=True, location='args')
+parser_reverse.add_argument('exclude', action='append', required=False, location='args')
 
 
 def _error(code, msg):
@@ -162,12 +164,22 @@ class Reverse(AuthResource):
         token = request.headers['X-Auth-Token']
         args = parser_reverse.parse_args()
         exten = args['exten']
+        exclude = args.get('exclude', [])
 
         logger.info('Reverse for %s with profile %s', exten, profile)
 
         # TODO check if profile exists
 
-        raw_result = self.reverse_service.reverse(exten, profile, args={}, xivo_user_uuid=xivo_user_uuid, token=token)
+        args = {}
+        if exclude:
+            args['exclude'] = exclude
+
+        raw_result = self.reverse_service.reverse(
+            exten,
+            profile,
+            args=args,
+            xivo_user_uuid=xivo_user_uuid,
+            token=token)
 
         response = {'display': None,
                     'exten': exten,
