@@ -23,13 +23,13 @@ from .base_dird_integration_test import VALID_TOKEN
 from .base_dird_integration_test import VALID_UUID
 
 from hamcrest import all_of
+from hamcrest import any_of
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import contains_string
 from hamcrest import equal_to
 from hamcrest import empty
-from hamcrest import has_item
 from hamcrest import has_length
 from hamcrest import is_in
 from hamcrest import is_not
@@ -93,13 +93,25 @@ class TestReverse(BaseDirdIntegrationTest):
                                        'lastname': 'azerty',
                                        'number': '1111',
                                        'reverse': 'qwerty azerty'}
+        self.alice_result = {'display': 'Alice Alan',
+                             'exten': '1111',
+                             'source': 'third_csv',
+                             'fields': self.alice_expected_fields}
+        self.qwerty_result_1 = {'display': 'qwerty azerty',
+                                'exten': '1111',
+                                'source': 'my_csv',
+                                'fields': self.qwerty_expected_fields}
+        self.qwerty_result_2 = {'display': 'qwerty azerty',
+                                'exten': '1111',
+                                'source': 'second_csv',
+                                'fields': self.qwerty_expected_fields}
 
     def test_reverse_when_no_result(self):
         result = self.reverse('1234', 'default', VALID_UUID)
 
-        expected_result = {'display': None, 'exten': '1234', 'source': None, 'fields': {}}
+        expected = {'display': None, 'exten': '1234', 'source': None, 'fields': {}}
 
-        assert_that(result, equal_to(expected_result))
+        assert_that(result, equal_to(expected))
 
     def test_reverse_with_xivo_user_uuid(self):
         result = self.get_reverse_result('1111', 'default', VALID_UUID, VALID_TOKEN)
@@ -107,22 +119,28 @@ class TestReverse(BaseDirdIntegrationTest):
 
     def test_reverse_when_multi_result(self):
         result = self.reverse('1111', 'default', VALID_UUID)
-        alice_result = {'display': 'Alice Alan', 'exten': '1111', 'source': 'third_csv',
-                        'fields': self.alice_expected_fields}
-        qwerty_result_1 = {'display': 'qwerty azerty', 'exten': '1111', 'source': 'my_csv',
-                           'fields': self.qwerty_expected_fields}
-        qwerty_result_2 = {'display': 'qwerty azerty', 'exten': '1111', 'source': 'second_csv',
-                           'fields': self.qwerty_expected_fields}
-        possible_results = [alice_result, qwerty_result_1, qwerty_result_2]
 
-        assert_that(possible_results, has_item(result))
+        assert_that(result, any_of(self.alice_result, self.qwerty_result_1, self.qwerty_result_2))
 
     def test_reverse_when_multi_columns(self):
         result = self.reverse('11112', 'default', VALID_UUID)
-        alice_result = {'display': 'Alice Alan', 'exten': '11112', 'source': 'third_csv',
-                        'fields': self.alice_expected_fields}
 
-        assert_that(result, equal_to(alice_result))
+        expected = {'display': 'Alice Alan',
+                    'exten': '11112',  # <-- matches the mobile
+                    'source': 'third_csv',
+                    'fields': self.alice_expected_fields}
+
+        assert_that(result, equal_to(expected))
+
+    def test_excluding_a_source_on_reverse(self):
+        result = self.reverse('1111', 'default', VALID_UUID, exclude=['my_csv'])
+
+        assert_that(result, any_of(self.alice_result, self.qwerty_result_2))
+
+    def test_excluding_many_sources_on_reverse(self):
+        result = self.reverse('1111', 'default', VALID_UUID, exclude=['my_csv', 'second_csv'])
+
+        assert_that(result, equal_to(self.alice_result))
 
 
 class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
