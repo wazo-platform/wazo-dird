@@ -1079,8 +1079,11 @@ parameters:
   Exclude:
     name: exclude
     in: query
-    type: string
-    description: Profile to exclude from the search
+    type: array
+    items:
+      type: string
+    collectionFormat: multi
+    description: Sources to exclude from the search
     required: false
   Exten:
     name: exten
