@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2015-2016 Avencall
+# Copyright (C) 2016 Proformatique
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -77,8 +78,10 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     service = 'dird'
 
     @classmethod
-    def get_lookup_result(cls, term, profile, token=None):
+    def get_lookup_result(cls, term, profile, token=None, exclude=None):
         params = {'term': term}
+        if exclude:
+            params['exclude'] = exclude
         url = u'https://localhost:9489/0.1/directories/lookup/{profile}'
         result = requests.get(url.format(profile=profile),
                               params=params,
@@ -87,8 +90,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def lookup(cls, term, profile, token=VALID_TOKEN):
-        response = cls.get_lookup_result(term, profile, token=token)
+    def lookup(cls, term, profile, token=VALID_TOKEN, exclude=None):
+        response = cls.get_lookup_result(term, profile, token=token, exclude=exclude)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
@@ -107,8 +110,10 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
-    def get_reverse_result(cls, exten, profile, xivo_user_uuid, token=None):
+    def get_reverse_result(cls, exten, profile, xivo_user_uuid, token=None, exclude=None):
         params = {'exten': exten}
+        if exclude:
+            params['exclude'] = exclude
         url = u'https://localhost:9489/0.1/directories/reverse/{profile}/{xivo_user_uuid}'
         result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
@@ -117,8 +122,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def reverse(cls, exten, profile, xivo_user_uuid, token=VALID_TOKEN):
-        response = cls.get_reverse_result(exten, profile, xivo_user_uuid, token=token)
+    def reverse(cls, exten, profile, xivo_user_uuid, token=VALID_TOKEN, exclude=None):
+        response = cls.get_reverse_result(exten, profile, xivo_user_uuid, token=token, exclude=exclude)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 

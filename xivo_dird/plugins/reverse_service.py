@@ -57,8 +57,9 @@ class _ReverseService(object):
         self._executor.shutdown()
 
     def reverse(self, exten, profile, args, xivo_user_uuid, token):
+        exclude = args.get('exclude', [])
         futures = []
-        for source in self._source_by_profile(profile):
+        for source in self._source_by_profile(profile, exclude):
             args['token'] = token
             args['xivo_user_uuid'] = xivo_user_uuid
             futures.append(self._async_reverse(source, exten, args))
@@ -86,9 +87,10 @@ class _ReverseService(object):
         future.name = source.name
         return future
 
-    def _source_by_profile(self, profile):
+    def _source_by_profile(self, profile, exclude):
         try:
-            source_names = self._config(profile)['sources']
+            configured_sources = self._config(profile)['sources']
+            source_names = set(configured_sources) - set(exclude)
         except KeyError:
             logger.warning('Cannot find reverse sources for profile %s', profile)
             return []

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2015-2016 Avencall
+# Copyright (C) 2016 Proformatique
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,12 +23,13 @@ from .base_dird_integration_test import VALID_TOKEN
 from .base_dird_integration_test import VALID_UUID
 
 from hamcrest import all_of
+from hamcrest import any_of
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import contains_string
 from hamcrest import equal_to
-from hamcrest import has_item
+from hamcrest import empty
 from hamcrest import has_length
 from hamcrest import is_in
 from hamcrest import is_not
@@ -44,26 +46,33 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
 
     asset = 'multiple_sources'
 
+    alice_aaa = {'column_values': ['Alice', 'AAA', '5555555555'],
+                 'source': 'my_csv',
+                 'relations': EMPTY_RELATIONS}
+    alice_alan = {'column_values': ['Alice', 'Alan', '1111'],
+                  'source': 'third_csv',
+                  'relations': {'xivo_id': None,
+                                'user_id': None,
+                                'user_uuid': None,
+                                'endpoint_id': None,
+                                'agent_id': None,
+                                'source_entry_id': '1'}}
+
     def test_multiple_source_from_the_same_backend(self):
         result = self.lookup('lice', 'default')
 
         # second_csv does not search in column firstname
-        expected_results = [
-            {'column_values': ['Alice', 'AAA', '5555555555'],
-             'source': 'my_csv',
-             'relations': EMPTY_RELATIONS},
-            {'column_values': ['Alice', 'Alan', '1111'],
-             'source': 'third_csv',
-             'relations': {'xivo_id': None,
-                           'user_id': None,
-                           'user_uuid': None,
-                           'endpoint_id': None,
-                           'agent_id': None,
-                           'source_entry_id': '1'}},
-        ]
+        assert_that(result['results'], contains_inanyorder(self.alice_aaa, self.alice_alan))
 
-        assert_that(result['results'],
-                    contains_inanyorder(*expected_results))
+    def test_excluding_a_source(self):
+        result = self.lookup('lice', 'default', exclude=['third_csv'])
+
+        assert_that(result['results'], contains(self.alice_aaa))
+
+    def test_excluding_multiple_sources(self):
+        result = self.lookup('lice', 'default', exclude=['third_csv', 'my_csv'])
+
+        assert_that(result['results'], empty())
 
 
 class TestReverse(BaseDirdIntegrationTest):
@@ -84,13 +93,25 @@ class TestReverse(BaseDirdIntegrationTest):
                                        'lastname': 'azerty',
                                        'number': '1111',
                                        'reverse': 'qwerty azerty'}
+        self.alice_result = {'display': 'Alice Alan',
+                             'exten': '1111',
+                             'source': 'third_csv',
+                             'fields': self.alice_expected_fields}
+        self.qwerty_result_1 = {'display': 'qwerty azerty',
+                                'exten': '1111',
+                                'source': 'my_csv',
+                                'fields': self.qwerty_expected_fields}
+        self.qwerty_result_2 = {'display': 'qwerty azerty',
+                                'exten': '1111',
+                                'source': 'second_csv',
+                                'fields': self.qwerty_expected_fields}
 
     def test_reverse_when_no_result(self):
         result = self.reverse('1234', 'default', VALID_UUID)
 
-        expected_result = {'display': None, 'exten': '1234', 'source': None, 'fields': {}}
+        expected = {'display': None, 'exten': '1234', 'source': None, 'fields': {}}
 
-        assert_that(result, equal_to(expected_result))
+        assert_that(result, equal_to(expected))
 
     def test_reverse_with_xivo_user_uuid(self):
         result = self.get_reverse_result('1111', 'default', VALID_UUID, VALID_TOKEN)
@@ -98,22 +119,28 @@ class TestReverse(BaseDirdIntegrationTest):
 
     def test_reverse_when_multi_result(self):
         result = self.reverse('1111', 'default', VALID_UUID)
-        alice_result = {'display': 'Alice Alan', 'exten': '1111', 'source': 'third_csv',
-                        'fields': self.alice_expected_fields}
-        qwerty_result_1 = {'display': 'qwerty azerty', 'exten': '1111', 'source': 'my_csv',
-                           'fields': self.qwerty_expected_fields}
-        qwerty_result_2 = {'display': 'qwerty azerty', 'exten': '1111', 'source': 'second_csv',
-                           'fields': self.qwerty_expected_fields}
-        possible_results = [alice_result, qwerty_result_1, qwerty_result_2]
 
-        assert_that(possible_results, has_item(result))
+        assert_that(result, any_of(self.alice_result, self.qwerty_result_1, self.qwerty_result_2))
 
     def test_reverse_when_multi_columns(self):
         result = self.reverse('11112', 'default', VALID_UUID)
-        alice_result = {'display': 'Alice Alan', 'exten': '11112', 'source': 'third_csv',
-                        'fields': self.alice_expected_fields}
 
-        assert_that(result, equal_to(alice_result))
+        expected = {'display': 'Alice Alan',
+                    'exten': '11112',  # <-- matches the mobile
+                    'source': 'third_csv',
+                    'fields': self.alice_expected_fields}
+
+        assert_that(result, equal_to(expected))
+
+    def test_excluding_a_source_on_reverse(self):
+        result = self.reverse('1111', 'default', VALID_UUID, exclude=['my_csv'])
+
+        assert_that(result, any_of(self.alice_result, self.qwerty_result_2))
+
+    def test_excluding_many_sources_on_reverse(self):
+        result = self.reverse('1111', 'default', VALID_UUID, exclude=['my_csv', 'second_csv'])
+
+        assert_that(result, equal_to(self.alice_result))
 
 
 class TestLookupWhenASourceFails(BaseDirdIntegrationTest):

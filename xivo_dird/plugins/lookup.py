@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2014-2016 Avencall
+# Copyright (C) 2016 Proformatique
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -67,7 +68,8 @@ class _LookupService(object):
 
     def lookup(self, term, profile, xivo_user_uuid, args, token):
         futures = []
-        for source in self._source_by_profile(profile):
+        excluded_sources = args.get('exclude')
+        for source in self._source_by_profile(profile, excluded_sources):
             args['token'] = token
             args['xivo_user_uuid'] = xivo_user_uuid
             futures.append(self._async_search(source, term, args))
@@ -83,9 +85,13 @@ class _LookupService(object):
                 results.append(result)
         return results
 
-    def _source_by_profile(self, profile):
+    def _source_by_profile(self, profile, excluded_sources=None):
+        if not excluded_sources:
+            excluded_sources = []
+
         try:
-            source_names = self._config(profile)['sources']
+            configured_sources = self._config(profile)['sources']
+            source_names = set(configured_sources) - set(excluded_sources)
         except KeyError:
             logger.warning('Cannot find lookup sources for profile %s', profile)
             return []
