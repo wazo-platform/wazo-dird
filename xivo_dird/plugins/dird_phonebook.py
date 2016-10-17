@@ -64,6 +64,9 @@ class PhonebookPlugin(BaseSourcePlugin):
     def first_match(self, term, *args, **kwargs):
         logger.debug('First matching phonebook contacts with %s', term)
         matching_contact = self._search_engine.find_first_contact(term)
+        if not matching_contact:
+            return None
+
         for contact in self.format_contacts([matching_contact]):
             return contact
 

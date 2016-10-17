@@ -18,17 +18,19 @@
 import unittest
 
 from hamcrest import assert_that, calling, equal_to, raises
-from mock import Mock, patch
+from mock import Mock, patch, sentinel as s
 
 from xivo_dird.core.exception import InvalidConfigError
 
-from ..dird_phonebook import PhonebookPlugin
+from ..dird_phonebook import PhonebookPlugin, make_result_class
 
 
 class TestDirdPhonebook(unittest.TestCase):
 
     def setUp(self):
         self.source = PhonebookPlugin()
+        self.SourceResult = self.source._SourceResult = make_result_class('test', 'id', {})
+        self.engine = self.source._search_engine = Mock()
 
     def test_get_phonebook_id_unknown_phonebook(self):
         with patch.object(self.source, '_crud', Mock(list=Mock(return_value=[]))):
@@ -47,3 +49,18 @@ class TestDirdPhonebook(unittest.TestCase):
             id_ = self.source._get_phonebook_id({'phonebook_name': 'bar'})
 
         assert_that(id_, equal_to(2))
+
+    def test_that_find_first_returns_a_formated_result(self):
+        raw_result = self.engine.find_first_contact.return_value = {'id': 42,
+                                                                    'name': 'foobar'}
+
+        result = self.source.first_match(s.term)
+
+        assert_that(result, equal_to(self.SourceResult(raw_result)))
+
+    def test_that_find_first_returns_none_when_empty_result(self):
+        self.engine.find_first_contact.return_value = None
+
+        result = self.source.first_match(s.term)
+
+        assert_that(result, equal_to(None))
