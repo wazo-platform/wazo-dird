@@ -83,7 +83,6 @@ setup(
             'dird_phonebook = xivo_dird.plugins.dird_phonebook:PhonebookPlugin',
             'ldap = xivo_dird.plugins.ldap_plugin:LDAPPlugin',
             'personal = xivo_dird.plugins.personal_backend:PersonalBackend',
-            'phonebook = xivo_dird.plugins.phonebook_plugin:PhonebookPlugin',
             'xivo = xivo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
             'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
         ],
