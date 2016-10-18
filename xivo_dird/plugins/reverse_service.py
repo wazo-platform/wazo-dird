@@ -59,7 +59,9 @@ class _ReverseService(object):
     def reverse(self, exten, profile, args, xivo_user_uuid, token):
         exclude = args.get('exclude', [])
         futures = []
-        for source in self._source_by_profile(profile, exclude):
+        sources = self._source_by_profile(profile, exclude)
+        logger.debug('Reverse lookup for {} in sources {}'.format(exten, [source.name for source in sources]))
+        for source in sources:
             args['token'] = token
             args['xivo_user_uuid'] = xivo_user_uuid
             futures.append(self._async_reverse(source, exten, args))
