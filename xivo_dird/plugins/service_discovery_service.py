@@ -49,10 +49,13 @@ class ConfigUpdater(object):
         self.env = Environment(loader=loader)
         for name, config in services.iteritems():
             self._watched_services[name] = {
+                'template': config['template'],
                 'lookup': self._profiles_for(config, 'lookup'),
                 'reverse': self._profiles_for(config, 'reverse'),
                 'favorites': self._profiles_for(config, 'favorites'),
             }
+        if 'sources' not in self._config:
+            self._config['sources'] = {}
 
     def on_service_added(self, new_service_msg):
         consul_service = new_service_msg.get('service')
@@ -70,6 +73,7 @@ class ConfigUpdater(object):
             host_config)
 
         source_name = source_config['name']
+        self._config['sources'][source_name] = source_config
         for dird_service, profiles in consul_service_config.iteritems():
             dird_service_config = self._config['services'].get(dird_service)
             if not dird_service_config:

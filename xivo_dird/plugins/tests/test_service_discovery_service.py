@@ -20,7 +20,6 @@ import tempfile
 import unittest
 
 from hamcrest import assert_that, equal_to
-from mock import Mock, patch
 
 from ..service_discovery_service import ConfigUpdater
 
@@ -125,10 +124,7 @@ class TestConfigUpdater(unittest.TestCase):
         }
 
         source_name = 'xivo-ff791b0e-3d28-4b4d-bb90-2724c0a248cb'
-        with patch.object(updater,
-                          'build_source_config',
-                          Mock(return_value={'name': source_name})):
-            updater.on_service_added(new_service_msg)
+        updater.on_service_added(new_service_msg)
 
         expected_lookup_service = {
             'foobar': {'sources': ['source_1', 'source_2', source_name]},
@@ -147,9 +143,27 @@ class TestConfigUpdater(unittest.TestCase):
                     equal_to(expected_reverse_service))
         assert_that(self.config['services']['favorites'],
                     equal_to(expected_favorites_service))
+        expected_source = {
+            'type': 'xivo',
+            'name': source_name,
+            'searched_columns': ['firstname', 'lastname'],
+            'first_matched_columns': ['exten'],
+            'confd_config': {
+                'host': 'remote',
+                'port': 9487,
+                'version': 1.1,
+            },
+            'format_columns': {
+                'number': '{exten}',
+                'reverse': '{firstname} {lastname}',
+                'voicemail': '{voicemail_number}',
+            }
+        }
+        assert_that(self.config['sources'][source_name],
+                    equal_to(expected_source))
 
     def test_that_an_unconfigured_consul_service_does_nothing(self):
-        original_config = dict(self.config)
+        original_services = dict(self.config['services'])
 
         updater = ConfigUpdater(self.config)
 
@@ -162,10 +176,10 @@ class TestConfigUpdater(unittest.TestCase):
 
         updater.on_service_added(new_service_msg)
 
-        assert_that(self.config, equal_to(original_config))
+        assert_that(self.config['services'], equal_to(original_services))
 
     def test_that_a_consul_service_with_an_unknown_uuid_does_nothing(self):
-        original_config = dict(self.config)
+        original_services = dict(self.config['services'])
 
         updater = ConfigUpdater(self.config)
 
@@ -178,7 +192,7 @@ class TestConfigUpdater(unittest.TestCase):
 
         updater.on_service_added(new_service_msg)
 
-        assert_that(self.config, equal_to(original_config))
+        assert_that(self.config['services'], equal_to(original_services))
 
     def test_build_source_config(self):
         uuid = 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb'
