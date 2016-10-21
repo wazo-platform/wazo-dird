@@ -61,7 +61,8 @@ class XivoUserPlugin(BaseSourcePlugin):
 
         def match_fn(entry):
             for column in self._searched_columns:
-                if lowered_term in unicode(entry.fields.get(column, '')).lower():
+                column_value = entry.fields.get(column) or ''
+                if lowered_term in unicode(column_value).lower():
                     return True
             return False
 
