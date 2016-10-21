@@ -1,8 +1,0 @@
-type: phonebook
-name: test_pbook
-phonebook_url: http://phonebook/service/ipbx/json.php/restricted/pbx_services/phonebook
-format_columns:
-    name: "{phonebook.firstname} {phonebook.lastname}"
-    firstname: "{phonebook.firstname}"
-    lastname: "{phonebook.lastname}"
-    number: "{phonebooknumber.office.number}"
