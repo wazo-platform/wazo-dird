@@ -15,12 +15,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import os
+import tempfile
 import unittest
 
 from hamcrest import assert_that, equal_to
 from mock import Mock, patch
 
 from ..service_discovery_service import ConfigUpdater
+
+
+TEMPLATE = '''\
+type: xivo
+name: xivo-{{ uuid }}
+searched_columns:
+  - firstname
+  - lastname
+first_matched_columns:
+  - exten
+confd_config:
+  host: {{ hostname }}
+  port: {{ port }}
+  version: 1.1
+format_columns:
+    number: "{exten}"
+    reverse: "{firstname} {lastname}"
+    voicemail: "{voicemail_number}"
+'''
 
 
 class TestServiceDiscoveryServicePlugin(unittest.TestCase):
@@ -36,6 +57,10 @@ class TestServiceDiscoveryService(unittest.TestCase):
 class TestConfigUpdater(unittest.TestCase):
 
     def setUp(self):
+        self.template_file = tempfile.NamedTemporaryFile()
+        with open(self.template_file.name, 'w') as f:
+            f.write(TEMPLATE)
+        self.template_dir, self.template_filename = os.path.split(self.template_file.name)
         self.config = {
             'services': {
                 'lookup': {
@@ -51,9 +76,10 @@ class TestConfigUpdater(unittest.TestCase):
                     'default': {'sources': ['source_2']},
                 },
                 'service_discovery': {
+                    'template_path': self.template_dir,
                     'services': {
                         'xivo-confd': {
-                            'template': '<path/to/the/template>',
+                            'template': self.template_filename,
                             'lookup': {
                                 'foobar': True,
                                 'default': True,
@@ -82,6 +108,12 @@ class TestConfigUpdater(unittest.TestCase):
             },
         }
 
+    def tearDown(self):
+        try:
+            os.unlink(self.template_file.name)
+        except IOError:
+            return
+
     def test_that_on_service_added_modifies_the_config(self):
         updater = ConfigUpdater(self.config)
 
@@ -94,7 +126,7 @@ class TestConfigUpdater(unittest.TestCase):
 
         source_name = 'xivo-ff791b0e-3d28-4b4d-bb90-2724c0a248cb'
         with patch.object(updater,
-                          '_build_source_config',
+                          'build_source_config',
                           Mock(return_value={'name': source_name})):
             updater.on_service_added(new_service_msg)
 
@@ -147,3 +179,36 @@ class TestConfigUpdater(unittest.TestCase):
         updater.on_service_added(new_service_msg)
 
         assert_that(self.config, equal_to(original_config))
+
+    def test_build_source_config(self):
+        uuid = 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb'
+        msg = {
+            'service': 'xivo-confd',
+            'uuid': uuid,
+            'port': 9495,
+            'hostname': 'remote',
+        }
+        host_config = self.config['services']['service_discovery']['hosts'][uuid]
+        updater = ConfigUpdater(self.config)
+
+        source_config = updater.build_source_config(self.template_filename,
+                                                    msg,
+                                                    host_config)
+
+        expected_config = {
+            'type': 'xivo',
+            'name': 'xivo-{}'.format(uuid),
+            'searched_columns': ['firstname', 'lastname'],
+            'first_matched_columns': ['exten'],
+            'confd_config': {
+                'host': 'remote',
+                'port': 9495,
+                'version': 1.1,
+            },
+            'format_columns': {
+                'number': '{exten}',
+                'reverse': '{firstname} {lastname}',
+                'voicemail': '{voicemail_number}',
+            }
+        }
+        assert_that(source_config, equal_to(expected_config))

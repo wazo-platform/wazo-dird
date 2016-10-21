@@ -15,6 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import yaml
+
+from jinja2 import Environment, FileSystemLoader
+
 from xivo_dird import BaseServicePlugin
 
 
@@ -40,6 +44,9 @@ class ConfigUpdater(object):
         self._watched_services = {}
         services = config['services']['service_discovery']['services']
         self._host_configs = config['services']['service_discovery']['hosts']
+        template_path = config['services']['service_discovery']['template_path']
+        loader = FileSystemLoader(template_path)
+        self.env = Environment(loader=loader)
         for name, config in services.iteritems():
             self._watched_services[name] = {
                 'lookup': self._profiles_for(config, 'lookup'),
@@ -57,7 +64,7 @@ class ConfigUpdater(object):
         if not host_config:
             return
 
-        source_config = self._build_source_config(
+        source_config = self.build_source_config(
             consul_service_config.get('template'),
             new_service_msg,
             host_config)
@@ -76,11 +83,17 @@ class ConfigUpdater(object):
                     sources.append(source_name)
                     dird_service_config[profile]['sources'] = sources
 
+    def build_source_config(self, template_filename, new_service_msg, host_config):
+        template_args = {}
+        for d in [new_service_msg, host_config]:
+            for k, v in d.iteritems():
+                template_args[k] = v
+
+        template = self.env.get_template(template_filename)
+        yaml_representation = template.render(template_args)
+        return yaml.load(yaml_representation)
+
     @staticmethod
     def _profiles_for(config, service):
         profiles = config.get(service, {})
         return [profile for profile, enabled in profiles.iteritems() if enabled]
-
-    @staticmethod
-    def _build_source_config(template_filename, new_service_msg, host_config):
-        return {}
