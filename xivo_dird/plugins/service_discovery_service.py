@@ -37,43 +37,27 @@ class _Service(object):
         pass
 
 
-class ConfigUpdater(object):
+class ProfileConfigUpdater(object):
 
     def __init__(self, config):
         self._config = config
         self._watched_services = {}
-        services = config['services']['service_discovery']['services']
         self._host_configs = config['services']['service_discovery']['hosts']
-        template_path = config['services']['service_discovery']['template_path']
-        loader = FileSystemLoader(template_path)
-        self.env = Environment(loader=loader)
-        for name, config in services.iteritems():
+        consul_services = config['services']['service_discovery']['services']
+        for name, config in consul_services.iteritems():
             self._watched_services[name] = {
                 'template': config['template'],
                 'lookup': self._profiles_for(config, 'lookup'),
                 'reverse': self._profiles_for(config, 'reverse'),
                 'favorites': self._profiles_for(config, 'favorites'),
             }
-        if 'sources' not in self._config:
-            self._config['sources'] = {}
 
-    def on_service_added(self, new_service_msg):
+    def on_service_added(self, source_name, new_service_msg):
         consul_service = new_service_msg.get('service')
         consul_service_config = self._watched_services.get(consul_service)
         if not consul_service_config:
             return
 
-        host_config = self._host_configs.get(new_service_msg.get('uuid'))
-        if not host_config:
-            return
-
-        source_config = self.build_source_config(
-            consul_service_config.get('template'),
-            new_service_msg,
-            host_config)
-
-        source_name = source_config['name']
-        self._config['sources'][source_name] = source_config
         for dird_service, profiles in consul_service_config.iteritems():
             dird_service_config = self._config['services'].get(dird_service)
             if not dird_service_config:
@@ -87,9 +71,29 @@ class ConfigUpdater(object):
                     sources.append(source_name)
                     dird_service_config[profile]['sources'] = sources
 
-    def build_source_config(self, template_filename, new_service_msg, host_config):
+    @staticmethod
+    def _profiles_for(config, service):
+        profiles = config.get(service, {})
+        return [profile for profile, enabled in profiles.iteritems() if enabled]
+
+
+class SourceConfigUpdater(object):
+
+    def __init__(self, config):
+        if 'sources' not in config:
+            config['sources'] = {}
+        self.sources = config['sources']
+        sd_config = config['services']['service_discovery']
+        self._host_configs = sd_config['hosts']
+        template_path = sd_config['template_path']
+        loader = FileSystemLoader(template_path)
+        self.env = Environment(loader=loader)
+        self.templates = {name: config['template']
+                          for name, config in sd_config['services'].iteritems()}
+
+    def build_source_config(self, template_filename, new_service_msg):
         template_args = {}
-        for d in [new_service_msg, host_config]:
+        for d in [new_service_msg, self._host_configs]:
             for k, v in d.iteritems():
                 template_args[k] = v
 
@@ -97,7 +101,11 @@ class ConfigUpdater(object):
         yaml_representation = template.render(template_args)
         return yaml.load(yaml_representation)
 
-    @staticmethod
-    def _profiles_for(config, service):
-        profiles = config.get(service, {})
-        return [profile for profile, enabled in profiles.iteritems() if enabled]
+    def on_service_added(self, new_service_msg):
+        service_name = new_service_msg.get('service')
+        template = self.templates.get(service_name)
+        source_config = self.build_source_config(template, new_service_msg)
+        source_name = source_config.get('name')
+        if not source_name:
+            return
+        self.sources[source_name] = source_config
