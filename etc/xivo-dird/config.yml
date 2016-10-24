@@ -71,12 +71,14 @@ enabled_plugins:
     - ldap
     - dird_phonebook
   services:
+    - config
     - favorites
     - lookup
     - personal
     - reverse
     - phonebook
   views:
+    - config_view
     - default_json
     - headers_view
     - personal_view
