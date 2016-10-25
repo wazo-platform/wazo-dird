@@ -84,10 +84,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT).json()
 
     @classmethod
-    def get_lookup_result(cls, term, profile, token=None, exclude=None):
+    def get_lookup_result(cls, term, profile, token=None):
         params = {'term': term}
-        if exclude:
-            params['exclude'] = exclude
         url = u'https://localhost:9489/0.1/directories/lookup/{profile}'
         result = requests.get(url.format(profile=profile),
                               params=params,
@@ -96,8 +94,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def lookup(cls, term, profile, token=VALID_TOKEN, exclude=None):
-        response = cls.get_lookup_result(term, profile, token=token, exclude=exclude)
+    def lookup(cls, term, profile, token=VALID_TOKEN):
+        response = cls.get_lookup_result(term, profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
@@ -116,10 +114,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
-    def get_reverse_result(cls, exten, profile, xivo_user_uuid, token=None, exclude=None):
+    def get_reverse_result(cls, exten, profile, xivo_user_uuid, token=None):
         params = {'exten': exten}
-        if exclude:
-            params['exclude'] = exclude
         url = u'https://localhost:9489/0.1/directories/reverse/{profile}/{xivo_user_uuid}'
         result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
                               params=params,
@@ -128,8 +124,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def reverse(cls, exten, profile, xivo_user_uuid, token=VALID_TOKEN, exclude=None):
-        response = cls.get_reverse_result(exten, profile, xivo_user_uuid, token=token, exclude=exclude)
+    def reverse(cls, exten, profile, xivo_user_uuid, token=VALID_TOKEN):
+        response = cls.get_reverse_result(exten, profile, xivo_user_uuid, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 

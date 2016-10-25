@@ -453,7 +453,6 @@ paths:
       parameters:
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/Term'
-      - $ref: '#/parameters/Exclude'
   /directories/lookup/{profile}/headers:
     get:
       summary: Lookup headers
@@ -502,7 +501,6 @@ paths:
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/XivoUserUUID'
       - $ref: '#/parameters/Exten'
-      - $ref: '#/parameters/Exclude'
   /directories/favorites/{profile}:
     get:
       summary: List favorite contacts
@@ -1088,15 +1086,6 @@ parameters:
     type: string
     description: The directory where the contact is stored.
     required: true
-  Exclude:
-    name: exclude
-    in: query
-    type: array
-    items:
-      type: string
-    collectionFormat: multi
-    description: Sources to exclude from the search
-    required: false
   Exten:
     name: exten
     in: query

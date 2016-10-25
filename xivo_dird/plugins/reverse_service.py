@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -56,10 +57,10 @@ class _ReverseService(object):
     def stop(self):
         self._executor.shutdown()
 
-    def reverse(self, exten, profile, args, xivo_user_uuid, token):
-        exclude = args.get('exclude', [])
+    def reverse(self, exten, profile, args=None, xivo_user_uuid=None, token=None):
+        args = args or {}
         futures = []
-        sources = self._source_by_profile(profile, exclude)
+        sources = self._source_by_profile(profile)
         logger.debug('Reverse lookup for {} in sources {}'.format(exten, [source.name for source in sources]))
         for source in sources:
             args['token'] = token
@@ -89,10 +90,9 @@ class _ReverseService(object):
         future.name = source.name
         return future
 
-    def _source_by_profile(self, profile, exclude):
+    def _source_by_profile(self, profile):
         try:
-            configured_sources = self._config(profile)['sources']
-            source_names = set(configured_sources) - set(exclude)
+            source_names = self._config(profile)['sources']
         except KeyError:
             logger.warning('Cannot find reverse sources for profile %s', profile)
             return []

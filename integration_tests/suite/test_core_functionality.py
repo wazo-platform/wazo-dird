@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2015-2016 Avencall
-# Copyright (C) 2016 Proformatique
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,10 +18,6 @@
 
 import sh
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_TOKEN
-from .base_dird_integration_test import VALID_UUID
-
 from hamcrest import all_of
 from hamcrest import any_of
 from hamcrest import assert_that
@@ -29,10 +25,14 @@ from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import contains_string
 from hamcrest import equal_to
-from hamcrest import empty
 from hamcrest import has_length
 from hamcrest import is_in
 from hamcrest import is_not
+
+from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import VALID_TOKEN
+from .base_dird_integration_test import VALID_UUID
+
 
 EMPTY_RELATIONS = {'xivo_id': None,
                    'user_id': None,
@@ -63,16 +63,6 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
 
         # second_csv does not search in column firstname
         assert_that(result['results'], contains_inanyorder(self.alice_aaa, self.alice_alan))
-
-    def test_excluding_a_source(self):
-        result = self.lookup('lice', 'default', exclude=['third_csv'])
-
-        assert_that(result['results'], contains(self.alice_aaa))
-
-    def test_excluding_multiple_sources(self):
-        result = self.lookup('lice', 'default', exclude=['third_csv', 'my_csv'])
-
-        assert_that(result['results'], empty())
 
 
 class TestReverse(BaseDirdIntegrationTest):
@@ -131,16 +121,6 @@ class TestReverse(BaseDirdIntegrationTest):
                     'fields': self.alice_expected_fields}
 
         assert_that(result, equal_to(expected))
-
-    def test_excluding_a_source_on_reverse(self):
-        result = self.reverse('1111', 'default', VALID_UUID, exclude=['my_csv'])
-
-        assert_that(result, any_of(self.alice_result, self.qwerty_result_2))
-
-    def test_excluding_many_sources_on_reverse(self):
-        result = self.reverse('1111', 'default', VALID_UUID, exclude=['my_csv', 'second_csv'])
-
-        assert_that(result, equal_to(self.alice_result))
 
 
 class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
