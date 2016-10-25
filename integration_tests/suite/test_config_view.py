@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, has_entries
 
 from .base_dird_integration_test import BaseDirdIntegrationTest, VALID_TOKEN
 
@@ -27,10 +27,6 @@ class TestConfigView(BaseDirdIntegrationTest):
     def test_get_config(self):
         result = self.get_config(token=VALID_TOKEN)
 
-        # Expected
-        # {'foo': {'bar': 'main',
-        #          'baz': 'conf.d'
-        #          'other': 'overwritten'}}
-        assert_that(result['foo']['bar'], equal_to('main'))
-        assert_that(result['foo']['baz'], equal_to('conf.d'))
-        assert_that(result['foo']['other'], equal_to('overwritten'))
+        assert_that(result, has_entries({'foo': {'bar': 'main',
+                                                 'baz': 'conf.d',
+                                                 'other': 'overwritten'}}))
