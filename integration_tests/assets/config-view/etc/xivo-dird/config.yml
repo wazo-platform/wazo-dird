@@ -1,0 +1,22 @@
+service_discovery:
+  enabled: false
+auth:
+  host: auth
+  port: 9497
+  verify_certificate: /usr/local/share/ssl/auth/server.crt
+enabled_plugins:
+  backends:
+    - csv
+  services:
+    - config
+  views:
+    - config_view
+rest_api:
+  https:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /usr/local/share/ssl/dird/server.crt
+    private_key: /usr/local/share/ssl/dird/server.key
+foo:
+    bar: main
+    other: 42

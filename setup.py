@@ -71,6 +71,7 @@ setup(
     entry_points={
         'xivo_dird.services': [
             'cleanup = xivo_dird.plugins.cleanup_service:StorageCleanupServicePlugin',
+            'config = xivo_dird.plugins.config_service:ConfigServicePlugin',
             'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
             'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
             'personal = xivo_dird.plugins.personal_service:PersonalServicePlugin',
@@ -89,6 +90,7 @@ setup(
         'xivo_dird.views': [
             'aastra_view = xivo_dird.plugins.aastra_view:AastraViewPlugin',
             'cisco_view = xivo_dird.plugins.cisco_view:CiscoViewPlugin',
+            'config_view = xivo_dird.plugins.config_view:ConfigViewPlugin',
             'polycom_view = xivo_dird.plugins.polycom_view:PolycomViewPlugin',
             'snom_view = xivo_dird.plugins.snom_view:SnomViewPlugin',
             'thomson_view = xivo_dird.plugins.thomson_view:ThomsonViewPlugin',

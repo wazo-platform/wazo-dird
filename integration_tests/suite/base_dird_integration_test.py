@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2015-2016 Avencall
-# Copyright (C) 2016 Proformatique
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import requests
 import os
 import json
 import logging
+
+import requests
 
 from hamcrest import assert_that
 from hamcrest import equal_to
@@ -76,6 +77,11 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = ASSET_ROOT
     service = 'dird'
+
+    @classmethod
+    def get_config(cls, token):
+        url = 'https://localhost:9489/0.1/config'
+        return requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT).json()
 
     @classmethod
     def get_lookup_result(cls, term, profile, token=None, exclude=None):

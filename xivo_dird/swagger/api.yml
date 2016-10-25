@@ -17,7 +17,7 @@ info:
   contact:
     name: Dev Team
     url: http://xivo.io
-    email: dev@avencall.com
+    email: dev@proformatique.com
 x-xivo-port: 9489
 x-xivo-name: dird
 schemes:
@@ -35,6 +35,18 @@ securityDefinitions:
 security:
 - xivo_auth_token: []
 paths:
+  /config:
+    get:
+      summary: Returns the current service configuration
+      description: '**Required ACL:** `dire.config.read`'
+      operationId: configuration_get
+      tags:
+        - configuration
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: A JSON representation of the current configuration.
   /directories/input/{profile}/{xivo_user_uuid}/aastra:
     get:
       summary: Given informations about how make request lookup for Aastra Phones
