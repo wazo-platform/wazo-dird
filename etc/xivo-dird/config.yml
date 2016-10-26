@@ -77,6 +77,7 @@ enabled_plugins:
     - personal
     - reverse
     - phonebook
+    - cleanup
   views:
     - config_view
     - default_json
