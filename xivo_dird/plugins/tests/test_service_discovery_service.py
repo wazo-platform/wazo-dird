@@ -20,8 +20,12 @@ import tempfile
 import unittest
 
 from hamcrest import assert_that, equal_to
+from mock import sentinel as s
 
-from ..service_discovery_service import ProfileConfigUpdater, SourceConfigUpdater
+from ..service_discovery_service import (
+    ProfileConfigUpdater,
+    SourceConfigGenerator,
+)
 
 
 TEMPLATE = '''\
@@ -35,7 +39,7 @@ first_matched_columns:
 confd_config:
   host: {{ hostname }}
   port: {{ port }}
-  version: 1.1
+  version: "1.1"
 format_columns:
     number: "{exten}"
     reverse: "{firstname} {lastname}"
@@ -100,14 +104,20 @@ class TestServiceDiscoveryService(unittest.TestCase):
         pass
 
 
-class TestSourceConfigUpdater(unittest.TestCase):
+def new_template_file(content):
+    f = tempfile.NamedTemporaryFile(delete=False)
+    with open(f.name, 'w') as f:
+        f.write(content)
+    dir_, name = os.path.split(f.name)
+    return f, dir_, name
+
+
+class TestSourceConfigGenerator(unittest.TestCase):
 
     def setUp(self):
-        self.template_file, dir_, self.template_filename = self.new_template_file(TEMPLATE)
-        self.config = dict(CONFIG)
-        sd_config = self.config['services']['service_discovery']
-        sd_config['services']['xivo-confd']['template'] = self.template_filename
-        sd_config['template_path'] = dir_
+        (self.template_file,
+         self.template_dir,
+         self.template_filename) = new_template_file(TEMPLATE)
 
     def tearDown(self):
         try:
@@ -115,96 +125,70 @@ class TestSourceConfigUpdater(unittest.TestCase):
         except OSError:
             return
 
-    @staticmethod
-    def new_template_file(content):
-        f = tempfile.NamedTemporaryFile(delete=False)
-        with open(f.name, 'w') as f:
-            f.write(content)
-        dir_, name = os.path.split(f.name)
-        return f, dir_, name
-
-    def test_on_service_added(self):
-        new_service_msg = {
-            'service': 'xivo-confd',
-            'uuid': 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
-            'port': 9487,
-            'hostname': 'remote',
-        }
-        updater = SourceConfigUpdater(self.config)
-
-        updater.on_service_added(new_service_msg)
-
-        source_name = 'xivo-ff791b0e-3d28-4b4d-bb90-2724c0a248cb'
-        expected_source = {
-            'type': 'xivo',
-            'name': source_name,
-            'searched_columns': ['firstname', 'lastname'],
-            'first_matched_columns': ['exten'],
-            'confd_config': {
-                'host': 'remote',
-                'port': 9487,
-                'version': 1.1,
+    def test_generate_with_an_unknown_service(self):
+        service_discovery_config = {
+            'template_path': None,
+            'services': {},
+            'hosts': {
+                'ff791b0e-3d28-4b4d-bb90-2724c0a248cb': {
+                    'uuid': 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
+                    'service_id': 'some-service-name',
+                    'service_key': 'secre7',
+                },
             },
-            'format_columns': {
-                'number': '{exten}',
-                'reverse': '{firstname} {lastname}',
-                'voicemail': '{voicemail_number}',
-            }
         }
-        assert_that(self.config['sources'][source_name],
-                    equal_to(expected_source))
 
-    def test_on_service_added_invalid_template(self):
-        f, dir_, name = self.new_template_file('foo:')
+        generator = SourceConfigGenerator(service_discovery_config)
 
-        self.config['services']['service_discovery']['services']['xivo-confd']['template'] = name
-        self.config['services']['service_discovery']['template_path'] = dir_
+        config = generator.generate_from_new_service('unknown',
+                                                     s.uuid,
+                                                     s.host,
+                                                     s.port)
 
-        updater = SourceConfigUpdater(self.config)
+        assert_that(config, equal_to(None))
 
-        original_sources = dict(self.config['sources'])
-
-        new_service_msg = {
-            'service': 'xivo-confd',
-            'uuid': 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
-            'port': 9487,
-            'hostname': 'remote',
-        }
-        updater.on_service_added(new_service_msg)
-        os.unlink(f.name)
-
-        assert_that(self.config['sources'], equal_to(original_sources))
-
-    def test_build_source_config(self):
+    def test_generate_with_a_service(self):
         uuid = 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb'
-        msg = {
-            'service': 'xivo-confd',
-            'uuid': uuid,
-            'port': 9495,
-            'hostname': 'remote',
+        service_discovery_config = {
+            'template_path': self.template_dir,
+            'services': {
+                'xivo-confd': {
+                    'template': self.template_filename,
+                },
+            },
+            'hosts': {
+                uuid: {
+                    'uuid': uuid,
+                    'service_id': 'some-service-name',
+                    'service_key': 'secre7',
+                },
+            },
         }
-        updater = SourceConfigUpdater(self.config)
 
-        source_config = updater.build_source_config(self.template_filename,
-                                                    msg)
+        generator = SourceConfigGenerator(service_discovery_config)
 
-        expected_config = {
+        config = generator.generate_from_new_service('xivo-confd',
+                                                     uuid,
+                                                     'the-host-name',
+                                                     4567)
+        expected = {
             'type': 'xivo',
-            'name': 'xivo-{}'.format(uuid),
+            'name': 'xivo-ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['exten'],
             'confd_config': {
-                'host': 'remote',
-                'port': 9495,
-                'version': 1.1,
+                'host': 'the-host-name',
+                'port': 4567,
+                'version': '1.1',
             },
             'format_columns': {
-                'number': '{exten}',
-                'reverse': '{firstname} {lastname}',
-                'voicemail': '{voicemail_number}',
-            }
+                'number': "{exten}",
+                'reverse': "{firstname} {lastname}",
+                'voicemail': "{voicemail_number}",
+            },
         }
-        assert_that(source_config, equal_to(expected_config))
+
+        assert_that(config, equal_to(expected))
 
 
 class TestProfileConfigUpdater(unittest.TestCase):

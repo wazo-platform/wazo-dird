@@ -22,7 +22,7 @@ from uuid import UUID
 import kombu
 import yaml
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
@@ -119,35 +119,43 @@ class ProfileConfigUpdater(object):
         return [profile for profile, enabled in profiles.iteritems() if enabled]
 
 
-class SourceConfigUpdater(object):
+class SourceConfigGenerator(object):
 
-    def __init__(self, config):
-        if 'sources' not in config:
-            config['sources'] = {}
-        self.sources = config['sources']
-        sd_config = config['services']['service_discovery']
-        self._host_configs = sd_config['hosts']
-        template_path = sd_config['template_path']
-        loader = FileSystemLoader(template_path)
-        self.env = Environment(loader=loader)
-        self.templates = {name: config['template']
-                          for name, config in sd_config['services'].iteritems()}
+    enabled = False
 
-    def build_source_config(self, template_filename, new_service_msg):
-        template_args = {}
-        for d in [new_service_msg, self._host_configs]:
-            for k, v in d.iteritems():
-                template_args[k] = v
+    def __init__(self, service_discovery_config):
+        template_path = service_discovery_config['template_path']
+        if not template_path:
+            logger.info('service discovery service error: no "template_path" configured')
+            return
 
-        template = self.env.get_template(template_filename)
+        loader = FileSystemLoader(service_discovery_config['template_path'])
+        self._env = Environment(loader=loader)
+        self._host_configs = service_discovery_config['hosts']
+        self._template_files = {
+            service: config['template']
+            for service, config
+            in service_discovery_config['services'].iteritems()
+        }
+        self.enabled = True
+
+    def generate_from_new_service(self, service, uuid, host, port):
+        if not self.enabled:
+            return
+
+        template_file = self._template_files.get(service)
+        if not template_file:
+            return
+
+        try:
+            template = self._env.get_template(template_file)
+        except TemplateNotFound:
+            return
+
+        template_args = dict(self._host_configs[uuid])
+        template_args['uuid'] = uuid
+        template_args['hostname'] = host
+        template_args['port'] = port
+
         yaml_representation = template.render(template_args)
         return yaml.load(yaml_representation)
-
-    def on_service_added(self, new_service_msg):
-        service_name = new_service_msg.get('service')
-        template = self.templates.get(service_name)
-        source_config = self.build_source_config(template, new_service_msg)
-        source_name = source_config.get('name')
-        if not source_name:
-            return
-        self.sources[source_name] = source_config
