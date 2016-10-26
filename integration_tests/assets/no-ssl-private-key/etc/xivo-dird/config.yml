@@ -42,3 +42,6 @@ rest_api:
 
 bus:
   enabled: false
+
+service_discovery:
+  enabled: false

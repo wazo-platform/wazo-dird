@@ -56,3 +56,6 @@ bus:
   port: 5672
   username: guest
   password: guest
+
+service_discovery:
+  enabled: false

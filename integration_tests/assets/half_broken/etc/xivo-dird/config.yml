@@ -77,3 +77,9 @@ sources:
   broken:
     type: broken_lookup
     name: broken
+
+bus:
+  enabled: false
+
+service_discovery:
+  enabled: false
