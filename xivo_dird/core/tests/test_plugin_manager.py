@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from unittest import TestCase
 from collections import defaultdict
+
 from hamcrest import assert_that, calling, equal_to, has_entries, raises, not_
 from mock import ANY, Mock, patch, sentinel as s
-from unittest import TestCase
 
 from xivo_dird.core import plugin_manager
 
@@ -30,7 +31,7 @@ class TestPluginManagerServices(TestCase):
     def test_load_services_loads_service_extensions(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
 
-        plugin_manager.load_services(s.config, enabled_services=[], sources=s.backends)
+        plugin_manager.load_services(s.config, enabled_services=[], sources=s.backends, bus=s.bus)
 
         extension_manager_init.assert_called_once_with(
             namespace='xivo_dird.services',
@@ -38,25 +39,30 @@ class TestPluginManagerServices(TestCase):
             invoke_on_load=True)
         extension_manager.map.assert_called_once_with(plugin_manager.load_service_extension,
                                                       s.config,
-                                                      s.backends)
+                                                      s.backends,
+                                                      s.bus)
 
     @patch('xivo_dird.core.plugin_manager.EnabledExtensionManager')
     def test_load_services_returns_dict_of_callables(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
         extension_manager.map.return_value = [(s.name1, s.callable1), (s.name2, s.callable2)]
 
-        result = plugin_manager.load_services(s.config, enabled_services=[], sources=s.backends)
+        result = plugin_manager.load_services(s.config,
+                                              enabled_services=[],
+                                              sources=s.backends,
+                                              bus=s.bus)
 
         assert_that(result, has_entries({s.name1: s.callable1, s.name2: s.callable2}))
 
     def test_load_service_extension_passes_right_plugin_arguments(self):
         extension = Mock()
 
-        plugin_manager.load_service_extension(extension, s.config, s.sources)
+        plugin_manager.load_service_extension(extension, s.config, s.sources, s.bus)
 
         extension.obj.load.assert_called_once_with({
             'config': s.config,
-            'sources': s.sources
+            'sources': s.sources,
+            'bus': s.bus,
         })
 
     def test_load_service_extension_returns_extension_name_and_result_from_load(self):
@@ -65,7 +71,7 @@ class TestPluginManagerServices(TestCase):
         extension.obj.load.return_value = s.callable
         config = defaultdict(Mock)
 
-        result = plugin_manager.load_service_extension(extension, config, s.sources)
+        result = plugin_manager.load_service_extension(extension, config, s.sources, s.bus)
 
         assert_that(result, equal_to((extension.name, s.callable)))
 

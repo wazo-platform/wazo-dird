@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2014-2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,6 +25,7 @@ from functools import partial
 from xivo.consul_helpers import ServiceCatalogRegistration
 from xivo_dird.core import auth
 from xivo_dird.core import plugin_manager
+from xivo_dird.core.bus import Bus
 from xivo_dird.core.rest_api import CoreRestApi
 
 from .service_discovery import self_check
@@ -40,17 +42,20 @@ class Controller(object):
     def __init__(self, config):
         self.config = config
         self.rest_api = CoreRestApi(self.config)
+        self.bus = Bus(config)
         auth.set_auth_config(self.config['auth'])
 
     def __del__(self):
         plugin_manager.unload_services()
+        self.bus.stop()
 
     def run(self):
         self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
                                                    self.config)
         self.services = plugin_manager.load_services(self.config,
                                                      self.config['enabled_plugins']['services'],
-                                                     self.sources)
+                                                     self.sources,
+                                                     self.bus)
         plugin_manager.load_views(self.config['views'],
                                   self.config['enabled_plugins']['views'],
                                   self.services,
@@ -65,4 +70,5 @@ class Controller(object):
                                         partial(self_check,
                                                 self.config['rest_api']['https']['port'],
                                                 self.config['rest_api']['https']['certificate'])):
+            self.bus.start()
             self.rest_api.run()
