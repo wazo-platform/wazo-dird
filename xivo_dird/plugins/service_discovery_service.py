@@ -15,11 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import logging
+
+from uuid import UUID
+
+import kombu
 import yaml
 
 from jinja2 import Environment, FileSystemLoader
 
+from xivo_bus.marshaler import InvalidMessage, Marshaler
+from xivo_bus.resources.services.event import ServiceRegisteredEvent
+
 from xivo_dird import BaseServicePlugin
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceDiscoveryServicePlugin(BaseServicePlugin):
@@ -28,13 +38,45 @@ class ServiceDiscoveryServicePlugin(BaseServicePlugin):
         self._service = None
 
     def load(self, args):
-        pass
+        config = args['config']
+        bus = args['bus']
+
+        self._service = _Service(config, bus)
 
 
 class _Service(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, config, bus):
+        self._config = config
+        queue = kombu.Queue(exchange=kombu.Exchange('xivo', type='topic'),
+                            routing_key='service.registered.*',
+                            exclusive=True)
+        bus.add_consumer(queue, self._on_service_registered)
+
+    def _on_service_added(self, service_name, host, port, uuid):
+        logger.info('%s registered %s:%s with uuid %s', service_name, host, port, uuid)
+
+    def _on_service_registered(self, body, message):
+        try:
+            event = Marshaler.unmarshal_message(body, ServiceRegisteredEvent)
+        except (InvalidMessage, KeyError):
+            logger.exception('Ignoring the following malformed bus message: %s', body)
+        else:
+            uuid = self._find_first_uuid(event.tags)
+            if uuid:
+                self._on_service_added(event.service_name,
+                                       event.advertise_address,
+                                       event.advertise_port,
+                                       uuid)
+            message.ack()
+
+    @staticmethod
+    def _find_first_uuid(tags):
+        for tag in tags:
+            try:
+                return str(UUID(tag))
+            except (AttributeError, ValueError):
+                continue
 
 
 class ProfileConfigUpdater(object):

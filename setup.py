@@ -76,6 +76,7 @@ setup(
             'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
             'personal = xivo_dird.plugins.personal_service:PersonalServicePlugin',
             'phonebook = xivo_dird.plugins.phonebook_service:PhonebookServicePlugin',
+            'service_discovery = xivo_dird.plugins.service_discovery_service:ServiceDiscoveryServicePlugin',
             'reverse = xivo_dird.plugins.reverse_service:ReverseServicePlugin',
         ],
         'xivo_dird.backends': [
