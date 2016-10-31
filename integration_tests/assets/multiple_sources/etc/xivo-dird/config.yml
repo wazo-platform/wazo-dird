@@ -1,11 +1,14 @@
 enabled_plugins:
   backends:
     - csv
+    - unknown  # unknown backends should not prevent xivo-dird from starting
   services:
     - lookup
     - reverse
+    - unknown  # unknown backends should not prevent xivo-dird from starting
   views:
     - default_json
+    - unknown  # unknown backends should not prevent xivo-dird from starting
 
 views:
   displays:
