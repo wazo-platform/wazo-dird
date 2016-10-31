@@ -99,7 +99,6 @@ class ProfileConfigUpdater(object):
         consul_services = config['services']['service_discovery']['services']
         for name, config in consul_services.iteritems():
             self._watched_services[name] = {
-                'template': config['template'],
                 'lookup': self._profiles_for(config, 'lookup'),
                 'reverse': self._profiles_for(config, 'reverse'),
                 'favorites': self._profiles_for(config, 'favorites'),
