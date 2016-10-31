@@ -19,6 +19,7 @@
 import logging
 
 from collections import defaultdict
+
 from stevedore import EnabledExtensionManager
 
 
@@ -49,20 +50,38 @@ class SourceManager(object):
     def _is_enabled(self, extension):
         return extension.name in self._enabled_backends
 
+    def load_source(self, type_, name):
+        manager = EnabledExtensionManager(
+            namespace=self._namespace,
+            check_func=lambda extension: extension.name == type_,
+            invoke_on_load=False,
+        )
+        manager.map(self._add_source, name)
+
+    def _add_source(self, extension, name):
+        config = self._source_configs.get(name)
+        if not config:
+            logger.info('no config found for %s', name)
+            return
+
+        self._add_source_with_config(extension, config)
+
+    def _add_source_with_config(self, extension, config):
+        name = config['name']
+        logger.debug('Loading source %s', name)
+        try:
+            source = extension.plugin()
+            source.name = name
+            source.backend = extension.name
+            source.load({'config': config, 'main_config': self._main_config})
+            self._sources[source.name] = source
+        except Exception:
+            logger.exception('Failed to load back-end `%s` with config `%s`',
+                             extension.name, name)
+
     def _load_sources_using_backend(self, extension, configs_by_backend):
-        backend = extension.name
-        for config in configs_by_backend[backend]:
-            config_name = config['name']
-            logger.debug('Loading source %s', config_name)
-            try:
-                source = extension.plugin()
-                source.name = config_name
-                source.backend = backend
-                source.load({'config': config,
-                             'main_config': self._main_config})
-                self._sources[source.name] = source
-            except Exception:
-                logger.exception('Failed to load back-end `%s` with config `%s`', extension.name, config_name)
+        for config in configs_by_backend.get(extension.name, []):
+            self._add_source_with_config(extension, config)
 
     @staticmethod
     def group_configs_by_backend(source_configs):

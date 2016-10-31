@@ -26,6 +26,7 @@ from xivo_dird.core.source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
 services_extension_manager = None
+source_manager = None
 
 
 def load_services(config, enabled_services, sources, bus):
@@ -54,7 +55,10 @@ def unload_services():
 
 
 def load_sources(enabled_backends, source_configs):
-    return SourceManager(enabled_backends, source_configs).load_sources()
+    global source_manager
+    if not source_manager:
+        source_manager = SourceManager(enabled_backends, source_configs)
+    return source_manager.load_sources()
 
 
 def load_views(config, enabled_views, services, rest_api):

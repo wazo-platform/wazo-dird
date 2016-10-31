@@ -90,6 +90,9 @@ class TestPluginManagerServices(TestCase):
 
 class TestPluginManagerSources(TestCase):
 
+    def tearDown(self):
+        plugin_manager.source_manager = None
+
     @patch('xivo_dird.core.plugin_manager.SourceManager')
     def test_load_sources_calls_source_manager(self, source_manager_init):
         source_manager = source_manager_init.return_value

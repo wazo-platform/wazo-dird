@@ -28,6 +28,7 @@ from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
 
 from xivo_dird import BaseServicePlugin
+from xivo_dird.core.plugin_manager import source_manager
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +53,19 @@ class _Service(object):
                             routing_key='service.registered.*',
                             exclusive=True)
         bus.add_consumer(queue, self._on_service_registered)
+        self._source_config_generator = SourceConfigGenerator(
+            config['services']['service_discovery'])
 
     def _on_service_added(self, service_name, host, port, uuid):
-        logger.info('%s registered %s:%s with uuid %s', service_name, host, port, uuid)
+        logger.info('%s registered %s:%s with uuid %s',
+                    service_name, host, port, uuid)
+        config = self._source_config_generator.generate_from_new_service(
+            service_name, uuid, host, port)
+        if not config:
+            return
+
+        self._config['sources'][config['name']] = config
+        source_manager.load_source(config['type'], config['name'])
 
     def _on_service_registered(self, body, message):
         try:
