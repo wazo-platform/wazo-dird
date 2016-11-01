@@ -59,6 +59,7 @@ class _Service(object):
             return
         self._source_config_generator = SourceConfigGenerator(service_disco_config)
         self._source_config_manager = SourceConfigManager(config['sources'])
+        self._profile_config_updater = ProfileConfigUpdater(config)
         bus.add_consumer(self.QUEUE, self._on_service_registered)
 
     def _on_service_added(self, service_name, host, port, uuid):
@@ -75,6 +76,7 @@ class _Service(object):
 
         self._source_config_manager.add_source(config)
         source_manager.load_source(config['type'], source_name)
+        self._profile_config_updater.on_service_added(source_name, service_name)
         logger.info('new source added %s', source_name)
 
     def _on_service_registered(self, body, message):
@@ -129,9 +131,8 @@ class ProfileConfigUpdater(object):
                 'favorites': self._profiles_for(config, 'favorites'),
             }
 
-    def on_service_added(self, source_name, new_service_msg):
-        consul_service = new_service_msg.get('service')
-        consul_service_config = self._watched_services.get(consul_service)
+    def on_service_added(self, source_name, discovered_service):
+        consul_service_config = self._watched_services.get(discovered_service)
         if not consul_service_config:
             return
 

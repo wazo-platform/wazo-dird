@@ -237,14 +237,7 @@ class TestProfileConfigUpdater(unittest.TestCase):
     def test_that_on_service_added_modifies_the_config(self):
         updater = ProfileConfigUpdater(self.config)
 
-        new_service_msg = {
-            'service': 'xivo-confd',
-            'uuid': 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
-            'port': 9487,
-            'hostname': 'remote',
-        }
-
-        updater.on_service_added(self.source_name, new_service_msg)
+        updater.on_service_added(self.source_name, 'xivo-confd')
 
         expected_lookup_service = {
             'foobar': {'sources': ['source_1', 'source_2', self.source_name]},
@@ -269,14 +262,7 @@ class TestProfileConfigUpdater(unittest.TestCase):
 
         updater = ProfileConfigUpdater(self.config)
 
-        new_service_msg = {
-            'service': 'xivo-ctid',
-            'uuid': 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
-            'port': 9495,
-            'hostname': 'remote',
-        }
-
-        updater.on_service_added(self.source_name, new_service_msg)
+        updater.on_service_added(self.source_name, 'xivo-ctid')
 
         assert_that(self.config['services'], equal_to(original_services))
 
@@ -285,13 +271,6 @@ class TestProfileConfigUpdater(unittest.TestCase):
 
         updater = ProfileConfigUpdater(self.config)
 
-        new_service_msg = {
-            'service': 'xivo-confd',
-            'uuid': 'ff791b0e-3d28-4b4d-bb90-2724c0a24NOT',
-            'port': 9495,
-            'hostname': 'remote',
-        }
-
-        updater.on_service_added(self.source_name, new_service_msg)
+        updater.on_service_added(self.source_name, 'xivo-confd')
 
         assert_that(self.config['services'], equal_to(original_services))
