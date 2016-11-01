@@ -19,12 +19,13 @@ import os
 import tempfile
 import unittest
 
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, not_
 from mock import sentinel as s
 
 from ..service_discovery_service import (
     ProfileConfigUpdater,
     SourceConfigGenerator,
+    SourceConfigManager,
 )
 
 
@@ -110,6 +111,42 @@ def new_template_file(content):
         f.write(content)
     dir_, name = os.path.split(f.name)
     return f, dir_, name
+
+
+class TestSourceConfigManager(unittest.TestCase):
+
+    def setUp(self):
+        self.source_config = {
+            "personal": {
+                "name": "personal",
+                "type": "personal",
+            },
+            "xivodir": {
+                "name": "xivodir",
+                "type": "dird_phonebook",
+            },
+            None: {
+                "name": None,
+                "type": "invalid",
+            },
+        }
+
+    def test_source_exists(self):
+        manager = SourceConfigManager(self.source_config)
+
+        assert_that(manager.source_exists('personal'))
+        assert_that(not_(manager.source_exists('foobar')))
+        assert_that(not_(manager.source_exists(None)))
+
+    def test_add_source(self):
+        manager = SourceConfigManager(self.source_config)
+
+        foobar_config = {'name': 'foobar',
+                         'type': 'dird_phonebook'}
+
+        manager.add_source(foobar_config)
+
+        assert_that(self.source_config['foobar'], equal_to(foobar_config))
 
 
 class TestSourceConfigGenerator(unittest.TestCase):

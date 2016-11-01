@@ -47,25 +47,35 @@ class ServiceDiscoveryServicePlugin(BaseServicePlugin):
 
 class _Service(object):
 
+    QUEUE = kombu.Queue(exchange=kombu.Exchange('xivo', type='topic'),
+                        routing_key='service.registered.*',
+                        exclusive=True)
+
     def __init__(self, config, bus):
         self._config = config
-        queue = kombu.Queue(exchange=kombu.Exchange('xivo', type='topic'),
-                            routing_key='service.registered.*',
-                            exclusive=True)
-        bus.add_consumer(queue, self._on_service_registered)
-        self._source_config_generator = SourceConfigGenerator(
-            config['services']['service_discovery'])
+        service_disco_config = config['services'].get('service_discovery')
+        if not service_disco_config:
+            logger.info('"service_discovery" key missing from the configuration')
+            return
+        self._source_config_generator = SourceConfigGenerator(service_disco_config)
+        self._source_config_manager = SourceConfigManager(config['sources'])
+        bus.add_consumer(self.QUEUE, self._on_service_registered)
 
     def _on_service_added(self, service_name, host, port, uuid):
-        logger.info('%s registered %s:%s with uuid %s',
-                    service_name, host, port, uuid)
+        logger.debug('%s registered %s:%s with uuid %s', service_name, host, port, uuid)
         config = self._source_config_generator.generate_from_new_service(
             service_name, uuid, host, port)
         if not config:
+            logger.debug('no config')
             return
 
-        self._config['sources'][config['name']] = config
-        source_manager.load_source(config['type'], config['name'])
+        source_name = config.get('name')
+        if self._source_config_manager.source_exists(source_name):
+            return
+
+        self._source_config_manager.add_source(config)
+        source_manager.load_source(config['type'], source_name)
+        logger.info('new source added %s', source_name)
 
     def _on_service_registered(self, body, message):
         try:
@@ -88,6 +98,21 @@ class _Service(object):
                 return str(UUID(tag))
             except (AttributeError, ValueError):
                 continue
+
+
+class SourceConfigManager(object):
+
+    def __init__(self, config):
+        self._config = config
+
+    def source_exists(self, source_name):
+        return source_name in self._config
+
+    def add_source(self, source_config):
+        source_name = source_config.get('name')
+        if not source_name:
+            return
+        self._config[source_name] = source_config
 
 
 class ProfileConfigUpdater(object):
@@ -134,12 +159,13 @@ class SourceConfigGenerator(object):
     enabled = False
 
     def __init__(self, service_discovery_config):
-        template_path = service_discovery_config['template_path']
+        logger.debug('Starting with %s', service_discovery_config)
+        template_path = service_discovery_config.get('template_path')
         if not template_path:
             logger.info('service discovery service error: no "template_path" configured')
             return
 
-        loader = FileSystemLoader(service_discovery_config['template_path'])
+        loader = FileSystemLoader(template_path)
         self._env = Environment(loader=loader)
         self._host_configs = service_discovery_config['hosts']
         self._template_files = {
