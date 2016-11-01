@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+import threading
+import time
 from uuid import UUID
 
 import kombu
@@ -60,9 +62,25 @@ class _Service(object):
         self._profile_config_updater = ProfileConfigUpdater(config)
         bus.add_consumer(self.QUEUE, self._on_service_registered)
         fetcher = RemoteServiceFetcher(config['consul'])
-        for service_name in service_disco_config['services']:
-            for uuid, host, port in fetcher.fetch(service_name):
-                self._on_service_added(service_name, host, port, uuid)
+
+        fetcher_thread = threading.Thread(target=self._add_remote_services,
+                                          args=(fetcher, service_disco_config))
+        fetcher_thread.daemon = True
+        fetcher_thread.start()
+
+    def _add_remote_services(self, fetcher, service_disco_config):
+        logger.info('Fetcher starting')
+        while True:
+            try:
+                for service_name in service_disco_config['services']:
+                    for uuid, host, port in fetcher.fetch(service_name):
+                        logger.info('%s %s %s %s', service_name, uuid, host, port)
+                        self._on_service_added(service_name, host, port, uuid)
+                logger.debug('Fetcher done')
+                return
+            except Exception:
+                logger.info('failed to find running services')
+                time.sleep(2)
 
     def _on_service_added(self, service_name, host, port, uuid):
         logger.debug('%s registered %s:%s with uuid %s', service_name, host, port, uuid)
@@ -107,7 +125,7 @@ class RemoteServiceFetcher(object):
 
     def __init__(self, consul_config):
         self._headers = {'X-Consul-Token': consul_config['token']}
-        self._url = '{scheme}://{host}:{port}/v1/'.format(**consul_config)
+        self._url = '{scheme}://{host}:{port}/v1'.format(**consul_config)
         self._verify = consul_config['verify']
 
     def fetch(self, service_name):
