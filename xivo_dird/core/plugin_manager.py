@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2014-2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +18,9 @@
 
 import logging
 
-from stevedore.named import NamedExtensionManager
+from functools import partial
+
+from stevedore import EnabledExtensionManager
 
 from xivo_dird.core.source_manager import SourceManager
 
@@ -27,10 +30,9 @@ services_extension_manager = None
 
 def load_services(config, enabled_services, sources):
     global services_extension_manager
-    services_extension_manager = NamedExtensionManager(
+    services_extension_manager = EnabledExtensionManager(
         namespace='xivo_dird.services',
-        names=enabled_services,
-        name_order=True,
+        check_func=partial(_is_enabled, enabled_services),
         invoke_on_load=True)
 
     return dict(services_extension_manager.map(load_service_extension, config, sources))
@@ -55,10 +57,9 @@ def load_sources(enabled_backends, source_configs):
 
 
 def load_views(config, enabled_views, services, rest_api):
-    extension_manager = NamedExtensionManager(
+    extension_manager = EnabledExtensionManager(
         namespace='xivo_dird.views',
-        names=enabled_views,
-        name_order=True,
+        check_func=partial(_is_enabled, enabled_views),
         invoke_on_load=True)
 
     extension_manager.map(load_view_extension, config, services, rest_api)
@@ -73,3 +74,6 @@ def load_view_extension(extension, config, services, rest_api):
         'services': services,
     }
     extension.obj.load(args)
+
+def _is_enabled(enabled_extension_names, extension):
+    return extension.name in enabled_extension_names
