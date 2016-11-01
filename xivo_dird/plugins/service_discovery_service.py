@@ -16,17 +16,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
-
 from uuid import UUID
 
 import kombu
+import requests
 import yaml
-
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
-
 from xivo_dird import BaseServicePlugin
 from xivo_dird.core.plugin_manager import source_manager
 
@@ -61,6 +59,11 @@ class _Service(object):
         self._source_config_manager = SourceConfigManager(config['sources'])
         self._profile_config_updater = ProfileConfigUpdater(config)
         bus.add_consumer(self.QUEUE, self._on_service_registered)
+        fetcher = RemoteServiceFetcher(config['consul'])
+        # TODO: this part should not block during startup
+        for service_name in service_disco_config['services']:
+            for uuid, host, port in fetcher.fetch(service_name):
+                self._on_service_added(service_name, host, port, uuid)
 
     def _on_service_added(self, service_name, host, port, uuid):
         logger.debug('%s registered %s:%s with uuid %s', service_name, host, port, uuid)
@@ -85,7 +88,7 @@ class _Service(object):
         except (InvalidMessage, KeyError):
             logger.exception('Ignoring the following malformed bus message: %s', body)
         else:
-            uuid = self._find_first_uuid(event.tags)
+            uuid = _find_first_uuid(event.tags)
             if uuid:
                 self._on_service_added(event.service_name,
                                        event.advertise_address,
@@ -93,13 +96,46 @@ class _Service(object):
                                        uuid)
             message.ack()
 
-    @staticmethod
-    def _find_first_uuid(tags):
-        for tag in tags:
-            try:
-                return str(UUID(tag))
-            except (AttributeError, ValueError):
-                continue
+
+def _find_first_uuid(tags):
+    for tag in tags:
+        try:
+            return str(UUID(tag))
+        except (AttributeError, ValueError):
+            continue
+
+
+class RemoteServiceFetcher(object):
+
+    def __init__(self, consul_config):
+        self._headers = {'X-Consul-Token': consul_config['token']}
+        self._url = '{scheme}://{host}:{port}/v1/catalog/'.format(**consul_config)
+        self._verify = consul_config['verify']
+
+    def fetch(self, service_name):
+        try:
+            for datacenter in self._datacenters():
+                for service in self._service(service_name, datacenter):
+                    yield (_find_first_uuid(service['ServiceTags']),
+                           service['ServiceAddress'],
+                           service['ServicePort'])
+        except requests.ConnectionError:
+            logger.debug('Consul is down')
+            return
+
+    def _datacenters(self):
+        response = requests.get('{}/datacenters'.format(self._url),
+                                verify=self._verify)
+        for datacenter in response.json():
+            yield datacenter
+
+    def _service(self, service_name, datacenter):
+        response = requests.get('{}/service/{}'.format(self._url, service_name),
+                                verify=self._verify,
+                                params={'dc': datacenter},
+                                headers=self._headers)
+        for service in response.json():
+            yield service
 
 
 class SourceConfigManager(object):
