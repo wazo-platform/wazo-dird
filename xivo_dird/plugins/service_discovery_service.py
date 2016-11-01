@@ -60,7 +60,6 @@ class _Service(object):
         self._profile_config_updater = ProfileConfigUpdater(config)
         bus.add_consumer(self.QUEUE, self._on_service_registered)
         fetcher = RemoteServiceFetcher(config['consul'])
-        # TODO: this part should not block during startup
         for service_name in service_disco_config['services']:
             for uuid, host, port in fetcher.fetch(service_name):
                 self._on_service_added(service_name, host, port, uuid)
@@ -70,7 +69,6 @@ class _Service(object):
         config = self._source_config_generator.generate_from_new_service(
             service_name, uuid, host, port)
         if not config:
-            logger.debug('no config')
             return
 
         source_name = config.get('name')
@@ -109,28 +107,36 @@ class RemoteServiceFetcher(object):
 
     def __init__(self, consul_config):
         self._headers = {'X-Consul-Token': consul_config['token']}
-        self._url = '{scheme}://{host}:{port}/v1/catalog/'.format(**consul_config)
+        self._url = '{scheme}://{host}:{port}/v1/'.format(**consul_config)
         self._verify = consul_config['verify']
 
     def fetch(self, service_name):
-        try:
-            for datacenter in self._datacenters():
-                for service in self._service(service_name, datacenter):
-                    yield (_find_first_uuid(service['ServiceTags']),
-                           service['ServiceAddress'],
-                           service['ServicePort'])
-        except requests.ConnectionError:
-            logger.debug('Consul is down')
-            return
+        for datacenter in self._datacenters():
+            checks = self._checks(service_name, datacenter)
+            for service in self._service(service_name, datacenter):
+                if service['ServiceID'] not in checks:
+                    continue
+                yield (_find_first_uuid(service['ServiceTags']),
+                       service['ServiceAddress'],
+                       service['ServicePort'])
+
+    def _checks(self, service_name, datacenter):
+        response = requests.get('{}/health/checks/{}'.format(self._url, service_name),
+                                verify=self._verify,
+                                params={'db': datacenter},
+                                headers=self._headers)
+        return set([service['ServiceID']
+                    for service in response.json()
+                    if service['Status'] == 'passing'])
 
     def _datacenters(self):
-        response = requests.get('{}/datacenters'.format(self._url),
+        response = requests.get('{}/catalog/datacenters'.format(self._url),
                                 verify=self._verify)
         for datacenter in response.json():
             yield datacenter
 
     def _service(self, service_name, datacenter):
-        response = requests.get('{}/service/{}'.format(self._url, service_name),
+        response = requests.get('{}/catalog/service/{}'.format(self._url, service_name),
                                 verify=self._verify,
                                 params={'dc': datacenter},
                                 headers=self._headers)
