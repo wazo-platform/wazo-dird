@@ -22,7 +22,7 @@ views:
       -
         title: Mobile
         default:
-        mobile_phone_number:
+        field: mobile_phone_number
   profile_to_display:
     default: default_display
 

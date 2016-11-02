@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2014-2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,8 +19,6 @@
 import time
 import yaml
 
-from .base_dird_integration_test import absolute_file_name, BaseDirdIntegrationTest, BackendWrapper
-
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
@@ -27,6 +26,8 @@ from hamcrest import equal_to
 from hamcrest import empty
 from hamcrest import has_entry
 from hamcrest import has_entries
+
+from .base_dird_integration_test import absolute_file_name, BaseDirdIntegrationTest, BackendWrapper
 
 
 class _BaseXiVOUserBackendTestCase(BaseDirdIntegrationTest):
@@ -104,7 +105,7 @@ class TestXivoUserLateConfd(BaseDirdIntegrationTest):
                 result = self.lookup('dyl', 'default')
                 assert_that(result['results'],
                             contains(has_entry('column_values',
-                                               contains('Bob', 'Dylan', '1000', None))))
+                                               contains('Bob', 'Dylan', '1000', ''))))
                 return
             except AssertionError as e:
                 time.sleep(1)
