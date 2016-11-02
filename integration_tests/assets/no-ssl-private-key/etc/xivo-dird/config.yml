@@ -39,3 +39,9 @@ rest_api:
     port: 9489
     certificate: /usr/local/share/ssl/dird/server.crt
     private_key: /usr/local/share/ssl/dird/server.key
+
+bus:
+  enabled: false
+
+service_discovery:
+  enabled: false

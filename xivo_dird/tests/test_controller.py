@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2014-2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from unittest import TestCase
 
 from mock import ANY, Mock, patch, sentinel as s
-from unittest import TestCase
 
 from xivo_dird.controller import Controller
 
@@ -55,13 +56,13 @@ class TestController(TestCase):
 
         Controller(config).run()
 
-        self.load_services.assert_called_once_with(config, s.enabled, ANY)
+        self.load_services.assert_called_once_with(config, s.enabled, ANY, ANY)
 
     def test_del_unloads_services(self):
         config = self._create_config()
         controller = Controller(config)
 
-        del(controller)
+        del controller
 
         self.unload_services.assert_called_once_with()
 
@@ -94,6 +95,7 @@ class TestController(TestCase):
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)
+        config.setdefault('bus', {'enabled': False})
         config.setdefault('auth', {})
         config.setdefault('enabled_plugins', {})
         config['enabled_plugins'].setdefault('backends', [])

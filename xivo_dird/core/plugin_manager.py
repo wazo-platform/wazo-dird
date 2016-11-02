@@ -28,21 +28,22 @@ logger = logging.getLogger(__name__)
 services_extension_manager = None
 
 
-def load_services(config, enabled_services, sources):
+def load_services(config, enabled_services, sources, bus):
     global services_extension_manager
     services_extension_manager = EnabledExtensionManager(
         namespace='xivo_dird.services',
         check_func=partial(_is_enabled, enabled_services),
         invoke_on_load=True)
 
-    return dict(services_extension_manager.map(load_service_extension, config, sources))
+    return dict(services_extension_manager.map(load_service_extension, config, sources, bus))
 
 
-def load_service_extension(extension, config, sources):
+def load_service_extension(extension, config, sources, bus):
     logger.debug('loading extension %s...', extension.name)
     args = {
         'config': config,
         'sources': sources,
+        'bus': bus,
     }
     return extension.name, extension.obj.load(args)
 
