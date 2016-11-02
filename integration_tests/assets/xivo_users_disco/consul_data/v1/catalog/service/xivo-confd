@@ -1,0 +1,11 @@
+[
+  {
+      "Node": "foobar",
+      "Address": "10.1.10.12",
+      "ServiceID": "redis",
+      "ServiceName": "xivo-confd",
+      "ServiceTags": ["1a2cd704-ed32-4fa3-918a-d32b0609de81"],
+      "ServiceAddress": "confd",
+      "ServicePort": 8000
+  }
+]

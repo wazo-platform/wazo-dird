@@ -39,6 +39,28 @@ class _BaseXiVOUserBackendTestCase(BaseDirdIntegrationTest):
         self.backend = BackendWrapper('xivo', config)
 
 
+class TestDiscoveredXiVOUser(BaseDirdIntegrationTest):
+
+    asset = 'xivo_users_disco'
+
+    def test_that_the_source_is_loaded(self):
+        # once confd is started we can retrieve its results
+        max_tries = 10
+        for _ in xrange(max_tries):
+            try:
+                result = self.lookup('dyl', 'default')
+                print result
+                assert_that(result['results'],
+                            contains(has_entry('column_values',
+                                               contains('Bob', 'Dylan', '1000', ''))))
+                return
+            except AssertionError as e:
+                time.sleep(1)
+                exception = e
+
+        raise exception
+
+
 class TestXivoUser(_BaseXiVOUserBackendTestCase):
 
     asset = 'xivo_users'
