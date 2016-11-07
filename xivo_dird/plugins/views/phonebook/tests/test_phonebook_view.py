@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,8 +20,6 @@ import unittest
 
 from hamcrest import (assert_that,
                       calling,
-                      contains_inanyorder,
-                      empty,
                       equal_to,
                       has_entries,
                       raises)
@@ -160,11 +159,11 @@ class TestContactAll(_PhonebookViewTest, _HTTPErrorChecker):
         if search:
             args['search'] = search
 
-        with patch('xivo_dird.plugins.phonebook_view.request', Mock(args=args)):
+        with patch('xivo_dird.plugins.views.phonebook.phonebook_view.request', Mock(args=args)):
             return self.view.get(tenant, phonebook_id)
 
     def _post(self, tenant, phonebook_id, body):
-        with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
+        with patch('xivo_dird.plugins.views.phonebook.phonebook_view.request', Mock(json=body, args={})):
             return self.view.post(tenant, phonebook_id)
 
 
@@ -269,11 +268,11 @@ class TestPhonebookAll(_PhonebookViewTest, _HTTPErrorChecker):
         if search:
             args['search'] = search
 
-        with patch('xivo_dird.plugins.phonebook_view.request', Mock(args=args)):
+        with patch('xivo_dird.plugins.views.phonebook.phonebook_view.request', Mock(args=args)):
             return self.view.get(tenant)
 
     def _post(self, tenant, body):
-        with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
+        with patch('xivo_dird.plugins.views.phonebook.phonebook_view.request', Mock(json=body, args={})):
             return self.view.post(tenant)
 
 
@@ -349,7 +348,7 @@ class TestContactOne(_PhonebookViewTest, _HTTPErrorChecker):
         self._assert_error(result, 503, str(DatabaseServiceUnavailable()))
 
     def _put(self, tenant, phonebook_id, contact_uuid, body):
-        with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
+        with patch('xivo_dird.plugins.views.phonebook.phonebook_view.request', Mock(json=body, args={})):
             return self.view.put(tenant, phonebook_id, contact_uuid)
 
 
@@ -420,7 +419,7 @@ class TestPhonebookOne(_PhonebookViewTest, _HTTPErrorChecker):
         self._assert_error(result, 503, str(DatabaseServiceUnavailable()))
 
     def _put(self, tenant, phonebook_id, body):
-        with patch('xivo_dird.plugins.phonebook_view.request', Mock(json=body, args={})):
+        with patch('xivo_dird.plugins.views.phonebook.phonebook_view.request', Mock(json=body, args={})):
             return self.view.put(tenant, phonebook_id)
 
 
@@ -505,9 +504,8 @@ Bob,BBB,3333
         self.service.import_contacts.assert_called_once_with(s.tenant, s.phonebook_id, as_list)
 
     def _post(self, tenant, phonebook_id, body, charset):
-        with patch('xivo_dird.plugins.phonebook_view.request', Mock(data=body,
-                                                                    args={},
-                                                                    mimetype_params={'charset': charset})):
+        with patch('xivo_dird.plugins.views.phonebook.phonebook_view.request',
+                   Mock(data=body, args={}, mimetype_params={'charset': charset})):
             return self.view.post(tenant, phonebook_id)
 
 
