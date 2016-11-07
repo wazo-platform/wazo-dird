@@ -1,0 +1,54 @@
+{
+    "total": 4,
+    "items":
+    [
+        {
+             "id": 1,
+             "uuid": "7ca42f43-8bd9-4a26-acb8-cb756f42bebb",
+             "line_id": 2,
+             "agent_id": 3,
+             "firstname": "John",
+             "lastname": "Doe",
+             "exten": "1234",
+             "email": "john@doe.com",
+             "mobile_phone_number": "+14184765458",
+             "voicemail_number": null
+        },
+        {
+             "id": 2,
+             "uuid": "df486ed4-975b-4316-815c-e19c3c1811c4",
+             "line_id": 2,
+             "agent_id": null,
+             "firstname": "Mary",
+             "lastname": "Sue",
+             "exten": "1465",
+             "email": "",
+             "mobile_phone_number": "",
+             "voicemail_number": null
+        },
+        {
+             "id": 42,
+             "uuid": "696914c3-3698-42ef-9ee6-8efe30982f9c",
+             "line_id": 3,
+             "agent_id": 2,
+             "firstname": "Bob",
+             "lastname": "Dylan",
+             "exten": "1000",
+             "email": "",
+             "mobile_phone_number": "",
+             "voicemail_number": "1234"
+        },
+        {
+             "id": 100,
+             "uuid": "9dfa2706-cd85-4130-82be-c54cc15e8410",
+             "line_id": null,
+             "agent_id": null,
+             "firstname": "Charles",
+             "lastname": "Kenedy",
+             "exten": "",
+             "email": "",
+             "mobile_phone_number": "",
+             "voicemail_number": null
+        }
+    ]
+}

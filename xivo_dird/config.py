@@ -61,7 +61,12 @@ _DEFAULT_CONFIG = {
             'allow_headers': 'Content-Type, X-Auth-Token'
         },
     },
-    'services': {},
+    'services': {
+        'service_discovery': {
+            'template_path': '/etc/xivo-dird/templates.d/',
+            'services': {},
+        },
+    },
     'source_config_dir': '/etc/xivo-dird/sources.d',
     'user': 'www-data',
     'views': {},

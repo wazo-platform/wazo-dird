@@ -1,8 +1,9 @@
 enabled_plugins:
   backends:
-    - xivo
+    - csv
   services:
     - lookup
+    - service_discovery
   views:
     - default_json
 
@@ -18,7 +19,7 @@ views:
       -
         title: Number
         default:
-        field: exten
+        field: number
       -
         title: Mobile
         default:
@@ -29,8 +30,19 @@ views:
 services:
   lookup:
     default:
-      sources:
-        - xivo_america
+      sources: []
+  service_discovery:
+    template_path: /etc/xivo-dird/templates.d/
+    services:
+      xivo-confd:
+        template: confd_disco.yml
+        lookup:
+          default: true
+    hosts:
+      1a2cd704-ed32-4fa3-918a-d32b0609de81:
+        uuid: uuid
+        service_id: id
+        service_key: key
 
 rest_api:
   https:
@@ -44,3 +56,9 @@ bus:
 
 service_discovery:
   enabled: false
+
+consul:
+  scheme: http
+  host: consul
+  port: 8000
+  token: the-master-token

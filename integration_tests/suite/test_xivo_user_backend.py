@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2014-2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,10 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import time
 import yaml
-
-from .base_dird_integration_test import absolute_file_name, BaseDirdIntegrationTest, BackendWrapper
 
 from hamcrest import assert_that
 from hamcrest import contains
@@ -27,6 +25,10 @@ from hamcrest import equal_to
 from hamcrest import empty
 from hamcrest import has_entry
 from hamcrest import has_entries
+
+from xivo_test_helpers import until
+
+from .base_dird_integration_test import absolute_file_name, BaseDirdIntegrationTest, BackendWrapper
 
 
 class _BaseXiVOUserBackendTestCase(BaseDirdIntegrationTest):
@@ -97,20 +99,13 @@ class TestXivoUserLateConfd(BaseDirdIntegrationTest):
         result = self.lookup('dyl', 'default')
         assert_that(result['results'], contains())
 
-        # once confd is started we can retrieve its results
-        max_tries = 10
-        for _ in xrange(max_tries):
-            try:
-                result = self.lookup('dyl', 'default')
-                assert_that(result['results'],
-                            contains(has_entry('column_values',
-                                               contains('Bob', 'Dylan', '1000', None))))
-                return
-            except AssertionError as e:
-                time.sleep(1)
-                exception = e
+        def test():
+            result = self.lookup('dyl', 'default')
+            assert_that(result['results'],
+                        contains(has_entry('column_values',
+                                           contains('Bob', 'Dylan', '1000', ''))))
 
-        raise exception
+        until.assert_(test, tries=10)
 
 
 class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
