@@ -242,11 +242,13 @@ class SourceConfigGenerator(object):
 
         template_file = self._template_files.get(service)
         if not template_file:
+            logger.info('no template configured for service %s', service)
             return
 
         try:
             template = self._env.get_template(template_file)
         except TemplateNotFound:
+            logger.info('template found with name %s', template_file)
             return
 
         template_args = dict(self._host_configs[uuid])
