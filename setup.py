@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Copyright (C) 2016 Proformatique, Inc.
 
 from setuptools import setup
 from setuptools import find_packages
@@ -89,17 +90,17 @@ setup(
             'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
         ],
         'xivo_dird.views': [
-            'aastra_view = xivo_dird.plugins.aastra_view:AastraViewPlugin',
-            'cisco_view = xivo_dird.plugins.cisco_view:CiscoViewPlugin',
-            'config_view = xivo_dird.plugins.config_view:ConfigViewPlugin',
-            'polycom_view = xivo_dird.plugins.polycom_view:PolycomViewPlugin',
-            'snom_view = xivo_dird.plugins.snom_view:SnomViewPlugin',
-            'thomson_view = xivo_dird.plugins.thomson_view:ThomsonViewPlugin',
-            'yealink_view = xivo_dird.plugins.yealink_view:YealinkViewPlugin',
-            'default_json = xivo_dird.plugins.default_json_view:JsonViewPlugin',
-            'headers_view = xivo_dird.plugins.headers_view:HeadersViewPlugin',
-            'personal_view = xivo_dird.plugins.personal_view:PersonalViewPlugin',
-            'phonebook_view = xivo_dird.plugins.phonebook_view:PhonebookViewPlugin',
+            'aastra_view = xivo_dird.plugins.views.aastra.aastra_view:AastraViewPlugin',
+            'cisco_view = xivo_dird.plugins.views.cisco.cisco_view:CiscoViewPlugin',
+            'config_view = xivo_dird.plugins.views.config.config_view:ConfigViewPlugin',
+            'polycom_view = xivo_dird.plugins.views.polycom.polycom_view:PolycomViewPlugin',
+            'snom_view = xivo_dird.plugins.views.snom.snom_view:SnomViewPlugin',
+            'thomson_view = xivo_dird.plugins.views.thomson.thomson_view:ThomsonViewPlugin',
+            'yealink_view = xivo_dird.plugins.views.yealink.yealink_view:YealinkViewPlugin',
+            'default_json = xivo_dird.plugins.views.default_json.default_json_view:JsonViewPlugin',
+            'headers_view = xivo_dird.plugins.views.headers.headers_view:HeadersViewPlugin',
+            'personal_view = xivo_dird.plugins.views.personal.personal_view:PersonalViewPlugin',
+            'phonebook_view = xivo_dird.plugins.views.phonebook.phonebook_view:PhonebookViewPlugin',
         ],
     }
 )

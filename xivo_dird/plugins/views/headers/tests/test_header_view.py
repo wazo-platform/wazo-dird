@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2014-2015 Avencall
+# Copyright (C) 2016 Proformatique, Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,18 +18,11 @@
 
 import unittest
 
-from hamcrest import assert_that
-from hamcrest import equal_to
-from hamcrest import has_entries
-from mock import ANY
-from mock import Mock
-from mock import patch
-from xivo_dird.plugins.headers_view import DisplayColumn
-from xivo_dird.plugins.headers_view import Headers
-from xivo_dird.plugins.headers_view import HeadersViewPlugin
-from xivo_dird.plugins.headers_view import format_headers
-from xivo_dird.plugins.headers_view import make_displays
-from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
+from hamcrest import assert_that, equal_to, has_entries
+from mock import ANY, Mock, patch
+
+from xivo_dird.plugins.views.tests.base_http_view_test_case import BaseHTTPViewTestCase
+from ..headers_view import DisplayColumn, Headers, HeadersViewPlugin, format_headers, make_displays
 
 
 class TestHeadersView(BaseHTTPViewTestCase):
@@ -36,7 +30,7 @@ class TestHeadersView(BaseHTTPViewTestCase):
     def tearDown(self):
         Headers.configure(displays=None)
 
-    @patch('xivo_dird.plugins.headers_view.api.add_resource')
+    @patch('xivo_dird.plugins.views.headers.headers_view.api.add_resource')
     def test_that_load_add_the_route(self, add_resource):
         http_namespace = Mock()
         args = {'http_namespace': http_namespace,

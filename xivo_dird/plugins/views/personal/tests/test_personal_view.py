@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+
 # Copyright (C) 2015 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,23 +18,18 @@
 
 from unittest import TestCase
 
-from hamcrest import assert_that
-from hamcrest import equal_to
-from mock import Mock
-from mock import patch
+from hamcrest import assert_that, equal_to
+from mock import Mock, patch
 
-from xivo_dird.plugins.personal_view import PersonalAll
-from xivo_dird.plugins.personal_view import PersonalImport
-from xivo_dird.plugins.personal_view import PersonalOne
-from xivo_dird.plugins.personal_view import PersonalViewPlugin
+from ..personal_view import PersonalAll, PersonalImport, PersonalOne, PersonalViewPlugin
 
 
+@patch('xivo_dird.plugins.views.default_json.default_json_view.api.add_resource')
 class TestPersonalView(TestCase):
 
     def setUp(self):
         self.plugin = PersonalViewPlugin()
 
-    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_with_no_personal_service_does_not_add_routes(self, add_resource):
         self.plugin.load({'config': {},
                           'http_namespace': Mock(),
@@ -41,7 +38,6 @@ class TestPersonalView(TestCase):
 
         assert_that(add_resource.call_count, equal_to(0))
 
-    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_adds_the_routes(self, add_resource):
         args = {
             'config': {'displays': {},

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2015-2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 import unittest
+from uuid import uuid4
 
 from hamcrest import assert_that
 from hamcrest import contains
@@ -29,24 +31,25 @@ from mock import ANY
 from mock import call
 from mock import Mock
 from mock import patch
-from uuid import uuid4
 
 from xivo_dird import make_result_class
-from xivo_dird.plugins.default_json_view import DisabledFavoriteService
-from xivo_dird.plugins.default_json_view import DisplayColumn
-from xivo_dird.plugins.default_json_view import FavoritesRead
-from xivo_dird.plugins.default_json_view import FavoritesWrite
-from xivo_dird.plugins.default_json_view import JsonViewPlugin
-from xivo_dird.plugins.default_json_view import Lookup
-from xivo_dird.plugins.default_json_view import Personal
-from xivo_dird.plugins.default_json_view import _ResultFormatter
-from xivo_dird.plugins.default_json_view import make_displays
-from xivo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
+from xivo_dird.plugins.views.tests.base_http_view_test_case import BaseHTTPViewTestCase
+
+from ..default_json_view import (DisabledFavoriteService,
+                                 DisplayColumn,
+                                 FavoritesRead,
+                                 FavoritesWrite,
+                                 JsonViewPlugin,
+                                 Lookup,
+                                 Personal,
+                                 _ResultFormatter,
+                                 make_displays)
 
 UUID1 = str(uuid4())
 UUID2 = str(uuid4())
 
 
+@patch('xivo_dird.plugins.views.default_json.default_json_view.api.add_resource')
 class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def setUp(self):
@@ -58,7 +61,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         FavoritesRead.configure(displays=None, favorites_service=None)
         FavoritesWrite.configure(favorites_service=None)
 
-    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_with_no_lookup_service_does_not_add_route(self, add_resource):
         self.plugin.load({'config': {},
                           'http_namespace': Mock(),
@@ -67,7 +69,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
         assert_that(add_resource.call_args_list, not_(has_item(call(Lookup, ANY))))
 
-    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_adds_the_lookup_route(self, add_resource):
         args = {
             'config': {'displays': {},
@@ -81,7 +82,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
         add_resource.assert_any_call(Lookup, JsonViewPlugin.lookup_url)
 
-    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_with_no_favorites_service_does_not_add_route(self, add_resource):
         JsonViewPlugin().load({'config': {},
                                'http_namespace': Mock(),
@@ -91,7 +91,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         assert_that(add_resource.call_args_list, not_(has_item(call(FavoritesRead, ANY))))
         assert_that(add_resource.call_args_list, not_(has_item(call(FavoritesWrite, ANY))))
 
-    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_adds_the_favorite_route(self, add_resource):
         args = {
             'config': {'displays': {},
@@ -106,7 +105,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         add_resource.assert_any_call(FavoritesRead, JsonViewPlugin.favorites_read_url)
         add_resource.assert_any_call(FavoritesWrite, JsonViewPlugin.favorites_write_url)
 
-    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_with_no_personal_service_does_not_add_route(self, add_resource):
         JsonViewPlugin().load({'config': {},
                                'http_namespace': Mock(),
@@ -115,7 +113,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
         assert_that(add_resource.call_args_list, not_(has_item(call(Personal, ANY))))
 
-    @patch('xivo_dird.plugins.default_json_view.api.add_resource')
     def test_that_load_adds_the_personal_routes(self, add_resource):
         args = {
             'config': {'displays': {},
