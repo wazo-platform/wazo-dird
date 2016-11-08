@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2015-2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -101,12 +102,18 @@ class _FavoritesService(object):
         self._sources = sources
         self._executor = ThreadPoolExecutor(max_workers=10)
         self._crud = crud
+
+    @property
+    def _configured_profiles(self):
+        return self._config.get('services', {}).get('favorites', {}).keys()
+
+    @property
+    def _available_sources(self):
         available_sources = set()
-        for source_config in config.get('services', {}).get('favorites', {}).itervalues():
+        for source_config in self._config.get('services', {}).get('favorites', {}).itervalues():
             for source in source_config.get('sources', []):
                 available_sources.add(source)
-        self._available_sources = list(available_sources)
-        self._configured_profiles = config.get('services', {}).get('favorites', {}).keys()
+        return list(available_sources)
 
     def stop(self):
         self._executor.shutdown()
