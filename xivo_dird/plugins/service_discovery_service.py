@@ -124,7 +124,6 @@ def _find_first_uuid(tags):
 class RemoteServiceFetcher(object):
 
     def __init__(self, consul_config):
-        self._headers = {'X-Consul-Token': consul_config['token']}
         self._url = '{scheme}://{host}:{port}/v1'.format(**consul_config)
         self._verify = consul_config['verify']
 
@@ -141,8 +140,7 @@ class RemoteServiceFetcher(object):
     def _checks(self, service_name, datacenter):
         response = requests.get('{}/health/checks/{}'.format(self._url, service_name),
                                 verify=self._verify,
-                                params={'db': datacenter},
-                                headers=self._headers)
+                                params={'db': datacenter})
         return set([service['ServiceID']
                     for service in response.json()
                     if service['Status'] == 'passing'])
@@ -156,8 +154,7 @@ class RemoteServiceFetcher(object):
     def _service(self, service_name, datacenter):
         response = requests.get('{}/catalog/service/{}'.format(self._url, service_name),
                                 verify=self._verify,
-                                params={'dc': datacenter},
-                                headers=self._headers)
+                                params={'dc': datacenter})
         for service in response.json():
             yield service
 
