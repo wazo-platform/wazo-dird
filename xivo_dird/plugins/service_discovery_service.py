@@ -124,28 +124,16 @@ def _find_first_uuid(tags):
 class RemoteServiceFetcher(object):
 
     def __init__(self, consul_config):
-        self._headers = {'X-Consul-Token': consul_config['token']}
         self._url = '{scheme}://{host}:{port}/v1'.format(**consul_config)
         self._verify = consul_config['verify']
 
     def fetch(self, service_name):
         for datacenter in self._datacenters():
-            checks = self._checks(service_name, datacenter)
             for service in self._service(service_name, datacenter):
-                if service['ServiceID'] not in checks:
-                    continue
-                yield (_find_first_uuid(service['ServiceTags']),
-                       service['ServiceAddress'],
-                       service['ServicePort'])
-
-    def _checks(self, service_name, datacenter):
-        response = requests.get('{}/health/checks/{}'.format(self._url, service_name),
-                                verify=self._verify,
-                                params={'db': datacenter},
-                                headers=self._headers)
-        return set([service['ServiceID']
-                    for service in response.json()
-                    if service['Status'] == 'passing'])
+                uuid = _find_first_uuid(service['Tags'])
+                host = service['Address']
+                port = service['Port']
+                yield uuid, host, port
 
     def _datacenters(self):
         response = requests.get('{}/catalog/datacenters'.format(self._url),
@@ -154,12 +142,12 @@ class RemoteServiceFetcher(object):
             yield datacenter
 
     def _service(self, service_name, datacenter):
-        response = requests.get('{}/catalog/service/{}'.format(self._url, service_name),
+        response = requests.get('{}/health/service/{}'.format(self._url, service_name),
                                 verify=self._verify,
-                                params={'dc': datacenter},
-                                headers=self._headers)
-        for service in response.json():
-            yield service
+                                params={'dc': datacenter, 'passing': True})
+        body = response.json()
+        for node in body:
+            yield node['Service']
 
 
 class SourceConfigManager(object):
