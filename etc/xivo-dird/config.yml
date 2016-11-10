@@ -79,6 +79,7 @@ enabled_plugins:
     - phonebook
     - cleanup
   views:
+    - api_view
     - config_view
     - default_json
     - headers_view

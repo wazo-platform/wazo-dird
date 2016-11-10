@@ -57,7 +57,7 @@ setup(
     install_requires=['babel'],
     zip_safe=False,
     package_data={
-        'xivo_dird.swagger': ['*.yml']
+        'xivo_dird.plugins.views': ['*/api.yml']
     },
 
     scripts=['bin/xivo-dird'],
@@ -90,6 +90,7 @@ setup(
             'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
         ],
         'xivo_dird.views': [
+            'api_view = xivo_dird.plugins.views.api.api_view:ApiViewPlugin',
             'aastra_view = xivo_dird.plugins.views.aastra.aastra_view:AastraViewPlugin',
             'cisco_view = xivo_dird.plugins.views.cisco.cisco_view:CiscoViewPlugin',
             'config_view = xivo_dird.plugins.views.config.config_view:ConfigViewPlugin',

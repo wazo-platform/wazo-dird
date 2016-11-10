@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2016 Avencall
+# Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,12 +15,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
-
-from datetime import timedelta
-
 import logging
 import os
 import time
+
+from datetime import timedelta
+from functools import wraps
 
 from cherrypy import wsgiserver
 from flask import Flask
@@ -28,12 +29,9 @@ from flask.ext.babel import Babel
 from flask_restful import Api
 from flask_restful import Resource
 from flask_cors import CORS
-from functools import wraps
 from xivo.auth_verifier import AuthVerifier
 from xivo import http_helpers
 from xivo import rest_api_helpers
-
-from xivo_dird.swagger.resource import SwaggerResource
 
 
 VERSION = 0.1
@@ -63,7 +61,6 @@ class CoreRestApi(object):
         self.app.permanent_session_lifetime = timedelta(minutes=5)
         self.load_cors()
         self.api = api
-        SwaggerResource.add_resource(api)
         auth_verifier.set_config(global_config['auth'])
 
     def load_cors(self):
