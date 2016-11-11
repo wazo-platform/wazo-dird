@@ -228,6 +228,9 @@ class SourceConfigGenerator(object):
         if not self.enabled:
             return
 
+        if uuid not in self._host_configs:
+            return
+
         template_file = self._template_files.get(service)
         if not template_file:
             logger.info('no template configured for service %s', service)
