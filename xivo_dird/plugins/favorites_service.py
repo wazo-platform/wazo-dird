@@ -103,11 +103,9 @@ class _FavoritesService(object):
         self._executor = ThreadPoolExecutor(max_workers=10)
         self._crud = crud
 
-    @property
     def _configured_profiles(self):
         return self._config.get('services', {}).get('favorites', {}).keys()
 
-    @property
     def _available_sources(self):
         available_sources = set()
         for source_config in self._config.get('services', {}).get('favorites', {}).itervalues():
@@ -125,7 +123,7 @@ class _FavoritesService(object):
         return future
 
     def favorites(self, profile, xivo_user_uuid):
-        if profile not in self._configured_profiles:
+        if profile not in self._configured_profiles():
             raise self.NoSuchProfileException(profile)
 
         args = {'token_infos': {'xivo_user_uuid': xivo_user_uuid}}
@@ -146,7 +144,7 @@ class _FavoritesService(object):
         return results
 
     def favorite_ids(self, profile, xivo_user_uuid):
-        if profile not in self._configured_profiles:
+        if profile not in self._configured_profiles():
             raise self.NoSuchProfileException(profile)
 
         favorites = self._crud.get(xivo_user_uuid)
@@ -161,14 +159,14 @@ class _FavoritesService(object):
         return result
 
     def new_favorite(self, source, contact_id, xivo_user_uuid):
-        if source not in self._available_sources:
+        if source not in self._available_sources():
             raise self.NoSuchSourceException(source)
 
         contact_id = contact_id.encode('utf-8')
         self._crud.create(xivo_user_uuid, source, contact_id)
 
     def remove_favorite(self, source, contact_id, xivo_user_uuid):
-        if source not in self._available_sources:
+        if source not in self._available_sources():
             raise self.NoSuchSourceException(source)
 
         self._crud.delete(xivo_user_uuid, source, contact_id)
