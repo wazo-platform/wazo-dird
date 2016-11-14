@@ -75,6 +75,8 @@ class _Service(object):
                 for service_name in service_disco_config['services']:
                     for service in finder.list_healthy_services(service_name):
                         uuid = _find_first_uuid(service['Tags'])
+                        if not uuid:
+                            continue
                         host = service['Address']
                         port = service['Port']
                         self._on_service_added(service_name, host, port, uuid)
