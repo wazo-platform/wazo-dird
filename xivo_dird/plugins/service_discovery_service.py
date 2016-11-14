@@ -21,10 +21,10 @@ import time
 from uuid import UUID
 
 import kombu
-import requests
 import yaml
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
+from xivo.consul_helpers import ServiceFinder
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
 from xivo_dird import BaseServicePlugin
@@ -61,25 +61,29 @@ class _Service(object):
         self._source_config_manager = SourceConfigManager(config['sources'])
         self._profile_config_updater = ProfileConfigUpdater(config)
         bus.add_consumer(self.QUEUE, self._on_service_registered)
-        fetcher = RemoteServiceFetcher(config['consul'])
+        finder = ServiceFinder(config['consul'])
 
         fetcher_thread = threading.Thread(target=self._add_remote_services,
-                                          args=(fetcher, service_disco_config))
+                                          args=(finder, service_disco_config))
         fetcher_thread.daemon = True
         fetcher_thread.start()
 
-    def _add_remote_services(self, fetcher, service_disco_config):
-        logger.info('Fetcher starting')
+    def _add_remote_services(self, finder, service_disco_config):
+        logger.info('Searching for remote services...')
         while True:
             try:
                 for service_name in service_disco_config['services']:
-                    for uuid, host, port in fetcher.fetch(service_name):
-                        logger.info('%s %s %s %s', service_name, uuid, host, port)
+                    for service in finder.list_healthy_services(service_name):
+                        uuid = _find_first_uuid(service['Tags'])
+                        if not uuid:
+                            continue
+                        host = service['Address']
+                        port = service['Port']
                         self._on_service_added(service_name, host, port, uuid)
-                logger.debug('Fetcher done')
+                logger.debug('Searching done')
                 return
-            except Exception:
-                logger.info('failed to find running services')
+            except Exception as e:
+                logger.info('failed to find running services: %s', e)
                 time.sleep(2)
 
     def _on_service_added(self, service_name, host, port, uuid):
@@ -119,35 +123,6 @@ def _find_first_uuid(tags):
             return str(UUID(tag))
         except (AttributeError, ValueError):
             continue
-
-
-class RemoteServiceFetcher(object):
-
-    def __init__(self, consul_config):
-        self._url = '{scheme}://{host}:{port}/v1'.format(**consul_config)
-        self._verify = consul_config['verify']
-
-    def fetch(self, service_name):
-        for datacenter in self._datacenters():
-            for service in self._service(service_name, datacenter):
-                uuid = _find_first_uuid(service['Tags'])
-                host = service['Address']
-                port = service['Port']
-                yield uuid, host, port
-
-    def _datacenters(self):
-        response = requests.get('{}/catalog/datacenters'.format(self._url),
-                                verify=self._verify)
-        for datacenter in response.json():
-            yield datacenter
-
-    def _service(self, service_name, datacenter):
-        response = requests.get('{}/health/service/{}'.format(self._url, service_name),
-                                verify=self._verify,
-                                params={'dc': datacenter, 'passing': True})
-        body = response.json()
-        for node in body:
-            yield node['Service']
 
 
 class SourceConfigManager(object):
@@ -239,7 +214,7 @@ class SourceConfigGenerator(object):
         try:
             template = self._env.get_template(template_file)
         except TemplateNotFound:
-            logger.info('template found with name %s', template_file)
+            logger.info('no template found with name %s', template_file)
             return
 
         template_args = dict(self._host_configs[uuid])

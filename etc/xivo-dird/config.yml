@@ -166,6 +166,9 @@ services:
     default:
       sources:
         - personal
+  service_discovery:
+    template_path: /etc/xivo-dird/templates.d
+    services: {}
 
 # Service discovery configuration. all time intervals are in seconds
 service_discovery:

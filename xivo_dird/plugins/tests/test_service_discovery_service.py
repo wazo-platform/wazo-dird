@@ -184,6 +184,32 @@ class TestSourceConfigGenerator(unittest.TestCase):
 
         assert_that(config, equal_to(None))
 
+    def test_generate_with_an_unknown_source(self):
+        service_discovery_config = {
+            'template_path': None,
+            'services': {
+                'xivo-confd': {
+                    'template': self.template_filename,
+                },
+            },
+            'hosts': {
+                'ff791b0e-3d28-4b4d-bb90-2724c0a248cb': {
+                    'uuid': 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
+                    'service_id': 'some-service-name',
+                    'service_key': 'secre7',
+                },
+            },
+        }
+
+        generator = SourceConfigGenerator(service_discovery_config)
+
+        config = generator.generate_from_new_service('xivo-confd',
+                                                     'other-uuid',
+                                                     s.host,
+                                                     s.port)
+
+        assert_that(config, equal_to(None))
+
     def test_generate_with_a_service(self):
         uuid = 'ff791b0e-3d28-4b4d-bb90-2724c0a248cb'
         service_discovery_config = {
