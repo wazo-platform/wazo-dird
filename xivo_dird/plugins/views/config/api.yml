@@ -1,0 +1,13 @@
+paths:
+  /config:
+    get:
+      summary: Returns the current service configuration
+      description: '**Required ACL:** `dire.config.read`'
+      operationId: configuration_get
+      tags:
+        - configuration
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: A JSON representation of the current configuration.
