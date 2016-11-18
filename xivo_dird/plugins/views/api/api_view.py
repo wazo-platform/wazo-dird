@@ -15,12 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
+import collections
+import logging
+import yaml
+
 from flask import make_response
-from pkg_resources import resource_string
+from pkg_resources import resource_string, iter_entry_points
 
 from xivo_dird.core.rest_api import api, ErrorCatchingResource
 
 from xivo_dird import BaseViewPlugin
+
+
+logger = logging.getLogger(__name__)
 
 
 class ApiViewPlugin(BaseViewPlugin):
@@ -31,16 +38,31 @@ class ApiViewPlugin(BaseViewPlugin):
 
 class SwaggerResource(ErrorCatchingResource):
 
-    api_package = "xivo_dird.plugins.views.api"
+    api_package = "xivo_dird.views"
     api_filename = "api.yml"
 
-    @classmethod
-    def add_resource(cls, api):
-        api.add_resource(cls, cls.api_path)
-
     def get(self):
-        try:
-            api_spec = resource_string(self.api_package, self.api_filename)
-        except IOError:
+        api_spec = {}
+        for module in iter_entry_points(group=self.api_package):
+            try:
+                plugin_package = module.module_name.rsplit('.', 1)[0]
+                spec = yaml.load(resource_string(plugin_package, self.api_filename))
+                api_spec = self.update(api_spec, spec)
+            except IOError:
+                logger.debug('API spec for module "%s" does not exist', module.module_name)
+            except IndexError:
+                logger.debug('Could not find API spec from module "%s"', module.module_name)
+
+        if not api_spec.get('info'):
             return {'error': "API spec does not exist"}, 404
-        return make_response(api_spec, 200, {'Content-Type': 'application/x-yaml'})
+
+        return make_response(yaml.dump(api_spec), 200, {'Content-Type': 'application/x-yaml'})
+
+    def update(self, a, b):
+        for key, value in b.iteritems():
+            if isinstance(value, collections.Mapping):
+                result = self.update(a.get(key, {}), value)
+                a[key] = result
+            else:
+                a[key] = b[key]
+        return a
