@@ -1,0 +1,292 @@
+paths:
+  /tenants/{tenant}/phonebooks:
+    get:
+      summary: List all phonebooks for a given tenant
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.read`'
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/order'
+      - $ref: '#/parameters/direction'
+      - $ref: '#/parameters/Limit'
+      - $ref: '#/parameters/Offset'
+      - $ref: '#/parameters/search'
+      - $ref: '#/parameters/Tenant'
+      responses:
+        '200':
+          description: List of phonebooks
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Phonebook'
+        '400':
+          $ref: '#/responses/InvalidParameters'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    post:
+      summary: Create a new phonebook
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.create`'
+      operationId: create_phonebook
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - name: phonebook
+        in: body
+        description: The attributes of the phonebook
+        required: true
+        schema:
+          $ref: '#/definitions/PhonebookBody'
+      responses:
+        '201':
+          description: The new phonebook
+          schema:
+            $ref: '#/definitions/Phonebook'
+        '400':
+          $ref: '#/responses/InvalidParameters'
+        '409':
+          $ref: '#/responses/DuplicatePhonebook'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+  /tenants/{tenant}/phonebooks/{phonebook_id}:
+    get:
+      summary: Get the attributes of a phonebook
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.read`'
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      responses:
+        '200':
+          description: The phonebook attributes
+          schema:
+            $ref: '#/definitions/Phonebook'
+        '400':
+          $ref: '#/responses/InvalidTenant'
+        '404':
+          description: Phonebook does not exist
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    put:
+      summary: Modify an existing phonebook
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.edit`'
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      - name: phonebook
+        in: body
+        description: The modified attributes of the phonebook
+        required: true
+        schema:
+          $ref: '#/definitions/PhonebookBody'
+      responses:
+        '204':
+          description: Phonebook updated
+        '400':
+          $ref: '#/responses/InvalidParameters'
+        '404':
+          description: Phonebook does not exist
+          schema:
+            $ref: '#/definitions/Error'
+        '409':
+          $ref: '#/responses/DuplicatePhonebook'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    delete:
+      summary: Delete an existing phonebook
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete`'
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      responses:
+        '204':
+          description: Phonebook deleted
+        '400':
+          $ref: '#/responses/InvalidTenant'
+        '404':
+          description: Phonebook does not exist
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+  /tenants/{tenant}/phonebooks/{phonebook_id}/contacts:
+    get:
+      summary: List all contacts for a given phonebook
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read`'
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/order'
+      - $ref: '#/parameters/direction'
+      - $ref: '#/parameters/Limit'
+      - $ref: '#/parameters/Offset'
+      - $ref: '#/parameters/search'
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      responses:
+        '200':
+          description: A list of contacts
+          schema:
+            $ref: '#/definitions/PhonebookContactList'
+        '400':
+          $ref: '#/responses/InvalidParameters'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    post:
+      summary: Create a new contact
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create`'
+      operationId: create_phonebook
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      - name: contact
+        in: body
+        description: The attributes of the contact
+        required: true
+        schema:
+          $ref: '#/definitions/ContactBodySample'
+      responses:
+        '201':
+          description: The new contact
+          schema:
+            $ref: '#/definitions/Contact'
+        '400':
+          $ref: '#/responses/InvalidParameters'
+        '409':
+          $ref: '#/responses/DuplicateContact'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+  /tenants/{tenant}/phonebooks/{phonebook_id}/contacts/import:
+    post:
+      summary: Import multiple contacts at once
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create`'
+      operationId: import_phonebook
+      tags:
+      - phonebook
+      consumes:
+      - text/csv; charset=utf-8
+      - text/csv; charset=iso8859-15
+      - text/csv; charset=cp1252
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      - name: contacts
+        description: "The attributes of the contacts in CSV format.\r\n* The encoding\
+          \ must be set in the Content-Type header, via the `charset=` option.\r\n\
+          * Field delimiter: `,`.\r\n* Quoting character: `\"`.\r\n* Line delimiter:\
+          \ `\\r\\n`."
+        in: body
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: At least one contact has been created.
+          schema:
+            $ref: '#/definitions/ContactImportResponse'
+        '400':
+          description: Input could not be decoded, and no contacts were created.
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+  /tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_id}:
+    get:
+      summary: Get the attributes of a contact
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.read`'
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      - $ref: '#/parameters/ContactID'
+      responses:
+        '200':
+          description: The contact attributes
+        '400':
+          $ref: '#/responses/InvalidTenant'
+        '404':
+          description: The contact or the phonebook does not exist
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    put:
+      summary: Modify an existing contact
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.update`'
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      - $ref: '#/parameters/ContactID'
+      - name: contact
+        in: body
+        description: The modified attributes of the contact
+        required: true
+        schema:
+          $ref: '#/definitions/ContactBodySample'
+      responses:
+        '204':
+          description: Contact updated
+        '400':
+          $ref: '#/responses/InvalidParameters'
+        '404':
+          description: The contact or the phonebook does not exist
+          schema:
+            $ref: '#/definitions/Error'
+        '409':
+          $ref: '#/responses/DuplicateContact'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    delete:
+      summary: Delete an existing contact
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.delete`'
+      tags:
+      - phonebook
+      parameters:
+      - $ref: '#/parameters/Tenant'
+      - $ref: '#/parameters/PhonebookID'
+      - $ref: '#/parameters/ContactID'
+      responses:
+        '204':
+          description: Contact deleted
+        '400':
+          $ref: '#/responses/InvalidTenant'
+        '404':
+          description: The contact or the phonebook does not exist
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+responses:
+  DuplicatePhonebook:
+    description: This phonebook already exists
+    schema:
+      $ref: '#/definitions/Error'
+  InvalidTenant:
+    description: The tenant is not a valid ascii alphanumeric string
+    schema:
+      $ref: '#/definitions/Error'
+parameters:
+  PhonebookID:
+    name: phonebook_id
+    type: integer
+    required: true
+    in: path
+    description: The phonebook's ID
+  Tenant:
+    name: tenant
+    in: path
+    type: string
+    description: The tenant defines the ownership of a given resource.
+    required: true

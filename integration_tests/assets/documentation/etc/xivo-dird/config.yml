@@ -1,0 +1,5 @@
+bus:
+  enabled: false
+
+service_discovery:
+  enabled: false

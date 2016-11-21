@@ -1,0 +1,22 @@
+paths:
+  /directories/lookup/{profile}/headers:
+    get:
+      summary: Lookup headers
+      description: '**Required ACL:** `dird.directories.lookup.{profile}.headers.read`
+
+
+        Column headers that can be used when displaying lookup results to the client'
+      operationId: get_headers
+      tags:
+      - directories
+      responses:
+        '200':
+          description: A list of headers
+          schema:
+            $ref: '#/definitions/Header'
+        '404':
+          $ref: '#/responses/ProfileInvalid'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+      parameters:
+      - $ref: '#/parameters/Profile'
