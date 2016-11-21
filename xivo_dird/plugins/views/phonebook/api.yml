@@ -268,3 +268,25 @@ paths:
             $ref: '#/definitions/Error'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
+responses:
+  DuplicatePhonebook:
+    description: This phonebook already exists
+    schema:
+      $ref: '#/definitions/Error'
+  InvalidTenant:
+    description: The tenant is not a valid ascii alphanumeric string
+    schema:
+      $ref: '#/definitions/Error'
+parameters:
+  PhonebookID:
+    name: phonebook_id
+    type: integer
+    required: true
+    in: path
+    description: The phonebook's ID
+  Tenant:
+    name: tenant
+    in: path
+    type: string
+    description: The tenant defines the ownership of a given resource.
+    required: true

@@ -38,3 +38,21 @@ paths:
       - $ref: '#/parameters/Offset'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
+definitions:
+  YealinkIPPhoneDirectory:
+    properties:
+      DirectoryEntry:
+        type: array
+        items:
+          $ref: '#/definitions/YealinkDirectoryEntry'
+    required:
+    - DirectoryEntry
+  YealinkDirectoryEntry:
+    properties:
+      Name:
+        type: string
+      Telephone:
+        type: string
+    required:
+    - Name
+    - Telephone

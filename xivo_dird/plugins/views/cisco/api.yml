@@ -91,3 +91,82 @@ paths:
       - $ref: '#/parameters/Offset'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
+definitions:
+  CiscoIPPhoneDirectory:
+    properties:
+      DirectoryEntry:
+        type: array
+        items:
+          $ref: '#/definitions/CiscoDirectoryEntry'
+      SoftKeyItem:
+        type: array
+        items:
+          $ref: '#/definitions/CiscoSoftKeyItem'
+    required:
+    - DirectoryEntry
+  CiscoDirectoryEntry:
+    properties:
+      Name:
+        type: string
+      Telephone:
+        type: string
+    required:
+    - Name
+    - Telephone
+  CiscoSoftKeyItem:
+    properties:
+      Name:
+        type: string
+      URL:
+        type: string
+      position:
+        type: integer
+    required:
+    - Name
+    - URL
+    - position
+  CiscoIPPhoneMenu:
+    properties:
+      MenuItem:
+        $ref: '#/definitions/CiscoMenuItem'
+    required:
+    - MenuItem
+  CiscoMenuItem:
+    properties:
+      Name:
+        type: string
+      URL:
+        type: string
+    required:
+    - Name
+    - URL
+  CiscoIPPhoneInput:
+    properties:
+      Title:
+        type: string
+      Prompt:
+        type: string
+      URL:
+        type: string
+      InputItem:
+        $ref: '#/definitions/CiscoInputItem'
+    required:
+    - Title
+    - Prompt
+    - URL
+    - InputItem
+  CiscoInputItem:
+    properties:
+      DisplayName:
+        type: string
+      QueryStringParam:
+        type: string
+      DefaultValue:
+        type: string
+      InputFlags:
+        type: string
+    required:
+    - DisplayName
+    - QueryStringParam
+    - DefaultValue
+    - InputFlags

@@ -62,3 +62,46 @@ paths:
       - $ref: '#/parameters/Limit16'
       - $ref: '#/parameters/Offset'
       - $ref: '#/parameters/ProxyUrl'
+definitions:
+  AastraIPPhoneInputScreen:
+    properties:
+      Title:
+        type: string
+      Prompt:
+        type: string
+      URL:
+        type: string
+      Parameter:
+        type: string
+    required:
+    - Title
+    - Prompt
+    - URL
+    - Parameter
+  AastraIPPhoneTextMenu:
+    properties:
+      style:
+        type: string
+        xml:
+          attribute: true
+      destroyOnExit:
+        type: string
+        xml:
+          attribute: true
+      MenuItem:
+        type: array
+        items:
+          $ref: '#/definitions/AastraMenuItem'
+    required:
+    - style
+    - destroyOnExit
+    - MenuItem
+  AastraMenuItem:
+    properties:
+      Prompt:
+        type: string
+      URI:
+        type: string
+    required:
+    - Prompt
+    - URI

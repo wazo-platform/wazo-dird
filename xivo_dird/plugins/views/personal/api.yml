@@ -165,3 +165,15 @@ paths:
             $ref: '#/definitions/Error'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
+responses:
+  PersonalContactIDInvalid:
+    description: The personal contact does not exist
+    schema:
+      $ref: '#/definitions/Error'
+parameters:
+  PersonalContactID:
+    name: contact_id
+    in: path
+    type: string
+    required: true
+    description: The ID of the personal contact.

@@ -64,3 +64,67 @@ paths:
       - $ref: '#/parameters/Offset'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
+definitions:
+  SnomIPPhoneInput:
+    properties:
+      Title:
+        type: string
+      Prompt:
+        type: string
+      URL:
+        type: string
+      InputItem:
+        $ref: '#/definitions/SnomInputItem'
+    required:
+    - Title
+    - Prompt
+    - URL
+    - InputItem
+  SnomInputItem:
+    properties:
+      DisplayName:
+        type: string
+      QueryStringParam:
+        type: string
+      DefaultValue:
+        type: string
+      InputFlags:
+        type: string
+    required:
+    - DisplayName
+    - QueryStringParam
+    - DefaultValue
+    - InputFlags
+  SnomIPPhoneDirectory:
+    properties:
+      DirectoryEntry:
+        type: array
+        items:
+          $ref: '#/definitions/SnomDirectoryEntry'
+      SoftKeyItem:
+        type: array
+        items:
+          $ref: '#/definitions/SnomSoftKeyItem'
+    required:
+    - DirectoryEntry
+  SnomDirectoryEntry:
+    properties:
+      Name:
+        type: string
+      Telephone:
+        type: string
+    required:
+    - Name
+    - Telephone
+  SnomSoftKeyItem:
+    properties:
+      Label:
+        type: string
+      URL:
+        type: string
+      Name:
+        type: integer
+    required:
+    - Label
+    - URL
+    - Name

@@ -38,3 +38,21 @@ paths:
       - $ref: '#/parameters/Offset'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
+definitions:
+  ThomsonPhoneBook:
+    properties:
+      DirectoryEntry:
+        type: array
+        items:
+          $ref: '#/definitions/ThomsonDirectoryEntry'
+    required:
+    - DirectoryEntry
+  ThomsonDirectoryEntry:
+    properties:
+      Name:
+        type: string
+      Telephone:
+        type: string
+    required:
+    - Name
+    - Telephone
