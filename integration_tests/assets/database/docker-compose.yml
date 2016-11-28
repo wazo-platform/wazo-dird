@@ -6,7 +6,7 @@ sync:
     PORTS: "5432"
 
 postgres:
-  image: xivo/xivo-dird-db
+  image: wazopbx/xivo-dird-db
   expose:
     - "5432"
   ports:

@@ -20,7 +20,7 @@ dird:
     - "./ssl:/usr/local/share/ssl"
     - "./tmp/data/:/tmp/data"
 db:
-  image: xivo/xivo-dird-db
+  image: wazopbx/xivo-dird-db
   ports:
     - "5432"
 auth:
