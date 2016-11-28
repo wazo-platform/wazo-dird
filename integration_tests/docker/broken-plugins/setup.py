@@ -11,9 +11,9 @@ setup(
     description='XiVO Directory Daemon broken plugins',
 
     author='Avencall',
-    author_email='dev@avencall.com',
+    author_email='dev+pkg@proformatique.com',
 
-    url='https://github.com/xivo-pbx/xivo-dird',
+    url='https://github.com/wazo-pbx/xivo-dird',
 
     packages=find_packages(),
 

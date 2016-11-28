@@ -1,4 +1,4 @@
-https://github.com/xivo-pbx/xivo-bus/archive/master.zip
+https://github.com/wazo-pbx/xivo-bus/archive/master.zip
 
 babel
 flask-babel
@@ -17,5 +17,5 @@ sqlalchemy==0.9.8
 unidecode==0.04.16
 kombu
 stevedore
-git+https://github.com/xivo-pbx/xivo-confd-client.git
-git+https://github.com/xivo-pbx/xivo-lib-rest-client.git
+git+https://github.com/wazo-pbx/xivo-confd-client.git
+git+https://github.com/wazo-pbx/xivo-lib-rest-client.git
