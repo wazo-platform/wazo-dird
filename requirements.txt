@@ -6,11 +6,11 @@ flask-cors==1.10.3
 flask-restful==0.3.5
 flask==0.10.1
 futures==2.2.0
-git+https://github.com/xivo-pbx/xivo-auth-client.git
-git+https://github.com/xivo-pbx/xivo-bus.git
-git+https://github.com/xivo-pbx/xivo-confd-client.git
-git+https://github.com/xivo-pbx/xivo-lib-python.git
-git+https://github.com/xivo-pbx/xivo-lib-rest-client.git  # from xivo-{auth,confd}-client
+git+https://github.com/wazo-pbx/xivo-auth-client.git
+git+https://github.com/wazo-pbx/xivo-bus.git
+git+https://github.com/wazo-pbx/xivo-confd-client.git
+git+https://github.com/wazo-pbx/xivo-lib-python.git
+git+https://github.com/wazo-pbx/xivo-lib-rest-client.git  # from xivo-{auth,confd}-client
 marshmallow==2.10.3
 jinja2==2.7.3
 pyopenssl==0.14  # from xivo-lib-python
