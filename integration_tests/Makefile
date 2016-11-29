@@ -10,11 +10,11 @@ test-setup: egg-info build-dird build-db-image
 	docker pull swaggerapi/swagger-validator
 
 build-dird:
-	docker build -t xivo/xivo-dird ..
+	docker build -t wazopbx/xivo-dird ..
 	docker build --no-cache -t xivo-dird-test -f docker/Dockerfile-dird-test ..
 
 build-db-image:
-	docker build -f ../contribs/docker/Dockerfile-db -t xivo/xivo-dird-db ..
+	docker build -f ../contribs/docker/Dockerfile-db -t wazopbx/xivo-dird-db ..
 
 egg-info:
 	cd .. && python setup.py egg_info
