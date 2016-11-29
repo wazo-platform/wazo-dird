@@ -1,4 +1,4 @@
-FROM xivo/xivo-dird
+FROM wazopbx/xivo-dird
 
 ADD . /usr/src/xivo-dird
 ADD integration_tests/assets/_common/etc/xivo-dird/conf.d/disable_service_discovery.yml /etc/xivo-dird/conf.d/disable_service_discovery.yml
