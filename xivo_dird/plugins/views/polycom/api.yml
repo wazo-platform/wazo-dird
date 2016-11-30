@@ -19,7 +19,7 @@ paths:
           schema:
             $ref: '#/definitions/PolycomIPPhoneInput'
           examples:
-            text/html: <html> <head> <title>XiVO Search</title> </head> <body> <form
+            text/html: <html> <head> <title>Wazo Search</title> </head> <body> <form
               action='https://proxy-url' method='get' accept-charset='utf-8'> <span
               class='fm-desc clearboth'> <label id='lb-name' for='it-name'>Name or
               number:</label> </span> <input type='text' name='term' id='it-term'
@@ -59,7 +59,7 @@ paths:
           schema:
             $ref: '#/definitions/PolycomIPPhoneDirectory'
           examples:
-            text/html: <html> <head> <title>XiVO Search</title> </head> <body> <ol>
+            text/html: <html> <head> <title>Wazo Search</title> </head> <body> <ol>
               <li>[<a href='https://xivo-dird:9489/0.1/directories/lookup/default_phone/polycom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1'
               title='Previous'>Previous</a>]<br /></li> <li><a href='tel://5555555555'>Alice</a><br
               /></li>  <li>[<a href='https://xivo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2'

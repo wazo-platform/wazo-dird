@@ -43,7 +43,7 @@ setup(
     name='xivo-dird',
     version='1.2',
 
-    description='XiVO Directory Daemon',
+    description='Wazo Directory Daemon',
 
     author='Avencall',
     author_email='dev@proformatique.com',

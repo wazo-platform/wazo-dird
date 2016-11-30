@@ -8,7 +8,7 @@ setup(
     name='xivo-dird-broken-plugins',
     version='1.0',
 
-    description='XiVO Directory Daemon broken plugins',
+    description='Wazo Directory Daemon broken plugins',
 
     author='Avencall',
     author_email='dev+pkg@proformatique.com',

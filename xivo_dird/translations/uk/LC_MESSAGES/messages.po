@@ -1,5 +1,5 @@
 # Translations template for xivo-dird.
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
 # This file is distributed under the same license as the xivo-dird project.
 # 
 # Translators:
@@ -23,7 +23,7 @@ msgstr ""
 #: xivo_dird/plugins/templates/polycom_input.jinja:4
 #: xivo_dird/plugins/templates/polycom_results.jinja:4
 #: xivo_dird/plugins/templates/snom_input.jinja:3
-msgid "XiVO Search"
+msgid "Wazo Search"
 msgstr ""
 
 #: xivo_dird/plugins/templates/aastra_input.jinja:4
@@ -58,7 +58,7 @@ msgid "Name or number"
 msgstr ""
 
 #: xivo_dird/plugins/templates/cisco_menu.jinja:4
-msgid "XiVO Directory"
+msgid "Wazo Directory"
 msgstr ""
 
 #: xivo_dird/plugins/templates/cisco_results.jinja:17

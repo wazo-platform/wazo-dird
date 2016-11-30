@@ -1,5 +1,5 @@
 # French translations for XiVO.
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
 # This file is distributed under the same license as the XiVO project.
 # XiVO Dev Team <dev@avencall.com>, 2015.
 #
@@ -22,8 +22,8 @@ msgstr ""
 #: xivo_dird/plugins/templates/polycom_input.jinja:4
 #: xivo_dird/plugins/templates/polycom_results.jinja:4
 #: xivo_dird/plugins/templates/snom_input.jinja:3
-msgid "XiVO Search"
-msgstr "Recherche XiVO"
+msgid "Wazo Search"
+msgstr "Recherche Wazo"
 
 #: xivo_dird/plugins/templates/aastra_input.jinja:4
 #: xivo_dird/plugins/templates/polycom_input.jinja:9
@@ -57,8 +57,8 @@ msgid "Name or number"
 msgstr "Nom ou numéro"
 
 #: xivo_dird/plugins/templates/cisco_menu.jinja:4
-msgid "XiVO Directory"
-msgstr "Répertoire XiVO"
+msgid "Wazo Directory"
+msgstr "Répertoire Wazo"
 
 #: xivo_dird/plugins/templates/cisco_results.jinja:17
 msgid "Dial"
