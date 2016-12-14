@@ -35,7 +35,7 @@ The `wazopbx/xivo-dird` image contains a configuration file to listen to HTTP
 requests on "0.0.0.0". To change this behavior, create or edit the file
 `/etc/xivo-dird/conf.d/listen.yml`
 
-The wazopbx/xivo-dird-db image can be build using the following command:
+The wazopbx/xivo-dird-db image can be built using the following command:
 
     % docker build -f contribs/docker/Dockerfile-db -t wazopbx/xivo-dird-db .
 
