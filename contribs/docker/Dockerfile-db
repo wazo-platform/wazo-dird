@@ -1,5 +1,5 @@
 FROM debian:jessie
-MAINTAINER XiVO Team "dev+docker@proformatique.com.com"
+MAINTAINER Wazo Maintainers <dev.wazo@gmail.com>
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=C.UTF-8 \
