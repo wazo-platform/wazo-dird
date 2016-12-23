@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +18,7 @@
 import os
 import json
 import logging
+from contextlib import contextmanager
 
 import requests
 
@@ -169,6 +169,14 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         response = cls.delete_favorite_result(directory, contact, token=VALID_TOKEN)
         assert_that(response.status_code, equal_to(204))
 
+    @contextmanager
+    def favorite(self, source, source_entry_id, token=VALID_TOKEN):
+        self.put_favorite(source, source_entry_id, token)
+        try:
+            yield
+        finally:
+            self.delete_favorite_result(source, source_entry_id, token)
+
     @classmethod
     def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN):
         url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks'.format(tenant=tenant,
@@ -232,6 +240,14 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         response = cls.post_personal_result(personal_infos, token)
         assert_that(response.status_code, equal_to(201))
         return response.json()
+
+    @contextmanager
+    def personal(self, personal_infos, token=VALID_TOKEN):
+        response = self.post_personal(personal_infos, token)
+        try:
+            yield response
+        finally:
+            self.delete_personal_result(response['id'], token)
 
     @classmethod
     def import_personal_result(cls, csv, token=None, encoding='utf-8'):

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+
+# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from contextlib import nested
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
@@ -26,56 +28,59 @@ from .base_dird_integration_test import VALID_TOKEN_1
 from .base_dird_integration_test import VALID_TOKEN_2
 
 
-class TestAddRemoveFavorites(BaseDirdIntegrationTest):
+class TestFavorites(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'
 
     def test_that_removed_favorites_are_not_listed(self):
-        self.put_favorite('my_csv', '1')
-        self.put_favorite('my_csv', '2')
-        self.put_favorite('my_csv', '3')
-        self.delete_favorite('my_csv', '2')
-
-        result = self.favorites('default')
+        with nested(
+            self.favorite('my_csv', '1'),
+            self.favorite('my_csv', '2'),
+            self.favorite('my_csv', '3'),
+        ):
+            self.delete_favorite('my_csv', '2')
+            result = self.favorites('default')
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', True)),
             has_entry('column_values', contains('Charles', 'CCC', '555123555', True))))
 
-
-class TestFavoritesVisibility(BaseDirdIntegrationTest):
-
-    asset = 'csv_with_multiple_displays'
-
     def test_that_favorites_are_only_visible_for_the_same_token(self):
-        self.put_favorite('my_csv', '1', token=VALID_TOKEN_1)
-        self.put_favorite('my_csv', '2', token=VALID_TOKEN_1)
-        self.put_favorite('my_csv', '3', token=VALID_TOKEN_2)
-
-        result = self.favorites('default', token=VALID_TOKEN_1)
+        with nested(
+            self.favorite('my_csv', '1', token=VALID_TOKEN_1),
+            self.favorite('my_csv', '2', token=VALID_TOKEN_1),
+            self.favorite('my_csv', '3', token=VALID_TOKEN_2),
+        ):
+            result = self.favorites('default', token=VALID_TOKEN_1)
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', True)),
             has_entry('column_values', contains('Bob', 'BBB', '5555551234', True))))
 
-
-class TestFavoritesPersistence(BaseDirdIntegrationTest):
-
-    asset = 'csv_with_multiple_displays'
-
     def test_that_favorites_are_saved_across_dird_restart(self):
-        self.put_favorite('my_csv', '1')
+        with self.favorite('my_csv', '1'):
+            result = self.favorites('default')
 
-        result = self.favorites('default')
+            assert_that(result['results'], contains_inanyorder(
+                has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
+
+            self._run_cmd('docker-compose kill dird')
+            self._run_cmd('docker-compose rm -f dird')
+            self._run_cmd('docker-compose run --rm sync')
+
+            result = self.favorites('default')
+
+            assert_that(result['results'], contains_inanyorder(
+                has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
+
+    def test_that_favorites_lookup_results_show_favorites(self):
+        result = self.lookup('Ali', 'default', token=VALID_TOKEN_1)
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
+            has_entry('column_values', contains('Alice', 'AAA', '5555555555', False))))
 
-        self._run_cmd('docker-compose kill dird')
-        self._run_cmd('docker-compose rm -f dird')
-        self._run_cmd('docker-compose run --rm sync')
-
-        result = self.favorites('default')
+        with self.favorite('my_csv', '1', token=VALID_TOKEN_1):
+            result = self.lookup('Ali', 'default', token=VALID_TOKEN_1)
 
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
@@ -104,72 +109,42 @@ class TestFavoritesWithOneBrokenSource(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Alice', 'AAA', '5555555555'))))
 
 
-class TestFavoritesInLookupResults(BaseDirdIntegrationTest):
-
-    asset = 'csv_with_multiple_displays'
-
-    def test_that_favorites_lookup_results_show_favorites(self):
-        result = self.lookup('Ali', 'default', token=VALID_TOKEN_1)
-
-        assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555', False))))
-
-        self.put_favorite('my_csv', '1', token=VALID_TOKEN_1)
-
-        result = self.lookup('Ali', 'default', token=VALID_TOKEN_1)
-
-        assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
-
-
 class TestFavoritesInPersonalResults(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
     def test_that_personal_list_results_show_favorites(self):
-        self.post_personal({'firstname': 'Alice'})
-        bob = self.post_personal({'firstname': 'Bob'})
-        self.post_personal({'firstname': 'Charlie'})
+        with nested(
+            self.personal({'firstname': 'Alice'}),
+            self.personal({'firstname': 'Bob'}),
+            self.personal({'firstname': 'Charlie'}),
+        ) as (_, bob, __):
+            result = self.get_personal_with_profile('default')
 
-        result = self.get_personal_with_profile('default')
+            assert_that(result['results'], contains_inanyorder(
+                has_entry('column_values', contains('Alice', None, None, False)),
+                has_entry('column_values', contains('Bob', None, None, False)),
+                has_entry('column_values', contains('Charlie', None, None, False))))
 
-        assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', None, None, False)),
-            has_entry('column_values', contains('Bob', None, None, False)),
-            has_entry('column_values', contains('Charlie', None, None, False))))
-
-        self.put_favorite('personal', bob['id'])
-
-        personal = self.get_personal_with_profile('default')
+            with self.favorite('personal', bob['id']):
+                personal = self.get_personal_with_profile('default')
 
         assert_that(personal['results'], contains_inanyorder(
             has_entry('column_values', contains('Alice', None, None, False)),
             has_entry('column_values', contains('Bob', None, None, True)),
             has_entry('column_values', contains('Charlie', None, None, False))))
 
-
-class TestPersonalInFavoritesList(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
     def test_that_favorites_list_results_accept_personal(self):
-        alice = self.post_personal({'firstname': 'Alice'})
-        self.put_favorite('personal', alice['id'])
-
-        favorites = self.favorites('default')
+        with self.personal({'firstname': 'Alice'}) as alice:
+            with self.favorite('personal', alice['id']):
+                favorites = self.favorites('default')
 
         assert_that(favorites['results'], contains(
             has_entry('column_values', contains('Alice', None, None, True))))
 
-
-class TestDeleteFavoritePersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
     def test_that_removed_favorited_personal_are_not_listed_anymore(self):
-        alice = self.post_personal({'firstname': 'Alice'})
-        self.put_favorite('personal', alice['id'])
-        self.delete_personal(alice['id'])
+        with self.personal({'firstname': 'Alice'}) as alice:
+            self.put_favorite('personal', alice['id'])
 
         favorites = self.favorites('default')
 
