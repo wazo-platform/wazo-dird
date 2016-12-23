@@ -31,13 +31,11 @@ logger = logging.getLogger(__name__)
 class Bus(object):
 
     _bus_url_tpl = 'amqp://{username}:{password}@{host}:{port}//'
-    _publisher = None
 
     def __init__(self, global_config):
         bus_config = global_config['bus']
         self._enabled = bus_config['enabled']
         if self._enabled:
-            logger.info('bus connection disabled')
             self._bus_url = self._bus_url_tpl.format(**bus_config)
             self._marshaler = Marshaler(global_config.get('uuid'))
             self._exchange_name = bus_config['exchange_name']
@@ -45,6 +43,7 @@ class Bus(object):
         self._bus_thread = threading.Thread(target=self._start_consuming)
         self._queues_and_callbacks = []
         self._consumer = None
+        self._publisher = None
 
     def add_consumer(self, queue, callback):
         logger.debug('adding consumer: %s', queue)
