@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ from mock import (ANY,
                   Mock,
                   patch,
                   sentinel as s)
-from xivo_dird.core import database
+from xivo_dird.core import database, bus
 from xivo_dird.plugins.favorites_service import FavoritesServicePlugin
 from xivo_dird.plugins.favorites_service import _FavoritesService
 
@@ -54,7 +54,8 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
         with patch.object(plugin, '_new_favorite_crud'):
             service = plugin.load({'sources': s.sources,
-                                   'config': self._config})
+                                   'config': self._config,
+                                   'bus': s.bus})
 
         assert_that(service, not_(none()))
 
@@ -64,9 +65,10 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
         with patch.object(plugin, '_new_favorite_crud'):
             service = plugin.load({'config': self._config,
-                                   'sources': s.sources})
+                                   'sources': s.sources,
+                                   'bus': s.bus})
 
-        MockedFavoritesService.assert_called_once_with(self._config, s.sources, ANY)
+        MockedFavoritesService.assert_called_once_with(self._config, s.sources, ANY, s.bus)
         assert_that(service, equal_to(MockedFavoritesService.return_value))
 
     def test_no_error_on_unload_not_loaded(self):
@@ -78,7 +80,9 @@ class TestFavoritesServicePlugin(unittest.TestCase):
     def test_that_unload_stops_the_services(self, MockedFavoritesService):
         plugin = FavoritesServicePlugin()
         with patch.object(plugin, '_new_favorite_crud'):
-            plugin.load({'config': self._config, 'sources': s.sources})
+            plugin.load({'config': self._config,
+                         'sources': s.sources,
+                         'bus': s.bus})
 
         plugin.unload()
 
@@ -87,12 +91,15 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
 class TestFavoritesService(unittest.TestCase):
 
+    def setUp(self):
+        self.bus = Mock(bus.Bus)
+
     def test_that_unavailable_source_raises_404(self):
         config = {'services': {'favorites': {'my_profile': {'sources': ['one', 'two']}}}}
         sources = {'one': Mock(), 'two': Mock(), 'three': Mock()}
         crud = Mock(database.FavoriteCRUD)
 
-        service = _FavoritesService(config, sources, crud)
+        service = _FavoritesService(config, sources, crud, self.bus)
 
         assert_that(calling(service.new_favorite).with_args('three', 'the-id', s.xivo_user_uuid),
                     raises(service.NoSuchSourceException))
@@ -124,7 +131,7 @@ class TestFavoritesService(unittest.TestCase):
             },
         }
 
-        service = _FavoritesService(config, sources, crud)
+        service = _FavoritesService(config, sources, crud, self.bus)
 
         results = service.favorites('my_profile', s.xivo_user_uuid)
 
@@ -163,7 +170,7 @@ class TestFavoritesService(unittest.TestCase):
             },
         }
 
-        service = _FavoritesService(config, sources, crud)
+        service = _FavoritesService(config, sources, crud, self.bus)
 
         results = service.favorites('my_profile', s.xivo_user_uuid)
 
@@ -181,7 +188,7 @@ class TestFavoritesService(unittest.TestCase):
         crud = Mock(database.FavoriteCRUD)
         sources = {}
 
-        service = _FavoritesService(config, sources, crud)
+        service = _FavoritesService(config, sources, crud, self.bus)
 
         assert_that(calling(service.favorites).with_args('my_profile', s.xivo_user_uuid),
                     raises(service.NoSuchProfileException))
@@ -190,7 +197,7 @@ class TestFavoritesService(unittest.TestCase):
 
     def test_when_the_sources_are_not_configured(self):
         config = {'services': {'favorites': {'my_profile': {}}}}
-        service = _FavoritesService(config, {}, Mock(get=Mock(return_value=[('source', 'id')])))
+        service = _FavoritesService(config, {}, Mock(get=Mock(return_value=[('source', 'id')])), self.bus)
 
         result = service.favorites('my_profile', s.xivo_user_uuid)
 
@@ -198,13 +205,13 @@ class TestFavoritesService(unittest.TestCase):
 
     @patch('xivo_dird.plugins.favorites_service.ThreadPoolExecutor')
     def test_that_the_service_starts_the_thread_pool(self, MockedThreadPoolExecutor):
-        _FavoritesService({}, {}, Mock())
+        _FavoritesService({}, {}, Mock(), self.bus)
 
         MockedThreadPoolExecutor.assert_called_once_with(max_workers=10)
 
     @patch('xivo_dird.plugins.favorites_service.ThreadPoolExecutor')
     def test_that_stop_shuts_down_the_thread_pool(self, MockedThreadPoolExecutor):
-        service = _FavoritesService({}, {}, Mock())
+        service = _FavoritesService({}, {}, Mock(), self.bus)
 
         service.stop()
 
@@ -233,7 +240,7 @@ class TestFavoritesService(unittest.TestCase):
                 }
             },
         }
-        service = _FavoritesService(config, sources, crud)
+        service = _FavoritesService(config, sources, crud, self.bus)
 
         result = service.favorites('my_profile', s.xivo_user_uuid)
 

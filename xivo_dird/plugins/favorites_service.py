@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +25,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
-
+from xivo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
 from xivo_dird import BaseServicePlugin, helpers
 from xivo_dird.core import database, exception
 
@@ -60,8 +59,9 @@ class FavoritesServicePlugin(BaseServicePlugin):
         try:
             config = args['config']
             sources = args['sources']
+            bus = args['bus']
         except KeyError:
-            msg = ('%s should be loaded with "config" and "sources" but received: %s'
+            msg = ('%s should be loaded with "config", "sources" and "bus" but received: %s'
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
@@ -75,7 +75,7 @@ class FavoritesServicePlugin(BaseServicePlugin):
 
         crud = self._new_favorite_crud(db_uri)
 
-        self._service = _FavoritesService(config, sources, crud)
+        self._service = _FavoritesService(config, sources, crud, bus)
         return self._service
 
     def _new_favorite_crud(self, db_uri):
@@ -97,11 +97,15 @@ class _FavoritesService(object):
     NoSuchSourceException = _NoSuchSourceException
     DuplicatedFavoriteException = exception.DuplicatedFavoriteException
 
-    def __init__(self, config, sources, crud):
+    def __init__(self, config, sources, crud, bus):
         self._config = config
         self._sources = sources
         self._executor = ThreadPoolExecutor(max_workers=10)
         self._crud = crud
+        self._bus = bus
+        self._xivo_uuid = config.get('uuid')
+        if not self._xivo_uuid:
+            logger.info('loaded without a UUID: published events will be incomplete')
 
     def _configured_profiles(self):
         return self._config.get('services', {}).get('favorites', {}).keys()
@@ -164,12 +168,16 @@ class _FavoritesService(object):
 
         contact_id = contact_id.encode('utf-8')
         self._crud.create(xivo_user_uuid, source, contact_id)
+        event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
+        self._bus.publish(event)
 
     def remove_favorite(self, source, contact_id, xivo_user_uuid):
         if source not in self._available_sources():
             raise self.NoSuchSourceException(source)
 
         self._crud.delete(xivo_user_uuid, source, contact_id)
+        event = FavoriteDeletedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
+        self._bus.publish(event)
 
     def _source_by_profile(self, profile):
         favorites_config = self._config.get('services', {}).get('favorites', {})
