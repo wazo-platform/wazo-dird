@@ -1,4 +1,5 @@
 https://github.com/wazo-pbx/xivo-bus/archive/master.zip
+https://github.com/wazo-pbx/xivo-test-helpers/archive/master.zip
 
 babel
 flask-babel
@@ -7,7 +8,6 @@ pyhamcrest
 python-ldap
 nose
 sh
-xivo-test-helpers
 mock
 
 # for database tests
