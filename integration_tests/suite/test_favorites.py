@@ -15,20 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import uuid
-
 from contextlib import nested
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_entry
-from kombu import Connection
-from kombu import Consumer
-from kombu import Exchange
-from kombu import Producer
-from kombu import Queue
-from kombu.exceptions import TimeoutError
+from xivo_test_helpers.bus import BusClient
 from xivo_test_helpers import until
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
@@ -174,57 +167,14 @@ class TestFavoritesVisibilityInSimilarSources(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Alice', 'Alan', '1111', True))))
 
 
-class BusMessageAccumulator(object):
-
-    def __init__(self, url, queue):
-        self._url = url
-        self._queue = queue
-        self._events = []
-
-    def _on_event(self, body, message):
-        # events are already decoded, thanks to the content-type
-        self._events.append(body)
-        message.ack()
-
-    def accumulate(self):
-        with Connection(self._url) as conn:
-            with Consumer(conn, self._queue, callbacks=[self._on_event]):
-                try:
-                    while True:
-                        conn.drain_events(timeout=0.5)
-                except TimeoutError:
-                    pass
-
-        return self._events
-
-
-def bus_is_up(url):
-    try:
-        with Connection(url) as connection:
-            producer = Producer(connection, exchange=Exchange('xivo', type='topic'), auto_declare=True)
-            producer.publish('', routing_key='test')
-    except IOError:
-        return False
-    else:
-        return True
-
-
 class TestFavoritesBusEvents(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
     def test_that_adding_favorite_produces_bus_event(self):
-        url = 'amqp://guest:guest@{host}:{port}//'.format(host='localhost', port=5672)
-        until.true(bus_is_up, url, tries=5)
-
-        with Connection(url) as conn:
-            queue = Queue(name=str(uuid.uuid4()),
-                          exchange=Exchange('xivo', type='topic'),
-                          routing_key='directory.*.favorite.*',
-                          channel=conn.channel())
-            queue.declare()
-            queue.purge()
-            bus_events = BusMessageAccumulator(url, queue)
+        bus = BusClient.from_connection_fields(host='localhost', port=5672)
+        until.true(bus.is_up, tries=5)
+        bus_events = bus.accumulator('directory.*.favorite.*')
 
         def favorite_bus_event_received(name):
             return name in (message['name'] for message in bus_events.accumulate())
