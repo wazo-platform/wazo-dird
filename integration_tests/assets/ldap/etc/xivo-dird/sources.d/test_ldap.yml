@@ -2,8 +2,8 @@ type: ldap
 name: test_ldap
 
 ldap_uri: ldap://slapd
-ldap_base_dn: ou=québec,dc=xivo-dird,dc=xivo,dc=io
-ldap_username: cn=admin,dc=xivo-dird,dc=xivo,dc=io
+ldap_base_dn: ou=québec,dc=xivo-dird,dc=wazo,dc=community
+ldap_username: cn=admin,dc=xivo-dird,dc=wazo,dc=community
 ldap_password: xivopassword
 
 unique_column: entryUUID
