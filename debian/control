@@ -1,19 +1,17 @@
 Source: xivo-dird
 Section: python
 Priority: extra
-Maintainer: XiVO Dev Team <dev+pkg@proformatique.com>
-Uploaders: XiVO Builder Team <dev+pkg@proformatique.com>
+Maintainer: Wazo Maintainers <dev.wazo@gmail.com>
 Build-Depends: debhelper (>= 9), dh-python, dh-systemd (>= 1.5), python-all (>= 2.7), python-setuptools, python-babel
-Standards-Version: 3.9.4
+Standards-Version: 3.9.6
 X-Python-Version: >= 2.7
-Homepage: http://xivo.io
 
 Package: xivo-dird
 Architecture: all
 Pre-Depends: xivo-libdird (= ${binary:Version})
 Depends: ${python:Depends}
-Description: XIVO PBX's directory server
- XIVO is a system based on a powerful IPBX, to bring an easy to
+Description: Wazo PBX's directory server
+ Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.
  .
 
@@ -40,7 +38,7 @@ Depends: ${python:Depends},
          xivo-lib-python (>= 16.06~20160509.153738.904a909),
          xivo-lib-rest-client,
          python-sqlalchemy
-Description: XIVO telephony systems library for directories manager
- XIVO is a system based on a powerful IPBX, to bring an easy to
+Description: Wazo telephony systems library for directories manager
+ Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.
  .

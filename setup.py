@@ -45,10 +45,10 @@ setup(
 
     description='Wazo Directory Daemon',
 
-    author='Avencall',
-    author_email='dev@proformatique.com',
+    author='Wazo Authors',
+    author_email='dev.wazo@gmail.com',
 
-    url='https://github.com/wazo-pbx/xivo-dird',
+    url='http://wazo.community',
 
     packages=find_packages(),
 

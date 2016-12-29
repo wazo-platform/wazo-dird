@@ -22,7 +22,7 @@ dird:
 slapd:
   image: nickstenning/slapd
   environment:
-    LDAP_DOMAIN: xivo-dird.xivo.io
+    LDAP_DOMAIN: xivo-dird.wazo.community
     LDAP_ORGANISATION: acme
     LDAP_ROOTPASS: xivopassword
   ports:
