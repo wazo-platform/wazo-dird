@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ from mock import ANY
 
 from xivo_bus.resources.user import event
 from xivo_bus import Publisher, Marshaler
+from xivo_test_helpers import until
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 from .base_dird_integration_test import VALID_UUID
@@ -78,9 +79,11 @@ class TestDeletedUser(BaseDirdIntegrationTest):
 
         self._publish_user_deleted_event(VALID_UUID)
 
-        result = self.list_personal()
+        def check():
+            result = self.list_personal()
+            assert_that(result['items'], empty())
 
-        assert_that(result['items'], empty())
+        until.assert_(check, tries=3)
 
     def _publish_user_deleted_event(self, uuid):
         msg = event.DeleteUserEvent(42, uuid)
