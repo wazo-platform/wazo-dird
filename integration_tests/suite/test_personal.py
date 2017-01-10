@@ -75,13 +75,14 @@ class TestDeletedUser(BaseDirdIntegrationTest):
         self.purge_personal()
 
     def test_that_deleting_a_user_deletes_its_storage(self):
-        self.post_personal({'firstname': 'Alice'})
-
-        self._publish_user_deleted_event(VALID_UUID)
-
         def check():
             result = self.list_personal()
             assert_that(result['items'], empty())
+
+        check()
+
+        self.post_personal({'firstname': 'Alice'})
+        self._publish_user_deleted_event(VALID_UUID)
 
         until.assert_(check, tries=3)
 
