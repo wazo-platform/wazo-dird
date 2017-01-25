@@ -34,7 +34,7 @@ case "$1" in
 			/usr/share/xivo-dird/migrations/0001_source_to_display_columns_to_format_columns.py $file
 		done
 
-		if dpkg --compare-versions "$2" lt '17.03'; then
+		if dpkg --compare-versions "$2" lt '17.02'; then
 			ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
 					/etc/nginx/locations/https-enabled/$DAEMONNAME
 		fi
