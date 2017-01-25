@@ -6,7 +6,7 @@ sync:
     - db
     - rabbitmq
   environment:
-    PORTS: "9489 9497 5432 5672"
+    PORTS: "9489 9497 5432 15672"
 dird:
   image: xivo-dird-test
   links:
@@ -36,3 +36,5 @@ rabbitmq:
   image: rabbitmq
   ports:
     - "5672:5672"
+  expose:
+    - 15672
