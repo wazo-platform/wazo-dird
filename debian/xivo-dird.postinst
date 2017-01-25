@@ -4,6 +4,7 @@ set -e
 
 LOG_FILENAME='/var/log/xivo-dird.log'
 DIRD_ALEMBIC_INI_PATH='/usr/share/xivo-dird'
+DAEMONNAME='xivo-dird'
 
 pg_is_running () {
 	pg_lsclusters --no-header | grep -q online
@@ -32,6 +33,11 @@ case "$1" in
 		for file in $files; do
 			/usr/share/xivo-dird/migrations/0001_source_to_display_columns_to_format_columns.py $file
 		done
+
+		if dpkg --compare-versions "$2" lt '17.02'; then
+			ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
+					/etc/nginx/locations/https-enabled/$DAEMONNAME
+		fi
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
