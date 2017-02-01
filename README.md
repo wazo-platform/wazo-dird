@@ -9,20 +9,20 @@ simple REST API.
 
 To extract new translations:
 
-    % python setup.py extract_messages
+    % pybabel extract --mapping-file=xivo_dird/babel.cfg --output-file=xivo_dird/messages.pot .
 
 To create new translation catalog:
 
-    % python setup.py init_catalog -l <locale>
+    % pybabel init -l <locale> --input-file=xivo_dird/messages.pot --output-dir=xivo_dird/translations
 
 To update existing translations catalog:
 
-    % python setup.py update_catalog
+    % pybabel update --input-file=xivo_dird/messages.pot --output-dir=xivo_dird/translations
 
 Edit file `xivo_dird/translations/<locale>/LC_MESSAGES/messages.po` and compile
 using:
 
-    % python setup.py compile_catalog
+    % pybabel compile --directory=xivo_dird/translations
 
 
 ## Docker
