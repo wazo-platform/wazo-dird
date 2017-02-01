@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 
 from setuptools import setup
 from setuptools import find_packages
@@ -20,17 +20,21 @@ class install_lib(_install_lib):
 
 class BabelWrapper(object):
 
-    def compile_catalog(self, *args, **kwargs):
-        return self.babel.compile_catalog(*args, **kwargs)
+    @property
+    def compile_catalog(self):
+        return self.babel.compile_catalog
 
-    def extract_messages(self, *args, **kwargs):
-        return self.babel.extract_messages(*args, **kwargs)
+    @property
+    def extract_messages(self):
+        return self.babel.extract_messages
 
-    def init_catalog(self, *args, **kwargs):
-        return self.babel.init_catalog(*args, **kwargs)
+    @property
+    def init_catalog(self):
+        return self.babel.init_catalog
 
-    def update_catalog(self, *args, **kwargs):
-        return self.babel.update_catalog(*args, **kwargs)
+    @property
+    def update_catalog(self):
+        return self.babel.update_catalog
 
     @property
     def babel(self):
