@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 Avencall
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ from collections import defaultdict
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from sqlalchemy import and_, distinct, event, exc, func, or_
 from sqlalchemy.pool import Pool
+from sqlalchemy.orm.session import make_transient
 
 from xivo_dird.core.database import (Contact,
                                      ContactFields,
@@ -109,9 +110,11 @@ class _BaseDAO(object):
         except exc.OperationalError:
             session.rollback()
             raise DatabaseServiceUnavailable()
-        except exc.SQLAlchemyError:
+        except:
             session.rollback()
             raise
+        finally:
+            self._Session.remove()
 
     def _get_dird_user(self, session, xivo_user_uuid):
         user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
@@ -243,7 +246,7 @@ class PhonebookCRUD(_BaseDAO):
             s.add(phonebook)
             self.flush_or_raise(s, DuplicatedPhonebookException)
 
-        return self._phonebook_to_dict(phonebook)
+            return self._phonebook_to_dict(phonebook)
 
     def delete(self, tenant, phonebook_id):
         with self.new_session() as s:
@@ -258,17 +261,17 @@ class PhonebookCRUD(_BaseDAO):
                     raise TypeError('{} has no attribute {}'.format(phonebook.__class__.__name__,
                                                                     attribute_name))
                 setattr(phonebook, attribute_name, value)
-        return self._phonebook_to_dict(phonebook)
+            return self._phonebook_to_dict(phonebook)
 
     def get(self, tenant, phonebook_id):
         with self.new_session() as s:
             phonebook = self._get_by_tenant_and_id(s, tenant, phonebook_id)
-        return self._phonebook_to_dict(phonebook)
+            return self._phonebook_to_dict(phonebook)
 
     def list(self, tenant, order=None, direction=None, limit=None, offset=None, search=None):
         with self.new_session() as s:
             phonebooks = self._get_by_tenant(s, tenant, order, direction, limit, offset, search)
-        return [self._phonebook_to_dict(phonebook) for phonebook in phonebooks]
+            return [self._phonebook_to_dict(phonebook) for phonebook in phonebooks]
 
     def _count_by_tenant(self, s, tenant, search):
         filter_ = self._new_tenant_filter(s, tenant, search)
@@ -346,6 +349,7 @@ class FavoriteCRUD(_BaseDAO):
                                 user_uuid=user.xivo_user_uuid)
             s.add(favorite)
             self.flush_or_raise(s, DuplicatedFavoriteException)
+            make_transient(favorite)
             return favorite
 
     def delete(self, xivo_user_uuid, source_name, contact_id):
