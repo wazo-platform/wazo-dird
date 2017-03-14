@@ -18,7 +18,7 @@ python-consul==0.6.0
 python-ldap==2.4.10
 pyyaml==3.11  # from xivo-lib-py
 requests==2.4.3
-stevedore==0.14.1
+stevedore==1.17.1
 unidecode==0.04.16
 sqlalchemy==0.9.8
 psycopg2==2.5.4
