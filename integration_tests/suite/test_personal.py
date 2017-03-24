@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import unittest
 from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import contains
@@ -57,6 +58,9 @@ class TestListPersonal(BaseDirdIntegrationTest):
         assert_that(result['items'], contains())
 
 
+# This test will be more stable when dird gets a /status resource to know if its connected
+# to rabbitmq. Until then, this test fails most of the time on jenkins.
+@unittest.skip('Waiting for a /status resource')
 class TestDeletedUser(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
