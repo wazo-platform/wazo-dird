@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,12 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
-import collections
 import logging
 import yaml
 
 from flask import make_response
 from pkg_resources import resource_string, iter_entry_points
+from xivo.chain_map import ChainMap
 
 from xivo_dird.core.rest_api import api, ErrorCatchingResource
 
@@ -42,27 +42,20 @@ class SwaggerResource(ErrorCatchingResource):
     api_filename = "api.yml"
 
     def get(self):
-        api_spec = {}
+        specs = []
         for module in iter_entry_points(group=self.api_package):
             try:
                 plugin_package = module.module_name.rsplit('.', 1)[0]
                 spec = yaml.load(resource_string(plugin_package, self.api_filename))
-                api_spec = self.update(api_spec, spec)
+                specs.append(spec)
             except IOError:
                 logger.debug('API spec for module "%s" does not exist', module.module_name)
             except IndexError:
                 logger.debug('Could not find API spec from module "%s"', module.module_name)
+        api_spec = ChainMap(*specs)
 
         if not api_spec.get('info'):
             return {'error': "API spec does not exist"}, 404
 
-        return make_response(yaml.dump(api_spec), 200, {'Content-Type': 'application/x-yaml'})
+        return make_response(yaml.dump(dict(api_spec)), 200, {'Content-Type': 'application/x-yaml'})
 
-    def update(self, a, b):
-        for key, value in b.iteritems():
-            if isinstance(value, collections.Mapping):
-                result = self.update(a.get(key, {}), value)
-                a[key] = result
-            else:
-                a[key] = b[key]
-        return a
