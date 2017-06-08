@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +21,7 @@ import time
 from datetime import timedelta
 from functools import wraps
 
-from cherrypy import wsgiserver
+from cheroot import wsgi
 from flask import Flask
 from flask import request
 from flask.ext.babel import Babel
@@ -76,9 +75,9 @@ class CoreRestApi(object):
 
         bind_addr = (https_config['listen'], https_config['port'])
 
-        wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': self.app})
-        server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr,
-                                               wsgi_app=wsgi_app)
+        wsgi_app = wsgi.WSGIPathInfoDispatcher({'/': self.app})
+        server = wsgi.WSGIServer(bind_addr=bind_addr,
+                                 wsgi_app=wsgi_app)
         server.ssl_adapter = http_helpers.ssl_adapter(https_config['certificate'],
                                                       https_config['private_key'],
                                                       https_config.get('ciphers'))
