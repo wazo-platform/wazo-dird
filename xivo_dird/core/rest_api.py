@@ -79,8 +79,7 @@ class CoreRestApi(object):
         server = wsgi.WSGIServer(bind_addr=bind_addr,
                                  wsgi_app=wsgi_app)
         server.ssl_adapter = http_helpers.ssl_adapter(https_config['certificate'],
-                                                      https_config['private_key'],
-                                                      https_config.get('ciphers'))
+                                                      https_config['private_key'])
         logger.debug('WSGIServer starting... uid: %s, listen: %s:%s', os.getuid(), bind_addr[0], bind_addr[1])
         for route in http_helpers.list_routes(self.app):
             logger.debug(route)

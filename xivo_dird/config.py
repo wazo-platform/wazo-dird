@@ -19,7 +19,6 @@ import argparse
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_dir, read_config_file_hierarchy
-from xivo.http_helpers import DEFAULT_CIPHERS
 from xivo.xivo_logging import get_log_level_by_name
 
 _DEFAULT_HTTPS_PORT = 9489
@@ -53,7 +52,6 @@ _DEFAULT_CONFIG = {
             'port': _DEFAULT_HTTPS_PORT,
             'certificate': '/usr/share/xivo-certs/server.crt',
             'private_key': '/usr/share/xivo-certs/server.key',
-            'ciphers': DEFAULT_CIPHERS,
         },
         'cors': {
             'enabled': True,
