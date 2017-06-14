@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,10 +43,14 @@ class Controller(object):
         self.rest_api = CoreRestApi(self.config)
         self.bus = Bus(config)
         auth.set_auth_config(self.config['auth'])
-
-    def __del__(self):
-        plugin_manager.unload_services()
-        self.bus.stop()
+        self._service_registration_params = ['xivo-dird',
+                                             self.config.get('uuid'),
+                                             self.config.get('consul'),
+                                             self.config.get('service_discovery'),
+                                             self.config.get('bus'),
+                                             partial(self_check,
+                                                     self.config['rest_api']['https']['port'],
+                                                     self.config['rest_api']['https']['certificate'])]
 
     def run(self):
         self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
@@ -62,13 +65,10 @@ class Controller(object):
                                   self.rest_api)
 
         signal.signal(signal.SIGTERM, _signal_handler)
-        with ServiceCatalogRegistration('xivo-dird',
-                                        self.config.get('uuid'),
-                                        self.config.get('consul'),
-                                        self.config.get('service_discovery'),
-                                        self.config.get('bus'),
-                                        partial(self_check,
-                                                self.config['rest_api']['https']['port'],
-                                                self.config['rest_api']['https']['certificate'])):
+        with ServiceCatalogRegistration(*self._service_registration_params):
             self.bus.start()
-            self.rest_api.run()
+            try:
+                self.rest_api.run()
+            finally:
+                plugin_manager.unload_services()
+                self.bus.stop()
