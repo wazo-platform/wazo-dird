@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,7 +44,7 @@ class TestController(TestCase):
 
         self.rest_api.run.assert_called_once_with()
 
-    def test_run_loads_services(self):
+    def test_run_loads_and_unloads_services(self):
         config = self._create_config(**{
             'enabled_plugins': {
                 'services': s.enabled,
@@ -57,13 +56,6 @@ class TestController(TestCase):
         Controller(config).run()
 
         self.load_services.assert_called_once_with(config, s.enabled, ANY, ANY)
-
-    def test_del_unloads_services(self):
-        config = self._create_config()
-        controller = Controller(config)
-
-        del controller
-
         self.unload_services.assert_called_once_with()
 
     def test_run_loads_sources(self):
