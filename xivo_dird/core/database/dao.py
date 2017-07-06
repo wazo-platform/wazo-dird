@@ -417,10 +417,10 @@ class PersonalContactCRUD(_BaseDAO):
             contact = Contact(**contact_args)
             session.add(contact)
             session.flush()
+
+            contact_info['id'] = contact.uuid
             for name, value in contact_info.iteritems():
                 session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
-                session.add(ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid))
-            contact_info['id'] = contact.uuid
 
         for hash_ in existing:
             contact_info = hash_and_contact[hash_]
