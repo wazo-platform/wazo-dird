@@ -200,10 +200,9 @@ class PhonebookContactCRUD(_BaseDAO):
         return result.values()
 
     def _add_field_to_contact(self, s, contact_uuid, contact_body):
+        contact_body['id'] = contact_uuid
         for name, value in contact_body.iteritems():
             s.add(ContactFields(name=name, value=value, contact_uuid=contact_uuid))
-            s.add(ContactFields(name='id', value=contact_uuid, contact_uuid=contact_uuid))
-        contact_body['id'] = contact_uuid
 
     def _assert_tenant_owns_phonebook(self, s, tenant, phonebook_id):
         # XXX: use a cache to avoid the query at each operation?
