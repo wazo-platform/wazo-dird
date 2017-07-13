@@ -21,6 +21,7 @@ contact_field_table = sql.table('dird_contact_fields',
 
 
 def upgrade():
+    purge_divergent_id_contact_fields()
     known_contact_ids = set()
     for id_contact_field_row in get_id_contact_field_rows():
         if id_contact_field_row.contact_uuid not in known_contact_ids:
@@ -28,6 +29,12 @@ def upgrade():
         else:
             query = contact_field_table.delete().where(contact_field_table.c.id == id_contact_field_row.id)
             op.get_bind().execute(query)
+
+
+def purge_divergent_id_contact_fields():
+    query = contact_field_table.delete().where(sql.and_(contact_field_table.c.name == 'id',
+                                                        contact_field_table.c.value != contact_field_table.c.contact_uuid))
+    op.get_bind().execute(query)
 
 
 def get_id_contact_field_rows():
