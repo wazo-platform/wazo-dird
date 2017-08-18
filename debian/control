@@ -35,7 +35,7 @@ Depends: ${python:Depends},
          xivo-auth-client,
          xivo-bus (>> 16.06),
          xivo-confd-client,
-         xivo-dbms (>= 17.08~20170529.184454.e703726),
+         xivo-dbms (>= 17.12~20170818.181555.3bff1f8),
          xivo-lib-python (>= 16.06~20160509.153738.904a909),
          xivo-lib-rest-client,
          python-sqlalchemy
