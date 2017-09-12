@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2016 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,10 +49,10 @@ class Bus(object):
         logger.debug('adding consumer: %s', queue)
         self._queues_and_callbacks.append((queue, callback))
 
-    def publish(self, event):
+    def publish(self, event, headers):
         logger.debug('publishing: %s', event)
         if self._enabled:
-            return self._get_publisher().publish(event)
+            return self._get_publisher().publish(event, headers)
 
     @contextmanager
     def start(self):
