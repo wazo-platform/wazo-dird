@@ -33,8 +33,8 @@ asia:
   command: "/tmp/run_confd asia"
 auth:
   image: p0bailey/docker-flask
-  ports:
-    - "9497:9497"
+  expose:
+    - "9497"
   volumes:
     - "./auth_data:/tmp"
     - "./ssl:/usr/local/share/ssl"

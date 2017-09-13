@@ -30,8 +30,8 @@ slapd:
     - "3899:389"
 auth:
   image: p0bailey/docker-flask
-  ports:
-    - "9497:9497"
+  expose:
+    - "9497"
   volumes:
     - "./auth_data:/tmp"
     - "./ssl:/usr/local/share/ssl"
