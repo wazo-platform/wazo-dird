@@ -9,7 +9,7 @@ sync:
 dird:
   image: xivo-dird-test
   ports:
-    - "9489:9489"
+    - "9489"
   volumes:
     - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
     - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"

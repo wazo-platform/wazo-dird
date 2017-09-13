@@ -27,7 +27,7 @@ dird:
   environment:
     XIVO_UUID: "1a2cd704-ed32-4fa3-918a-d32b0609de81"
   ports:
-    - "9489:9489"
+    - "9489"
   volumes:
     - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
     - "./etc/xivo-dird/templates.d:/etc/xivo-dird/templates.d"

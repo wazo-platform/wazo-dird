@@ -13,7 +13,7 @@ dird:
     - auth
     - db
   ports:
-    - "9489:9489"
+    - "9489"
   volumes:
     - "../../..:/usr/src/xivo-dird"
     - "./ssl:/usr/local/share/ssl"
