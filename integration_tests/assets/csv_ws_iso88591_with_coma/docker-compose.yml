@@ -4,6 +4,7 @@ sync:
     - ws
   environment:
     PORTS: "9485"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 ws:
   image: p0bailey/docker-flask
   ports:

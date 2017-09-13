@@ -6,6 +6,7 @@ sync:
     - slapd
   environment:
     PORTS: "389 8500 9489 9497"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 dird:
   image: xivo-dird-test
   ports:

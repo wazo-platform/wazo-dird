@@ -6,6 +6,7 @@ sync:
     # - confd  # not confd, we WANT it to take time to start
   environment:
     PORTS: "9489 9497"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 dird:
   image: xivo-dird-test
   ports:

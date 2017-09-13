@@ -9,6 +9,7 @@ sync:
     - db
   environment:
     PORTS: "8000 9489 9497 5432"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 dird:
   image: xivo-dird-test
   ports:
