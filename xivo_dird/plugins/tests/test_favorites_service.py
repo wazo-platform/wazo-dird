@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ from mock import (ANY,
                   Mock,
                   patch,
                   sentinel as s)
-from xivo_dird.core import database, bus
+from xivo_dird import database, bus
 from xivo_dird.plugins.favorites_service import FavoritesServicePlugin
 from xivo_dird.plugins.favorites_service import _FavoritesService
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ from xivo.consul_helpers import ServiceFinder
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
 from xivo_dird import BaseServicePlugin
-from xivo_dird.core.plugin_manager import source_manager
+from xivo_dird.plugin_manager import source_manager
 
 logger = logging.getLogger(__name__)
 

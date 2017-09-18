@@ -27,20 +27,20 @@ from sqlalchemy import and_, distinct, event, exc, func, or_
 from sqlalchemy.pool import Pool
 from sqlalchemy.orm.session import make_transient
 
-from xivo_dird.core.database import (Contact,
-                                     ContactFields,
-                                     Favorite,
-                                     Phonebook,
-                                     Source,
-                                     Tenant,
-                                     User)
-from xivo_dird.core.exception import (DatabaseServiceUnavailable,
-                                      DuplicatedContactException,
-                                      DuplicatedFavoriteException,
-                                      DuplicatedPhonebookException,
-                                      NoSuchContact,
-                                      NoSuchFavorite,
-                                      NoSuchPhonebook)
+from xivo_dird.database import (Contact,
+                                ContactFields,
+                                Favorite,
+                                Phonebook,
+                                Source,
+                                Tenant,
+                                User)
+from xivo_dird.exception import (DatabaseServiceUnavailable,
+                                 DuplicatedContactException,
+                                 DuplicatedFavoriteException,
+                                 DuplicatedPhonebookException,
+                                 NoSuchContact,
+                                 NoSuchFavorite,
+                                 NoSuchPhonebook)
 
 
 # http://stackoverflow.com/questions/34828113/flask-sqlalchemy-losing-connection-after-restarting-of-db-server

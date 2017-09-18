@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 import logging
 
 from xivo_dird import BaseViewPlugin
-from xivo_dird.core.auth import required_acl
-from xivo_dird.core.rest_api import api, AuthResource
+from xivo_dird.auth import required_acl
+from xivo_dird.rest_api import api, AuthResource
 
 
 logger = logging.getLogger(__name__)

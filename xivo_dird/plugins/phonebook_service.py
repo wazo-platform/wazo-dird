@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 Avencall
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,10 +24,10 @@ from marshmallow import fields, Schema, validate, pre_load
 from unidecode import unidecode
 
 from xivo_dird import BaseServicePlugin
-from xivo_dird.core import database
-from xivo_dird.core.exception import (InvalidContactException,
-                                      InvalidPhonebookException,
-                                      InvalidTenantException)
+from xivo_dird import database
+from xivo_dird.exception import (InvalidContactException,
+                                 InvalidPhonebookException,
+                                 InvalidTenantException)
 
 logger = logging.getLogger(__name__)
 

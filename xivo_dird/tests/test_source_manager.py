@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,15 +18,15 @@
 import unittest
 
 from collections import defaultdict
-from hamcrest import assert_that, equal_to, is_, contains
+from hamcrest import assert_that, equal_to, contains
 from mock import ANY, patch, Mock, sentinel as s
 
-from xivo_dird.core.source_manager import SourceManager
+from xivo_dird.source_manager import SourceManager
 
 
 class TestSourceManager(unittest.TestCase):
 
-    @patch('xivo_dird.core.source_manager.EnabledExtensionManager')
+    @patch('xivo_dird.source_manager.EnabledExtensionManager')
     def test_that_load_sources_loads_the_enabled_and_configured_sources(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
         enabled_backends = [
@@ -49,7 +48,7 @@ class TestSourceManager(unittest.TestCase):
             invoke_on_load=False)
         extension_manager.map.assert_called_once_with(ANY, sources_by_type)
 
-    @patch('xivo_dird.core.source_manager.EnabledExtensionManager')
+    @patch('xivo_dird.source_manager.EnabledExtensionManager')
     def test_load_sources_returns_dict_of_sources(self, extension_manager_init):
         enabled_backends = [
             'ldap',

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Avencall
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from xivo_dird import BaseSourcePlugin, make_result_class
-from xivo_dird.core import database
-from xivo_dird.core.exception import InvalidConfigError
+from xivo_dird import database
+from xivo_dird.exception import InvalidConfigError
 
 logger = logging.getLogger(__name__)
 

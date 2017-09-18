@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,14 +31,14 @@ from ..phonebook_view import (_ArgParser as ArgParser,
                               PhonebookAll,
                               PhonebookOne)
 
-from xivo_dird.core.exception import (DatabaseServiceUnavailable,
-                                      DuplicatedContactException,
-                                      DuplicatedPhonebookException,
-                                      InvalidArgumentError,
-                                      InvalidContactException,
-                                      InvalidPhonebookException,
-                                      NoSuchContact,
-                                      NoSuchPhonebook)
+from xivo_dird.exception import (DatabaseServiceUnavailable,
+                                 DuplicatedContactException,
+                                 DuplicatedPhonebookException,
+                                 InvalidArgumentError,
+                                 InvalidContactException,
+                                 InvalidPhonebookException,
+                                 NoSuchContact,
+                                 NoSuchPhonebook)
 from xivo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
 
 
@@ -470,6 +469,7 @@ Föo,Bar,1111
 
         class Matcher(object):
             _msg = 'duplicate columns'
+
             def __init__(self, *args):
                 self._fields = sorted(args)
 

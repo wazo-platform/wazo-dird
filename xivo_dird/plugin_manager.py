@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +21,7 @@ from functools import partial
 
 from stevedore import EnabledExtensionManager
 
-from xivo_dird.core.source_manager import SourceManager
+from .source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
 services_extension_manager = None
@@ -79,6 +78,7 @@ def load_view_extension(extension, config, services, rest_api):
         'services': services,
     }
     extension.obj.load(args)
+
 
 def _is_enabled(enabled_extension_names, extension):
     return extension.name in enabled_extension_names

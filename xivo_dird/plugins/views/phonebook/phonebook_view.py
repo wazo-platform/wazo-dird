@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Avencall
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,17 +26,17 @@ from functools import wraps
 from xivo.unicode_csv import UnicodeDictReader
 
 from xivo_dird import BaseViewPlugin
-from xivo_dird.core import auth
-from xivo_dird.core.exception import (DatabaseServiceUnavailable,
-                                      DuplicatedContactException,
-                                      DuplicatedPhonebookException,
-                                      InvalidArgumentError,
-                                      InvalidContactException,
-                                      InvalidPhonebookException,
-                                      InvalidTenantException,
-                                      NoSuchContact,
-                                      NoSuchPhonebook)
-from xivo_dird.core.rest_api import api, AuthResource
+from xivo_dird import auth
+from xivo_dird.exception import (DatabaseServiceUnavailable,
+                                 DuplicatedContactException,
+                                 DuplicatedPhonebookException,
+                                 InvalidArgumentError,
+                                 InvalidContactException,
+                                 InvalidPhonebookException,
+                                 InvalidTenantException,
+                                 NoSuchContact,
+                                 NoSuchPhonebook)
+from xivo_dird.rest_api import api, AuthResource
 
 logger = logging.getLogger(__name__)
 

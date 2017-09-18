@@ -40,7 +40,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import and_, func, exc
 
-from xivo_dird.core import database, exception
+from xivo_dird import database, exception
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
@@ -526,7 +526,7 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
         created, errors = self._crud.create_many(self._tenant, self._phonebook_id, body)
 
         assert_that(created, contains_inanyorder(has_entries(**contact_1),
-                                                has_entries(**contact_3)))
+                                                 has_entries(**contact_3)))
         assert_that(errors, contains_inanyorder(has_entries(**contact_2)))
 
     @staticmethod

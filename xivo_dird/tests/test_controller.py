@@ -26,10 +26,10 @@ class TestController(TestCase):
 
     def setUp(self):
         self.rest_api = patch('xivo_dird.controller.CoreRestApi').start().return_value
-        self.load_services = patch('xivo_dird.core.plugin_manager.load_services').start()
-        self.unload_services = patch('xivo_dird.core.plugin_manager.unload_services').start()
-        self.load_sources = patch('xivo_dird.core.plugin_manager.load_sources').start()
-        self.load_views = patch('xivo_dird.core.plugin_manager.load_views').start()
+        self.load_services = patch('xivo_dird.plugin_manager.load_services').start()
+        self.unload_services = patch('xivo_dird.plugin_manager.unload_services').start()
+        self.load_sources = patch('xivo_dird.plugin_manager.load_sources').start()
+        self.load_views = patch('xivo_dird.plugin_manager.load_views').start()
 
     def tearDown(self):
         patch.stopall()

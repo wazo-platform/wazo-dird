@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2016 Avencall
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ import unittest
 from hamcrest import assert_that, calling, equal_to, raises
 from mock import Mock, patch, sentinel as s
 
-from xivo_dird.core.exception import InvalidConfigError
+from xivo_dird.exception import InvalidConfigError
 
 from ..dird_phonebook import PhonebookPlugin, make_result_class
 

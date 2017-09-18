@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 from hamcrest import assert_that, equal_to, is_
 from mock import Mock, patch, sentinel
 from unittest import TestCase
-from xivo_dird.core.exception import InvalidConfigError, ProfileNotFoundError
+from xivo_dird.exception import InvalidConfigError, ProfileNotFoundError
 from xivo_dird.plugins.phone_helpers import _PhoneFormattedResult, _PhoneLookupService,\
     _PhoneResultFormatter, _new_formatters_from_config
 

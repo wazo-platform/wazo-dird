@@ -22,10 +22,10 @@ import signal
 from functools import partial
 
 from xivo.consul_helpers import ServiceCatalogRegistration
-from xivo_dird.core import auth
-from xivo_dird.core import plugin_manager
-from xivo_dird.core.bus import Bus
-from xivo_dird.core.rest_api import CoreRestApi
+from . import auth
+from . import plugin_manager
+from .bus import Bus
+from .rest_api import CoreRestApi
 
 from .service_discovery import self_check
 

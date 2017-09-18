@@ -27,7 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from xivo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
 from xivo_dird import BaseServicePlugin, helpers
-from xivo_dird.core import database, exception
+from xivo_dird import database, exception
 
 logger = logging.getLogger(__name__)
 

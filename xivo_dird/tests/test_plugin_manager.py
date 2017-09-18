@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,12 +21,12 @@ from collections import defaultdict
 from hamcrest import assert_that, calling, equal_to, has_entries, raises, not_
 from mock import ANY, Mock, patch, sentinel as s
 
-from xivo_dird.core import plugin_manager
+from xivo_dird import plugin_manager
 
 
 class TestPluginManagerServices(TestCase):
 
-    @patch('xivo_dird.core.plugin_manager.EnabledExtensionManager')
+    @patch('xivo_dird.plugin_manager.EnabledExtensionManager')
     def test_load_services_loads_service_extensions(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
 
@@ -42,7 +41,7 @@ class TestPluginManagerServices(TestCase):
                                                       s.backends,
                                                       s.bus)
 
-    @patch('xivo_dird.core.plugin_manager.EnabledExtensionManager')
+    @patch('xivo_dird.plugin_manager.EnabledExtensionManager')
     def test_load_services_returns_dict_of_callables(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
         extension_manager.map.return_value = [(s.name1, s.callable1), (s.name2, s.callable2)]
@@ -83,7 +82,7 @@ class TestPluginManagerServices(TestCase):
         plugin_manager.services_extension_manager.map_method.assert_called_once_with('unload')
 
     def test_that_unload_services_does_nothing_when_load_services_has_not_been_run(self):
-        with patch('xivo_dird.core.plugin_manager.services_extension_manager', None):
+        with patch('xivo_dird.plugin_manager.services_extension_manager', None):
             assert_that(calling(plugin_manager.unload_services),
                         not_(raises(Exception)))
 
@@ -93,7 +92,7 @@ class TestPluginManagerSources(TestCase):
     def tearDown(self):
         plugin_manager.source_manager = None
 
-    @patch('xivo_dird.core.plugin_manager.SourceManager')
+    @patch('xivo_dird.plugin_manager.SourceManager')
     def test_load_sources_calls_source_manager(self, source_manager_init):
         source_manager = source_manager_init.return_value
 
@@ -102,7 +101,7 @@ class TestPluginManagerSources(TestCase):
         source_manager_init.assert_called_once_with(s.enabled, s.source_config_dir)
         source_manager.load_sources.assert_called_once_with()
 
-    @patch('xivo_dird.core.plugin_manager.SourceManager')
+    @patch('xivo_dird.plugin_manager.SourceManager')
     def test_load_sources_returns_result_from_source_manager_load(self, source_manager_init):
         source_manager = source_manager_init.return_value
         source_manager.load_sources.return_value = s.result
@@ -114,7 +113,7 @@ class TestPluginManagerSources(TestCase):
 
 class TestPluginManagerViews(TestCase):
 
-    @patch('xivo_dird.core.plugin_manager.EnabledExtensionManager')
+    @patch('xivo_dird.plugin_manager.EnabledExtensionManager')
     def test_load_views_loads_view_extensions(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
 

@@ -22,7 +22,7 @@ from flask import make_response
 from pkg_resources import resource_string, iter_entry_points
 from xivo.chain_map import ChainMap
 
-from xivo_dird.core.rest_api import api, ErrorCatchingResource
+from xivo_dird.rest_api import api, ErrorCatchingResource
 
 from xivo_dird import BaseViewPlugin
 
@@ -58,4 +58,3 @@ class SwaggerResource(ErrorCatchingResource):
             return {'error': "API spec does not exist"}, 404
 
         return make_response(yaml.dump(dict(api_spec)), 200, {'Content-Type': 'application/x-yaml'})
-

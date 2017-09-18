@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ from mock import Mock
 from unittest import TestCase
 from uuid import uuid4
 
-from xivo_dird.core import database
+from xivo_dird import database
 
 from ..personal_backend import PersonalBackend
 
