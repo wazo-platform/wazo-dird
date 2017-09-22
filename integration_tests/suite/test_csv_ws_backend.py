@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,26 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import yaml
-
 from hamcrest import (assert_that, contains, empty, has_entries)
 
-from .base_dird_integration_test import absolute_file_name, BaseDirdIntegrationTest, BackendWrapper
+from .base_dird_integration_test import BaseDirdIntegrationTest, BackendWrapper
 
 
 class _BaseCSVWSBackend(BaseDirdIntegrationTest):
 
     def setUp(self):
-        config_file = absolute_file_name(self.asset, self.source_config)
-        with open(config_file) as f:
-            config = {'config': yaml.load(f)}
-        self.backend = BackendWrapper('csv_ws', config)
+        self.backend = BackendWrapper('csv_ws', {'config': self.backend_config()})
 
 
 class TestCSVWSBackend(_BaseCSVWSBackend):
 
     asset = 'csv_ws_utf8_with_pipes_with_ssl'
-    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
 
     def setUp(self):
         super(TestCSVWSBackend, self).setUp()
@@ -46,6 +40,22 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
                         'firstname': u'Benoît',
                         'lastname': 'Malone',
                         'number': '5551232222'}
+
+    def backend_config(self):
+        return {
+            'type': 'csv_ws',
+            'name': 'my_csv',
+            'list_url': 'https://localhost:{port}/ws'.format(port=self.service_port(9485, 'ws')),
+            'lookup_url': 'https://localhost:{port}/ws'.format(port=self.service_port(9485, 'ws')),
+            'verify_certificate': False,
+            'delimiter': "|",
+            'unique_column': 'id',
+            'searched_columns': ['firstname', 'lastname'],
+            'first_matched_columns': ['number'],
+            'format_columns': {
+                'reverse': '{firstname} {lastname}'
+            },
+        }
 
     def test_that_verify_certificate_false(self):
         results = self.backend.search(u'Ben')
@@ -78,7 +88,6 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
 class TestCSVWSBackendComa(_BaseCSVWSBackend):
 
     asset = 'csv_ws_iso88591_with_coma'
-    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
 
     def setUp(self):
         super(TestCSVWSBackendComa, self).setUp()
@@ -90,6 +99,17 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
                         'firstname': u'Benoît',
                         'lastname': 'Malone',
                         'number': '5551232222'}
+
+    def backend_config(self):
+        return {
+            'type': 'csv_ws',
+            'name': 'my_csv',
+            'list_url': 'http://localhost:{port}/ws'.format(port=self.service_port(9485, 'ws')),
+            'lookup_url': 'http://localhost:{port}/ws'.format(port=self.service_port(9485, 'ws')),
+            'delimiter': ',',
+            'unique_column': 'id',
+            'searched_columns': ['firstname', 'lastname'],
+        }
 
     def test_that_searching_for_result_with_non_ascii(self):
         results = self.backend.search(u'dré')

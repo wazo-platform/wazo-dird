@@ -8,7 +8,7 @@ sync:
 ws:
   image: p0bailey/docker-flask
   ports:
-    - "9485:9485"
+    - "9485"
   volumes:
     - "./scripts/ws.py:/tmp/ws.py"
     - "../_common/ssl:/usr/local/share/ssl"
