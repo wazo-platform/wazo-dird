@@ -169,7 +169,7 @@ class _FavoritesService(object):
         contact_id = contact_id.encode('utf-8')
         self._crud.create(xivo_user_uuid, source, contact_id)
         event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
-        self._bus.publish(event, headers={'user_uuid': xivo_user_uuid})
+        self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
 
     def remove_favorite(self, source, contact_id, xivo_user_uuid):
         if source not in self._available_sources():
@@ -177,7 +177,7 @@ class _FavoritesService(object):
 
         self._crud.delete(xivo_user_uuid, source, contact_id)
         event = FavoriteDeletedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
-        self._bus.publish(event, headers={'user_uuid': xivo_user_uuid})
+        self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
 
     def _source_by_profile(self, profile):
         favorites_config = self._config.get('services', {}).get('favorites', {})
