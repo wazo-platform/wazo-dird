@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -222,7 +221,7 @@ class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
     asset = 'no_plugins'
 
     def test_that_dird_does_not_run_when_not_configured(self):
-        self._assert_no_docker_image_running(self.container_name)
+        self._assert_no_docker_image_running(self.service)
 
     def _assert_no_docker_image_running(self, name):
         assert_that(name, is_not(is_in(sh.docker('ps'))))
