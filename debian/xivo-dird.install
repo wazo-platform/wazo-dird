@@ -1,3 +1,4 @@
+debian/tmp/usr/bin/xivo-dird usr/bin/
 bin/xivo-dird-init-db usr/bin/
 etc/*  etc/
 migrations/ usr/share/xivo-dird/
