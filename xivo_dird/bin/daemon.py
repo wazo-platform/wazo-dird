@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2016 Avencall
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -63,7 +63,8 @@ class _PreConfigLogger(object):
         self._logger.flush()
 
 
-def main(argv):
+def main(argv=None):
+    argv = argv or sys.argv[1:]
     with _PreConfigLogger() as logger:
         logger.debug('Starting xivo-dird')
 
@@ -90,7 +91,3 @@ def main(argv):
         except KeyboardInterrupt:
             # exit without stack trace
             pass
-
-
-if __name__ == '__main__':
-    main(sys.argv[1:])

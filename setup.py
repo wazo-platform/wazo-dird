@@ -51,13 +51,14 @@ setup(
         'xivo_dird.plugins.views': ['*/api.yml']
     },
 
-    scripts=['bin/xivo-dird'],
-
     cmdclass={'build': build,
               'install_lib': install_lib,
               'compile_catalog': babel_wrapper.compile_catalog},
 
     entry_points={
+        'console_scripts': [
+            'xivo-dird=xivo_dird.bin.daemon:main',
+        ],
         'xivo_dird.services': [
             'cleanup = xivo_dird.plugins.cleanup_service:StorageCleanupServicePlugin',
             'config = xivo_dird.plugins.config_service:ConfigServicePlugin',
