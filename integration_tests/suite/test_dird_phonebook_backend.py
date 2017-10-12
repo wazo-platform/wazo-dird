@@ -38,7 +38,8 @@ class DBStarter(BaseDirdIntegrationTest):
 def setup():
     global DB_URI
     DBStarter.setUpClass()
-    DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:15432')
+    db_port = DBStarter.service_port(5432, 'postgres')
+    DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port))
     engine = create_engine(DB_URI)
     database.Base.metadata.bind = engine
     database.Base.metadata.reflect()
