@@ -32,7 +32,7 @@ Depends: ${python:Depends},
          python-sqlalchemy
 Provides: xivo-libdird
 Replaces: xivo-libdird
-Conflict: xivo-libdird
+Conflicts: xivo-libdird
 Description: Wazo PBX's directory server
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.
