@@ -28,7 +28,7 @@ slapd:
     LDAP_ORGANISATION: acme
     LDAP_ROOTPASS: xivopassword
   ports:
-    - "3899:389"
+    - "389"
 auth:
   image: p0bailey/docker-flask
   expose:
