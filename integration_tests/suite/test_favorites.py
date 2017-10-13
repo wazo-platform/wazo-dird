@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -172,7 +172,8 @@ class TestFavoritesBusEvents(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_adding_favorite_produces_bus_event(self):
-        bus = BusClient.from_connection_fields(host='localhost', port=5672)
+        bus_port = self.service_port(5672, 'rabbitmq')
+        bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
         until.true(bus.is_up, tries=5)
         bus_events = bus.accumulator('directory.*.favorite.*')
 
