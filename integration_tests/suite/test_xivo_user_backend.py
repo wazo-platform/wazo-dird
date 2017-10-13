@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2016 Avencall
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 # Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -28,31 +28,41 @@ from hamcrest import has_entries
 
 from xivo_test_helpers import until
 
-from .base_dird_integration_test import absolute_file_name, BaseDirdIntegrationTest, BackendWrapper
+from .base_dird_integration_test import BaseDirdIntegrationTest, BackendWrapper
 
 
-class _BaseXiVOUserBackendTestCase(BaseDirdIntegrationTest):
-
-    def setUp(self):
-        config_file = absolute_file_name(self.asset, self.source_config)
-        with open(config_file) as f:
-            config = {'config': yaml.load(f)}
-        self.backend = BackendWrapper('xivo', config)
-
-
-class TestXivoUser(_BaseXiVOUserBackendTestCase):
+class TestXivoUser(BaseDirdIntegrationTest):
 
     asset = 'xivo_users'
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
-    source_config = 'etc/xivo-dird/sources.d/america.yml'
 
     def setUp(self):
         super(TestXivoUser, self).setUp()
+        self.backend = BackendWrapper('xivo', {'config': self.backend_config()})
         self._dylan = {'id': 42,
                        'firstname': 'Bob',
                        'lastname': 'Dylan',
                        'exten': '1000',
                        'voicemail_number': '1234'}
+
+    def backend_config(self):
+        return {
+            'type': 'xivo',
+            'name': 'xivo_america',
+            'searched_columns': ['firstname', 'lastname'],
+            'first_matched_columns': ['exten'],
+            'confd_config': {
+                'host': 'localhost',
+                'port': self.service_port(8000, 'confd'),
+                'version': '1.1',
+                'https': False,
+            },
+            'format_columns': {
+                'number': "{exten}",
+                'reverse': "{firstname} {lastname}",
+                'voicemail': "{voicemail_number}",
+            },
+        }
 
     def test_that_the_lookup_returns_the_expected_result(self):
         results = self.backend.search('dyl')

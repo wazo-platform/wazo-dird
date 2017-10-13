@@ -10,5 +10,5 @@ confd:
   volumes:
     - "./confd_data:/tmp"
   ports:
-    - "8000:8000"
+    - "8000"
   command: /tmp/run_confd
