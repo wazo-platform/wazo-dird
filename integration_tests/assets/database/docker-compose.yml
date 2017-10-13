@@ -4,10 +4,9 @@ sync:
     - postgres
   environment:
     PORTS: "5432"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
 postgres:
   image: wazopbx/xivo-dird-db
-  expose:
-    - "5432"
   ports:
-    - "15432:5432"
+    - "5432"

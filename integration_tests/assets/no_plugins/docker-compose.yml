@@ -4,11 +4,11 @@ sync:
     - dird
   environment:
     PORTS: "9489"
-    TIMEOUT: 5
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 dird:
   image: xivo-dird-test
   ports:
-    - "9489:9489"
+    - "9489"
   volumes:
     - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
     - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"

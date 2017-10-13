@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2015-2016 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ from hamcrest import assert_that
 from hamcrest import equal_to
 from stevedore import DriverManager
 
+from xivo import url_helpers
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 
 logger = logging.getLogger(__name__)
@@ -42,8 +43,6 @@ VALID_TOKEN = 'valid-token'
 VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
-
-DEFAULT_URL_PARAMS = {'scheme': 'https', 'host': 'localhost', 'version': '0.1', 'port': 9489}
 
 
 def absolute_file_name(asset_name, path):
@@ -79,15 +78,21 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     service = 'dird'
 
     @classmethod
+    def url(cls, *parts):
+        port = cls.service_port(9489, 'dird')
+        base = 'https://localhost:{port}/0.1/'.format(port=port)
+        return url_helpers.base_join(base, *parts)
+
+    @classmethod
     def get_config(cls, token):
-        url = 'https://localhost:9489/0.1/config'
+        url = cls.url('config')
         return requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT).json()
 
     @classmethod
     def get_lookup_result(cls, term, profile, token=None):
         params = {'term': term}
-        url = u'https://localhost:9489/0.1/directories/lookup/{profile}'
-        result = requests.get(url.format(profile=profile),
+        url = cls.url('directories', 'lookup', profile)
+        result = requests.get(url,
                               params=params,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
@@ -101,8 +106,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_headers_result(cls, profile, token=None):
-        url = u'https://localhost:9489/0.1/directories/lookup/{profile}/headers'
-        result = requests.get(url.format(profile=profile),
+        url = cls.url('directories', 'lookup', profile, 'headers')
+        result = requests.get(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
@@ -116,8 +121,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_reverse_result(cls, exten, profile, xivo_user_uuid, token=None):
         params = {'exten': exten}
-        url = u'https://localhost:9489/0.1/directories/reverse/{profile}/{xivo_user_uuid}'
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        url = cls.url('directories', 'reverse', profile, xivo_user_uuid)
+        result = requests.get(url,
                               params=params,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
@@ -131,8 +136,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_favorites_result(cls, profile, token=None):
-        url = u'https://localhost:9489/0.1/directories/favorites/{profile}'
-        result = requests.get(url.format(profile=profile),
+        url = cls.url('directories', 'favorites', profile)
+        result = requests.get(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
@@ -145,8 +150,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def put_favorite_result(cls, directory, contact, token=None):
-        url = u'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
-        result = requests.put(url.format(directory=directory, contact=contact),
+        url = cls.url('directories', 'favorites', directory, contact)
+        result = requests.put(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
@@ -158,8 +163,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def delete_favorite_result(cls, directory, contact, token=None):
-        url = u'https://localhost:9489/0.1/directories/favorites/{directory}/{contact}'
-        result = requests.delete(url.format(directory=directory, contact=contact),
+        url = cls.url('directories', 'favorites', directory, contact)
+        result = requests.delete(url,
                                  headers={'X-Auth-Token': token},
                                  verify=CA_CERT)
         return result
@@ -179,8 +184,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN):
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks'.format(tenant=tenant,
-                                                                                      **DEFAULT_URL_PARAMS)
+        url = cls.url('tenants', tenant, 'phonebooks')
         response = requests.post(url,
                                  data=json.dumps(phonebook_body),
                                  headers={'X-Auth-Token': token,
@@ -190,10 +194,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN):
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}'
-        response = requests.put(url.format(tenant=tenant,
-                                           phonebook_id=phonebook_id,
-                                           **DEFAULT_URL_PARAMS),
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
+        response = requests.put(url,
                                 data=json.dumps(phonebook_body),
                                 headers={'X-Auth-Token': token,
                                          'Content-Type': 'application/json'},
@@ -202,10 +204,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def post_phonebook_contact(cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN):
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}/contacts'
-        response = requests.post(url.format(tenant=tenant,
-                                            phonebook_id=phonebook_id,
-                                            **DEFAULT_URL_PARAMS),
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
+        response = requests.post(url,
                                  data=json.dumps(contact_body),
                                  headers={'X-Auth-Token': token,
                                           'Content-Type': 'application/json'},
@@ -214,11 +214,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def put_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN):
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_uuid}'
-        response = requests.put(url.format(tenant=tenant,
-                                           phonebook_id=phonebook_id,
-                                           contact_uuid=contact_uuid,
-                                           **DEFAULT_URL_PARAMS),
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
+        response = requests.put(url,
                                 data=json.dumps(contact_body),
                                 headers={'X-Auth-Token': token,
                                          'Content-Type': 'application/json'},
@@ -227,7 +224,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def post_personal_result(cls, personal_infos, token=None):
-        url = 'https://localhost:9489/0.1/personal'
+        url = cls.url('personal')
         result = requests.post(url,
                                data=json.dumps(personal_infos),
                                headers={'X-Auth-Token': token,
@@ -251,7 +248,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def import_personal_result(cls, csv, token=None, encoding='utf-8'):
-        url = 'https://localhost:9489/0.1/personal/import'
+        url = cls.url('personal', 'import')
         content_type = 'text/csv; charset={}'.format(encoding)
         result = requests.post(url,
                                data=csv,
@@ -268,7 +265,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def list_personal_result(cls, token=None):
-        url = 'https://localhost:9489/0.1/personal'
+        url = cls.url('personal')
         result = requests.get(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
@@ -283,14 +280,13 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def list_phonebooks(cls, tenant, token=None):
         token = token or VALID_TOKEN
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks'.format(tenant=tenant,
-                                                                                      **DEFAULT_URL_PARAMS)
+        url = cls.url('tenants', tenant, 'phonebooks')
         response = requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
         return response.json()['items']
 
     @classmethod
     def export_personal_result(cls, token=None):
-        url = 'https://localhost:9489/0.1/personal'
+        url = cls.url('personal')
         result = requests.get(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT,
@@ -305,8 +301,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_personal_result(cls, personal_id, token=None):
-        url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
-        result = requests.get(url.format(contact_uuid=personal_id),
+        url = cls.url('personal', personal_id)
+        result = requests.get(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
@@ -319,39 +315,32 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}'
-        response = requests.get(url.format(tenant=tenant,
-                                           phonebook_id=phonebook_id,
-                                           **DEFAULT_URL_PARAMS),
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
+        response = requests.get(url,
                                 headers={'X-Auth-Token': token},
                                 verify=CA_CERT)
         return response.json()
 
     @classmethod
     def get_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN):
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_id}'
-        response = requests.get(url.format(tenant=tenant,
-                                           phonebook_id=phonebook_id,
-                                           contact_id=contact_uuid,
-                                           **DEFAULT_URL_PARAMS),
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
+        response = requests.get(url,
                                 headers={'X-Auth-Token': token},
                                 verify=CA_CERT)
         return response.json()
 
     @classmethod
     def list_phonebook_contacts(cls, tenant, phonebook_id, token=VALID_TOKEN):
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}/contacts'
-        response = requests.get(url.format(tenant=tenant,
-                                           phonebook_id=phonebook_id,
-                                           **DEFAULT_URL_PARAMS),
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
+        response = requests.get(url,
                                 headers={'X-Auth-Token': token},
                                 verify=CA_CERT)
         return response.json()['items']
 
     @classmethod
     def put_personal_result(cls, personal_id, personal_infos, token=None):
-        url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
-        result = requests.put(url.format(contact_uuid=personal_id),
+        url = cls.url('personal', personal_id)
+        result = requests.put(url,
                               data=json.dumps(personal_infos),
                               headers={'X-Auth-Token': token,
                                        'Content-Type': 'application/json'},
@@ -366,8 +355,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def delete_personal_result(cls, personal_id, token=None):
-        url = 'https://localhost:9489/0.1/personal/{contact_uuid}'
-        result = requests.delete(url.format(contact_uuid=personal_id),
+        url = cls.url('personal', personal_id)
+        result = requests.delete(url,
                                  headers={'X-Auth-Token': token},
                                  verify=CA_CERT)
         return result
@@ -379,14 +368,14 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
-        url = '{scheme}://{host}:{port}/{version}/tenants/{tenant}/phonebooks/{phonebook_id}'
-        requests.delete(url.format(tenant=tenant, phonebook_id=phonebook_id, **DEFAULT_URL_PARAMS),
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
+        requests.delete(url,
                         headers={'X-Auth-Token': token},
                         verify=CA_CERT)
 
     @classmethod
     def purge_personal_result(cls, token=None):
-        url = 'https://localhost:9489/0.1/personal'
+        url = cls.url('personal')
         result = requests.delete(url,
                                  headers={'X-Auth-Token': token},
                                  verify=CA_CERT)
@@ -399,8 +388,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_personal_with_profile_result(cls, profile, token=None):
-        url = 'https://localhost:9489/0.1/directories/personal/{profile}'
-        result = requests.get(url.format(profile=profile),
+        url = cls.url('directories', 'personal', profile)
+        result = requests.get(url,
                               headers={'X-Auth-Token': token},
                               verify=CA_CERT)
         return result
@@ -413,8 +402,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_menu_cisco_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/menu/{profile}/{xivo_user_uuid}/cisco'
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        url = cls.url('directories', 'menu', profile, xivo_user_uuid, 'cisco')
+        result = requests.get(url,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
@@ -428,8 +417,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_input_cisco_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/input/{profile}/{xivo_user_uuid}/cisco'
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        url = cls.url('directories', 'input', profile, xivo_user_uuid, 'cisco')
+        result = requests.get(url,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
@@ -444,9 +433,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_lookup_cisco_result(cls, profile, xivo_user_uuid,
                                 proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/cisco'
+        url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'cisco')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        result = requests.get(url,
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -461,8 +450,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_input_aastra_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/input/{profile}/{xivo_user_uuid}/aastra'
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        url = cls.url('directories', 'input', profile, xivo_user_uuid, 'aastra')
+        result = requests.get(url,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
@@ -471,9 +460,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_lookup_aastra_result(cls, profile, xivo_user_uuid,
                                  proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/aastra'
+        url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'aastra')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        result = requests.get(url,
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -482,8 +471,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_input_polycom_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/input/{profile}/{xivo_user_uuid}/polycom'
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        url = cls.url('directories', 'input', profile, xivo_user_uuid, 'polycom')
+        result = requests.get(url,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
@@ -492,9 +481,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_lookup_polycom_result(cls, profile, xivo_user_uuid,
                                   proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/polycom'
+        url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'polycom')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        result = requests.get(url,
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -503,8 +492,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def get_input_snom_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
-        url = 'https://localhost:9489/0.1/directories/input/{profile}/{xivo_user_uuid}/snom'
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        url = cls.url('directories', 'input', profile, xivo_user_uuid, 'snom')
+        result = requests.get(url,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
@@ -513,9 +502,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_lookup_snom_result(cls, profile, xivo_user_uuid,
                                proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/snom'
+        url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'snom')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        result = requests.get(url,
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -525,9 +514,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_lookup_thomson_result(cls, profile, xivo_user_uuid,
                                   proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/thomson'
+        url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'thomson')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        result = requests.get(url,
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},
@@ -537,9 +526,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_lookup_yealink_result(cls, profile, xivo_user_uuid,
                                   proxy=None, term=None, token=None, limit=None, offset=None):
-        url = 'https://localhost:9489/0.1/directories/lookup/{profile}/{xivo_user_uuid}/yealink'
+        url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'yealink')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url.format(profile=profile, xivo_user_uuid=xivo_user_uuid),
+        result = requests.get(url,
                               params=params,
                               headers={'X-Auth-Token': token,
                                        'Proxy-URL': proxy},

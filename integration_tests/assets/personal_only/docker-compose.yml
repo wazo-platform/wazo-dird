@@ -7,6 +7,7 @@ sync:
     - rabbitmq
   environment:
     PORTS: "9489 9497 5432 5672"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 dird:
   image: xivo-dird-test
   links:
@@ -14,7 +15,7 @@ dird:
     - db
     - rabbitmq
   ports:
-    - "9489:9489"
+    - "9489"
   volumes:
     - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
     - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"
@@ -22,8 +23,8 @@ dird:
     - "./ssl:/usr/local/share/ssl"
 auth:
   image: p0bailey/docker-flask
-  ports:
-    - "9497:9497"
+  expose:
+    - "9497"
   volumes:
     - "./auth_data:/tmp"
     - "./ssl:/usr/local/share/ssl"
@@ -35,4 +36,4 @@ db:
 rabbitmq:
   image: rabbitmq
   ports:
-    - "5672:5672"
+    - "5672"

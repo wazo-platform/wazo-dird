@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,15 +35,13 @@ Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
 
 class LDAPHelper(object):
 
-    LDAP_URI = 'ldap://localhost:3899'
-
     BASE_DN = 'dc=xivo-dird,dc=wazo,dc=community'
     ADMIN_DN = 'cn=admin,{}'.format(BASE_DN)
     ADMIN_PASSWORD = 'xivopassword'
     QUEBEC_DN = 'ou=québec,{}'.format(BASE_DN)
 
-    def __init__(self):
-        self._ldap_obj = ldap.initialize(self.LDAP_URI)
+    def __init__(self, ldap_uri):
+        self._ldap_obj = ldap.initialize(ldap_uri)
         self._ldap_obj.simple_bind_s(self.ADMIN_DN, self.ADMIN_PASSWORD)
 
     def add_ou_quebec(self):
@@ -71,10 +69,10 @@ class LDAPHelper(object):
         return result['entryUUID'][0]
 
 
-def add_contacts(contacts):
+def add_contacts(contacts, ldap_uri):
     for _ in xrange(10):
         try:
-            helper = LDAPHelper()
+            helper = LDAPHelper(ldap_uri)
             break
         except ldap.SERVER_DOWN:
             time.sleep(1)
@@ -105,9 +103,10 @@ class TestLDAP(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super(TestLDAP, cls).setUpClass()
+        ldap_uri = 'ldap://localhost:{port}'.format(port=cls.service_port(389, 'slapd'))
 
         try:
-            cls.entry_uuids = add_contacts(cls.CONTACTS)
+            cls.entry_uuids = add_contacts(cls.CONTACTS, ldap_uri)
         except Exception:
             super(TestLDAP, cls).tearDownClass()
             raise
@@ -165,9 +164,10 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super(TestLDAPWithCustomFilter, cls).setUpClass()
+        ldap_uri = 'ldap://localhost:{port}'.format(port=cls.service_port(389, 'slapd'))
 
         try:
-            cls.entry_uuids = add_contacts(cls.CONTACTS)
+            cls.entry_uuids = add_contacts(cls.CONTACTS, ldap_uri)
         except Exception:
             super(TestLDAPWithCustomFilter, cls).tearDownClass()
             raise

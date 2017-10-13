@@ -67,10 +67,11 @@ class TestDeletedUser(BaseDirdIntegrationTest):
 
     def setUp(self):
         super(TestDeletedUser, self).setUp()
+        bus_port = self.service_port(5672, 'rabbitmq')
         bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(username='guest',
                                                                         password='guest',
                                                                         host='localhost',
-                                                                        port=5672)
+                                                                        port=bus_port)
         self._connection = kombu.Connection(bus_url)
         self._connection.connect()
 

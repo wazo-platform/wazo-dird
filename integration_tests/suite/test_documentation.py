@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2016 Avencall
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ class TestDocumentation(BaseDirdIntegrationTest):
         self.validate_api(api_url)
 
     def validate_api(self, url):
-        validator_url = u'http://localhost:18080/debug'
+        validator_port = self.service_port(8080, 'swagger-validator')
+        validator_url = u'http://localhost:{port}/debug'.format(port=validator_port)
         response = requests.get(validator_url, params={'url': url})
         assert_that(response.json(), empty(), pprint.pformat(response.json()))

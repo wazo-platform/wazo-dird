@@ -6,10 +6,11 @@ sync:
     # - confd  # not confd, we WANT it to take time to start
   environment:
     PORTS: "9489 9497"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 dird:
   image: xivo-dird-test
   ports:
-    - "9489:9489"
+    - "9489"
   volumes:
     - "./etc/xivo-dird/config.yml:/etc/xivo-dird/config.yml"
     - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"
@@ -25,8 +26,8 @@ confd:
   command: /tmp/run_confd
 auth:
   image: p0bailey/docker-flask
-  ports:
-    - "9497:9497"
+  expose:
+    - "9497"
   volumes:
     - "./auth_data:/tmp"
     - "./ssl:/usr/local/share/ssl"
