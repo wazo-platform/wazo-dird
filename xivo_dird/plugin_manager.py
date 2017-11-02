@@ -62,7 +62,7 @@ def load_views(config, enabled_views, services, rest_api):
 
 
 def _load_plugins(namespace, names, dependencies):
-    names = plugin_helpers.enabled_names(plugin_helpers.from_list(names))
+    names = plugin_helpers.enabled_names(names)
     logger.debug('Enabled plugins: %s', names)
     if not names:
         logger.info('no enabled plugins')

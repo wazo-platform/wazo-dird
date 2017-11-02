@@ -42,7 +42,7 @@ class SourceManager(object):
         self._config = config
 
     def load_sources(self):
-        names = plugin_helpers.enabled_names(plugin_helpers.from_list(self._enabled_backends))
+        names = plugin_helpers.enabled_names(self._enabled_backends)
         logger.debug('Enabled plugins: %s', names)
         manager = NamedExtensionManager(
             self._namespace,

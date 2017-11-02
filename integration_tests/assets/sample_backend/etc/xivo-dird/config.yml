@@ -1,13 +1,13 @@
 enabled_plugins:
   backends:
-    - sample
+    sample: true
   services:
-    - lookup
-    - favorites
-    - personal
+    lookup: true
+    favorites: true
+    personal: true
   views:
-    - default_json
-    - headers_view
+    default_json: true
+    headers_view: true
 
 views:
   displays:

@@ -1,16 +1,16 @@
 enabled_plugins:
   backends:
-    - csv
+    csv: true
   services:
-    - lookup
+    lookup: true
   views:
-    - default_json
-    - aastra_view
-    - cisco_view
-    - polycom_view
-    - snom_view
-    - thomson_view
-    - yealink_view
+    default_json: true
+    aastra_view: true
+    cisco_view: true
+    polycom_view: true
+    snom_view: true
+    thomson_view: true
+    yealink_view: true
 
 views:
   displays:

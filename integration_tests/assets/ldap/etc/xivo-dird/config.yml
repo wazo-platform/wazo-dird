@@ -1,12 +1,12 @@
 enabled_plugins:
   backends:
-    - ldap
+    ldap: true
   services:
-    - lookup
-    - favorites
-    - reverse
+    lookup: true
+    favorites: true
+    reverse: true
   views:
-    - default_json
+    default_json: true
 
 views:
   displays:

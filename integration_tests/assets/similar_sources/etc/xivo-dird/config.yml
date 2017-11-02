@@ -1,11 +1,11 @@
 enabled_plugins:
   backends:
-    - csv
+    csv: true
   services:
-    - lookup
-    - favorites
+    lookup: true
+    favorites: true
   views:
-    - default_json
+    default_json: true
 
 views:
   displays:

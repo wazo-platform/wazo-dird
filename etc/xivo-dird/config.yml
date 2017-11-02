@@ -61,33 +61,33 @@ consul:
 
 enabled_plugins:
   backends:
-    - personal
-    - xivo
-    - csv
-    - csv_ws
-    - ldap
-    - dird_phonebook
+    personal: true
+    xivo: true
+    csv: true
+    csv_ws: true
+    ldap: true
+    dird_phonebook: true
   services:
-    - config
-    - favorites
-    - lookup
-    - personal
-    - reverse
-    - phonebook
-    - cleanup
+    config: true
+    favorites: true
+    lookup: true
+    personal: true
+    reverse: true
+    phonebook: true
+    cleanup: true
   views:
-    - api_view
-    - config_view
-    - default_json
-    - headers_view
-    - personal_view
-    - phonebook_view
-    - aastra_view
-    - cisco_view
-    - polycom_view
-    - snom_view
-    - thomson_view
-    - yealink_view
+    api_view: true
+    config_view: true
+    default_json: true
+    headers_view: true
+    personal_view: true
+    phonebook_view: true
+    aastra_view: true
+    cisco_view: true
+    polycom_view: true
+    snom_view: true
+    thomson_view: true
+    yealink_view: true
 
 views:
   displays:
