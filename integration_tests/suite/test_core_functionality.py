@@ -179,7 +179,7 @@ class TestCoreSourceLoadingWithABrokenBackend(BaseDirdIntegrationTest):
 
         assert_that(result['results'],
                     contains_inanyorder(*expected_results))
-        assert_that(self.service_logs(), contains_string('Failed to load back-end'))
+        assert_that(self.service_logs(), contains_string('There is an error with this module: broken'))
         assert_that(self.service_logs(), contains_string('has no name'))
 
 

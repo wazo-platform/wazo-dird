@@ -19,6 +19,7 @@ dird:
     - "./etc/xivo-dird/sources.d:/etc/xivo-dird/sources.d"
     - "../../..:/usr/src/xivo-dird"
     - "./ssl:/usr/local/share/ssl"
+    # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python2.7/site-packages/xivo"
 auth:
   image: p0bailey/docker-flask
   expose:

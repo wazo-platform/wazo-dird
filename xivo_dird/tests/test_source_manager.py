@@ -26,7 +26,7 @@ from xivo_dird.source_manager import SourceManager
 
 class TestSourceManager(unittest.TestCase):
 
-    @patch('xivo_dird.source_manager.EnabledExtensionManager')
+    @patch('xivo_dird.source_manager.NamedExtensionManager')
     def test_that_load_sources_loads_the_enabled_and_configured_sources(self, extension_manager_init):
         extension_manager = extension_manager_init.return_value
         enabled_backends = [
@@ -43,12 +43,15 @@ class TestSourceManager(unittest.TestCase):
         manager.load_sources()
 
         extension_manager_init.assert_called_once_with(
-            namespace='xivo_dird.backends',
-            check_func=manager._is_enabled,
-            invoke_on_load=False)
+            'xivo_dird.backends',
+            ['ldap', 'xivo_phonebook'],
+            name_order=True,
+            on_load_failure_callback=ANY,
+            invoke_on_load=True
+        )
         extension_manager.map.assert_called_once_with(ANY, sources_by_type)
 
-    @patch('xivo_dird.source_manager.EnabledExtensionManager')
+    @patch('xivo_dird.source_manager.NamedExtensionManager')
     def test_load_sources_returns_dict_of_sources(self, extension_manager_init):
         enabled_backends = [
             'ldap',

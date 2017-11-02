@@ -17,9 +17,8 @@
 
 import logging
 
-from functools import partial
-
-from stevedore import EnabledExtensionManager
+from stevedore import NamedExtensionManager
+from xivo import plugin_helpers
 
 from .source_manager import SourceManager
 
@@ -30,22 +29,13 @@ source_manager = None
 
 def load_services(config, enabled_services, sources, bus):
     global services_extension_manager
-    services_extension_manager = EnabledExtensionManager(
-        namespace='xivo_dird.services',
-        check_func=partial(_is_enabled, enabled_services),
-        invoke_on_load=True)
-
-    return dict(services_extension_manager.map(load_service_extension, config, sources, bus))
-
-
-def load_service_extension(extension, config, sources, bus):
-    logger.debug('loading extension %s...', extension.name)
-    args = {
+    dependencies = {
         'config': config,
         'sources': sources,
         'bus': bus,
     }
-    return extension.name, extension.obj.load(args)
+    services_extension_manager, services = _load_plugins('xivo_dird.services', enabled_services, dependencies)
+    return services
 
 
 def unload_services():
@@ -61,24 +51,33 @@ def load_sources(enabled_backends, source_configs):
 
 
 def load_views(config, enabled_views, services, rest_api):
-    extension_manager = EnabledExtensionManager(
-        namespace='xivo_dird.views',
-        check_func=partial(_is_enabled, enabled_views),
-        invoke_on_load=True)
-
-    extension_manager.map(load_view_extension, config, services, rest_api)
-
-
-def load_view_extension(extension, config, services, rest_api):
-    logger.debug('loading extension %s...', extension.name)
-    args = {
+    dependencies = {
         'config': config,
         'http_app': rest_api.app,
         'rest_api': rest_api.api,
         'services': services,
     }
-    extension.obj.load(args)
+    views_extension_manager, views = _load_plugins('xivo_dird.views', enabled_views, dependencies)
+    return views
 
 
-def _is_enabled(enabled_extension_names, extension):
-    return extension.name in enabled_extension_names
+def _load_plugins(namespace, names, dependencies):
+    names = plugin_helpers.enabled_names(plugin_helpers.from_list(names))
+    logger.debug('Enabled plugins: %s', names)
+    if not names:
+        logger.info('no enabled plugins')
+        return
+
+    manager = NamedExtensionManager(
+        namespace,
+        names,
+        name_order=True,
+        on_load_failure_callback=plugin_helpers.on_load_failure,
+        on_missing_entrypoints_callback=plugin_helpers.on_missing_entrypoints,
+        invoke_on_load=True
+    )
+
+    def _load_plugin(ext, *args, **kwargs):
+        return ext.name, plugin_helpers.load_plugin(ext, *args, **kwargs)
+
+    return manager, dict(manager.map(_load_plugin, dependencies))
