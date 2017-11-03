@@ -26,54 +26,6 @@ from xivo_dird import plugin_manager
 
 class TestPluginManagerServices(TestCase):
 
-    @patch('xivo_dird.plugin_manager.EnabledExtensionManager')
-    def test_load_services_loads_service_extensions(self, extension_manager_init):
-        extension_manager = extension_manager_init.return_value
-
-        plugin_manager.load_services(s.config, enabled_services=[], sources=s.backends, bus=s.bus)
-
-        extension_manager_init.assert_called_once_with(
-            namespace='xivo_dird.services',
-            check_func=ANY,
-            invoke_on_load=True)
-        extension_manager.map.assert_called_once_with(plugin_manager.load_service_extension,
-                                                      s.config,
-                                                      s.backends,
-                                                      s.bus)
-
-    @patch('xivo_dird.plugin_manager.EnabledExtensionManager')
-    def test_load_services_returns_dict_of_callables(self, extension_manager_init):
-        extension_manager = extension_manager_init.return_value
-        extension_manager.map.return_value = [(s.name1, s.callable1), (s.name2, s.callable2)]
-
-        result = plugin_manager.load_services(s.config,
-                                              enabled_services=[],
-                                              sources=s.backends,
-                                              bus=s.bus)
-
-        assert_that(result, has_entries({s.name1: s.callable1, s.name2: s.callable2}))
-
-    def test_load_service_extension_passes_right_plugin_arguments(self):
-        extension = Mock()
-
-        plugin_manager.load_service_extension(extension, s.config, s.sources, s.bus)
-
-        extension.obj.load.assert_called_once_with({
-            'config': s.config,
-            'sources': s.sources,
-            'bus': s.bus,
-        })
-
-    def test_load_service_extension_returns_extension_name_and_result_from_load(self):
-        extension = Mock()
-        extension.name = s.name
-        extension.obj.load.return_value = s.callable
-        config = defaultdict(Mock)
-
-        result = plugin_manager.load_service_extension(extension, config, s.sources, s.bus)
-
-        assert_that(result, equal_to((extension.name, s.callable)))
-
     def test_unload_services_calls_unload_on_services(self):
         plugin_manager.services_extension_manager = Mock()
 
@@ -109,35 +61,3 @@ class TestPluginManagerSources(TestCase):
         result = plugin_manager.load_sources(s.enabled, s.source_config_dir)
 
         assert_that(result, equal_to(s.result))
-
-
-class TestPluginManagerViews(TestCase):
-
-    @patch('xivo_dird.plugin_manager.EnabledExtensionManager')
-    def test_load_views_loads_view_extensions(self, extension_manager_init):
-        extension_manager = extension_manager_init.return_value
-
-        plugin_manager.load_views(s.config, enabled_views=[], services=s.services, rest_api=s.rest_api)
-
-        extension_manager_init.assert_called_once_with(
-            namespace='xivo_dird.views',
-            check_func=ANY,
-            invoke_on_load=True)
-        extension_manager.map.assert_called_once_with(plugin_manager.load_view_extension,
-                                                      s.config,
-                                                      s.services,
-                                                      s.rest_api)
-
-    def test_load_view_extension_passes_right_plugin_arguments(self):
-        extension = Mock()
-        extension.name = 'my_plugin'
-        rest_api = Mock()
-
-        plugin_manager.load_view_extension(extension, s.config, s.services, rest_api)
-
-        extension.obj.load.assert_called_once_with({
-            'config': s.config,
-            'http_app': rest_api.app,
-            'rest_api': rest_api.api,
-            'services': s.services,
-        })

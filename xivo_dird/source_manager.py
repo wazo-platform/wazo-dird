@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014-2016 Avencall
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 # Copyright (C) 2016 Proformatique, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,11 @@ import logging
 
 from collections import defaultdict
 
-from stevedore import EnabledExtensionManager
+from stevedore import (
+    EnabledExtensionManager,
+    NamedExtensionManager,
+)
+from xivo import plugin_helpers
 
 
 logger = logging.getLogger(__name__)
@@ -38,11 +42,17 @@ class SourceManager(object):
         self._config = config
 
     def load_sources(self):
-        manager = EnabledExtensionManager(
-            namespace=self._namespace,
-            check_func=self._is_enabled,
-            invoke_on_load=False,
+        names = plugin_helpers.enabled_names(self._enabled_backends)
+        logger.debug('Enabled plugins: %s', names)
+        manager = NamedExtensionManager(
+            self._namespace,
+            names,
+            name_order=True,
+            on_load_failure_callback=plugin_helpers.on_load_failure,
+            on_missing_entrypoints_callback=plugin_helpers.on_missing_entrypoints,
+            invoke_on_load=True
         )
+
         configs_by_backend = self.group_configs_by_backend(self._source_configs)
         manager.map(self._load_sources_using_backend, configs_by_backend)
         return self._sources

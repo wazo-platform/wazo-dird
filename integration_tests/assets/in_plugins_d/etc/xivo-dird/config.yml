@@ -2,11 +2,11 @@ source_config_dir: /etc/xivo-dird/plugins_d
 
 enabled_plugins:
   backends:
-    - csv
+    csv: true
   services:
-    - lookup
+    lookup: true
   views:
-    - default_json
+    default_json: true
 
 views:
   displays:

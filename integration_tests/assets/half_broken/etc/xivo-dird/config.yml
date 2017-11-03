@@ -1,12 +1,12 @@
 enabled_plugins:
   backends:
-    - csv
-    - broken_lookup
+    csv: true
+    broken_lookup: true
   services:
-    - favorites
-    - lookup
+    favorites: true
+    lookup: true
   views:
-    - default_json
+    default_json: true
 
 views:
   displays:

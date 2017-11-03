@@ -38,9 +38,9 @@ _DEFAULT_CONFIG = {
     'extra_config_files': '/etc/xivo-dird/conf.d/',
     'debug': False,
     'enabled_plugins': {
-        'backends': [],
-        'services': [],
-        'views': [],
+        'backends': {},
+        'services': {},
+        'views': {},
     },
     'log_level': 'info',
     'log_filename': '/var/log/xivo-dird.log',

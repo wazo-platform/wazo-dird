@@ -1,11 +1,11 @@
 enabled_plugins:
   backends:
-    - csv
+    csv: true
   services:
-    - lookup
+    lookup: true
   views:
-    - default_json
-    - headers_view
+    default_json: true
+    headers_view: true
 
 views:
   displays:

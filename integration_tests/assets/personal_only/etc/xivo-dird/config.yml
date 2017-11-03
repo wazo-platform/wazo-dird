@@ -1,16 +1,16 @@
 enabled_plugins:
   backends:
-    - personal
+    personal: true
   services:
-    - personal
-    - favorites
-    - lookup
-    - reverse
-    - cleanup
+    personal: true
+    favorites: true
+    lookup: true
+    reverse: true
+    cleanup: true
   views:
-    - default_json
-    - headers_view
-    - personal_view
+    default_json: true
+    headers_view: true
+    personal_view: true
 
 views:
   displays:

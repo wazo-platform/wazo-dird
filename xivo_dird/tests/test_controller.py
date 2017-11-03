@@ -62,7 +62,7 @@ class TestController(TestCase):
         config = self._create_config(**{
             'enabled_plugins': {
                 'backends': s.enabled,
-                'services': []
+                'services': {},
             },
             'sources': s.source_configs,
             'service_discovery': {'enabled': False},
@@ -90,9 +90,9 @@ class TestController(TestCase):
         config.setdefault('bus', {'enabled': False})
         config.setdefault('auth', {})
         config.setdefault('enabled_plugins', {})
-        config['enabled_plugins'].setdefault('backends', [])
-        config['enabled_plugins'].setdefault('services', [])
-        config['enabled_plugins'].setdefault('views', [])
+        config['enabled_plugins'].setdefault('backends', {})
+        config['enabled_plugins'].setdefault('services', {})
+        config['enabled_plugins'].setdefault('views', {})
         config.setdefault('sources', {})
         config.setdefault('rest_api', {'https': {'port': Mock(), 'certificate': 'my-certificate'}})
         config.setdefault('services', Mock())
