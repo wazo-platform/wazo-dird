@@ -50,7 +50,8 @@ class TestSourceManager(unittest.TestCase):
             ['ldap', 'xivo_phonebook'],
             name_order=True,
             on_load_failure_callback=ANY,
-            invoke_on_load=True
+            invoke_on_load=True,
+            on_missing_entrypoints_callback=ANY,
         )
         extension_manager.map.assert_called_once_with(ANY, sources_by_type)
 
