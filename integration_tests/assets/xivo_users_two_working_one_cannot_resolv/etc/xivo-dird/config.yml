@@ -30,9 +30,9 @@ services:
   lookup:
     default:
       sources:
-        - xivo_america
-        - xivo_asia
-        - xivo_europe
+        xivo_america: true
+        xivo_asia: true
+        xivo_europe: true
 
 rest_api:
   https:

@@ -25,7 +25,7 @@ services:
   lookup:
     default:
       sources:
-        - test_ldap
+        test_ldap: true
 
 rest_api:
   https:

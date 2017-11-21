@@ -34,10 +34,10 @@ services:
   lookup:
     test_fallback:
       sources:
-        - test_fallback
+        test_fallback: true
     test_sorted:
       sources:
-        - test_sorted
+        test_sorted: true
 
 rest_api:
   https:

@@ -48,12 +48,12 @@ services:
   lookup:
     default:
       sources:
-        - sample
+        sample: true
       timeout: 0.5
   favorites:
     default:
       sources:
-        - sample
+        sample: true
       timeout: 0.5
 
 rest_api:

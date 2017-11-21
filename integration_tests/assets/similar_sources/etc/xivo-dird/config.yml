@@ -32,13 +32,13 @@ services:
   lookup:
     default:
       sources:
-        - csv
-        - csv_2
+        csv: true
+        csv_2: true
   favorites:
     default:
       sources:
-        - csv
-        - csv_2
+        csv: true
+        csv_2: true
 
 rest_api:
   https:

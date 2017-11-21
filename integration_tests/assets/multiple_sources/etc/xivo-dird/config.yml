@@ -32,15 +32,15 @@ services:
   lookup:
     default:
       sources:
-        - my_csv
-        - second_csv
-        - third_csv
+        my_csv: true
+        second_csv: true
+        third_csv: true
   reverse:
     default:
       sources:
-        - my_csv
-        - second_csv
-        - third_csv
+        my_csv: true
+        second_csv: true
+        third_csv: true
 
 rest_api:
   https:

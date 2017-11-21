@@ -28,8 +28,8 @@ services:
   lookup:
     default:
       sources:
-        - my_csv
-        - broken_csv
+        my_csv: true
+        broken_csv: true
 
 rest_api:
   https:

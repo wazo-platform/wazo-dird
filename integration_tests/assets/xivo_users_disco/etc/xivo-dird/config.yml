@@ -30,7 +30,7 @@ views:
 services:
   lookup:
     default:
-      sources: []
+      sources: {}
   service_discovery:
     template_path: /etc/xivo-dird/templates.d/
     services:
