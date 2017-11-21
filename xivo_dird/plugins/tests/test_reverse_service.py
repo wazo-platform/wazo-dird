@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ class TestReverseService(unittest.TestCase):
             'services': {
                 'reverse': {
                     'my_profile': {
-                        'sources': ['source']
+                        'sources': {'source': True}
                     }
                 }
             }
@@ -108,7 +108,7 @@ class TestReverseService(unittest.TestCase):
             'services': {
                 'reverse': {
                     'my_profile': {
-                        'sources': ['source_1', 'source_3'],
+                        'sources': {'source_1': True, 'source_3': True},
                         'timeout': 1,
                     }
                 }
@@ -133,7 +133,7 @@ class TestReverseService(unittest.TestCase):
             'services': {
                 'reverse': {
                     'my_profile': {
-                        'sources': ['source'],
+                        'sources': {'source': True},
                         'timeout': 0.0001
                     }
                 }
@@ -157,7 +157,7 @@ class TestReverseService(unittest.TestCase):
             'services': {
                 'reverse': {
                     'my_profile': {
-                        'sources': ['source_1', 'source_3'],
+                        'sources': {'source_1': True, 'source_3': True},
                         'timeout': 1,
                     }
                 }

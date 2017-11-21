@@ -166,11 +166,11 @@ class ProfileConfigUpdater(object):
 
             for profile in profiles:
                 if profile not in dird_service_config:
-                    dird_service_config[profile] = {'sources': []}
-                sources = dird_service_config[profile].get('sources') or []
-                if source_name not in sources:
-                    sources.append(source_name)
-                    dird_service_config[profile]['sources'] = sources
+                    dird_service_config[profile] = {'sources': {}}
+                if 'sources' not in dird_service_config[profile]:
+                    dird_service_config[profile]['sources'] = {}
+
+                dird_service_config[profile]['sources'][source_name] = True
 
     @staticmethod
     def _profiles_for(config, service):

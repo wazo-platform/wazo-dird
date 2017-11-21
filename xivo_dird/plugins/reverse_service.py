@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,11 +46,12 @@ class ReverseServicePlugin(BaseServicePlugin):
             self._service = None
 
 
-class _ReverseService(object):
+class _ReverseService(helpers.BaseService):
 
-    def __init__(self, config, sources):
-        self._global_config = config
-        self._sources = sources
+    _service_name = 'reverse'
+
+    def __init__(self, *args, **kwargs):
+        super(_ReverseService, self).__init__(*args, **kwargs)
         self._executor = ThreadPoolExecutor(max_workers=10)
 
     def stop(self):
@@ -60,7 +60,7 @@ class _ReverseService(object):
     def reverse(self, exten, profile, args=None, xivo_user_uuid=None, token=None):
         args = args or {}
         futures = []
-        sources = self._source_by_profile(profile)
+        sources = self.source_by_profile(profile)
         logger.debug('Reverse lookup for {} in sources {}'.format(exten, [source.name for source in sources]))
         for source in sources:
             args['token'] = token
@@ -68,8 +68,8 @@ class _ReverseService(object):
             futures.append(self._async_reverse(source, exten, args))
 
         params = {}
-        if 'timeout' in self._config(profile):
-            params['timeout'] = self._config(profile)['timeout']
+        if 'timeout' in self.config_by_profile(profile):
+            params['timeout'] = self.config_by_profile(profile)['timeout']
 
         try:
             for future in as_completed(futures, **params):
@@ -79,22 +79,9 @@ class _ReverseService(object):
                     return future.result()
         except TimeoutError:
             logger.info('Timeout on reverse lookup for exten: %s', exten)
-        return None
-
-    def _config(self, profile):
-        return self._global_config.get('services', {}).get('reverse', {}).get(profile, {})
 
     def _async_reverse(self, source, exten, args):
         raise_stopper = helpers.RaiseStopper(return_on_raise=[])
         future = self._executor.submit(raise_stopper.execute, source.first_match, exten, args)
         future.name = source.name
         return future
-
-    def _source_by_profile(self, profile):
-        try:
-            source_names = self._config(profile)['sources']
-        except KeyError:
-            logger.warning('Cannot find reverse sources for profile %s', profile)
-            return []
-        else:
-            return [self._sources[name] for name in source_names if name in self._sources]

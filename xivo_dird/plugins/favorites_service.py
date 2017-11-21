@@ -90,16 +90,16 @@ class FavoritesServicePlugin(BaseServicePlugin):
             self._service = None
 
 
-class _FavoritesService(object):
+class _FavoritesService(helpers.BaseService):
 
     NoSuchFavoriteException = exception.NoSuchFavorite
     NoSuchProfileException = _NoSuchProfileException
     NoSuchSourceException = _NoSuchSourceException
     DuplicatedFavoriteException = exception.DuplicatedFavoriteException
+    _service_name = 'favorites'
 
     def __init__(self, config, sources, crud, bus):
-        self._config = config
-        self._sources = sources
+        super(_FavoritesService, self).__init__(config, sources, crud, bus)
         self._executor = ThreadPoolExecutor(max_workers=10)
         self._crud = crud
         self._bus = bus
@@ -152,7 +152,7 @@ class _FavoritesService(object):
             raise self.NoSuchProfileException(profile)
 
         favorites = self._crud.get(xivo_user_uuid)
-        enabled_sources = [source.name for source in self._source_by_profile(profile)]
+        enabled_sources = [source.name for source in self.source_by_profile(profile)]
 
         result = defaultdict(list)
         for name, id_ in favorites:
@@ -178,13 +178,3 @@ class _FavoritesService(object):
         self._crud.delete(xivo_user_uuid, source, contact_id)
         event = FavoriteDeletedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
         self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
-
-    def _source_by_profile(self, profile):
-        favorites_config = self._config.get('services', {}).get('favorites', {})
-        try:
-            source_names = favorites_config[profile]['sources']
-        except KeyError:
-            logger.warning('Cannot find lookup sources for profile %s', profile)
-            return []
-        else:
-            return [self._sources[name] for name in source_names if name in self._sources]

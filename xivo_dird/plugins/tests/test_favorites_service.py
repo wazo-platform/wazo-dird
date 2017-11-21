@@ -124,7 +124,7 @@ class TestFavoritesService(unittest.TestCase):
             'services': {
                 'favorites': {
                     'my_profile': {
-                        'sources': ['source_1', 'source_3'],
+                        'sources': {'source_1': True, 'source_3': True},
                         'timeout': 1,
                     }
                 }
@@ -163,7 +163,7 @@ class TestFavoritesService(unittest.TestCase):
             'services': {
                 'favorites': {
                     'my_profile': {
-                        'sources': ['source_1', 'source_3'],
+                        'sources': {'source_1': True, 'source_3': True},
                         'timeout': 1,
                     }
                 }
@@ -234,7 +234,7 @@ class TestFavoritesService(unittest.TestCase):
             'services': {
                 'favorites': {
                     'my_profile': {
-                        'sources': ['source_1', 'source_2'],
+                        'sources': {'source_1': True, 'source_2': True},
                         'timeout': 1,
                     }
                 }
