@@ -17,7 +17,7 @@ info:
   contact:
     name: Dev Team
     url: http://wazo.community
-    email: dev.wazo@gmail.com
+    email: dev@wazo.community
 x-xivo-port: 9489
 x-xivo-name: dird
 schemes:
