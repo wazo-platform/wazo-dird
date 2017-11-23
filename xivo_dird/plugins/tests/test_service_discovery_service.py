@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,16 +50,16 @@ format_columns:
 CONFIG = {
     'services': {
         'lookup': {
-            'foobar': {'sources': ['source_1', 'source_2']},
-            'default': {'sources': ['source_2']},
+            'foobar': {'sources': {'source_1': True, 'source_2': True}},
+            'default': {'sources': {'source_2': True}},
         },
         'reverse': {
-            'foobar': {'sources': ['source_1', 'source_2']},
-            'default': {'sources': ['source_2']},
+            'foobar': {'sources': {'source_1': True, 'source_2': True}},
+            'default': {'sources': {'source_2': True}},
         },
         'favorites': {
-            'foobar': {'sources': ['source_2']},
-            'default': {'sources': ['source_2']},
+            'foobar': {'sources': {'source_2': True}},
+            'default': {'sources': {'source_2': True}},
         },
         'service_discovery': {
             'template_path': None,
@@ -266,15 +266,15 @@ class TestProfileConfigUpdater(unittest.TestCase):
         updater.on_service_added(self.source_name, 'xivo-confd')
 
         expected_lookup_service = {
-            'foobar': {'sources': ['source_1', 'source_2', self.source_name]},
-            'default': {'sources': ['source_2', self.source_name]}}
+            'foobar': {'sources': {'source_1': True, 'source_2': True, self.source_name: True}},
+            'default': {'sources': {'source_2': True, self.source_name: True}}}
         expected_reverse_service = {
-            'foobar': {'sources': ['source_1', 'source_2', self.source_name]},
-            'default': {'sources': ['source_2']},
-            '__switchboard': {'sources': [self.source_name]}}
+            'foobar': {'sources': {'source_1': True, 'source_2': True, self.source_name: True}},
+            'default': {'sources': {'source_2': True}},
+            '__switchboard': {'sources': {self.source_name: True}}}
         expected_favorites_service = {
-            'foobar': {'sources': ['source_2', self.source_name]},
-            'default': {'sources': ['source_2', self.source_name]}}
+            'foobar': {'sources': {'source_2': True, self.source_name: True}},
+            'default': {'sources': {'source_2': True, self.source_name: True}}}
 
         assert_that(self.config['services']['lookup'],
                     equal_to(expected_lookup_service))
