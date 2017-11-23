@@ -10,8 +10,8 @@ setup(
 
     description='Wazo Directory Daemon broken plugins',
 
-    author='Avencall',
-    author_email='dev+pkg@proformatique.com',
+    author='The Wazo Authors',
+    author_email='dev+pkg@wazo.community',
 
     url='https://github.com/wazo-pbx/xivo-dird',
 

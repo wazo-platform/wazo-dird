@@ -26,11 +26,11 @@ services:
   lookup:
     default:
       sources:
-        - test_ldap
+        test_ldap: true
   favorites:
     default:
       sources:
-        - test_ldap
+        test_ldap: true
 
 rest_api:
   https:

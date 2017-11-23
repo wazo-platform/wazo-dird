@@ -44,7 +44,7 @@ services:
   lookup:
     default:
       sources:
-        - test_csv
+        test_csv: true
 
 rest_api:
   https:

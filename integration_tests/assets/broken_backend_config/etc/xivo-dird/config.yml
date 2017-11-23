@@ -29,9 +29,9 @@ services:
   lookup:
     default:
       sources:
-        - my_csv
-        - my_broken
-        - broken_noname
+        my_csv: true
+        my_broken: true
+        broken_noname: true
 
 rest_api:
   https:

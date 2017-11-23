@@ -30,16 +30,16 @@ services:
   lookup:
     default:
       sources:
-        - my_csv
-        - broken
-        - my_other_csv
+        my_csv: true
+        broken: true
+        my_other_csv: true
       timeout: 0.5
   favorites:
     default:
       sources:
-        - my_csv
-        - broken
-        - my_other_csv
+        my_csv: true
+        broken: true
+        my_other_csv: true
 
 rest_api:
   https:

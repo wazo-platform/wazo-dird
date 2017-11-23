@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,18 +46,16 @@ class LookupServicePlugin(BaseServicePlugin):
             self._service = None
 
 
-class _LookupService(object):
+class _LookupService(helpers.BaseService):
 
-    def __init__(self, config, sources):
-        self._global_config = config
-        self._sources = sources
+    _service_name = 'lookup'
+
+    def __init__(self, *args, **kwargs):
+        super(_LookupService, self).__init__(*args, **kwargs)
         self._executor = ThreadPoolExecutor(max_workers=10)
 
     def stop(self):
         self._executor.shutdown()
-
-    def _config(self, profile):
-        return self._global_config.get('services', {}).get('lookup', {}).get(profile, {})
 
     def _async_search(self, source, term, args):
         raise_stopper = helpers.RaiseStopper(return_on_raise=[])
@@ -69,14 +66,14 @@ class _LookupService(object):
     def lookup(self, term, profile, xivo_user_uuid, args=None, token=None):
         args = args or {}
         futures = []
-        for source in self._source_by_profile(profile):
+        for source in self.source_by_profile(profile):
             args['token'] = token
             args['xivo_user_uuid'] = xivo_user_uuid
             futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}
-        if 'timeout' in self._config(profile):
-            params['timeout'] = self._config(profile)['timeout']
+        if 'timeout' in self.config_by_profile(profile):
+            params['timeout'] = self.config_by_profile(profile)['timeout']
 
         done, _ = wait(futures, **params)
         results = []
@@ -84,12 +81,3 @@ class _LookupService(object):
             for result in future.result():
                 results.append(result)
         return results
-
-    def _source_by_profile(self, profile):
-        try:
-            source_names = self._config(profile)['sources']
-        except KeyError:
-            logger.warning('Cannot find lookup sources for profile %s', profile)
-            return []
-        else:
-            return [self._sources[name] for name in source_names if name in self._sources]

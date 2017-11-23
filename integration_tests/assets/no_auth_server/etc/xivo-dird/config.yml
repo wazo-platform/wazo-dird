@@ -30,7 +30,7 @@ services:
   lookup:
     default:
       sources:
-        - sample_plugin
+        sample_plugin: true
       timeout: 0.5
 
 rest_api:
