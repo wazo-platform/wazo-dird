@@ -157,12 +157,12 @@ services:
   lookup:
     default_phone:
       sources:
-        - internal
+        internal: true
       timeout: 0.5
   favorites:
     default:
       sources:
-        - personal
+        personal: true
   service_discovery:
     template_path: /etc/xivo-dird/templates.d
     services: {}
