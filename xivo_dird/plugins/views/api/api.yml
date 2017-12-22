@@ -137,7 +137,9 @@ parameters:
     in: path
     type: string
     description: The profile defines the list of directories to query and how the
-      results are displayed. Used to generate lookup URL
+      results are displayed. The profile is the context name of the user who
+      started the contact lookup, e.g. `default`. More precisely, it is the name
+      of the "Direct directory" defined in the web interface.
     required: true
   ProxyUrl:
     name: Proxy-URL
