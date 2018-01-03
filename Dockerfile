@@ -1,4 +1,4 @@
-FROM python:2.7.9
+FROM python:2.7.13
 
 ADD . /usr/src/xivo-dird
 ADD ./contribs/docker/certs /usr/share/xivo-certs
