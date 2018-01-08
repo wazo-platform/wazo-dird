@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ from functools import wraps
 from cheroot import wsgi
 from flask import Flask
 from flask import request
-from flask.ext.babel import Babel
+from flask_babel import Babel
 from flask_restful import Api
 from flask_restful import Resource
 from flask_cors import CORS
