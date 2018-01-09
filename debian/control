@@ -10,7 +10,8 @@ Package: xivo-dird
 Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
-         alembic,
+         alembic (>= 0.8.8),
+         python-alembic (>= 0.8.8),
          python-jinja2,
          python-ldap,
          python-flask,
