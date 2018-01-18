@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,8 +49,7 @@ class Controller(object):
                                              self.config.get('service_discovery'),
                                              self.config.get('bus'),
                                              partial(self_check,
-                                                     self.config['rest_api']['https']['port'],
-                                                     self.config['rest_api']['https']['certificate'])]
+                                                     self.config['rest_api']['https']['port'])]
 
     def run(self):
         self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
