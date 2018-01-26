@@ -20,7 +20,7 @@ dird:
     - auth
     - confd
 confd:
-  image: python:2.7
+  image: python:2.7.13-stretch
   volumes:
     - "./confd_data:/tmp"
   command: /tmp/run_confd

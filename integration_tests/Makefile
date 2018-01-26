@@ -2,7 +2,7 @@
 
 test-setup: egg-info build-dird build-db-image
 	docker pull alpine
-	docker pull python:2.7
+	docker pull python:2.7.13-stretch
 	docker pull p0bailey/docker-flask
 	docker pull nickstenning/slapd
 	docker pull n3llyb0y/wait
