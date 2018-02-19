@@ -1,5 +1,5 @@
 # xivo-dird
-[![Build Status](https://travis-ci.org/wazo-pbx/xivo-dird.png?branch=master)](https://travis-ci.org/wazo-pbx/xivo-dird)
+[![Build Status](https://jenkins.wazo.community/buildStatus/icon?job=xivo-dird)](https://jenkins.wazo.community/job/xivo-dird)
 
 xivo-dird is a service to query many directory sources simultaneously using a
 simple REST API.
