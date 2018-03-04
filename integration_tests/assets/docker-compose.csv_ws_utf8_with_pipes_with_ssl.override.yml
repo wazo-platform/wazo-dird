@@ -1,0 +1,15 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - ws
+    environment:
+      TARGETS: "ws:9485"
+  ws:
+    image: p0bailey/docker-flask
+    ports:
+      - "9485"
+    volumes:
+      - "./scripts/asset.csv_ws_utf8_with_pipes_with_ssl.ws.py:/tmp/ws.py"
+      - "./ssl:/usr/local/share/ssl"
+    command: "python /tmp/ws.py '|' 'utf-8'"

@@ -1,0 +1,12 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - dird
+      - auth
+    environment:
+      TARGETS: "dird:9489 auth:9497"
+  dird:
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.auth-only.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/sources.d/asset.auth-only.sample.yml:/etc/xivo-dird/sources.d/sample.yml"

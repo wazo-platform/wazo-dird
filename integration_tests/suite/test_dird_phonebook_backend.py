@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
@@ -26,7 +26,7 @@ class DBStarter(BaseDirdIntegrationTest):
 def setup():
     global DB_URI
     DBStarter.setUpClass()
-    db_port = DBStarter.service_port(5432, 'postgres')
+    db_port = DBStarter.service_port(5432, 'db')
     DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port))
     engine = create_engine(DB_URI)
     database.Base.metadata.bind = engine

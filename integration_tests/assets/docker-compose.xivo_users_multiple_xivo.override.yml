@@ -1,0 +1,33 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+      - america
+      - europe
+      - asia
+      - db
+    environment:
+      TARGETS: "america:8000 asia:8000 europe:8000 dird:9489 auth:9497 db:5432"
+  dird:
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.xivo_users_multiple_xivo.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/sources.d/asset.xivo_users_multiple_xivo.america.yml:/etc/xivo-dird/sources.d/america.yml"
+      - "./etc/xivo-dird/sources.d/asset.xivo_users_multiple_xivo.asia.yml:/etc/xivo-dird/sources.d/asia.yml"
+      - "./etc/xivo-dird/sources.d/asset.xivo_users_multiple_xivo.europe.yml:/etc/xivo-dird/sources.d/europe.yml"
+  america:
+    image: python:2.7.13-stretch
+    volumes:
+      - "./confd_data/asset.xivo_users_multiple_xivo:/tmp"
+    command: "/tmp/run_confd america"
+  europe:
+    image: python:2.7.13-stretch
+    volumes:
+      - "./confd_data/asset.xivo_users_multiple_xivo:/tmp"
+    command: "/tmp/run_confd europe"
+  asia:
+    image: python:2.7.13-stretch
+    volumes:
+      - "./confd_data/asset.xivo_users_multiple_xivo:/tmp"
+    command: "/tmp/run_confd asia"

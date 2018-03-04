@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 requests.packages.urllib3.disable_warnings()
 
 ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
-CA_CERT = os.path.join(ASSET_ROOT, '_common', 'ssl', 'dird', 'server.crt')
+CA_CERT = os.path.join(ASSET_ROOT, 'ssl', 'dird', 'server.crt')
 
 VALID_UUID = 'uuid'
 VALID_UUID_1 = 'uuid-1'
@@ -33,7 +33,9 @@ VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
 
 
 def absolute_file_name(asset_name, path):
-    return os.path.join(ASSET_ROOT, asset_name, path)
+    dirname, basename = os.path.split(path)
+    real_basename = 'asset.{}.{}'.format(asset_name, basename)
+    return os.path.join(ASSET_ROOT, dirname, real_basename)
 
 
 class BackendWrapper(object):
@@ -63,6 +65,14 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = ASSET_ROOT
     service = 'dird'
+
+    @classmethod
+    def _docker_compose_options(cls):
+        return [
+            '--file', os.path.join(cls.assets_root, 'docker-compose.yml'),
+            '--file', os.path.join(cls.assets_root, 'docker-compose.{}.override.yml'.format(cls.asset)),
+            '--project-name', cls.service,
+        ]
 
     @classmethod
     def url(cls, *parts):

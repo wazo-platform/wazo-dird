@@ -1,0 +1,30 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - auth
+      - confd
+      - consul
+      - dird
+    environment:
+      TARGETS: "auth:9497 confd:8000 consul:8500 dird:9489"
+  confd:
+    image: python:2.7.13-stretch
+    volumes:
+      - "./confd_data/asset.xivo_users_disco:/tmp"
+    expose:
+      - "8000"
+    command: /tmp/run_confd
+  consul:
+    image: python:2.7.13-stretch
+    volumes:
+      - "./consul_data:/tmp"
+    expose:
+      - "8000"
+    command: "/tmp/run_consul"
+  dird:
+    environment:
+      XIVO_UUID: "1a2cd704-ed32-4fa3-918a-d32b0609de81"
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.xivo_users_disco.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/templates.d/asset.xivo_users_disco.confd_disco.yml:/etc/xivo-dird/templates.d/confd_disco.yml"

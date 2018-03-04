@@ -1,0 +1,12 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+    environment:
+      TARGETS: "dird:9489 auth:9497"
+  dird:
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.xivo_users_no_confd.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/sources.d/asset.xivo_users_no_confd.america.yml:/etc/xivo-dird/sources.d/america.yml"

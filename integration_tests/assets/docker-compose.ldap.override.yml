@@ -1,0 +1,22 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+      - slapd
+      - db
+    environment:
+      TARGETS: "slapd:389 db:5432 dird:9489 auth:9497"
+  dird:
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.ldap.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/sources.d/asset.ldap.test_ldap.yml:/etc/xivo-dird/sources.d/test_ldap.yml"
+  slapd:
+    image: nickstenning/slapd
+    environment:
+      LDAP_DOMAIN: xivo-dird.wazo.community
+      LDAP_ORGANISATION: acme
+      LDAP_ROOTPASS: xivopassword
+    ports:
+      - "389"

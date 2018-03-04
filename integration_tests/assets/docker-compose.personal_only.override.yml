@@ -1,0 +1,18 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+      - db
+      - rabbitmq
+    environment:
+      TARGETS: "dird:9489 auth:9497 db:5432 rabbitmq:5672"
+  dird:
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.personal_only.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/sources.d/asset.personal_only.personal.yml:/etc/xivo-dird/sources.d/personal.yml"
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - "5672"

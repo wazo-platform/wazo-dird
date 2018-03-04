@@ -1,0 +1,15 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+    environment:
+      TARGETS: "dird:9489 auth:9497"
+  dird:
+    image: xivo-dird-test
+    ports:
+      - "9489"
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.ldap_service_down.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/sources.d/asset.ldap_service_down.test_ldap.yml:/etc/xivo-dird/sources.d/test_ldap.yml"
