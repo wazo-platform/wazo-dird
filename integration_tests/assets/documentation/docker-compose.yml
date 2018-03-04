@@ -1,22 +1,22 @@
-sync:
-  image: n3llyb0y/wait
-  links:
-    - dird
-    - swagger-validator
-  environment:
-    PORTS: "9489 8080"
-    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
+version: '3'
+services:
+  sync:
+    image: waisbrot/wait
+    depends_on:
+      - dird
+      - swagger-validator
+    environment:
+      TARGETS: "dird:9489 swagger-validator:8080"
+      TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
-dird:
-  image: xivo-dird-test
-  expose:
-    - 9489
-  volumes:
-    - "../../..:/usr/src/xivo-dird"
+  dird:
+    image: xivo-dird-test
+    expose:
+      - 9489
+    volumes:
+      - "../../..:/usr/src/xivo-dird"
 
-swagger-validator:
-  image: swaggerapi/swagger-validator
-  ports:
-    - "8080"
-  links:
-    - dird
+  swagger-validator:
+    image: swaggerapi/swagger-validator
+    ports:
+      - "8080"
