@@ -19,6 +19,9 @@ services:
     volumes:
       - "../..:/usr/src/xivo-dird"
       - "./ssl:/usr/local/share/ssl"
+      - "./etc/xivo-dird/conf.d/disable_service_discovery.yml:/etc/xivo-dird/conf.d/disable_service_discovery.yml"
+      - "./etc/xivo-dird/conf.d/db_uri.yml:/etc/xivo-dird/conf.d/db_uri.yml"
+      - "./etc/xivo-dird/conf.d/auth.yml:/etc/xivo-dird/conf.d/auth.yml"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python2.7/site-packages/xivo"
   db:
     image: wazopbx/xivo-dird-db
