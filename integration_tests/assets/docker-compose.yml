@@ -17,7 +17,7 @@ services:
     ports:
       - "9489"
     volumes:
-      - "../../..:/usr/src/xivo-dird"
+      - "../..:/usr/src/xivo-dird"
       - "./ssl:/usr/local/share/ssl"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python2.7/site-packages/xivo"
   db:
