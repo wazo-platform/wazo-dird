@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0+
 
 import time
 
@@ -34,7 +22,7 @@ class TestHTTPSMissingCertificate(BaseDirdIntegrationTest):
             self.fail('xivo-dird did not stop while missing SSL certificate')
 
         log = self.service_logs()
-        assert_that(log, contains_string("No such file or directory: '/usr/local/share/ssl/dird/server.crt'"))
+        assert_that(log, contains_string("No such file or directory: '/tmp/ssl/dird/server.crt'"))
 
 
 class TestHTTPSMissingPrivateKey(BaseDirdIntegrationTest):
@@ -50,4 +38,4 @@ class TestHTTPSMissingPrivateKey(BaseDirdIntegrationTest):
             self.fail('xivo-dird did not stop while missing SSL private key')
 
         log = self.service_logs()
-        assert_that(log, contains_string("No such file or directory: '/usr/local/share/ssl/dird/server.key'"))
+        assert_that(log, contains_string("No such file or directory: '/tmp/ssl/dird/server.key'"))

@@ -2,12 +2,12 @@
 
 test-setup: egg-info build-dird build-db-image
 	docker pull alpine
-	docker pull python:2.7.13-stretch
-	docker pull p0bailey/docker-flask
 	docker pull nickstenning/slapd
-	docker pull n3llyb0y/wait
+	docker pull p0bailey/docker-flask
+	docker pull python:2.7.13-stretch
 	docker pull rabbitmq
 	docker pull swaggerapi/swagger-validator
+	docker pull waisbrot/wait
 
 build-dird:
 	docker build -t wazopbx/xivo-dird ..

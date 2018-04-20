@@ -1,0 +1,12 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - dird
+    environment:
+      TARGETS: ""
+  dird:
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.no-ssl-private-key.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/sources.d/asset.no-ssl-private-key.sample.yml:/etc/xivo-dird/sources.d/sample.yml"
+      - "./ssl/dird/server.crt:/tmp/ssl/dird/server.crt"

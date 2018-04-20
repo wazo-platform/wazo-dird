@@ -1,0 +1,13 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - dird
+      - auth
+      - db
+    environment:
+      TARGETS: "dird:9489 auth:9497 db:5432"
+  dird:
+    volumes:
+      - "./etc/xivo-dird/conf.d/asset.sample_backend.yml:/etc/xivo-dird/config.yml"
+      - "./etc/xivo-dird/sources.d/asset.sample_backend.sample.yml:/etc/xivo-dird/sources.d/sample.yml"

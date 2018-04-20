@@ -1,0 +1,14 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - ws
+    environment:
+      TARGETS: "ws:9485"
+  ws:
+    image: p0bailey/docker-flask
+    ports:
+      - "9485"
+    volumes:
+      - "./scripts/asset.csv_ws_iso88591_with_coma.ws.py:/tmp/ws.py"
+    command: "python /tmp/ws.py ',' 'iso-8859-1'"

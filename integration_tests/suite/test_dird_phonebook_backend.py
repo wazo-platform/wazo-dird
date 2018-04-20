@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0+
 
 import os
 import random
@@ -38,7 +26,7 @@ class DBStarter(BaseDirdIntegrationTest):
 def setup():
     global DB_URI
     DBStarter.setUpClass()
-    db_port = DBStarter.service_port(5432, 'postgres')
+    db_port = DBStarter.service_port(5432, 'db')
     DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port))
     engine = create_engine(DB_URI)
     database.Base.metadata.bind = engine

@@ -13,7 +13,7 @@ mock
 
 # for database tests
 -e ..
-psycopg2
+psycopg2-binary
 sqlalchemy==1.0.15
 unidecode==0.04.19
 kombu
