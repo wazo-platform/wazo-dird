@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -35,6 +35,14 @@ def load_sources(enabled_backends, source_configs):
     if not source_manager:
         source_manager = SourceManager(enabled_backends, source_configs)
     return source_manager.load_sources()
+
+
+def unload_sources():
+    if not source_manager:
+        return
+
+    return source_manager.unload_sources()
+
 
 
 def load_views(config, enabled_views, services, rest_api):

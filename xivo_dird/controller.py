@@ -57,4 +57,5 @@ class Controller(object):
                 self.rest_api.run()
             finally:
                 plugin_manager.unload_services()
+                plugin_manager.unload_sources()
                 self.bus.stop()

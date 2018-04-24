@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -43,6 +42,11 @@ class SourceManager(object):
         configs_by_backend = self.group_configs_by_backend(self._source_configs)
         manager.map(self._load_sources_using_backend, configs_by_backend)
         return self._sources
+
+    def unload_sources(self):
+        logger.info('unloading all source plugins')
+        for source in self._sources.itervalues():
+            source.unload()
 
     def _is_enabled(self, extension):
         return extension.name in self._enabled_backends
