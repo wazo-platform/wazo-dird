@@ -1,5 +1,4 @@
 bin/xivo-dird-init-db usr/bin/
 etc/*  etc/
-migrations/ usr/share/xivo-dird/
 alembic/ usr/share/xivo-dird/
 alembic.ini usr/share/xivo-dird/

@@ -16,28 +16,12 @@ case "$1" in
 			xivo-dird-init-db --user postgres
 			echo "Upgrading xivo-dird database ..."
 			(cd $DIRD_ALEMBIC_INI_PATH && alembic -c alembic.ini upgrade head)
-
-			# Phonebook migration from the webi to xivo-dird
-			if [ -e "/var/lib/xivo-upgrade/phonebook_dump.json" ]; then
-				/usr/share/xivo-dird/migrations/0004-migrate-phonebook-from-webi-to-dird.py
-			fi
 		fi
 
 		if [ ! -e "$LOG_FILENAME" ]; then
 			touch "$LOG_FILENAME"
 		fi
 		chown www-data: "$LOG_FILENAME"
-
-		# source_to_display_columns migration
-		files=$(grep -rIn 'source_to_display' /etc/xivo-dird/sources.d/* | awk -F ':' '{print $1}')
-		for file in $files; do
-			/usr/share/xivo-dird/migrations/0001_source_to_display_columns_to_format_columns.py $file
-		done
-
-		if dpkg --compare-versions "$2" lt '17.02'; then
-			ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
-					/etc/nginx/locations/https-enabled/$DAEMONNAME
-		fi
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
