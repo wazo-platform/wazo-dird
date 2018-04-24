@@ -5,7 +5,10 @@ searched_columns:
   - lastname
 first_matched_columns:
   - exten
-confd_config:
+auth:
+  host: auth
+  verify_certificate: false
+confd:
   host: {{ hostname }}
   port: {{ port }}
   version: "1.1"

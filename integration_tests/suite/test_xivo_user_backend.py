@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import yaml
@@ -32,13 +31,21 @@ class TestXivoUser(BaseDirdIntegrationTest):
                        'exten': '1000',
                        'voicemail_number': '1234'}
 
+    def tearDown(self):
+        self.backend.unload()
+
     def backend_config(self):
         return {
             'type': 'xivo',
             'name': 'xivo_america',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['exten'],
-            'confd_config': {
+            'auth': {
+                'host': 'localhost',
+                'port': self.service_port(9497, 'auth'),
+                'verify_certificate': False,
+            },
+            'confd': {
                 'host': 'localhost',
                 'port': self.service_port(8000, 'confd'),
                 'version': '1.1',

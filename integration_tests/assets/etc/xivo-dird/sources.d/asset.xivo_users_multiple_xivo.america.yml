@@ -3,7 +3,10 @@ name: xivo_america
 searched_columns:
   - firstname
   - lastname
-confd_config:
+auth:
+  host: auth
+  verify_certificate: false
+confd:
   host: america
   port: 8000
   version: 1.1

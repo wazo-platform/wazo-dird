@@ -47,6 +47,9 @@ class BackendWrapper(object):
         self._source = manager.driver
         self._source.load(config)
 
+    def unload(self):
+        self._source.unload()
+
     def search(self, term):
         return [r.fields for r in self.search_raw(term)]
 

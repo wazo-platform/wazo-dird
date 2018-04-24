@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2016 Avencall
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -10,18 +10,29 @@ from hamcrest import equal_to
 from hamcrest import empty
 from hamcrest import is_
 from hamcrest import none
-from mock import Mock
+from mock import Mock, patch
 from ..xivo_user_plugin import XivoUserPlugin
 from xivo_dird import make_result_class
 
-CONFD_CONFIG = {'host': 'xivo.example.com',
-                'username': 'admin',
-                'password': 'secret',
-                'port': 9487,
-                'version': '1.1'}
-DEFAULT_ARGS = {'config': {'confd_config': CONFD_CONFIG,
-                           'name': 'my_test_xivo',
-                           'searched_columns': ['firstname', 'lastname']}}
+AUTH_CONFIG = {
+    'host': 'xivo.example.com',
+    'backend': 'wazo_user',
+    'username': 'foo',
+    'password': 'bar',
+}
+CONFD_CONFIG = {
+    'host': 'xivo.example.com',
+    'port': 9486,
+    'version': '1.1',
+}
+DEFAULT_ARGS = {
+    'config': {
+        'confd': CONFD_CONFIG,
+        'auth': AUTH_CONFIG,
+        'name': 'my_test_xivo',
+        'searched_columns': ['firstname', 'lastname'],
+    },
+}
 UUID = 'my-xivo-uuid'
 
 UUID_1 = '55abf77c-5744-44a0-9c36-34da29f647cb'
@@ -153,6 +164,7 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         assert_that(result, contains(SOURCE_2))
 
+    @patch('xivo_dird.plugins.xivo_user_plugin.TokenRenewer', Mock())
     def test_that_search_uses_extra_search_params(self):
         config = dict(DEFAULT_ARGS)
         config['config']['extra_search_params'] = {'context': 'inside'}
@@ -222,6 +234,7 @@ class TestXivoUserBackendSearch(_BaseTest):
         assert_that(result, empty())
 
 
+@patch('xivo_dird.plugins.xivo_user_plugin.TokenRenewer', Mock())
 class TestXivoUserBackendInitialisation(_BaseTest):
 
     def setUp(self):
@@ -243,7 +256,7 @@ class TestXivoUserBackendInitialisation(_BaseTest):
     def test_load_client(self):
         self._source.load(DEFAULT_ARGS)
 
-        confd_config = DEFAULT_ARGS['config']['confd_config']
+        confd_config = DEFAULT_ARGS['config']['confd']
         self._FakedConfdClient.assert_called_once_with(**confd_config)
 
         assert_that(self._source._client, self._confd_client)
