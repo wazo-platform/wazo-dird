@@ -4,17 +4,22 @@
 
 import yaml
 
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import contains_inanyorder
-from hamcrest import equal_to
-from hamcrest import empty
-from hamcrest import has_entry
-from hamcrest import has_entries
+from hamcrest import (
+    assert_that,
+    contains,
+    contains_inanyorder,
+    empty,
+    equal_to,
+    has_entries,
+    has_entry,
+)
 
 from xivo_test_helpers import until
 
-from .base_dird_integration_test import BaseDirdIntegrationTest, BackendWrapper
+from .base_dird_integration_test import (
+    BaseDirdIntegrationTest,
+    BackendWrapper,
+)
 
 
 class TestXivoUser(BaseDirdIntegrationTest):

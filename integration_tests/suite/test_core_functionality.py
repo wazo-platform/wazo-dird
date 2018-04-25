@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import sh
 
-from hamcrest import all_of
-from hamcrest import any_of
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import contains_inanyorder
-from hamcrest import contains_string
-from hamcrest import equal_to
-from hamcrest import has_length
-from hamcrest import is_in
-from hamcrest import is_not
+from hamcrest import (
+    all_of,
+    any_of,
+    assert_that,
+    contains,
+    contains_inanyorder,
+    contains_string,
+    equal_to,
+    has_length,
+    is_in,
+    is_not,
+)
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_TOKEN
-from .base_dird_integration_test import VALID_UUID
+from .base_dird_integration_test import (
+    BaseDirdIntegrationTest,
+    VALID_TOKEN,
+    VALID_UUID,
+)
 
 
 EMPTY_RELATIONS = {'xivo_id': None,

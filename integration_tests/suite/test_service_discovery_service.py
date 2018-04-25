@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from hamcrest import assert_that, contains, has_entry
+from hamcrest import (
+    assert_that,
+    contains,
+    has_entry,
+)
 
 from xivo_test_helpers import until
 

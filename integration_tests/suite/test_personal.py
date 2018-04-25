@@ -1,36 +1,40 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
-from hamcrest import all_of
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import contains_inanyorder
-from hamcrest import empty
-from hamcrest import equal_to
-from hamcrest import has_entries
-from hamcrest import has_entry
-from hamcrest import has_item
-from hamcrest import has_items
-from hamcrest import has_key
-from hamcrest import is_
-from hamcrest import none
-from hamcrest import not_
-
 import kombu
-
+from hamcrest import (
+    all_of,
+    assert_that,
+    contains,
+    contains_inanyorder,
+    empty,
+    equal_to,
+    has_entries,
+    has_entry,
+    has_item,
+    has_items,
+    has_key,
+    is_,
+    none,
+    not_,
+)
 from mock import ANY
-
 from xivo_bus.resources.user import event
-from xivo_bus import Publisher, Marshaler
+from xivo_bus import (
+    Publisher,
+    Marshaler,
+)
 from xivo_test_helpers import until
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_UUID
-from .base_dird_integration_test import VALID_TOKEN
-from .base_dird_integration_test import VALID_TOKEN_1
-from .base_dird_integration_test import VALID_TOKEN_2
+from .base_dird_integration_test import (
+    BaseDirdIntegrationTest,
+    VALID_UUID,
+    VALID_TOKEN,
+    VALID_TOKEN_1,
+    VALID_TOKEN_2,
+)
 
 
 class TestListPersonal(BaseDirdIntegrationTest):

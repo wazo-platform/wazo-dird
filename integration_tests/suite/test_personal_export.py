@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from hamcrest import (
+    assert_that,
+    contains_inanyorder,
+    equal_to,
+    matches_regexp,
+)
 
-from hamcrest import assert_that
-from hamcrest import contains_inanyorder
-from hamcrest import equal_to
-from hamcrest import matches_regexp
+from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
 class TestPersonalExport(BaseDirdIntegrationTest):
