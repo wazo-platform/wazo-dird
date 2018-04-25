@@ -22,6 +22,11 @@ case "$1" in
 			touch "$LOG_FILENAME"
 		fi
 		chown www-data: "$LOG_FILENAME"
+
+		if [ -z "$2" ]; then
+			ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
+					/etc/nginx/locations/https-enabled/$DAEMONNAME
+		fi
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
