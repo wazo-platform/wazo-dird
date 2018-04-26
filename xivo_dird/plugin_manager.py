@@ -44,7 +44,6 @@ def unload_sources():
     return source_manager.unload_sources()
 
 
-
 def load_views(config, enabled_views, services, rest_api):
     dependencies = {
         'config': config,
