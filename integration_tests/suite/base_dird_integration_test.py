@@ -8,9 +8,10 @@ import logging
 from contextlib import contextmanager
 
 import requests
-
-from hamcrest import assert_that
-from hamcrest import equal_to
+from hamcrest import (
+    assert_that,
+    equal_to,
+)
 from stevedore import DriverManager
 
 from xivo import url_helpers
@@ -46,6 +47,9 @@ class BackendWrapper(object):
                                 invoke_on_load=True)
         self._source = manager.driver
         self._source.load(config)
+
+    def unload(self):
+        self._source.unload()
 
     def search(self, term):
         return [r.fields for r in self.search_raw(term)]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 
 from setuptools import setup
 from setuptools import find_packages
@@ -57,7 +57,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'xivo-dird=xivo_dird.bin.daemon:main',
+            'xivo-dird=xivo_dird.main:main',
         ],
         'xivo_dird.services': [
             'cleanup = xivo_dird.plugins.cleanup_service:StorageCleanupServicePlugin',

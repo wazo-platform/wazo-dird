@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -89,3 +89,15 @@ class TestSourceManager(unittest.TestCase):
         assert_that(manager._sources.keys(), contains('source2'))
         assert_that(source2.name, equal_to('source2'))
         source2.load.assert_called_once_with({'config': config2, 'main_config': main_config})
+
+    def test_unload_sources(self):
+        source_1 = Mock()
+        source_2 = Mock()
+
+        manager = SourceManager([], {'sources': {}})
+        manager._sources = {'s1': source_1, 's2': source_2}
+
+        manager.unload_sources()
+
+        source_1.unload.assert_called_once_with()
+        source_2.unload.assert_called_once_with()

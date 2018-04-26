@@ -18,5 +18,6 @@ sqlalchemy==1.0.15
 unidecode==0.04.19
 kombu
 stevedore
-git+https://github.com/wazo-pbx/xivo-confd-client.git
-git+https://github.com/wazo-pbx/xivo-lib-rest-client.git
+https://github.com/wazo-pbx/xivo-lib-rest-client/archive/master.zip
+https://github.com/wazo-pbx/xivo-auth-client/archive/master.zip
+https://github.com/wazo-pbx/xivo-confd-client/archive/master.zip

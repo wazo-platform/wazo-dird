@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
-from .base_dird_integration_test import VALID_TOKEN
-from .base_dird_integration_test import VALID_UUID
 from xml.dom.minidom import parseString as parse_xml
+from hamcrest import (
+    assert_that,
+    equal_to,
+)
 
-from hamcrest import assert_that
-from hamcrest import equal_to
+from .base_dird_integration_test import (
+    BaseDirdIntegrationTest,
+    VALID_TOKEN,
+    VALID_UUID,
+)
 
 
 class TestPhone(BaseDirdIntegrationTest):

@@ -4,8 +4,11 @@
 
 import time
 
-from hamcrest import assert_that
-from hamcrest import contains_string
+from hamcrest import (
+    assert_that,
+    contains_string,
+)
+
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 

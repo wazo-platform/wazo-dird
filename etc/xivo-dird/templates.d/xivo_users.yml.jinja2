@@ -5,12 +5,17 @@ searched_columns:
   - lastname
 first_matched_columns:
   - exten
-confd_config:
+auth:
+  host: {{ hostname }}
+  port: 9497
+  username: {{ service_id }}
+  password: {{ service_key }}
+  backend: xivo_service
+  verify_certificate: false
+confd:
   host: {{ hostname }}
   port: {{ port }}
   version: "1.1"
-  username: {{ service_id }}
-  password: {{ service_key }}
   https: true
   verify_certificate: false
 format_columns:

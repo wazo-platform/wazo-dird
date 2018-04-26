@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
-from collections import defaultdict
 
-from hamcrest import assert_that, calling, equal_to, has_entries, raises, not_
-from mock import ANY, Mock, patch, sentinel as s
+from hamcrest import assert_that, calling, equal_to, raises, not_
+from mock import Mock, patch, sentinel as s
 
 from xivo_dird import plugin_manager
 

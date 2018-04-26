@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
@@ -24,7 +24,10 @@ searched_columns:
   - lastname
 first_matched_columns:
   - exten
-confd_config:
+auth:
+  host: {{ hostname }}
+  port: 9497
+confd:
   host: {{ hostname }}
   port: {{ port }}
   version: "1.1"
@@ -226,7 +229,11 @@ class TestSourceConfigGenerator(unittest.TestCase):
             'name': 'xivo-ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['exten'],
-            'confd_config': {
+            'auth': {
+                'host': 'the-host-name',
+                'port': 9497,
+            },
+            'confd': {
                 'host': 'the-host-name',
                 'port': 4567,
                 'version': '1.1',

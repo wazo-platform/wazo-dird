@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import textwrap
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from hamcrest import (
+    assert_that,
+    contains,
+    contains_inanyorder,
+    equal_to,
+    has_entry,
+    has_entries,
+)
 
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import contains_inanyorder
-from hamcrest import equal_to
-from hamcrest import has_entry
-from hamcrest import has_entries
+from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
 class TestPersonalImportFail(BaseDirdIntegrationTest):
