@@ -18,8 +18,8 @@ USER=www-data
 GROUP=$USER
 DAEMONNAME=xivo-dird
 DAEMON=/usr/bin/wazo-dird
-PIDDIR=/var/run/$DAEMONNAME
-PIDFILE=$PIDDIR/$DAEMONNAME.pid
+PIDDIR=/var/run/wazo-dird
+PIDFILE=$PIDDIR/wazo-dird.pid
 XIVO_DEFAULT_FILE="/etc/default/xivo"
 
 . /lib/lsb/init-functions

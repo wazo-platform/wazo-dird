@@ -27,6 +27,11 @@ case "$1" in
 			ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
 					/etc/nginx/locations/https-enabled/$DAEMONNAME
 		fi
+
+    # Remove the old PID file directory
+    if dpkg --compare-versions "$2" lt '18.05~'; then
+        rm -rf /var/run/xivo-dird
+    fi
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)

@@ -9,8 +9,8 @@ RUN apt-get -yq update \
    && apt-get -yqq install libldap2-dev libsasl2-dev \
    && mkdir -p /etc/xivo-dird/conf.d \
    && mkdir -p /etc/xivo-dird/templates.d \
-   && mkdir -p /var/run/xivo-dird \
-   && chmod a+w /var/run/xivo-dird \
+   && mkdir -p /var/run/wazo-dird \
+   && chmod a+w /var/run/wazo-dird \
    && touch /var/log/xivo-dird.log \
    && chown www-data: /var/log/xivo-dird.log \
    && pip install -r requirements.txt \

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import argparse
@@ -32,7 +32,7 @@ _DEFAULT_CONFIG = {
     'log_level': 'info',
     'log_filename': '/var/log/xivo-dird.log',
     'foreground': False,
-    'pid_filename': '/var/run/xivo-dird/xivo-dird.pid',
+    'pid_filename': '/var/run/wazo-dird/wazo-dird.pid',
     'rest_api': {
         'https': {
             'listen': '0.0.0.0',
