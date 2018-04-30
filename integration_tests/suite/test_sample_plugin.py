@@ -21,6 +21,6 @@ class TestSamplePlugin(BaseDirdIntegrationTest):
             contains(
                 'John',
                 'Doe',
-                'It works but this xivo-dird installation is still using the default configuration',
+                'It works but this wazo-dird installation is still using the default configuration',
             ),
         )

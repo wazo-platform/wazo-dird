@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
-  title: xivo-dird
-  description: "Contacts and directories in Wazo are managed by the xivo-dird daemon.\
+  title: wazo-dird
+  description: "Contacts and directories in Wazo are managed by the wazo-dird daemon.\
     \ This service provides a public API that can be used to query the directories\
     \ that are configured on a Wazo. \n\n\nA contact can contain various information\
     \ such as a person's phone number, number, office number, department, office number,\

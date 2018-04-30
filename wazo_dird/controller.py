@@ -30,7 +30,7 @@ class Controller(object):
         self.rest_api = CoreRestApi(self.config)
         self.bus = Bus(config)
         auth.set_auth_config(self.config['auth'])
-        self._service_registration_params = ['xivo-dird',
+        self._service_registration_params = ['wazo-dird',
                                              self.config.get('uuid'),
                                              self.config.get('consul'),
                                              self.config.get('service_discovery'),

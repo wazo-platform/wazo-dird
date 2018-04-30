@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2015 Avencall
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from wazo_dird import BaseSourcePlugin
@@ -13,7 +13,7 @@ class SamplePlugin(BaseSourcePlugin):
         'firstname': 'John',
         'lastname': 'Doe',
         'number': '555',
-        'description': 'It works but this xivo-dird installation is still using the default configuration',
+        'description': 'It works but this wazo-dird installation is still using the default configuration',
     }
 
     def load(self, args):

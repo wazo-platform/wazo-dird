@@ -53,7 +53,7 @@ class _PreConfigLogger(object):
 def main(argv=None):
     argv = argv or sys.argv[1:]
     with _PreConfigLogger() as logger:
-        logger.debug('Starting xivo-dird')
+        logger.debug('Starting wazo-dird')
 
         config = load_config(logger, argv)
 

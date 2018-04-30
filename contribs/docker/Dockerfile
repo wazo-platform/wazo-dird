@@ -10,5 +10,5 @@ RUN echo "deb http://mirror.wazo.community/debian/ phoenix main" >> /etc/apt/sou
 RUN wget http://mirror.wazo.community/wazo_current.key -O - | apt-key add -
 RUN apt-get -qq update
 
-# install xivo-dird
-RUN apt-get -qq -y install xivo-dird
+# install wazo-dird
+RUN apt-get -qq -y install wazo-dird
