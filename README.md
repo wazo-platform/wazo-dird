@@ -27,11 +27,11 @@ using:
 
 ## Docker
 
-The wazopbx/xivo-dird image can be built using the following command:
+The wazopbx/wazo-dird image can be built using the following command:
 
-    % docker build -t wazopbx/xivo-dird .
+    % docker build -t wazopbx/wazo-dird .
 
-The `wazopbx/xivo-dird` image contains a configuration file to listen to HTTP
+The `wazopbx/wazo-dird` image contains a configuration file to listen to HTTP
 requests on "0.0.0.0". To change this behavior, create or edit the file
 `/etc/xivo-dird/conf.d/listen.yml`
 

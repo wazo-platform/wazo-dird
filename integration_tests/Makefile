@@ -10,7 +10,7 @@ test-setup: egg-info build-dird build-db-image
 	docker pull waisbrot/wait
 
 build-dird:
-	docker build -t wazopbx/xivo-dird ..
+	docker build -t wazopbx/wazo-dird ..
 	docker build --no-cache -t wazo-dird-test -f docker/Dockerfile-dird-test ..
 
 build-db-image:
