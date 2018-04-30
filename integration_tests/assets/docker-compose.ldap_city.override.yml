@@ -15,8 +15,8 @@ services:
   slapd:
     image: nickstenning/slapd
     environment:
-      LDAP_DOMAIN: xivo-dird.wazo.community
+      LDAP_DOMAIN: wazo-dird.wazo.community
       LDAP_ORGANISATION: acme
-      LDAP_ROOTPASS: xivopassword
+      LDAP_ROOTPASS: wazopassword
     ports:
       - "389"

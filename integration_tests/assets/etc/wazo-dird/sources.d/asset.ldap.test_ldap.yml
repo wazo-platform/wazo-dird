@@ -2,9 +2,9 @@ type: ldap
 name: test_ldap
 
 ldap_uri: ldap://slapd
-ldap_base_dn: ou=québec,dc=xivo-dird,dc=wazo,dc=community
-ldap_username: cn=admin,dc=xivo-dird,dc=wazo,dc=community
-ldap_password: xivopassword
+ldap_base_dn: ou=québec,dc=wazo-dird,dc=wazo,dc=community
+ldap_username: cn=admin,dc=wazo-dird,dc=wazo,dc=community
+ldap_password: wazopassword
 
 unique_column: entryUUID
 searched_columns:
