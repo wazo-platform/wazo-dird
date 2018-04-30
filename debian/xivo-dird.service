@@ -6,7 +6,7 @@ Before=monit.service
 [Service]
 Type=forking
 ExecStartPre=/usr/bin/install -d -o www-data -g www-data /var/run/xivo-dird
-ExecStart=/usr/bin/xivo-dird --user www-data
+ExecStart=/usr/bin/wazo-dird --user www-data
 PIDFile=/var/run/xivo-dird/xivo-dird.pid
 
 [Install]

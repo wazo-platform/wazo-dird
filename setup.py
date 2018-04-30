@@ -57,7 +57,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'xivo-dird=wazo_dird.main:main',
+            'wazo-dird=wazo_dird.main:main',
         ],
         'xivo_dird.services': [
             'cleanup = wazo_dird.plugins.cleanup_service:StorageCleanupServicePlugin',
