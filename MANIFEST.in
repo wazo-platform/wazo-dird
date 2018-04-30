@@ -1,2 +1,2 @@
-recursive-include xivo_dird/plugins/templates *.jinja
-recursive-include xivo_dird/translations *
+recursive-include wazo_dird/plugins/templates *.jinja
+recursive-include wazo_dird/translations *

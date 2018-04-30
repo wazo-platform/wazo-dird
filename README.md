@@ -9,20 +9,20 @@ simple REST API.
 
 To extract new translations:
 
-    % pybabel extract --mapping-file=xivo_dird/babel.cfg --output-file=xivo_dird/messages.pot .
+    % pybabel extract --mapping-file=wazo_dird/babel.cfg --output-file=wazo_dird/messages.pot .
 
 To create new translation catalog:
 
-    % pybabel init -l <locale> --input-file=xivo_dird/messages.pot --output-dir=xivo_dird/translations
+    % pybabel init -l <locale> --input-file=wazo_dird/messages.pot --output-dir=wazo_dird/translations
 
 To update existing translations catalog:
 
-    % pybabel update --input-file=xivo_dird/messages.pot --output-dir=xivo_dird/translations
+    % pybabel update --input-file=wazo_dird/messages.pot --output-dir=wazo_dird/translations
 
-Edit file `xivo_dird/translations/<locale>/LC_MESSAGES/messages.po` and compile
+Edit file `wazo_dird/translations/<locale>/LC_MESSAGES/messages.po` and compile
 using:
 
-    % pybabel compile --directory=xivo_dird/translations
+    % pybabel compile --directory=wazo_dird/translations
 
 
 ## Docker
@@ -69,7 +69,7 @@ For developers, when adding/removing a plugin:
 
 ### Generate .tx/config
 
-    % tx set --auto-local -r xivo.xivo-dird 'xivo_dird/translations/<lang>/LC_MESSAGES/messages.po' --source-lang en --type PO --source-file xivo_dird/messages.pot --execute
+    % tx set --auto-local -r xivo.xivo-dird 'wazo_dird/translations/<lang>/LC_MESSAGES/messages.po' --source-lang en --type PO --source-file wazo_dird/messages.pot --execute
 
 
 Adding a new database migration

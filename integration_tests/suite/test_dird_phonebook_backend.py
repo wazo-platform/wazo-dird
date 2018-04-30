@@ -11,7 +11,7 @@ from hamcrest import assert_that, contains, contains_inanyorder, equal_to
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from xivo_dird import database
+from wazo_dird import database
 from .base_dird_integration_test import BaseDirdIntegrationTest, BackendWrapper
 
 Session = scoped_session(sessionmaker())
