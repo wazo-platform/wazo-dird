@@ -7,7 +7,7 @@ services:
     environment:
       TARGETS: "dird:9489 auth:9497"
   dird:
-    image: xivo-dird-test
+    image: wazo-dird-test
     ports:
       - "9489"
     volumes:

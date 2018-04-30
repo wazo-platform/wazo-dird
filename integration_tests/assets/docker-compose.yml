@@ -13,7 +13,7 @@ services:
       - "./ssl:/usr/local/share/ssl"
     command: "python /tmp/mock-xivo-auth.py 9497"
   dird:
-    image: xivo-dird-test
+    image: wazo-dird-test
     ports:
       - "9489"
     volumes:

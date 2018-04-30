@@ -11,7 +11,7 @@ test-setup: egg-info build-dird build-db-image
 
 build-dird:
 	docker build -t wazopbx/xivo-dird ..
-	docker build --no-cache -t xivo-dird-test -f docker/Dockerfile-dird-test ..
+	docker build --no-cache -t wazo-dird-test -f docker/Dockerfile-dird-test ..
 
 build-db-image:
 	docker build -f ../contribs/docker/Dockerfile-db -t wazopbx/xivo-dird-db ..
