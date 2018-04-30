@@ -2,7 +2,7 @@
 
 set -e
 
-LOG_FILENAME='/var/log/xivo-dird.log'
+LOG_FILENAME='/var/log/wazo-dird.log'
 DIRD_ALEMBIC_INI_PATH='/usr/share/xivo-dird'
 DAEMONNAME='xivo-dird'
 
@@ -19,7 +19,15 @@ case "$1" in
 		fi
 
 		if [ ! -e "$LOG_FILENAME" ]; then
-			touch "$LOG_FILENAME"
+			# The log filename was renamed in Wazo 18.05 Debian Stretch
+			if [ -e "/var/log/xivo-dird.log" ]; then
+				for f in $(ls /var/log/xivo-dird.log*); do
+					new_name=$(echo "${f}" | awk -F'/' '{ print $NF }' | sed 's/xivo/wazo/')
+					mv "${f}" "/var/log/${new_name}"
+				done
+			else
+				touch "$LOG_FILENAME"
+			fi
 		fi
 		chown www-data: "$LOG_FILENAME"
 

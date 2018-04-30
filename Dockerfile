@@ -11,8 +11,8 @@ RUN apt-get -yq update \
    && mkdir -p /etc/xivo-dird/templates.d \
    && mkdir -p /var/run/wazo-dird \
    && chmod a+w /var/run/wazo-dird \
-   && touch /var/log/xivo-dird.log \
-   && chown www-data: /var/log/xivo-dird.log \
+   && touch /var/log/wazo-dird.log \
+   && chown www-data: /var/log/wazo-dird.log \
    && pip install -r requirements.txt \
    && cp -r etc/* /etc \
    && python setup.py install \

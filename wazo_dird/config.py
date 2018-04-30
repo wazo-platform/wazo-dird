@@ -30,7 +30,7 @@ _DEFAULT_CONFIG = {
         'views': {},
     },
     'log_level': 'info',
-    'log_filename': '/var/log/xivo-dird.log',
+    'log_filename': '/var/log/wazo-dird.log',
     'foreground': False,
     'pid_filename': '/var/run/wazo-dird/wazo-dird.pid',
     'rest_api': {

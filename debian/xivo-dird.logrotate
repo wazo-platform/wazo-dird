@@ -1,4 +1,4 @@
-/var/log/xivo-dird.log {
+/var/log/wazo-dird.log {
     daily
     rotate 15
     compress
