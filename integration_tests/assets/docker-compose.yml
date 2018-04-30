@@ -17,7 +17,7 @@ services:
     ports:
       - "9489"
     volumes:
-      - "../..:/usr/src/xivo-dird"
+      - "../..:/usr/src/wazo-dird"
       - "./ssl:/usr/local/share/ssl"
       - "./etc/xivo-dird/conf.d/disable_service_discovery.yml:/etc/xivo-dird/conf.d/disable_service_discovery.yml"
       - "./etc/xivo-dird/conf.d/db_uri.yml:/etc/xivo-dird/conf.d/db_uri.yml"

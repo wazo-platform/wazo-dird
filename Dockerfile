@@ -1,9 +1,9 @@
 FROM python:2.7.13-stretch
 
-ADD . /usr/src/xivo-dird
+ADD . /usr/src/wazo-dird
 ADD ./contribs/docker/certs /usr/share/xivo-certs
 
-WORKDIR /usr/src/xivo-dird
+WORKDIR /usr/src/wazo-dird
 
 RUN apt-get -yq update \
    && apt-get -yqq install libldap2-dev libsasl2-dev \
