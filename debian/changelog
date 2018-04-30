@@ -1,3 +1,9 @@
+wazo-dird (18.05~20180426.170126.2e2a89c.deb9+rename) wazo-dev; urgency=medium
+
+  * rename wazo-dird
+
+ -- Wazo Maintainers <dev+pkg@wazo.community>  Mon, 30 Apr 2018 14:18:25 -0400
+
 xivo-dird (12.22~20120914.180644.1b6b0ae) xivo-dev; urgency=low
 
   * fix depends, now on xivo-lib-python

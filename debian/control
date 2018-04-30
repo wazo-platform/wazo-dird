@@ -1,4 +1,4 @@
-Source: xivo-dird
+Source: wazo-dird
 Section: python
 Priority: extra
 Maintainer: Wazo Maintainers <dev@wazo.community>
@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 9), dh-python, dh-systemd (>= 1.5), python-all (>= 
 Standards-Version: 3.9.6
 X-Python-Version: >= 2.7
 
-Package: xivo-dird
+Package: wazo-dird
 Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
@@ -31,9 +31,9 @@ Depends: ${python:Depends},
          xivo-lib-python (>= 16.06~20160509.153738.904a909),
          xivo-lib-rest-client,
          python-sqlalchemy
-Provides: xivo-libdird
-Replaces: xivo-libdird
-Conflicts: xivo-libdird
+Provides: xivo-dird
+Replaces: xivo-dird
+Conflicts: xivo-dird
 Description: Wazo PBX's directory server
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.

@@ -4,7 +4,7 @@ set -e
 
 LOG_FILENAME='/var/log/wazo-dird.log'
 DIRD_ALEMBIC_INI_PATH='/usr/share/wazo-dird'
-DAEMONNAME='xivo-dird'
+DAEMONNAME='wazo-dird'
 
 pg_is_running () {
 	pg_lsclusters --no-header | grep -q online
@@ -14,7 +14,7 @@ case "$1" in
 	configure)
 		if pg_is_running ; then
 			wazo-dird-init-db --user postgres
-			echo "Upgrading xivo-dird database ..."
+			echo "Upgrading wazo-dird database ..."
 			(cd $DIRD_ALEMBIC_INI_PATH && alembic -c alembic.ini upgrade head)
 		fi
 

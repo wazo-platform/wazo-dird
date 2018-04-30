@@ -1,7 +1,7 @@
-# xivo-dird
+# wazo-dird
 [![Build Status](https://jenkins.wazo.community/buildStatus/icon?job=xivo-dird)](https://jenkins.wazo.community/job/xivo-dird)
 
-xivo-dird is a service to query many directory sources simultaneously using a
+wazo-dird is a service to query many directory sources simultaneously using a
 simple REST API.
 
 
@@ -69,7 +69,7 @@ For developers, when adding/removing a plugin:
 
 ### Generate .tx/config
 
-    % tx set --auto-local -r xivo.xivo-dird 'wazo_dird/translations/<lang>/LC_MESSAGES/messages.po' --source-lang en --type PO --source-file wazo_dird/messages.pot --execute
+    % tx set --auto-local -r xivo.wazo-dird 'wazo_dird/translations/<lang>/LC_MESSAGES/messages.po' --source-lang en --type PO --source-file wazo_dird/messages.pot --execute
 
 
 Adding a new database migration

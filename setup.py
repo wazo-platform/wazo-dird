@@ -31,7 +31,7 @@ class BabelWrapper(object):
 
 babel_wrapper = BabelWrapper()
 setup(
-    name='xivo-dird',
+    name='wazo-dird',
     version='1.2',
 
     description='Wazo Directory Daemon',
