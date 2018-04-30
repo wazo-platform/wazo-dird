@@ -3,7 +3,7 @@
 set -e
 
 LOG_FILENAME='/var/log/wazo-dird.log'
-DIRD_ALEMBIC_INI_PATH='/usr/share/xivo-dird'
+DIRD_ALEMBIC_INI_PATH='/usr/share/wazo-dird'
 DAEMONNAME='xivo-dird'
 
 pg_is_running () {
