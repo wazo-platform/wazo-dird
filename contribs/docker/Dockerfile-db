@@ -6,7 +6,7 @@ WORKDIR /usr/src/xivo-dird
 
 RUN true \
     && pg_start \
-    && bin/xivo-dird-init-db --user postgres \
+    && bin/wazo-dird-init-db --user postgres \
     && (cd /usr/src/xivo-dird && alembic -c alembic.ini upgrade head) \
     && pg_stop \
     && true

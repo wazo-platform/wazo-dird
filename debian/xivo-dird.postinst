@@ -13,7 +13,7 @@ pg_is_running () {
 case "$1" in
 	configure)
 		if pg_is_running ; then
-			xivo-dird-init-db --user postgres
+			wazo-dird-init-db --user postgres
 			echo "Upgrading xivo-dird database ..."
 			(cd $DIRD_ALEMBIC_INI_PATH && alembic -c alembic.ini upgrade head)
 		fi

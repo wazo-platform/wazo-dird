@@ -1,4 +1,4 @@
-bin/xivo-dird-init-db usr/bin/
+bin/wazo-dird-init-db usr/bin/
 etc/*  etc/
 alembic/ usr/share/xivo-dird/
 alembic.ini usr/share/xivo-dird/
