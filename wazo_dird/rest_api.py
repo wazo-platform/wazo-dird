@@ -34,7 +34,7 @@ class CoreRestApi(object):
 
     def __init__(self, global_config):
         self.config = global_config['rest_api']
-        self.app = Flask('xivo_dird', template_folder=TEMPLATE_FOLDER)
+        self.app = Flask('wazo_dird', template_folder=TEMPLATE_FOLDER)
         self.babel = Babel(self.app)
         self.app.config['BABEL_DEFAULT_LOCALE'] = 'en'
 
