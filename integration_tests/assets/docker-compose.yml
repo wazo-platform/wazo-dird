@@ -24,6 +24,6 @@ services:
       - "./etc/xivo-dird/conf.d/auth.yml:/etc/xivo-dird/conf.d/auth.yml"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python2.7/site-packages/xivo"
   db:
-    image: wazopbx/xivo-dird-db
+    image: wazopbx/wazo-dird-db
     ports:
       - "5432"
