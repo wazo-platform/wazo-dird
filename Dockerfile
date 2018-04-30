@@ -7,8 +7,8 @@ WORKDIR /usr/src/wazo-dird
 
 RUN apt-get -yq update \
    && apt-get -yqq install libldap2-dev libsasl2-dev \
-   && mkdir -p /etc/xivo-dird/conf.d \
-   && mkdir -p /etc/xivo-dird/templates.d \
+   && mkdir -p /etc/wazo-dird/conf.d \
+   && mkdir -p /etc/wazo-dird/templates.d \
    && mkdir -p /var/run/wazo-dird \
    && chmod a+w /var/run/wazo-dird \
    && touch /var/log/wazo-dird.log \

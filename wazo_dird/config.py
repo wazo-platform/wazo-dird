@@ -15,14 +15,14 @@ _DEFAULT_CONFIG = {
         'port': 9497,
         'verify_certificate': '/usr/share/xivo-certs/server.crt'
     },
-    'config_file': '/etc/xivo-dird/config.yml',
+    'config_file': '/etc/wazo-dird/config.yml',
     'consul': {
         'scheme': 'https',
         'host': 'localhost',
         'port': 8500,
         'verify': '/usr/share/xivo-certs/server.crt',
     },
-    'extra_config_files': '/etc/xivo-dird/conf.d/',
+    'extra_config_files': '/etc/wazo-dird/conf.d/',
     'debug': False,
     'enabled_plugins': {
         'backends': {},
@@ -47,11 +47,11 @@ _DEFAULT_CONFIG = {
     },
     'services': {
         'service_discovery': {
-            'template_path': '/etc/xivo-dird/templates.d/',
+            'template_path': '/etc/wazo-dird/templates.d/',
             'services': {},
         },
     },
-    'source_config_dir': '/etc/xivo-dird/sources.d',
+    'source_config_dir': '/etc/wazo-dird/sources.d',
     'user': 'www-data',
     'views': {},
     'sources': {},

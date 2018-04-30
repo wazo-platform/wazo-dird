@@ -9,5 +9,5 @@ services:
       TARGETS: "db:5432 dird:9489 auth:9497"
   dird:
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.half_broken.yml:/etc/xivo-dird/config.yml"
+      - "./etc/wazo-dird/conf.d/asset.half_broken.yml:/etc/wazo-dird/config.yml"
       - "./tmp/data/asset.half_broken.test.csv:/tmp/data/test.csv"

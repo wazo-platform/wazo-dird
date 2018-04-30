@@ -8,8 +8,8 @@ services:
       TARGETS: "dird:9489 auth:9497"
   dird:
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.phone.yml:/etc/xivo-dird/config.yml"
-      - "./etc/xivo-dird/sources.d/asset.phone.test_fallback.yml:/etc/xivo-dird/sources.d/test_fallback.yml"
-      - "./etc/xivo-dird/sources.d/asset.phone.test_sorted.yml:/etc/xivo-dird/sources.d/test_sorted.yml"
+      - "./etc/wazo-dird/conf.d/asset.phone.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/sources.d/asset.phone.test_fallback.yml:/etc/wazo-dird/sources.d/test_fallback.yml"
+      - "./etc/wazo-dird/sources.d/asset.phone.test_sorted.yml:/etc/wazo-dird/sources.d/test_sorted.yml"
       - "./tmp/data/asset.phone.test_fallback.csv:/tmp/data/test_fallback.csv"
       - "./tmp/data/asset.phone.test_sorted.csv:/tmp/data/test_sorted.csv"

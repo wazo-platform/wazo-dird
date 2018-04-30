@@ -1,3 +1,3 @@
 etc/nginx/locations/https-enabled
-etc/xivo-dird/conf.d
-etc/xivo-dird/templates.d
+etc/wazo-dird/conf.d
+etc/wazo-dird/templates.d

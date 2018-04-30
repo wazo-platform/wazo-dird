@@ -7,6 +7,6 @@ services:
       PORTS: "dird:9489"
   dird:
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.no_auth_server.yml:/etc/xivo-dird/config.yml"
-      - "./etc/xivo-dird/conf.d/asset.no_auth_server.no_auth.yml:/etc/xivo-dird/conf.d/no_auth.yml"
-      - "./etc/xivo-dird/sources.d/asset.no_auth_server.sample.yml:/etc/xivo-dird/sources.d/sample.yml"
+      - "./etc/wazo-dird/conf.d/asset.no_auth_server.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/conf.d/asset.no_auth_server.no_auth.yml:/etc/wazo-dird/conf.d/no_auth.yml"
+      - "./etc/wazo-dird/sources.d/asset.no_auth_server.sample.yml:/etc/wazo-dird/sources.d/sample.yml"

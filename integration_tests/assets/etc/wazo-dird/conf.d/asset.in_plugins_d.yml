@@ -1,4 +1,4 @@
-source_config_dir: /etc/xivo-dird/plugins_d
+source_config_dir: /etc/wazo-dird/plugins_d
 
 enabled_plugins:
   backends:

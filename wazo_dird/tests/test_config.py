@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2016 Avencall
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -19,8 +19,8 @@ class TestConfig(TestCase):
         mock_open.side_effect = IOError('no such file')
         config._DEFAULT_CONFIG = {
             'config': 'default',
-            'config_file': '/etc/xivo-dird/config.yml',
-            'extra_config_files': '/etc/xivo-dird/conf.d/',
+            'config_file': '/etc/wazo-dird/config.yml',
+            'extra_config_files': '/etc/wazo-dird/conf.d/',
         }
 
         result = config.load(s.logger, [])

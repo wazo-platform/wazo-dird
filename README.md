@@ -33,7 +33,7 @@ The wazopbx/wazo-dird image can be built using the following command:
 
 The `wazopbx/wazo-dird` image contains a configuration file to listen to HTTP
 requests on "0.0.0.0". To change this behavior, create or edit the file
-`/etc/xivo-dird/conf.d/listen.yml`
+`/etc/wazo-dird/conf.d/listen.yml`
 
 The wazopbx/wazo-dird-db image can be built using the following command:
 
