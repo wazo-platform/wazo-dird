@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -20,21 +20,23 @@ logger = logging.getLogger(__name__)
 class ApiViewPlugin(BaseViewPlugin):
 
     def load(self, args):
-        api.add_resource(SwaggerResource, '/api/api.yml')
+        api.add_resource(ApiResource, '/api/api.yml')
 
 
-class SwaggerResource(ErrorCatchingResource):
+class ApiResource(ErrorCatchingResource):
 
-    api_package = "wazo_dird.views"
+    api_entry_point = "xivo_dird.views"
     api_filename = "api.yml"
 
     def get(self):
         specs = []
-        for module in iter_entry_points(group=self.api_package):
+        for module in iter_entry_points(group=self.api_entry_point):
             try:
                 plugin_package = module.module_name.rsplit('.', 1)[0]
                 spec = yaml.load(resource_string(plugin_package, self.api_filename))
                 specs.append(spec)
+            except ImportError:
+                logger.debug('failed to import %s', plugin_package)
             except IOError:
                 logger.debug('API spec for module "%s" does not exist', module.module_name)
             except IndexError:
