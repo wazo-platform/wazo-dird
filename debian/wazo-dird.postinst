@@ -32,7 +32,34 @@ case "$1" in
 		chown www-data: "$LOG_FILENAME"
 
 		if [ -z "$2" ]; then
-			ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
+			# The config dir was moved from /etc/xivo-dird in version 18.05
+			if [ -e /etc/xivo-dird/conf.d ]; then
+				(
+					shopt -s nullglob
+					for f in /etc/xivo-dird/conf.d/*; do
+						mv "${f}" /etc/wazo-dird/conf.d/
+					done
+				)
+			fi
+			if [ -e /etc/xivo-dird/sources.d ]; then
+				(
+					shopt -s nullglob
+					for f in /etc/xivo-dird/sources.d/*; do
+						mv "${f}" /etc/wazo-dird/sources.d/
+					done
+				)
+			fi
+			if [ -e /etc/xivo-dird/templates.d ]; then
+				(
+					shopt -s nullglob
+					for f in /etc/xivo-dird/templates.d/*; do
+						mv "${f}" /etc/wazo-dird/templates.d/
+					done
+				)
+			fi
+			rm -rf /etc/xivo-auth
+
+			ln -sf	/etc/nginx/locations/https-available/$DAEMONNAME \
 					/etc/nginx/locations/https-enabled/$DAEMONNAME
 		fi
 
