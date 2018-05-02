@@ -25,7 +25,7 @@ class ApiViewPlugin(BaseViewPlugin):
 
 class ApiResource(ErrorCatchingResource):
 
-    api_entry_point = "xivo_dird.views"
+    api_entry_point = "wazo_dird.views"
     api_filename = "api.yml"
 
     def get(self):

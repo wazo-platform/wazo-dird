@@ -42,7 +42,7 @@ def absolute_file_name(asset_name, path):
 class BackendWrapper(object):
 
     def __init__(self, backend, config):
-        manager = DriverManager(namespace='xivo_dird.backends',
+        manager = DriverManager(namespace='wazo_dird.backends',
                                 name=backend,
                                 invoke_on_load=True)
         self._source = manager.driver

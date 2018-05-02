@@ -59,7 +59,7 @@ setup(
         'console_scripts': [
             'wazo-dird=wazo_dird.main:main',
         ],
-        'xivo_dird.services': [
+        'wazo_dird.services': [
             'cleanup = wazo_dird.plugins.cleanup_service:StorageCleanupServicePlugin',
             'config = wazo_dird.plugins.config_service:ConfigServicePlugin',
             'favorites = wazo_dird.plugins.favorites_service:FavoritesServicePlugin',
@@ -69,7 +69,7 @@ setup(
             'service_discovery = wazo_dird.plugins.service_discovery_service:ServiceDiscoveryServicePlugin',
             'reverse = wazo_dird.plugins.reverse_service:ReverseServicePlugin',
         ],
-        'xivo_dird.backends': [
+        'wazo_dird.backends': [
             'csv = wazo_dird.plugins.csv_plugin:CSVPlugin',
             'csv_ws = wazo_dird.plugins.csv_ws:CSVWSPlugin',
             'dird_phonebook = wazo_dird.plugins.dird_phonebook:PhonebookPlugin',
@@ -78,7 +78,7 @@ setup(
             'xivo = wazo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
             'sample = wazo_dird.plugins.sample_backend:SamplePlugin',
         ],
-        'xivo_dird.views': [
+        'wazo_dird.views': [
             'api_view = wazo_dird.plugins.views.api.api_view:ApiViewPlugin',
             'aastra_view = wazo_dird.plugins.views.aastra.aastra_view:AastraViewPlugin',
             'cisco_view = wazo_dird.plugins.views.cisco.cisco_view:CiscoViewPlugin',

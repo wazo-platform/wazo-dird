@@ -33,7 +33,7 @@ class TestSourceManager(unittest.TestCase):
         manager.load_sources()
 
         extension_manager_init.assert_called_once_with(
-            'xivo_dird.backends',
+            'wazo_dird.backends',
             ['ldap', 'xivo_phonebook'],
             name_order=True,
             on_load_failure_callback=ANY,

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class SourceManager(object):
 
-    _namespace = 'xivo_dird.backends'
+    _namespace = 'wazo_dird.backends'
 
     def __init__(self, enabled_backends, config):
         self._enabled_backends = enabled_backends

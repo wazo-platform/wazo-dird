@@ -21,7 +21,7 @@ def load_services(config, enabled_services, sources, bus):
         'sources': sources,
         'bus': bus,
     }
-    services_extension_manager, services = _load_plugins('xivo_dird.services', enabled_services, dependencies)
+    services_extension_manager, services = _load_plugins('wazo_dird.services', enabled_services, dependencies)
     return services
 
 
@@ -51,7 +51,7 @@ def load_views(config, enabled_views, services, rest_api):
         'rest_api': rest_api.api,
         'services': services,
     }
-    views_extension_manager, views = _load_plugins('xivo_dird.views', enabled_views, dependencies)
+    views_extension_manager, views = _load_plugins('wazo_dird.views', enabled_views, dependencies)
     return views
 
 
