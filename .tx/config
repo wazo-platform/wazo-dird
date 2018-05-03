@@ -1,9 +1,9 @@
 [main]
 host = https://www.transifex.com
 
-[wazo.xivo-dird]
-file_filter = xivo_dird/translations/<lang>/LC_MESSAGES/messages.po
-source_file = xivo_dird/messages.pot
+[wazo.wazo-dird]
+file_filter = wazo_dird/translations/<lang>/LC_MESSAGES/messages.po
+source_file = wazo_dird/messages.pot
 source_lang = en
 type = PO
 
