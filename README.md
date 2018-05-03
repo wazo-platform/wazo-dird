@@ -1,5 +1,5 @@
 # wazo-dird
-[![Build Status](https://jenkins.wazo.community/buildStatus/icon?job=xivo-dird)](https://jenkins.wazo.community/job/xivo-dird)
+[![Build Status](https://jenkins.wazo.community/buildStatus/icon?job=wazo-dird)](https://jenkins.wazo.community/job/wazo-dird)
 
 wazo-dird is a service to query many directory sources simultaneously using a
 simple REST API.
