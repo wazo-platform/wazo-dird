@@ -1,0 +1,326 @@
+swagger: '2.0'
+info:
+  title: wazo-dird
+  description: "Contacts and directories in Wazo are managed by the wazo-dird daemon.\
+    \ This service provides a public API that can be used to query the directories\
+    \ that are configured on a Wazo. \n\n\nA contact can contain various information\
+    \ such as a person's phone number, number, office number, department, office number,\
+    \ etc. The information displayed is selected via a profile. Directories can be\
+    \ aggregated using multiple data sources such as an LDAP server, a CSV file, another\
+    \ Wazo server, etc.\n\n\nPlease refer to [the documentation](http://documentation.wazo.community)\
+    \ for further details.\n\n\nNote: The 0.1 API is currently in development. Major\
+    \ changes could still happen and new resources will be added over time."
+  version: '0.1'
+  license:
+    name: GPL v3
+    url: http://www.gnu.org/licenses/gpl.txt
+  contact:
+    name: Dev Team
+    url: http://wazo.community
+    email: dev@wazo.community
+x-xivo-port: 9489
+x-xivo-name: dird
+schemes:
+- https
+basePath: /0.1
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  wazo_auth_token:
+    type: apiKey
+    name: X-Auth-Token
+    in: header
+security:
+- wazo_auth_token: []
+responses:
+  InvalidParameters:
+    description: Invalid parameters
+    schema:
+      $ref: '#/definitions/Error'
+  ProfileInvalid:
+    description: The profile does not exist
+    schema:
+      $ref: '#/definitions/Error'
+  AnotherServiceUnavailable:
+    description: Another service is unavailable (e.g. wazo-auth, postgresql, ...)
+    schema:
+      $ref: '#/definitions/Error'
+  LimitOffsetInvalid:
+    description: The limit or offset should be positive
+    schema:
+      $ref: '#/definitions/Error'
+  DuplicateFavorite:
+    description: The contact has already been favorited
+    schema:
+      $ref: '#/definitions/Error'
+  DuplicateContact:
+    description: This contact already exists
+    schema:
+      $ref: '#/definitions/Error'
+parameters:
+  AcceptLanguage:
+    name: Accept-Language
+    in: header
+    type: string
+    required: false
+    description: The language to translate the query results in
+  ContactID:
+    name: contact_id
+    in: path
+    type: string
+    required: true
+    description: The ID of contact.
+  direction:
+    required: false
+    name: direction
+    in: query
+    type: string
+    enum:
+    - asc
+    - desc
+    description: Sort list of items in 'asc' (ascending) or 'desc' (descending) order
+  Directory:
+    name: directory
+    in: path
+    type: string
+    description: The directory where the contact is stored.
+    required: true
+  Exten:
+    name: exten
+    in: query
+    type: string
+    description: A search exten to look for
+    required: true
+  FavoriteID:
+    name: contact
+    in: path
+    type: string
+    description: The ID of the contact. This ID is unique within the {directory}.
+    required: true
+  Limit:
+    name: limit
+    in: query
+    type: integer
+    description: The limit defines the number of individual objects that are returned
+    required: false
+  Limit8:
+    name: limit
+    in: query
+    type: integer
+    description: The limit defines the number of individual objects that are returned
+    default: 8
+    required: false
+  Limit16:
+    name: limit
+    in: query
+    type: integer
+    description: The limit defines the number of individual objects that are returned
+    default: 16
+    required: false
+  Offset:
+    name: offset
+    in: query
+    type: integer
+    description: The offset defines the offsets the start by the number specified
+    default: 0
+    required: false
+  order:
+    required: false
+    name: order
+    in: query
+    type: string
+    description: Name of the field to use for sorting the list of items returned.
+  Profile:
+    name: profile
+    in: path
+    type: string
+    description: The profile defines the list of directories to query and how the
+      results are displayed. The profile is the context name of the user who
+      started the contact lookup, e.g. `default`. More precisely, it is the name
+      of the "Direct directory" defined in the web interface.
+    required: true
+  ProxyUrl:
+    name: Proxy-URL
+    in: header
+    type: string
+    required: false
+    description: URL that will be integrated in the XML response. (not working on
+      swagger 2.1)
+  search:
+    required: false
+    name: search
+    in: query
+    type: string
+    description: Search term for filtering a list of items. Only items with a field
+      containing the search term will be returned.
+  Term:
+    name: term
+    in: query
+    type: string
+    description: A search term to look for
+    required: true
+  XivoUserUUID:
+    name: xivo_user_uuid
+    in: path
+    type: string
+    description: The XiVO user uuid on which the result is associated (e.g. used to
+      search in personal contacts)
+    required: true
+definitions:
+  Error:
+    title: Error
+    description: Error message for the client
+    properties:
+      timestamp:
+        description: Time at which the error occured
+        type: array
+        items:
+          type: number
+          format: timestamp
+      reason:
+        description: Human readable explanation of the error
+        type: array
+        items:
+          type: string
+      status_code:
+        description: HTTP status code
+        type: integer
+  Header:
+    properties:
+      column_headers:
+        type: array
+        description: Labels for the headers
+        items:
+          type: string
+      column_types:
+        type: array
+        description: Data types for the headers
+        items:
+          type: string
+  Lookup:
+    properties:
+      column_headers:
+        type: array
+        description: Labels for the headers
+        items:
+          type: string
+      column_types:
+        type: array
+        description: Data types for the headers
+        items:
+          type: string
+      results:
+        items:
+          $ref: '#/definitions/Contact'
+        type: array
+        description: List of results
+      term:
+        type: string
+        description: Search term used for these results
+    required:
+    - column_headers
+    - column_types
+    - results
+    - term
+    - links
+  ContactList:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/Contact'
+        type: array
+        description: List of results
+  Contact:
+    properties:
+      column_values:
+        items:
+          type: string
+        type: array
+      relations:
+        $ref: '#/definitions/Relation'
+      source:
+        type: string
+  Relation:
+    properties:
+      xivo_id:
+        type: string
+      user_id:
+        type: string
+      user_uuid:
+        type: string
+      endpoint_id:
+        type: string
+      agent_id:
+        type: string
+      source_entry_id:
+        type: string
+  PhonebookContact:
+    properties:
+      id:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+  PhonebookContactList:
+    type: array
+    items:
+      $ref: '#/definitions/PhonebookContact'
+  ContactBodySample:
+    properties:
+      firstname:
+        type: string
+      lastname:
+        type: string
+  ContactImportResponse:
+    properties:
+      created:
+        $ref: '#/definitions/PhonebookContactList'
+      failed:
+        type: array
+        items:
+          $ref: '#/definitions/ContactImportFailure'
+  ContactImportFailure:
+    properties:
+      line:
+        type: integer
+      errors:
+        type: array
+        items:
+          type: string
+  PhonebookBody:
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+    required:
+    - name
+  Phonebook:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      description:
+        type: string
+  Reverse:
+    properties:
+      display:
+        type: string
+      exten:
+        type: string
+        description: A search exten to look for
+      source:
+        type: string
+      fields:
+        description: Fields defined for each source
+        $ref: '#/definitions/ResultFields'
+    required:
+    - display
+    - exten
+    - fields
+    - source
+  ResultFields: {}

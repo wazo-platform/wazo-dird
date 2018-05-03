@@ -13,17 +13,17 @@ services:
       - "./ssl:/usr/local/share/ssl"
     command: "python /tmp/mock-xivo-auth.py 9497"
   dird:
-    image: xivo-dird-test
+    image: wazo-dird-test
     ports:
       - "9489"
     volumes:
-      - "../..:/usr/src/xivo-dird"
+      - "../..:/usr/src/wazo-dird"
       - "./ssl:/usr/local/share/ssl"
-      - "./etc/xivo-dird/conf.d/disable_service_discovery.yml:/etc/xivo-dird/conf.d/disable_service_discovery.yml"
-      - "./etc/xivo-dird/conf.d/db_uri.yml:/etc/xivo-dird/conf.d/db_uri.yml"
-      - "./etc/xivo-dird/conf.d/auth.yml:/etc/xivo-dird/conf.d/auth.yml"
+      - "./etc/wazo-dird/conf.d/disable_service_discovery.yml:/etc/wazo-dird/conf.d/disable_service_discovery.yml"
+      - "./etc/wazo-dird/conf.d/db_uri.yml:/etc/wazo-dird/conf.d/db_uri.yml"
+      - "./etc/wazo-dird/conf.d/auth.yml:/etc/wazo-dird/conf.d/auth.yml"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python2.7/site-packages/xivo"
   db:
-    image: wazopbx/xivo-dird-db
+    image: wazopbx/wazo-dird-db
     ports:
       - "5432"

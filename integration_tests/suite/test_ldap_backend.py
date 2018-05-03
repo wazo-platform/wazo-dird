@@ -26,9 +26,9 @@ Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
 
 class LDAPHelper(object):
 
-    BASE_DN = 'dc=xivo-dird,dc=wazo,dc=community'
+    BASE_DN = 'dc=wazo-dird,dc=wazo,dc=community'
     ADMIN_DN = 'cn=admin,{}'.format(BASE_DN)
-    ADMIN_PASSWORD = 'xivopassword'
+    ADMIN_PASSWORD = 'wazopassword'
     QUEBEC_DN = 'ou=québec,{}'.format(BASE_DN)
 
     def __init__(self, ldap_uri):

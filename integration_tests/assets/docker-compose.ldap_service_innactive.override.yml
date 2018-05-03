@@ -8,8 +8,8 @@ services:
       TARGETS: "dird:9489 auth:9497"
   dird:
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.ldap_service_innactive.yml:/etc/xivo-dird/config.yml"
-      - "./etc/xivo-dird/sources.d/asset.ldap_service_innactive.test_ldap.yml:/etc/xivo-dird/sources.d/test_ldap.yml"
+      - "./etc/wazo-dird/conf.d/asset.ldap_service_innactive.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/sources.d/asset.ldap_service_innactive.test_ldap.yml:/etc/wazo-dird/sources.d/test_ldap.yml"
   slapd:
     image: alpine
     command: "sh -c 'while true; do sleep 10; done'"

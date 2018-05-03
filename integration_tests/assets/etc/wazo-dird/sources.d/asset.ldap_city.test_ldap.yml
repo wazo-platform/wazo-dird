@@ -1,0 +1,17 @@
+type: ldap
+name: test_ldap
+
+ldap_uri: ldap://slapd
+ldap_base_dn: ou=québec,dc=wazo-dird,dc=wazo,dc=community
+ldap_username: cn=admin,dc=wazo-dird,dc=wazo,dc=community
+ldap_password: wazopassword
+ldap_custom_filter: (l=Québec)
+
+unique_column: entryUUID
+searched_columns:
+  - cn
+  - telephoneNumber
+format_columns:
+    firstname: "{givenName}"
+    lastname: "{sn}"
+    number: "{telephoneNumber}"

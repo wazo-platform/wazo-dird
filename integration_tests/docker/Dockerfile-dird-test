@@ -1,7 +1,7 @@
-FROM wazopbx/xivo-dird
+FROM wazopbx/wazo-dird
 
-ADD . /usr/src/xivo-dird
-WORKDIR /usr/src/xivo-dird
+ADD . /usr/src/wazo-dird
+WORKDIR /usr/src/wazo-dird
 RUN python setup.py develop
-WORKDIR /usr/src/xivo-dird/integration_tests/docker/broken-plugins
+WORKDIR /usr/src/wazo-dird/integration_tests/docker/broken-plugins
 RUN python setup.py develop

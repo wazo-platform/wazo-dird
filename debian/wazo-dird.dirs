@@ -1,0 +1,3 @@
+etc/nginx/locations/https-enabled
+etc/wazo-dird/conf.d
+etc/wazo-dird/templates.d

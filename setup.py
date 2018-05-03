@@ -31,7 +31,7 @@ class BabelWrapper(object):
 
 babel_wrapper = BabelWrapper()
 setup(
-    name='xivo-dird',
+    name='wazo-dird',
     version='1.2',
 
     description='Wazo Directory Daemon',
@@ -48,7 +48,7 @@ setup(
     install_requires=['babel'],
     zip_safe=False,
     package_data={
-        'xivo_dird.plugins.views': ['*/api.yml']
+        'wazo_dird.plugins.views': ['*/api.yml']
     },
 
     cmdclass={'build': build,
@@ -57,40 +57,40 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'xivo-dird=xivo_dird.main:main',
+            'wazo-dird=wazo_dird.main:main',
         ],
-        'xivo_dird.services': [
-            'cleanup = xivo_dird.plugins.cleanup_service:StorageCleanupServicePlugin',
-            'config = xivo_dird.plugins.config_service:ConfigServicePlugin',
-            'favorites = xivo_dird.plugins.favorites_service:FavoritesServicePlugin',
-            'lookup = xivo_dird.plugins.lookup:LookupServicePlugin',
-            'personal = xivo_dird.plugins.personal_service:PersonalServicePlugin',
-            'phonebook = xivo_dird.plugins.phonebook_service:PhonebookServicePlugin',
-            'service_discovery = xivo_dird.plugins.service_discovery_service:ServiceDiscoveryServicePlugin',
-            'reverse = xivo_dird.plugins.reverse_service:ReverseServicePlugin',
+        'wazo_dird.services': [
+            'cleanup = wazo_dird.plugins.cleanup_service:StorageCleanupServicePlugin',
+            'config = wazo_dird.plugins.config_service:ConfigServicePlugin',
+            'favorites = wazo_dird.plugins.favorites_service:FavoritesServicePlugin',
+            'lookup = wazo_dird.plugins.lookup:LookupServicePlugin',
+            'personal = wazo_dird.plugins.personal_service:PersonalServicePlugin',
+            'phonebook = wazo_dird.plugins.phonebook_service:PhonebookServicePlugin',
+            'service_discovery = wazo_dird.plugins.service_discovery_service:ServiceDiscoveryServicePlugin',
+            'reverse = wazo_dird.plugins.reverse_service:ReverseServicePlugin',
         ],
-        'xivo_dird.backends': [
-            'csv = xivo_dird.plugins.csv_plugin:CSVPlugin',
-            'csv_ws = xivo_dird.plugins.csv_ws:CSVWSPlugin',
-            'dird_phonebook = xivo_dird.plugins.dird_phonebook:PhonebookPlugin',
-            'ldap = xivo_dird.plugins.ldap_plugin:LDAPPlugin',
-            'personal = xivo_dird.plugins.personal_backend:PersonalBackend',
-            'xivo = xivo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
-            'sample = xivo_dird.plugins.sample_backend:SamplePlugin',
+        'wazo_dird.backends': [
+            'csv = wazo_dird.plugins.csv_plugin:CSVPlugin',
+            'csv_ws = wazo_dird.plugins.csv_ws:CSVWSPlugin',
+            'dird_phonebook = wazo_dird.plugins.dird_phonebook:PhonebookPlugin',
+            'ldap = wazo_dird.plugins.ldap_plugin:LDAPPlugin',
+            'personal = wazo_dird.plugins.personal_backend:PersonalBackend',
+            'xivo = wazo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
+            'sample = wazo_dird.plugins.sample_backend:SamplePlugin',
         ],
-        'xivo_dird.views': [
-            'api_view = xivo_dird.plugins.views.api.api_view:ApiViewPlugin',
-            'aastra_view = xivo_dird.plugins.views.aastra.aastra_view:AastraViewPlugin',
-            'cisco_view = xivo_dird.plugins.views.cisco.cisco_view:CiscoViewPlugin',
-            'config_view = xivo_dird.plugins.views.config.config_view:ConfigViewPlugin',
-            'polycom_view = xivo_dird.plugins.views.polycom.polycom_view:PolycomViewPlugin',
-            'snom_view = xivo_dird.plugins.views.snom.snom_view:SnomViewPlugin',
-            'thomson_view = xivo_dird.plugins.views.thomson.thomson_view:ThomsonViewPlugin',
-            'yealink_view = xivo_dird.plugins.views.yealink.yealink_view:YealinkViewPlugin',
-            'default_json = xivo_dird.plugins.views.default_json.default_json_view:JsonViewPlugin',
-            'headers_view = xivo_dird.plugins.views.headers.headers_view:HeadersViewPlugin',
-            'personal_view = xivo_dird.plugins.views.personal.personal_view:PersonalViewPlugin',
-            'phonebook_view = xivo_dird.plugins.views.phonebook.phonebook_view:PhonebookViewPlugin',
+        'wazo_dird.views': [
+            'api_view = wazo_dird.plugins.views.api.api_view:ApiViewPlugin',
+            'aastra_view = wazo_dird.plugins.views.aastra.aastra_view:AastraViewPlugin',
+            'cisco_view = wazo_dird.plugins.views.cisco.cisco_view:CiscoViewPlugin',
+            'config_view = wazo_dird.plugins.views.config.config_view:ConfigViewPlugin',
+            'polycom_view = wazo_dird.plugins.views.polycom.polycom_view:PolycomViewPlugin',
+            'snom_view = wazo_dird.plugins.views.snom.snom_view:SnomViewPlugin',
+            'thomson_view = wazo_dird.plugins.views.thomson.thomson_view:ThomsonViewPlugin',
+            'yealink_view = wazo_dird.plugins.views.yealink.yealink_view:YealinkViewPlugin',
+            'default_json = wazo_dird.plugins.views.default_json.default_json_view:JsonViewPlugin',
+            'headers_view = wazo_dird.plugins.views.headers.headers_view:HeadersViewPlugin',
+            'personal_view = wazo_dird.plugins.views.personal.personal_view:PersonalViewPlugin',
+            'phonebook_view = wazo_dird.plugins.views.phonebook.phonebook_view:PhonebookViewPlugin',
         ],
     }
 )

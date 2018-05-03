@@ -1,0 +1,6 @@
+# see: dh_installdeb(1)
+
+mv_conffile /etc/xivo-dird/xivo-dird.yml /etc/wazo-dird/config.yml 14.23
+rm_conffile /etc/xivo-dird/sources.d/xivo_users.yml 15.14
+rm_conffile /etc/default/xivo-dird 15.20
+mv_conffile /etc/wazo-dird/config.yml /etc/wazo-dird/config.yml 18.05

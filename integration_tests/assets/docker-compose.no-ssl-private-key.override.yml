@@ -7,6 +7,6 @@ services:
       TARGETS: ""
   dird:
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.no-ssl-private-key.yml:/etc/xivo-dird/config.yml"
-      - "./etc/xivo-dird/sources.d/asset.no-ssl-private-key.sample.yml:/etc/xivo-dird/sources.d/sample.yml"
+      - "./etc/wazo-dird/conf.d/asset.no-ssl-private-key.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/sources.d/asset.no-ssl-private-key.sample.yml:/etc/wazo-dird/sources.d/sample.yml"
       - "./ssl/dird/server.crt:/tmp/ssl/dird/server.crt"

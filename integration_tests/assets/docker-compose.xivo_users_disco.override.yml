@@ -26,5 +26,5 @@ services:
     environment:
       XIVO_UUID: "1a2cd704-ed32-4fa3-918a-d32b0609de81"
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.xivo_users_disco.yml:/etc/xivo-dird/config.yml"
-      - "./etc/xivo-dird/templates.d/asset.xivo_users_disco.confd_disco.yml:/etc/xivo-dird/templates.d/confd_disco.yml"
+      - "./etc/wazo-dird/conf.d/asset.xivo_users_disco.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/templates.d/asset.xivo_users_disco.confd_disco.yml:/etc/wazo-dird/templates.d/confd_disco.yml"

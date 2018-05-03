@@ -31,7 +31,7 @@ class _BaseCSVFileTestCase(unittest.TestCase):
 class TestCSVBackend(_BaseCSVFileTestCase):
 
     asset = 'csv_with_multiple_displays'
-    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+    source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
 
     def setUp(self):
         self._alice = {'id': '1', 'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
@@ -60,7 +60,7 @@ class TestCSVBackend(_BaseCSVFileTestCase):
 class TestCSVNoUnique(_BaseCSVFileTestCase):
 
     asset = 'csv_with_no_unique_column'
-    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+    source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
 
     def setUp(self):
         self._alice = {'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
@@ -75,7 +75,7 @@ class TestCSVNoUnique(_BaseCSVFileTestCase):
 class TestCSVWithAccents(_BaseCSVFileTestCase):
 
     asset = 'csv_with_no_unique_column'
-    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+    source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
 
     def setUp(self):
         self._pepe = {'fn': u'Pépé', 'ln': 'lol', 'num': '555'}
@@ -95,7 +95,7 @@ class TestCSVWithAccents(_BaseCSVFileTestCase):
 class TestCSVSeparator(_BaseCSVFileTestCase):
 
     asset = 'csv_with_pipes'
-    source_config = 'etc/xivo-dird/sources.d/my_test_csv.yml'
+    source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
 
     def setUp(self):
         self._alice = {'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}

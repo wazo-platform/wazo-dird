@@ -1,0 +1,56 @@
+enabled_plugins:
+  backends:
+    csv: true
+    unknown: true  # unknown backends should not prevent wazo-dird from starting
+  services:
+    lookup: true
+    reverse: true
+    unknown: true  # unknown backends should not prevent wazo-dird from starting
+  views:
+    default_json: true
+    unknown: true  # unknown backends should not prevent wazo-dird from starting
+
+views:
+  displays:
+    default_display:
+      -
+        title: Firstname
+        default: Unknown
+        field: firstname
+      -
+        title: Lastname
+        default: Unknown
+        field: lastname
+      -
+        title: Number
+        default:
+        field: number
+  profile_to_display:
+    default: default_display
+
+services:
+  lookup:
+    default:
+      sources:
+        my_csv: true
+        second_csv: true
+        third_csv: true
+  reverse:
+    default:
+      sources:
+        my_csv: true
+        second_csv: true
+        third_csv: true
+
+rest_api:
+  https:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /usr/local/share/ssl/dird/server.crt
+    private_key: /usr/local/share/ssl/dird/server.key
+
+bus:
+  enabled: false
+
+service_discovery:
+  enabled: false

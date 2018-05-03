@@ -27,7 +27,7 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import and_, func, exc
 
-from xivo_dird import database, exception
+from wazo_dird import database, exception
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 

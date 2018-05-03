@@ -1,0 +1,4 @@
+bin/wazo-dird-init-db usr/bin/
+etc/*  etc/
+alembic/ usr/share/wazo-dird/
+alembic.ini usr/share/wazo-dird/

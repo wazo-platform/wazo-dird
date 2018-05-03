@@ -7,4 +7,4 @@ services:
       TARGETS: "dird:9489"
   dird:
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.no_plugins.yml:/etc/xivo-dird/config.yml"
+      - "./etc/wazo-dird/conf.d/asset.no_plugins.yml:/etc/wazo-dird/config.yml"

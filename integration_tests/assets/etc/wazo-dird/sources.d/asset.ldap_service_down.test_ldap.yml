@@ -1,0 +1,16 @@
+type: ldap
+name: test_ldap
+
+ldap_uri: ldap://127.0.0.1:44444
+ldap_base_dn: dc=wazo-dird,dc=wazo,dc=community
+ldap_username: cn=admin,dc=wazo-dird,dc=wazo,dc=community
+ldap_password: wazopassword
+
+unique_column: entryUUID
+searched_columns:
+  - cn
+  - telephoneNumber
+format_columns:
+    firstname: "{givenName}"
+    lastname: "{sn}"
+    number: "{telephoneNumber}"

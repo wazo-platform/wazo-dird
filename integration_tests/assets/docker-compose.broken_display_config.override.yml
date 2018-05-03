@@ -7,11 +7,11 @@ services:
     environment:
       TARGETS: "dird:9489 auth:9497"
   dird:
-    image: xivo-dird-test
+    image: wazo-dird-test
     ports:
       - "9489"
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.broken_display_config.yml:/etc/xivo-dird/config.yml"
-      - "./etc/xivo-dird/sources.d/asset.broken_display_config.broken.yml:/etc/xivo-dird/sources.d/broken.yml"
-      - "./etc/xivo-dird/sources.d/asset.broken_display_config.my_test_csv.yml:/etc/xivo-dird/sources.d/my_test_csv.yml"
+      - "./etc/wazo-dird/conf.d/asset.broken_display_config.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/sources.d/asset.broken_display_config.broken.yml:/etc/wazo-dird/sources.d/broken.yml"
+      - "./etc/wazo-dird/sources.d/asset.broken_display_config.my_test_csv.yml:/etc/wazo-dird/sources.d/my_test_csv.yml"
       - "./tmp/data/asset.broken_display_config.test.csv:/tmp/data/test.csv"

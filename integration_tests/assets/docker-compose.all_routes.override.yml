@@ -11,9 +11,9 @@ services:
       TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
   dird:
     volumes:
-      - "./etc/xivo-dird/conf.d/asset.all_routes.disable_service_discovery.yml:/etc/xivo-dird/conf.d/disable_service_discovery.yml"
-      - "./etc/xivo-dird/conf.d/asset.all_routes.db_uri.yml:/etc/xivo-dird/conf.d/db_uri.yml"
-      - "./etc/xivo-dird/conf.d/asset.all_routes.auth.yml:/etc/xivo-dird/conf.d/auth.yml"
-      - "./etc/xivo-dird/conf.d/asset.all_routes.yml:/etc/xivo-dird/config.yml"
-      - "./etc/xivo-dird/sources.d/asset.all_routes.my_csv.yml:/etc/xivo-dird/sources.d/my_csv.yml"
+      - "./etc/wazo-dird/conf.d/asset.all_routes.disable_service_discovery.yml:/etc/wazo-dird/conf.d/disable_service_discovery.yml"
+      - "./etc/wazo-dird/conf.d/asset.all_routes.db_uri.yml:/etc/wazo-dird/conf.d/db_uri.yml"
+      - "./etc/wazo-dird/conf.d/asset.all_routes.auth.yml:/etc/wazo-dird/conf.d/auth.yml"
+      - "./etc/wazo-dird/conf.d/asset.all_routes.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/sources.d/asset.all_routes.my_csv.yml:/etc/wazo-dird/sources.d/my_csv.yml"
       - "./tmp/data/asset.all_routes.test.csv:/tmp/data/test.csv"
