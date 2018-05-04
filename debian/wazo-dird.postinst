@@ -5,6 +5,8 @@ set -e
 LOG_FILENAME='/var/log/wazo-dird.log'
 DIRD_ALEMBIC_INI_PATH='/usr/share/wazo-dird'
 DAEMONNAME='wazo-dird'
+OLD_NGINX_CONFIG="/etc/nginx/locations/https-available/xivo-dird /etc/nginx/locations/https-enabled/xivo-dird"
+
 
 pg_is_running () {
 	pg_lsclusters --no-header | grep -q online
@@ -61,6 +63,10 @@ case "$1" in
 
 			ln -sf	/etc/nginx/locations/https-available/$DAEMONNAME \
 					/etc/nginx/locations/https-enabled/$DAEMONNAME
+			for f in ${OLD_NGINX_CONFIG}; do
+				rm -f ${f}
+			done
+
 		fi
 
 		# Remove the old PID file directory
