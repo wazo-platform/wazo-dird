@@ -21,7 +21,7 @@ RUN apt-get -yq update \
    && apt-get -yqq clean \
    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ONBUILD ADD ./contribs/docker/certs /usr/share/xivo-certs
+ADD ./contribs/docker/certs /usr/share/xivo-certs
 
 EXPOSE 9489
 
