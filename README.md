@@ -9,7 +9,7 @@ simple REST API.
 
 To extract new translations:
 
-    % pybabel extract --mapping-file=wazo_dird/babel.cfg --output-file=wazo_dird/messages.pot .
+    % pybabel extract --mapping-file=wazo_dird/babel.cfg --output-file=wazo_dird/messages.pot wazo_dird
 
 To create new translation catalog:
 
