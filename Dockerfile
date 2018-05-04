@@ -1,7 +1,7 @@
 FROM python:2.7.13-stretch
 
-ADD . /usr/src/wazo-dird
-ADD ./contribs/docker/certs /usr/share/xivo-certs
+COPY . /usr/src/wazo-dird
+COPY ./contribs/docker/certs /usr/share/xivo-certs
 
 WORKDIR /usr/src/wazo-dird
 
