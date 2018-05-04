@@ -1,6 +1,6 @@
-# Translations template for xivo-dird.
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
-# This file is distributed under the same license as the xivo-dird project.
+# Translations template for wazo-dird.
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# This file is distributed under the same license as the wazo-dird project.
 # Wazo Authors <dev@wazo.community>, 2017.
 # 
 # Translators:
@@ -8,7 +8,7 @@
 # Rafał Perczyński, 2017
 msgid ""
 msgstr ""
-"Project-Id-Version: xivo-dird 1.2\n"
+"Project-Id-Version: wazo-dird 1.2\n"
 "Report-Msgid-Bugs-To: dev@wazo.community\n"
 "POT-Creation-Date: 2015-10-06 09:46-0400\n"
 "PO-Revision-Date: 2015-10-06 09:46-0400\n"
@@ -21,67 +21,67 @@ msgstr ""
 "Language: pl\n"
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
 
-#: xivo_dird/plugins/templates/aastra_input.jinja:3
-#: xivo_dird/plugins/templates/cisco_input.jinja:3
-#: xivo_dird/plugins/templates/polycom_input.jinja:4
-#: xivo_dird/plugins/templates/polycom_results.jinja:4
-#: xivo_dird/plugins/templates/snom_input.jinja:3
+#: wazo_dird/plugins/templates/aastra_input.jinja:3
+#: wazo_dird/plugins/templates/cisco_input.jinja:3
+#: wazo_dird/plugins/templates/polycom_input.jinja:4
+#: wazo_dird/plugins/templates/polycom_results.jinja:4
+#: wazo_dird/plugins/templates/snom_input.jinja:3
 msgid "Wazo Search"
 msgstr "Wyszukiwarka Wazo"
 
-#: xivo_dird/plugins/templates/aastra_input.jinja:4
-#: xivo_dird/plugins/templates/polycom_input.jinja:9
-#: xivo_dird/plugins/templates/snom_input.jinja:4
+#: wazo_dird/plugins/templates/aastra_input.jinja:4
+#: wazo_dird/plugins/templates/polycom_input.jinja:9
+#: wazo_dird/plugins/templates/snom_input.jinja:4
 msgid "Name or number:"
 msgstr "Nazwa lub numer:"
 
-#: xivo_dird/plugins/templates/aastra_results.jinja:5
-#: xivo_dird/plugins/templates/polycom_results.jinja:9
+#: wazo_dird/plugins/templates/aastra_results.jinja:5
+#: wazo_dird/plugins/templates/polycom_results.jinja:9
 msgid "Previous Page"
 msgstr "Poprzednia strona"
 
-#: xivo_dird/plugins/templates/aastra_results.jinja:17
-#: xivo_dird/plugins/templates/cisco_results.jinja:10
-#: xivo_dird/plugins/templates/polycom_results.jinja:15
-#: xivo_dird/plugins/templates/snom_results.jinja:10
-#: xivo_dird/plugins/templates/thomson_results.jinja:10
-#: xivo_dird/plugins/templates/yealink_results.jinja:10
+#: wazo_dird/plugins/templates/aastra_results.jinja:17
+#: wazo_dird/plugins/templates/cisco_results.jinja:10
+#: wazo_dird/plugins/templates/polycom_results.jinja:15
+#: wazo_dird/plugins/templates/snom_results.jinja:10
+#: wazo_dird/plugins/templates/thomson_results.jinja:10
+#: wazo_dird/plugins/templates/yealink_results.jinja:10
 msgid "No entries"
 msgstr "Brak wpisów"
 
-#: xivo_dird/plugins/templates/aastra_results.jinja:24
-#: xivo_dird/plugins/templates/polycom_results.jinja:19
+#: wazo_dird/plugins/templates/aastra_results.jinja:24
+#: wazo_dird/plugins/templates/polycom_results.jinja:19
 msgid "Next Page"
 msgstr "Następna strona"
 
-#: xivo_dird/plugins/templates/cisco_input.jinja:4
-#: xivo_dird/plugins/templates/cisco_input.jinja:7
-#: xivo_dird/plugins/templates/snom_input.jinja:7
+#: wazo_dird/plugins/templates/cisco_input.jinja:4
+#: wazo_dird/plugins/templates/cisco_input.jinja:7
+#: wazo_dird/plugins/templates/snom_input.jinja:7
 msgid "Name or number"
 msgstr "Nazwa lub numer"
 
-#: xivo_dird/plugins/templates/cisco_menu.jinja:4
+#: wazo_dird/plugins/templates/cisco_menu.jinja:4
 msgid "Wazo Directory"
 msgstr "Katalog Wazo"
 
-#: xivo_dird/plugins/templates/cisco_results.jinja:17
+#: wazo_dird/plugins/templates/cisco_results.jinja:17
 msgid "Dial"
 msgstr "Dzwoń"
 
-#: xivo_dird/plugins/templates/cisco_results.jinja:24
-#: xivo_dird/plugins/templates/snom_results.jinja:17
+#: wazo_dird/plugins/templates/cisco_results.jinja:24
+#: wazo_dird/plugins/templates/snom_results.jinja:17
 msgid "PrevPage"
 msgstr "Poprzednia strona"
 
-#: xivo_dird/plugins/templates/cisco_results.jinja:31
+#: wazo_dird/plugins/templates/cisco_results.jinja:31
 msgid "Exit"
 msgstr "Wyjście"
 
-#: xivo_dird/plugins/templates/cisco_results.jinja:38
-#: xivo_dird/plugins/templates/snom_results.jinja:25
+#: wazo_dird/plugins/templates/cisco_results.jinja:38
+#: wazo_dird/plugins/templates/snom_results.jinja:25
 msgid "NextPage"
 msgstr "Następna strona"
 
-#: xivo_dird/plugins/templates/polycom_input.jinja:13
+#: wazo_dird/plugins/templates/polycom_input.jinja:13
 msgid "Search"
 msgstr "Szukaj"
