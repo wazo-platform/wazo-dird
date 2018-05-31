@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import hashlib
@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from collections import defaultdict
 
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
-from sqlalchemy import and_, distinct, event, exc, func, or_
+from sqlalchemy import and_, distinct, event, exc, func, or_, text
 from sqlalchemy.pool import Pool
 from sqlalchemy.orm.session import make_transient
 
@@ -368,9 +368,13 @@ class FavoriteCRUD(_BaseDAO):
 
 class PersonalContactCRUD(_BaseDAO):
 
-    def list_personal_contacts(self, xivo_user_uuid):
+    def list_personal_contacts(self, xivo_user_uuid=None):
+        filter_ = text('true')
+        if xivo_user_uuid:
+            filter_ = and_(filter_, Contact.user_uuid == xivo_user_uuid)
+
         with self.new_session() as s:
-            query = s.query(distinct(Contact.uuid)).filter(Contact.user_uuid == xivo_user_uuid)
+            query = s.query(distinct(Contact.uuid)).filter(filter_)
             contact_uuids = [uuid for (uuid,) in query.all()]
             return _list_contacts_by_uuid(s, contact_uuids)
 
