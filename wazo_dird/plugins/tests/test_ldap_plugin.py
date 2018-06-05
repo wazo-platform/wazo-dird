@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import ldap
@@ -121,23 +121,26 @@ class TestLDAPPlugin(unittest.TestCase):
         self.assertEqual([], result)
 
 
-class _TestLDAPFactory(unittest.TestCase):
+class TestLDAPFactory(unittest.TestCase):
 
     def setUp(self):
         self.ldap_factory = _LDAPFactory()
 
     def test_ldap_config(self):
-        ldap_config = self.ldap_factory.new_ldap_config({})
+        minimal_config = {'ldap_custom_filter': 'filter'}
+        ldap_config = self.ldap_factory.new_ldap_config(minimal_config)
 
         self.assertIsInstance(ldap_config, _LDAPConfig)
 
     def test_ldap_client(self):
-        ldap_client = self.ldap_factory.new_ldap_client(sentinel.ldap_config)
+        ldap_config = Mock()
+        ldap_client = self.ldap_factory.new_ldap_client(ldap_config)
 
         self.assertIsInstance(ldap_client, _LDAPClient)
 
     def test_ldap_result_formatter(self):
-        ldap_result_formatter = self.ldap_factory.new_ldap_result_formatter(sentinel.ldap_config)
+        ldap_config = Mock()
+        ldap_result_formatter = self.ldap_factory.new_ldap_result_formatter(ldap_config)
 
         self.assertIsInstance(ldap_result_formatter, _LDAPResultFormatter)
 
