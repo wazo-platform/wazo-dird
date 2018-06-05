@@ -105,6 +105,25 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
             has_entries({'firstname': 'alice', 'lastname': 'aldertion'}),
             has_entries({'firstname': 'bob', 'lastname': 'bodkartan'})))
 
+    def test_that_importing_a_contact_with_an_existing_uuid(self):
+        csv = textwrap.dedent(u'''\
+        firstname
+        alice
+        ''')
+        result = self.import_personal(csv, 'valid-token')
+        for user in result['created']:
+            uuid = user['id']
+            break
+
+        csv = textwrap.dedent(u'''\
+        id,firstname
+        {},not alice
+        29d4aec1-db4c-4c67-80a0-b83136c58a47,bob
+        '''.format(uuid))
+        result = self.import_personal(csv, 'valid-token')
+
+        assert_that(result['failed'], contains(has_entry('line', 2)))
+
 
 class TestPersonalImportUTF8(BaseDirdIntegrationTest):
 

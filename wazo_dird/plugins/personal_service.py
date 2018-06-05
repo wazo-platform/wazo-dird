@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -66,6 +66,8 @@ class _PersonalService(object):
     def create_contacts(self, contact_infos, token_infos):
         errors = []
         to_add = []
+        existing_contact_uuids = set([contact['id'] for contact in self._crud.list_personal_contacts()])
+
         for contact_info in contact_infos:
             try:
                 if None in contact_info.keys():
@@ -73,7 +75,7 @@ class _PersonalService(object):
                 if None in contact_info.values():
                     raise PersonalImportError('missing fields')
 
-                self.validate_contact(contact_info)
+                self.validate_contact(contact_info, existing_contact_uuids)
                 to_add.append(contact_info)
             except self.InvalidPersonalContact as e:
                 errors.append({'errors': e.errors, 'line': contact_infos.line_num})
@@ -104,7 +106,7 @@ class _PersonalService(object):
         return self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
 
     @staticmethod
-    def validate_contact(contact_infos):
+    def validate_contact(contact_infos, existing_contact_uuids=None):
         errors = []
 
         if any(not hasattr(key, 'encode') for key in contact_infos):
@@ -118,6 +120,11 @@ class _PersonalService(object):
 
         if errors:
             raise _PersonalService.InvalidPersonalContact(errors)
+
+        if existing_contact_uuids:
+            uuid = contact_infos.get('id', contact_infos.get('uuid'))
+            if uuid and uuid in existing_contact_uuids:
+                raise PersonalImportError('contact "{}" already exist'.format(uuid))
 
 
 class DisabledPersonalSource(object):
