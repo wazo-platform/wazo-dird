@@ -13,7 +13,7 @@ flask==0.12.1
 futures==3.0.5
 jinja2==2.8
 kombu==3.0.35
-marshmallow==2.10.3
+marshmallow==2.15.3
 psycopg2==2.6.2
 python-consul==0.7.0
 python-ldap==2.4.28
