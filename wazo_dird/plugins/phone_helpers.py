@@ -39,6 +39,7 @@ class _PhoneLookupService(object):
             'results': formatted_results[offset:offset + limit] if limit is not None else formatted_results[offset:],
             'limit': limit,
             'offset': offset,
+            'total': len(formatted_results),
             'next_offset': self._next_offset(offset, limit, len(formatted_results)),
             'previous_offset': self._previous_offset(offset, limit)
         }
