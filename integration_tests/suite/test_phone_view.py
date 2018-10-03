@@ -144,3 +144,7 @@ class TestPhoneView(BaseDirdIntegrationTest):
     def test_yealink_lookup_route(self):
         result = self.get_lookup_yealink_result(self.profile, VALID_UUID, term='Alice', token=VALID_TOKEN)
         assert_that(result.status_code, equal_to((200)))
+
+    def test_gigaset_lookup_route(self):
+        result = self.get_lookup_gigaset_result(self.profile, VALID_UUID, term='Alice', token=VALID_TOKEN)
+        assert_that(result.status_code, equal_to((200)))

@@ -87,6 +87,7 @@ setup(
             'snom_view = wazo_dird.plugins.views.snom.snom_view:SnomViewPlugin',
             'thomson_view = wazo_dird.plugins.views.thomson.thomson_view:ThomsonViewPlugin',
             'yealink_view = wazo_dird.plugins.views.yealink.yealink_view:YealinkViewPlugin',
+            'gigaset_view = wazo_dird.plugins.views.gigaset.gigaset_view:GigasetViewPlugin',
             'default_json = wazo_dird.plugins.views.default_json.default_json_view:JsonViewPlugin',
             'headers_view = wazo_dird.plugins.views.headers.headers_view:HeadersViewPlugin',
             'personal_view = wazo_dird.plugins.views.personal.personal_view:PersonalViewPlugin',

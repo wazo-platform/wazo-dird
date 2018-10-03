@@ -78,7 +78,7 @@ class PhoneLookup(AuthResource):
         limit = args['limit']
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('lookup'))
         token = request.headers['X-Auth-Token']
-
+        
         try:
             results = self.phone_lookup_service.lookup(term,
                                                        profile,
@@ -96,6 +96,8 @@ class PhoneLookup(AuthResource):
                                        xivo_user_uuid=xivo_user_uuid,
                                        term=term,
                                        limit=limit,
+                                       total=results['total'],
+                                       offset=results['offset'],
                                        offset_next=results['next_offset'],
                                        offset_previous=results['previous_offset'])
 

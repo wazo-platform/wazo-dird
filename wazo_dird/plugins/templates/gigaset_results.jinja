@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+{%- set last = offset_next if offset_next is not none else total %}
+<list response="get_list" type="pr" total="{{ total }}" first="{{ offset + 1 }}" last="{{ last }}">
+{%- for result in results %}
+<entry id="{{ result.number|e }}">
+<fn>{{ result.name|e }}</fn>
+<hm>{{ result.number|e }}</hm>
+</entry>
+{%- endfor %}
+</list>

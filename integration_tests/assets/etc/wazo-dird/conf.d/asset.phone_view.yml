@@ -11,6 +11,7 @@ enabled_plugins:
     snom_view: true
     thomson_view: true
     yealink_view: true
+    gigaset_view: true
 
 views:
   displays:
