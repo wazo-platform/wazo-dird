@@ -535,3 +535,15 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
         return result
+
+    @classmethod
+    def get_lookup_gigaset_result(cls, profile, xivo_user_uuid,
+                                  proxy=None, term=None, token=None, limit=None, offset=None):
+        url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'gigaset')
+        params = {'term': term, 'limit': limit, 'offset': offset}
+        result = requests.get(url,
+                              params=params,
+                              headers={'X-Auth-Token': token,
+                                       'Proxy-URL': proxy},
+                              verify=CA_CERT)
+        return result
