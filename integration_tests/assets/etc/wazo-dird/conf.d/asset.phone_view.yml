@@ -12,6 +12,7 @@ enabled_plugins:
     thomson_view: true
     yealink_view: true
     gigaset_view: true
+    htek_view: true
 
 views:
   displays:
