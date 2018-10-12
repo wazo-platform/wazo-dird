@@ -66,8 +66,8 @@ setup(
             'lookup = wazo_dird.plugins.lookup:LookupServicePlugin',
             'personal = wazo_dird.plugins.personal_service:PersonalServicePlugin',
             'phonebook = wazo_dird.plugins.phonebook_service:PhonebookServicePlugin',
-            'service_discovery = wazo_dird.plugins.service_discovery_service:ServiceDiscoveryServicePlugin',
             'reverse = wazo_dird.plugins.reverse_service:ReverseServicePlugin',
+            'service_discovery = wazo_dird.plugins.service_discovery_service:ServiceDiscoveryServicePlugin',
         ],
         'wazo_dird.backends': [
             'csv = wazo_dird.plugins.csv_plugin:CSVPlugin',
@@ -76,23 +76,25 @@ setup(
             'ldap = wazo_dird.plugins.ldap_plugin:LDAPPlugin',
             'personal = wazo_dird.plugins.personal_backend:PersonalBackend',
             'xivo = wazo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
+
             'sample = wazo_dird.plugins.sample_backend:SamplePlugin',
         ],
         'wazo_dird.views': [
             'api_view = wazo_dird.plugins.views.api.api_view:ApiViewPlugin',
-            'aastra_view = wazo_dird.plugins.views.aastra.aastra_view:AastraViewPlugin',
-            'cisco_view = wazo_dird.plugins.views.cisco.cisco_view:CiscoViewPlugin',
             'config_view = wazo_dird.plugins.views.config.config_view:ConfigViewPlugin',
-            'polycom_view = wazo_dird.plugins.views.polycom.polycom_view:PolycomViewPlugin',
-            'snom_view = wazo_dird.plugins.views.snom.snom_view:SnomViewPlugin',
-            'thomson_view = wazo_dird.plugins.views.thomson.thomson_view:ThomsonViewPlugin',
-            'yealink_view = wazo_dird.plugins.views.yealink.yealink_view:YealinkViewPlugin',
-            'htek_view = wazo_dird.plugins.views.htek.htek_view:HtekViewPlugin',
-            'gigaset_view = wazo_dird.plugins.views.gigaset.gigaset_view:GigasetViewPlugin',
             'default_json = wazo_dird.plugins.views.default_json.default_json_view:JsonViewPlugin',
             'headers_view = wazo_dird.plugins.views.headers.headers_view:HeadersViewPlugin',
             'personal_view = wazo_dird.plugins.views.personal.personal_view:PersonalViewPlugin',
             'phonebook_view = wazo_dird.plugins.views.phonebook.phonebook_view:PhonebookViewPlugin',
+
+            'aastra_view = wazo_dird.plugins.views.aastra.aastra_view:AastraViewPlugin',
+            'cisco_view = wazo_dird.plugins.views.cisco.cisco_view:CiscoViewPlugin',
+            'gigaset_view = wazo_dird.plugins.views.gigaset.gigaset_view:GigasetViewPlugin',
+            'htek_view = wazo_dird.plugins.views.htek.htek_view:HtekViewPlugin',
+            'polycom_view = wazo_dird.plugins.views.polycom.polycom_view:PolycomViewPlugin',
+            'snom_view = wazo_dird.plugins.views.snom.snom_view:SnomViewPlugin',
+            'thomson_view = wazo_dird.plugins.views.thomson.thomson_view:ThomsonViewPlugin',
+            'yealink_view = wazo_dird.plugins.views.yealink.yealink_view:YealinkViewPlugin',
         ],
     }
 )
