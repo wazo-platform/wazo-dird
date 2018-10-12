@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<PhoneDirectory>
+{% for result in results -%}
+ <DirectoryEntry>
+  <Name>{{ result.name|e }}</Name>
+  <Telephone>{{ result.number|e }}</Telephone>
+ </DirectoryEntry>
+{% else -%}
+ <DirectoryEntry>
+  <Name>{{ gettext('No entries') }}</Name>
+  <Telephone></Telephone>
+ </DirectoryEntry>
+{% endfor -%}
+</PhoneDirectory>
