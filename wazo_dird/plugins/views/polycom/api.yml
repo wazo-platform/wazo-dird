@@ -2,11 +2,11 @@ paths:
   /directories/input/{profile}/{xivo_user_uuid}/polycom:
     get:
       summary: Given informations about how make request lookup for Polycom Phones
-      description: '**Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
 
         The `input` query will return a XML to give informations about how make request
-        lookup for Polycom Phones.'
+        lookup for Polycom Phones.
       operationId: polycom_input
       tags:
       - polycom
@@ -36,17 +36,15 @@ paths:
   /directories/lookup/{profile}/{xivo_user_uuid}/polycom:
     get:
       summary: Search for contacts with Polycom Phones
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Polycom Phones. The result will be retrieved from all configured
         directories for the given profile.
 
-
-
         This route is provided by the `polycom_view` plugin using the `lookup` plugin
-        and all configured sources for the given profile.'
+        and all configured sources for the given profile.
       operationId: polycom_lookup
       tags:
       - polycom

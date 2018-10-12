@@ -2,11 +2,11 @@ paths:
   /directories/input/{profile}/{xivo_user_uuid}/snom:
     get:
       summary: Given informations about how make request lookup for Snom Phones
-      description: '**Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
 
         The `input` query will return a XML to give informations about how make request
-        lookup for Snom Phones.'
+        lookup for Snom Phones.
       operationId: snom_input
       tags:
       - snom
@@ -28,17 +28,15 @@ paths:
   /directories/lookup/{profile}/{xivo_user_uuid}/snom:
     get:
       summary: Search for contacts with Snom Phones
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Snom Phones. The result will be retrieved from all configured
         directories for the given profile.
 
-
-
         This route is provided by the `snom_view` plugin using the `lookup` plugin
-        and all configured sources for the given profile.'
+        and all configured sources for the given profile.
       operationId: snom_lookup
       tags:
       - snom
@@ -75,11 +73,6 @@ definitions:
         type: string
       InputItem:
         $ref: '#/definitions/SnomInputItem'
-    required:
-    - Title
-    - Prompt
-    - URL
-    - InputItem
   SnomInputItem:
     properties:
       DisplayName:
@@ -90,11 +83,6 @@ definitions:
         type: string
       InputFlags:
         type: string
-    required:
-    - DisplayName
-    - QueryStringParam
-    - DefaultValue
-    - InputFlags
   SnomIPPhoneDirectory:
     properties:
       DirectoryEntry:
@@ -105,17 +93,12 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SnomSoftKeyItem'
-    required:
-    - DirectoryEntry
   SnomDirectoryEntry:
     properties:
       Name:
         type: string
       Telephone:
         type: string
-    required:
-    - Name
-    - Telephone
   SnomSoftKeyItem:
     properties:
       Label:
@@ -124,7 +107,3 @@ definitions:
         type: string
       Name:
         type: integer
-    required:
-    - Label
-    - URL
-    - Name

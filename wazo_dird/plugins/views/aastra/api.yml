@@ -2,11 +2,11 @@ paths:
   /directories/input/{profile}/{xivo_user_uuid}/aastra:
     get:
       summary: Given informations about how make request lookup for Aastra Phones
-      description: '**Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
 
         The `input` query will return a XML to give informations about how make request
-        lookup for Aastra Phones.'
+        lookup for Aastra Phones.
       operationId: aastra_input
       tags:
       - aastra
@@ -27,17 +27,15 @@ paths:
   /directories/lookup/{profile}/{xivo_user_uuid}/aastra:
     get:
       summary: Search for contacts with Aastra Phones
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Aastra Phones. The result will be retrieved from all configured
         directories for the given profile.
 
-
-
         This route is provided by the `aastra_view` plugin using the `lookup` plugin
-        and all configured sources for the given profile.'
+        and all configured sources for the given profile.
       operationId: aastra_lookup
       tags:
       - aastra
@@ -73,11 +71,6 @@ definitions:
         type: string
       Parameter:
         type: string
-    required:
-    - Title
-    - Prompt
-    - URL
-    - Parameter
   AastraIPPhoneTextMenu:
     properties:
       style:
@@ -92,16 +85,9 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/AastraMenuItem'
-    required:
-    - style
-    - destroyOnExit
-    - MenuItem
   AastraMenuItem:
     properties:
       Prompt:
         type: string
       URI:
         type: string
-    required:
-    - Prompt
-    - URI

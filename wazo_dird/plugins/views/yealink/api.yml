@@ -2,17 +2,15 @@ paths:
   /directories/lookup/{profile}/{xivo_user_uuid}/yealink:
     get:
       summary: Search for contacts with Yealink Phones
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Yealink Phones. The result will be retrieved from all configured
         directories for the given profile.
 
-
-
         This route is provided by the `yealink_view` plugin using the `lookup` plugin
-        and all configured sources for the given profile.'
+        and all configured sources for the given profile.
       operationId: yealink_lookup
       tags:
       - yealink
@@ -45,14 +43,9 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/YealinkDirectoryEntry'
-    required:
-    - DirectoryEntry
   YealinkDirectoryEntry:
     properties:
       Name:
         type: string
       Telephone:
         type: string
-    required:
-    - Name
-    - Telephone

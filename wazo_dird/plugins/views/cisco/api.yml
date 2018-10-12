@@ -2,11 +2,11 @@ paths:
   /directories/menu/{profile}/{xivo_user_uuid}/cisco:
     get:
       summary: Extends the directories menu for Cisco Unified IP Phones
-      description: '**Required ACL:** `dird.directories.menu.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.menu.{profile}.{xivo_user_uuid}.read`
 
         The `menu` query will return a XML to extend the directories menu for Cisco
-        Unified IP Phones.'
+        Unified IP Phones.
       operationId: cisco_menu
       tags:
       - cisco
@@ -29,11 +29,11 @@ paths:
     get:
       summary: Given informations about how make request lookup for Cisco Unified
         IP Phones
-      description: '**Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
 
         The `input` query will return a XML to give informations about how make request
-        lookup for Cisco Unified IP Phones.'
+        lookup for Cisco Unified IP Phones.
       operationId: cisco_input
       tags:
       - cisco
@@ -55,17 +55,15 @@ paths:
   /directories/lookup/{profile}/{xivo_user_uuid}/cisco:
     get:
       summary: Search for contacts with Cisco Unified IP Phones
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Cisco Unified IP Phones. The result will be retrieved from all
         configured directories for the given profile.
 
-
-
         This route is provided by the `cisco_view` plugin using the `lookup` plugin
-        and all configured sources for the given profile.'
+        and all configured sources for the given profile.
       operationId: cisco_lookup
       tags:
       - cisco
@@ -102,17 +100,12 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/CiscoSoftKeyItem'
-    required:
-    - DirectoryEntry
   CiscoDirectoryEntry:
     properties:
       Name:
         type: string
       Telephone:
         type: string
-    required:
-    - Name
-    - Telephone
   CiscoSoftKeyItem:
     properties:
       Name:
@@ -121,25 +114,16 @@ definitions:
         type: string
       position:
         type: integer
-    required:
-    - Name
-    - URL
-    - position
   CiscoIPPhoneMenu:
     properties:
       MenuItem:
         $ref: '#/definitions/CiscoMenuItem'
-    required:
-    - MenuItem
   CiscoMenuItem:
     properties:
       Name:
         type: string
       URL:
         type: string
-    required:
-    - Name
-    - URL
   CiscoIPPhoneInput:
     properties:
       Title:
@@ -150,11 +134,6 @@ definitions:
         type: string
       InputItem:
         $ref: '#/definitions/CiscoInputItem'
-    required:
-    - Title
-    - Prompt
-    - URL
-    - InputItem
   CiscoInputItem:
     properties:
       DisplayName:
@@ -165,8 +144,3 @@ definitions:
         type: string
       InputFlags:
         type: string
-    required:
-    - DisplayName
-    - QueryStringParam
-    - DefaultValue
-    - InputFlags

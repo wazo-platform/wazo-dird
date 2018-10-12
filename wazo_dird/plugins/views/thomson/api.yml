@@ -2,17 +2,15 @@ paths:
   /directories/lookup/{profile}/{xivo_user_uuid}/thomson:
     get:
       summary: Search for contacts with Thomson Phones
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
-
+      description: |
+        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Thomson Phones. The result will be retrieved from all configured
         directories for the given profile.
 
-
-
         This route is provided by the `thomson_view` plugin using the `lookup` plugin
-        and all configured sources for the given profile.'
+        and all configured sources for the given profile.
       operationId: thomson_lookup
       tags:
       - thomson
@@ -45,14 +43,9 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/ThomsonDirectoryEntry'
-    required:
-    - DirectoryEntry
   ThomsonDirectoryEntry:
     properties:
       Name:
         type: string
       Telephone:
         type: string
-    required:
-    - Name
-    - Telephone
