@@ -119,11 +119,24 @@ parameters:
     description: The limit defines the number of individual objects that are returned
     default: 16
     required: false
+  count:
+    name: count
+    in: query
+    type: integer
+    description: The count defines the number of individual objects that are returned
+    required: false
   Offset:
     name: offset
     in: query
     type: integer
     description: The offset defines the offsets the start by the number specified
+    default: 0
+    required: false
+  first:
+    name: first
+    in: query
+    type: integer
+    description: Defines the offset by the number specified
     default: 0
     required: false
   order:
@@ -151,6 +164,13 @@ parameters:
   search:
     required: false
     name: search
+    in: query
+    type: string
+    description: Search term for filtering a list of items. Only items with a field
+      containing the search term will be returned.
+  set_first:
+    required: false
+    name: set_first
     in: query
     type: string
     description: Search term for filtering a list of items. Only items with a field
