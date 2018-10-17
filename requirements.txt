@@ -5,7 +5,7 @@ https://github.com/wazo-pbx/xivo-confd-client/archive/master.zip
 https://github.com/wazo-pbx/xivo-lib-python/archive/master.zip
 alembic==0.8.8
 babel==2.3.4
-cheroot==5.5.0
+cheroot==6.5.2
 flask-babel==0.11.1
 flask-cors==3.0.2
 flask-restful==0.3.5
