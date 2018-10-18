@@ -31,9 +31,9 @@ paths:
       parameters:
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/XivoUserUUID'
-      - $ref: '#/parameters/set_first'
-      - $ref: '#/parameters/count'
-      - $ref: '#/parameters/first'
+      - $ref: '#/parameters/Term'
+      - $ref: '#/parameters/Limit'
+      - $ref: '#/parameters/Offset'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
 definitions:
