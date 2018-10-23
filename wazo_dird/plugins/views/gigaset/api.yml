@@ -21,7 +21,7 @@ paths:
         '200':
           description: A list of contacts
           schema:
-            $ref: '#/definitions/GigasetIPPhoneDirectory'
+            $ref: '#/definitions/list'
         '400':
           $ref: '#/responses/LimitOffsetInvalid'
         '404':
@@ -37,15 +37,51 @@ paths:
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
 definitions:
-  GigasetIPPhoneDirectory:
+  list:
     properties:
-      DirectoryEntry:
+      response:
+        type: string
+        xml:
+          attribute: true
+        example:
+          - 'get_list'
+      type:
+        type: string
+        xml:
+          attribute: true
+        example:
+          - 'pr'
+      total:
+        type: integer
+        xml:
+          attribute: true
+        example:
+          - 1
+      first:
+        type: integer
+        xml:
+          attribute: true
+        example:
+          - 1
+      last:
+        type: integer
+        xml:
+          attribute: true
+        example:
+          - 1
+      entry:
         type: array
         items:
-          $ref: '#/definitions/GigasetDirectoryEntry'
-  GigasetDirectoryEntry:
+          $ref: '#/definitions/entry'
+  entry:
     properties:
-      Name:
+      id:
+        type: integer
+        xml:
+          attribute: true
+        example:
+          - 1001
+      fn:
         type: string
-      Telephone:
+      hm:
         type: string
