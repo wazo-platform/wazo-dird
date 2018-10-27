@@ -2,7 +2,6 @@
 # Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from contextlib import nested
 from hamcrest import (
     assert_that,
     contains,
@@ -26,11 +25,9 @@ class TestFavorites(BaseDirdIntegrationTest):
     asset = 'csv_with_multiple_displays'
 
     def test_that_removed_favorites_are_not_listed(self):
-        with nested(
-            self.favorite('my_csv', '1'),
-            self.favorite('my_csv', '2'),
-            self.favorite('my_csv', '3'),
-        ):
+        with self.favorite('my_csv', '1'), \
+                self.favorite('my_csv', '2'), \
+                self.favorite('my_csv', '3'):
             self.delete_favorite('my_csv', '2')
             result = self.favorites('default')
 
@@ -39,11 +36,9 @@ class TestFavorites(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Charles', 'CCC', '555123555', True))))
 
     def test_that_favorites_are_only_visible_for_the_same_token(self):
-        with nested(
-            self.favorite('my_csv', '1', token=VALID_TOKEN_1),
-            self.favorite('my_csv', '2', token=VALID_TOKEN_1),
-            self.favorite('my_csv', '3', token=VALID_TOKEN_2),
-        ):
+        with self.favorite('my_csv', '1', token=VALID_TOKEN_1), \
+                self.favorite('my_csv', '2', token=VALID_TOKEN_1), \
+                self.favorite('my_csv', '3', token=VALID_TOKEN_2):
             result = self.favorites('default', token=VALID_TOKEN_1)
 
         assert_that(result['results'], contains_inanyorder(
@@ -107,11 +102,9 @@ class TestFavoritesInPersonalResults(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_personal_list_results_show_favorites(self):
-        with nested(
-            self.personal({'firstname': 'Alice'}),
-            self.personal({'firstname': 'Bob'}),
-            self.personal({'firstname': 'Charlie'}),
-        ) as (_, bob, __):
+        with self.personal({'firstname': 'Alice'}), \
+                self.personal({'firstname': 'Bob'}) as bob, \
+                self.personal({'firstname': 'Charlie'}):
             result = self.get_personal_with_profile('default')
 
             assert_that(result['results'], contains_inanyorder(
