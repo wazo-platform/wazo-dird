@@ -31,7 +31,7 @@ class ServiceDiscoveryServicePlugin(BaseServicePlugin):
         self._service = _Service(config, bus)
 
 
-class _Service(object):
+class _Service:
 
     QUEUE = kombu.Queue(exchange=kombu.Exchange('xivo', type='topic'),
                         routing_key='service.registered.*',
@@ -111,7 +111,7 @@ def _find_first_uuid(tags):
             continue
 
 
-class SourceConfigManager(object):
+class SourceConfigManager:
 
     def __init__(self, config):
         self._config = config
@@ -126,7 +126,7 @@ class SourceConfigManager(object):
         self._config[source_name] = source_config
 
 
-class ProfileConfigUpdater(object):
+class ProfileConfigUpdater:
 
     def __init__(self, config):
         self._config = config
@@ -164,7 +164,7 @@ class ProfileConfigUpdater(object):
         return [profile for profile, enabled in profiles.items() if enabled]
 
 
-class SourceConfigGenerator(object):
+class SourceConfigGenerator:
 
     enabled = False
 

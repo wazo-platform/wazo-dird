@@ -57,7 +57,7 @@ class PhonebookServicePlugin(BaseServicePlugin):
         return self._Session
 
 
-class _PhonebookService(object):
+class _PhonebookService:
 
     def __init__(self, phonebook_crud, contact_crud):
         self._phonebook_crud = phonebook_crud

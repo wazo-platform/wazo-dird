@@ -15,7 +15,7 @@ from xivo import plugin_helpers
 logger = logging.getLogger(__name__)
 
 
-class SourceManager(object):
+class SourceManager:
 
     _namespace = 'wazo_dird.backends'
 

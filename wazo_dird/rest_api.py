@@ -29,7 +29,7 @@ api = Api(prefix='/{}'.format(VERSION))
 auth_verifier = AuthVerifier()
 
 
-class CoreRestApi(object):
+class CoreRestApi:
 
     def __init__(self, global_config):
         self.config = global_config['rest_api']

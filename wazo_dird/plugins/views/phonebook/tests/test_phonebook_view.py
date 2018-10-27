@@ -28,7 +28,7 @@ from wazo_dird.exception import (DatabaseServiceUnavailable,
 from wazo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
 
 
-class _HTTPErrorChecker(object):
+class _HTTPErrorChecker:
 
     def _assert_error(self, result, status_code, msg):
         error = {'reason': [msg],
@@ -453,7 +453,7 @@ Föo,Bar,1111
 
         result = self._post(s.tenant, s.phonebook_id, body, 'utf-8')
 
-        class Matcher(object):
+        class Matcher:
             _msg = 'duplicate columns'
 
             def __init__(self, *args):

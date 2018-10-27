@@ -1,4 +1,4 @@
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -14,7 +14,7 @@ from xivo_bus import Marshaler, Publisher
 logger = logging.getLogger(__name__)
 
 
-class Bus(object):
+class Bus:
 
     _bus_url_tpl = 'amqp://{username}:{password}@{host}:{port}//'
 

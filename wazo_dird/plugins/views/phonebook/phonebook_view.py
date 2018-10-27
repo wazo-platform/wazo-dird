@@ -63,7 +63,7 @@ class _Resource(AuthResource):
         cls.phonebook_service = phonebook_service
 
 
-class _ArgParser(object):
+class _ArgParser:
 
     def __init__(self, args):
         self._search = args.get('search')

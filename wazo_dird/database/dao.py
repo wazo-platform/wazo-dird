@@ -75,7 +75,7 @@ def delete_user(session, xivo_user_uuid):
     session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).delete()
 
 
-class _BaseDAO(object):
+class _BaseDAO:
 
     def __init__(self, Session):
         self._Session = Session

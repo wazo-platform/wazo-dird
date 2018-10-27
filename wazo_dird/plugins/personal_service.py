@@ -41,7 +41,7 @@ class PersonalServicePlugin(BaseServicePlugin):
         return database.PersonalContactCRUD(self._Session)
 
 
-class _PersonalService(object):
+class _PersonalService:
 
     NoSuchContact = exception.NoSuchContact
     DuplicatedContactException = exception.DuplicatedContactException
@@ -126,6 +126,6 @@ class _PersonalService(object):
                 raise PersonalImportError('contact "{}" already exist'.format(uuid))
 
 
-class DisabledPersonalSource(object):
+class DisabledPersonalSource:
     def list(self, _source_entry_ids, _token_infos):
         return []

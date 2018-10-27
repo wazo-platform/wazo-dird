@@ -22,7 +22,7 @@ class _NoKeyErrorFormatter(string.Formatter):
         return super(_NoKeyErrorFormatter, self).get_value(key, args, kwargs)
 
 
-class _SourceResult(object):
+class _SourceResult:
 
     _unique_column = None
     source = None

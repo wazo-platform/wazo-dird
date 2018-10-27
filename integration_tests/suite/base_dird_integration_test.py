@@ -38,7 +38,7 @@ def absolute_file_name(asset_name, path):
     return os.path.join(ASSET_ROOT, dirname, real_basename)
 
 
-class BackendWrapper(object):
+class BackendWrapper:
 
     def __init__(self, backend, config):
         manager = DriverManager(namespace='wazo_dird.backends',

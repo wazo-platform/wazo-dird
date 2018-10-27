@@ -1,4 +1,4 @@
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -29,7 +29,7 @@ class StorageCleanupServicePlugin(BaseServicePlugin):
         self._service = _StorageCleanupService(db_uri, bus)
 
 
-class _StorageCleanupService(object):
+class _StorageCleanupService:
 
     _exchange = kombu.Exchange('xivo', type='topic')
     _routing_key = 'config.user.deleted'

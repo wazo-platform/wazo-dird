@@ -23,7 +23,7 @@ from .base_dird_integration_test import (
 Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
 
 
-class LDAPHelper(object):
+class LDAPHelper:
 
     BASE_DN = 'dc=wazo-dird,dc=wazo,dc=community'
     ADMIN_DN = 'cn=admin,{}'.format(BASE_DN)

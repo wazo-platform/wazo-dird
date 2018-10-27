@@ -71,7 +71,7 @@ class LDAPPlugin(BaseSourcePlugin):
         return self._ldap_result_formatter.format_one_result(attrs)
 
 
-class _LDAPFactory(object):
+class _LDAPFactory:
 
     def new_ldap_config(self, config):
         return _LDAPConfig(config)
@@ -83,7 +83,7 @@ class _LDAPFactory(object):
         return _LDAPResultFormatter(ldap_config)
 
 
-class _LDAPConfig(object):
+class _LDAPConfig:
 
     DEFAULT_LDAP_USERNAME = ''
     DEFAULT_LDAP_PASSWORD = ''
@@ -219,7 +219,7 @@ class _LDAPConfig(object):
         return ''.join(character for byte in zip(itertools.repeat('\\'), uid[::2], uid[1::2]) for character in byte)
 
 
-class _LDAPClient(object):
+class _LDAPClient:
 
     def __init__(self, ldap_config, ldap_obj_factory=ldap.initialize):
         self._ldap_config = ldap_config
@@ -305,7 +305,7 @@ class _LDAPClient(object):
         return results
 
 
-class _LDAPResultFormatter(object):
+class _LDAPResultFormatter:
 
     def __init__(self, ldap_config):
         self._unique_column = ldap_config.unique_column()

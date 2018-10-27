@@ -15,9 +15,9 @@ from wazo_dird.config import load as load_config
 logger = logging.getLogger(__name__)
 
 
-class _PreConfigLogger(object):
+class _PreConfigLogger:
 
-    class FlushableBuffer(object):
+    class FlushableBuffer:
 
         def __init__(self):
             self._msg = []

@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger()
 
 
-class RaiseStopper(object):
+class RaiseStopper:
 
     def __init__(self, return_on_raise):
         self.return_on_raise = return_on_raise
@@ -19,7 +19,7 @@ class RaiseStopper(object):
         return self.return_on_raise
 
 
-class BaseService(object):
+class BaseService:
 
     def __init__(self, config, sources, *args, **kwargs):
         self._config = config

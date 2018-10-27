@@ -84,7 +84,7 @@ class JsonViewPlugin(BaseViewPlugin):
             logger.error('%s disabled: no service plugin `personal`', self.personal_url)
 
 
-class DisabledFavoriteService(object):
+class DisabledFavoriteService:
 
     def favorite_ids(self, profile, xivo_user_uuid):
         return []
@@ -257,7 +257,7 @@ class Personal(AuthResource):
         return formatter.format_results(raw_results, favorites)
 
 
-class _ResultFormatter(object):
+class _ResultFormatter:
 
     def __init__(self, display):
         self._display = display

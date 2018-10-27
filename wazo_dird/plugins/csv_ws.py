@@ -91,7 +91,7 @@ class CSVWSPlugin(BaseSourcePlugin):
                 if result.get(self._unique_column) in source_entry_ids]
 
 
-class _CSVReader(object):
+class _CSVReader:
 
     def __init__(self, delimiter):
         self._delimiter = delimiter

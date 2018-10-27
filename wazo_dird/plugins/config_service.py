@@ -1,4 +1,4 @@
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from wazo_dird import BaseServicePlugin
@@ -13,7 +13,7 @@ class ConfigServicePlugin(BaseServicePlugin):
         return Service(args['config'])
 
 
-class Service(object):
+class Service:
 
     def __init__(self, config):
         self._config = config

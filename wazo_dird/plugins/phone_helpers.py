@@ -19,7 +19,7 @@ def new_phone_lookup_service_from_args(args):
 _PhoneFormattedResult = namedtuple('_PhoneFormattedResult', ['name', 'number'])
 
 
-class _PhoneLookupService(object):
+class _PhoneLookupService:
 
     def __init__(self, lookup_service, formatters):
         self._lookup_service = lookup_service
@@ -67,7 +67,7 @@ class _PhoneLookupService(object):
         return previous_offset
 
 
-class _PhoneResultFormatter(object):
+class _PhoneResultFormatter:
 
     _INVALID_CHARACTERS_REGEX = re.compile(r'[^\d*#+\(\)]+')
     _SPECIAL_NUMBER_REGEX = re.compile(r'^\+(\d+)\(\d+\)(\d+)$')
