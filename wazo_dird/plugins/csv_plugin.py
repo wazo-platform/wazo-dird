@@ -76,7 +76,7 @@ class CSVPlugin(BaseSourcePlugin):
             logger.debug('Reading %s with delimiter %r', filename, delimiter)
             with open(filename, 'r') as f:
                 csvreader = csv.reader(f, delimiter=delimiter)
-                keys = [key.decode('utf-8') for key in next(csvreader)]
+                keys = [key for key in next(csvreader)]
                 self._content = [self._row_to_dict(keys, row) for row in csvreader]
                 logger.debug('Loaded with %s', self._content)
         except IOError:
@@ -105,8 +105,7 @@ class CSVPlugin(BaseSourcePlugin):
 
     @staticmethod
     def _row_to_dict(keys, values):
-        return dict(zip(
-            keys, [value.decode('utf-8') if type(value) == str else value for value in values]))
+        return dict(zip(keys, values))
 
     def _make_unique(self, entry):
         unique_column = self._config[self.UNIQUE_COLUMN]

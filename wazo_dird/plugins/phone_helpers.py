@@ -100,7 +100,7 @@ class _PhoneResultFormatter(object):
 
             name_format = number_config_item.get('name_format')
             if name_format:
-                display_name = name_format.decode('utf-8').format(name=name, number=number)
+                display_name = name_format.format(name=name, number=number)
             else:
                 display_name = name
 

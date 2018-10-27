@@ -10,8 +10,6 @@ import traceback
 from flask import request
 from functools import wraps
 
-from xivo.unicode_csv import UnicodeDictReader
-
 from wazo_dird import BaseViewPlugin
 from wazo_dird import auth
 from wazo_dird.exception import (DatabaseServiceUnavailable,
@@ -181,21 +179,21 @@ class ContactImport(_Resource):
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     def post(self, tenant, phonebook_id):
         charset = request.mimetype_params.get('charset', 'utf-8')
-        raw_data = request.data.split('\n')
-        reader = csv.reader(raw_data)
-        fields = next(reader)
-        duplicates = list(set([f for f in fields if fields.count(f) > 1]))
-        if duplicates:
-            return _make_error('duplicate columns: {}'.format(duplicates), 400)
-
         try:
-            to_add = [c for c in UnicodeDictReader(raw_data, encoding=charset)]
+            data = request.data.decode(charset).split('\n')
         except LookupError as e:
             if 'unknown encoding:' in str(e):
                 return _make_error(str(e), 400)
             else:
                 raise
 
+        reader = csv.reader(data)
+        fields = next(reader)
+        duplicates = list(set([f for f in fields if fields.count(f) > 1]))
+        if duplicates:
+            return _make_error('duplicate columns: {}'.format(duplicates), 400)
+
+        to_add = [c for c in csv.DictReader(data)]
         created, failed = self.phonebook_service.import_contacts(tenant, phonebook_id, to_add)
 
         return {'created': created, 'failed': failed}

@@ -105,12 +105,6 @@ class _CSVReader(object):
 
 
 def unicode_csv_reader(unicode_data, **kwargs):
-    csv_reader = csv.reader(utf_8_encoder(unicode_data), **kwargs)
+    csv_reader = csv.reader(unicode_data.split('\n'), **kwargs)
     for row in csv_reader:
-        yield [str(field, 'utf-8') for field in row]
-
-
-def utf_8_encoder(unicode_data):
-    encoded_data = unicode_data.encode('utf-8')
-    for line in encoded_data.split('\n'):
-        yield line
+        yield row
