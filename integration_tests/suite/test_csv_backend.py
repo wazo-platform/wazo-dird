@@ -78,11 +78,11 @@ class TestCSVWithAccents(_BaseCSVFileTestCase):
     source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
 
     def setUp(self):
-        self._pepe = {'fn': u'Pépé', 'ln': 'lol', 'num': '555'}
+        self._pepe = {'fn': 'Pépé', 'ln': 'lol', 'num': '555'}
         super(TestCSVWithAccents, self).setUp()
 
     def test_lookup_with_accents_in_term(self):
-        result = self.backend.search(u'pép')
+        result = self.backend.search('pép')
 
         assert_that(result, contains(has_entries(**self._pepe)))
 

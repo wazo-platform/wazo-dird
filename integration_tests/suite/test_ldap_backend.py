@@ -37,8 +37,8 @@ class LDAPHelper(object):
 
     def add_ou_quebec(self):
         modlist = addModlist({
-            'objectClass': ['organizationalUnit'],
-            'ou': ['quebec'],
+            'objectClass': [b'organizationalUnit'],
+            'ou': [b'quebec'],
         })
 
         self._ldap_obj.add_s(self.QUEBEC_DN, modlist)
@@ -47,21 +47,21 @@ class LDAPHelper(object):
         cn = '{} {}'.format(contact.firstname, contact.lastname)
         dn = 'cn={},{}'.format(cn, self.QUEBEC_DN)
         modlist = addModlist({
-            'objectClass': ['inetOrgPerson'],
-            'cn': [cn],
-            'givenName': [contact.firstname],
-            'sn': [contact.lastname],
-            'telephoneNumber': [contact.number],
-            'l': [contact.city],
+            'objectClass': [b'inetOrgPerson'],
+            'cn': [cn.encode('utf-8')],
+            'givenName': [contact.firstname.encode('utf-8')],
+            'sn': [contact.lastname.encode('utf-8')],
+            'telephoneNumber': [contact.number.encode('utf-8')],
+            'l': [contact.city.encode('utf-8')],
         })
 
         self._ldap_obj.add_s(dn, modlist)
         search_dn, result = self._ldap_obj.search_s(dn, ldap.SCOPE_BASE, attrlist=['entryUUID'])[0]
-        return result['entryUUID'][0]
+        return result['entryUUID'][0].decode('utf-8')
 
 
 def add_contacts(contacts, ldap_uri):
-    for _ in xrange(10):
+    for _ in range(10):
         try:
             helper = LDAPHelper(ldap_uri)
             break
@@ -115,10 +115,10 @@ class TestLDAP(BaseDirdIntegrationTest):
                     contains('Alice', 'Wonderland', '1001'))
 
     def test_lookup_with_non_ascii_characters(self):
-        result = self.lookup(u'ç', 'default')
+        result = self.lookup('ç', 'default')
 
         assert_that(result['results'][0]['column_values'],
-                    contains(u'François', 'Hollande', '1004'))
+                    contains('François', 'Hollande', '1004'))
 
     def test_reverse_lookup(self):
         result = self.reverse('1001', 'default', VALID_UUID)
@@ -164,10 +164,10 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
             raise
 
     def test_lookup_on_cn(self):
-        result = self.lookup(u'charlé', 'default')
+        result = self.lookup('charlé', 'default')
 
         assert_that(result['results'][0]['column_values'],
-                    contains(u'Charlé', 'Doe', '1003'))
+                    contains('Charlé', 'Doe', '1003'))
 
     def test_no_result_because_of_the_custom_filter(self):
         result = self.lookup('alice', 'default')

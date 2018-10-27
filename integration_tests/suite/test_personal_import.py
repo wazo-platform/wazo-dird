@@ -56,11 +56,11 @@ class TestPersonalImportFail(BaseDirdIntegrationTest):
         assert_that(result.status_code, equal_to(400))
 
     def test_that_import_wrong_encoding_returns_400(self):
-        csv = textwrap.dedent(u'''\
+        csv = textwrap.dedent('''\
             firstname,lastname
             valérie,vladinski
             loïc,lorbantic
-            '''.encode('cp1252'))
+            ''').encode('cp1252')
         result = self.import_personal_result(csv, 'valid-token', encoding='utf-8')
         assert_that(result.status_code, equal_to(400))
 
@@ -106,7 +106,7 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
             has_entries({'firstname': 'bob', 'lastname': 'bodkartan'})))
 
     def test_that_importing_a_contact_with_an_existing_uuid(self):
-        csv = textwrap.dedent(u'''\
+        csv = textwrap.dedent('''\
         firstname
         alice
         ''')
@@ -115,7 +115,7 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
             uuid = user['id']
             break
 
-        csv = textwrap.dedent(u'''\
+        csv = textwrap.dedent('''\
         id,firstname
         {},not alice
         29d4aec1-db4c-4c67-80a0-b83136c58a47,bob
@@ -130,14 +130,14 @@ class TestPersonalImportUTF8(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_import_with_utf8_chars_is_valid(self):
-        csv = textwrap.dedent(u'''\
+        csv = textwrap.dedent('''\
             firstname,lastname
             valérie,vidalzami
-            '''.encode('utf-8'))
+            ''').encode('utf-8')
         result = self.import_personal(csv, 'valid-token')
 
         assert_that(result['created'], contains_inanyorder(
-            has_entries({'firstname': u'valérie', 'lastname': 'vidalzami'})))
+            has_entries({'firstname': 'valérie', 'lastname': 'vidalzami'})))
 
 
 class TestPersonalImportCP1252(BaseDirdIntegrationTest):
@@ -145,11 +145,11 @@ class TestPersonalImportCP1252(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def test_that_import_with_cp1252_chars_is_valid(self):
-        csv = textwrap.dedent(u'''\
+        csv = textwrap.dedent('''\
             firstname,lastname
             valérie,vidalzami
-            '''.encode('cp1252'))
+            ''').encode('cp1252')
         result = self.import_personal(csv, 'valid-token', encoding='cp1252')
 
         assert_that(result['created'], contains_inanyorder(
-            has_entries({'firstname': u'valérie', 'lastname': 'vidalzami'})))
+            has_entries({'firstname': 'valérie', 'lastname': 'vidalzami'})))

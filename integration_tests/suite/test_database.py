@@ -82,15 +82,15 @@ def teardown():
 class _BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self._contact_1 = {u'firtname': u'Finley',
-                           u'lastname': u'Shelley',
-                           u'number': u'5555551111'}
-        self._contact_2 = {u'firstname': u'Cédric',
-                           u'lastname': u'Ora',
-                           u'number': u'5555550001'}
-        self._contact_3 = {u'firstname': u'Foo',
-                           u'lastname': u'Bar',
-                           u'number': u'5555550001'}
+        self._contact_1 = {'firtname': 'Finley',
+                           'lastname': 'Shelley',
+                           'number': '5555551111'}
+        self._contact_2 = {'firstname': 'Cédric',
+                           'lastname': 'Ora',
+                           'number': '5555550001'}
+        self._contact_3 = {'firstname': 'Foo',
+                           'lastname': 'Bar',
+                           'number': '5555550001'}
 
     @property
     def contact_1(self):
@@ -113,7 +113,7 @@ class _BaseTest(unittest.TestCase):
                 session.add(dird_contact)
                 session.flush()
                 ids.append(dird_contact.uuid)
-                for name, value in contact.iteritems():
+                for name, value in contact.items():
                     field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
                     session.add(field)
                 session.commit()
@@ -124,7 +124,7 @@ class _BaseTest(unittest.TestCase):
             contacts = defaultdict(dict)
             for field in s.query(database.ContactFields).all():
                 contacts[field.contact_uuid][field.name] = field.value
-        return contacts.values()
+        return list(contacts.values())
 
 
 class _BasePhonebookCRUDTest(_BaseTest):
@@ -953,7 +953,7 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2, self.contact_3)
 
-        result = engine.find_first_personal_contact(xivo_user_uuid, u'5555550001')
+        result = engine.find_first_personal_contact(xivo_user_uuid, '5555550001')
 
         assert_that(result, contains(any_of(expected(self.contact_2), expected(self.contact_3))))
 
@@ -998,10 +998,10 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
         assert_that(result, contains(expected(self.contact_2)))
 
-        result = engine.find_personal_contacts(xivo_user_uuid, u'céd')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'céd')
         assert_that(result, contains(expected(self.contact_2)))
 
     @with_user_uuid
@@ -1010,7 +1010,7 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
 
         assert_that(result, empty())
 
@@ -1020,6 +1020,6 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
 
         assert_that(result, empty())

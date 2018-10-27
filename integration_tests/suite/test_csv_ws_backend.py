@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from hamcrest import (assert_that, contains, empty, has_entries)
@@ -20,11 +20,11 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
     def setUp(self):
         super(TestCSVWSBackend, self).setUp()
         self._andree_anne = {'id': '1',
-                             'firstname': u'Andrée-Anne',
+                             'firstname': 'Andrée-Anne',
                              'lastname': 'Smith',
                              'number': '5551231111'}
         self._benoit = {'id': '42',
-                        'firstname': u'Benoît',
+                        'firstname': 'Benoît',
                         'lastname': 'Malone',
                         'number': '5551232222'}
 
@@ -45,12 +45,12 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
         }
 
     def test_that_verify_certificate_false(self):
-        results = self.backend.search(u'Ben')
+        results = self.backend.search('Ben')
 
         assert_that(results, contains(has_entries(**self._benoit)))
 
     def test_that_searching_for_result_with_non_ascii(self):
-        results = self.backend.search(u'dré')
+        results = self.backend.search('dré')
 
         assert_that(results, contains(has_entries(**self._andree_anne)))
 
@@ -79,11 +79,11 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
     def setUp(self):
         super(TestCSVWSBackendComa, self).setUp()
         self._andree_anne = {'id': '1',
-                             'firstname': u'Andrée-Anne',
+                             'firstname': 'Andrée-Anne',
                              'lastname': 'Smith',
                              'number': '5551231111'}
         self._benoit = {'id': '42',
-                        'firstname': u'Benoît',
+                        'firstname': 'Benoît',
                         'lastname': 'Malone',
                         'number': '5551232222'}
 
@@ -99,7 +99,7 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
         }
 
     def test_that_searching_for_result_with_non_ascii(self):
-        results = self.backend.search(u'dré')
+        results = self.backend.search('dré')
 
         assert_that(results, contains(has_entries(**self._andree_anne)))
 
