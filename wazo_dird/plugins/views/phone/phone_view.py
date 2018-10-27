@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -68,7 +68,7 @@ class PhoneLookup(AuthResource):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('limit', type=natural, required=False, default=max_item_per_page, location='args')
         self.parser.add_argument('offset', type=natural, required=False, default=0, location='args')
-        self.parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
+        self.parser.add_argument('term', type=str, required=True, help='term is missing', location='args')
 
     @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}.read')
     def get(self, profile, xivo_user_uuid):
@@ -78,7 +78,7 @@ class PhoneLookup(AuthResource):
         limit = args['limit']
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('lookup'))
         token = request.headers['X-Auth-Token']
-        
+
         try:
             results = self.phone_lookup_service.lookup(term,
                                                        profile,

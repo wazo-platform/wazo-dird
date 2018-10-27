@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2015 Avencall
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -59,7 +59,7 @@ class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
             'unique_column': 'clientno',
             'searched_columns': ['firstname'],
             'name': 'my_directory',
-            'separator': u'|',
+            'separator': '|',
         }
 
         self.source.load({'config': config})
@@ -296,7 +296,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
     def _generate_random_non_existent_filename(self):
         while True:
-            name = ''.join(random.choice(string.lowercase) for _ in xrange(10))
+            name = ''.join(random.choice(string.lowercase) for _ in range(10))
             fullname = os.path.join('/tmp', name)
             if os.path.exists(fullname):
                 continue

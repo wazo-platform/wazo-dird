@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import csv
 import logging
 import requests
 
-from itertools import izip
 from requests import RequestException
 from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
@@ -102,13 +101,13 @@ class _CSVReader(object):
         reader = unicode_csv_reader(raw, delimiter=self._delimiter)
         headers = next(reader)
         for result in reader:
-            yield dict(izip(headers, result))
+            yield dict(zip(headers, result))
 
 
 def unicode_csv_reader(unicode_data, **kwargs):
     csv_reader = csv.reader(utf_8_encoder(unicode_data), **kwargs)
     for row in csv_reader:
-        yield [unicode(field, 'utf-8') for field in row]
+        yield [str(field, 'utf-8') for field in row]
 
 
 def utf_8_encoder(unicode_data):

@@ -46,7 +46,7 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_client.close.assert_called_once_with()
 
     def test_search(self):
-        term = u'foobar'
+        term = 'foobar'
         self.ldap_config.build_search_filter.return_value = sentinel.filter
         self.ldap_client.search.return_value = sentinel.search_result
         self.ldap_result_formatter.format.return_value = sentinel.format_result
@@ -60,7 +60,7 @@ class TestLDAPPlugin(unittest.TestCase):
         self.assertIs(result, sentinel.format_result)
 
     def test_first_match(self):
-        exten = u'123456'
+        exten = '123456'
         self.ldap_config.build_first_match_filter.return_value = sentinel.filter
         self.ldap_client.search.return_value = [(sentinel.result_1_dn, sentinel.result_1_attrs), sentinel.result_2]
         self.ldap_result_formatter.format_one_result.return_value = sentinel.format_result
@@ -74,7 +74,7 @@ class TestLDAPPlugin(unittest.TestCase):
         self.assertIs(result, sentinel.format_result)
 
     def test_first_match_return_none_when_no_match(self):
-        exten = u'123456'
+        exten = '123456'
         self.ldap_config.build_first_match_filter.return_value = sentinel.filter
         self.ldap_client.search.return_value = []
 
@@ -94,7 +94,7 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_plugin.load(self.config)
         result = self.ldap_plugin.list(uids)
 
-        self.assertEquals(result, [])
+        self.assertEqual(result, [])
 
     def test_list_with_uids(self):
         uids = ['123', '456']
@@ -286,7 +286,7 @@ class TestLDAPConfig(unittest.TestCase):
             BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
         })
 
-        self.assertEquals(None, ldap_config.attributes())
+        self.assertEqual(None, ldap_config.attributes())
 
     def test_attributes_with_format_columns(self):
         ldap_config = self.new_ldap_config({
@@ -348,7 +348,7 @@ class TestLDAPConfig(unittest.TestCase):
             'ldap_custom_filter': str('(cn=*%Q*)'),
         })
 
-        self.assertEqual(u'(&(cn=*Québec*)(sn=*Québec*))', ldap_config.build_search_filter(u'Québec'))
+        self.assertEqual('(&(cn=*Québec*)(sn=*Québec*))', ldap_config.build_search_filter('Québec'))
 
     def test_build_search_filter_searched_columns_escape_term(self):
         ldap_config = _LDAPConfig({
@@ -519,7 +519,7 @@ class TestLDAPResultFormatter(unittest.TestCase):
             ('dn', {'entryUUID': ['0123'], 'givenName': ['Gr\xc3\xa9goire']}),
         ]
         expected_results = [
-            self.SourceResult({'entryUUID': u'0123', 'givenName': u'Grégoire'})
+            self.SourceResult({'entryUUID': '0123', 'givenName': 'Grégoire'})
         ]
 
         results = formatter.format(raw_results)
@@ -530,13 +530,13 @@ class TestLDAPResultFormatter(unittest.TestCase):
         formatter = self._new_formatter(has_binary_uuid=True)
 
         binary_uuid = os.urandom(16)
-        encoded_uid = unicode(uuid.UUID(bytes=binary_uuid))
+        encoded_uid = str(uuid.UUID(bytes=binary_uuid))
 
         raw_results = [
             ('dn', {'entryUUID': [binary_uuid], 'givenName': ['John']}),
         ]
         expected_results = [
-            self.SourceResult({'entryUUID': encoded_uid, 'givenName': u'John'})
+            self.SourceResult({'entryUUID': encoded_uid, 'givenName': 'John'})
         ]
 
         results = formatter.format(raw_results)
@@ -551,7 +551,7 @@ class TestLDAPResultFormatter(unittest.TestCase):
             (None, ['ldap://b.example.com/cn=test,dc=lan-quebec,dc=avencall,dc=com??sub']),
         ]
         expected_results = [
-            self.SourceResult({'entryUUID': u'0123', 'givenName': u'John'})
+            self.SourceResult({'entryUUID': '0123', 'givenName': 'John'})
         ]
 
         results = formatter.format(raw_results)
@@ -562,7 +562,7 @@ class TestLDAPResultFormatter(unittest.TestCase):
         formatter = self._new_formatter(has_binary_uuid=False)
 
         raw_result = ('dn', {'entryUUID': ['0123'], 'givenName': ['Gr\xc3\xa9goire']})
-        expected_result = self.SourceResult({'entryUUID': u'0123', 'givenName': u'Grégoire'})
+        expected_result = self.SourceResult({'entryUUID': '0123', 'givenName': 'Grégoire'})
 
         dn, attrs = raw_result
         result = formatter.format_one_result(attrs)

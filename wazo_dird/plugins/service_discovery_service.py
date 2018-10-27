@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -134,7 +134,7 @@ class ProfileConfigUpdater(object):
         self._watched_services = {}
         self._host_configs = config['services']['service_discovery']['hosts']
         consul_services = config['services']['service_discovery']['services']
-        for name, config in consul_services.iteritems():
+        for name, config in consul_services.items():
             self._watched_services[name] = {
                 'lookup': self._profiles_for(config, 'lookup'),
                 'reverse': self._profiles_for(config, 'reverse'),
@@ -146,7 +146,7 @@ class ProfileConfigUpdater(object):
         if not consul_service_config:
             return
 
-        for dird_service, profiles in consul_service_config.iteritems():
+        for dird_service, profiles in consul_service_config.items():
             dird_service_config = self._config['services'].get(dird_service)
             if not dird_service_config:
                 continue
@@ -162,7 +162,7 @@ class ProfileConfigUpdater(object):
     @staticmethod
     def _profiles_for(config, service):
         profiles = config.get(service, {})
-        return [profile for profile, enabled in profiles.iteritems() if enabled]
+        return [profile for profile, enabled in profiles.items() if enabled]
 
 
 class SourceConfigGenerator(object):
@@ -182,7 +182,7 @@ class SourceConfigGenerator(object):
         self._template_files = {
             service: config['template']
             for service, config
-            in service_discovery_config['services'].iteritems()
+            in service_discovery_config['services'].items()
         }
         self.enabled = True
 

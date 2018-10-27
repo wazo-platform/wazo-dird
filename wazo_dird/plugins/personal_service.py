@@ -56,7 +56,7 @@ class _PersonalService(object):
     def __init__(self, config, sources, crud):
         self._crud = crud
         self._config = config
-        self._source = next((source for source in sources.itervalues() if source.backend == 'personal'),
+        self._source = next((source for source in sources.values() if source.backend == 'personal'),
                             DisabledPersonalSource())
 
     def create_contact(self, contact_infos, token_infos):
@@ -112,7 +112,7 @@ class _PersonalService(object):
         if any(not hasattr(key, 'encode') for key in contact_infos):
             errors.append('all keys must be strings')
 
-        if any(not hasattr(value, 'encode') for value in contact_infos.itervalues()):
+        if any(not hasattr(value, 'encode') for value in contact_infos.values()):
             errors.append('all values must be strings')
 
         if '' in contact_infos:

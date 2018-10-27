@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -123,7 +123,7 @@ def _default_error_route(f):
             logger.info('%s', e)
             logger.debug('%s', traceback.format_exc())
             code = self_.error_code_map.get(e.__class__)
-            return _make_error(unicode(e), code)
+            return _make_error(str(e), code)
     return decorator
 
 

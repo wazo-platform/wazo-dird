@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2015 Avencall
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import abc
 
 
-class BaseServicePlugin(object):
+class BaseServicePlugin(metaclass=abc.ABCMeta):
     '''
     This is the base class of a dird service. The service is responsible of
     its directory sources
     '''
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def load(self, args):
@@ -26,9 +24,7 @@ class BaseServicePlugin(object):
         '''
 
 
-class BaseViewPlugin(object):
-
-    __metaclass__ = abc.ABCMeta
+class BaseViewPlugin(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def load(self, args):
@@ -38,13 +34,11 @@ class BaseViewPlugin(object):
         '''
 
 
-class BaseSourcePlugin(object):
+class BaseSourcePlugin(metaclass=abc.ABCMeta):
     '''
     A backend plugin in xivo should implement this base class implicitly or
     explicitly
     '''
-
-    __metaclass__ = abc.ABCMeta
 
     # These string are expected in the configuration
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in

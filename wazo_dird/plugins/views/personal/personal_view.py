@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import cStringIO
+import io
 import logging
 import re
 
@@ -42,7 +42,7 @@ class PersonalViewPlugin(BaseViewPlugin):
 
 
 parser = reqparse.RequestParser()
-parser.add_argument('format', type=unicode, required=False, location='args')
+parser.add_argument('format', type=str, required=False, location='args')
 
 
 class PersonalAll(AuthResource):
@@ -111,7 +111,7 @@ class PersonalAll(AuthResource):
     def format_csv(contacts):
         if not contacts:
             return '', 204
-        csv_text = cStringIO.StringIO()
+        csv_text = io.StringIO()
         fieldnames = sorted(list(set(attribute for contact in contacts for attribute in contact)))
         for contact in contacts:
             for attribute in contact:

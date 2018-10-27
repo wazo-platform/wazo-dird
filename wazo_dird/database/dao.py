@@ -62,13 +62,13 @@ def _list_contacts_by_uuid(session, uuids):
         if uuid not in result:
             result[uuid] = {'id': uuid}
         result[uuid][contact_field.name] = contact_field.value
-    return result.values()
+    return list(result.values())
 
 
 def compute_contact_hash(contact_info):
     d = dict(contact_info)
     d.pop('id', None)
-    string_representation = json.dumps(d, sort_keys=True)
+    string_representation = json.dumps(d, sort_keys=True).encode('utf-8')
     return hashlib.sha1(string_representation).hexdigest()
 
 
@@ -184,11 +184,11 @@ class PhonebookContactCRUD(_BaseDAO):
             for field in fields:
                 result[field.contact_uuid][field.name] = field.value
 
-        return result.values()
+        return list(result.values())
 
     def _add_field_to_contact(self, s, contact_uuid, contact_body):
         contact_body['id'] = contact_uuid
-        for name, value in contact_body.iteritems():
+        for name, value in contact_body.items():
             s.add(ContactFields(name=name, value=value, contact_uuid=contact_uuid))
 
     def _assert_tenant_owns_phonebook(self, s, tenant, phonebook_id):
@@ -208,7 +208,7 @@ class PhonebookContactCRUD(_BaseDAO):
     def _list_contacts(self, s, query, tenant, phonebook_id, search):
         self._assert_tenant_owns_phonebook(s, tenant, phonebook_id)
         base_filter = Contact.phonebook_id == phonebook_id
-        search_filter = ContactFields.value.ilike(u'%{}%'.format(search)) if search else True
+        search_filter = ContactFields.value.ilike('%{}%'.format(search)) if search else True
         return s.query(query).join(Contact).filter(and_(base_filter, search_filter))
 
     def _new_contact_filter(self, phonebook_id, contact_uuid):
@@ -242,7 +242,7 @@ class PhonebookCRUD(_BaseDAO):
     def edit(self, tenant, phonebook_id, phonebook_body):
         with self.new_session() as s:
             phonebook = self._get_by_tenant_and_id(s, tenant, phonebook_id)
-            for attribute_name, value in phonebook_body.iteritems():
+            for attribute_name, value in phonebook_body.items():
                 if not hasattr(phonebook, attribute_name):
                     raise TypeError('{} has no attribute {}'.format(phonebook.__class__.__name__,
                                                                     attribute_name))
@@ -292,7 +292,7 @@ class PhonebookCRUD(_BaseDAO):
         if not search:
             return Phonebook.tenant_id == tenant.id
         else:
-            pattern = u'%{}%'.format(search)
+            pattern = '%{}%'.format(search)
             return and_(Phonebook.tenant_id == tenant.id,
                         or_(Phonebook.name.ilike(pattern),
                             Phonebook.description.ilike(pattern)))
@@ -390,7 +390,9 @@ class PersonalContactCRUD(_BaseDAO):
     def _create_personal_contacts(self, session, xivo_user_uuid, contact_infos, fail_on_duplicate=False):
         hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
         user = self._get_dird_user(session, xivo_user_uuid)
-        existing_hashes_and_id = self._find_existing_contact_by_hash(session, xivo_user_uuid, hash_and_contact.keys())
+        existing_hashes_and_id = self._find_existing_contact_by_hash(
+            session, xivo_user_uuid, list(hash_and_contact.keys())
+        )
         all_hashes = set(hash_and_contact.keys())
         to_add = all_hashes - set(existing_hashes_and_id.keys())
         existing = all_hashes - to_add
@@ -409,7 +411,7 @@ class PersonalContactCRUD(_BaseDAO):
             session.flush()
 
             contact_info['id'] = contact.uuid
-            for name, value in contact_info.iteritems():
+            for name, value in contact_info.items():
                 session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
 
         for hash_ in existing:
@@ -487,7 +489,7 @@ class PhonebookContactSearchEngine(_BaseDAO):
         self._phonebook_id = phonebook_id
 
     def find_contacts(self, term):
-        pattern = u'%{}%'.format(term)
+        pattern = '%{}%'.format(term)
         filter_ = self._new_search_filter(pattern, self._searched_columns)
         with self.new_session() as s:
             return self._find_contacts_with_filter(s, filter_)
@@ -584,7 +586,7 @@ class PersonalContactSearchEngine(_BaseDAO):
         if not columns:
             return False
 
-        pattern = u'%{}%'.format(unidecode(term))
+        pattern = '%{}%'.format(unidecode(term))
         return and_(User.xivo_user_uuid == xivo_user_uuid,
                     unaccent(ContactFields.value).ilike(pattern),
                     ContactFields.name.in_(columns))

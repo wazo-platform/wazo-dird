@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -68,4 +68,4 @@ class PersonalBackend(BaseSourcePlugin):
 
     @staticmethod
     def _remove_empty_values(dict_):
-        return {attribute: value for attribute, value in dict_.iteritems() if value}
+        return {attribute: value for attribute, value in dict_.items() if value}

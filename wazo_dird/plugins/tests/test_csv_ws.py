@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -20,7 +20,7 @@ class TestCSVWSPlugin(unittest.TestCase):
 
     @patch('wazo_dird.plugins.csv_ws.requests')
     def test_that_search_queries_the_lookup_url(self, mocked_requests):
-        lookup_url = u'http://example.com:8000/ws'
+        lookup_url = 'http://example.com:8000/ws'
         config = {'config': {'lookup_url': lookup_url,
                              'name': 'my-ws-source',
                              'timeout': s.timeout,
@@ -28,8 +28,8 @@ class TestCSVWSPlugin(unittest.TestCase):
                                  'firstname',
                                  'lastname',
                              ]}}
-        term = u'dédé'
-        expected_params = {'firstname': u'dédé', 'lastname': u'dédé'}
+        term = 'dédé'
+        expected_params = {'firstname': 'dédé', 'lastname': 'dédé'}
 
         source = CSVWSPlugin()
         source.load(config)
@@ -40,7 +40,7 @@ class TestCSVWSPlugin(unittest.TestCase):
 
     @patch('wazo_dird.plugins.csv_ws.requests')
     def test_that_first_match_queries_the_lookup_url(self, mocked_requests):
-        lookup_url = u'http://example.com:8000/ws'
+        lookup_url = 'http://example.com:8000/ws'
         config = {'config': {'lookup_url': lookup_url,
                              'name': 'my-ws-source',
                              'timeout': s.timeout,
@@ -49,7 +49,7 @@ class TestCSVWSPlugin(unittest.TestCase):
                                  'lastname',
                              ],
                              'first_matched_columns': ['exten']}}
-        term = u'1234'
+        term = '1234'
         expected_params = {'exten': '1234'}
 
         source = CSVWSPlugin()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from hamcrest import assert_that, equal_to, is_
@@ -14,9 +14,9 @@ class TestPhoneLookupService(TestCase):
 
     def setUp(self):
         self.formatted_results = [
-            _PhoneFormattedResult(u'Alice', u'1'),
-            _PhoneFormattedResult(u'Bob', u'2'),
-            _PhoneFormattedResult(u'Carol', u'3'),
+            _PhoneFormattedResult('Alice', '1'),
+            _PhoneFormattedResult('Bob', '2'),
+            _PhoneFormattedResult('Carol', '3'),
         ]
         self.profile = 'profile1'
         self.formatter = Mock(_PhoneResultFormatter)
@@ -27,8 +27,8 @@ class TestPhoneLookupService(TestCase):
 
     def test_lookup(self):
         formatted_results = [
-            _PhoneFormattedResult(u'Bob', u'2'),
-            _PhoneFormattedResult(u'Alice', u'1'),
+            _PhoneFormattedResult('Bob', '2'),
+            _PhoneFormattedResult('Alice', '1'),
         ]
         # return a copy of formatted_results to test that sorting works
         self.formatter.format_results.side_effect = lambda _: list(formatted_results)
@@ -104,17 +104,17 @@ class TestPhoneResultFormatter(TestCase):
 
     def test_format_results_return_strip_number(self):
         fields = {
-            'name1': u'John',
-            'number1': u'1(418)-555.1234',
+            'name1': 'John',
+            'number1': '1(418)-555.1234',
         }
         formatted_results = self._format_results(fields)
 
-        assert_that(formatted_results, equal_to([('John', u'14185551234')]))
+        assert_that(formatted_results, equal_to([('John', '14185551234')]))
 
     def test_format_results_return_none_when_number_with_unauthorized_characters(self):
         fields = {
-            'name1': u'John',
-            'number1': u'()abcd',
+            'name1': 'John',
+            'number1': '()abcd',
         }
         formatted_results = self._format_results(fields)
 
@@ -122,36 +122,36 @@ class TestPhoneResultFormatter(TestCase):
 
     def test_format_results_return_special_number_when_pattern_matchs(self):
         fields = {
-            'name1': u'John',
-            'number1': u'+33(0)123456789',
+            'name1': 'John',
+            'number1': '+33(0)123456789',
         }
         formatted_results = self._format_results(fields)
 
-        assert_that(formatted_results, equal_to([(u'John', u'0033123456789')]))
+        assert_that(formatted_results, equal_to([('John', '0033123456789')]))
 
     def test_format_results_return_number_with_special_characters(self):
         fields1 = {
-            'name1': u'John',
-            'number1': u'*10',
+            'name1': 'John',
+            'number1': '*10',
         }
         formatted_results1 = self._format_results(fields1)
 
         fields2 = {
-            'name1': u'John',
-            'number1': u'#10',
+            'name1': 'John',
+            'number1': '#10',
         }
         formatted_results2 = self._format_results(fields2)
 
         fields3 = {
-            'name1': u'John',
-            'number1': u'+10',
+            'name1': 'John',
+            'number1': '+10',
         }
 
         formatted_results3 = self._format_results(fields3)
 
-        assert_that(formatted_results1, equal_to([(u'John', u'*10')]))
-        assert_that(formatted_results2, equal_to([(u'John', u'#10')]))
-        assert_that(formatted_results3, equal_to([(u'John', u'+10')]))
+        assert_that(formatted_results1, equal_to([('John', '*10')]))
+        assert_that(formatted_results2, equal_to([('John', '#10')]))
+        assert_that(formatted_results3, equal_to([('John', '+10')]))
 
     def test_results_have_attributes(self):
         fields = {

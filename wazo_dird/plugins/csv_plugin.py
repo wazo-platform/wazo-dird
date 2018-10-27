@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2015 Avencall
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import csv
 import logging
 
-from itertools import ifilter
-from itertools import izip
 from functools import partial
 from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
@@ -85,7 +83,7 @@ class CSVPlugin(BaseSourcePlugin):
             logger.exception('Could not load CSV file content')
 
     def _list_from_predicate(self, predicate):
-        return map(self._SourceResult, ifilter(predicate, self._content))
+        return list(map(self._SourceResult, filter(predicate, self._content)))
 
     def _is_in_unique_ids(self, unique_ids, entry):
         return self._make_unique(entry) in unique_ids
@@ -107,7 +105,7 @@ class CSVPlugin(BaseSourcePlugin):
 
     @staticmethod
     def _row_to_dict(keys, values):
-        return dict(izip(
+        return dict(zip(
             keys, [value.decode('utf-8') if type(value) == str else value for value in values]))
 
     def _make_unique(self, entry):

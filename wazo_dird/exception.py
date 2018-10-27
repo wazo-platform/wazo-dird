@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 
@@ -86,5 +86,5 @@ class InvalidContactException(Exception):
 class InvalidTenantException(Exception):
 
     def __init__(self, tenant):
-        msg = u'The tenant should be alphanumeric: {}'.format(tenant)
+        msg = 'The tenant should be alphanumeric: {}'.format(tenant)
         super(InvalidTenantException, self).__init__(msg)

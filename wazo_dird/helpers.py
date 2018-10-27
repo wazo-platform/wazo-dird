@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -33,7 +33,7 @@ class BaseService(object):
         sources = self.config_by_profile(profile).get('sources', {})
         result = []
 
-        for name, enabled in sources.iteritems():
+        for name, enabled in sources.items():
             if not enabled or name not in self._sources:
                 continue
             result.append(self._sources[name])

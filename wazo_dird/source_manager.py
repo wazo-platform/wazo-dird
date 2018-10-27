@@ -45,7 +45,7 @@ class SourceManager(object):
 
     def unload_sources(self):
         logger.info('unloading all source plugins')
-        for source in self._sources.itervalues():
+        for source in self._sources.values():
             source.unload()
 
     def _is_enabled(self, extension):
@@ -87,7 +87,7 @@ class SourceManager(object):
     @staticmethod
     def group_configs_by_backend(source_configs):
         configs_by_backend = defaultdict(list)
-        for source_config in source_configs.itervalues():
+        for source_config in source_configs.values():
             source_type = source_config.get('type')
             if not source_type:
                 logger.warning('One of the source config has no back-end type. Ignoring.')

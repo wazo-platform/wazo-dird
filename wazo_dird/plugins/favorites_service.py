@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -99,7 +99,7 @@ class _FavoritesService(helpers.BaseService):
 
     def _available_sources(self):
         available_sources = set()
-        for source_config in self._config.get('services', {}).get('favorites', {}).itervalues():
+        for source_config in self._config.get('services', {}).get('favorites', {}).values():
             for source in source_config.get('sources', []):
                 available_sources.add(source)
         return list(available_sources)
@@ -119,7 +119,7 @@ class _FavoritesService(helpers.BaseService):
 
         args = {'token_infos': {'xivo_user_uuid': xivo_user_uuid}}
         futures = []
-        for source_name, ids in self.favorite_ids(profile, xivo_user_uuid).iteritems():
+        for source_name, ids in self.favorite_ids(profile, xivo_user_uuid).items():
             source = self._sources[source_name]
             futures.append(self._async_list(source, ids, args))
 
@@ -153,7 +153,6 @@ class _FavoritesService(helpers.BaseService):
         if source not in self._available_sources():
             raise self.NoSuchSourceException(source)
 
-        contact_id = contact_id.encode('utf-8')
         self._crud.create(xivo_user_uuid, source, contact_id)
         event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
         self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
