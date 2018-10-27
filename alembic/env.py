@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0+
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -16,6 +17,7 @@ fileConfig(config.config_file_name)
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
