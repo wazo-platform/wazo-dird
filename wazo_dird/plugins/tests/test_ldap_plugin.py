@@ -467,9 +467,9 @@ class TestLDAPClient(unittest.TestCase):
         result = self.ldap_client.search('foo')
 
         self.ldap_obj.search_ext_s.assert_called_once_with(
-            self.base_dn.encode('utf-8'),
+            self.base_dn,
             ANY,
-            b'foo',
+            'foo',
             self.attributes,
             sizelimit=-1,
         )
