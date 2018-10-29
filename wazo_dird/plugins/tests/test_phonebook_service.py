@@ -211,8 +211,8 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self._manolo = {'firstname': 'Manolo', 'lastname': 'Laporte-Carpentier', 'number': '5551111234'}
         self._annabelle = {'firstname': 'Ännabelle', 'lastname': 'Courval', 'number': '5552221234'}
         self._gary_bob = {'firstname': 'Gary-Bob', 'lastname': 'Derome'}
-        self._antonin = {'firstname': 'Antonin', 'lastname': 'Mongea', 'number': '5554441234'}
-        self._simon = {'firstname': 'Simon', 'lastname': u"L'Espérance"}
+        self._antonin = {'firstname': 'Antonin', 'lastname': 'Mongeau', 'number': '5554441234'}
+        self._simon = {'firstname': 'Simon', 'lastname': "L'Espérance"}
         self._contacts = [self._manolo, self._annabelle, self._gary_bob, self._antonin, self._simon]
 
     def test_that_list_returns_the_db_result_when_no_pagination_or_sorting(self):
