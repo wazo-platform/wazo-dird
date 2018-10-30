@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -58,13 +57,13 @@ class TestPersonalExport(BaseDirdIntegrationTest):
         assert_that(result[-1], equal_to(''))
 
     def test_that_export_with_non_ascii_is_ok(self):
-        self.post_personal({'firstname': u'Éloïse'})
+        self.post_personal({'firstname': 'Éloïse'})
 
         result = self.export_personal()
 
         result = result.split('\r\n')
         assert_that(result[0], equal_to('firstname,id'))
-        assert_that(result[1:-1], contains_inanyorder(matches_regexp(u'Éloïse,[^,]*')))
+        assert_that(result[1:-1], contains_inanyorder(matches_regexp('Éloïse,[^,]*')))
         assert_that(result[-1], equal_to(''))
 
     def test_that_export_produces_the_same_output_as_import_with_empty_column(self):
@@ -74,6 +73,6 @@ class TestPersonalExport(BaseDirdIntegrationTest):
 
         result = result.split('\r\n')
         assert_that(result[0], equal_to('firstname,id,lastname,special-key'))
-        assert_that(result[1:-1], contains_inanyorder(matches_regexp(u'john,[^,]*,doe,'),
-                                                      matches_regexp(u'bob,[^,]*,martin,')))
+        assert_that(result[1:-1], contains_inanyorder(matches_regexp('john,[^,]*,doe,'),
+                                                      matches_regexp('bob,[^,]*,martin,')))
         assert_that(result[-1], equal_to(''))

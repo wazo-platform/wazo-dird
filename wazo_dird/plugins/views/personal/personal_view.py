@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import cStringIO
+import csv
+import io
 import logging
 import re
 
@@ -11,8 +11,6 @@ from flask import Response
 from flask_restful import reqparse
 from time import time
 
-from xivo.unicode_csv import UnicodeDictReader
-from xivo.unicode_csv import UnicodeDictWriter
 from wazo_dird import BaseViewPlugin
 from wazo_dird import auth
 from wazo_dird.auth import required_acl
@@ -42,7 +40,7 @@ class PersonalViewPlugin(BaseViewPlugin):
 
 
 parser = reqparse.RequestParser()
-parser.add_argument('format', type=unicode, required=False, location='args')
+parser.add_argument('format', type=str, required=False, location='args')
 
 
 class PersonalAll(AuthResource):
@@ -111,13 +109,13 @@ class PersonalAll(AuthResource):
     def format_csv(contacts):
         if not contacts:
             return '', 204
-        csv_text = cStringIO.StringIO()
+        csv_text = io.StringIO()
         fieldnames = sorted(list(set(attribute for contact in contacts for attribute in contact)))
         for contact in contacts:
             for attribute in contact:
                 if contact[attribute] is None:
                     contact[attribute] = ''
-        csv_writer = UnicodeDictWriter(csv_text, fieldnames)
+        csv_writer = csv.DictWriter(csv_text, fieldnames)
         csv_writer.writeheader()
         csv_writer.writerows(contacts)
         return Response(response=csv_text.getvalue(),
@@ -212,9 +210,8 @@ class PersonalImport(AuthResource):
         token_infos = auth.client().token.get(token)
 
         charset = request.mimetype_params.get('charset', 'utf-8')
-        csv_document = request.data
         try:
-            csv_document.decode(charset)
+            csv_document = request.data.decode(charset)
         except UnicodeDecodeError as e:
             error = {
                 'reason': [str(e)],
@@ -223,7 +220,7 @@ class PersonalImport(AuthResource):
             }
             return error, 400
 
-        created, errors = self._mass_import(csv_document, charset, token_infos)
+        created, errors = self._mass_import(csv_document, token_infos)
 
         if not created:
             error = {
@@ -239,6 +236,6 @@ class PersonalImport(AuthResource):
         }
         return result, 201
 
-    def _mass_import(self, csv_document, encoding, token_infos):
-        reader = UnicodeDictReader(csv_document.split('\n'), encoding=encoding)
+    def _mass_import(self, csv_document, token_infos):
+        reader = csv.DictReader(csv_document.split('\n'))
         return self.personal_service.create_contacts(reader, token_infos)

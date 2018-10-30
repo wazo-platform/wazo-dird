@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -23,7 +22,7 @@ def _signal_handler(signum, frame):
     sys.exit(0)
 
 
-class Controller(object):
+class Controller:
 
     def __init__(self, config):
         self.config = config

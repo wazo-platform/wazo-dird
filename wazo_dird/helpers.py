@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -7,7 +6,7 @@ import logging
 logger = logging.getLogger()
 
 
-class RaiseStopper(object):
+class RaiseStopper:
 
     def __init__(self, return_on_raise):
         self.return_on_raise = return_on_raise
@@ -20,7 +19,7 @@ class RaiseStopper(object):
         return self.return_on_raise
 
 
-class BaseService(object):
+class BaseService:
 
     def __init__(self, config, sources, *args, **kwargs):
         self._config = config
@@ -33,7 +32,7 @@ class BaseService(object):
         sources = self.config_by_profile(profile).get('sources', {})
         result = []
 
-        for name, enabled in sources.iteritems():
+        for name, enabled in sources.items():
             if not enabled or name not in self._sources:
                 continue
             result.append(self._sources[name])

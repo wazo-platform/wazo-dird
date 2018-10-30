@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2014-2016 Avencall
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -23,7 +22,7 @@ class _NoKeyErrorFormatter(string.Formatter):
         return super(_NoKeyErrorFormatter, self).get_value(key, args, kwargs)
 
 
-class _SourceResult(object):
+class _SourceResult:
 
     _unique_column = None
     source = None
@@ -55,7 +54,7 @@ class _SourceResult(object):
         return self.relations['source_entry_id']
 
     def _add_formatted_columns(self):
-        for column, format_string in self._format_columns.iteritems():
+        for column, format_string in self._format_columns.items():
             value = self._formatter.format(format_string, **self.fields) or None
             self.fields[column] = value
 

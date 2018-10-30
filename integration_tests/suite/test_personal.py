@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -116,15 +115,15 @@ class TestAddPersonal(BaseDirdIntegrationTest):
             has_entry('firstname', 'Bob')))
 
     def test_that_created_personal_with_non_ascii_are_listed(self):
-        self.post_personal({'firstname': 'Alice', 'key': u'NonAsciiValue-é'})
+        self.post_personal({'firstname': 'Alice', 'key': 'NonAsciiValue-é'})
 
         raw = self.list_personal()
         formatted = self.get_personal_with_profile('default')
 
         assert_that(raw['items'], has_items(
-            has_entry('key', u'NonAsciiValue-é')))
+            has_entry('key', 'NonAsciiValue-é')))
         assert_that(formatted['results'], has_items(
-            has_entry('column_values', contains(u'Alice', None, None, False))))
+            has_entry('column_values', contains('Alice', None, None, False))))
 
     def test_that_adding_invalid_personal_returns_400(self):
         result = self.post_personal_result({'': 'invalid'}, VALID_TOKEN)
@@ -293,34 +292,34 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Alice', None, None, False))))
 
     def test_that_lookup_accepts_non_ascii_in_term(self):
-        result = self.lookup(u'Céline', 'default')
+        result = self.lookup('Céline', 'default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'Céline', None, None, False))))
+            has_entry('column_values', contains('Céline', None, None, False))))
 
     def test_that_lookup_matches_query_ascii_with_result_non_ascii(self):
-        result = self.lookup(u'celine', 'default')
+        result = self.lookup('celine', 'default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'Céline', None, None, False))))
+            has_entry('column_values', contains('Céline', None, None, False))))
 
     def test_that_lookup_matches_query_non_ascii_with_result_ascii(self):
-        result = self.lookup(u'étienne', 'default')
+        result = self.lookup('étienne', 'default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'Etienne', None, None, False))))
+            has_entry('column_values', contains('Etienne', None, None, False))))
 
     def test_that_lookup_does_not_return_duplicates_when_matching_multiple_fields(self):
         result = self.lookup('john', 'default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'john', 'john', None, False))))
+            has_entry('column_values', contains('john', 'john', None, False))))
 
     def test_that_lookup_returns_None_when_a_column_is_empty(self):
         result = self.lookup('empty', 'default')
 
         assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains(u'empty-column', None, None, False))))
+            has_entry('column_values', contains('empty-column', None, None, False))))
 
     def test_reverse_lookup_with_alias_me(self):
         result = self.reverse('123456', 'default', VALID_UUID)
@@ -372,19 +371,19 @@ class TestEditPersonal(BaseDirdIntegrationTest):
         )))
 
     def test_that_edit_cannot_duplicate_contacts(self):
-        contact_1 = self.post_personal({'firstname': u'Noémie', 'lastname': u'Narvidon'})
-        self.post_personal({'firstname': u'Paul', 'lastname': u'Narvidon'})
+        contact_1 = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
+        self.post_personal({'firstname': 'Paul', 'lastname': 'Narvidon'})
 
-        put_result = self.put_personal_result(contact_1['id'], {'firstname': u'Paul', 'lastname': u'Narvidon'}, VALID_TOKEN)
+        put_result = self.put_personal_result(contact_1['id'], {'firstname': 'Paul', 'lastname': 'Narvidon'}, VALID_TOKEN)
         assert_that(put_result.status_code, equal_to(409))
 
         list_result = self.list_personal()
         assert_that(list_result['items'], contains_inanyorder({'id': ANY,
-                                                               'firstname': u'Noémie',
-                                                               'lastname': u'Narvidon'},
+                                                               'firstname': 'Noémie',
+                                                               'lastname': 'Narvidon'},
                                                               {'id': ANY,
-                                                               'firstname': u'Paul',
-                                                               'lastname': u'Narvidon'}))
+                                                               'firstname': 'Paul',
+                                                               'lastname': 'Narvidon'}))
 
 
 class TestEditInvalidPersonal(BaseDirdIntegrationTest):
@@ -424,7 +423,7 @@ class TestGetPersonal(BaseDirdIntegrationTest):
         result = self.get_personal(contact['id'])
 
         assert_that(result, has_entries({
-            'firstname': u'Noémie',
+            'firstname': 'Noémie',
             'lastname': 'Narvidon'
         }))
 

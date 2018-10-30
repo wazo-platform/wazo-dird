@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -66,7 +65,7 @@ class XivoUserPlugin(BaseSourcePlugin):
         def match_fn(entry):
             for column in self._searched_columns:
                 column_value = entry.fields.get(column) or ''
-                if lowered_term in unicode(column_value).lower():
+                if lowered_term in str(column_value).lower():
                     return True
             return False
 

@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2014-2015 Avencall
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import csv
 import logging
 
-from itertools import ifilter
-from itertools import izip
 from functools import partial
 from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
@@ -78,14 +75,14 @@ class CSVPlugin(BaseSourcePlugin):
             logger.debug('Reading %s with delimiter %r', filename, delimiter)
             with open(filename, 'r') as f:
                 csvreader = csv.reader(f, delimiter=delimiter)
-                keys = [key.decode('utf-8') for key in next(csvreader)]
+                keys = [key for key in next(csvreader)]
                 self._content = [self._row_to_dict(keys, row) for row in csvreader]
                 logger.debug('Loaded with %s', self._content)
         except IOError:
             logger.exception('Could not load CSV file content')
 
     def _list_from_predicate(self, predicate):
-        return map(self._SourceResult, ifilter(predicate, self._content))
+        return list(map(self._SourceResult, filter(predicate, self._content)))
 
     def _is_in_unique_ids(self, unique_ids, entry):
         return self._make_unique(entry) in unique_ids
@@ -107,8 +104,7 @@ class CSVPlugin(BaseSourcePlugin):
 
     @staticmethod
     def _row_to_dict(keys, values):
-        return dict(izip(
-            keys, [value.decode('utf-8') if type(value) == str else value for value in values]))
+        return dict(zip(keys, values))
 
     def _make_unique(self, entry):
         unique_column = self._config[self.UNIQUE_COLUMN]

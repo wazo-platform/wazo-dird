@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -98,7 +97,7 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
 
     def test_that_an_invalid_tenant_raises(self):
         body = {'name': 'foobar'}
-        invalid_tenants = ['', '/', '%2F', u'é']
+        invalid_tenants = ['', '/', '%2F', 'é']
         for tenant in invalid_tenants:
             assert_that(calling(self.service.get_phonebook).with_args(tenant, s.phonebook_id),
                         raises(InvalidTenantException))
@@ -187,7 +186,7 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
 
     def test_that_an_invalid_tenant_raises(self):
         body = {'firstname': 'foobar'}
-        invalid_tenants = ['', '/', '%2F', u'é']
+        invalid_tenants = ['', '/', '%2F', 'é']
         for tenant in invalid_tenants:
             assert_that(calling(self.service.get_contact).with_args(tenant, s.phonebook_id, s.contact_uuid),
                         raises(InvalidTenantException))
@@ -209,11 +208,11 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 
     def setUp(self):
         super(TestPhonebookServiceContactList, self).setUp()
-        self._manolo = {'firstname': u'Manolo', 'lastname': u'Laporte-Carpentier', 'number': u'5551111234'}
-        self._annabelle = {'firstname': u'Ännabelle', 'lastname': u'Courval', 'number': u'5552221234'}
-        self._gary_bob = {'firstname': u'Gary-Bob', 'lastname': u'Derome'}
-        self._antonin = {'firstname': u'Antonin', 'lastname': u'Mongeau', 'number': u'5554441234'}
-        self._simon = {'firstname': u'Simon', 'lastname': u"L'Espérance"}
+        self._manolo = {'firstname': 'Manolo', 'lastname': 'Laporte-Carpentier', 'number': '5551111234'}
+        self._annabelle = {'firstname': 'Ännabelle', 'lastname': 'Courval', 'number': '5552221234'}
+        self._gary_bob = {'firstname': 'Gary-Bob', 'lastname': 'Derome'}
+        self._antonin = {'firstname': 'Antonin', 'lastname': 'Mongeau', 'number': '5554441234'}
+        self._simon = {'firstname': 'Simon', 'lastname': "L'Espérance"}
         self._contacts = [self._manolo, self._annabelle, self._gary_bob, self._antonin, self._simon]
 
     def test_that_list_returns_the_db_result_when_no_pagination_or_sorting(self):

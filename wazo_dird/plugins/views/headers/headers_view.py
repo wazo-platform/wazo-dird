@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -58,7 +57,7 @@ def format_headers(display):
 
 def make_displays(view_config):
     result = {}
-    for profile, display_name in view_config.get('profile_to_display', {}).iteritems():
+    for profile, display_name in view_config.get('profile_to_display', {}).items():
         result[profile] = _make_display_from_name(view_config, display_name)
     return result
 
@@ -74,5 +73,6 @@ def _make_display_from_name(view_config, display_name):
                       column.get('field'))
         for column in display
     ]
+
 
 DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])

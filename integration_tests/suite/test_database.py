@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -8,7 +7,7 @@ import os
 import unittest
 
 from collections import defaultdict
-from contextlib import closing, contextmanager, nested
+from contextlib import closing, contextmanager
 from hamcrest import (assert_that,
                       any_of,
                       calling,
@@ -82,15 +81,15 @@ def teardown():
 class _BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self._contact_1 = {u'firtname': u'Finley',
-                           u'lastname': u'Shelley',
-                           u'number': u'5555551111'}
-        self._contact_2 = {u'firstname': u'Cédric',
-                           u'lastname': u'Ora',
-                           u'number': u'5555550001'}
-        self._contact_3 = {u'firstname': u'Foo',
-                           u'lastname': u'Bar',
-                           u'number': u'5555550001'}
+        self._contact_1 = {'firtname': 'Finley',
+                           'lastname': 'Shelley',
+                           'number': '5555551111'}
+        self._contact_2 = {'firstname': 'Cédric',
+                           'lastname': 'Ora',
+                           'number': '5555550001'}
+        self._contact_3 = {'firstname': 'Foo',
+                           'lastname': 'Bar',
+                           'number': '5555550001'}
 
     @property
     def contact_1(self):
@@ -113,7 +112,7 @@ class _BaseTest(unittest.TestCase):
                 session.add(dird_contact)
                 session.flush()
                 ids.append(dird_contact.uuid)
-                for name, value in contact.iteritems():
+                for name, value in contact.items():
                     field = database.ContactFields(name=name, value=value, contact_uuid=dird_contact.uuid)
                     session.add(field)
                 session.commit()
@@ -124,7 +123,7 @@ class _BaseTest(unittest.TestCase):
             contacts = defaultdict(dict)
             for field in s.query(database.ContactFields).all():
                 contacts[field.contact_uuid][field.name] = field.value
-        return contacts.values()
+        return list(contacts.values())
 
 
 class _BasePhonebookCRUDTest(_BaseTest):
@@ -172,12 +171,12 @@ class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
 
     def test_count(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a'),
-                    self._new_phonebook(tenant, 'b'),
-                    self._new_phonebook(tenant, 'c')) as phonebooks:
+        with self._new_phonebook(tenant, 'a'), \
+                self._new_phonebook(tenant, 'b'), \
+                self._new_phonebook(tenant, 'c'):
             result = self._crud.count(tenant)
 
-        assert_that(result, equal_to(len(phonebooks)))
+        assert_that(result, equal_to(3))
 
     def test_that_an_unknown_tenant_returns_zero(self):
         result = self._crud.count('unknown')
@@ -186,18 +185,18 @@ class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
 
     def test_that_phonebooks_from_others_are_not_counted(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a'),
-                    self._new_phonebook(tenant, 'b'),
-                    self._new_phonebook('other', 'c')) as phonebooks:
+        with self._new_phonebook(tenant, 'a'), \
+                self._new_phonebook(tenant, 'b'), \
+                self._new_phonebook('other', 'c'):
             result = self._crud.count(tenant)
 
-        assert_that(result, equal_to(len(phonebooks) - 1))
+        assert_that(result, equal_to(2))
 
     def test_that_only_matching_phonebooks_are_counted(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'ab'),
-                    self._new_phonebook(tenant, 'bc'),
-                    self._new_phonebook(tenant, 'cd')):
+        with self._new_phonebook(tenant, 'ab'), \
+                self._new_phonebook(tenant, 'bc'), \
+                self._new_phonebook(tenant, 'cd'):
             result = self._crud.count(tenant, search='b')
 
         assert_that(result, equal_to(2))
@@ -346,8 +345,8 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
                     raises(exception.NoSuchPhonebook))
 
     def test_that_editing_a_phonebook_from_another_tenant_raises(self):
-        with nested(self._new_phonebook('tenant_a', 'a'),
-                    self._new_phonebook('tenant_b', 'b')) as (phonebook_a, _):
+        with self._new_phonebook('tenant_a', 'a') as phonebook_a, \
+                self._new_phonebook('tenant_b', 'b'):
             assert_that(calling(self._crud.edit).with_args('tenant_b', phonebook_a['id'], {'name': 'foo'}),
                         raises(exception.NoSuchPhonebook))
 
@@ -374,17 +373,17 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
 
     def test_that_all_phonebooks_are_listed(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a'),
-                    self._new_phonebook(tenant, 'b'),
-                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+        with self._new_phonebook(tenant, 'a') as a, \
+                self._new_phonebook(tenant, 'b') as b, \
+                self._new_phonebook(tenant, 'c') as c:
             result = self._crud.list(tenant)
         assert_that(result, contains_inanyorder(a, b, c))
 
     def test_that_phonebooks_from_others_are_not_listed(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a'),
-                    self._new_phonebook(tenant, 'b'),
-                    self._new_phonebook('not_t', 'c')) as (a, b, _):
+        with self._new_phonebook(tenant, 'a') as a, \
+                self._new_phonebook(tenant, 'b') as b, \
+                self._new_phonebook('not_t', 'c'):
             result = self._crud.list(tenant)
         assert_that(result, contains_inanyorder(a, b))
 
@@ -395,49 +394,49 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
 
     def test_that_phonebooks_can_be_ordered(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a', description='z'),
-                    self._new_phonebook(tenant, 'b', description='b'),
-                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+        with self._new_phonebook(tenant, 'a', description='z') as a, \
+                self._new_phonebook(tenant, 'b', description='b') as b, \
+                self._new_phonebook(tenant, 'c') as c:
             result = self._crud.list(tenant, order='description')
         assert_that(result, contains_inanyorder(b, a, c))
 
     def test_that_phonebooks_order_with_invalid_field_raises(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a', description='z'),
-                    self._new_phonebook(tenant, 'b', description='b'),
-                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+        with self._new_phonebook(tenant, 'a', description='z'), \
+                self._new_phonebook(tenant, 'b', description='b'), \
+                self._new_phonebook(tenant, 'c'):
             assert_that(calling(self._crud.list).with_args(tenant, order='foo'),
                         raises(TypeError))
 
     def test_that_phonebooks_can_be_ordered_in_any_order(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a', description='z'),
-                    self._new_phonebook(tenant, 'b', description='b'),
-                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+        with self._new_phonebook(tenant, 'a', description='z') as a, \
+                self._new_phonebook(tenant, 'b', description='b') as b, \
+                self._new_phonebook(tenant, 'c') as c:
             result = self._crud.list(tenant, order='description', direction='desc')
         assert_that(result, contains_inanyorder(a, b, c))
 
     def test_that_phonebooks_can_be_limited(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a'),
-                    self._new_phonebook(tenant, 'b'),
-                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+        with self._new_phonebook(tenant, 'a') as a, \
+                self._new_phonebook(tenant, 'b') as b, \
+                self._new_phonebook(tenant, 'c'):
             result = self._crud.list(tenant, limit=2)
         assert_that(result, contains_inanyorder(a, b))
 
     def test_that_an_offset_can_be_supplied(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'a'),
-                    self._new_phonebook(tenant, 'b'),
-                    self._new_phonebook(tenant, 'c')) as (a, b, c):
+        with self._new_phonebook(tenant, 'a'), \
+                self._new_phonebook(tenant, 'b'), \
+                self._new_phonebook(tenant, 'c') as c:
             result = self._crud.list(tenant, offset=2)
         assert_that(result, contains_inanyorder(c))
 
     def test_that_list_only_returns_matching_phonebooks(self):
         tenant = 't'
-        with nested(self._new_phonebook(tenant, 'aa', description='foobar'),
-                    self._new_phonebook(tenant, 'bb'),
-                    self._new_phonebook(tenant, 'cc')) as (a, b, c):
+        with self._new_phonebook(tenant, 'aa', description='foobar') as a, \
+                self._new_phonebook(tenant, 'bb') as b, \
+                self._new_phonebook(tenant, 'cc'):
             result = self._crud.list(tenant, search='b')
 
         assert_that(result, contains_inanyorder(a, b))
@@ -953,7 +952,7 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2, self.contact_3)
 
-        result = engine.find_first_personal_contact(xivo_user_uuid, u'5555550001')
+        result = engine.find_first_personal_contact(xivo_user_uuid, '5555550001')
 
         assert_that(result, contains(any_of(expected(self.contact_2), expected(self.contact_3))))
 
@@ -998,10 +997,10 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
         assert_that(result, contains(expected(self.contact_2)))
 
-        result = engine.find_personal_contacts(xivo_user_uuid, u'céd')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'céd')
         assert_that(result, contains(expected(self.contact_2)))
 
     @with_user_uuid
@@ -1010,7 +1009,7 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
 
         assert_that(result, empty())
 
@@ -1020,6 +1019,6 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, u'ced')
+        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
 
         assert_that(result, empty())

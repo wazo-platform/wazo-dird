@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 
-class BrokenPlugin(object):
+class BrokenPlugin:
 
     def __init__(self):
         raise RuntimeError('BROKEN')
 
 
-class BrokenLookup(object):
+class BrokenLookup:
 
     def load(self, config):
         return

@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import re
@@ -20,7 +19,7 @@ def new_phone_lookup_service_from_args(args):
 _PhoneFormattedResult = namedtuple('_PhoneFormattedResult', ['name', 'number'])
 
 
-class _PhoneLookupService(object):
+class _PhoneLookupService:
 
     def __init__(self, lookup_service, formatters):
         self._lookup_service = lookup_service
@@ -68,7 +67,7 @@ class _PhoneLookupService(object):
         return previous_offset
 
 
-class _PhoneResultFormatter(object):
+class _PhoneResultFormatter:
 
     _INVALID_CHARACTERS_REGEX = re.compile(r'[^\d*#+\(\)]+')
     _SPECIAL_NUMBER_REGEX = re.compile(r'^\+(\d+)\(\d+\)(\d+)$')
@@ -100,7 +99,7 @@ class _PhoneResultFormatter(object):
 
             name_format = number_config_item.get('name_format')
             if name_format:
-                display_name = name_format.decode('utf-8').format(name=name, number=number)
+                display_name = name_format.format(name=name, number=number)
             else:
                 display_name = name
 
@@ -143,9 +142,9 @@ class _PhoneResultFormatter(object):
                                      'expected length > 0')
 
         for i, candidate in enumerate(name_config):
-            if not isinstance(candidate, basestring):
+            if not isinstance(candidate, str):
                 raise InvalidConfigError('views/displays_phone/name/{}'.format(i),
-                                         'expected basestring: was {}'.format(candidate))
+                                         'expected str: was {}'.format(candidate))
 
         number_config = display_config.get('number', missing)
         if number_config is missing:
@@ -178,14 +177,14 @@ class _PhoneResultFormatter(object):
                                          'expected length > 0')
 
             for j, candidate in enumerate(field):
-                if not isinstance(candidate, basestring):
+                if not isinstance(candidate, str):
                     raise InvalidConfigError('views/displays_phone/number/{}/field/{}'.format(i, j),
-                                             'expected basestring: was {}'.format(candidate))
+                                             'expected str: was {}'.format(candidate))
 
             name_format = number_config_item.get('name_format', missing)
-            if name_format is not missing and not isinstance(name_format, basestring):
+            if name_format is not missing and not isinstance(name_format, str):
                 raise InvalidConfigError('views/displays_phone/number/{}/name_format'.format(i),
-                                         'expected basestring: was {}'.format(name_format))
+                                         'expected str: was {}'.format(name_format))
 
         return cls(name_config, number_config)
 
@@ -204,7 +203,7 @@ def _new_formatters_from_config(views_config):
         raise InvalidConfigError('views/displays_phone', 'expected dict: was {}'.format(displays_config))
 
     formatters_by_display_name = {}
-    for display_name, display_config in displays_config.iteritems():
+    for display_name, display_config in displays_config.items():
         formatters_by_display_name[display_name] = _PhoneResultFormatter.new_from_config(display_config)
 
     profile_to_display = views_config.get('profile_to_display_phone', {})
@@ -213,10 +212,10 @@ def _new_formatters_from_config(views_config):
                                  'expected dict: was {}'.format(profile_to_display))
 
     formatters_by_profile_name = {}
-    for profile_name, display_name in profile_to_display.iteritems():
-        if not isinstance(display_name, basestring):
+    for profile_name, display_name in profile_to_display.items():
+        if not isinstance(display_name, str):
             raise InvalidConfigError('views/profile_to_display_phone/{}'.format(profile_name),
-                                     'expected basestring: was {}'.format(basestring))
+                                     'expected str: was {}'.format(display_name))
 
         if display_name not in formatters_by_display_name:
             raise InvalidConfigError('views/profile_to_display_phone/{}'.format(profile_name),

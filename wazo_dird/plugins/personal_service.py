@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -42,7 +41,7 @@ class PersonalServicePlugin(BaseServicePlugin):
         return database.PersonalContactCRUD(self._Session)
 
 
-class _PersonalService(object):
+class _PersonalService:
 
     NoSuchContact = exception.NoSuchContact
     DuplicatedContactException = exception.DuplicatedContactException
@@ -56,7 +55,7 @@ class _PersonalService(object):
     def __init__(self, config, sources, crud):
         self._crud = crud
         self._config = config
-        self._source = next((source for source in sources.itervalues() if source.backend == 'personal'),
+        self._source = next((source for source in sources.values() if source.backend == 'personal'),
                             DisabledPersonalSource())
 
     def create_contact(self, contact_infos, token_infos):
@@ -112,7 +111,7 @@ class _PersonalService(object):
         if any(not hasattr(key, 'encode') for key in contact_infos):
             errors.append('all keys must be strings')
 
-        if any(not hasattr(value, 'encode') for value in contact_infos.itervalues()):
+        if any(not hasattr(value, 'encode') for value in contact_infos.values()):
             errors.append('all values must be strings')
 
         if '' in contact_infos:
@@ -127,6 +126,6 @@ class _PersonalService(object):
                 raise PersonalImportError('contact "{}" already exist'.format(uuid))
 
 
-class DisabledPersonalSource(object):
+class DisabledPersonalSource:
     def list(self, _source_entry_ids, _token_infos):
         return []

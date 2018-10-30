@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -161,7 +160,7 @@ def _validate_configuration(config, logger):
 
 
 def _validate_views_displays(displays, logger):
-    for profile, values in displays.iteritems():
+    for profile, values in displays.items():
         if _multiple_profile_type_number(values):
             logger.warning('%s: Only one type: \'number\' is supported per profile', profile)
 

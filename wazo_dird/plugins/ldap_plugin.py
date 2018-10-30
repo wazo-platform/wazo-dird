@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import itertools
@@ -72,7 +71,7 @@ class LDAPPlugin(BaseSourcePlugin):
         return self._ldap_result_formatter.format_one_result(attrs)
 
 
-class _LDAPFactory(object):
+class _LDAPFactory:
 
     def new_ldap_config(self, config):
         return _LDAPConfig(config)
@@ -84,7 +83,7 @@ class _LDAPFactory(object):
         return _LDAPResultFormatter(ldap_config)
 
 
-class _LDAPConfig(object):
+class _LDAPConfig:
 
     DEFAULT_LDAP_USERNAME = ''
     DEFAULT_LDAP_PASSWORD = ''
@@ -140,7 +139,7 @@ class _LDAPConfig(object):
             return None
 
         attributes = []
-        for column in format_columns.itervalues():
+        for column in format_columns.values():
             fields = re.findall(r'{(\w+)}', column)
             attributes.extend(fields)
         unique_column = self._config.get(BaseSourcePlugin.UNIQUE_COLUMN)
@@ -180,7 +179,7 @@ class _LDAPConfig(object):
         return None
 
     def _build_filter_from_custom_and_generated_filter(self, custom_filter, generated_filter):
-        return u'(&{custom}{generated})'.format(custom=custom_filter, generated=generated_filter)
+        return '(&{custom}{generated})'.format(custom=custom_filter, generated=generated_filter)
 
     def _build_search_filter_from_custom_filter(self, term_escaped):
         return self._config['ldap_custom_filter'].replace('%Q', term_escaped)
@@ -220,7 +219,7 @@ class _LDAPConfig(object):
         return ''.join(character for byte in zip(itertools.repeat('\\'), uid[::2], uid[1::2]) for character in byte)
 
 
-class _LDAPClient(object):
+class _LDAPClient:
 
     def __init__(self, ldap_config, ldap_obj_factory=ldap.initialize):
         self._ldap_config = ldap_config
@@ -287,13 +286,10 @@ class _LDAPClient(object):
     def _search(self, filter_str, limit):
         results = []
 
-        encoded_filter_str = filter_str.encode('utf-8')
-        encoded_base_dn = self._base_dn.encode('utf-8')
-
         try:
-            results = self._ldap_obj.search_ext_s(encoded_base_dn,
+            results = self._ldap_obj.search_ext_s(self._base_dn,
                                                   ldap.SCOPE_SUBTREE,
-                                                  encoded_filter_str,
+                                                  filter_str,
                                                   self._attributes,
                                                   sizelimit=limit)
         except ldap.FILTER_ERROR:
@@ -309,7 +305,7 @@ class _LDAPClient(object):
         return results
 
 
-class _LDAPResultFormatter(object):
+class _LDAPResultFormatter:
 
     def __init__(self, ldap_config):
         self._unique_column = ldap_config.unique_column()
@@ -329,10 +325,10 @@ class _LDAPResultFormatter(object):
 
     def format_one_result(self, attrs):
         fields = {}
-        for name, values in attrs.iteritems():
+        for name, values in attrs.items():
             value = values[0]
             if name == self._unique_column and self._bin_uuid:
-                value = unicode(uuid.UUID(bytes=value))
+                value = str(uuid.UUID(bytes=value))
             else:
                 value = value.decode('utf-8')
             fields[name] = value

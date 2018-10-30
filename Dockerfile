@@ -1,4 +1,4 @@
-FROM python:2.7.13-stretch
+FROM python:3.5-stretch
 
 COPY . /usr/src/wazo-dird
 COPY ./contribs/docker/certs /usr/share/xivo-certs

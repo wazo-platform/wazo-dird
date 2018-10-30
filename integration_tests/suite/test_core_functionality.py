@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -122,9 +121,9 @@ class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
 
         assert_that(result['results'], has_length(2))
         assert_that(result['results'][0]['column_values'],
-                    contains(u'Alice', u'AAA', u'5555555555'))
+                    contains('Alice', 'AAA', '5555555555'))
         assert_that(result['results'][1]['column_values'],
-                    contains(u'Alice', u'AAA', u'5555555555'))
+                    contains('Alice', 'AAA', '5555555555'))
 
 
 class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):

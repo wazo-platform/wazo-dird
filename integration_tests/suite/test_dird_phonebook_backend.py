@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
@@ -40,7 +39,7 @@ def teardown():
 
 
 def _new_contact(firstname, lastname):
-    random_number = ''.join(random.choice(string.digits) for _ in xrange(10))
+    random_number = ''.join(random.choice(string.digits) for _ in range(10))
     return {'firstname': firstname,
             'lastname': lastname,
             'number': random_number}

@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -29,7 +28,7 @@ from wazo_dird.exception import (DatabaseServiceUnavailable,
 from wazo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
 
 
-class _HTTPErrorChecker(object):
+class _HTTPErrorChecker:
 
     def _assert_error(self, result, status_code, msg):
         error = {'reason': [msg],
@@ -415,7 +414,7 @@ class TestContactImport(_PhonebookViewTest, _HTTPErrorChecker):
 
     def test_a_valid_import(self):
         self.service.import_contacts.return_value = s.created, s.errors
-        body = u'''\
+        body = '''\
 firstname,lastname,number
 Föo,Bar,1111
 Alicé,AAA,2222
@@ -423,8 +422,8 @@ Bob,BBB,3333
 '''.encode('utf-8')
 
         as_list = [
-            {'firstname': u'Föo', 'lastname': 'Bar', 'number': '1111'},
-            {'firstname': u'Alicé', 'lastname': 'AAA', 'number': '2222'},
+            {'firstname': 'Föo', 'lastname': 'Bar', 'number': '1111'},
+            {'firstname': 'Alicé', 'lastname': 'AAA', 'number': '2222'},
             {'firstname': 'Bob', 'lastname': 'BBB', 'number': '3333'},
         ]
 
@@ -435,7 +434,7 @@ Bob,BBB,3333
         self.service.import_contacts.assert_called_once_with(s.tenant, s.phonebook_id, as_list)
 
     def test_with_an_unknown_charset(self):
-        body = u'''\
+        body = '''\
 firstname,lastname,number
 Föo,Bar,1111
 Alicé,AAA,2222
@@ -447,14 +446,14 @@ Bob,BBB,3333
         self._assert_error(result, 400, 'unknown encoding: unknown')
 
     def test_that_duplicate_columns_returns_an_error(self):
-        body = u'''\
+        body = '''\
 firstname,firstname,firstname,lastname,number,number
 Föo,Bar,1111
 '''.encode('utf-8')
 
         result = self._post(s.tenant, s.phonebook_id, body, 'utf-8')
 
-        class Matcher(object):
+        class Matcher:
             _msg = 'duplicate columns'
 
             def __init__(self, *args):
@@ -471,7 +470,7 @@ Föo,Bar,1111
 
     def test_that_invalid_contacts_are_managed_by_the_service(self):
         self.service.import_contacts.return_value = s.created, s.errors
-        body = u'''\
+        body = '''\
 firstname,lastname,number
 Föo,Bar,1111,extra
 Alicé,AAA,2222
@@ -479,8 +478,8 @@ Bob,BBB,3333
 '''.encode('utf-8')
 
         as_list = [
-            {'firstname': u'Föo', 'lastname': 'Bar', 'number': '1111', None: ['extra']},
-            {'firstname': u'Alicé', 'lastname': 'AAA', 'number': '2222'},
+            {'firstname': 'Föo', 'lastname': 'Bar', 'number': '1111', None: ['extra']},
+            {'firstname': 'Alicé', 'lastname': 'AAA', 'number': '2222'},
             {'firstname': 'Bob', 'lastname': 'BBB', 'number': '3333'},
         ]
 

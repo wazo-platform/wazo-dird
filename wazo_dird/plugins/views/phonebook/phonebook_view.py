@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -9,8 +8,6 @@ import traceback
 
 from flask import request
 from functools import wraps
-
-from xivo.unicode_csv import UnicodeDictReader
 
 from wazo_dird import BaseViewPlugin
 from wazo_dird import auth
@@ -66,7 +63,7 @@ class _Resource(AuthResource):
         cls.phonebook_service = phonebook_service
 
 
-class _ArgParser(object):
+class _ArgParser:
 
     def __init__(self, args):
         self._search = args.get('search')
@@ -123,7 +120,7 @@ def _default_error_route(f):
             logger.info('%s', e)
             logger.debug('%s', traceback.format_exc())
             code = self_.error_code_map.get(e.__class__)
-            return _make_error(unicode(e), code)
+            return _make_error(str(e), code)
     return decorator
 
 
@@ -181,21 +178,21 @@ class ContactImport(_Resource):
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     def post(self, tenant, phonebook_id):
         charset = request.mimetype_params.get('charset', 'utf-8')
-        raw_data = request.data.split('\n')
-        reader = csv.reader(raw_data)
-        fields = next(reader)
-        duplicates = list(set([f for f in fields if fields.count(f) > 1]))
-        if duplicates:
-            return _make_error('duplicate columns: {}'.format(duplicates), 400)
-
         try:
-            to_add = [c for c in UnicodeDictReader(raw_data, encoding=charset)]
+            data = request.data.decode(charset).split('\n')
         except LookupError as e:
             if 'unknown encoding:' in str(e):
                 return _make_error(str(e), 400)
             else:
                 raise
 
+        reader = csv.reader(data)
+        fields = next(reader)
+        duplicates = list(set([f for f in fields if fields.count(f) > 1]))
+        if duplicates:
+            return _make_error('duplicate columns: {}'.format(duplicates), 400)
+
+        to_add = [c for c in csv.DictReader(data)]
         created, failed = self.phonebook_service.import_contacts(tenant, phonebook_id, to_add)
 
         return {'created': created, 'failed': failed}

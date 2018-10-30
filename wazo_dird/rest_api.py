@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 import logging
@@ -30,7 +29,7 @@ api = Api(prefix='/{}'.format(VERSION))
 auth_verifier = AuthVerifier()
 
 
-class CoreRestApi(object):
+class CoreRestApi:
 
     def __init__(self, global_config):
         self.config = global_config['rest_api']

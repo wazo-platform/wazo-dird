@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -19,10 +18,10 @@ from wazo_dird.rest_api import AuthResource
 logger = logging.getLogger(__name__)
 
 parser = reqparse.RequestParser()
-parser.add_argument('term', type=unicode, required=True, help='term is missing', location='args')
+parser.add_argument('term', type=str, required=True, help='term is missing', location='args')
 
 parser_reverse = reqparse.RequestParser()
-parser_reverse.add_argument('exten', type=unicode, required=True, location='args')
+parser_reverse.add_argument('exten', type=str, required=True, location='args')
 
 
 def _error(code, msg):
@@ -85,7 +84,7 @@ class JsonViewPlugin(BaseViewPlugin):
             logger.error('%s disabled: no service plugin `personal`', self.personal_url)
 
 
-class DisabledFavoriteService(object):
+class DisabledFavoriteService:
 
     def favorite_ids(self, profile, xivo_user_uuid):
         return []
@@ -258,7 +257,7 @@ class Personal(AuthResource):
         return formatter.format_results(raw_results, favorites)
 
 
-class _ResultFormatter(object):
+class _ResultFormatter:
 
     def __init__(self, display):
         self._display = display
@@ -315,7 +314,7 @@ class _FavoriteResultFormatter(_ResultFormatter):
 
 def make_displays(view_config):
     result = {}
-    for profile, display_name in view_config.get('profile_to_display', {}).iteritems():
+    for profile, display_name in view_config.get('profile_to_display', {}).items():
         result[profile] = _make_display_from_name(view_config, display_name)
     return result
 
@@ -331,5 +330,6 @@ def _make_display_from_name(view_config, display_name):
                       column.get('field'))
         for column in display
     ]
+
 
 DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
