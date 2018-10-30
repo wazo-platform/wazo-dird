@@ -17,7 +17,7 @@ case "$1" in
 		if pg_is_running ; then
 			wazo-dird-init-db --user postgres
 			echo "Upgrading wazo-dird database ..."
-			(cd $DIRD_ALEMBIC_INI_PATH && alembic -c alembic.ini upgrade head)
+			(cd $DIRD_ALEMBIC_INI_PATH && python3-alembic -c alembic.ini upgrade head)
 		fi
 
 		if [ ! -e "$LOG_FILENAME" ]; then
