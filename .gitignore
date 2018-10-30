@@ -8,3 +8,7 @@ cover/
 *.egg
 build/*
 *.noseids
+coverage.xml
+nosetests.xml
+pycodestyle.txt
+pylint.txt
