@@ -10,7 +10,7 @@ from unittest import TestCase
 from wazo_dird import config
 
 
-@patch('__builtin__.print', Mock())
+@patch('builtins.print', Mock())
 @patch('wazo_dird.config.open', create=True)
 class TestConfig(TestCase):
 
