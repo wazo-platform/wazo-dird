@@ -3,15 +3,21 @@
 
 import unittest
 
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import equal_to
-from hamcrest import empty
-from hamcrest import is_
-from hamcrest import none
-from mock import Mock, patch
-from ..xivo_user_plugin import XivoUserPlugin
+from hamcrest import (
+    assert_that,
+    contains,
+    equal_to,
+    empty,
+    is_,
+    none,
+)
+from mock import (
+    Mock,
+    patch,
+)
+
 from wazo_dird import make_result_class
+from ..xivo_user_plugin import XivoUserPlugin
 
 AUTH_CONFIG = {
     'host': 'xivo.example.com',
@@ -148,8 +154,8 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         result = self._source.search(term='paul')
 
-        self._confd_client.users.list.assert_called_once_with(view='directory',
-                                                              search='paul')
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='paul')
 
         assert_that(result, empty())
 
@@ -158,8 +164,8 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         result = self._source.search(term='paul')
 
-        self._confd_client.users.list.assert_called_once_with(view='directory',
-                                                              search='paul')
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='paul')
 
         assert_that(result, contains(SOURCE_2))
 
@@ -172,17 +178,16 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         self._source.search(term='paul')
 
-        self._confd_client.users.list.assert_called_once_with(view='directory',
-                                                              search='paul',
-                                                              context='inside')
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='paul', context='inside')
 
     def test_first_match(self):
         self._source._first_matched_columns = ['exten']
 
         result = self._source.first_match('1234')
 
-        self._confd_client.users.list.assert_called_once_with(view='directory',
-                                                              search='1234')
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='1234')
 
         assert_that(result, equal_to(SOURCE_2))
 
@@ -191,29 +196,32 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         result = self._source.first_match('12')
 
-        self._confd_client.users.list.assert_called_once_with(view='directory',
-                                                              search='12')
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='12')
 
         assert_that(result, is_(none()))
 
     def test_list_with_unknown_id(self):
         result = self._source.list(unique_ids=['42'])
 
-        self._confd_client.users.list.assert_called_once_with(view='directory')
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory')
 
         assert_that(result, empty())
 
     def test_list_with_known_id(self):
         result = self._source.list(unique_ids=['226'])
 
-        self._confd_client.users.list.assert_called_once_with(view='directory')
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory')
 
         assert_that(result, contains(SOURCE_1))
 
     def test_list_with_empty_list(self):
         result = self._source.list(unique_ids=[])
 
-        self._confd_client.users.list.assert_called_once_with(view='directory')
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory')
 
         assert_that(result, contains())
 
