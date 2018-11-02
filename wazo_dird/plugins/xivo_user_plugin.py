@@ -21,7 +21,7 @@ class XivoUserPlugin(BaseSourcePlugin):
         self._ConfdClientClass = ConfdClientClass
         self._client = None
         self._uuid = None
-        self._search_params = {'view': 'directory'}
+        self._search_params = {'view': 'directory', 'recurse': True}
 
     def load(self, args):
         self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
