@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class LDAPPlugin(BaseSourcePlugin):
 
     def __init__(self, *args, **kwargs):
-        super(LDAPPlugin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.ldap_factory = _LDAPFactory()
         self._lock = threading.Lock()
 

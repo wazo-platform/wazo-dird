@@ -1,4 +1,4 @@
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -37,7 +37,7 @@ class _ReverseService(helpers.BaseService):
     _service_name = 'reverse'
 
     def __init__(self, *args, **kwargs):
-        super(_ReverseService, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._executor = ThreadPoolExecutor(max_workers=10)
 
     def stop(self):

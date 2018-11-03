@@ -306,7 +306,7 @@ class _ResultFormatter:
 class _FavoriteResultFormatter(_ResultFormatter):
 
     def format_results(self, results):
-        return super(_FavoriteResultFormatter, self).format_results(results, [])
+        return super().format_results(results, [])
 
     def _is_favorite(self, result):
         return True

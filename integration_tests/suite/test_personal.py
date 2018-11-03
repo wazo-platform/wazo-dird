@@ -57,7 +57,7 @@ class TestDeletedUser(BaseDirdIntegrationTest):
     asset = 'personal_only'
 
     def setUp(self):
-        super(TestDeletedUser, self).setUp()
+        super().setUp()
         bus_port = self.service_port(5672, 'rabbitmq')
         bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(username='guest',
                                                                         password='guest',
@@ -276,7 +276,7 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
 
     @classmethod
     def setUpClass(cls):
-        super(TestLookupPersonal, cls).setUpClass()
+        super().setUpClass()
         cls.post_personal({'firstname': 'Alice'})
         cls.post_personal({'firstname': 'Bob'})
         cls.post_personal({'firstname': 'Céline'})

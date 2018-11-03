@@ -50,7 +50,7 @@ class TestContactAll(_PhonebookViewTest, _HTTPErrorChecker):
     _View = ContactAll
 
     def setUp(self):
-        super(TestContactAll, self).setUp()
+        super().setUp()
         self.body = {'firstname': 'Foo',
                      'lastname': 'Bar',
                      'number': '5551231111'}

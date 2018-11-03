@@ -481,7 +481,7 @@ class PersonalContactCRUD(_BaseDAO):
 class PhonebookContactSearchEngine(_BaseDAO):
 
     def __init__(self, Session, tenant, phonebook_id, searched_columns=None, first_match_columns=None):
-        super(PhonebookContactSearchEngine, self).__init__(Session)
+        super().__init__(Session)
         self._searched_columns = searched_columns
         self._first_match_columns = first_match_columns
         self._tenant = tenant
@@ -537,7 +537,7 @@ class PhonebookContactSearchEngine(_BaseDAO):
 class PersonalContactSearchEngine(_BaseDAO):
 
     def __init__(self, Session, searched_columns=None, first_match_columns=None):
-        super(PersonalContactSearchEngine, self).__init__(Session)
+        super().__init__(Session)
         self._searched_columns = searched_columns or []
         self._first_match_columns = first_match_columns or []
 

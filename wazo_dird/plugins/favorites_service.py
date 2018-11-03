@@ -24,7 +24,7 @@ class _NoSuchProfileException(ValueError):
 
     def __init__(self, profile):
         msg = self.msg_tpl.format(profile)
-        super(_NoSuchProfileException, self).__init__(msg)
+        super().__init__(msg)
 
 
 class _NoSuchSourceException(ValueError):
@@ -33,7 +33,7 @@ class _NoSuchSourceException(ValueError):
 
     def __init__(self, source):
         msg = self.msg_tpl.format(source)
-        super(_NoSuchSourceException, self).__init__(msg)
+        super().__init__(msg)
 
 
 class FavoritesServicePlugin(BaseServicePlugin):
@@ -85,7 +85,7 @@ class _FavoritesService(helpers.BaseService):
     _service_name = 'favorites'
 
     def __init__(self, config, sources, crud, bus):
-        super(_FavoritesService, self).__init__(config, sources, crud, bus)
+        super().__init__(config, sources, crud, bus)
         self._executor = ThreadPoolExecutor(max_workers=10)
         self._crud = crud
         self._bus = bus

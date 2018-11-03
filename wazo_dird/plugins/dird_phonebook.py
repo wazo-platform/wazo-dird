@@ -1,4 +1,4 @@
-# Copyright 2016-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -19,7 +19,7 @@ class PhonebookPlugin(BaseSourcePlugin):
         self._crud = None
         self._tenant = None
         self._source_name = None
-        super(PhonebookPlugin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def load(self, config):
         logger.debug('Loading phonebook source')

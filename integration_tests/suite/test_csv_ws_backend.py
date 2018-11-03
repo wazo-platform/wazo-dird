@@ -17,7 +17,7 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
     asset = 'csv_ws_utf8_with_pipes_with_ssl'
 
     def setUp(self):
-        super(TestCSVWSBackend, self).setUp()
+        super().setUp()
         self._andree_anne = {'id': '1',
                              'firstname': 'Andrée-Anne',
                              'lastname': 'Smith',
@@ -76,7 +76,7 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
     asset = 'csv_ws_iso88591_with_coma'
 
     def setUp(self):
-        super(TestCSVWSBackendComa, self).setUp()
+        super().setUp()
         self._andree_anne = {'id': '1',
                              'firstname': 'Andrée-Anne',
                              'lastname': 'Smith',

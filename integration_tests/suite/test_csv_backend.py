@@ -35,7 +35,7 @@ class TestCSVBackend(_BaseCSVFileTestCase):
     def setUp(self):
         self._alice = {'id': '1', 'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
         self._charles = {'id': '3', 'fn': 'Charles', 'ln': 'CCC', 'num': '555123555'}
-        super(TestCSVBackend, self).setUp()
+        super().setUp()
 
     def test_that_searching_for_lice_return_Alice(self):
         result = self.backend.search('lice')
@@ -63,7 +63,7 @@ class TestCSVNoUnique(_BaseCSVFileTestCase):
 
     def setUp(self):
         self._alice = {'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
-        super(TestCSVNoUnique, self).setUp()
+        super().setUp()
 
     def test_lookup_should_work_without_unique_column(self):
         result = self.backend.search('lice')
@@ -78,7 +78,7 @@ class TestCSVWithAccents(_BaseCSVFileTestCase):
 
     def setUp(self):
         self._pepe = {'fn': 'Pépé', 'ln': 'lol', 'num': '555'}
-        super(TestCSVWithAccents, self).setUp()
+        super().setUp()
 
     def test_lookup_with_accents_in_term(self):
         result = self.backend.search('pép')
@@ -98,7 +98,7 @@ class TestCSVSeparator(_BaseCSVFileTestCase):
 
     def setUp(self):
         self._alice = {'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
-        super(TestCSVSeparator, self).setUp()
+        super().setUp()
 
     def test_lookup_with_pipe(self):
         result = self.backend.search('al')

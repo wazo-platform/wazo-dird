@@ -129,7 +129,7 @@ class _BaseTest(unittest.TestCase):
 class _BasePhonebookCRUDTest(_BaseTest):
 
     def setUp(self):
-        super(_BasePhonebookCRUDTest, self).setUp()
+        super().setUp()
         self._crud = database.PhonebookCRUD(Session)
 
     @contextmanager
@@ -209,7 +209,7 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
             for phonebook in session.query(database.Phonebook).all():
                 session.delete(phonebook)
             session.commit()
-        super(TestPhonebookCRUDCreate, self).tearDown()
+        super().tearDown()
 
     def test_that_create_creates_a_phonebook_and_a_tenant(self):
         tenant = 'default'
@@ -445,7 +445,7 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
 class _BasePhonebookContactCRUDTest(_BaseTest):
 
     def setUp(self):
-        super(_BasePhonebookContactCRUDTest, self).setUp()
+        super().setUp()
         self._tenant = 'the-tenant'
         self._crud = database.PhonebookContactCRUD(Session)
         self._phonebook_crud = database.PhonebookCRUD(Session)
@@ -458,7 +458,7 @@ class _BasePhonebookContactCRUDTest(_BaseTest):
 
     def tearDown(self):
         self._phonebook_crud.delete(self._tenant, self._phonebook_id)
-        super(_BasePhonebookContactCRUDTest, self).tearDown()
+        super().tearDown()
 
 
 class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
@@ -635,7 +635,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
 class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
 
     def setUp(self):
-        super(TestPhonebookContactCRUDList, self).setUp()
+        super().setUp()
         self._contact_1 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'one', 'foo': 'bar'})
         self._contact_2 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'two', 'foo': 'bar'})
         self._contact_3 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'three', 'foo': 'bar'})
@@ -658,7 +658,7 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
 class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
 
     def setUp(self):
-        super(TestPhonebookContactCRUDCount, self).setUp()
+        super().setUp()
         self._contact_1 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'one', 'foo': 'bar'})
         self._contact_2 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'two', 'foo': 'bar'})
         self._contact_3 = self._crud.create(self._tenant, self._phonebook_id, {'name': 'three', 'foo': 'bar'})
@@ -681,7 +681,7 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
 class TestContactCRUD(_BaseTest):
 
     def setUp(self):
-        super(TestContactCRUD, self).setUp()
+        super().setUp()
         self._crud = database.PersonalContactCRUD(Session)
 
     def test_that_create_personal_contact_creates_a_contact_and_the_owner(self):
@@ -780,7 +780,7 @@ class TestContactCRUD(_BaseTest):
 class TestFavoriteCrud(_BaseTest):
 
     def setUp(self):
-        super(TestFavoriteCrud, self).setUp()
+        super().setUp()
         self._crud = database.FavoriteCRUD(Session)
 
     def test_that_create_creates_a_favorite(self):
@@ -881,7 +881,7 @@ class TestPhonebookContactSearchEngine(_BaseTest):
     tenant = 'tenant'
 
     def setUp(self):
-        super(TestPhonebookContactSearchEngine, self).setUp()
+        super().setUp()
         self.phonebook_crud = database.PhonebookCRUD(Session)
         self.phonebook_contact_crud = database.PhonebookContactCRUD(Session)
         self.phonebook_id = self.phonebook_crud.create(self.tenant, {'name': 'test'})['id']
@@ -903,7 +903,7 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
     def tearDown(self):
         self.phonebook_crud.delete(self.tenant, self.phonebook_id)
-        super(TestPhonebookContactSearchEngine, self).tearDown()
+        super().tearDown()
 
     def test_that_searching_personal_contacts_returns_the_searched_contacts(self):
         result = self.engine.find_contacts('w')

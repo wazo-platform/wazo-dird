@@ -207,7 +207,7 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
 class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 
     def setUp(self):
-        super(TestPhonebookServiceContactList, self).setUp()
+        super().setUp()
         self._manolo = {'firstname': 'Manolo', 'lastname': 'Laporte-Carpentier', 'number': '5551111234'}
         self._annabelle = {'firstname': 'Ännabelle', 'lastname': 'Courval', 'number': '5552221234'}
         self._gary_bob = {'firstname': 'Gary-Bob', 'lastname': 'Derome'}

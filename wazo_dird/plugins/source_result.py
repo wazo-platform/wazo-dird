@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class _NoKeyErrorFormatter(string.Formatter):
 
     def format(self, format_string, *args, **kwargs):
-        return super(_NoKeyErrorFormatter, self).format(format_string, *args, **kwargs).strip()
+        return super().format(format_string, *args, **kwargs).strip()
 
     def get_value(self, key, args, kwargs):
         if isinstance(key, str):
@@ -19,7 +19,7 @@ class _NoKeyErrorFormatter(string.Formatter):
                 return ''
             return value
 
-        return super(_NoKeyErrorFormatter, self).get_value(key, args, kwargs)
+        return super().get_value(key, args, kwargs)
 
 
 class _SourceResult:

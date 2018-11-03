@@ -142,7 +142,7 @@ class _BaseTest(unittest.TestCase):
 class TestXivoUserBackendSearch(_BaseTest):
 
     def setUp(self):
-        super(TestXivoUserBackendSearch, self).setUp()
+        super().setUp()
         response = {'items': [CONFD_USER_1, CONFD_USER_2]}
         self._confd_client.users.list.return_value = response
         self._source._client = self._confd_client
@@ -245,7 +245,7 @@ class TestXivoUserBackendSearch(_BaseTest):
 class TestXivoUserBackendInitialisation(_BaseTest):
 
     def setUp(self):
-        super(TestXivoUserBackendInitialisation, self).setUp()
+        super().setUp()
         self._confd_client.infos.return_value = {'uuid': UUID}
 
     def test_load_searched_columns(self):

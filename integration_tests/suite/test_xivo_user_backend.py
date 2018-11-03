@@ -27,7 +27,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
 
     def setUp(self):
-        super(TestXivoUser, self).setUp()
+        super().setUp()
         self.backend = BackendWrapper('xivo', {'config': self.backend_config()})
         self._dylan = {'id': 42,
                        'firstname': 'Bob',

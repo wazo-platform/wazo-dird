@@ -92,13 +92,13 @@ class TestLDAP(BaseDirdIntegrationTest):
 
     @classmethod
     def setUpClass(cls):
-        super(TestLDAP, cls).setUpClass()
+        super().setUpClass()
         ldap_uri = 'ldap://localhost:{port}'.format(port=cls.service_port(389, 'slapd'))
 
         try:
             cls.entry_uuids = add_contacts(cls.CONTACTS, ldap_uri)
         except Exception:
-            super(TestLDAP, cls).tearDownClass()
+            super().tearDownClass()
             raise
 
     def test_lookup_on_cn(self):
@@ -153,13 +153,13 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
 
     @classmethod
     def setUpClass(cls):
-        super(TestLDAPWithCustomFilter, cls).setUpClass()
+        super().setUpClass()
         ldap_uri = 'ldap://localhost:{port}'.format(port=cls.service_port(389, 'slapd'))
 
         try:
             cls.entry_uuids = add_contacts(cls.CONTACTS, ldap_uri)
         except Exception:
-            super(TestLDAPWithCustomFilter, cls).tearDownClass()
+            super().tearDownClass()
             raise
 
     def test_lookup_on_cn(self):
