@@ -2,7 +2,7 @@ paths:
   /config:
     get:
       summary: Returns the current service configuration
-      description: '**Required ACL:** `dire.config.read`'
+      description: '**Required ACL:** `dird.config.read`'
       operationId: configuration_get
       tags:
         - configuration
