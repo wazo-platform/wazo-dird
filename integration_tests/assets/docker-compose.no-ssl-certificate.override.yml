@@ -3,8 +3,6 @@ services:
   sync:
     depends_on:
       - dird
-    environment:
-      TARGETS: ""
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.no-ssl-certificate.yml:/etc/wazo-dird/config.yml"

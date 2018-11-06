@@ -4,7 +4,7 @@ services:
     depends_on:
       - dird
     environment:
-      PORTS: "dird:9489"
+      TARGETS: "dird:9489"
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.no_auth_server.yml:/etc/wazo-dird/config.yml"
