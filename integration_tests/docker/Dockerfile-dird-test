@@ -1,7 +1,11 @@
 FROM wazopbx/wazo-dird
 
+ENV PYTHONDONTWRITEBYTECODE='true'
+
 COPY . /usr/src/wazo-dird
+
 WORKDIR /usr/src/wazo-dird
 RUN python setup.py develop
+
 WORKDIR /usr/src/wazo-dird/integration_tests/docker/broken-plugins
 RUN python setup.py develop
