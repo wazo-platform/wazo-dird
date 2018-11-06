@@ -7,7 +7,7 @@ test-setup: egg-info build-dird build-db-image
 	docker pull python:2.7.13-stretch
 	docker pull rabbitmq
 	docker pull swaggerapi/swagger-validator
-	docker pull waisbrot/wait
+	docker pull wazopbx/wait
 
 build-dird:
 	docker build -t wazopbx/wazo-dird ..
