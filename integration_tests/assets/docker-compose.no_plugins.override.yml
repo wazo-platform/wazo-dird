@@ -3,8 +3,6 @@ services:
   sync:
     depends_on:
       - dird
-    environment:
-      TARGETS: "dird:9489"
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.no_plugins.yml:/etc/wazo-dird/config.yml"
