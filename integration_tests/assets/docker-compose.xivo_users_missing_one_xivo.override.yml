@@ -7,7 +7,7 @@ services:
       - america
       - asia
     environment:
-      TARGETS: "dird:9489 america:8000 asia:8000 auth:9497"
+      TARGETS: "dird:9489 america:9486 asia:9486 auth:9497"
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.xivo_users_missing_one_xivo.yml:/etc/wazo-dird/config.yml"

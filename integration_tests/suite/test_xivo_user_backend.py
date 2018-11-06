@@ -1,8 +1,6 @@
 # Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import yaml
-
 from hamcrest import (
     assert_that,
     contains,
@@ -51,7 +49,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
             },
             'confd': {
                 'host': 'localhost',
-                'port': self.service_port(8000, 'confd'),
+                'port': self.service_port(9486, 'confd'),
                 'version': '1.1',
                 'https': False,
             },

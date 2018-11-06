@@ -11,7 +11,7 @@
         "1a2cd704-ed32-4fa3-918a-d32b0609de81",
         "xivo-confd"
       ],
-      "Port": 8000,
+      "Port": 9486,
       "Address": "confd",
       "EnableTagOverride": false
     },

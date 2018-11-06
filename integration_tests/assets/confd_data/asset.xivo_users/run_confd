@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd /tmp
-python -m SimpleHTTPServer
+python -m SimpleHTTPServer 9486
