@@ -70,14 +70,6 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     service = 'dird'
 
     @classmethod
-    def _docker_compose_options(cls):
-        return [
-            '--file', os.path.join(cls.assets_root, 'docker-compose.yml'),
-            '--file', os.path.join(cls.assets_root, 'docker-compose.{}.override.yml'.format(cls.asset)),
-            '--project-name', cls.service,
-        ]
-
-    @classmethod
     def url(cls, *parts):
         port = cls.service_port(9489, 'dird')
         base = 'https://localhost:{port}/0.1/'.format(port=port)
