@@ -30,7 +30,6 @@ sources:
       display_name: "{firstname} {lastname}"
       name: "{firstname} {lastname}"
     auth:
-      backend: xivo_service
       host: localhost
       password: XXXXXXXXXXXXXXXXXX
       port: 9497
