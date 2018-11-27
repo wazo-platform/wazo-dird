@@ -1,6 +1,7 @@
 # Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import copy
 import unittest
 
 from hamcrest import (
@@ -135,8 +136,9 @@ class _BaseTest(unittest.TestCase):
 
     def setUp(self):
         self._FakedConfdClient = Mock(return_value=Mock(name='confd_client'))
+        self._FakedAuthClient = Mock(return_value=Mock(name='auth_client'))
         self._confd_client = self._FakedConfdClient.return_value
-        self._source = XivoUserPlugin(self._FakedConfdClient)
+        self._source = XivoUserPlugin(self._FakedConfdClient, self._FakedAuthClient)
 
 
 class TestXivoUserBackendSearch(_BaseTest):
@@ -267,3 +269,42 @@ class TestXivoUserBackendInitialisation(_BaseTest):
         self._FakedConfdClient.assert_called_once_with(**confd_config)
 
         assert_that(self._source._client, self._confd_client)
+
+    @patch('wazo_dird.plugins.xivo_user_plugin.parse_config_file')
+    def test_load_with_key_file(self, parse_config_file):
+        parse_config_file.return_value = {
+            'service_id': 'the-service-id',
+            'service_key': 'the-service-key',
+        }
+
+        config = copy.deepcopy(DEFAULT_ARGS)
+        config['config']['auth'] = {
+            'host': 'localhost',
+            'username': 'foo',
+            'password': 'bar',
+            'key_file': '/path/to/key/file',
+        }
+
+        self._source.load(config)
+
+        self._FakedAuthClient.assert_called_once_with(
+            host='localhost',
+            username='the-service-id',
+            password='the-service-key',
+        )
+
+    def test_load_with_no_key_file(self):
+        config = copy.deepcopy(DEFAULT_ARGS)
+        config['config']['auth'] = {
+            'host': 'localhost',
+            'username': 'foo',
+            'password': 'bar',
+        }
+
+        self._source.load(config)
+
+        self._FakedAuthClient.assert_called_once_with(
+            host='localhost',
+            username='foo',
+            password='bar',
+        )
