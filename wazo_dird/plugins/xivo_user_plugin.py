@@ -3,11 +3,13 @@
 
 import logging
 
-from wazo_dird import BaseSourcePlugin
-from wazo_dird import make_result_class
+from xivo.config_helper import parse_config_file
+from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
-from xivo.token_renewer import TokenRenewer
+
+from wazo_dird import BaseSourcePlugin
+from wazo_dird import make_result_class
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,8 @@ class XivoUserPlugin(BaseSourcePlugin):
     _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield', 'email',
                    'description', 'mobile_phone_number', 'voicemail_number']
 
-    def __init__(self, ConfdClientClass=ConfdClient):
+    def __init__(self, ConfdClientClass=ConfdClient, AuthClientClass=AuthClient):
+        self._AuthClientClass = AuthClientClass
         self._ConfdClientClass = ConfdClientClass
         self._client = None
         self._uuid = None
@@ -28,8 +31,13 @@ class XivoUserPlugin(BaseSourcePlugin):
         self._first_matched_columns = args['config'].get(self.FIRST_MATCHED_COLUMNS, [])
         self.name = args['config']['name']
 
-        auth_config = args['config']['auth']
-        auth_client = AuthClient(**auth_config)
+        auth_config = dict(args['config']['auth'])
+        if auth_config.get('key_file'):
+            # File must be readable by wazo-dird
+            key_file = parse_config_file(auth_config.pop('key_file'))
+            auth_config['username'] = key_file['service_id']
+            auth_config['password'] = key_file['service_key']
+        auth_client = self._AuthClientClass(**auth_config)
         self._token_renewer = TokenRenewer(auth_client)
 
         confd_config = args['config']['confd']
