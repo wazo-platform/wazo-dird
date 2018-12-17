@@ -14,7 +14,7 @@ from wazo_dird import make_result_class
 logger = logging.getLogger(__name__)
 
 
-class XivoUserPlugin(BaseSourcePlugin):
+class WazoUserPlugin(BaseSourcePlugin):
 
     _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield', 'email',
                    'description', 'mobile_phone_number', 'voicemail_number']

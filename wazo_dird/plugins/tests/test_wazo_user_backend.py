@@ -18,7 +18,7 @@ from mock import (
 )
 
 from wazo_dird import make_result_class
-from ..wazo_user_plugin import XivoUserPlugin
+from ..wazo_user_plugin import WazoUserPlugin
 
 AUTH_CONFIG = {
     'host': 'xivo.example.com',
@@ -138,7 +138,7 @@ class _BaseTest(unittest.TestCase):
         self._FakedConfdClient = Mock(return_value=Mock(name='confd_client'))
         self._FakedAuthClient = Mock(return_value=Mock(name='auth_client'))
         self._confd_client = self._FakedConfdClient.return_value
-        self._source = XivoUserPlugin(self._FakedConfdClient, self._FakedAuthClient)
+        self._source = WazoUserPlugin(self._FakedConfdClient, self._FakedAuthClient)
 
 
 class TestXivoUserBackendSearch(_BaseTest):
