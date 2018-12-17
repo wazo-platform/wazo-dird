@@ -1,5 +1,5 @@
 type: wazo
-name: xivo_america
+name: wazo_america
 searched_columns:
   - firstname
   - lastname

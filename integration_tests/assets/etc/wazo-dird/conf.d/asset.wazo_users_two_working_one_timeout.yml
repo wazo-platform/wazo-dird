@@ -30,9 +30,9 @@ services:
   lookup:
     default:
       sources:
-        xivo_america: true
-        xivo_asia: true
-        xivo_europe: true
+        wazo_america: true
+        wazo_asia: true
+        wazo_europe: true
       timeout: 1
 
 rest_api:

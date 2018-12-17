@@ -1,5 +1,5 @@
 type: wazo
-name: xivo_europe
+name: wazo_europe
 searched_columns:
   - firstname
   - lastname

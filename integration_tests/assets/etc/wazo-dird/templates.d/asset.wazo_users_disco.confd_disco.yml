@@ -1,5 +1,5 @@
 type: wazo
-name: xivo-{{ uuid }}
+name: wazo-{{ uuid }}
 searched_columns:
   - firstname
   - lastname
