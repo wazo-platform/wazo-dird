@@ -18,7 +18,7 @@ from mock import (
 )
 
 from wazo_dird import make_result_class
-from ..xivo_user_plugin import XivoUserPlugin
+from ..wazo_user_plugin import XivoUserPlugin
 
 AUTH_CONFIG = {
     'host': 'xivo.example.com',
@@ -171,7 +171,7 @@ class TestXivoUserBackendSearch(_BaseTest):
 
         assert_that(result, contains(SOURCE_2))
 
-    @patch('wazo_dird.plugins.xivo_user_plugin.TokenRenewer', Mock())
+    @patch('wazo_dird.plugins.wazo_user_plugin.TokenRenewer', Mock())
     def test_that_search_uses_extra_search_params(self):
         config = dict(DEFAULT_ARGS)
         config['config']['extra_search_params'] = {'context': 'inside'}
@@ -243,7 +243,7 @@ class TestXivoUserBackendSearch(_BaseTest):
         assert_that(result, empty())
 
 
-@patch('wazo_dird.plugins.xivo_user_plugin.TokenRenewer', Mock())
+@patch('wazo_dird.plugins.wazo_user_plugin.TokenRenewer', Mock())
 class TestXivoUserBackendInitialisation(_BaseTest):
 
     def setUp(self):
@@ -270,7 +270,7 @@ class TestXivoUserBackendInitialisation(_BaseTest):
 
         assert_that(self._source._client, self._confd_client)
 
-    @patch('wazo_dird.plugins.xivo_user_plugin.parse_config_file')
+    @patch('wazo_dird.plugins.wazo_user_plugin.parse_config_file')
     def test_load_with_key_file(self, parse_config_file):
         parse_config_file.return_value = {
             'service_id': 'the-service-id',
