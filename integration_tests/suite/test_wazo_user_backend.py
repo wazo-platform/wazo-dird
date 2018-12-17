@@ -19,7 +19,7 @@ from .base_dird_integration_test import (
 )
 
 
-class TestXivoUser(BaseDirdIntegrationTest):
+class TestWazoUser(BaseDirdIntegrationTest):
 
     asset = 'wazo_users'
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
@@ -87,7 +87,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
         assert_that(results, empty())
 
 
-class TestXivoUserNoConfd(BaseDirdIntegrationTest):
+class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_no_confd'
 
@@ -96,7 +96,7 @@ class TestXivoUserNoConfd(BaseDirdIntegrationTest):
         assert_that(result['results'], contains())
 
 
-class TestXivoUserLateConfd(BaseDirdIntegrationTest):
+class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_late_confd'
 
@@ -114,11 +114,11 @@ class TestXivoUserLateConfd(BaseDirdIntegrationTest):
         until.assert_(test, tries=10)
 
 
-class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
+class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_multiple_wazo'
 
-    def test_lookup_multiple_xivo(self):
+    def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [
@@ -156,7 +156,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
-    def test_favorites_multiple_xivo(self):
+    def test_favorites_multiple_wazo(self):
         self.put_favorite('wazo_america', 1)
         self.put_favorite('wazo_asia', 1)
 
@@ -188,11 +188,11 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
 
-class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
+class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_missing_one_wazo'
 
-    def test_lookup_multiple_xivo(self):
+    def test_lookup_multiple_wazo(self):
         result = self.lookup('john', 'default')
 
         expected_result = [
@@ -211,11 +211,11 @@ class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
 
-class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
+class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_404'
 
-    def test_lookup_multiple_xivo(self):
+    def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [
@@ -244,11 +244,11 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
 
-class TestXivoUserMultipleXivoOneTimeout(BaseDirdIntegrationTest):
+class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_timeout'
 
-    def test_lookup_multiple_xivo(self):
+    def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [

@@ -141,7 +141,7 @@ class _BaseTest(unittest.TestCase):
         self._source = WazoUserPlugin(self._FakedConfdClient, self._FakedAuthClient)
 
 
-class TestXivoUserBackendSearch(_BaseTest):
+class TestWazoUserBackendSearch(_BaseTest):
 
     def setUp(self):
         super().setUp()
@@ -244,7 +244,7 @@ class TestXivoUserBackendSearch(_BaseTest):
 
 
 @patch('wazo_dird.plugins.wazo_user_plugin.TokenRenewer', Mock())
-class TestXivoUserBackendInitialisation(_BaseTest):
+class TestWazoUserBackendInitialisation(_BaseTest):
 
     def setUp(self):
         super().setUp()
