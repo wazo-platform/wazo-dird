@@ -21,7 +21,7 @@ from .base_dird_integration_test import (
 
 class TestXivoUser(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users'
+    asset = 'wazo_users'
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
 
     def setUp(self):
@@ -89,7 +89,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
 
 class TestXivoUserNoConfd(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_no_confd'
+    asset = 'wazo_users_no_confd'
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):
         result = self.lookup('dyl', 'default')
@@ -98,7 +98,7 @@ class TestXivoUserNoConfd(BaseDirdIntegrationTest):
 
 class TestXivoUserLateConfd(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_late_confd'
+    asset = 'wazo_users_late_confd'
 
     def test_given_confd_slow_to_start_when_lookup_then_first_returns_no_results_then_return_right_result(self):
         # dird is not stuck on a late confd
@@ -116,7 +116,7 @@ class TestXivoUserLateConfd(BaseDirdIntegrationTest):
 
 class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_multiple_xivo'
+    asset = 'wazo_users_multiple_wazo'
 
     def test_lookup_multiple_xivo(self):
         result = self.lookup('ar', 'default')
@@ -190,7 +190,7 @@ class TestXivoUserMultipleXivo(BaseDirdIntegrationTest):
 
 class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_missing_one_xivo'
+    asset = 'wazo_users_missing_one_wazo'
 
     def test_lookup_multiple_xivo(self):
         result = self.lookup('john', 'default')
@@ -213,7 +213,7 @@ class TestXivoUserMultipleXivoOneMissing(BaseDirdIntegrationTest):
 
 class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_two_working_one_404'
+    asset = 'wazo_users_two_working_one_404'
 
     def test_lookup_multiple_xivo(self):
         result = self.lookup('ar', 'default')
@@ -246,7 +246,7 @@ class TestXivoUserMultipleXivoOne404(BaseDirdIntegrationTest):
 
 class TestXivoUserMultipleXivoOneTimeout(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_two_working_one_timeout'
+    asset = 'wazo_users_two_working_one_timeout'
 
     def test_lookup_multiple_xivo(self):
         result = self.lookup('ar', 'default')
