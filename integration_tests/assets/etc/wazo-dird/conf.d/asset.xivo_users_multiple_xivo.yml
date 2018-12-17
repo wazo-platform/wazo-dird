@@ -1,6 +1,6 @@
 enabled_plugins:
   backends:
-    xivo: true
+    wazo: true
   services:
     lookup: true
     favorites: true

@@ -75,7 +75,7 @@ setup(
             'dird_phonebook = wazo_dird.plugins.dird_phonebook:PhonebookPlugin',
             'ldap = wazo_dird.plugins.ldap_plugin:LDAPPlugin',
             'personal = wazo_dird.plugins.personal_backend:PersonalBackend',
-            'xivo = wazo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
+            'wazo = wazo_dird.plugins.xivo_user_plugin:XivoUserPlugin',
 
             'sample = wazo_dird.plugins.sample_backend:SamplePlugin',
         ],

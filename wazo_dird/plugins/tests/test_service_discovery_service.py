@@ -16,7 +16,7 @@ from ..service_discovery_service import (
 
 
 TEMPLATE = '''\
-type: xivo
+type: wazo
 name: xivo-{{ uuid }}
 searched_columns:
   - firstname
@@ -224,7 +224,7 @@ class TestSourceConfigGenerator(unittest.TestCase):
                                                      'the-host-name',
                                                      4567)
         expected = {
-            'type': 'xivo',
+            'type': 'wazo',
             'name': 'xivo-ff791b0e-3d28-4b4d-bb90-2724c0a248cb',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['exten'],

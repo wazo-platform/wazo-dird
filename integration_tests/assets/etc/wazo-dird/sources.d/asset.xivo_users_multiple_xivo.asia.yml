@@ -1,4 +1,4 @@
-type: xivo
+type: wazo
 name: xivo_asia
 searched_columns:
   - firstname

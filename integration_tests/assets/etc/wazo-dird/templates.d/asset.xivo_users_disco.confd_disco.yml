@@ -1,4 +1,4 @@
-type: xivo
+type: wazo
 name: xivo-{{ uuid }}
 searched_columns:
   - firstname

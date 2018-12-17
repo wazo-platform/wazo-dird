@@ -26,7 +26,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
 
     def setUp(self):
         super().setUp()
-        self.backend = BackendWrapper('xivo', {'config': self.backend_config()})
+        self.backend = BackendWrapper('wazo', {'config': self.backend_config()})
         self._dylan = {'id': 42,
                        'firstname': 'Bob',
                        'lastname': 'Dylan',
@@ -38,7 +38,7 @@ class TestXivoUser(BaseDirdIntegrationTest):
 
     def backend_config(self):
         return {
-            'type': 'xivo',
+            'type': 'wazo',
             'name': 'xivo_america',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['exten'],
