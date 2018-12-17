@@ -12,7 +12,7 @@ from xivo_test_helpers import until
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
-class TestDiscoveredXiVOUser(BaseDirdIntegrationTest):
+class TestDiscoveredWazoUser(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_disco'
 
