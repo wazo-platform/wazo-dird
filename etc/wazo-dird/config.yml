@@ -62,7 +62,7 @@ consul:
 enabled_plugins:
   backends:
     personal: true
-    xivo: true
+    wazo: true
     csv: true
     csv_ws: true
     ldap: true

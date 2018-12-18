@@ -21,7 +21,7 @@ from ..main import main
 @patch('wazo_dird.main.xivo_logging')
 @patch('wazo_dird.main.Controller')
 @patch('wazo_dird.main.load_config')
-class TestXivoDird(TestCase):
+class TestWazoDird(TestCase):
 
     def test_main_injects_argv_into_config_loading(self, load_config, *_):
         main(s.argv)

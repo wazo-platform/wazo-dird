@@ -1,0 +1,14 @@
+type: wazo
+name: wazo_europe
+searched_columns:
+  - firstname
+  - lastname
+auth:
+  host: auth
+  verify_certificate: false
+confd:
+  host: 169.0.0.1
+  port: 9486
+  version: 1.1
+  timeout: 3
+  https: false

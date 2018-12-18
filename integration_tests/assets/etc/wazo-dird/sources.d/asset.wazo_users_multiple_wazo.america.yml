@@ -1,0 +1,13 @@
+type: wazo
+name: wazo_america
+searched_columns:
+  - firstname
+  - lastname
+auth:
+  host: auth
+  verify_certificate: false
+confd:
+  host: america
+  port: 9486
+  version: 1.1
+  https: false

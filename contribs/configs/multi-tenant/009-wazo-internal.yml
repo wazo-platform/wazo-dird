@@ -20,7 +20,7 @@ sources:
     name: wazo-internal
     first_matched_columns: []
     extra_search_params: {'context': 'wazo-internal'}
-    type: xivo
+    type: wazo
     searched_columns: [
       firstname,
       lastname

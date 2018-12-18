@@ -12,9 +12,9 @@ from xivo_test_helpers import until
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
-class TestDiscoveredXiVOUser(BaseDirdIntegrationTest):
+class TestDiscoveredWazoUser(BaseDirdIntegrationTest):
 
-    asset = 'xivo_users_disco'
+    asset = 'wazo_users_disco'
 
     def test_that_the_source_is_loaded(self):
         def test():
