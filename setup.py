@@ -81,12 +81,12 @@ setup(
         ],
         'wazo_dird.views': [
             'api_view = wazo_dird.plugins.views.api.api_view:ApiViewPlugin',
+            'backends_view = wazo_dird.plugins.views.backends.backends_view:BackendsViewPlugin',
             'config_view = wazo_dird.plugins.views.config.config_view:ConfigViewPlugin',
             'default_json = wazo_dird.plugins.views.default_json.default_json_view:JsonViewPlugin',
             'headers_view = wazo_dird.plugins.views.headers.headers_view:HeadersViewPlugin',
             'personal_view = wazo_dird.plugins.views.personal.personal_view:PersonalViewPlugin',
             'phonebook_view = wazo_dird.plugins.views.phonebook.phonebook_view:PhonebookViewPlugin',
-
             'aastra_view = wazo_dird.plugins.views.aastra.aastra_view:AastraViewPlugin',
             'cisco_view = wazo_dird.plugins.views.cisco.cisco_view:CiscoViewPlugin',
             'gigaset_view = wazo_dird.plugins.views.gigaset.gigaset_view:GigasetViewPlugin',
