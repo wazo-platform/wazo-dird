@@ -1,4 +1,4 @@
-# Copyright 2014-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
@@ -69,7 +69,7 @@ class TestController(TestCase):
 
         Controller(config).run()
 
-        self.load_views.assert_called_once_with(s.config, s.enabled, ANY, self.rest_api)
+        self.load_views.assert_called_once_with(config, s.enabled, ANY, self.rest_api)
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)

@@ -11,7 +11,7 @@ from wazo_dird.exception import InvalidConfigError, ProfileNotFoundError
 def new_phone_lookup_service_from_args(args):
     # args is the same "args" argument that is passed to the load method of view plugins
     lookup_service = args['services']['lookup']
-    views_config = args['config']
+    views_config = args['config'].get('views', {})
     formatters = _new_formatters_from_config(views_config)
     return _PhoneLookupService(lookup_service, formatters)
 

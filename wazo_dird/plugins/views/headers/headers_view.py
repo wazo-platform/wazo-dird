@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class HeadersViewPlugin(BaseViewPlugin):
 
     def load(self, args):
-        config = args['config']
+        config = args['config'].get('views', {})
         displays = make_displays(config)
         Headers.configure(displays)
 

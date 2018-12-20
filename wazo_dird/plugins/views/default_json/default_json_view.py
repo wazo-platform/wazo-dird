@@ -40,7 +40,7 @@ class JsonViewPlugin(BaseViewPlugin):
     personal_url = '/directories/personal/<profile>'
 
     def load(self, args=None):
-        config = args['config']
+        config = args['config'].get('views', {})
         displays = make_displays(config)
 
         favorite_service = args['services'].get('favorites')
