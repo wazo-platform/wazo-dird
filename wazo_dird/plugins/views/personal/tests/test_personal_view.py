@@ -1,5 +1,4 @@
-# Copyright (C) 2015 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
@@ -7,10 +6,15 @@ from unittest import TestCase
 from hamcrest import assert_that, equal_to
 from mock import Mock, patch
 
-from ..personal_view import PersonalAll, PersonalImport, PersonalOne, PersonalViewPlugin
+from ..plugin import PersonalViewPlugin
+from ..http import (
+    PersonalAll,
+    PersonalImport,
+    PersonalOne,
+)
 
 
-@patch('wazo_dird.plugins.views.default_json.default_json_view.api.add_resource')
+@patch('wazo_dird.plugins.views.default_json.plugin.api.add_resource')
 class TestPersonalView(TestCase):
 
     def setUp(self):

@@ -4,7 +4,7 @@
 from wazo_dird import BaseViewPlugin
 from wazo_dird.rest_api import api
 from wazo_dird.plugins.phone_helpers import new_phone_lookup_service_from_args
-from wazo_dird.plugins.views.phone.phone_view import PhoneInput, PhoneLookup
+from wazo_dird.plugins.views.phone.http import PhoneInput, PhoneLookup
 
 TEMPLATE_AASTRA_INPUT = "aastra_input.jinja"
 TEMPLATE_AASTRA_RESULTS = "aastra_results.jinja"

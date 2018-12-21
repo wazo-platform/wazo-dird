@@ -9,7 +9,6 @@ import traceback
 from flask import request
 from functools import wraps
 
-from wazo_dird import BaseViewPlugin
 from wazo_dird import auth
 from wazo_dird.exception import (DatabaseServiceUnavailable,
                                  DuplicatedContactException,
@@ -20,7 +19,7 @@ from wazo_dird.exception import (DatabaseServiceUnavailable,
                                  InvalidTenantException,
                                  NoSuchContact,
                                  NoSuchPhonebook)
-from wazo_dird.rest_api import api, AuthResource
+from wazo_dird.rest_api import AuthResource
 
 logger = logging.getLogger(__name__)
 
@@ -29,29 +28,6 @@ def _make_error(reason, status_code):
     return {'reason': [reason],
             'timestamp': [time.time()],
             'status_code': status_code}, status_code
-
-
-class PhonebookViewPlugin(BaseViewPlugin):
-
-    phonebook_all_url = '/tenants/<string:tenant>/phonebooks'
-    phonebook_one_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>'
-    contact_all_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts'
-    contact_one_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts/<contact_uuid>'
-    contact_import_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts/import'
-
-    def load(self, args=None):
-        phonebook_service = args['services'].get('phonebook')
-        if phonebook_service:
-            ContactAll.configure(phonebook_service)
-            ContactImport.configure(phonebook_service)
-            ContactOne.configure(phonebook_service)
-            PhonebookAll.configure(phonebook_service)
-            PhonebookOne.configure(phonebook_service)
-            api.add_resource(ContactAll, self.contact_all_url)
-            api.add_resource(ContactImport, self.contact_import_url)
-            api.add_resource(ContactOne, self.contact_one_url)
-            api.add_resource(PhonebookAll, self.phonebook_all_url)
-            api.add_resource(PhonebookOne, self.phonebook_one_url)
 
 
 class _Resource(AuthResource):

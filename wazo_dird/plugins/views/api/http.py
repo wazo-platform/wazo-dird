@@ -1,25 +1,17 @@
+
 # Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
 import yaml
 
-from flask import make_response
 from pkg_resources import resource_string, iter_entry_points
+from flask import make_response
 from xivo.chain_map import ChainMap
 
-from wazo_dird.rest_api import api, ErrorCatchingResource
-
-from wazo_dird import BaseViewPlugin
-
+from wazo_dird.rest_api import ErrorCatchingResource
 
 logger = logging.getLogger(__name__)
-
-
-class ApiViewPlugin(BaseViewPlugin):
-
-    def load(self, args):
-        api.add_resource(ApiResource, '/api/api.yml')
 
 
 class ApiResource(ErrorCatchingResource):

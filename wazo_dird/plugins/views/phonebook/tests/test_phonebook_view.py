@@ -10,12 +10,14 @@ from hamcrest import (assert_that,
                       raises)
 from mock import ANY, Mock, patch, sentinel as s
 
-from ..phonebook_view import (_ArgParser as ArgParser,
-                              ContactAll,
-                              ContactImport,
-                              ContactOne,
-                              PhonebookAll,
-                              PhonebookOne)
+from ..http import (
+    _ArgParser as ArgParser,
+    ContactAll,
+    ContactImport,
+    ContactOne,
+    PhonebookAll,
+    PhonebookOne,
+)
 
 from wazo_dird.exception import (DatabaseServiceUnavailable,
                                  DuplicatedContactException,
@@ -144,11 +146,11 @@ class TestContactAll(_PhonebookViewTest, _HTTPErrorChecker):
         if search:
             args['search'] = search
 
-        with patch('wazo_dird.plugins.views.phonebook.phonebook_view.request', Mock(args=args)):
+        with patch('wazo_dird.plugins.views.phonebook.http.request', Mock(args=args)):
             return self.view.get(tenant, phonebook_id)
 
     def _post(self, tenant, phonebook_id, body):
-        with patch('wazo_dird.plugins.views.phonebook.phonebook_view.request', Mock(json=body, args={})):
+        with patch('wazo_dird.plugins.views.phonebook.http.request', Mock(json=body, args={})):
             return self.view.post(tenant, phonebook_id)
 
 
@@ -253,11 +255,11 @@ class TestPhonebookAll(_PhonebookViewTest, _HTTPErrorChecker):
         if search:
             args['search'] = search
 
-        with patch('wazo_dird.plugins.views.phonebook.phonebook_view.request', Mock(args=args)):
+        with patch('wazo_dird.plugins.views.phonebook.http.request', Mock(args=args)):
             return self.view.get(tenant)
 
     def _post(self, tenant, body):
-        with patch('wazo_dird.plugins.views.phonebook.phonebook_view.request', Mock(json=body, args={})):
+        with patch('wazo_dird.plugins.views.phonebook.http.request', Mock(json=body, args={})):
             return self.view.post(tenant)
 
 
@@ -333,7 +335,7 @@ class TestContactOne(_PhonebookViewTest, _HTTPErrorChecker):
         self._assert_error(result, 503, str(DatabaseServiceUnavailable()))
 
     def _put(self, tenant, phonebook_id, contact_uuid, body):
-        with patch('wazo_dird.plugins.views.phonebook.phonebook_view.request', Mock(json=body, args={})):
+        with patch('wazo_dird.plugins.views.phonebook.http.request', Mock(json=body, args={})):
             return self.view.put(tenant, phonebook_id, contact_uuid)
 
 
@@ -404,7 +406,7 @@ class TestPhonebookOne(_PhonebookViewTest, _HTTPErrorChecker):
         self._assert_error(result, 503, str(DatabaseServiceUnavailable()))
 
     def _put(self, tenant, phonebook_id, body):
-        with patch('wazo_dird.plugins.views.phonebook.phonebook_view.request', Mock(json=body, args={})):
+        with patch('wazo_dird.plugins.views.phonebook.http.request', Mock(json=body, args={})):
             return self.view.put(tenant, phonebook_id)
 
 
@@ -490,7 +492,7 @@ Bob,BBB,3333
         self.service.import_contacts.assert_called_once_with(s.tenant, s.phonebook_id, as_list)
 
     def _post(self, tenant, phonebook_id, body, charset):
-        with patch('wazo_dird.plugins.views.phonebook.phonebook_view.request',
+        with patch('wazo_dird.plugins.views.phonebook.http.request',
                    Mock(data=body, args={}, mimetype_params={'charset': charset})):
             return self.view.post(tenant, phonebook_id)
 

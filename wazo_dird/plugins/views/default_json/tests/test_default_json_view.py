@@ -1,5 +1,4 @@
-# Copyright (C) 2015-2016 Avencall
-# Copyright (C) 2016 Proformatique, Inc.
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -21,21 +20,25 @@ from mock import patch
 from wazo_dird import make_result_class
 from wazo_dird.plugins.views.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
-from ..default_json_view import (DisabledFavoriteService,
-                                 DisplayColumn,
-                                 FavoritesRead,
-                                 FavoritesWrite,
-                                 JsonViewPlugin,
-                                 Lookup,
-                                 Personal,
-                                 _ResultFormatter,
-                                 make_displays)
+from ..plugin import (
+    DisplayColumn,
+    JsonViewPlugin,
+    make_displays,
+)
+from ..http import (
+    DisabledFavoriteService,
+    FavoritesRead,
+    FavoritesWrite,
+    Lookup,
+    Personal,
+    _ResultFormatter,
+)
 
 UUID1 = str(uuid4())
 UUID2 = str(uuid4())
 
 
-@patch('wazo_dird.plugins.views.default_json.default_json_view.api.add_resource')
+@patch('wazo_dird.plugins.views.default_json.plugin.api.add_resource')
 class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def setUp(self):

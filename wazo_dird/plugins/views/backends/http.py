@@ -1,19 +1,8 @@
 # Copyright 2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from wazo_dird import BaseViewPlugin
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import api, AuthResource
-
-
-class BackendsViewPlugin(BaseViewPlugin):
-
-    def load(self, args):
-        api.add_resource(
-            Backends,
-            '/backends',
-            resource_class_args=(args['config'],),
-        )
+from wazo_dird.rest_api import AuthResource
 
 
 class Backends(AuthResource):
