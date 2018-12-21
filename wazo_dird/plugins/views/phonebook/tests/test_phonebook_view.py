@@ -27,7 +27,9 @@ from wazo_dird.exception import (DatabaseServiceUnavailable,
                                  InvalidPhonebookException,
                                  NoSuchContact,
                                  NoSuchPhonebook)
-from wazo_dird.plugins.phonebook_service import _PhonebookService as PhonebookService
+from wazo_dird.plugins.phonebook_service.plugin import (
+    _PhonebookService as PhonebookService
+)
 
 
 class _HTTPErrorChecker:
