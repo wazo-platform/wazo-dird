@@ -14,7 +14,9 @@ from hamcrest import (
 from stevedore import DriverManager
 
 from xivo import url_helpers
+from xivo_test_helpers import until
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
+from xivo_test_helpers.db import DBUserClient
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ requests.packages.urllib3.disable_warnings()
 
 ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
 CA_CERT = os.path.join(ASSET_ROOT, 'ssl', 'dird', 'server.crt')
+DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}/asterisk')
 
 VALID_UUID = 'uuid'
 VALID_UUID_1 = 'uuid-1'
@@ -550,3 +553,14 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
                                        'Proxy-URL': proxy},
                               verify=CA_CERT)
         return result
+
+    @classmethod
+    def new_db_client(cls):
+        db_uri = DB_URI.format(port=cls.service_port(5432, 'db'))
+        return DBUserClient(db_uri)
+
+    @classmethod
+    def restart_postgres(cls):
+        cls.restart_service('db', signal='SIGINT')  # fast shutdown
+        database = cls.new_db_client()
+        until.true(database.is_up, timeout=5, message='Postgres did not come back up')
