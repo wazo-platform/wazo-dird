@@ -7,12 +7,44 @@ paths:
         - configuration
       description: '**Required ACL:** `dird.backends.read`'
       parameters:
+        - $ref: '#/parameters/search'
         - $ref: '#/parameters/order'
         - $ref: '#/parameters/direction'
-        - $ref: '#/parameters/limit'
-        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
       responses:
         '200':
           description: A list of all active backends
           schema:
             $ref: '#/definitions/BackendItems'
+definitions:
+  Backend:
+    title: Backend
+    allOf:
+      - properties:
+          name:
+            type: string
+            readOnly: true
+      - required:
+          - name
+  BackendItems:
+    title: BackendItems
+    allOf:
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/Backend'
+            readOnly: true
+          total:
+            type: integer
+            description: The number of backends
+            readOnly: true
+          filtered:
+            type: integer
+            description: The number of backends matching the search filters
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered
