@@ -1,6 +1,14 @@
 Changelog
 =========
 
+19.02
+-----
+
+* A new resource has been added to list configured and loaded back-ends
+
+  * GET `/0.1/backends`
+
+
 16.16
 -----
 
