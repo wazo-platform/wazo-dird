@@ -30,8 +30,8 @@ class TestBackends(BaseDirdIntegrationTest):
         assert_that(
             result,
             has_entries(
-                total=7,
-                filtered=7,
+                total=6,
+                filtered=6,
                 items=contains_inanyorder(
                     has_entries(name='csv'),
                     has_entries(name='csv_ws'),
@@ -39,7 +39,8 @@ class TestBackends(BaseDirdIntegrationTest):
                     has_entries(name='ldap'),
                     has_entries(name='personal'),
                     has_entries(name='wazo'),
-                    has_entries(name='sample'),
+                    # not sample which is disabled
+                    # not unknown which is not installed
                 )
             )
         )
