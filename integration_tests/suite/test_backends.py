@@ -105,3 +105,42 @@ class TestBackends(BaseDirdIntegrationTest):
                 )
             )
         )
+
+        result = self.client.backends.list(limit=2, offset=3)
+        assert_that(
+            result,
+            has_entries(
+                total=6,
+                filtered=6,
+                items=contains(
+                    has_entries(name='ldap'),
+                    has_entries(name='personal'),
+                )
+            )
+        )
+
+        result = self.client.backends.list(limit=2)
+        assert_that(
+            result,
+            has_entries(
+                total=6,
+                filtered=6,
+                items=contains(
+                    has_entries(name='csv'),
+                    has_entries(name='csv_ws'),
+                )
+            )
+        )
+
+        result = self.client.backends.list(offset=4)
+        assert_that(
+            result,
+            has_entries(
+                total=6,
+                filtered=6,
+                items=contains(
+                    has_entries(name='personal'),
+                    has_entries(name='wazo'),
+                )
+            )
+        )

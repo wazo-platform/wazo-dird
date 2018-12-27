@@ -26,7 +26,8 @@ class BackendService:
     def list_(self, **kwargs):
         matches = self._filter_matches(self._backends, **kwargs)
         filtered = self._sort(matches, **kwargs)
-        return filtered
+        paginated = self._paginate(filtered, **kwargs)
+        return paginated
 
     def count(self, **kwargs):
         return len(self._filter_matches(self._backends, **kwargs))
@@ -57,6 +58,15 @@ class BackendService:
                     continue
 
         return matches
+
+    @staticmethod
+    def _paginate(backends, limit=None, offset=None, **ignored):
+        offset = 0 or offset
+
+        if limit is not None:
+            return backends[offset:limit+offset]
+
+        return backends[offset:]
 
     @staticmethod
     def _sort(backends, order=None, direction=None, **ignored):
