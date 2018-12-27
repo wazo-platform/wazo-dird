@@ -44,3 +44,17 @@ class TestBackends(BaseDirdIntegrationTest):
                 )
             )
         )
+
+        result = self.client.backends.list(search='a')
+        assert_that(
+            result,
+            has_entries(
+                total=6,
+                filtered=3,
+                items=contains_inanyorder(
+                    has_entries(name='ldap'),
+                    has_entries(name='personal'),
+                    has_entries(name='wazo'),
+                )
+            )
+        )
