@@ -58,3 +58,15 @@ class TestBackends(BaseDirdIntegrationTest):
                 )
             )
         )
+
+        result = self.client.backends.list(name='csv')
+        assert_that(
+            result,
+            has_entries(
+                total=6,
+                filtered=1,
+                items=contains_inanyorder(
+                    has_entries(name='csv'),
+                )
+            )
+        )

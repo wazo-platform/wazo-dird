@@ -7,7 +7,6 @@ from pkg_resources import iter_entry_points
 class BackendService:
 
     _backend_entry_points = 'wazo_dird.backends'
-    _searchable_fields = ['name']
 
     def __init__(self, config):
         configured_backends = set()
@@ -23,20 +22,35 @@ class BackendService:
 
         self._backends = [{'name': backend} for backend in configured_backends & installed_backends]
 
-    def list_(self, search=None, **kwargs):
+    def list_(self, **kwargs):
+        return self._filter_matches(self._backends, **kwargs)
+
+    def count(self, **kwargs):
+        return len(self._filter_matches(self._backends, **kwargs))
+
+    @staticmethod
+    def _filter_matches(backends, search=None, **kwargs):
+        searchable_fields = ['name']
+        matchers = []
+
+        if search is not None:
+            for field in searchable_fields:
+                matchers.append(lambda backend: search in backend[field])
+
+        for field in searchable_fields:
+            if field not in kwargs:
+                continue
+            matchers.append(lambda backend: kwargs[field] == backend[field])
+
+        if not matchers:
+            return backends
+
         matches = []
 
-        for backend in self._backends:
-            if search is None:
-                matches.append(backend)
-                continue
-            for field in self._searchable_fields:
-                value = backend.get(field)
-                if search in value:
+        for backend in backends:
+            for matcher in matchers:
+                if matcher(backend):
                     matches.append(backend)
-                    break
+                    continue
 
         return matches
-
-    def count(self, search=None, **kwargs):
-        return len(self.list_(search))
