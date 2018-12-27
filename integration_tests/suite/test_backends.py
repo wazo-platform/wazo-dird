@@ -28,119 +28,43 @@ class TestBackends(BaseDirdIntegrationTest):
 
     def test_list(self):
         result = self.client.backends.list()
-        assert_that(
-            result,
-            has_entries(
-                total=6,
-                filtered=6,
-                items=contains_inanyorder(
-                    has_entries(name='csv'),
-                    has_entries(name='csv_ws'),
-                    has_entries(name='dird_phonebook'),
-                    has_entries(name='ldap'),
-                    has_entries(name='personal'),
-                    has_entries(name='wazo'),
-                    # not sample which is disabled
-                    # not unknown which is not installed
-                )
-            )
-        )
+        # not sample which is disabled
+        # not unknown which is not installed
+        expected = ['csv', 'csv_ws', 'dird_phonebook', 'ldap', 'personal', 'wazo']
+        self._assert_matches(result, 6, 6, contains_inanyorder, *expected)
 
         result = self.client.backends.list(search='a')
-        assert_that(
-            result,
-            has_entries(
-                total=6,
-                filtered=3,
-                items=contains_inanyorder(
-                    has_entries(name='ldap'),
-                    has_entries(name='personal'),
-                    has_entries(name='wazo'),
-                )
-            )
-        )
+        self._assert_matches(result, 6, 3, contains_inanyorder, 'ldap', 'personal', 'wazo')
 
         result = self.client.backends.list(name='csv')
-        assert_that(
-            result,
-            has_entries(
-                total=6,
-                filtered=1,
-                items=contains_inanyorder(
-                    has_entries(name='csv'),
-                )
-            )
-        )
+        self._assert_matches(result, 6, 1, contains, 'csv')
 
         result = self.client.backends.list(order='name', direction='asc')
-        assert_that(
-            result,
-            has_entries(
-                total=6,
-                filtered=6,
-                items=contains(
-                    has_entries(name='csv'),
-                    has_entries(name='csv_ws'),
-                    has_entries(name='dird_phonebook'),
-                    has_entries(name='ldap'),
-                    has_entries(name='personal'),
-                    has_entries(name='wazo'),
-                )
-            )
-        )
+        expected = ['csv', 'csv_ws', 'dird_phonebook', 'ldap', 'personal', 'wazo']
+        self._assert_matches(result, 6, 6, contains, *expected)
 
         result = self.client.backends.list(order='name', direction='desc')
-        assert_that(
-            result,
-            has_entries(
-                total=6,
-                filtered=6,
-                items=contains(
-                    has_entries(name='wazo'),
-                    has_entries(name='personal'),
-                    has_entries(name='ldap'),
-                    has_entries(name='dird_phonebook'),
-                    has_entries(name='csv_ws'),
-                    has_entries(name='csv'),
-                )
-            )
-        )
+        expected = ['wazo', 'personal', 'ldap', 'dird_phonebook', 'csv_ws', 'csv']
+        self._assert_matches(result, 6, 6, contains, *expected)
 
         result = self.client.backends.list(limit=2, offset=3)
-        assert_that(
-            result,
-            has_entries(
-                total=6,
-                filtered=6,
-                items=contains(
-                    has_entries(name='ldap'),
-                    has_entries(name='personal'),
-                )
-            )
-        )
+        self._assert_matches(result, 6, 6, contains, 'ldap', 'personal')
 
         result = self.client.backends.list(limit=2)
-        assert_that(
-            result,
-            has_entries(
-                total=6,
-                filtered=6,
-                items=contains(
-                    has_entries(name='csv'),
-                    has_entries(name='csv_ws'),
-                )
-            )
-        )
+        self._assert_matches(result, 6, 6, contains, 'csv', 'csv_ws')
 
         result = self.client.backends.list(offset=4)
+        self._assert_matches(result, 6, 6, contains, 'personal', 'wazo')
+
+    @staticmethod
+    def _assert_matches(result, total, filtered, matcher, *names):
         assert_that(
             result,
             has_entries(
-                total=6,
-                filtered=6,
-                items=contains(
-                    has_entries(name='personal'),
-                    has_entries(name='wazo'),
+                total=total,
+                filtered=filtered,
+                items=matcher(
+                    *[has_entries(name=name) for name in names]
                 )
             )
         )
