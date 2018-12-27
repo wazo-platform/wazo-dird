@@ -7,13 +7,13 @@ from wazo_dird.rest_api import AuthResource
 
 class Backends(AuthResource):
 
-    def __init__(self, config):
-        self._enabled_backends = list(config['enabled_plugins']['backends'].keys())
+    def __init__(self, service):
+        self._service = service
 
     @required_acl('dird.backends.read')
     def get(self):
-        backends = [{'name': name} for name in self._enabled_backends]
-        total = len(backends)
+        backends = self._service.list_()
+        total = self._service.count()
         filtered = total
 
         return {

@@ -5,13 +5,15 @@ from wazo_dird import BaseViewPlugin
 from wazo_dird.rest_api import api
 
 from . import http
+from . import service
 
 
 class BackendsViewPlugin(BaseViewPlugin):
 
     def load(self, args):
+        backend_service = service.BackendService(args['config'])
         api.add_resource(
             http.Backends,
             '/backends',
-            resource_class_args=(args['config'],),
+            resource_class_args=(backend_service,),
         )
