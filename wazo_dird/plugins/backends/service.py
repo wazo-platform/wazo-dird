@@ -1,6 +1,7 @@
 # Copyright 2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from operator import itemgetter
 from pkg_resources import iter_entry_points
 
 
@@ -23,7 +24,9 @@ class BackendService:
         self._backends = [{'name': backend} for backend in configured_backends & installed_backends]
 
     def list_(self, **kwargs):
-        return self._filter_matches(self._backends, **kwargs)
+        matches = self._filter_matches(self._backends, **kwargs)
+        filtered = self._sort(matches, **kwargs)
+        return filtered
 
     def count(self, **kwargs):
         return len(self._filter_matches(self._backends, **kwargs))
@@ -54,3 +57,8 @@ class BackendService:
                     continue
 
         return matches
+
+    @staticmethod
+    def _sort(backends, order=None, direction=None, **ignored):
+        reverse = direction == 'desc'
+        return sorted(backends, key=itemgetter(order), reverse=reverse)

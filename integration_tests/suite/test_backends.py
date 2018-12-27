@@ -3,6 +3,7 @@
 
 from hamcrest import (
     assert_that,
+    contains,
     contains_inanyorder,
     has_entries,
 )
@@ -66,6 +67,40 @@ class TestBackends(BaseDirdIntegrationTest):
                 total=6,
                 filtered=1,
                 items=contains_inanyorder(
+                    has_entries(name='csv'),
+                )
+            )
+        )
+
+        result = self.client.backends.list(order='name', direction='asc')
+        assert_that(
+            result,
+            has_entries(
+                total=6,
+                filtered=6,
+                items=contains(
+                    has_entries(name='csv'),
+                    has_entries(name='csv_ws'),
+                    has_entries(name='dird_phonebook'),
+                    has_entries(name='ldap'),
+                    has_entries(name='personal'),
+                    has_entries(name='wazo'),
+                )
+            )
+        )
+
+        result = self.client.backends.list(order='name', direction='desc')
+        assert_that(
+            result,
+            has_entries(
+                total=6,
+                filtered=6,
+                items=contains(
+                    has_entries(name='wazo'),
+                    has_entries(name='personal'),
+                    has_entries(name='ldap'),
+                    has_entries(name='dird_phonebook'),
+                    has_entries(name='csv_ws'),
                     has_entries(name='csv'),
                 )
             )
