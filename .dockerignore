@@ -2,3 +2,7 @@
 .git
 .tox
 debian
+.tox
+*.egg
+samples
+.eggs
