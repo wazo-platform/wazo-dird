@@ -53,7 +53,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._token_renewer.subscribe_to_token_change(self._on_new_token)
         self._token_renewer.start()
 
-        logger.info('XiVO %s successfully loaded', args['config']['name'])
+        logger.info('Wazo %s successfully loaded', args['config']['name'])
 
     def unload(self):
         token_renewer = getattr(self, '_token_renewer', None)
