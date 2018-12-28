@@ -19,7 +19,7 @@ class SourceManager:
 
     _namespace = 'wazo_dird.backends'
 
-    def __init__(self, enabled_backends, config, auth_client, token_renewer):
+    def __init__(self, enabled_backends, config, auth_client, token_renewer, rest_api):
         self._enabled_backends = enabled_backends
         self._source_configs = config['sources']
         self._main_config = config
@@ -27,6 +27,7 @@ class SourceManager:
         self._config = config
         self._auth_client = auth_client
         self._token_renewer = token_renewer
+        self._rest_api = rest_api
 
     def load_sources(self):
         names = plugin_helpers.enabled_names(self._enabled_backends)
@@ -80,6 +81,7 @@ class SourceManager:
                 'config': config,
                 'main_config': self._main_config,
                 'token_renewer': self._token_renewer,
+                'rest_api': self._rest_api,
             }
             source.load(dependencies)
             self._sources[source.name] = source

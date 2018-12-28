@@ -48,6 +48,7 @@ class Controller:
             self.config,
             self.auth_client,
             self.token_renewer,
+            self.rest_api,
         )
         self.services = plugin_manager.load_services(
             self.config,

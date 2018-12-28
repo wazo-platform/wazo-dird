@@ -32,6 +32,7 @@ class TestSourceManager(unittest.TestCase):
             {'sources': {'my_ldap': my_ldap_config}},
             s.auth_client,
             s.token_renewer,
+            s.rest_api,
         )
 
         manager.load_sources()
@@ -53,7 +54,13 @@ class TestSourceManager(unittest.TestCase):
             'xivo_phonebook': True,
         }
 
-        manager = SourceManager(enabled_backends, {'sources': {}}, s.auth_client, s.token_renewer)
+        manager = SourceManager(
+            enabled_backends,
+            {'sources': {}},
+            s.auth_client,
+            s.token_renewer,
+            s.rest_api,
+        )
         manager._sources = s.sources
 
         result = manager.load_sources()
@@ -68,7 +75,8 @@ class TestSourceManager(unittest.TestCase):
         extension = Mock()
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
-        manager = SourceManager([], main_config, s.auth_client, s.token_renewer)
+
+        manager = SourceManager([], main_config, s.auth_client, s.token_renewer, s.rest_api)
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 
@@ -79,15 +87,16 @@ class TestSourceManager(unittest.TestCase):
                 'main_config': main_config,
                 'auth_client': s.auth_client,
                 'token_renewer': s.token_renewer,
+                'rest_api': s.rest_api,
             },
         )
-        assert_that(source2.name, equal_to('source2'))
         source2.load.assert_called_once_with(
             {
                 'config': config2,
                 'main_config': main_config,
                 'auth_client': s.auth_client,
                 'token_renewer': s.token_renewer,
+                'rest_api': s.rest_api,
             },
         )
 
@@ -100,7 +109,7 @@ class TestSourceManager(unittest.TestCase):
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
         source1.load.side_effect = RuntimeError
-        manager = SourceManager([], main_config, s.auth_client, s.token_renewer)
+        manager = SourceManager([], main_config, s.auth_client, s.token_renewer, s.rest_api)
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 
@@ -112,6 +121,7 @@ class TestSourceManager(unittest.TestCase):
                 'main_config': main_config,
                 'auth_client': s.auth_client,
                 'token_renewer': s.token_renewer,
+                'rest_api': s.rest_api,
             },
         )
 
@@ -119,7 +129,7 @@ class TestSourceManager(unittest.TestCase):
         source_1 = Mock()
         source_2 = Mock()
 
-        manager = SourceManager([], {'sources': {}}, s.auth_client, s.token_renewer)
+        manager = SourceManager([], {'sources': {}}, s.auth_client, s.token_renewer, s.rest_api)
         manager._sources = {'s1': source_1, 's2': source_2}
 
         manager.unload_sources()

@@ -33,13 +33,19 @@ class TestPluginManagerSources(TestCase):
     def test_load_sources_calls_source_manager(self, source_manager_init):
         source_manager = source_manager_init.return_value
 
-        plugin_manager.load_sources(s.enabled, s.source_config_dir, s.auth_client, s.token_renewer)
-
+        plugin_manager.load_sources(
+            s.enabled,
+            s.source_config_dir,
+            s.auth_client,
+            s.token_renewer,
+            s.rest_api,
+        )
         source_manager_init.assert_called_once_with(
             s.enabled,
             s.source_config_dir,
             s.auth_client,
             s.token_renewer,
+            s.rest_api,
         )
         source_manager.load_sources.assert_called_once_with()
 
@@ -53,6 +59,7 @@ class TestPluginManagerSources(TestCase):
             s.source_config_dir,
             s.auth_client,
             s.token_renewer,
+            s.rest_api,
         )
 
         assert_that(result, equal_to(s.result))

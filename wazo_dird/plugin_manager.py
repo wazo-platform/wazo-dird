@@ -29,10 +29,16 @@ def unload_services():
         services_extension_manager.map_method('unload')
 
 
-def load_sources(enabled_backends, source_configs, auth_client, token_renewer):
+def load_sources(enabled_backends, source_configs, auth_client, token_renewer, rest_api):
     global source_manager
     if not source_manager:
-        source_manager = SourceManager(enabled_backends, source_configs, auth_client, token_renewer)
+        source_manager = SourceManager(
+            enabled_backends,
+            source_configs,
+            auth_client,
+            token_renewer,
+            rest_api,
+        )
     return source_manager.load_sources()
 
 
