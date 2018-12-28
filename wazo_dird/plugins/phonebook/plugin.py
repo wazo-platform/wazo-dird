@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import api
 
 from .http import (
     ContactAll,
@@ -22,6 +21,7 @@ class PhonebookViewPlugin(BaseViewPlugin):
     contact_import_url = '/tenants/<string:tenant>/phonebooks/<int:phonebook_id>/contacts/import'
 
     def load(self, dependencies=None):
+        api = dependencies['api']
         args = (
             dependencies['services'].get('phonebook'),
             dependencies['auth_client'],

@@ -6,6 +6,7 @@ import logging
 from stevedore import NamedExtensionManager
 from xivo import plugin_helpers
 
+from wazo_dird import rest_api
 from .source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ def unload_services():
         services_extension_manager.map_method('unload')
 
 
-def load_sources(enabled_backends, source_configs, auth_client, token_renewer, rest_api):
+def load_sources(enabled_backends, source_configs, auth_client, token_renewer):
     global source_manager
     if not source_manager:
         source_manager = SourceManager(
@@ -37,7 +38,7 @@ def load_sources(enabled_backends, source_configs, auth_client, token_renewer, r
             source_configs,
             auth_client,
             token_renewer,
-            rest_api,
+            rest_api.api,
         )
     return source_manager.load_sources()
 
@@ -52,10 +53,9 @@ def unload_sources():
 def load_views(config, enabled_views, services, rest_api, auth_client):
     dependencies = {
         'config': config,
-        'http_app': rest_api.app,
-        'rest_api': rest_api.api,
         'services': services,
         'auth_client': auth_client,
+        'api': rest_api.api,
     }
     views_extension_manager, views = _load_plugins('wazo_dird.views', enabled_views, dependencies)
     return views

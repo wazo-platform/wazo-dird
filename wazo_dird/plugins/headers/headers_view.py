@@ -8,7 +8,6 @@ from time import time
 
 from wazo_dird import BaseViewPlugin
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import api
 from wazo_dird.rest_api import AuthResource
 
 logger = logging.getLogger(__name__)
@@ -16,8 +15,10 @@ logger = logging.getLogger(__name__)
 
 class HeadersViewPlugin(BaseViewPlugin):
 
-    def load(self, args):
-        config = args['config'].get('views', {})
+    def load(self, dependencies):
+        api = dependencies['api']
+        config = dependencies['config'].get('views', {})
+
         displays = make_displays(config)
         Headers.configure(displays)
 

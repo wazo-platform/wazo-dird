@@ -81,7 +81,7 @@ class SourceManager:
                 'config': config,
                 'main_config': self._main_config,
                 'token_renewer': self._token_renewer,
-                'rest_api': self._rest_api,
+                'api': self._rest_api,
             }
             source.load(dependencies)
             self._sources[source.name] = source

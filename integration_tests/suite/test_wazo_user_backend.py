@@ -1,6 +1,7 @@
 # Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from mock import Mock
 from hamcrest import (
     assert_that,
     contains,
@@ -26,7 +27,13 @@ class TestWazoUser(BaseDirdIntegrationTest):
 
     def setUp(self):
         super().setUp()
-        self.backend = BackendWrapper('wazo', {'config': self.backend_config()})
+        self.backend = BackendWrapper(
+            'wazo',
+            {
+                'config': self.backend_config(),
+                'api': Mock(),
+            }
+        )
         self._dylan = {'id': 42,
                        'firstname': 'Bob',
                        'lastname': 'Dylan',

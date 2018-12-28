@@ -63,13 +63,7 @@ class TestController(TestCase):
         controller = Controller(config)
         controller.run()
 
-        self.load_sources.assert_called_once_with(
-            s.enabled,
-            config,
-            ANY,
-            token_renewer,
-            controller.rest_api,
-        )
+        self.load_sources.assert_called_once_with(s.enabled, config, ANY, token_renewer)
 
     def test_run_loads_views(self):
         config = self._create_config(**{
@@ -83,13 +77,7 @@ class TestController(TestCase):
         controller = Controller(config)
         controller.run()
 
-        self.load_views.assert_called_once_with(
-            config,
-            s.enabled,
-            ANY,
-            self.rest_api,
-            controller.auth_client,
-        )
+        self.load_views.assert_called_once_with(config, s.enabled, ANY, controller.auth_client)
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)

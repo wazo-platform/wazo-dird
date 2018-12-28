@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import api
 
 from . import http
 
 
 class ApiViewPlugin(BaseViewPlugin):
 
-    def load(self, args):
+    def load(self, dependencies):
+        api = dependencies['api']
         api.add_resource(http.ApiResource, '/api/api.yml')

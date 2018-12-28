@@ -24,13 +24,14 @@ class TestPluginManagerServices(TestCase):
                         not_(raises(Exception)))
 
 
+@patch('wazo_dird.plugin_manager.SourceManager')
 class TestPluginManagerSources(TestCase):
 
     def tearDown(self):
         plugin_manager.source_manager = None
 
-    @patch('wazo_dird.plugin_manager.SourceManager')
-    def test_load_sources_calls_source_manager(self, source_manager_init):
+    @patch('wazo_dird.plugin_manager.rest_api.api')
+    def test_load_sources_calls_source_manager(self, api, source_manager_init):
         source_manager = source_manager_init.return_value
 
         plugin_manager.load_sources(
@@ -38,18 +39,16 @@ class TestPluginManagerSources(TestCase):
             s.source_config_dir,
             s.auth_client,
             s.token_renewer,
-            s.rest_api,
         )
         source_manager_init.assert_called_once_with(
             s.enabled,
             s.source_config_dir,
             s.auth_client,
             s.token_renewer,
-            s.rest_api,
+            api,
         )
         source_manager.load_sources.assert_called_once_with()
 
-    @patch('wazo_dird.plugin_manager.SourceManager')
     def test_load_sources_returns_result_from_source_manager_load(self, source_manager_init):
         source_manager = source_manager_init.return_value
         source_manager.load_sources.return_value = s.result
@@ -59,7 +58,6 @@ class TestPluginManagerSources(TestCase):
             s.source_config_dir,
             s.auth_client,
             s.token_renewer,
-            s.rest_api,
         )
 
         assert_that(result, equal_to(s.result))

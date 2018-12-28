@@ -32,6 +32,7 @@ CONFD_CONFIG = {
     'version': '1.1',
 }
 DEFAULT_ARGS = {
+    'api': Mock(),
     'config': {
         'confd': CONFD_CONFIG,
         'auth': AUTH_CONFIG,

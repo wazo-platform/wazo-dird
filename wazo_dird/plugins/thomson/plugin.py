@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import api
 from wazo_dird.plugins.phone_helpers import new_phone_lookup_service_from_args
 from wazo_dird.plugins.phone.http import PhoneLookup
 
@@ -16,8 +15,9 @@ class ThomsonViewPlugin(BaseViewPlugin):
 
     thomson_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/thomson'
 
-    def load(self, args=None):
-        phone_lookup_service = new_phone_lookup_service_from_args(args)
+    def load(self, dependencies):
+        api = dependencies['api']
+        phone_lookup_service = new_phone_lookup_service_from_args(dependencies)
         api.add_resource(PhoneLookup, self.thomson_lookup, endpoint='ThomsonPhoneLookup',
                          resource_class_args=(TEMPLATE_THOMSON_RESULTS, CONTENT_TYPE,
                                               phone_lookup_service, MAX_ITEM_PER_PAGE))

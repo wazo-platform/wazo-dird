@@ -4,7 +4,6 @@
 import logging
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import api
 
 from .http import Config
 
@@ -16,8 +15,9 @@ class ConfigViewPlugin(BaseViewPlugin):
 
     url = '/config'
 
-    def load(self, args):
-        config_service = args['services'].get('config')
+    def load(self, dependencies):
+        api = dependencies['api']
+        config_service = dependencies['services'].get('config')
         if not config_service:
             logger.info('failed to load the %s config service is disabled', self.__class__.__name__)
             return

@@ -87,7 +87,7 @@ class TestSourceManager(unittest.TestCase):
                 'main_config': main_config,
                 'auth_client': s.auth_client,
                 'token_renewer': s.token_renewer,
-                'rest_api': s.rest_api,
+                'api': s.rest_api,
             },
         )
         source2.load.assert_called_once_with(
@@ -96,7 +96,7 @@ class TestSourceManager(unittest.TestCase):
                 'main_config': main_config,
                 'auth_client': s.auth_client,
                 'token_renewer': s.token_renewer,
-                'rest_api': s.rest_api,
+                'api': s.rest_api,
             },
         )
 
@@ -121,7 +121,7 @@ class TestSourceManager(unittest.TestCase):
                 'main_config': main_config,
                 'auth_client': s.auth_client,
                 'token_renewer': s.token_renewer,
-                'rest_api': s.rest_api,
+                'api': s.rest_api,
             },
         )
 
