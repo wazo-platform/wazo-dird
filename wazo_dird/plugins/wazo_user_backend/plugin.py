@@ -11,6 +11,8 @@ from xivo_confd_client import Client as ConfdClient
 from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
 
+from . import http
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,12 +28,17 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._uuid = None
         self._search_params = {'view': 'directory', 'recurse': True}
 
-    def load(self, args):
-        self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
-        self._first_matched_columns = args['config'].get(self.FIRST_MATCHED_COLUMNS, [])
-        self.name = args['config']['name']
+    def load(self, dependencies):
+        config = dependencies['config']
+        api = dependencies['api']
 
-        auth_config = dict(args['config']['auth'])
+        api.add_resource(http.Sources, '/backends/wazo/sources')
+
+        self._searched_columns = config.get(self.SEARCHED_COLUMNS, [])
+        self._first_matched_columns = config.get(self.FIRST_MATCHED_COLUMNS, [])
+        self.name = config['name']
+
+        auth_config = dict(config['auth'])
         if auth_config.get('key_file'):
             # File must be readable by wazo-dird
             key_file = parse_config_file(auth_config.pop('key_file'))
@@ -40,20 +47,20 @@ class WazoUserPlugin(BaseSourcePlugin):
         auth_client = self._AuthClientClass(**auth_config)
         self._token_renewer = TokenRenewer(auth_client)
 
-        confd_config = args['config']['confd']
+        confd_config = config['confd']
         logger.debug('confd config %s', confd_config)
         self._client = self._ConfdClientClass(**confd_config)
 
         self._SourceResult = make_result_class(
             self.name, 'id',
-            format_columns=args['config'].get(self.FORMAT_COLUMNS))
+            format_columns=config.get(self.FORMAT_COLUMNS))
 
-        self._search_params.update(args['config'].get('extra_search_params', {}))
+        self._search_params.update(config.get('extra_search_params', {}))
 
         self._token_renewer.subscribe_to_token_change(self._on_new_token)
         self._token_renewer.start()
 
-        logger.info('Wazo %s successfully loaded', args['config']['name'])
+        logger.info('Wazo %s successfully loaded', config['name'])
 
     def unload(self):
         token_renewer = getattr(self, '_token_renewer', None)
