@@ -22,7 +22,7 @@ from wazo_dird.exception import (
     NoSuchPhonebook,
     NoSuchTenant,
 )
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def _make_error(reason, status_code):
     }, status_code
 
 
-class _Resource(AuthResource):
+class _Resource(LegacyAuthResource):
 
     def __init__(self, phonebook_service, auth_client):
         self.phonebook_service = phonebook_service
