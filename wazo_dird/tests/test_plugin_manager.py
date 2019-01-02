@@ -30,8 +30,7 @@ class TestPluginManagerSources(TestCase):
     def tearDown(self):
         plugin_manager.source_manager = None
 
-    @patch('wazo_dird.plugin_manager.rest_api.api')
-    def test_load_sources_calls_source_manager(self, api, source_manager_init):
+    def test_load_sources_calls_source_manager(self, source_manager_init):
         source_manager = source_manager_init.return_value
 
         plugin_manager.load_sources(
@@ -45,7 +44,6 @@ class TestPluginManagerSources(TestCase):
             s.source_config_dir,
             s.auth_client,
             s.token_renewer,
-            api,
         )
         source_manager.load_sources.assert_called_once_with()
 

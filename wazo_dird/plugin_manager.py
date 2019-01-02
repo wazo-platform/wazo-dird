@@ -33,13 +33,7 @@ def unload_services():
 def load_sources(enabled_backends, source_configs, auth_client, token_renewer):
     global source_manager
     if not source_manager:
-        source_manager = SourceManager(
-            enabled_backends,
-            source_configs,
-            auth_client,
-            token_renewer,
-            rest_api.api,
-        )
+        source_manager = SourceManager(enabled_backends, source_configs, auth_client, token_renewer)
     return source_manager.load_sources()
 
 
@@ -50,7 +44,7 @@ def unload_sources():
     return source_manager.unload_sources()
 
 
-def load_views(config, enabled_views, services, rest_api, auth_client):
+def load_views(config, enabled_views, services, auth_client):
     dependencies = {
         'config': config,
         'services': services,

@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import copy
@@ -32,7 +32,6 @@ CONFD_CONFIG = {
     'version': '1.1',
 }
 DEFAULT_ARGS = {
-    'api': Mock(),
     'config': {
         'confd': CONFD_CONFIG,
         'auth': AUTH_CONFIG,

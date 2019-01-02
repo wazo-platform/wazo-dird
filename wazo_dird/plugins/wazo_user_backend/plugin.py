@@ -8,14 +8,22 @@ from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 
-from wazo_dird import BaseSourcePlugin
-from wazo_dird import make_result_class
+from wazo_dird import (
+    BaseSourcePlugin,
+    BaseViewPlugin,
+    make_result_class,
+)
 
 from . import http
 
 logger = logging.getLogger(__name__)
 
-_api_loaded = False
+
+class WazoUserView(BaseViewPlugin):
+
+    def load(self, dependencies):
+        api = dependencies['api']
+        api.add_resource(http.Sources, '/backends/wazo/sources')
 
 
 class WazoUserPlugin(BaseSourcePlugin):
@@ -32,13 +40,6 @@ class WazoUserPlugin(BaseSourcePlugin):
 
     def load(self, dependencies):
         config = dependencies['config']
-        global _api_loaded
-        if not _api_loaded:
-            api = dependencies['api']
-
-            api.add_resource(http.Sources, '/backends/wazo/sources')
-            _api_loaded = True
-
         self._searched_columns = config.get(self.SEARCHED_COLUMNS, [])
         self._first_matched_columns = config.get(self.FIRST_MATCHED_COLUMNS, [])
         self.name = config['name']
