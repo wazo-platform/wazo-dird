@@ -38,7 +38,11 @@ class Favorite(Base):
 
     __tablename__ = 'dird_favorite'
 
-    source_id = Column(Integer(), ForeignKey('dird_source.id', ondelete='CASCADE'), primary_key=True)
+    source_uuid = Column(
+        String(36),
+        ForeignKey('dird_source.uuid', ondelete='CASCADE'),
+        primary_key=True,
+    )
     contact_id = Column(Text(), primary_key=True)
     user_uuid = Column(String(38),
                        ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'),
@@ -63,7 +67,7 @@ class Source(Base):
 
     __tablename__ = 'dird_source'
 
-    id = Column(Integer(), primary_key=True)
+    uuid = Column(String(36), server_default=text('uuid_generate_v4()'), primary_key=True)
     name = Column(Text(), nullable=False, unique=True)
 
 

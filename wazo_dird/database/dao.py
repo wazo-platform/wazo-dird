@@ -366,7 +366,7 @@ class FavoriteCRUD(_BaseDAO):
             user = self._get_dird_user(s, xivo_user_uuid)
             source = self._get_source(s, source_name)
             favorite = Favorite(
-                source_id=source.id,
+                source_uuid=source.uuid,
                 contact_id=contact_id,
                 user_uuid=user.xivo_user_uuid,
             )
@@ -377,11 +377,11 @@ class FavoriteCRUD(_BaseDAO):
 
     def delete(self, xivo_user_uuid, source_name, contact_id):
         with self.new_session() as s:
-            source_id = s.query(Source.id).filter(Source.name == source_name).scalar()
+            source_uuid = s.query(Source.uuid).filter(Source.name == source_name).scalar()
             filter_ = and_(
                 Favorite.contact_id == contact_id,
                 Favorite.user_uuid == xivo_user_uuid,
-                Favorite.source_id == source_id,
+                Favorite.source_uuid == source_uuid,
             )
             deleted = s.query(Favorite).filter(filter_).delete(synchronize_session=False)
 
