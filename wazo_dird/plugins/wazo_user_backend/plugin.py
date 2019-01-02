@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -15,6 +15,8 @@ from . import http
 
 logger = logging.getLogger(__name__)
 
+_api_loaded = False
+
 
 class WazoUserPlugin(BaseSourcePlugin):
 
@@ -30,9 +32,12 @@ class WazoUserPlugin(BaseSourcePlugin):
 
     def load(self, dependencies):
         config = dependencies['config']
-        api = dependencies['api']
+        global _api_loaded
+        if not _api_loaded:
+            api = dependencies['api']
 
-        api.add_resource(http.Sources, '/backends/wazo/sources')
+            api.add_resource(http.Sources, '/backends/wazo/sources')
+            _api_loaded = True
 
         self._searched_columns = config.get(self.SEARCHED_COLUMNS, [])
         self._first_matched_columns = config.get(self.FIRST_MATCHED_COLUMNS, [])

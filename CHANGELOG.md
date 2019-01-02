@@ -22,6 +22,10 @@ Changelog
   * GET `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>/<phonebook_id>/contacts/<contact_id>'
   * PUT `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>/<phonebook_id>/contacts/<contact_id>'
 
+* A new resource has been added to configure `wazo` backends
+
+  * POST `/0.1/backends/wazo/sources`
+
 
 16.16
 -----
