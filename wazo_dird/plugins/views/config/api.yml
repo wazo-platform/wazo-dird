@@ -567,7 +567,7 @@ definitions:
       - required:
           - items
           - total
-          - fitered
+          - filtered
   Service:
     title: Service
     allOf:
