@@ -484,7 +484,6 @@ definitions:
           uuid:
             type: string
             description: "The display's UUID"
-            readOnly: true
       - required:
           - uuid
   DisplayField:
@@ -642,7 +641,6 @@ definitions:
           uuid:
             type: string
             description: The source's UUID
-            readOnly: true
       - required:
         - uuid
   SourceItems:
