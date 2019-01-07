@@ -693,7 +693,7 @@ definitions:
           auth:
             $ref: '#/definitions/WazoAuthConfig'
           confd:
-            $ref: '#/definitions/ConfdConfig'
+            $ref: '#/definitions/WazoConfdConfig'
       - required:
         - name
         - auth
@@ -719,7 +719,7 @@ definitions:
           - items
           - total
           - filtered
-  ConfdConfig:
+  WazoConfdConfig:
     title: Confd
     allOf:
       - properties:
