@@ -26,7 +26,12 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import and_, func, exc
 
-from wazo_dird import database, exception
+from wazo_dird import (
+    database,
+    exception,
+)
+
+from wazo_dird.database.queries import base
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
@@ -107,7 +112,7 @@ class _BaseTest(unittest.TestCase):
         ids = []
         with closing(Session()) as session:
             for contact in contacts:
-                hash_ = database.dao.compute_contact_hash(contact)
+                hash_ = base.compute_contact_hash(contact)
                 dird_contact = database.Contact(user_uuid=xivo_user_uuid, hash=hash_)
                 session.add(dird_contact)
                 session.flush()
@@ -147,7 +152,7 @@ class _BasePhonebookCRUDTest(_BaseTest):
 class TestBaseDAO(_BaseTest):
 
     def test_that_an_unexpected_error_does_not_block_the_current_Session(self):
-        dao = database.dao._BaseDAO(Session)
+        dao = base.BaseDAO(Session)
 
         try:
             with dao.new_session() as s:
