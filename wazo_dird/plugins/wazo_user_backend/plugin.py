@@ -14,7 +14,10 @@ from wazo_dird import (
     make_result_class,
 )
 
-from . import http
+from . import (
+    http,
+    service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +26,12 @@ class WazoUserView(BaseViewPlugin):
 
     def load(self, dependencies):
         api = dependencies['api']
-        api.add_resource(http.Sources, '/backends/wazo/sources')
+        wazo_backend_service = service.WazoBackendService()
+        api.add_resource(
+            http.Sources,
+            '/backends/wazo/sources',
+            resource_class_args=(wazo_backend_service,),
+        )
 
 
 class WazoUserPlugin(BaseSourcePlugin):

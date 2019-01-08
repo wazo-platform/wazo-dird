@@ -3,7 +3,6 @@
 
 import logging
 
-from uuid import uuid4
 from flask import request
 
 from wazo_dird.auth import required_acl
@@ -17,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 class Sources(AuthResource):
 
+    def __init__(self, service):
+        self._service = service
+
     @required_acl('dird.backends.wazo.sources.create')
     def post(self):
         tenant = Tenant.autodetect()
         args = source_schema.load(request.get_json()).data
-        logger.critical('%s', args)
-        logger.critical('New wazo source: %s in tenant %s', args, tenant.uuid)
-        args['tenant_uuid'] = tenant.uuid
-        args['uuid'] = str(uuid4())
-        return source_schema.dump(args)
+        body = self._service.create(tenant_uuid=tenant.uuid, **args)
+        return source_schema.dump(body)
