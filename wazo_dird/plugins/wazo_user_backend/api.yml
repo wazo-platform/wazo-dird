@@ -149,23 +149,13 @@ definitions:
   ConfdConfig:
     title: Confd
     allOf:
+      - $ref: '#/definitions/ExternalServiceConfig'
       - properties:
-          host:
-            type: string
-            default: localhost
           port:
             type: integer
             default: 9486
           https:
             type: boolean
-            default: true
-          timeout:
-            type: number
-            default: 4.0
-            description: The HTTP queries timeout
-          verify_certificate:
-            type: string
-            description: If the HTTPs certificates should be verified and the path of the certificate if a custom certificate is used.
             default: true
           version:
             type: string
@@ -173,10 +163,8 @@ definitions:
   WazoAuthConfig:
     title: Auth
     allOf:
+      - $ref: '#/definitions/ExternalServiceConfig'
       - properties:
-          host:
-            type: string
-            default: localhost
           port:
             type: integer
             default: 9497
@@ -189,12 +177,17 @@ definitions:
           password:
             type: string
             description: The password to use when not using a key_file
-          verify_certificate:
-            type: string
-            description: If the HTTPs certificates should be verified and the path of the certificate if a custom certificate is used.
-            default: true
-          timeout:
-            type: number
           version:
             type: string
             default: "0.1"
+  ExternalServiceConfig:
+    properties:
+      host:
+        type: string
+        default: localhost
+      verify_certificate:
+        type: string
+        description: If the HTTPs certificates should be verified and the path of the certificate if a custom certificate is used.
+        default: true
+      timeout:
+        type: number
