@@ -58,6 +58,7 @@ class TestSourceSchema(TestCase):
     def test_that_username_password_or_keyfile_is_present(self):
         username_password = {'username': 'foo', 'password': 'bar'}
         key_file = {'key_file': '/var/lib/wazo-auth-keys/wazo-dird-wazo-backend-key.yml'}
+        username_and_key_file = {'username': 'foo', 'key_file': 'bar'}
         no_auth_info = {}
 
         assert_that(
@@ -72,6 +73,11 @@ class TestSourceSchema(TestCase):
 
         assert_that(
             calling(source_schema.load).with_args(dict(auth=no_auth_info, **self._body)),
+            raises(ValidationError),
+        )
+
+        assert_that(
+            calling(source_schema.load).with_args(dict(auth=username_and_key_file, **self._body)),
             raises(ValidationError),
         )
 

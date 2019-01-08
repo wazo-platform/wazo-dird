@@ -67,13 +67,19 @@ class _AuthConfigSchema(_BaseSchema):
 
     @validates_schema
     def validate_auth_info(self, data):
-        if data.get('key_file'):
-            return
-        if data.get('username') and data.get('password'):
+        key_file = data.get('key_file')
+        username = data.get('username')
+
+        if key_file and username:
+            raise exceptions.ValidationError(
+                'a "key_file" or a "username" and "password" must be specified',
+            )
+
+        if key_file or username:
             return
 
         raise exceptions.ValidationError(
-            'a "key_file" and a "username" and "password" must be specified',
+            'a "key_file" or a "username" and "password" must be specified',
         )
 
 
