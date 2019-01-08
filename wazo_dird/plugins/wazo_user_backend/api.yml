@@ -166,7 +166,7 @@ definitions:
           verify_certificate:
             type: string
             description: If the HTTPs certificates should be verified and the path of the certificate if a custom certificate is used.
-            default: /usr/share/xivo-certs/server.crt
+            default: true
           version:
             type: string
             default: "1.1"
@@ -192,7 +192,7 @@ definitions:
           verify_certificate:
             type: string
             description: If the HTTPs certificates should be verified and the path of the certificate if a custom certificate is used.
-            default: /usr/share/xivo-certs/server.crt
+            default: true
           timeout:
             type: number
           version:
