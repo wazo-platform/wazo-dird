@@ -37,6 +37,16 @@ paths:
           description: The created display
           schema:
             $ref: '#/definitions/WazoSource'
+          examples:
+            application/json:
+              name: internal_users
+              searched_columns:
+                - firstname
+                - lastname
+              format_columns:
+                displayname: '{firstname} {lastname}'
+              auth:
+                key_file: /usr/share/wazo-dird/my-auth-key.yml
         '400':
           $ref: '#/responses/CreateError'
   /backends/wazo/sources/{source_uuid}:
