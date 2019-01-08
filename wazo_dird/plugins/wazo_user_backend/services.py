@@ -14,4 +14,3 @@ class WazoBackendService:
         logger.critical('New wazo source: %s', kwargs)
         kwargs['uuid'] = str(uuid4())
         return kwargs
-
