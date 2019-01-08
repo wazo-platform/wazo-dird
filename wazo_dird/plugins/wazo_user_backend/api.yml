@@ -183,7 +183,6 @@ definitions:
           key_file:
             type: string
             description: The path the the file containing the credentials
-            default: /var/lib/wazo-auth-keys/wazo-dird-wazo-backend-key.yml
           username:
             type: string
             description: The username to use when not using a key_file
