@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
@@ -7,7 +7,13 @@ from mock import ANY, Mock, patch, sentinel as s
 
 from wazo_dird.controller import Controller
 
+token_renewer = Mock()
+token_renewer.__enter__ = Mock()
+token_renewer.__exit__ = Mock()
+TokenRenewer = Mock(return_value=token_renewer)
 
+
+@patch('wazo_dird.controller.TokenRenewer', TokenRenewer)
 class TestController(TestCase):
 
     def setUp(self):
@@ -67,14 +73,21 @@ class TestController(TestCase):
             'service_discovery': {'enabled': False},
         })
 
-        Controller(config).run()
+        controller = Controller(config)
+        controller.run()
 
-        self.load_views.assert_called_once_with(config, s.enabled, ANY, self.rest_api)
+        self.load_views.assert_called_once_with(
+            config,
+            s.enabled,
+            ANY,
+            self.rest_api,
+            controller.auth_client,
+        )
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)
         config.setdefault('bus', {'enabled': False})
-        config.setdefault('auth', {})
+        config.setdefault('auth', {'host': 'localhost'})
         config.setdefault('enabled_plugins', {})
         config['enabled_plugins'].setdefault('backends', {})
         config['enabled_plugins'].setdefault('services', {})

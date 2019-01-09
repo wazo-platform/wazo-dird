@@ -24,7 +24,7 @@ class PhonebookViewPlugin(BaseViewPlugin):
     def load(self, dependencies=None):
         args = (
             dependencies['services'].get('phonebook'),
-            dependencies['config'],
+            dependencies['auth_client'],
         )
 
         api.add_resource(ContactAll, self.contact_all_url, resource_class_args=args)

@@ -1,10 +1,14 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import argparse
 
 from xivo.chain_map import ChainMap
-from xivo.config_helper import parse_config_dir, read_config_file_hierarchy
+from xivo.config_helper import (
+    parse_config_dir,
+    parse_config_file,
+    read_config_file_hierarchy,
+)
 from xivo.xivo_logging import get_log_level_by_name
 
 _DEFAULT_HTTPS_PORT = 9489
@@ -12,7 +16,8 @@ _DEFAULT_CONFIG = {
     'auth': {
         'host': 'localhost',
         'port': 9497,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt'
+        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'key_file': '',
     },
     'config_file': '/etc/wazo-dird/config.yml',
     'consul': {
@@ -83,7 +88,16 @@ def load(logger, argv):
     _validate_configuration(file_config, logger)
     reinterpreted_config = _get_reinterpreted_raw_values(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
     source_dir_configuration = _load_source_config_dir(logger, ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
-    return ChainMap(reinterpreted_config, source_dir_configuration, cli_config, file_config, _DEFAULT_CONFIG)
+    key_file = _load_key_file(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
+
+    return ChainMap(
+        reinterpreted_config,
+        key_file,
+        source_dir_configuration,
+        cli_config,
+        file_config,
+        _DEFAULT_CONFIG,
+    )
 
 
 def _load_source_config_dir(logger, config):
@@ -143,6 +157,18 @@ def _parse_cli_args(argv):
         result['user'] = parsed_args.user
 
     return result
+
+
+def _load_key_file(config):
+    filename = config.get('auth', {}).get('key_file')
+    if not filename:
+        return {}
+
+    key_file = parse_config_file(filename)
+    if not key_file:
+        return {}
+
+    return {'auth': {'username': key_file['service_id'], 'password': key_file['service_key']}}
 
 
 def _get_reinterpreted_raw_values(config):

@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -7,7 +7,9 @@ import signal
 
 from functools import partial
 
+from xivo_auth_client import Client as AuthClient
 from xivo.consul_helpers import ServiceCatalogRegistration
+from xivo.token_renewer import TokenRenewer
 from . import auth
 from . import plugin_manager
 from .bus import Bus
@@ -29,6 +31,9 @@ class Controller:
         self.rest_api = CoreRestApi(self.config)
         self.bus = Bus(config)
         auth.set_auth_config(self.config['auth'])
+        self.auth_client = AuthClient(**self.config['auth'])
+        self.token_renewer = TokenRenewer(self.auth_client)
+        self.token_renewer.subscribe_to_token_change(self.auth_client.set_token)
         self._service_registration_params = ['wazo-dird',
                                              self.config.get('uuid'),
                                              self.config.get('consul'),
@@ -47,14 +52,16 @@ class Controller:
         plugin_manager.load_views(self.config,
                                   self.config['enabled_plugins']['views'],
                                   self.services,
-                                  self.rest_api)
+                                  self.rest_api,
+                                  self.auth_client)
 
         signal.signal(signal.SIGTERM, _signal_handler)
-        with ServiceCatalogRegistration(*self._service_registration_params):
-            self.bus.start()
-            try:
-                self.rest_api.run()
-            finally:
-                plugin_manager.unload_services()
-                plugin_manager.unload_sources()
-                self.bus.stop()
+        with self.token_renewer:
+            with ServiceCatalogRegistration(*self._service_registration_params):
+                self.bus.start()
+                try:
+                    self.rest_api.run()
+                finally:
+                    plugin_manager.unload_services()
+                    plugin_manager.unload_sources()
+                    self.bus.stop()

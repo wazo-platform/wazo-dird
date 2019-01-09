@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -43,12 +43,13 @@ def unload_sources():
     return source_manager.unload_sources()
 
 
-def load_views(config, enabled_views, services, rest_api):
+def load_views(config, enabled_views, services, rest_api, auth_client):
     dependencies = {
         'config': config,
         'http_app': rest_api.app,
         'rest_api': rest_api.api,
         'services': services,
+        'auth_client': auth_client,
     }
     views_extension_manager, views = _load_plugins('wazo_dird.views', enabled_views, dependencies)
     return views

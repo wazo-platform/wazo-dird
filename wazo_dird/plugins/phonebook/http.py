@@ -32,9 +32,9 @@ def _make_error(reason, status_code):
 
 class _Resource(AuthResource):
 
-    def __init__(self, phonebook_service, config):
+    def __init__(self, phonebook_service, auth_client):
         self.phonebook_service = phonebook_service
-        self._config = config
+        self._auth_client = auth_client
 
 
 class _ArgParser:
