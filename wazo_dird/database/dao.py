@@ -211,7 +211,7 @@ class PhonebookCRUD(_BaseDAO):
     def create(self, tenant, phonebook_body):
         with self.new_session() as s:
             tenant = self._get_or_create_tenant(s, tenant)
-            phonebook = Phonebook(tenant_id=tenant.id,
+            phonebook = Phonebook(tenant_uuid=tenant.uuid,
                                   **phonebook_body)
             s.add(phonebook)
             self.flush_or_raise(s, DuplicatedPhonebookException)
@@ -274,10 +274,10 @@ class PhonebookCRUD(_BaseDAO):
             return False
 
         if not search:
-            return Phonebook.tenant_id == tenant.id
+            return Phonebook.tenant_uuid == tenant.uuid
         else:
             pattern = '%{}%'.format(search)
-            return and_(Phonebook.tenant_id == tenant.id,
+            return and_(Phonebook.tenant_uuid == tenant.uuid,
                         or_(Phonebook.name.ilike(pattern),
                             Phonebook.description.ilike(pattern)))
 
@@ -287,7 +287,7 @@ class PhonebookCRUD(_BaseDAO):
             return False
 
         return and_(Phonebook.id == phonebook_id,
-                    Phonebook.tenant_id == tenant.id)
+                    Phonebook.tenant_uuid == tenant.uuid)
 
     def _get_tenant(self, s, name):
         return s.query(Tenant).filter(Tenant.name == name).first()

@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import functools
@@ -265,7 +265,7 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
         self._crud.create(tenant, {'name': 'second'})
 
         with closing(Session()) as session:
-            tenant_count = session.query(func.count(database.Tenant.id)).filter(
+            tenant_count = session.query(func.count(database.Tenant.uuid)).filter(
                 database.Tenant.name == tenant).scalar()
 
         assert_that(tenant_count, equal_to(1))
@@ -310,7 +310,7 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
 
         with closing(Session()) as session:
             tenant_created = session.query(
-                func.count(database.Tenant.id)).filter(database.Tenant.name == tenant_b).scalar() > 0
+                func.count(database.Tenant.uuid)).filter(database.Tenant.name == tenant_b).scalar() > 0
 
         assert_that(tenant_created, equal_to(False))
 
