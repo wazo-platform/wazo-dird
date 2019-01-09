@@ -1,4 +1,4 @@
-# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from operator import itemgetter
@@ -16,10 +16,8 @@ class BackendService:
                 continue
             configured_backends.add(backend_name)
 
-        installed_backends = set()
-        for module in iter_entry_points(group=self._backend_entry_points):
-            backend_name = str(module).split(' = ', 1)[0]
-            installed_backends.add(backend_name)
+        installed_backends = set(module.name for module in
+                                 iter_entry_points(group=self._backend_entry_points))
 
         self._backends = [{'name': backend} for backend in configured_backends & installed_backends]
 
