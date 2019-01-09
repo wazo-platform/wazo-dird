@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 import logging
 import os
@@ -36,6 +36,7 @@ class CoreRestApi:
         self.app = Flask('wazo_dird', template_folder=TEMPLATE_FOLDER)
         self.babel = Babel(self.app)
         self.app.config['BABEL_DEFAULT_LOCALE'] = 'en'
+        self.app.config['auth'] = global_config['auth']
 
         @self.babel.localeselector
         def get_locale():
