@@ -8,6 +8,7 @@ test-setup: egg-info build-dird build-db-image
 	docker pull rabbitmq
 	docker pull swaggerapi/swagger-validator
 	docker pull wazopbx/wait
+	docker pull wazopbx/wazo-auth-mock
 
 build-dird:
 	docker build -t wazopbx/wazo-dird ..
