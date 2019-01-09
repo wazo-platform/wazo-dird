@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -32,11 +32,9 @@ def _make_error(reason, status_code):
 
 class _Resource(AuthResource):
 
-    phonebook_service = None
-
-    @classmethod
-    def configure(cls, phonebook_service):
-        cls.phonebook_service = phonebook_service
+    def __init__(self, phonebook_service, config):
+        self.phonebook_service = phonebook_service
+        self._config = config
 
 
 class _ArgParser:
