@@ -44,7 +44,7 @@ class Controller:
                                                      self.config['enabled_plugins']['services'],
                                                      self.sources,
                                                      self.bus)
-        plugin_manager.load_views(self.config['views'],
+        plugin_manager.load_views(self.config,
                                   self.config['enabled_plugins']['views'],
                                   self.services,
                                   self.rest_api)
