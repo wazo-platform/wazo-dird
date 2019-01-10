@@ -202,6 +202,9 @@ class TestDelete(_BasePhonebookTestCase):
         result = self.delete_phonebook('valid', phonebook['id'])
         assert_that(result.status_code, equal_to(204))
 
+        result = self.delete_phonebook('valid', phonebook['id'])
+        assert_that(result.status_code, equal_to(404))
+
 
 class TestPut(_BasePhonebookTestCase):
 
