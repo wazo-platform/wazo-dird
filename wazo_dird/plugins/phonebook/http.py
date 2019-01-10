@@ -144,8 +144,18 @@ class ContactAll(_Resource):
     @_default_error_route
     def get(self, tenant, phonebook_id):
         parser = _ArgParser(request.args)
-        count = self.phonebook_service.count_contact(tenant, phonebook_id, **parser.count_params())
-        contacts = self.phonebook_service.list_contact(tenant, phonebook_id, **parser.list_params())
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
+        count = self.phonebook_service.count_contact(
+            matching_tenant['name'],
+            phonebook_id,
+            **parser.count_params()
+        )
+        contacts = self.phonebook_service.list_contact(
+            matching_tenant['name'],
+            phonebook_id,
+            **parser.list_params()
+        )
 
         return {
             'items': contacts,

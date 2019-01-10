@@ -297,7 +297,7 @@ class TestPut(_BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(409))
 
 
-class TestContactPost(_BasePhonebookTestCase):
+class _BasePhonebookContactTestCase(_BasePhonebookTestCase):
 
     def setUp(self):
         super().setUp()
@@ -317,10 +317,76 @@ class TestContactPost(_BasePhonebookTestCase):
         self.delete_phonebook(self.tenant_2, self.phonebook_2['id'])
         super().tearDown()
 
+
+class TestContactList(_BasePhonebookContactTestCase):
+
+    def test_unknown_tenant_or_phonebook(self):
+        self.set_tenants(self.tenant_2)
+        result = self.list_phonebook_contacts(self.tenant_2, self.phonebook_1['id'])
+        assert_that(result.status_code, equal_to(404))
+
+        result = self.list_phonebook_contacts(self.tenant_1, self.phonebook_1['id'])
+        assert_that(result.status_code, equal_to(404))
+
+    def test_pagination(self):
+        self.set_tenants(self.tenant_1)
+        args = (self.tenant_1, self.phonebook_1['id'])
+
+        body_1 = {'firstname': 'a', 'lastname': 'c'}
+        body_2 = {'firstname': 'b', 'lastname': 'b'}
+        body_3 = {'firstname': 'c', 'lastname': 'a'}
+        contact_1 = self.post_phonebook_contact(*args, body_1).json()
+        contact_2 = self.post_phonebook_contact(*args, body_2).json()
+        contact_3 = self.post_phonebook_contact(*args, body_3).json()
+
+        def assert_matches(result, *contacts):
+            assert_that(
+                result.json(),
+                has_entries(
+                    items=contains(
+                        *[has_entries(**contact) for contact in contacts]
+                    ),
+                    total=3,
+                )
+            )
+
+        result = self.list_phonebook_contacts(*args, order='firstname', direction='asc')
+        assert_matches(result, contact_1, contact_2, contact_3)
+
+        result = self.list_phonebook_contacts(*args, order='firstname', direction='desc')
+        assert_matches(result, contact_3, contact_2, contact_1)
+
+        result = self.list_phonebook_contacts(*args, order='lastname')
+        assert_matches(result, contact_3, contact_2, contact_1)
+
+        result = self.list_phonebook_contacts(*args, order='firstname', limit=2)
+        assert_matches(result, contact_1, contact_2)
+
+        result = self.list_phonebook_contacts(*args, order='firstname', offset=1)
+        assert_matches(result, contact_2, contact_3)
+
+        result = self.list_phonebook_contacts(*args, order='firstname', limit=1, offset=1)
+        assert_matches(result, contact_2)
+
+        invalid_limit_offset = [-1, True, False, 'foobar', 3.14]
+        for value in invalid_limit_offset:
+            result = self.list_phonebook_contacts(*args, limit=value)
+            assert_that(result.status_code, equal_to(400), value)
+
+            result = self.list_phonebook_contacts(*args, offset=value)
+            assert_that(result.status_code, equal_to(400), value)
+
+        invalid_directions = [0, 'foobar', True, False, 3.14]
+        for value in invalid_directions:
+            result = self.list_phonebook_contacts(*args, direction=value)
+            assert_that(result.status_code, equal_to(400), value)
+
+
+class TestContactPost(_BasePhonebookContactTestCase):
+
     def test_unknown_tenant_or_phonebook(self):
         body = {'firstname': 'Alice'}
 
-        print(self.phonebook_1)
         self.set_tenants(self.tenant_2)
         result = self.post_phonebook_contact(self.tenant_2, self.phonebook_1['id'], body)
         assert_that(result.status_code, equal_to(404))
@@ -365,5 +431,7 @@ class TestPhonebookCRUD(_BasePhonebookTestCase):
         bob_modified = self.put_phonebook_contact(tenant_1, phonebook_1['id'], bob['id'],
                                                   {'firstname': 'bob',
                                                    'lastname': 'Bibeau'})
-        assert_that(self.list_phonebook_contacts(tenant_1, phonebook_1['id']),
-                    contains_inanyorder(alice, bob_modified))
+        assert_that(
+            self.list_phonebook_contacts(tenant_1, phonebook_1['id']).json()['items'],
+            contains_inanyorder(alice, bob_modified),
+        )

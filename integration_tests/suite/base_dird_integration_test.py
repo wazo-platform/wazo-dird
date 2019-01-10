@@ -324,12 +324,14 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
-    def list_phonebook_contacts(cls, tenant, phonebook_id, token=VALID_TOKEN):
+    def list_phonebook_contacts(cls, tenant, phonebook_id, token=VALID_TOKEN, **kwargs):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
-        response = requests.get(url,
-                                headers={'X-Auth-Token': token},
-                                verify=CA_CERT)
-        return response.json()['items']
+        return requests.get(
+            url,
+            params=kwargs,
+            headers={'X-Auth-Token': token},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def put_personal_result(cls, personal_id, personal_infos, token=None):
