@@ -24,48 +24,30 @@ class _BasePhonebookTestCase(BaseDirdIntegrationTest):
         super().setUpClass()
         cls.mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
 
+    def set_tenants(self, *tenant_names):
+        items = [{'uuid': str(uuid4()), 'name': name} for name in tenant_names]
+        total = filtered = len(items)
+        tenants = {'items': items, 'total': total, 'filtered': filtered}
+        self.mock_auth_client.set_tenants(tenants)
+
 
 class TestList(_BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'invalid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
         self.post_phonebook('invalid', valid_body).json()
 
-        tenants = {'items': [], 'total': 0, 'filtered': 0}
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants()
         result = self.list_phonebooks('invalid')
         assert_that(result.status_code, equal_to(404))
 
     def test_valid(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'valid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
+        self.set_tenants('valid')
         valid_body = {'name': 'foobar'}
         phonebook_1 = self.post_phonebook('valid', valid_body).json()
 
         result = self.list_phonebooks('valid')
-
         assert_that(
             result.json(),
             has_entries(
@@ -80,24 +62,13 @@ class TestList(_BasePhonebookTestCase):
 class TestPost(_BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
-        tenants = {'items': [], 'total': 0, 'filtered': 0}
-        self.mock_auth_client.set_tenants(tenants)
+        self.set_tenants()
         valid_body = {'name': 'foobar'}
         result = self.post_phonebook('unknown', valid_body)
         assert_that(result.status_code, equal_to(404))
 
     def test_valid(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'valid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
+        self.set_tenants('valid')
         valid_body = {'name': 'foobar'}
         result = self.post_phonebook('valid', valid_body)
         assert_that(result.status_code, equal_to(201))
@@ -106,40 +77,16 @@ class TestPost(_BasePhonebookTestCase):
 class TestGet(_BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'valid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants('valid')
         valid_body = {'name': 'foobar'}
         phonebook = self.post_phonebook('valid', valid_body).json()
 
-        tenants = {'items': [], 'total': 0, 'filtered': 0}
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants()
         result = self.get_phonebook('valid', phonebook['id'])
         assert_that(result.status_code, equal_to(404))
 
     def test_valid(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'valid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants('valid')
         valid_body = {'name': 'foobaz'}
         phonebook = self.post_phonebook('valid', valid_body).json()
 
@@ -151,40 +98,16 @@ class TestGet(_BasePhonebookTestCase):
 class TestDelete(_BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'invalid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
         phonebook = self.post_phonebook('invalid', valid_body).json()
 
-        tenants = {'items': [], 'total': 0, 'filtered': 0}
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants()
         result = self.delete_phonebook('invalid', phonebook['id'])
         assert_that(result.status_code, equal_to(404))
 
     def test_valid(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'valid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants('valid')
         valid_body = {'name': 'foobaz'}
         phonebook = self.post_phonebook('valid', valid_body).json()
 
@@ -195,40 +118,16 @@ class TestDelete(_BasePhonebookTestCase):
 class TestPut(_BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'invalid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
         phonebook = self.post_phonebook('invalid', valid_body).json()
 
-        tenants = {'items': [], 'total': 0, 'filtered': 0}
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants()
         result = self.put_phonebook('invalid', phonebook['id'], {'name': 'new'})
         assert_that(result.status_code, equal_to(404))
 
     def test_valid(self):
-        tenants = {
-            'items': [
-                {
-                    'uuid': str(uuid4()),
-                    'name': 'valid',
-                }
-            ],
-            'total': 1,
-            'filtered': 1,
-        }
-        self.mock_auth_client.set_tenants(tenants)
-
+        self.set_tenants('valid')
         valid_body = {'name': 'foobaz'}
         phonebook = self.post_phonebook('valid', valid_body).json()
 
