@@ -130,6 +130,36 @@ class TestPost(_BasePhonebookTestCase):
         valid_body = {'name': 'foobar'}
         result = self.post_phonebook('valid', valid_body)
         assert_that(result.status_code, equal_to(201))
+        assert_that(
+            result.json(),
+            has_entries(
+                id=ANY,
+                name='foobar',
+                description=None,
+            )
+        )
+
+        result = self.post_phonebook('valid', valid_body)
+        assert_that(result.status_code, equal_to(409))
+
+    def test_invalid_bodies(self):
+        self.set_tenants('invalid')
+        bodies = [
+            {},
+            {'description': 'abc'},
+            {'name': 42},
+            {'name': ''},
+            {'name': True},
+            {'name': False},
+            {'name': None},
+            {'name': 'foo', 'description': 42},
+            {'name': 'foo', 'description': True},
+            {'name': 'foo', 'description': False},
+        ]
+
+        for body in bodies:
+            result = self.post_phonebook('invalid', body)
+            assert_that(result.status_code, equal_to(400), body)
 
 
 class TestGet(_BasePhonebookTestCase):
