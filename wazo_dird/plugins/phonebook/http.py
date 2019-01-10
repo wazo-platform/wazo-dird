@@ -11,25 +11,29 @@ from functools import wraps
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
-from wazo_dird.exception import (DatabaseServiceUnavailable,
-                                 DuplicatedContactException,
-                                 DuplicatedPhonebookException,
-                                 InvalidArgumentError,
-                                 InvalidContactException,
-                                 InvalidPhonebookException,
-                                 InvalidTenantException,
-                                 NoSuchContact,
-                                 NoSuchPhonebook,
-                                 NoSuchTenant)
+from wazo_dird.exception import (
+    DatabaseServiceUnavailable,
+    DuplicatedContactException,
+    DuplicatedPhonebookException,
+    InvalidArgumentError,
+    InvalidContactException,
+    InvalidPhonebookException,
+    InvalidTenantException,
+    NoSuchContact,
+    NoSuchPhonebook,
+    NoSuchTenant,
+)
 from wazo_dird.rest_api import AuthResource
 
 logger = logging.getLogger(__name__)
 
 
 def _make_error(reason, status_code):
-    return {'reason': [reason],
-            'timestamp': [time.time()],
-            'status_code': status_code}, status_code
+    return {
+        'reason': [reason],
+        'timestamp': [time.time()],
+        'status_code': status_code,
+    }, status_code
 
 
 class _Resource(AuthResource):
@@ -115,12 +119,14 @@ def _default_error_route(f):
 
 class ContactAll(_Resource):
 
-    error_code_map = {InvalidArgumentError: 400,
-                      InvalidContactException: 400,
-                      InvalidTenantException: 400,
-                      NoSuchPhonebook: 404,
-                      DatabaseServiceUnavailable: 503,
-                      DuplicatedContactException: 409}
+    error_code_map = {
+        InvalidArgumentError: 400,
+        InvalidContactException: 400,
+        InvalidTenantException: 400,
+        NoSuchPhonebook: 404,
+        DatabaseServiceUnavailable: 503,
+        DuplicatedContactException: 409,
+    }
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
@@ -134,8 +140,10 @@ class ContactAll(_Resource):
         count = self.phonebook_service.count_contact(tenant, phonebook_id, **parser.count_params())
         contacts = self.phonebook_service.list_contact(tenant, phonebook_id, **parser.list_params())
 
-        return {'items': contacts,
-                'total': count}, 200
+        return {
+            'items': contacts,
+            'total': count,
+        }, 200
 
 
 class PhonebookAll(_Resource):
@@ -208,12 +216,14 @@ class ContactImport(_Resource):
 
 class ContactOne(_Resource):
 
-    error_code_map = {DuplicatedContactException: 409,
-                      InvalidContactException: 400,
-                      InvalidTenantException: 400,
-                      DatabaseServiceUnavailable: 503,
-                      NoSuchContact: 404,
-                      NoSuchPhonebook: 404}
+    error_code_map = {
+        DuplicatedContactException: 409,
+        InvalidContactException: 400,
+        InvalidTenantException: 400,
+        DatabaseServiceUnavailable: 503,
+        NoSuchContact: 404,
+        NoSuchPhonebook: 404,
+    }
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read')
     @_default_error_route
@@ -229,7 +239,12 @@ class ContactOne(_Resource):
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.update')
     @_default_error_route
     def put(self, tenant, phonebook_id, contact_uuid):
-        return self.phonebook_service.edit_contact(tenant, phonebook_id, contact_uuid, request.json), 200
+        return self.phonebook_service.edit_contact(
+            tenant,
+            phonebook_id,
+            contact_uuid,
+            request.json,
+        ), 200
 
 
 class PhonebookOne(_Resource):
