@@ -5,6 +5,7 @@ from uuid import uuid4
 from mock import ANY
 from hamcrest import (
     assert_that,
+    contains,
     contains_inanyorder,
     equal_to,
     has_entries,
@@ -57,6 +58,63 @@ class TestList(_BasePhonebookTestCase):
                 total=1,
             )
         )
+
+    def test_pagination(self):
+        self.set_tenants('pagination')
+
+        valid_body_1 = {'name': 'a', 'description': 'c'}
+        valid_body_2 = {'name': 'b', 'description': 'b'}
+        valid_body_3 = {'name': 'c', 'description': 'a'}
+        phonebook_1 = self.post_phonebook('pagination', valid_body_1).json()
+        phonebook_2 = self.post_phonebook('pagination', valid_body_2).json()
+        phonebook_3 = self.post_phonebook('pagination', valid_body_3).json()
+
+        def assert_matches(result, *phonebooks):
+            assert_that(
+                result.json(),
+                has_entries(
+                    items=contains(
+                        *[has_entries(**phonebook) for phonebook in phonebooks]
+                    ),
+                    total=3,
+                )
+            )
+
+        result = self.list_phonebooks('pagination', order='name', direction='asc')
+        assert_matches(result, phonebook_1, phonebook_2, phonebook_3)
+
+        result = self.list_phonebooks('pagination', order='name', direction='desc')
+        assert_matches(result, phonebook_3, phonebook_2, phonebook_1)
+
+        result = self.list_phonebooks('pagination', order='description')
+        assert_matches(result, phonebook_3, phonebook_2, phonebook_1)
+
+        result = self.list_phonebooks('pagination', limit=2)
+        assert_matches(result, phonebook_1, phonebook_2)
+
+        result = self.list_phonebooks('pagination', offset=1)
+        assert_matches(result, phonebook_2, phonebook_3)
+
+        result = self.list_phonebooks('pagination', limit=1, offset=1)
+        assert_matches(result, phonebook_2)
+
+        invalid_limit_offset = [-1, True, False, 'foobar', 3.14]
+        for value in invalid_limit_offset:
+            result = self.list_phonebooks('pagination', limit=value)
+            assert_that(result.status_code, equal_to(400), value)
+
+            result = self.list_phonebooks('pagination', offset=value)
+            assert_that(result.status_code, equal_to(400), value)
+
+        invalid_directions = [0, 'foobar', True, False, 3.14]
+        for value in invalid_directions:
+            result = self.list_phonebooks('pagination', direction=value)
+            assert_that(result.status_code, equal_to(400), value)
+
+        invalid_orders = [0, True, False, 3.14]
+        for value in invalid_orders:
+            result = self.list_phonebooks('pagination', order=value)
+            assert_that(result.status_code, equal_to(400), value)
 
 
 class TestPost(_BasePhonebookTestCase):

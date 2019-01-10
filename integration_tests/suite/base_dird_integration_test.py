@@ -272,10 +272,10 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
-    def list_phonebooks(cls, tenant, token=None):
+    def list_phonebooks(cls, tenant, token=None, **kwargs):
         token = token or VALID_TOKEN
         url = cls.url('tenants', tenant, 'phonebooks')
-        return requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
+        return requests.get(url, params=kwargs, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
     @classmethod
     def export_personal_result(cls, token=None):

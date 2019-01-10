@@ -48,12 +48,12 @@ class _Resource(AuthResource):
 
 class _ArgParser:
 
-    def __init__(self, args):
+    def __init__(self, args, valid_columns=None):
         self._search = args.get('search')
         self._direction = self._get_string_from_valid_values(args, 'direction', ['asc', 'desc', None])
         self._limit = self._get_positive_int(args, 'limit')
         self._offset = self._get_positive_int(args, 'offset')
-        self._order = args.get('order')
+        self._order = self._get_string_from_valid_values(args, 'order', valid_columns)
 
     def count_params(self):
         params = {}
@@ -75,7 +75,13 @@ class _ArgParser:
 
     @staticmethod
     def _get_string_from_valid_values(args, name, valid_values):
+        if name not in args:
+            return
+
         value = args.get(name)
+        if valid_values is None:
+            return value
+
         if value in valid_values:
             return value
 
@@ -148,7 +154,7 @@ class PhonebookAll(_Resource):
     def get(self, tenant):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        parser = _ArgParser(request.args)
+        parser = _ArgParser(request.args, valid_columns=['name', 'description'])
 
         count = self.phonebook_service.count_phonebook(
             matching_tenant['name'],
