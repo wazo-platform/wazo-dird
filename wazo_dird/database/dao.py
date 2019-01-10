@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import hashlib
@@ -231,6 +231,7 @@ class PhonebookCRUD(_BaseDAO):
                     raise TypeError('{} has no attribute {}'.format(phonebook.__class__.__name__,
                                                                     attribute_name))
                 setattr(phonebook, attribute_name, value)
+            self.flush_or_raise(s, DuplicatedPhonebookException)
             return self._phonebook_to_dict(phonebook)
 
     def get(self, tenant, phonebook_id):

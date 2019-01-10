@@ -234,6 +234,47 @@ class TestPut(_BasePhonebookTestCase):
         result = self.put_phonebook('valid', phonebook['id'], {'name': 'new'})
         assert_that(result.status_code, equal_to(200))
 
+    def test_unknown_phonebook(self):
+        self.set_tenants('valid')
+        valid_body = {'name': 'delete me'}
+        phonebook = self.post_phonebook('valid', valid_body).json()
+
+        self.delete_phonebook('valid', phonebook['id'])
+        result = self.put_phonebook('valid', phonebook['id'], {'name': 'updated'})
+        assert_that(result.status_code, equal_to(404))
+
+    def test_invalid_bodies(self):
+        self.set_tenants('invalid')
+        valid_body = {'name': 'update me'}
+        phonebook = self.post_phonebook('invalid', valid_body).json()
+        bodies = [
+            {},
+            {'description': 'abc'},
+            {'name': 42},
+            {'name': ''},
+            {'name': True},
+            {'name': False},
+            {'name': None},
+            {'name': 'foo', 'description': 42},
+            {'name': 'foo', 'description': True},
+            {'name': 'foo', 'description': False},
+        ]
+
+        for body in bodies:
+            result = self.put_phonebook('invalid', phonebook['id'], body)
+            assert_that(result.status_code, equal_to(400), body)
+
+    def test_duplicated(self):
+        self.set_tenants('invalid')
+        valid_body = {'name': 'duplicate me'}
+        self.post_phonebook('invalid', valid_body).json()
+
+        valid_body = {'name': 'duplicate me NOT'}
+        phonebook = self.post_phonebook('invalid', valid_body).json()
+
+        result = self.put_phonebook('invalid', phonebook['id'], {'name': 'duplicate me'})
+        assert_that(result.status_code, equal_to(409))
+
 
 class TestPhonebookCRUD(BaseDirdIntegrationTest):
 
