@@ -126,12 +126,19 @@ class ContactAll(_Resource):
         NoSuchPhonebook: 404,
         DatabaseServiceUnavailable: 503,
         DuplicatedContactException: 409,
+        NoSuchTenant: 404,
     }
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
     def post(self, tenant, phonebook_id):
-        return self.phonebook_service.create_contact(tenant, phonebook_id, request.json), 201
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
+        return self.phonebook_service.create_contact(
+            matching_tenant['name'],
+            phonebook_id,
+            request.json,
+        ), 201
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
     @_default_error_route

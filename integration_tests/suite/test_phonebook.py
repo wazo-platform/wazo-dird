@@ -297,6 +297,50 @@ class TestPut(_BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(409))
 
 
+class TestContactPost(_BasePhonebookTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.tenant_1 = 'valid'
+        self.set_tenants('valid')
+        self.phonebook_1 = self.post_phonebook(self.tenant_1, {'name': 'one'}).json()
+
+        self.tenant_2 = 'other'
+        self.set_tenants(self.tenant_2)
+        self.phonebook_2 = self.post_phonebook(self.tenant_2, {'name': 'two'}).json()
+
+    def tearDown(self):
+        self.set_tenants(self.tenant_1)
+        self.delete_phonebook(self.tenant_1, self.phonebook_1['id'])
+
+        self.set_tenants(self.tenant_2)
+        self.delete_phonebook(self.tenant_2, self.phonebook_2['id'])
+        super().tearDown()
+
+    def test_unknown_tenant_or_phonebook(self):
+        body = {'firstname': 'Alice'}
+
+        print(self.phonebook_1)
+        self.set_tenants(self.tenant_2)
+        result = self.post_phonebook_contact(self.tenant_2, self.phonebook_1['id'], body)
+        assert_that(result.status_code, equal_to(404))
+
+        result = self.post_phonebook_contact(self.tenant_1, self.phonebook_1['id'], body)
+        assert_that(result.status_code, equal_to(404))
+
+    def test_duplicates(self):
+        body = {'firstname': 'Alice'}
+
+        self.set_tenants(self.tenant_1)
+        self.post_phonebook_contact(self.tenant_1, self.phonebook_1['id'], body)
+        result = self.post_phonebook_contact(self.tenant_1, self.phonebook_1['id'], body)
+        assert_that(result.status_code, equal_to(409))
+
+        self.set_tenants(self.tenant_2)
+        result = self.post_phonebook_contact(self.tenant_2, self.phonebook_2['id'], body)
+        assert_that(result.status_code, equal_to(201))
+
+
 class TestPhonebookCRUD(_BasePhonebookTestCase):
 
     def test_all(self):
@@ -307,10 +351,17 @@ class TestPhonebookCRUD(_BasePhonebookTestCase):
                             'description': 'The integration test phonebook'}
         phonebook_1 = self.post_phonebook(tenant_1, phonebook_1_body).json()
 
-        alice = self.post_phonebook_contact(tenant_1, phonebook_1['id'], {'firstname': 'alice'})
-        assert_that(self.get_phonebook_contact(tenant_1, phonebook_1['id'], alice['id']),
-                    equal_to(alice))
-        bob = self.post_phonebook_contact(tenant_1, phonebook_1['id'], {'firstname': 'bob'})
+        alice = self.post_phonebook_contact(
+            tenant_1,
+            phonebook_1['id'],
+            {'firstname': 'alice'},
+        ).json()
+
+        bob = self.post_phonebook_contact(
+            tenant_1,
+            phonebook_1['id'],
+            {'firstname': 'bob'},
+        )
         bob_modified = self.put_phonebook_contact(tenant_1, phonebook_1['id'], bob['id'],
                                                   {'firstname': 'bob',
                                                    'lastname': 'Bibeau'})
