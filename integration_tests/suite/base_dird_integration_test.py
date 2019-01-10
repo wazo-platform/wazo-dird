@@ -310,10 +310,11 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        response = requests.get(url,
-                                headers={'X-Auth-Token': token},
-                                verify=CA_CERT)
-        return response.json()
+        return requests.get(
+            url,
+            headers={'X-Auth-Token': token},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def get_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN):

@@ -67,7 +67,7 @@ paths:
         '400':
           $ref: '#/responses/InvalidTenant'
         '404':
-          description: Phonebook does not exist
+          description: Phonebook or Tenant does not exist
           schema:
             $ref: '#/definitions/Error'
         '503':

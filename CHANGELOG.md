@@ -8,6 +8,14 @@ Changelog
 
   * GET `/0.1/backends`
 
+* The phonebook API will now return a 404 when the tenant in the URL does not exist
+
+  * POST `/0.1/tenants/<tenant_name>/phonebooks'
+  * GET `/0.1/tenants/<tenant_name>/phonebooks'
+  * DELETE `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>'
+  * GET `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>'
+  * PUT `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>'
+
 
 16.16
 -----

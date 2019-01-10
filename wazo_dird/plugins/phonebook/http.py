@@ -38,6 +38,13 @@ class _Resource(AuthResource):
         self.phonebook_service = phonebook_service
         self._auth_client = auth_client
 
+    def _find_tenant(self, scoping_tenant, name):
+        tenants = self._auth_client.tenants.list(name=name)['items']
+        if not tenants:
+            raise NoSuchTenant(name)
+
+        return tenants[0]
+
 
 class _ArgParser:
 
@@ -151,13 +158,6 @@ class PhonebookAll(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.create_phonebook(tenant, request.json), 201
 
-    def _find_tenant(self, scoping_tenant, name):
-        tenants = self._auth_client.tenants.list(name=name)['items']
-        if not tenants:
-            raise NoSuchTenant(name)
-
-        return tenants[0]
-
 
 class ContactImport(_Resource):
 
@@ -212,11 +212,14 @@ class ContactOne(_Resource):
 
 class PhonebookOne(_Resource):
 
-    error_code_map = {DatabaseServiceUnavailable: 503,
-                      DuplicatedPhonebookException: 409,
-                      InvalidPhonebookException: 400,
-                      InvalidTenantException: 400,
-                      NoSuchPhonebook: 404}
+    error_code_map = {
+        DatabaseServiceUnavailable: 503,
+        DuplicatedPhonebookException: 409,
+        InvalidPhonebookException: 400,
+        InvalidTenantException: 400,
+        NoSuchPhonebook: 404,
+        NoSuchTenant: 404,
+    }
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
     @_default_error_route
@@ -227,6 +230,8 @@ class PhonebookOne(_Resource):
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
     @_default_error_route
     def get(self, tenant, phonebook_id):
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.get_phonebook(tenant, phonebook_id), 200
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
