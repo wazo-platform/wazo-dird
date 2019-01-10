@@ -187,8 +187,13 @@ class TestGet(_BasePhonebookTestCase):
         valid_body = {'name': 'delete me'}
         phonebook = self.post_phonebook('valid', valid_body).json()
 
+        self.set_tenants('other')
+        result = self.get_phonebook('other', phonebook['id'])
+        assert_that(result.status_code, equal_to(404))
+
+        self.set_tenants('valid')
         self.delete_phonebook('valid', phonebook['id'])
-        result = self.delete_phonebook('valid', phonebook['id'])
+        result = self.get_phonebook('valid', phonebook['id'])
         assert_that(result.status_code, equal_to(404))
 
 
@@ -207,7 +212,19 @@ class TestDelete(_BasePhonebookTestCase):
         self.set_tenants('valid')
         valid_body = {'name': 'foobaz'}
         phonebook = self.post_phonebook('valid', valid_body).json()
+        result = self.delete_phonebook('valid', phonebook['id'])
+        assert_that(result.status_code, equal_to(204))
 
+    def test_unknown_phonebook(self):
+        self.set_tenants('valid')
+        valid_body = {'name': 'foobaz'}
+        phonebook = self.post_phonebook('valid', valid_body).json()
+
+        self.set_tenants('other')
+        result = self.delete_phonebook('other', phonebook['id'])
+        assert_that(result.status_code, equal_to(404))
+
+        self.set_tenants('valid')
         result = self.delete_phonebook('valid', phonebook['id'])
         assert_that(result.status_code, equal_to(204))
 
@@ -238,6 +255,10 @@ class TestPut(_BasePhonebookTestCase):
         self.set_tenants('valid')
         valid_body = {'name': 'delete me'}
         phonebook = self.post_phonebook('valid', valid_body).json()
+
+        self.set_tenants('other')
+        result = self.put_phonebook('other', phonebook['id'], {'name': 'updated'})
+        assert_that(result.status_code, equal_to(404))
 
         self.delete_phonebook('valid', phonebook['id'])
         result = self.put_phonebook('valid', phonebook['id'], {'name': 'updated'})
