@@ -192,6 +192,50 @@ class TestDelete(_BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(204))
 
 
+class TestPut(_BasePhonebookTestCase):
+
+    def test_unknown_tenant(self):
+        tenants = {
+            'items': [
+                {
+                    'uuid': str(uuid4()),
+                    'name': 'invalid',
+                }
+            ],
+            'total': 1,
+            'filtered': 1,
+        }
+        self.mock_auth_client.set_tenants(tenants)
+
+        valid_body = {'name': 'foobar'}
+        phonebook = self.post_phonebook('invalid', valid_body).json()
+
+        tenants = {'items': [], 'total': 0, 'filtered': 0}
+        self.mock_auth_client.set_tenants(tenants)
+
+        result = self.put_phonebook('invalid', phonebook['id'], {'name': 'new'})
+        assert_that(result.status_code, equal_to(404))
+
+    def test_valid(self):
+        tenants = {
+            'items': [
+                {
+                    'uuid': str(uuid4()),
+                    'name': 'valid',
+                }
+            ],
+            'total': 1,
+            'filtered': 1,
+        }
+        self.mock_auth_client.set_tenants(tenants)
+
+        valid_body = {'name': 'foobaz'}
+        phonebook = self.post_phonebook('valid', valid_body).json()
+
+        result = self.put_phonebook('valid', phonebook['id'], {'name': 'new'})
+        assert_that(result.status_code, equal_to(200))
+
+
 class TestPhonebookCRUD(BaseDirdIntegrationTest):
 
     asset = 'phonebook_only'
@@ -211,9 +255,10 @@ class TestPhonebookCRUD(BaseDirdIntegrationTest):
         assert_that(phonebook_1, equal_to(expected))
 
         phonebook_2 = self.post_phonebook(tenant_1, {'name': 'second'}).json()
-        phonebook_2_modified = self.put_phonebook(tenant_1, phonebook_2['id'],
-                                                  {'name': 'second',
-                                                   'description': 'The second phonebook'})
+        phonebook_2_modified = self.put_phonebook(
+            tenant_1, phonebook_2['id'],
+            {'name': 'second', 'description': 'The second phonebook'},
+        ).json()
 
         assert_that(
             self.list_phonebooks(tenant_1).json()['items'],

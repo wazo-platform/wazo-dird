@@ -255,4 +255,10 @@ class PhonebookOne(_Resource):
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
     @_default_error_route
     def put(self, tenant, phonebook_id):
-        return self.phonebook_service.edit_phonebook(tenant, phonebook_id, request.json), 200
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
+        return self.phonebook_service.edit_phonebook(
+            matching_tenant['name'],
+            phonebook_id,
+            request.json,
+        ), 200

@@ -189,12 +189,12 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        response = requests.put(url,
-                                data=json.dumps(phonebook_body),
-                                headers={'X-Auth-Token': token,
-                                         'Content-Type': 'application/json'},
-                                verify=CA_CERT)
-        return response.json()
+        return requests.put(
+            url,
+            data=json.dumps(phonebook_body),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def post_phonebook_contact(cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN):
