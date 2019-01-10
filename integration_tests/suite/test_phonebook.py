@@ -7,6 +7,7 @@ from hamcrest import (
     assert_that,
     contains_inanyorder,
     equal_to,
+    has_entries,
 )
 from xivo_test_helpers.auth import (
     AuthClient as MockAuthClient,
@@ -22,6 +23,58 @@ class _BasePhonebookTestCase(BaseDirdIntegrationTest):
     def setUpClass(cls):
         super().setUpClass()
         cls.mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+
+
+class TestList(_BasePhonebookTestCase):
+
+    def test_unknown_tenant(self):
+        tenants = {
+            'items': [
+                {
+                    'uuid': str(uuid4()),
+                    'name': 'invalid',
+                }
+            ],
+            'total': 1,
+            'filtered': 1,
+        }
+        self.mock_auth_client.set_tenants(tenants)
+
+        valid_body = {'name': 'foobar'}
+        self.post_phonebook('invalid', valid_body).json()
+
+        tenants = {'items': [], 'total': 0, 'filtered': 0}
+        self.mock_auth_client.set_tenants(tenants)
+
+        result = self.list_phonebooks('invalid')
+        assert_that(result.status_code, equal_to(404))
+
+    def test_valid(self):
+        tenants = {
+            'items': [
+                {
+                    'uuid': str(uuid4()),
+                    'name': 'valid',
+                }
+            ],
+            'total': 1,
+            'filtered': 1,
+        }
+        self.mock_auth_client.set_tenants(tenants)
+        valid_body = {'name': 'foobar'}
+        phonebook_1 = self.post_phonebook('valid', valid_body).json()
+
+        result = self.list_phonebooks('valid')
+
+        assert_that(
+            result.json(),
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(**phonebook_1),
+                ),
+                total=1,
+            )
+        )
 
 
 class TestPost(_BasePhonebookTestCase):
@@ -118,13 +171,22 @@ class TestPhonebookCRUD(BaseDirdIntegrationTest):
                                                   {'name': 'second',
                                                    'description': 'The second phonebook'})
 
-        assert_that(self.list_phonebooks(tenant_1), contains_inanyorder(phonebook_1, phonebook_2_modified))
+        assert_that(
+            self.list_phonebooks(tenant_1).json()['items'],
+            contains_inanyorder(phonebook_1, phonebook_2_modified),
+        )
 
         self.delete_phonebook(tenant_2, phonebook_2['id'])
-        assert_that(self.list_phonebooks(tenant_1), contains_inanyorder(phonebook_1, phonebook_2_modified))
+        assert_that(
+            self.list_phonebooks(tenant_1).json()['items'],
+            contains_inanyorder(phonebook_1, phonebook_2_modified),
+        )
 
         self.delete_phonebook(tenant_1, phonebook_2['id'])
-        assert_that(self.list_phonebooks(tenant_1), contains_inanyorder(phonebook_1))
+        assert_that(
+            self.list_phonebooks(tenant_1).json()['items'],
+            contains_inanyorder(phonebook_1),
+        )
 
         alice = self.post_phonebook_contact(tenant_1, phonebook_1['id'], {'firstname': 'alice'})
         assert_that(self.get_phonebook_contact(tenant_1, phonebook_1['id'], alice['id']),

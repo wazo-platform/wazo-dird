@@ -134,29 +134,45 @@ class ContactAll(_Resource):
 
 class PhonebookAll(_Resource):
 
-    error_code_map = {InvalidArgumentError: 400,
-                      InvalidTenantException: 400,
-                      DuplicatedPhonebookException: 409,
-                      DatabaseServiceUnavailable: 503,
-                      InvalidPhonebookException: 400,
-                      NoSuchTenant: 404}
+    error_code_map = {
+        InvalidArgumentError: 400,
+        InvalidTenantException: 400,
+        DuplicatedPhonebookException: 409,
+        DatabaseServiceUnavailable: 503,
+        InvalidPhonebookException: 400,
+        NoSuchTenant: 404,
+    }
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.read')
     @_default_error_route
     def get(self, tenant):
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
         parser = _ArgParser(request.args)
-        count = self.phonebook_service.count_phonebook(tenant, **parser.count_params())
-        phonebooks = self.phonebook_service.list_phonebook(tenant, **parser.list_params())
 
-        return {'items': phonebooks,
-                'total': count}
+        count = self.phonebook_service.count_phonebook(
+            matching_tenant['name'],
+            **parser.count_params()
+        )
+        phonebooks = self.phonebook_service.list_phonebook(
+            matching_tenant['name'],
+            **parser.list_params()
+        )
+
+        return {
+            'items': phonebooks,
+            'total': count,
+        }
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.create')
     @_default_error_route
     def post(self, tenant):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.create_phonebook(tenant, request.json), 201
+        return self.phonebook_service.create_phonebook(
+            matching_tenant['name'],
+            request.json,
+        ), 201
 
 
 class ContactImport(_Resource):

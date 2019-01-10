@@ -275,8 +275,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     def list_phonebooks(cls, tenant, token=None):
         token = token or VALID_TOKEN
         url = cls.url('tenants', tenant, 'phonebooks')
-        response = requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
-        return response.json()['items']
+        return requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
     @classmethod
     def export_personal_result(cls, token=None):
