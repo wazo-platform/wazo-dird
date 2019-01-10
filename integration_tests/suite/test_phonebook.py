@@ -182,6 +182,15 @@ class TestGet(_BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(200))
         assert_that(result.json(), equal_to(phonebook))
 
+    def test_unknown_phonebook(self):
+        self.set_tenants('valid')
+        valid_body = {'name': 'delete me'}
+        phonebook = self.post_phonebook('valid', valid_body).json()
+
+        self.delete_phonebook('valid', phonebook['id'])
+        result = self.delete_phonebook('valid', phonebook['id'])
+        assert_that(result.status_code, equal_to(404))
+
 
 class TestDelete(_BasePhonebookTestCase):
 
