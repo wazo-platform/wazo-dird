@@ -148,6 +148,50 @@ class TestGet(_BasePhonebookTestCase):
         assert_that(result.json(), equal_to(phonebook))
 
 
+class TestDelete(_BasePhonebookTestCase):
+
+    def test_unknown_tenant(self):
+        tenants = {
+            'items': [
+                {
+                    'uuid': str(uuid4()),
+                    'name': 'invalid',
+                }
+            ],
+            'total': 1,
+            'filtered': 1,
+        }
+        self.mock_auth_client.set_tenants(tenants)
+
+        valid_body = {'name': 'foobar'}
+        phonebook = self.post_phonebook('invalid', valid_body).json()
+
+        tenants = {'items': [], 'total': 0, 'filtered': 0}
+        self.mock_auth_client.set_tenants(tenants)
+
+        result = self.delete_phonebook('invalid', phonebook['id'])
+        assert_that(result.status_code, equal_to(404))
+
+    def test_valid(self):
+        tenants = {
+            'items': [
+                {
+                    'uuid': str(uuid4()),
+                    'name': 'valid',
+                }
+            ],
+            'total': 1,
+            'filtered': 1,
+        }
+        self.mock_auth_client.set_tenants(tenants)
+
+        valid_body = {'name': 'foobaz'}
+        phonebook = self.post_phonebook('valid', valid_body).json()
+
+        result = self.delete_phonebook('valid', phonebook['id'])
+        assert_that(result.status_code, equal_to(204))
+
+
 class TestPhonebookCRUD(BaseDirdIntegrationTest):
 
     asset = 'phonebook_only'

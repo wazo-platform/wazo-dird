@@ -240,7 +240,9 @@ class PhonebookOne(_Resource):
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
     @_default_error_route
     def delete(self, tenant, phonebook_id):
-        self.phonebook_service.delete_phonebook(tenant, phonebook_id)
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
+        self.phonebook_service.delete_phonebook(matching_tenant['name'], phonebook_id)
         return '', 204
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
@@ -248,7 +250,7 @@ class PhonebookOne(_Resource):
     def get(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.get_phonebook(tenant, phonebook_id), 200
+        return self.phonebook_service.get_phonebook(matching_tenant['name'], phonebook_id), 200
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
     @_default_error_route

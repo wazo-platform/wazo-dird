@@ -363,9 +363,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        requests.delete(url,
-                        headers={'X-Auth-Token': token},
-                        verify=CA_CERT)
+        return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
     @classmethod
     def purge_personal_result(cls, token=None):
