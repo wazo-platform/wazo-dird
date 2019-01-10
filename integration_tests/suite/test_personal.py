@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -26,6 +26,10 @@ from xivo_bus import (
     Marshaler,
 )
 from xivo_test_helpers import until
+from xivo_test_helpers.auth import (
+    AuthClient as MockAuthClient,
+    MockUserToken,
+)
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
@@ -225,6 +229,15 @@ class TestPersonalPersistence(BaseDirdIntegrationTest):
 class TestPersonalVisibility(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        valid_token_1 = MockUserToken.some_token(token=VALID_TOKEN_1)
+        valid_token_2 = MockUserToken.some_token(token=VALID_TOKEN_2)
+        mock_auth_client.set_token(valid_token_1)
+        mock_auth_client.set_token(valid_token_2)
 
     def tearDown(self):
         self.purge_personal()

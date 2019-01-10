@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from hamcrest import (
@@ -10,6 +10,10 @@ from hamcrest import (
 )
 from xivo_test_helpers.bus import BusClient
 from xivo_test_helpers import until
+from xivo_test_helpers.auth import (
+    AuthClient as MockAuthClient,
+    MockUserToken,
+)
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
@@ -19,7 +23,19 @@ from .base_dird_integration_test import (
 )
 
 
-class TestFavorites(BaseDirdIntegrationTest):
+class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        valid_token_1 = MockUserToken.some_token(token=VALID_TOKEN_1)
+        valid_token_2 = MockUserToken.some_token(token=VALID_TOKEN_2)
+        mock_auth_client.set_token(valid_token_1)
+        mock_auth_client.set_token(valid_token_2)
+
+
+class TestFavorites(_BaseMultiTokenFavoriteTest):
 
     asset = 'csv_with_multiple_displays'
 
@@ -136,7 +152,7 @@ class TestFavoritesInPersonalResults(BaseDirdIntegrationTest):
         assert_that(favorites['results'], contains())
 
 
-class TestFavoritesVisibilityInSimilarSources(BaseDirdIntegrationTest):
+class TestFavoritesVisibilityInSimilarSources(_BaseMultiTokenFavoriteTest):
 
     asset = 'similar_sources'
 
