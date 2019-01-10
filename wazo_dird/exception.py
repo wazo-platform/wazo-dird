@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 
@@ -26,6 +26,13 @@ class NoSuchContact(ValueError):
 
     def __init__(self, contact_id):
         message = "No such contact: {}".format(contact_id)
+        super().__init__(message)
+
+
+class NoSuchTenant(ValueError):
+
+    def __init__(self, tenant_name):
+        message = 'No such tenant: {}'.format(tenant_name)
         super().__init__(message)
 
 

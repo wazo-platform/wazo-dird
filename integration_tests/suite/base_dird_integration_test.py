@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
@@ -179,13 +179,12 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN):
-        url = cls.url('tenants', tenant, 'phonebooks')
-        response = requests.post(url,
-                                 data=json.dumps(phonebook_body),
-                                 headers={'X-Auth-Token': token,
-                                          'Content-Type': 'application/json'},
-                                 verify=CA_CERT)
-        return response.json()
+        return requests.post(
+            cls.url('tenants', tenant, 'phonebooks'),
+            data=json.dumps(phonebook_body),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN):

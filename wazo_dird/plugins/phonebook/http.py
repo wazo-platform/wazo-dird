@@ -8,6 +8,7 @@ import traceback
 
 from flask import request
 from functools import wraps
+from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
 from wazo_dird.exception import (DatabaseServiceUnavailable,
@@ -18,7 +19,8 @@ from wazo_dird.exception import (DatabaseServiceUnavailable,
                                  InvalidPhonebookException,
                                  InvalidTenantException,
                                  NoSuchContact,
-                                 NoSuchPhonebook)
+                                 NoSuchPhonebook,
+                                 NoSuchTenant)
 from wazo_dird.rest_api import AuthResource
 
 logger = logging.getLogger(__name__)
@@ -129,7 +131,8 @@ class PhonebookAll(_Resource):
                       InvalidTenantException: 400,
                       DuplicatedPhonebookException: 409,
                       DatabaseServiceUnavailable: 503,
-                      InvalidPhonebookException: 400}
+                      InvalidPhonebookException: 400,
+                      NoSuchTenant: 404}
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.read')
     @_default_error_route
@@ -144,7 +147,16 @@ class PhonebookAll(_Resource):
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.create')
     @_default_error_route
     def post(self, tenant):
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.create_phonebook(tenant, request.json), 201
+
+    def _find_tenant(self, scoping_tenant, name):
+        tenants = self._auth_client.tenants.list(name=name)['items']
+        if not tenants:
+            raise NoSuchTenant(name)
+
+        return tenants[0]
 
 
 class ContactImport(_Resource):

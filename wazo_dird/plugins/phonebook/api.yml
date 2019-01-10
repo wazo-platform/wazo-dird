@@ -44,6 +44,8 @@ paths:
             $ref: '#/definitions/Phonebook'
         '400':
           $ref: '#/responses/InvalidParameters'
+        '404':
+          $ref: '#/responses/NotFoundError'
         '409':
           $ref: '#/responses/DuplicatePhonebook'
         '503':
