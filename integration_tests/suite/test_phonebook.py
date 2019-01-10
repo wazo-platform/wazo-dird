@@ -14,7 +14,7 @@ from xivo_test_helpers.auth import (
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
-class TestPhonebookCRUD(BaseDirdIntegrationTest):
+class _BasePhonebookTestCase(BaseDirdIntegrationTest):
 
     asset = 'phonebook_only'
 
@@ -23,14 +23,17 @@ class TestPhonebookCRUD(BaseDirdIntegrationTest):
         super().setUpClass()
         cls.mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
 
-    def test_post_in_unknown_tenant(self):
+
+class TestPost(_BasePhonebookTestCase):
+
+    def test_unknown_tenant(self):
         tenants = {'items': [], 'total': 0, 'filtered': 0}
         self.mock_auth_client.set_tenants(tenants)
         valid_body = {'name': 'foobar'}
         result = self.post_phonebook('unknown', valid_body)
         assert_that(result.status_code, equal_to(404))
 
-    def test_post_in_valid_tenant(self):
+    def test_valid(self):
         tenants = {
             'items': [
                 {
@@ -46,7 +49,10 @@ class TestPhonebookCRUD(BaseDirdIntegrationTest):
         result = self.post_phonebook('valid', valid_body)
         assert_that(result.status_code, equal_to(201))
 
-    def test_get_in_unknown_tenant(self):
+
+class TestGet(_BasePhonebookTestCase):
+
+    def test_unknown_tenant(self):
         tenants = {
             'items': [
                 {
@@ -68,7 +74,7 @@ class TestPhonebookCRUD(BaseDirdIntegrationTest):
         result = self.get_phonebook('valid', phonebook['id'])
         assert_that(result.status_code, equal_to(404))
 
-    def test_get_in_valid_tenant(self):
+    def test_valid(self):
         tenants = {
             'items': [
                 {
@@ -81,12 +87,17 @@ class TestPhonebookCRUD(BaseDirdIntegrationTest):
         }
         self.mock_auth_client.set_tenants(tenants)
 
-        valid_body = {'name': 'foobar'}
+        valid_body = {'name': 'foobaz'}
         phonebook = self.post_phonebook('valid', valid_body).json()
 
         result = self.get_phonebook('valid', phonebook['id'])
         assert_that(result.status_code, equal_to(200))
         assert_that(result.json(), equal_to(phonebook))
+
+
+class TestPhonebookCRUD(BaseDirdIntegrationTest):
+
+    asset = 'phonebook_only'
 
     def test_all(self):
         tenant_1, tenant_2 = 'default', 'malicious'
