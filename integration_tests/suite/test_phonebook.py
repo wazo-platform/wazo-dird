@@ -297,46 +297,15 @@ class TestPut(_BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(409))
 
 
-class TestPhonebookCRUD(BaseDirdIntegrationTest):
-
-    asset = 'phonebook_only'
+class TestPhonebookCRUD(_BasePhonebookTestCase):
 
     def test_all(self):
-        tenant_1, tenant_2 = 'default', 'malicious'
+        tenant_1 = 'default'
+        self.set_tenants(tenant_1)
+
         phonebook_1_body = {'name': 'integration',
                             'description': 'The integration test phonebook'}
         phonebook_1 = self.post_phonebook(tenant_1, phonebook_1_body).json()
-        assert_that(
-            self.get_phonebook(tenant_1, phonebook_1['id']).json(),
-            equal_to(phonebook_1),
-        )
-
-        expected = dict(phonebook_1_body)
-        expected['id'] = ANY
-        assert_that(phonebook_1, equal_to(expected))
-
-        phonebook_2 = self.post_phonebook(tenant_1, {'name': 'second'}).json()
-        phonebook_2_modified = self.put_phonebook(
-            tenant_1, phonebook_2['id'],
-            {'name': 'second', 'description': 'The second phonebook'},
-        ).json()
-
-        assert_that(
-            self.list_phonebooks(tenant_1).json()['items'],
-            contains_inanyorder(phonebook_1, phonebook_2_modified),
-        )
-
-        self.delete_phonebook(tenant_2, phonebook_2['id'])
-        assert_that(
-            self.list_phonebooks(tenant_1).json()['items'],
-            contains_inanyorder(phonebook_1, phonebook_2_modified),
-        )
-
-        self.delete_phonebook(tenant_1, phonebook_2['id'])
-        assert_that(
-            self.list_phonebooks(tenant_1).json()['items'],
-            contains_inanyorder(phonebook_1),
-        )
 
         alice = self.post_phonebook_contact(tenant_1, phonebook_1['id'], {'firstname': 'alice'})
         assert_that(self.get_phonebook_contact(tenant_1, phonebook_1['id'], alice['id']),
