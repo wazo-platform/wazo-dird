@@ -81,7 +81,7 @@ class _BaseDAO:
         except exc.OperationalError:
             session.rollback()
             raise DatabaseServiceUnavailable()
-        except:
+        except Exception:
             session.rollback()
             raise
         finally:
