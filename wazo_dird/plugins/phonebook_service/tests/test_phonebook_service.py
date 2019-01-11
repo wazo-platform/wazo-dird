@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -55,9 +55,9 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
     def test_create_phonebook(self):
         body = {'name': 'a name'}
 
-        result = self.service.create_phonebook('tenant', body)
+        result = self.service.create_phonebook(s.tenant_uuid, body)
 
-        self.phonebook_crud.create.assert_called_once_with('tenant', body)
+        self.phonebook_crud.create.assert_called_once_with(s.tenant_uuid, body)
         assert_that(result, equal_to(self.phonebook_crud.create.return_value))
 
     def test_count_phonebook(self):
@@ -106,8 +106,6 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
             assert_that(calling(self.service.list_phonebook).with_args(tenant),
                         raises(InvalidTenantException))
             assert_that(calling(self.service.count_phonebook).with_args(tenant),
-                        raises(InvalidTenantException))
-            assert_that(calling(self.service.create_phonebook).with_args(tenant, body),
                         raises(InvalidTenantException))
             assert_that(calling(self.service.edit_phonebook).with_args(tenant, s.phonebook_id, body),
                         raises(InvalidTenantException))

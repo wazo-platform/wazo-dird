@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -89,11 +89,11 @@ class _PhonebookService:
                                          phonebook_id,
                                          self._validate_contact(contact_info))
 
-    def create_phonebook(self, tenant, phonebook_info):
+    def create_phonebook(self, tenant_uuid, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)
         if errors:
             raise InvalidPhonebookException(errors)
-        return self._phonebook_crud.create(self._validate_tenant(tenant), body)
+        return self._phonebook_crud.create(tenant_uuid, body)
 
     def edit_contact(self, tenant, phonebook_id, contact_uuid, contact_info):
         return self._contact_crud.edit(self._validate_tenant(tenant),

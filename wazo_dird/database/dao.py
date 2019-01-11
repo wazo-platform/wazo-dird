@@ -208,11 +208,10 @@ class PhonebookCRUD(_BaseDAO):
         with self.new_session() as s:
             return self._count_by_tenant(s, tenant, search)
 
-    def create(self, tenant, phonebook_body):
+    def create(self, tenant_uuid, phonebook_body):
         with self.new_session() as s:
-            tenant = self._get_or_create_tenant(s, tenant)
-            phonebook = Phonebook(tenant_uuid=tenant.uuid,
-                                  **phonebook_body)
+            self._create_tenant(s, tenant_uuid)
+            phonebook = Phonebook(tenant_uuid=tenant_uuid, **phonebook_body)
             s.add(phonebook)
             self.flush_or_raise(s, DuplicatedPhonebookException)
 
@@ -292,6 +291,13 @@ class PhonebookCRUD(_BaseDAO):
 
     def _get_tenant(self, s, name):
         return s.query(Tenant).filter(Tenant.name == name).first()
+
+    def _create_tenant(self, s, uuid):
+        s.add(Tenant(uuid=uuid))
+        try:
+            s.flush()
+        except exc.IntegrityError:
+            s.rollback()
 
     def _get_or_create_tenant(self, s, name):
         tenant = self._get_tenant(s, name)

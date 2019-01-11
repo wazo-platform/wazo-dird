@@ -201,7 +201,7 @@ class PhonebookAll(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.create_phonebook(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             request.json,
         ), 201
 
