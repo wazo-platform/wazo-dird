@@ -70,12 +70,9 @@ class Source(Base):
 class Tenant(Base):
 
     __tablename__ = 'dird_tenant'
-    __table_args__ = (
-        schema.CheckConstraint("name != ''"),
-    )
 
     uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'),  primary_key=True)
-    name = Column(String(255), unique=True, nullable=False)
+    name = Column(String(255))
 
 
 class User(Base):
