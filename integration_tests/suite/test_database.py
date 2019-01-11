@@ -673,9 +673,11 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
 
         assert_that(result, equal_to(2))
 
-    def test_that_only_the_tenant_can_count(self):
-        assert_that(calling(self._crud.count).with_args('not-the-tenant', self._phonebook_id),
-                    raises(exception.NoSuchPhonebook))
+    def test_that_counting_from_another_tenant_return_0(self):
+        assert_that(
+            calling(self._crud.count).with_args(new_uuid(), self._phonebook_id),
+            raises(exception.NoSuchPhonebook),
+        )
 
 
 class TestContactCRUD(_BaseTest):
