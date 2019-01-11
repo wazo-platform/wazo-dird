@@ -240,24 +240,39 @@ class ContactOne(_Resource):
         DatabaseServiceUnavailable: 503,
         NoSuchContact: 404,
         NoSuchPhonebook: 404,
+        NoSuchTenant: 404,
     }
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read')
     @_default_error_route
     def get(self, tenant, phonebook_id, contact_uuid):
-        return self.phonebook_service.get_contact(tenant, phonebook_id, contact_uuid), 200
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
+        return self.phonebook_service.get_contact(
+            matching_tenant['name'],
+            phonebook_id,
+            contact_uuid,
+        ), 200
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.delete')
     @_default_error_route
     def delete(self, tenant, phonebook_id, contact_uuid):
-        self.phonebook_service.delete_contact(tenant, phonebook_id, contact_uuid)
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
+        self.phonebook_service.delete_contact(
+            matching_tenant['name'],
+            phonebook_id,
+            contact_uuid,
+        )
         return '', 204
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.update')
     @_default_error_route
     def put(self, tenant, phonebook_id, contact_uuid):
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.edit_contact(
-            tenant,
+            matching_tenant['name'],
             phonebook_id,
             contact_uuid,
             request.json,

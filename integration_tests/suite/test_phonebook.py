@@ -318,6 +318,80 @@ class _BasePhonebookContactTestCase(_BasePhonebookTestCase):
         super().tearDown()
 
 
+class TestContactDelete(_BasePhonebookContactTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.set_tenants(self.tenant_1)
+        self.contact = self.post_phonebook_contact(
+            self.tenant_1,
+            self.phonebook_1['id'],
+            {'firstname': 'Alice'},
+        ).json()
+        self.contact_id = self.contact['id']
+
+    def test_unknown_tenant_phonebook_or_contact(self):
+        self.set_tenants(self.tenant_2)
+        res = self.delete(self.tenant_2, self.phonebook_1['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(404), 'unknown tenant')
+
+        res = self.delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(404), 'unknown tenant')
+
+        self.set_tenants(self.tenant_1)
+        res = self.delete(self.tenant_1, self.phonebook_2['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(404), 'unknown phonebook')
+
+        self.delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self.delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(404), 'unknown contact')
+
+    def test_delete(self):
+        self.set_tenants(self.tenant_1)
+        res = self.delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(204))
+
+    def delete(self, tenant, phonebook_id, contact_id):
+        return self.delete_phonebook_contact(tenant, phonebook_id, contact_id)
+
+
+class TestContactGet(_BasePhonebookContactTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.set_tenants(self.tenant_1)
+        self.contact = self.post_phonebook_contact(
+            self.tenant_1,
+            self.phonebook_1['id'],
+            {'firstname': 'Alice'},
+        ).json()
+        self.contact_id = self.contact['id']
+
+    def test_unknown_tenant_phonebook_or_contact(self):
+        self.set_tenants(self.tenant_2)
+        res = self.get(self.tenant_2, self.phonebook_1['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(404), 'unknown tenant')
+
+        res = self.get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(404), 'unknown tenant')
+
+        self.set_tenants(self.tenant_1)
+        res = self.get(self.tenant_1, self.phonebook_2['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(404), 'unknown phonebook')
+
+        self.delete_phonebook_contact(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self.get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        assert_that(res.status_code, equal_to(404), 'unknown contact')
+
+    def test_get(self):
+        self.set_tenants(self.tenant_1)
+        res = self.get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        assert_that(res.json(), equal_to(self.contact))
+
+    def get(self, tenant, phonebook_id, contact_id):
+        return self.get_phonebook_contact(tenant, phonebook_id, contact_id)
+
+
 class TestContactList(_BasePhonebookContactTestCase):
 
     def test_unknown_tenant_or_phonebook(self):
@@ -407,31 +481,42 @@ class TestContactPost(_BasePhonebookContactTestCase):
         assert_that(result.status_code, equal_to(201))
 
 
-class TestPhonebookCRUD(_BasePhonebookTestCase):
+class TestContactPut(_BasePhonebookContactTestCase):
 
-    def test_all(self):
-        tenant_1 = 'default'
-        self.set_tenants(tenant_1)
-
-        phonebook_1_body = {'name': 'integration',
-                            'description': 'The integration test phonebook'}
-        phonebook_1 = self.post_phonebook(tenant_1, phonebook_1_body).json()
-
-        alice = self.post_phonebook_contact(
-            tenant_1,
-            phonebook_1['id'],
-            {'firstname': 'alice'},
+    def setUp(self):
+        super().setUp()
+        self.set_tenants(self.tenant_1)
+        self.contact = self.post_phonebook_contact(
+            self.tenant_1,
+            self.phonebook_1['id'],
+            {'firstname': 'Alice'},
         ).json()
+        self.contact_id = self.contact['id']
 
-        bob = self.post_phonebook_contact(
-            tenant_1,
-            phonebook_1['id'],
-            {'firstname': 'bob'},
-        )
-        bob_modified = self.put_phonebook_contact(tenant_1, phonebook_1['id'], bob['id'],
-                                                  {'firstname': 'bob',
-                                                   'lastname': 'Bibeau'})
-        assert_that(
-            self.list_phonebook_contacts(tenant_1, phonebook_1['id']).json()['items'],
-            contains_inanyorder(alice, bob_modified),
-        )
+    def test_unknown_tenant_phonebook_or_contact(self):
+        body = {'firstname': 'Bob'}
+
+        self.set_tenants(self.tenant_2)
+        res = self.put(self.tenant_2, self.phonebook_1['id'], self.contact_id, body)
+        assert_that(res.status_code, equal_to(404), 'unknown tenant')
+
+        res = self.put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
+        assert_that(res.status_code, equal_to(404), 'unknown tenant')
+
+        self.set_tenants(self.tenant_1)
+        res = self.put(self.tenant_1, self.phonebook_2['id'], self.contact_id, body)
+        assert_that(res.status_code, equal_to(404), 'unknown phonebook')
+
+        self.delete_phonebook_contact(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self.put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
+        assert_that(res.status_code, equal_to(404), 'unknown contact')
+
+    def test_put(self):
+        body = {'firstname': 'Bob'}
+
+        self.set_tenants(self.tenant_1)
+        res = self.put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
+        assert_that(res.json(), has_entries(id=self.contact_id, firstname='Bob'))
+
+    def put(self, tenant, phonebook_id, contact_id, body):
+        return self.put_phonebook_contact(tenant, phonebook_id, contact_id, body)

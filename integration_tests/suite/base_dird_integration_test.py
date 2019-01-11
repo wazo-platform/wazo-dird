@@ -209,12 +209,12 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def put_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
-        response = requests.put(url,
-                                data=json.dumps(contact_body),
-                                headers={'X-Auth-Token': token,
-                                         'Content-Type': 'application/json'},
-                                verify=CA_CERT)
-        return response.json()
+        return requests.put(
+            url,
+            data=json.dumps(contact_body),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def post_personal_result(cls, personal_infos, token=None):
@@ -318,10 +318,11 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
-        response = requests.get(url,
-                                headers={'X-Auth-Token': token},
-                                verify=CA_CERT)
-        return response.json()
+        return requests.get(
+            url,
+            headers={'X-Auth-Token': token},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def list_phonebook_contacts(cls, tenant, phonebook_id, token=VALID_TOKEN, **kwargs):
@@ -365,6 +366,11 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
+        return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
+
+    @classmethod
+    def delete_phonebook_contact(cls, tenant, phonebook_id, contact_id, token=VALID_TOKEN):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_id)
         return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
     @classmethod
