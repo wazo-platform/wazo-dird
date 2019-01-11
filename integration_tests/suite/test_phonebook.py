@@ -520,3 +520,40 @@ class TestContactPut(_BasePhonebookContactTestCase):
 
     def put(self, tenant, phonebook_id, contact_id, body):
         return self.put_phonebook_contact(tenant, phonebook_id, contact_id, body)
+
+
+class TestContactImport(_BasePhonebookContactTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.body = '''\
+firstname,lastname
+Alice,A
+Bob,B
+'''
+
+    def test_unknown_tenant_or_phonebook(self):
+        self.set_tenants(self.tenant_2)
+        result = self.import_(self.tenant_2, self.phonebook_1['id'], self.body)
+        assert_that(result.status_code, equal_to(404))
+
+        result = self.import_(self.tenant_1, self.phonebook_1['id'], self.body)
+        assert_that(result.status_code, equal_to(404))
+
+    def test_post(self):
+        self.set_tenants(self.tenant_1)
+        result = self.import_(self.tenant_1, self.phonebook_1['id'], self.body)
+        assert_that(result.status_code, equal_to(200))
+        assert_that(
+            self.list_phonebook_contacts(self.tenant_1, self.phonebook_1['id']).json(),
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname='B'),
+                ),
+                total=2,
+            )
+        )
+
+    def import_(self, tenant, phonebook_id, body):
+        return self.import_phonebook_contact(tenant, phonebook_id, body)

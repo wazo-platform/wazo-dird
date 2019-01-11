@@ -207,6 +207,16 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
+    def import_phonebook_contact(cls, tenant, phonebook_id, body, token=VALID_TOKEN):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', 'import')
+        return requests.post(
+            url,
+            data=body,
+            headers={'X-Auth-Token': token, 'Context-Type': 'text/csv; charset=utf-8'},
+            verify=CA_CERT,
+        )
+
+    @classmethod
     def put_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
         return requests.put(

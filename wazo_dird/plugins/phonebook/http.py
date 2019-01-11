@@ -208,8 +208,16 @@ class PhonebookAll(_Resource):
 
 class ContactImport(_Resource):
 
+    error_code_map = {
+        NoSuchTenant: 404,
+        NoSuchPhonebook: 404,
+    }
+
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
+    @_default_error_route
     def post(self, tenant, phonebook_id):
+        scoping_tenant = Tenant.autodetect()
+        matching_tenant = self._find_tenant(scoping_tenant, tenant)
         charset = request.mimetype_params.get('charset', 'utf-8')
         try:
             data = request.data.decode(charset).split('\n')
@@ -226,7 +234,11 @@ class ContactImport(_Resource):
             return _make_error('duplicate columns: {}'.format(duplicates), 400)
 
         to_add = [c for c in csv.DictReader(data)]
-        created, failed = self.phonebook_service.import_contacts(tenant, phonebook_id, to_add)
+        created, failed = self.phonebook_service.import_contacts(
+            matching_tenant['name'],
+            phonebook_id,
+            to_add,
+        )
 
         return {'created': created, 'failed': failed}
 
