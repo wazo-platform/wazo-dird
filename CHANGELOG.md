@@ -15,6 +15,12 @@ Changelog
   * DELETE `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>'
   * GET `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>'
   * PUT `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>'
+  * POST `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>/contacts/import'
+  * POST `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>/contacts'
+  * GET `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>/contacts'
+  * DELETE `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>/<phonebook_id>/contacts/<contact_id>'
+  * GET `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>/<phonebook_id>/contacts/<contact_id>'
+  * PUT `/0.1/tenants/<tenant_name>/phonebooks/<phonebook_id>/<phonebook_id>/contacts/<contact_id>'
 
 
 16.16
