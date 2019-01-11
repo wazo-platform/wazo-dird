@@ -25,8 +25,28 @@ class _BasePhonebookTestCase(BaseDirdIntegrationTest):
         super().setUpClass()
         cls.mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
 
+    def setUp(self):
+        self.tenants = {}
+
+    def tearDown(self):
+        for tenant_name in self.tenants:
+            try:
+                phonebooks = self.list_phonebooks(tenant_name)['items']
+            except Exception:
+                continue
+
+            for phonebook in phonebooks:
+                try:
+                    self.delete_phonebook(tenant_name, phonebook['id'])
+                except Exception:
+                    pass
+
     def set_tenants(self, *tenant_names):
-        items = [{'uuid': str(uuid4()), 'name': name} for name in tenant_names]
+        items = []
+        for tenant_name in tenant_names:
+            if tenant_name not in self.tenants:
+                self.tenants[tenant_name] = {'uuid': str(uuid4())}
+            items.append(self.tenants[tenant_name])
         total = filtered = len(items)
         tenants = {'items': items, 'total': total, 'filtered': filtered}
         self.mock_auth_client.set_tenants(tenants)

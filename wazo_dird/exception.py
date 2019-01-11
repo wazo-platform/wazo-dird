@@ -87,10 +87,3 @@ class InvalidPhonebookException(Exception):
 class InvalidContactException(Exception):
 
     pass
-
-
-class InvalidTenantException(Exception):
-
-    def __init__(self, tenant):
-        msg = 'The tenant should be alphanumeric: {}'.format(tenant)
-        super().__init__(msg)

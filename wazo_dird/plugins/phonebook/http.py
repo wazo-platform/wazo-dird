@@ -18,7 +18,6 @@ from wazo_dird.exception import (
     InvalidArgumentError,
     InvalidContactException,
     InvalidPhonebookException,
-    InvalidTenantException,
     NoSuchContact,
     NoSuchPhonebook,
     NoSuchTenant,
@@ -122,7 +121,6 @@ class ContactAll(_Resource):
     error_code_map = {
         InvalidArgumentError: 400,
         InvalidContactException: 400,
-        InvalidTenantException: 400,
         NoSuchPhonebook: 404,
         DatabaseServiceUnavailable: 503,
         DuplicatedContactException: 409,
@@ -135,7 +133,7 @@ class ContactAll(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.create_contact(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             phonebook_id,
             request.json,
         ), 201
@@ -147,12 +145,12 @@ class ContactAll(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         count = self.phonebook_service.count_contact(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             phonebook_id,
             **parser.count_params()
         )
         contacts = self.phonebook_service.list_contact(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             phonebook_id,
             **parser.list_params()
         )
@@ -167,7 +165,6 @@ class PhonebookAll(_Resource):
 
     error_code_map = {
         InvalidArgumentError: 400,
-        InvalidTenantException: 400,
         DuplicatedPhonebookException: 409,
         DatabaseServiceUnavailable: 503,
         InvalidPhonebookException: 400,
@@ -182,11 +179,11 @@ class PhonebookAll(_Resource):
         parser = _ArgParser(request.args, valid_columns=['name', 'description'])
 
         count = self.phonebook_service.count_phonebook(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             **parser.count_params()
         )
         phonebooks = self.phonebook_service.list_phonebook(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             **parser.list_params()
         )
 
@@ -235,7 +232,7 @@ class ContactImport(_Resource):
 
         to_add = [c for c in csv.DictReader(data)]
         created, failed = self.phonebook_service.import_contacts(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             phonebook_id,
             to_add,
         )
@@ -248,7 +245,6 @@ class ContactOne(_Resource):
     error_code_map = {
         DuplicatedContactException: 409,
         InvalidContactException: 400,
-        InvalidTenantException: 400,
         DatabaseServiceUnavailable: 503,
         NoSuchContact: 404,
         NoSuchPhonebook: 404,
@@ -261,7 +257,7 @@ class ContactOne(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.get_contact(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             phonebook_id,
             contact_uuid,
         ), 200
@@ -272,7 +268,7 @@ class ContactOne(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         self.phonebook_service.delete_contact(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             phonebook_id,
             contact_uuid,
         )
@@ -284,7 +280,7 @@ class ContactOne(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.edit_contact(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             phonebook_id,
             contact_uuid,
             request.json,
@@ -297,7 +293,6 @@ class PhonebookOne(_Resource):
         DatabaseServiceUnavailable: 503,
         DuplicatedPhonebookException: 409,
         InvalidPhonebookException: 400,
-        InvalidTenantException: 400,
         NoSuchPhonebook: 404,
         NoSuchTenant: 404,
     }
@@ -307,7 +302,7 @@ class PhonebookOne(_Resource):
     def delete(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        self.phonebook_service.delete_phonebook(matching_tenant['name'], phonebook_id)
+        self.phonebook_service.delete_phonebook(matching_tenant['uuid'], phonebook_id)
         return '', 204
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
@@ -315,7 +310,7 @@ class PhonebookOne(_Resource):
     def get(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.get_phonebook(matching_tenant['name'], phonebook_id), 200
+        return self.phonebook_service.get_phonebook(matching_tenant['uuid'], phonebook_id), 200
 
     @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
     @_default_error_route
@@ -323,7 +318,7 @@ class PhonebookOne(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return self.phonebook_service.edit_phonebook(
-            matching_tenant['name'],
+            matching_tenant['uuid'],
             phonebook_id,
             request.json,
         ), 200
