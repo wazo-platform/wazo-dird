@@ -1,7 +1,6 @@
 # Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from uuid import uuid4
 from mock import ANY
 from hamcrest import (
     assert_that,
@@ -10,49 +9,10 @@ from hamcrest import (
     equal_to,
     has_entries,
 )
-from xivo_test_helpers.auth import (
-    AuthClient as MockAuthClient,
-)
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .base_dird_integration_test import BasePhonebookTestCase
 
 
-class _BasePhonebookTestCase(BaseDirdIntegrationTest):
-
-    asset = 'phonebook_only'
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
-
-    def setUp(self):
-        self.tenants = {}
-
-    def tearDown(self):
-        for tenant_name in self.tenants:
-            try:
-                phonebooks = self.list_phonebooks(tenant_name)['items']
-            except Exception:
-                continue
-
-            for phonebook in phonebooks:
-                try:
-                    self.delete_phonebook(tenant_name, phonebook['id'])
-                except Exception:
-                    pass
-
-    def set_tenants(self, *tenant_names):
-        items = []
-        for tenant_name in tenant_names:
-            if tenant_name not in self.tenants:
-                self.tenants[tenant_name] = {'uuid': str(uuid4())}
-            items.append(self.tenants[tenant_name])
-        total = filtered = len(items)
-        tenants = {'items': items, 'total': total, 'filtered': filtered}
-        self.mock_auth_client.set_tenants(tenants)
-
-
-class TestList(_BasePhonebookTestCase):
+class TestList(BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
@@ -137,7 +97,7 @@ class TestList(_BasePhonebookTestCase):
             assert_that(result.status_code, equal_to(400), value)
 
 
-class TestPost(_BasePhonebookTestCase):
+class TestPost(BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
         self.set_tenants()
@@ -182,7 +142,7 @@ class TestPost(_BasePhonebookTestCase):
             assert_that(result.status_code, equal_to(400), body)
 
 
-class TestGet(_BasePhonebookTestCase):
+class TestGet(BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
         self.set_tenants('valid')
@@ -217,7 +177,7 @@ class TestGet(_BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(404))
 
 
-class TestDelete(_BasePhonebookTestCase):
+class TestDelete(BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
@@ -252,7 +212,7 @@ class TestDelete(_BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(404))
 
 
-class TestPut(_BasePhonebookTestCase):
+class TestPut(BasePhonebookTestCase):
 
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
@@ -317,7 +277,7 @@ class TestPut(_BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(409))
 
 
-class _BasePhonebookContactTestCase(_BasePhonebookTestCase):
+class _BasePhonebookContactTestCase(BasePhonebookTestCase):
 
     def setUp(self):
         super().setUp()

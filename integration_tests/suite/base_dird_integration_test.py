@@ -4,6 +4,7 @@
 import os
 import json
 import logging
+from uuid import uuid4
 from contextlib import contextmanager
 
 import requests
@@ -17,6 +18,7 @@ from xivo import url_helpers
 from xivo_test_helpers import until
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from xivo_test_helpers.db import DBUserClient
+from xivo_test_helpers.auth import AuthClient as MockAuthClient
 
 logger = logging.getLogger(__name__)
 
@@ -579,3 +581,39 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         cls.restart_service('db', signal='SIGINT')  # fast shutdown
         database = cls.new_db_client()
         until.true(database.is_up, timeout=5, message='Postgres did not come back up')
+
+
+class BasePhonebookTestCase(BaseDirdIntegrationTest):
+
+    asset = 'phonebook_only'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+
+    def setUp(self):
+        self.tenants = {}
+
+    def tearDown(self):
+        for tenant_name in self.tenants:
+            try:
+                phonebooks = self.list_phonebooks(tenant_name)['items']
+            except Exception:
+                continue
+
+            for phonebook in phonebooks:
+                try:
+                    self.delete_phonebook(tenant_name, phonebook['id'])
+                except Exception:
+                    pass
+
+    def set_tenants(self, *tenant_names):
+        items = []
+        for tenant_name in tenant_names:
+            if tenant_name not in self.tenants:
+                self.tenants[tenant_name] = {'uuid': str(uuid4())}
+            items.append(self.tenants[tenant_name])
+        total = filtered = len(items)
+        tenants = {'items': items, 'total': total, 'filtered': filtered}
+        self.mock_auth_client.set_tenants(tenants)
