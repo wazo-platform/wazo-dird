@@ -73,6 +73,16 @@ case "$1" in
 		if dpkg --compare-versions "$2" lt '18.05~'; then
 			rm -rf /var/run/xivo-dird
 		fi
+
+    # Enable tenant migration script for upgrades from < 19.03
+		if dpkg --compare-versions "$2" lt '19.02~'; then
+        cat > /etc/wazo-dird/conf.d/999-wazo-tenant-migration.yml <<EOF
+enabled_plugins:
+  views:
+    tenant_migration: true
+EOF
+		fi
+
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
