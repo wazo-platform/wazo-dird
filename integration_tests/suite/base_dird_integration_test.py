@@ -244,6 +244,15 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         assert_that(response.status_code, equal_to(201))
         return response.json()
 
+    @classmethod
+    def post_tenant_migration(cls, tenants, token=VALID_TOKEN):
+        return requests.post(
+            cls.url('phonebook_move_tenant'),
+            data=json.dumps(tenants),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
+
     @contextmanager
     def personal(self, personal_infos, token=VALID_TOKEN):
         response = self.post_personal(personal_infos, token)

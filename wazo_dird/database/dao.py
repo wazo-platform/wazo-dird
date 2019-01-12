@@ -110,6 +110,21 @@ class _BaseDAO:
         return user
 
 
+class TenantCRUD(_BaseDAO):
+
+    def list_(self, name=None):
+        with self.new_session() as s:
+            if name is not None:
+                filter_ = Tenant.name == name
+            else:
+                filter_ = True
+
+            result = []
+            for tenant in s.query(Tenant).filter(filter_).all():
+                result.append({'uuid': tenant.uuid, 'name': tenant.name})
+            return result
+
+
 class PhonebookContactCRUD(_BaseDAO):
 
     def count(self, tenant_uuid, phonebook_id, search=None):
@@ -274,6 +289,14 @@ class PhonebookCRUD(_BaseDAO):
                 search,
             )
             return [self._phonebook_to_dict(phonebook) for phonebook in phonebooks]
+
+    def update_tenant(self, old_uuid, phonebook_id, new_uuid):
+        with self.new_session() as s:
+            self._create_tenant(s, new_uuid)
+            filter_ = and_(Phonebook.id == Phonebook.id, Phonebook.tenant_uuid == old_uuid)
+            phonebook = s.query(Phonebook).filter(filter_).first()
+            phonebook.tenant_uuid = new_uuid
+            s.flush()
 
     def _count_by_tenant(self, s, tenant_uuid, search):
         filter_ = self._new_tenant_filter(s, tenant_uuid, search)

@@ -44,8 +44,11 @@ class PhonebookServicePlugin(BaseServicePlugin):
             raise ValueError(msg)
 
         Session = self._new_db_session(self._db_uri)
-        return _PhonebookService(database.PhonebookCRUD(Session),
-                                 database.PhonebookContactCRUD(Session))
+        return _PhonebookService(
+            database.PhonebookCRUD(Session),
+            database.PhonebookContactCRUD(Session),
+            database.TenantCRUD(Session),
+        )
 
     def _new_db_session(self, db_uri):
         self._Session = scoped_session(sessionmaker())
@@ -56,9 +59,10 @@ class PhonebookServicePlugin(BaseServicePlugin):
 
 class _PhonebookService:
 
-    def __init__(self, phonebook_crud, contact_crud):
+    def __init__(self, phonebook_crud, contact_crud, tenant_crud):
         self._phonebook_crud = phonebook_crud
         self._contact_crud = contact_crud
+        self._tenant_crud = tenant_crud
 
     def list_contact(self, tenant_uuid, phonebook_id, limit=None, offset=None,
                      order=None, direction=None, **params):
@@ -128,6 +132,18 @@ class _PhonebookService:
         created, failed = self._contact_crud.create_many(tenant_uuid, phonebook_id, to_add)
 
         return created, failed + errors
+
+    def update_tenant_uuid(self, tenant_name, tenant_uuid):
+        logger.info('updating tenant uuid: %s -> %s', tenant_name, tenant_uuid)
+        tenants = self._tenant_crud.list_(name=tenant_name)
+        logger.info('matching tenants: %s', tenants)
+        for tenant in tenants:
+            old_uuid = tenant['uuid']
+            phonebooks = self._phonebook_crud.list(old_uuid)
+            logger.info('updating %s phonebooks', len(phonebooks))
+            for phonebook in phonebooks:
+                self._phonebook_crud.update_tenant(old_uuid, phonebook['id'], tenant_uuid)
+        logger.info('done')
 
     @staticmethod
     def _validate_contact(body):
