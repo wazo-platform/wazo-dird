@@ -60,9 +60,10 @@ class TestController(TestCase):
             'service_discovery': {'enabled': False},
         })
 
-        Controller(config).run()
+        controller = Controller(config)
+        controller.run()
 
-        self.load_sources.assert_called_once_with(s.enabled, config)
+        self.load_sources.assert_called_once_with(s.enabled, config, ANY, token_renewer)
 
     def test_run_loads_views(self):
         config = self._create_config(**{

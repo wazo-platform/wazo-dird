@@ -43,8 +43,12 @@ class Controller:
                                                      self.config['rest_api']['https']['port'])]
 
     def run(self):
-        self.sources = plugin_manager.load_sources(self.config['enabled_plugins']['backends'],
-                                                   self.config)
+        self.sources = plugin_manager.load_sources(
+            self.config['enabled_plugins']['backends'],
+            self.config,
+            self.auth_client,
+            self.token_renewer,
+        )
         self.services = plugin_manager.load_services(self.config,
                                                      self.config['enabled_plugins']['services'],
                                                      self.sources,

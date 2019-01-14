@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -19,12 +19,14 @@ class SourceManager:
 
     _namespace = 'wazo_dird.backends'
 
-    def __init__(self, enabled_backends, config):
+    def __init__(self, enabled_backends, config, auth_client, token_renewer):
         self._enabled_backends = enabled_backends
         self._source_configs = config['sources']
         self._main_config = config
         self._sources = {}
         self._config = config
+        self._auth_client = auth_client
+        self._token_renewer = token_renewer
 
     def load_sources(self):
         names = plugin_helpers.enabled_names(self._enabled_backends)
@@ -73,7 +75,13 @@ class SourceManager:
             source = extension.plugin()
             source.name = name
             source.backend = extension.name
-            source.load({'config': config, 'main_config': self._main_config})
+            dependencies = {
+                'auth_client': self._auth_client,
+                'config': config,
+                'main_config': self._main_config,
+                'token_renewer': self._token_renewer,
+            }
+            source.load(dependencies)
             self._sources[source.name] = source
         except Exception:
             logger.exception('Failed to load back-end `%s` with config `%s`',

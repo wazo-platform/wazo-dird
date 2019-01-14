@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -27,7 +27,12 @@ class TestSourceManager(unittest.TestCase):
         sources_by_type = defaultdict(list)
         sources_by_type['ldap'].append(my_ldap_config)
 
-        manager = SourceManager(enabled_backends, {'sources': {'my_ldap': my_ldap_config}})
+        manager = SourceManager(
+            enabled_backends,
+            {'sources': {'my_ldap': my_ldap_config}},
+            s.auth_client,
+            s.token_renewer,
+        )
 
         manager.load_sources()
 
@@ -48,7 +53,7 @@ class TestSourceManager(unittest.TestCase):
             'xivo_phonebook': True,
         }
 
-        manager = SourceManager(enabled_backends, {'sources': {}})
+        manager = SourceManager(enabled_backends, {'sources': {}}, s.auth_client, s.token_renewer)
         manager._sources = s.sources
 
         result = manager.load_sources()
@@ -63,14 +68,28 @@ class TestSourceManager(unittest.TestCase):
         extension = Mock()
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
-        manager = SourceManager([], main_config)
+        manager = SourceManager([], main_config, s.auth_client, s.token_renewer)
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 
         assert_that(source1.name, equal_to('source1'))
-        source1.load.assert_called_once_with({'config': config1, 'main_config': main_config})
+        source1.load.assert_called_once_with(
+            {
+                'config': config1,
+                'main_config': main_config,
+                'auth_client': s.auth_client,
+                'token_renewer': s.token_renewer,
+            },
+        )
         assert_that(source2.name, equal_to('source2'))
-        source2.load.assert_called_once_with({'config': config2, 'main_config': main_config})
+        source2.load.assert_called_once_with(
+            {
+                'config': config2,
+                'main_config': main_config,
+                'auth_client': s.auth_client,
+                'token_renewer': s.token_renewer,
+            },
+        )
 
     def test_load_sources_using_backend_calls_load_on_all_sources_with_exceptions(self):
         config1 = {'type': 'backend', 'name': 'source1'}
@@ -81,19 +100,26 @@ class TestSourceManager(unittest.TestCase):
         extension.name = 'backend'
         source1, source2 = extension.plugin.side_effect = Mock(), Mock()
         source1.load.side_effect = RuntimeError
-        manager = SourceManager([], main_config)
+        manager = SourceManager([], main_config, s.auth_client, s.token_renewer)
 
         manager._load_sources_using_backend(extension, configs_by_backend)
 
         assert_that(list(manager._sources.keys()), contains('source2'))
         assert_that(source2.name, equal_to('source2'))
-        source2.load.assert_called_once_with({'config': config2, 'main_config': main_config})
+        source2.load.assert_called_once_with(
+            {
+                'config': config2,
+                'main_config': main_config,
+                'auth_client': s.auth_client,
+                'token_renewer': s.token_renewer,
+            },
+        )
 
     def test_unload_sources(self):
         source_1 = Mock()
         source_2 = Mock()
 
-        manager = SourceManager([], {'sources': {}})
+        manager = SourceManager([], {'sources': {}}, s.auth_client, s.token_renewer)
         manager._sources = {'s1': source_1, 's2': source_2}
 
         manager.unload_sources()

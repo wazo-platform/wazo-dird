@@ -45,12 +45,14 @@ def absolute_file_name(asset_name, path):
 
 class BackendWrapper:
 
-    def __init__(self, backend, config):
-        manager = DriverManager(namespace='wazo_dird.backends',
-                                name=backend,
-                                invoke_on_load=True)
+    def __init__(self, backend, dependencies):
+        manager = DriverManager(
+            namespace='wazo_dird.backends',
+            name=backend,
+            invoke_on_load=True,
+        )
         self._source = manager.driver
-        self._source.load(config)
+        self._source.load(dependencies)
 
     def unload(self):
         self._source.unload()

@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
@@ -33,9 +33,14 @@ class TestPluginManagerSources(TestCase):
     def test_load_sources_calls_source_manager(self, source_manager_init):
         source_manager = source_manager_init.return_value
 
-        plugin_manager.load_sources(s.enabled, s.source_config_dir)
+        plugin_manager.load_sources(s.enabled, s.source_config_dir, s.auth_client, s.token_renewer)
 
-        source_manager_init.assert_called_once_with(s.enabled, s.source_config_dir)
+        source_manager_init.assert_called_once_with(
+            s.enabled,
+            s.source_config_dir,
+            s.auth_client,
+            s.token_renewer,
+        )
         source_manager.load_sources.assert_called_once_with()
 
     @patch('wazo_dird.plugin_manager.SourceManager')
@@ -43,6 +48,11 @@ class TestPluginManagerSources(TestCase):
         source_manager = source_manager_init.return_value
         source_manager.load_sources.return_value = s.result
 
-        result = plugin_manager.load_sources(s.enabled, s.source_config_dir)
+        result = plugin_manager.load_sources(
+            s.enabled,
+            s.source_config_dir,
+            s.auth_client,
+            s.token_renewer,
+        )
 
         assert_that(result, equal_to(s.result))
