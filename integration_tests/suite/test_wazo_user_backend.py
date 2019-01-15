@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from mock import Mock
@@ -13,11 +13,46 @@ from hamcrest import (
 )
 
 from xivo_test_helpers import until
+from xivo_test_helpers.hamcrest.uuid_ import uuid_
+from wazo_dird_client import Client
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     BackendWrapper,
+    VALID_TOKEN,
 )
+
+VALID_TOKEN_TENANT = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+
+
+class TestPost(BaseDirdIntegrationTest):
+
+    asset = 'all_routes'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        host = 'localhost'
+        port = cls.service_port(9489, 'dird')
+        cls.client = Client(host, port, token=VALID_TOKEN, verify_certificate=False)
+
+    def test_post(self):
+        valid_body = {
+            'name': 'internal',
+            'auth': {
+                'key_file': '/path/to/the/key/file',
+            }
+        }
+
+        result = self.client.wazo_source.create(valid_body)
+        assert_that(
+            result,
+            has_entries(
+                uuid=uuid_(),
+                tenant_uuid=VALID_TOKEN_TENANT,
+                name='internal',
+            )
+        )
 
 
 class TestWazoUser(BaseDirdIntegrationTest):

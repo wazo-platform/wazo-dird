@@ -19,6 +19,7 @@ enabled_plugins:
     headers_view: true
     personal_view: true
     cisco_view: true
+    wazo_backend: true
 
 views:
   displays:
