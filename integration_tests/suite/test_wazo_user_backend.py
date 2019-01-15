@@ -22,37 +22,34 @@ from .base_dird_integration_test import (
     VALID_TOKEN,
 )
 
-VALID_TOKEN_TENANT = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'
+SUB_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee2'
+VALID_TOKEN_MULTITENANT = 'valid-token-multitenant'
 
 
 class TestPost(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
+    valid_body = {
+        'name': 'internal',
+        'auth': {
+            'key_file': '/path/to/the/key/file',
+        }
+    }
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         host = 'localhost'
         port = cls.service_port(9489, 'dird')
-        cls.client = Client(host, port, token=VALID_TOKEN, verify_certificate=False)
+        cls.client = Client(host, port, token=VALID_TOKEN_MULTITENANT, verify_certificate=False)
 
-    def test_post(self):
-        valid_body = {
-            'name': 'internal',
-            'auth': {
-                'key_file': '/path/to/the/key/file',
-            }
-        }
+    def test_multi_tenant(self):
+        result = self.client.wazo_source.create(self.valid_body)
+        assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        result = self.client.wazo_source.create(valid_body)
-        assert_that(
-            result,
-            has_entries(
-                uuid=uuid_(),
-                tenant_uuid=VALID_TOKEN_TENANT,
-                name='internal',
-            )
-        )
+        result = self.client.wazo_source.create(self.valid_body, tenant_uuid=SUB_TENANT)
+        assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
 
 class TestWazoUser(BaseDirdIntegrationTest):
