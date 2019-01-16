@@ -13,3 +13,6 @@ class WazoBackendService:
 
     def create(self, **body):
         return self._source_crud.create(body)
+
+    def get(self, tenant_uuid, source_uuid):
+        return self._source_crud.get(tenant_uuid, source_uuid)

@@ -1,6 +1,8 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from sqlalchemy import and_
+from wazo_dird.exception import NoSuchSource
 from .base import BaseDAO
 from ..import Source
 
@@ -13,6 +15,19 @@ class SourceCRUD(BaseDAO):
             source = self._to_db_format(**source_body)
             s.add(source)
             s.flush()
+            return self._from_db_format(source)
+
+    def get(self, tenant_uuid, source_uuid):
+        with self.new_session() as s:
+            source = s.query(Source).filter(and_(
+                Source.tenant_uuid == tenant_uuid,
+                Source.uuid == source_uuid,
+
+            )).first()
+
+            if not source:
+                raise NoSuchSource(tenant_uuid, source_uuid)
+
             return self._from_db_format(source)
 
     @staticmethod

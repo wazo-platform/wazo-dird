@@ -1,6 +1,7 @@
 # Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from uuid import uuid4
 from mock import Mock
 from hamcrest import (
     assert_that,
@@ -19,15 +20,17 @@ from wazo_dird_client import Client
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     BackendWrapper,
-    VALID_TOKEN,
 )
+from .helpers.fixtures import http as fixtures
+
 
 MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'
 SUB_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee2'
 VALID_TOKEN_MULTITENANT = 'valid-token-multitenant'
+UNKNOWN_UUID = str(uuid4())
 
 
-class TestPost(BaseDirdIntegrationTest):
+class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
     valid_body = {
@@ -44,12 +47,39 @@ class TestPost(BaseDirdIntegrationTest):
         port = cls.service_port(9489, 'dird')
         cls.client = Client(host, port, token=VALID_TOKEN_MULTITENANT, verify_certificate=False)
 
+
+class TestPost(BaseWazoCRUDTestCase):
+
     def test_multi_tenant(self):
         result = self.client.wazo_source.create(self.valid_body)
         assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
         result = self.client.wazo_source.create(self.valid_body, tenant_uuid=SUB_TENANT)
         assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
+
+
+class TestGet(BaseWazoCRUDTestCase):
+
+    @fixtures.wazo_source(name='foobar', auth={'key_file': '/path/to/key/file'})
+    def test_get(self, wazo):
+        response = self.client.wazo_source.get(wazo['uuid'])
+        assert_that(response, equal_to(wazo))
+
+        try:
+            self.client.wazo_source.get(UNKNOWN_UUID)
+        except Exception as e:
+            assert_that(e.response.status_code, equal_to(404))
+            assert_that(
+                e.response.json(),
+                has_entries(
+                    error_id='unknown-source',
+                    resource='sources',
+                    details=has_entries(
+                        tenant_uuid=MAIN_TENANT,
+                        uuid=UNKNOWN_UUID,
+                    )
+                )
+            )
 
 
 class TestWazoUser(BaseDirdIntegrationTest):

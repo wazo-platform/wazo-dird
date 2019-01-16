@@ -43,6 +43,11 @@ class WazoUserView(BaseViewPlugin):
             '/backends/wazo/sources',
             resource_class_args=(wazo_backend_service,),
         )
+        api.add_resource(
+            http.SourceItem,
+            '/backends/wazo/sources/<source_uuid>',
+            resource_class_args=(wazo_backend_service,),
+        )
 
 
 class WazoUserPlugin(BaseSourcePlugin):
