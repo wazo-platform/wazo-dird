@@ -622,8 +622,7 @@ class BasePhonebookTestCase(BaseDirdIntegrationTest):
     def set_tenants(self, *tenant_names):
         items = []
         for tenant_name in tenant_names:
-            if tenant_name not in self.tenants:
-                self.tenants[tenant_name] = {'uuid': str(uuid4())}
+            self.tenants.setdefault(tenant_name, {'uuid': str(uuid4())})
             items.append(self.tenants[tenant_name])
         total = filtered = len(items)
         tenants = {'items': items, 'total': total, 'filtered': filtered}
