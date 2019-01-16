@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from setuptools import setup
@@ -86,6 +86,7 @@ setup(
             'headers_view = wazo_dird.plugins.headers.plugin:HeadersViewPlugin',
             'personal_view = wazo_dird.plugins.personal.plugin:PersonalViewPlugin',
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
+            'tenant_migration = wazo_dird.plugins.phonebook_tenant_modifier.plugin:PhonebookTenantMoverPlugin',
             'aastra_view = wazo_dird.plugins.aastra.plugin:AastraViewPlugin',
             'cisco_view = wazo_dird.plugins.cisco.plugin:CiscoViewPlugin',
             'gigaset_view = wazo_dird.plugins.gigaset.plugin:GigasetViewPlugin',

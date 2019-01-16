@@ -1,8 +1,7 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
-import re
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -11,14 +10,12 @@ from unidecode import unidecode
 
 from wazo_dird import BaseServicePlugin
 from wazo_dird import database
-from wazo_dird.exception import (InvalidContactException,
-                                 InvalidPhonebookException,
-                                 InvalidTenantException)
+from wazo_dird.exception import (
+    InvalidContactException,
+    InvalidPhonebookException,
+)
 
 logger = logging.getLogger(__name__)
-
-
-VALID_TENANT = re.compile(r'^[a-z0-9_\.-]+$')
 
 
 class _PhonebookSchema(Schema):
@@ -47,8 +44,11 @@ class PhonebookServicePlugin(BaseServicePlugin):
             raise ValueError(msg)
 
         Session = self._new_db_session(self._db_uri)
-        return _PhonebookService(database.PhonebookCRUD(Session),
-                                 database.PhonebookContactCRUD(Session))
+        return _PhonebookService(
+            database.PhonebookCRUD(Session),
+            database.PhonebookContactCRUD(Session),
+            database.TenantCRUD(Session),
+        )
 
     def _new_db_session(self, db_uri):
         self._Session = scoped_session(sessionmaker())
@@ -59,13 +59,14 @@ class PhonebookServicePlugin(BaseServicePlugin):
 
 class _PhonebookService:
 
-    def __init__(self, phonebook_crud, contact_crud):
+    def __init__(self, phonebook_crud, contact_crud, tenant_crud):
         self._phonebook_crud = phonebook_crud
         self._contact_crud = contact_crud
+        self._tenant_crud = tenant_crud
 
-    def list_contact(self, tenant, phonebook_id, limit=None, offset=None,
+    def list_contact(self, tenant_uuid, phonebook_id, limit=None, offset=None,
                      order=None, direction=None, **params):
-        results = self._contact_crud.list(self._validate_tenant(tenant), phonebook_id, **params)
+        results = self._contact_crud.list(tenant_uuid, phonebook_id, **params)
         if order:
             reverse = direction == 'desc'
             results = sorted(results, key=lambda x: unidecode(x.get(order, '')), reverse=reverse)
@@ -75,51 +76,52 @@ class _PhonebookService:
             results = results[:limit]
         return results
 
-    def list_phonebook(self, tenant, **params):
-        return self._phonebook_crud.list(self._validate_tenant(tenant), **params)
+    def list_phonebook(self, tenant_uuid, **params):
+        return self._phonebook_crud.list(tenant_uuid, **params)
 
-    def count_contact(self, tenant, phonebook_id, **params):
-        return self._contact_crud.count(self._validate_tenant(tenant), phonebook_id, **params)
+    def count_contact(self, tenant_uuid, phonebook_id, **params):
+        return self._contact_crud.count(tenant_uuid, phonebook_id, **params)
 
-    def count_phonebook(self, tenant, **params):
-        return self._phonebook_crud.count(self._validate_tenant(tenant), **params)
+    def count_phonebook(self, tenant_uuid, **params):
+        return self._phonebook_crud.count(tenant_uuid, **params)
 
-    def create_contact(self, tenant, phonebook_id, contact_info):
-        return self._contact_crud.create(self._validate_tenant(tenant),
-                                         phonebook_id,
-                                         self._validate_contact(contact_info))
+    def create_contact(self, tenant_uuid, phonebook_id, contact_info):
+        validated_contact = self._validate_contact(contact_info)
+        return self._contact_crud.create(tenant_uuid, phonebook_id, validated_contact)
 
-    def create_phonebook(self, tenant, phonebook_info):
+    def create_phonebook(self, tenant_uuid, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)
         if errors:
             raise InvalidPhonebookException(errors)
-        return self._phonebook_crud.create(self._validate_tenant(tenant), body)
+        return self._phonebook_crud.create(tenant_uuid, body)
 
-    def edit_contact(self, tenant, phonebook_id, contact_uuid, contact_info):
-        return self._contact_crud.edit(self._validate_tenant(tenant),
-                                       phonebook_id,
-                                       contact_uuid,
-                                       self._validate_contact(contact_info))
+    def edit_contact(self, tenant_uuid, phonebook_id, contact_uuid, contact_info):
+        return self._contact_crud.edit(
+            tenant_uuid,
+            phonebook_id,
+            contact_uuid,
+            self._validate_contact(contact_info),
+        )
 
-    def edit_phonebook(self, tenant, phonebook_id, phonebook_info):
+    def edit_phonebook(self, tenant_uuid, phonebook_id, phonebook_info):
         body, errors = _PhonebookSchema().load(phonebook_info)
         if errors:
             raise InvalidPhonebookException(errors)
-        return self._phonebook_crud.edit(self._validate_tenant(tenant), phonebook_id, body)
+        return self._phonebook_crud.edit(tenant_uuid, phonebook_id, body)
 
-    def delete_contact(self, tenant, phonebook_id, contact_uuid):
-        return self._contact_crud.delete(self._validate_tenant(tenant), phonebook_id, contact_uuid)
+    def delete_contact(self, tenant_uuid, phonebook_id, contact_uuid):
+        return self._contact_crud.delete(tenant_uuid, phonebook_id, contact_uuid)
 
-    def delete_phonebook(self, tenant, phonebook_id):
-        return self._phonebook_crud.delete(self._validate_tenant(tenant), phonebook_id)
+    def delete_phonebook(self, tenant_uuid, phonebook_id):
+        return self._phonebook_crud.delete(tenant_uuid, phonebook_id)
 
-    def get_contact(self, tenant, phonebook_id, contact_uuid):
-        return self._contact_crud.get(self._validate_tenant(tenant), phonebook_id, contact_uuid)
+    def get_contact(self, tenant_uuid, phonebook_id, contact_uuid):
+        return self._contact_crud.get(tenant_uuid, phonebook_id, contact_uuid)
 
-    def get_phonebook(self, tenant, phonebook_id):
-        return self._phonebook_crud.get(self._validate_tenant(tenant), phonebook_id)
+    def get_phonebook(self, tenant_uuid, phonebook_id):
+        return self._phonebook_crud.get(tenant_uuid, phonebook_id)
 
-    def import_contacts(self, tenant, phonebook_id, contacts):
+    def import_contacts(self, tenant_uuid, phonebook_id, contacts):
         to_add, errors = [], []
         for contact in contacts:
             try:
@@ -127,7 +129,7 @@ class _PhonebookService:
             except InvalidContactException:
                 errors.append(contact)
 
-        created, failed = self._contact_crud.create_many(self._validate_tenant(tenant), phonebook_id, to_add)
+        created, failed = self._contact_crud.create_many(tenant_uuid, phonebook_id, to_add)
 
         return created, failed + errors
 
@@ -141,14 +143,3 @@ class _PhonebookService:
             raise InvalidContactException('Contacts cannot have null keys')
         body.pop('id', None)
         return body
-
-    @staticmethod
-    def _validate_tenant(tenant):
-        try:
-            tenant.encode('ascii')
-            if VALID_TENANT.match(tenant):
-                return tenant
-        except UnicodeEncodeError:
-            pass
-
-        raise InvalidTenantException(tenant)

@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
@@ -6,6 +6,8 @@ import random
 import string
 import unittest
 
+from uuid import uuid4
+from mock import Mock
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -61,40 +63,59 @@ class TestPhonebookBackend(unittest.TestCase):
 
     def setUp(self):
         global contacts
+        self.tenant_uuid = str(uuid4())
         self.tenant = 'rowling'
+        self.auth_client = Mock()
+        self.auth_client.tenants.list.return_value = {'items': [{'uuid': self.tenant_uuid}]}
+        self.token_renewer = Mock()
         self.phonebook_crud = database.PhonebookCRUD(Session)
         self.phonebook_contact_crud = database.PhonebookContactCRUD(Session)
 
-        self.phonebook = self.phonebook_crud.create(self.tenant, {'name': 'hogwarts'})
-        contacts = [self.phonebook_contact_crud.create(self.tenant, self.phonebook['id'], c)
+        self.phonebook = self.phonebook_crud.create(self.tenant_uuid, {'name': 'hogwarts'})
+        contacts = [self.phonebook_contact_crud.create(self.tenant_uuid, self.phonebook['id'], c)
                     for c in contact_bodies]
-        (self.dumbledore,
-         self.hermione,
-         self.hagrid,
-         self.draco,
-         self.harry,
-         self.severus,
-         self.ron) = contacts
-        self.config = {'config': {'name': 'dird_phonebook',
-                                  'db_uri': DB_URI,
-                                  'tenant': self.tenant,
-                                  'phonebook_id': self.phonebook['id'],
-                                  'searched_columns': ['firstname', 'lastname'],
-                                  'first_matched_columns': ['number']}}
-        self.backend = BackendWrapper('dird_phonebook', self.config)
+        (
+            self.dumbledore,
+            self.hermione,
+            self.hagrid,
+            self.draco,
+            self.harry,
+            self.severus,
+            self.ron,
+        ) = contacts
+        config = {
+            'name': 'dird_phonebook',
+            'db_uri': DB_URI,
+            'tenant': self.tenant,
+            'phonebook_id': self.phonebook['id'],
+            'searched_columns': ['firstname', 'lastname'],
+            'first_matched_columns': ['number'],
+        }
+        self.backend = self._load_backend(config)
+
+    def _load_backend(self, config):
+        dependencies = {
+            'config': config,
+            'auth_client': self.auth_client,
+            'token_renewer': self.token_renewer,
+        }
+        backend = BackendWrapper('dird_phonebook', dependencies)
+        backend._source.finish_loading(dependencies)
+        return backend
 
     def tearDown(self):
-        self.phonebook_crud.delete(self.tenant, self.phonebook['id'])
+        self.phonebook_crud.delete(self.tenant_uuid, self.phonebook['id'])
 
     def test_a_config_without_phonebook_id(self):
-        config = {'config': {'name': 'dird_phonebook',
-                             'db_uri': DB_URI,
-                             'tenant': self.tenant,
-                             'phonebook_name': 'hogwarts',
-                             'searched_columns': ['firstname', 'lastname'],
-                             'first_matched_columns': ['number']}}
-
-        backend = BackendWrapper('dird_phonebook', config)
+        config = {
+            'name': 'dird_phonebook',
+            'db_uri': DB_URI,
+            'tenant': self.tenant,
+            'phonebook_name': 'hogwarts',
+            'searched_columns': ['firstname', 'lastname'],
+            'first_matched_columns': ['number'],
+        }
+        backend = self._load_backend(config)
 
         result = backend.search('grid')
 

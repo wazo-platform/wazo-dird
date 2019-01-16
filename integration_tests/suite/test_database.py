@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import functools
@@ -133,15 +133,15 @@ class _BasePhonebookCRUDTest(_BaseTest):
         self._crud = database.PhonebookCRUD(Session)
 
     @contextmanager
-    def _new_phonebook(self, tenant, name, description=None, delete=True):
+    def _new_phonebook(self, tenant_uuid, name, description=None, delete=True):
         body = {'name': name}
         if description:
             body['description'] = description
 
-        phonebook = self._crud.create(tenant, body)
+        phonebook = self._crud.create(tenant_uuid, body)
         yield phonebook
         if delete:
-            self._crud.delete(tenant, phonebook['id'])
+            self._crud.delete(tenant_uuid, phonebook['id'])
 
 
 class TestBaseDAO(_BaseTest):
@@ -170,11 +170,11 @@ class TestBaseDAO(_BaseTest):
 class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
 
     def test_count(self):
-        tenant = 't'
-        with self._new_phonebook(tenant, 'a'), \
-                self._new_phonebook(tenant, 'b'), \
-                self._new_phonebook(tenant, 'c'):
-            result = self._crud.count(tenant)
+        tenant_uuid = new_uuid()
+        with self._new_phonebook(tenant_uuid, 'a'), \
+                self._new_phonebook(tenant_uuid, 'b'), \
+                self._new_phonebook(tenant_uuid, 'c'):
+            result = self._crud.count(tenant_uuid)
 
         assert_that(result, equal_to(3))
 
@@ -259,14 +259,14 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
                     raises(exception.DuplicatedPhonebookException))
 
     def test_that_duplicate_tenants_are_not_created(self):
-        tenant = 'default'
+        tenant_uuid = new_uuid()
 
-        self._crud.create(tenant, {'name': 'first'})
-        self._crud.create(tenant, {'name': 'second'})
+        self._crud.create(tenant_uuid, {'name': 'first'})
+        self._crud.create(tenant_uuid, {'name': 'second'})
 
         with closing(Session()) as session:
-            tenant_count = session.query(func.count(database.Tenant.id)).filter(
-                database.Tenant.name == tenant).scalar()
+            tenant_count = session.query(func.count(database.Tenant.uuid)).filter(
+                database.Tenant.uuid == tenant_uuid).scalar()
 
         assert_that(tenant_count, equal_to(1))
 
@@ -310,7 +310,7 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
 
         with closing(Session()) as session:
             tenant_created = session.query(
-                func.count(database.Tenant.id)).filter(database.Tenant.name == tenant_b).scalar() > 0
+                func.count(database.Tenant.uuid)).filter(database.Tenant.name == tenant_b).scalar() > 0
 
         assert_that(tenant_created, equal_to(False))
 
@@ -673,9 +673,11 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
 
         assert_that(result, equal_to(2))
 
-    def test_that_only_the_tenant_can_count(self):
-        assert_that(calling(self._crud.count).with_args('not-the-tenant', self._phonebook_id),
-                    raises(exception.NoSuchPhonebook))
+    def test_that_counting_from_another_tenant_return_0(self):
+        assert_that(
+            calling(self._crud.count).with_args(new_uuid(), self._phonebook_id),
+            raises(exception.NoSuchPhonebook),
+        )
 
 
 class TestContactCRUD(_BaseTest):
@@ -878,13 +880,13 @@ class TestFavoriteCrud(_BaseTest):
 
 class TestPhonebookContactSearchEngine(_BaseTest):
 
-    tenant = 'tenant'
+    tenant_uuid = new_uuid()
 
     def setUp(self):
         super().setUp()
         self.phonebook_crud = database.PhonebookCRUD(Session)
         self.phonebook_contact_crud = database.PhonebookContactCRUD(Session)
-        self.phonebook_id = self.phonebook_crud.create(self.tenant, {'name': 'test'})['id']
+        self.phonebook_id = self.phonebook_crud.create(self.tenant_uuid, {'name': 'test'})['id']
         bodies = [
             {'firstname': 'Mia', 'lastname': 'Wallace', 'number': '5551111111'},
             {'firstname': 'Marcellus', 'lastname': 'Wallace', 'number': '5551111111'},
@@ -894,15 +896,19 @@ class TestPhonebookContactSearchEngine(_BaseTest):
             {'firstname': 'Jimmie', 'lastname': 'Dimmick', 'number': '5554444444'},
         ]
         [self.mia, self.marcellus, self.vincent, self.jules, self.butch, self.jimmie] = [
-            self.phonebook_contact_crud.create(self.tenant, self.phonebook_id, body) for body in bodies]
+            self.phonebook_contact_crud.create(
+                self.tenant_uuid,
+                self.phonebook_id,
+                body,
+            ) for body in bodies]
         self.engine = database.PhonebookContactSearchEngine(Session,
-                                                            self.tenant,
+                                                            self.tenant_uuid,
                                                             self.phonebook_id,
                                                             searched_columns=['lastname'],
                                                             first_match_columns=['number'])
 
     def tearDown(self):
-        self.phonebook_crud.delete(self.tenant, self.phonebook_id)
+        self.phonebook_crud.delete(self.tenant_uuid, self.phonebook_id)
         super().tearDown()
 
     def test_that_searching_personal_contacts_returns_the_searched_contacts(self):
@@ -917,7 +923,7 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
     def test_that_no_searched_columns_does_not_search(self):
         engine = database.PhonebookContactSearchEngine(Session,
-                                                       self.tenant,
+                                                       self.tenant_uuid,
                                                        self.phonebook_id,
                                                        first_match_columns=['number'])
         result = engine.find_contacts('a')

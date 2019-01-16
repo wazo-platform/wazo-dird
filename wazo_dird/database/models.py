@@ -1,10 +1,13 @@
-# Copyright (C) 2016 Avencall
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from uuid import uuid4
 from sqlalchemy import (Column, ForeignKey, Integer, schema, String, text, Text)
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+
+UUID_LENGTH = len(str(uuid4()))
 
 
 class Contact(Base):
@@ -46,14 +49,14 @@ class Phonebook(Base):
 
     __tablename__ = 'dird_phonebook'
     __table_args__ = (
-        schema.UniqueConstraint('name', 'tenant_id'),
+        schema.UniqueConstraint('name', 'tenant_uuid'),
         schema.CheckConstraint("name != ''"),
     )
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    tenant_id = Column(Integer, ForeignKey('dird_tenant.id'))
+    tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
 
 
 class Source(Base):
@@ -67,12 +70,11 @@ class Source(Base):
 class Tenant(Base):
 
     __tablename__ = 'dird_tenant'
-    __table_args__ = (
-        schema.CheckConstraint("name != ''"),
-    )
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), unique=True, nullable=False)
+    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'),  primary_key=True)
+    # DEPRECATED uuids should match wazo-auth and names should not be used
+    # the field will be removed after an upgrade that forces an upgrade above version 19.02
+    name = Column(String(255))
 
 
 class User(Base):

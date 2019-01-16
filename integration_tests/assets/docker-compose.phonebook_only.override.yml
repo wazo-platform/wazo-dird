@@ -7,3 +7,6 @@ services:
       - db
     environment:
       TARGETS: "dird:9489 auth:9497 db:5432"
+  dird:
+    volumes:
+      - "./etc/wazo-dird/conf.d/asset.phonebook_only.yml:/etc/wazo-dird/conf.d/plugin.yml"

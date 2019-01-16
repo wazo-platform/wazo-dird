@@ -1,9 +1,10 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
 import json
 import logging
+from uuid import uuid4
 from contextlib import contextmanager
 
 import requests
@@ -17,6 +18,7 @@ from xivo import url_helpers
 from xivo_test_helpers import until
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from xivo_test_helpers.db import DBUserClient
+from xivo_test_helpers.auth import AuthClient as MockAuthClient
 
 logger = logging.getLogger(__name__)
 
@@ -43,12 +45,14 @@ def absolute_file_name(asset_name, path):
 
 class BackendWrapper:
 
-    def __init__(self, backend, config):
-        manager = DriverManager(namespace='wazo_dird.backends',
-                                name=backend,
-                                invoke_on_load=True)
+    def __init__(self, backend, dependencies):
+        manager = DriverManager(
+            namespace='wazo_dird.backends',
+            name=backend,
+            invoke_on_load=True,
+        )
         self._source = manager.driver
-        self._source.load(config)
+        self._source.load(dependencies)
 
     def unload(self):
         self._source.unload()
@@ -179,43 +183,52 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN):
-        url = cls.url('tenants', tenant, 'phonebooks')
-        response = requests.post(url,
-                                 data=json.dumps(phonebook_body),
-                                 headers={'X-Auth-Token': token,
-                                          'Content-Type': 'application/json'},
-                                 verify=CA_CERT)
-        return response.json()
+        return requests.post(
+            cls.url('tenants', tenant, 'phonebooks'),
+            data=json.dumps(phonebook_body),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        response = requests.put(url,
-                                data=json.dumps(phonebook_body),
-                                headers={'X-Auth-Token': token,
-                                         'Content-Type': 'application/json'},
-                                verify=CA_CERT)
-        return response.json()
+        return requests.put(
+            url,
+            data=json.dumps(phonebook_body),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def post_phonebook_contact(cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
-        response = requests.post(url,
-                                 data=json.dumps(contact_body),
-                                 headers={'X-Auth-Token': token,
-                                          'Content-Type': 'application/json'},
-                                 verify=CA_CERT)
-        return response.json()
+        return requests.post(
+            url,
+            data=json.dumps(contact_body),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
+
+    @classmethod
+    def import_phonebook_contact(cls, tenant, phonebook_id, body, token=VALID_TOKEN):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', 'import')
+        return requests.post(
+            url,
+            data=body,
+            headers={'X-Auth-Token': token, 'Context-Type': 'text/csv; charset=utf-8'},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def put_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
-        response = requests.put(url,
-                                data=json.dumps(contact_body),
-                                headers={'X-Auth-Token': token,
-                                         'Content-Type': 'application/json'},
-                                verify=CA_CERT)
-        return response.json()
+        return requests.put(
+            url,
+            data=json.dumps(contact_body),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def post_personal_result(cls, personal_infos, token=None):
@@ -232,6 +245,15 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         response = cls.post_personal_result(personal_infos, token)
         assert_that(response.status_code, equal_to(201))
         return response.json()
+
+    @classmethod
+    def post_tenant_migration(cls, tenants, token=VALID_TOKEN):
+        return requests.post(
+            cls.url('phonebook_move_tenant'),
+            data=json.dumps(tenants),
+            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
+            verify=CA_CERT,
+        )
 
     @contextmanager
     def personal(self, personal_infos, token=VALID_TOKEN):
@@ -273,11 +295,10 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return response.json()
 
     @classmethod
-    def list_phonebooks(cls, tenant, token=None):
+    def list_phonebooks(cls, tenant, token=None, **kwargs):
         token = token or VALID_TOKEN
         url = cls.url('tenants', tenant, 'phonebooks')
-        response = requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
-        return response.json()['items']
+        return requests.get(url, params=kwargs, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
     @classmethod
     def export_personal_result(cls, token=None):
@@ -311,26 +332,30 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        response = requests.get(url,
-                                headers={'X-Auth-Token': token},
-                                verify=CA_CERT)
-        return response.json()
+        return requests.get(
+            url,
+            headers={'X-Auth-Token': token},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def get_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
-        response = requests.get(url,
-                                headers={'X-Auth-Token': token},
-                                verify=CA_CERT)
-        return response.json()
+        return requests.get(
+            url,
+            headers={'X-Auth-Token': token},
+            verify=CA_CERT,
+        )
 
     @classmethod
-    def list_phonebook_contacts(cls, tenant, phonebook_id, token=VALID_TOKEN):
+    def list_phonebook_contacts(cls, tenant, phonebook_id, token=VALID_TOKEN, **kwargs):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
-        response = requests.get(url,
-                                headers={'X-Auth-Token': token},
-                                verify=CA_CERT)
-        return response.json()['items']
+        return requests.get(
+            url,
+            params=kwargs,
+            headers={'X-Auth-Token': token},
+            verify=CA_CERT,
+        )
 
     @classmethod
     def put_personal_result(cls, personal_id, personal_infos, token=None):
@@ -364,9 +389,12 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        requests.delete(url,
-                        headers={'X-Auth-Token': token},
-                        verify=CA_CERT)
+        return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
+
+    @classmethod
+    def delete_phonebook_contact(cls, tenant, phonebook_id, contact_id, token=VALID_TOKEN):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_id)
+        return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
     @classmethod
     def purge_personal_result(cls, token=None):
@@ -564,3 +592,38 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         cls.restart_service('db', signal='SIGINT')  # fast shutdown
         database = cls.new_db_client()
         until.true(database.is_up, timeout=5, message='Postgres did not come back up')
+
+
+class BasePhonebookTestCase(BaseDirdIntegrationTest):
+
+    asset = 'phonebook_only'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+
+    def setUp(self):
+        self.tenants = {}
+
+    def tearDown(self):
+        for tenant_name in self.tenants:
+            try:
+                phonebooks = self.list_phonebooks(tenant_name)['items']
+            except Exception:
+                continue
+
+            for phonebook in phonebooks:
+                try:
+                    self.delete_phonebook(tenant_name, phonebook['id'])
+                except Exception:
+                    pass
+
+    def set_tenants(self, *tenant_names):
+        items = []
+        for tenant_name in tenant_names:
+            self.tenants.setdefault(tenant_name, {'uuid': str(uuid4())})
+            items.append(self.tenants[tenant_name])
+        total = filtered = len(items)
+        tenants = {'items': items, 'total': total, 'filtered': filtered}
+        self.mock_auth_client.set_tenants(tenants)
