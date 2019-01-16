@@ -8,6 +8,7 @@ from contextlib import closing
 from hamcrest import (
     assert_that,
     contains,
+    empty,
     has_entries,
 )
 from .base_dird_integration_test import BasePhonebookTestCase
@@ -108,3 +109,11 @@ class TestTenantMigration(BasePhonebookTestCase):
                 total=1,
             )
         )
+
+        # check that migrated tenants are deleted
+        with closing(Session()) as s:
+            migrated_tenants = [t['old_uuid'] for t in tenants if t['name'] != 'unknown']
+            matching_tenants = s.query(
+                database.Tenant,
+            ).filter(database.Tenant.uuid.in_(migrated_tenants)).all()
+            assert_that(matching_tenants, empty())

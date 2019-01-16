@@ -143,6 +143,8 @@ class _PhonebookService:
             logger.info('updating %s phonebooks', len(phonebooks))
             for phonebook in phonebooks:
                 self._phonebook_crud.update_tenant(old_uuid, phonebook['id'], tenant_uuid)
+            logger.info('deleting tenant: %s', old_uuid)
+            self._tenant_crud.delete(old_uuid)
         logger.info('done')
 
     @staticmethod

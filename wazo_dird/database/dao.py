@@ -112,6 +112,10 @@ class _BaseDAO:
 
 class TenantCRUD(_BaseDAO):
 
+    def delete(self, uuid):
+        with self.new_session() as s:
+            s.query(Tenant).filter(Tenant.uuid == uuid).delete()
+
     def list_(self, name=None):
         with self.new_session() as s:
             if name is not None:
