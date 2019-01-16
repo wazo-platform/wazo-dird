@@ -42,17 +42,21 @@ class TestTenantMigration(BasePhonebookTestCase):
         tenants = [
             {'name': 'foo', 'old_uuid': new_uuid(), 'new_uuid': new_uuid()},
             {'name': 'bar', 'old_uuid': new_uuid(), 'new_uuid': new_uuid()},
+            # This tenant does not exist in wazo-auth
             {'name': 'unknown', 'old_uuid': unknown_tenant_uuid, 'new_uuid': unknown_tenant_uuid},
         ]
 
+        # insert the old tenants in the dird DB
         with closing(Session()) as s:
             for tenant in tenants:
                 s.add(database.Tenant(uuid=tenant['old_uuid'], name=tenant['name']))
             s.commit()
 
+        # Pre-set the UUIDs in the base class to match the values in the DB
         for tenant in tenants:
             self.tenants[tenant['name']] = {'uuid': tenant['old_uuid']}
 
+        # Create a phonebook in each tenants
         self.set_tenants(tenants[0]['name'])
         phonebook_0 = self.post_phonebook(tenants[0]['name'], {'name': 'foo'}).json()
 
@@ -62,16 +66,22 @@ class TestTenantMigration(BasePhonebookTestCase):
         self.set_tenants(tenants[2]['name'])
         phonebook_2 = self.post_phonebook(tenants[2]['name'], {'name': 'baz'}).json()
 
+        # Generate the POST body with the names and new UUIDS
         body = [
             {'uuid': t['new_uuid'], 'name': t['name']}
-            for t in tenants if t['name'] != 'unknown'
+            for t in tenants if t['name'] != 'unknown'  # unknown does not exist in auth
         ]
+        # Add an extra tenant that is not in wazo-dird
         body.append({'uuid': new_uuid(), 'name': 'ignored'})
+
+        # Migrate all phonebooks from the old to the new UUIDs
         self.post_tenant_migration(body)
 
+        # Set the new UUIDS in the test cache such that the auth mock returns the new UUIDs
         for tenant in tenants:
             self.tenants[tenant['name']] = {'uuid': tenant['new_uuid']}
 
+        # wazo-auth now returns the new UUID and wazo-dird still return the matching phonebook
         self.set_tenants(tenants[0]['name'])
         assert_that(
             self.list_phonebooks(tenants[0]['name']).json(),
