@@ -22,4 +22,4 @@ egg-info:
 	cd docker/broken-plugins && python setup.py egg_info
 
 test:
-	nosetests
+	pytest

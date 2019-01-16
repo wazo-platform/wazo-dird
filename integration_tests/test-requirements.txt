@@ -6,8 +6,8 @@ babel
 flask-babel
 docker-compose
 pyhamcrest
+pytest
 python-ldap
-nose
 sh
 mock
 
