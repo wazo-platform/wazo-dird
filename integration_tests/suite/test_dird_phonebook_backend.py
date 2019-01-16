@@ -22,7 +22,7 @@ class DBStarter(BaseDirdIntegrationTest):
     asset = 'database'
 
 
-def setup():
+def setup_module():
     global DB_URI
     DBStarter.setUpClass()
     db_port = DBStarter.service_port(5432, 'db')
@@ -34,7 +34,7 @@ def setup():
     database.Base.metadata.create_all()
 
 
-def teardown():
+def teardown_module():
     DBStarter.tearDownClass()
 
 

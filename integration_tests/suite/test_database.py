@@ -63,7 +63,7 @@ class DBStarter(BaseDirdIntegrationTest):
     asset = 'database'
 
 
-def setup():
+def setup_module():
     DBStarter.setUpClass()
     db_port = DBStarter.service_port(5432, 'db')
     db_uri = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port))
@@ -74,7 +74,7 @@ def setup():
     database.Base.metadata.create_all()
 
 
-def teardown():
+def teardown_module():
     DBStarter.tearDownClass()
 
 
