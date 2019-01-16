@@ -18,6 +18,7 @@ from .queries.phonebook import (
     PhonebookContactSearchEngine,
 )
 from .queries.tenant import TenantCRUD
+from .queries.source import SourceCRUD
 
 
 __all__ = [
@@ -34,6 +35,7 @@ __all__ = [
     'PhonebookContactCRUD',
     'PhonebookContactSearchEngine',
     'Source',
+    'SourceCRUD',
     'Tenant',
     'TenantCRUD',
     'User',

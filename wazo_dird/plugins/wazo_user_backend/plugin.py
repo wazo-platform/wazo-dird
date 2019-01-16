@@ -3,6 +3,8 @@
 
 import logging
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 from xivo.config_helper import parse_config_file
 from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
@@ -11,6 +13,7 @@ from xivo_confd_client import Client as ConfdClient
 from wazo_dird import (
     BaseSourcePlugin,
     BaseViewPlugin,
+    database,
     make_result_class,
 )
 
@@ -26,9 +29,17 @@ class WazoUserView(BaseViewPlugin):
 
     def load(self, dependencies):
         api = dependencies['api']
-        wazo_backend_service = services.WazoBackendService()
+        config = dependencies['config']
+
+        db_uri = config['db_uri']
+        engine = create_engine(db_uri)
+        Session = scoped_session(sessionmaker())
+        Session.configure(bind=engine)
+        crud = database.SourceCRUD(Session)
+        wazo_backend_service = services.WazoBackendService(crud)
+
         api.add_resource(
-            http.Sources,
+            http.SourceList,
             '/backends/wazo/sources',
             resource_class_args=(wazo_backend_service,),
         )

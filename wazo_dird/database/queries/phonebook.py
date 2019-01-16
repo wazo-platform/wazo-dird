@@ -314,13 +314,6 @@ class PhonebookCRUD(BaseDAO):
     def _get_tenant(self, s, uuid):
         return s.query(Tenant).filter(Tenant.uuid == uuid).first()
 
-    def _create_tenant(self, s, uuid):
-        s.add(Tenant(uuid=uuid))
-        try:
-            s.flush()
-        except exc.IntegrityError:
-            s.rollback()
-
     @staticmethod
     def _phonebook_to_dict(phonebook):
         return {

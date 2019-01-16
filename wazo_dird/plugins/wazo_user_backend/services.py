@@ -3,14 +3,13 @@
 
 import logging
 
-from uuid import uuid4
-
 logger = logging.getLogger(__name__)
 
 
 class WazoBackendService:
 
-    def create(self, **kwargs):
-        logger.critical('New wazo source: %s', kwargs)
-        kwargs['uuid'] = str(uuid4())
-        return kwargs
+    def __init__(self, source_crud):
+        self._source_crud = source_crud
+
+    def create(self, **body):
+        return self._source_crud.create(body)

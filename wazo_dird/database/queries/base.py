@@ -8,7 +8,10 @@ from contextlib import contextmanager
 from sqlalchemy import exc
 from xivo import sqlalchemy_helper
 from wazo_dird.exception import DatabaseServiceUnavailable
-from wazo_dird.database import User
+from wazo_dird.database import (
+    Tenant,
+    User,
+)
 
 from .. import ContactFields
 
@@ -67,6 +70,13 @@ class BaseDAO:
             raise
         finally:
             self._Session.remove()
+
+    def _create_tenant(self, s, uuid):
+        s.add(Tenant(uuid=uuid))
+        try:
+            s.flush()
+        except exc.IntegrityError:
+            s.rollback()
 
     def _get_dird_user(self, session, xivo_user_uuid):
         user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
