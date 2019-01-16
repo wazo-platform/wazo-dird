@@ -133,20 +133,6 @@ class _PhonebookService:
 
         return created, failed + errors
 
-    def update_tenant_uuid(self, tenant_name, tenant_uuid):
-        logger.info('updating tenant uuid: %s -> %s', tenant_name, tenant_uuid)
-        tenants = self._tenant_crud.list_(name=tenant_name)
-        logger.info('matching tenants: %s', tenants)
-        for tenant in tenants:
-            old_uuid = tenant['uuid']
-            phonebooks = self._phonebook_crud.list(old_uuid)
-            logger.info('updating %s phonebooks', len(phonebooks))
-            for phonebook in phonebooks:
-                self._phonebook_crud.update_tenant(old_uuid, phonebook['id'], tenant_uuid)
-            logger.info('deleting tenant: %s', old_uuid)
-            self._tenant_crud.delete(old_uuid)
-        logger.info('done')
-
     @staticmethod
     def _validate_contact(body):
         if not body:
