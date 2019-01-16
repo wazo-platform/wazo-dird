@@ -43,10 +43,9 @@ class _Resource(AuthResource):
 
     def _find_tenant(self, scoping_tenant, name):
         tenants = self._auth_client.tenants.list(name=name)['items']
-        if not tenants:
-            raise NoSuchTenant(name)
-
-        return tenants[0]
+        for tenant in tenants:
+            return tenant
+        raise NoSuchTenant(name)
 
 
 class _ArgParser:
