@@ -1,6 +1,7 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from contextlib import contextmanager
 from uuid import uuid4
 from hamcrest import (
     assert_that,
@@ -59,6 +60,14 @@ class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
 
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
         return Client(self.host, self.port, token=token, verify_certificate=False)
+
+    @contextmanager
+    def source(self, client, *args, **kwargs):
+        source = client.wazo_source.create(*args, **kwargs)
+        try:
+            yield source
+        finally:
+            self.client.wazo_source.delete(source['uuid'])
 
 
 class TestDelete(BaseWazoCRUDTestCase):
@@ -119,36 +128,24 @@ class TestPost(BaseWazoCRUDTestCase):
         else:
             self.fail('Should have raised')
 
-        source = self.client.wazo_source.create(self.valid_body)
-        try:
+        with self.source(self.client, self.valid_body):
             assert_that(
                 calling(self.client.wazo_source.create).with_args(self.valid_body),
                 raises(Exception).matching(has_properties(response=has_properties(status_code=409)))
             )
-        finally:
-            self.client.wazo_source.delete(source['uuid'])
 
     def test_multi_tenant(self):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
-        result = main_tenant_client.wazo_source.create(self.valid_body)
-        try:
+        with self.source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
-        finally:
-            self.client.wazo_source.delete(result['uuid'])
 
-        result = main_tenant_client.wazo_source.create(self.valid_body, tenant_uuid=SUB_TENANT)
-        try:
+        with self.source(main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
-        finally:
-            self.client.wazo_source.delete(result['uuid'])
 
-        result = sub_tenant_client.wazo_source.create(self.valid_body)
-        try:
+        with self.source(sub_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
-        finally:
-            self.client.wazo_source.delete(result['uuid'])
 
         assert_that(
             calling(
@@ -157,14 +154,11 @@ class TestPost(BaseWazoCRUDTestCase):
             raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
         )
 
-        result = main_tenant_client.wazo_source.create(self.valid_body)
-        try:
+        with self.source(main_tenant_client, self.valid_body):
             assert_that(
                 calling(sub_tenant_client.wazo_source.create).with_args(self.valid_body),
                 not_(raises(Exception)),
             )
-        finally:
-            self.client.wazo_source.delete(result['uuid'])
 
 
 class TestPut(BaseWazoCRUDTestCase):
