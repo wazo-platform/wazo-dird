@@ -1,20 +1,34 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from sqlalchemy import and_
-from wazo_dird.exception import NoSuchSource
+from sqlalchemy import (
+    and_,
+    exc,
+)
+from wazo_dird.exception import (
+    DuplicatedSourceException,
+    NoSuchSource,
+)
 from .base import BaseDAO
 from ..import Source
 
 
 class SourceCRUD(BaseDAO):
 
+    _UNIQUE_CONSTRAINT_CODE = '23505'
+
     def create(self, source_body):
         with self.new_session() as s:
             self._create_tenant(s, source_body['tenant_uuid'])
             source = self._to_db_format(**source_body)
             s.add(source)
-            s.flush()
+            try:
+                s.flush()
+            except exc.IntegrityError as e:
+                if e.orig.pgcode == self._UNIQUE_CONSTRAINT_CODE:
+                    raise DuplicatedSourceException(source_body['name'])
+                raise
+
             return self._from_db_format(source)
 
     def delete(self, source_uuid, visible_tenants):

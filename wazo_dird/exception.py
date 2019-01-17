@@ -69,6 +69,14 @@ class DuplicatedPhonebookException(Exception):
         super().__init__(self._msg)
 
 
+class DuplicatedSourceException(APIException):
+
+    def __init__(self, name):
+        msg = 'The name "{}" is already used'.format(name)
+        details = {'name': {'constraint_id': 'unique', 'message': msg}}
+        super().__init__(409, 'Conflict detected', 'conflict', details, 'sources')
+
+
 class ProfileNotFoundError(Exception):
 
     pass

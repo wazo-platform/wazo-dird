@@ -49,6 +49,10 @@ paths:
                 key_file: /usr/share/wazo-dird/my-auth-key.yml
         '400':
           $ref: '#/responses/CreateError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
   /backends/wazo/sources/{source_uuid}:
     get:
       operationId: get_a_wazo_source
