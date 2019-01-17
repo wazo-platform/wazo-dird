@@ -78,6 +78,8 @@ class TestDelete(BaseWazoCRUDTestCase):
             self.client.wazo_source.delete(UNKNOWN_UUID)
         except Exception as e:
             self.assert_unknown_source_exception(UNKNOWN_UUID, e)
+        else:
+            self.fail('Should have raised')
 
     @fixtures.wazo_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.wazo_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
@@ -89,6 +91,8 @@ class TestDelete(BaseWazoCRUDTestCase):
             sub_tenant_client.wazo_source.delete(main['uuid'])
         except Exception as e:
             self.assert_unknown_source_exception(main['uuid'], e)
+        else:
+            self.fail('Should have raised')
 
         assert_that(
             calling(main_tenant_client.wazo_source.delete).with_args(sub['uuid']),
@@ -117,6 +121,8 @@ class TestGet(BaseWazoCRUDTestCase):
             self.client.wazo_source.get(UNKNOWN_UUID)
         except Exception as e:
             self.assert_unknown_source_exception(UNKNOWN_UUID, e)
+        else:
+            self.fail('Should have raised')
 
     @fixtures.wazo_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.wazo_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
@@ -131,4 +137,5 @@ class TestGet(BaseWazoCRUDTestCase):
             sub_tenant_client.wazo_source.get(main['uuid'])
         except Exception as e:
             self.assert_unknown_source_exception(main['uuid'], e)
-
+        else:
+            self.fail('Should have raised')
