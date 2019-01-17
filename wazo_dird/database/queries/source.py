@@ -51,23 +51,9 @@ class SourceCRUD(BaseDAO):
             Source.uuid == source_uuid,
         )
 
-    @staticmethod
-    def _to_db_format(
-            name,
-            tenant_uuid,
-            searched_columns,
-            first_matched_columns,
-            format_columns,
-            **extra_fields
-    ):
-        return Source(
-            name=name,
-            tenant_uuid=tenant_uuid,
-            searched_columns=searched_columns,
-            first_matched_columns=first_matched_columns,
-            format_columns=format_columns,
-            extra_fields=extra_fields,
-        )
+    def _to_db_format(self, tenant_uuid, *args, **kwargs):
+        source = Source(tenant_uuid=tenant_uuid)
+        return self._update_to_db_format(source, *args, **kwargs)
 
     @staticmethod
     def _update_to_db_format(
