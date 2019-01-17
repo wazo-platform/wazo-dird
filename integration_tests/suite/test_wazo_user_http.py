@@ -6,6 +6,8 @@ from uuid import uuid4
 from hamcrest import (
     assert_that,
     calling,
+    contains,
+    contains_inanyorder,
     equal_to,
     has_entries,
     has_properties,
@@ -107,6 +109,133 @@ class TestDelete(BaseWazoCRUDTestCase):
         assert_that(
             calling(main_tenant_client.wazo_source.delete).with_args(sub['uuid']),
             not_(raises(Exception)),
+        )
+
+
+class TestList(BaseWazoCRUDTestCase):
+
+    @fixtures.wazo_source(name='abc')
+    @fixtures.wazo_source(name='bcd')
+    @fixtures.wazo_source(name='cde')
+    def test_searches(self, c, b, a):
+        assert_that(
+            self.client.wazo_source.list(),
+            has_entries(
+                items=contains_inanyorder(a, b, c),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            self.client.wazo_source.list(name='abc'),
+            has_entries(
+                items=contains(a),
+                total=3,
+                filtered=1,
+            )
+        )
+
+        assert_that(
+            self.client.wazo_source.list(uuid=c['uuid']),
+            has_entries(
+                items=contains(c),
+                total=3,
+                filtered=1,
+            )
+        )
+
+        result = self.client.wazo_source.list(search='b')
+        assert_that(
+            result,
+            has_entries(
+                items=contains_inanyorder(a, b),
+                total=3,
+                filtered=2,
+            )
+        )
+
+    @fixtures.wazo_source(name='abc')
+    @fixtures.wazo_source(name='bcd')
+    @fixtures.wazo_source(name='cde')
+    def test_pagination(self, c, b, a):
+        assert_that(
+            self.client.wazo_source.list(order='name'),
+            has_entries(
+                items=contains(a, b, c),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            self.client.wazo_source.list(order='name', direction='desc'),
+            has_entries(
+                items=contains(c, b, a),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            self.client.wazo_source.list(order='name', limit=2),
+            has_entries(
+                items=contains(a, b),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            self.client.wazo_source.list(order='name', offset=2),
+            has_entries(
+                items=contains(c),
+                total=3,
+                filtered=3,
+            )
+        )
+
+    @fixtures.wazo_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.wazo_source(name='bcd', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.wazo_source(name='cde', token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, c, b, a):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        assert_that(
+            main_tenant_client.wazo_source.list(),
+            has_entries(
+                items=contains_inanyorder(a, b),
+                total=2,
+                filtered=2,
+            )
+        )
+
+        assert_that(
+            main_tenant_client.wazo_source.list(recurse=True),
+            has_entries(
+                items=contains_inanyorder(a, b, c),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            sub_tenant_client.wazo_source.list(),
+            has_entries(
+                items=contains_inanyorder(c),
+                total=1,
+                filtered=1,
+            )
+        )
+
+        assert_that(
+            sub_tenant_client.wazo_source.list(recurse=True),
+            has_entries(
+                items=contains_inanyorder(c),
+                total=1,
+                filtered=1,
+            )
         )
 
 

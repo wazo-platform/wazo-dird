@@ -15,6 +15,7 @@ from xivo.mallow.validate import (
     Range,
     validate_string_dict,
 )
+from xivo.mallow_helpers import ListSchema as _ListSchema
 
 
 class _BaseSchema(Schema):
@@ -94,4 +95,16 @@ class SourceSchema(_BaseSchema):
     confd = fields.Nested(_ConfdConfigSchema, missing={})
 
 
+class ListSchema(_ListSchema):
+
+    searchable_columns = ['uuid', 'name']
+
+    order = fields.WazoOrder(
+        sort_columns=['name'],
+        default_sort_column='name',
+    )
+    recurse = fields.Boolean(missing=False)
+
+
 source_schema = SourceSchema()
+list_schema = ListSchema()

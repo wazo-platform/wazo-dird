@@ -17,6 +17,18 @@ class SourceCRUD(BaseDAO):
 
     _UNIQUE_CONSTRAINT_CODE = '23505'
 
+    def count(self, visible_tenants, **list_params):
+        filter_ = self._list_filter(visible_tenants, **list_params)
+        with self.new_session() as s:
+            return s.query(Source).filter(filter_).count()
+
+    def list_(self, visible_tenants, **list_params):
+        filter_ = self._list_filter(visible_tenants, **list_params)
+        with self.new_session() as s:
+            query = s.query(Source).filter(filter_)
+            query = self._paginate(query, **list_params)
+            return [self._from_db_format(row) for row in query.all()]
+
     def create(self, source_body):
         with self.new_session() as s:
             self._create_tenant(s, source_body['tenant_uuid'])
@@ -65,11 +77,41 @@ class SourceCRUD(BaseDAO):
 
             return self._from_db_format(source)
 
+    def _list_filter(self, visible_tenants, uuid=None, name=None, search=None, **list_params):
+        filter_ = Source.tenant_uuid.in_(visible_tenants)
+        if uuid is not None:
+            filter_ = and_(filter_, Source.uuid == uuid)
+        if name is not None:
+            filter_ = and_(filter_, Source.name == name)
+        if search is not None:
+            pattern = '%{}%'.format(search)
+            filter_ = and_(filter_, Source.name.ilike(pattern))
+
+        return filter_
+
     def _multi_tenant_filter(self, source_uuid, visible_tenants):
         return and_(
             Source.tenant_uuid.in_(visible_tenants),
             Source.uuid == source_uuid,
         )
+
+    def _paginate(self, query, limit=None, offset=None, order=None, direction=None, **ignored):
+        if order and direction:
+            field = None
+            if order == 'name':
+                field = Source.name
+
+            if field:
+                order_clause = field.asc() if direction == 'asc' else field.desc()
+                query = query.order_by(order_clause)
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        if offset is not None:
+            query = query.offset(offset)
+
+        return query
 
     def _to_db_format(self, tenant_uuid, *args, **kwargs):
         source = Source(tenant_uuid=tenant_uuid)
