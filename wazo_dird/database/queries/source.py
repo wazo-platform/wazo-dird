@@ -25,6 +25,16 @@ class SourceCRUD(BaseDAO):
         if not nb_deleted:
             raise NoSuchSource(source_uuid)
 
+    def edit(self, source_uuid, visible_tenants, body):
+        filter_ = self._multi_tenant_filter(source_uuid, visible_tenants)
+        with self.new_session() as s:
+            source = s.query(Source).filter(filter_).first()
+
+            if not source:
+                raise NoSuchSource(source_uuid)
+
+            self._update_to_db_format(source, **body)
+
     def get(self, source_uuid, visible_tenants):
         filter_ = self._multi_tenant_filter(source_uuid, visible_tenants)
         with self.new_session() as s:
@@ -58,6 +68,22 @@ class SourceCRUD(BaseDAO):
             format_columns=format_columns,
             extra_fields=extra_fields,
         )
+
+    @staticmethod
+    def _update_to_db_format(
+            source,
+            name,
+            searched_columns,
+            first_matched_columns,
+            format_columns,
+            **extra_fields
+    ):
+        source.name = name
+        source.searched_columns = searched_columns
+        source.first_matched_columns = first_matched_columns
+        source.format_columns = format_columns
+        source.extra_fields = extra_fields
+        return source
 
     @staticmethod
     def _from_db_format(source):

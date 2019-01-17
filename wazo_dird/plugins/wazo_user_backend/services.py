@@ -17,5 +17,8 @@ class WazoBackendService:
     def delete(self, source_uuid, visible_tenants):
         return self._source_crud.delete(source_uuid, visible_tenants)
 
+    def edit(self, source_uuid, visible_tenants, body):
+        return self._source_crud.edit(source_uuid, visible_tenants, body)
+
     def get(self, source_uuid, visible_tenants):
         return self._source_crud.get(source_uuid, visible_tenants)

@@ -11,6 +11,7 @@ from hamcrest import (
     not_,
 )
 
+from mock import ANY
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from xivo_test_helpers.hamcrest.raises import raises
 from wazo_dird_client import Client
@@ -108,6 +109,80 @@ class TestPost(BaseWazoCRUDTestCase):
 
         result = self.client.wazo_source.create(self.valid_body, tenant_uuid=SUB_TENANT)
         assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
+
+
+class TestPut(BaseWazoCRUDTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.new_body = {
+            'name': 'new',
+            'auth': {'username': 'foo', 'password': 'secret'},
+            'searched_columns': ['firstname'],
+            'first_matched_columns': ['exten'],
+            'format_columns': {
+                'name': '{firstname} {lastname}',
+            }
+        }
+
+    @fixtures.wazo_source(name='foobar')
+    def test_put(self, foobar):
+        assert_that(
+            calling(self.client.wazo_source.edit).with_args(UNKNOWN_UUID, self.new_body),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+        )
+
+        try:
+            self.client.wazo_source.edit(foobar['uuid'], {})
+        except Exception as e:
+            assert_that(e.response.status_code, equal_to(400))
+            assert_that(
+                e.response.json(),
+                has_entries(
+                    message=ANY,
+                    error_id='invalid-data',
+                    details=has_entries('auth', ANY),
+                ),
+            )
+        else:
+            self.fail('Should have raised')
+
+        assert_that(
+            calling(self.client.wazo_source.edit).with_args(foobar['uuid'], self.new_body),
+            not_(raises(Exception)),
+        )
+
+        result = self.client.wazo_source.get(foobar['uuid'])
+        assert_that(
+            result,
+            has_entries(
+                uuid=foobar['uuid'],
+                tenant_uuid=foobar['tenant_uuid'],
+                name='new',
+                auth=has_entries(username='foo', password='secret'),
+                searched_columns=['firstname'],
+                first_matched_columns=['exten'],
+                format_columns={'name': '{firstname} {lastname}'},
+            )
+        )
+
+    @fixtures.wazo_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.wazo_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
+    def test_put_multi_tenant(self, sub, main):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        try:
+            sub_tenant_client.wazo_source.edit(main['uuid'], self.new_body)
+        except Exception as e:
+            self.assert_unknown_source_exception(main['uuid'], e)
+        else:
+            self.fail('Should have raised')
+
+        assert_that(
+            calling(main_tenant_client.wazo_source.edit).with_args(sub['uuid'], self.new_body),
+            not_(raises(Exception)),
+        )
 
 
 class TestGet(BaseWazoCRUDTestCase):

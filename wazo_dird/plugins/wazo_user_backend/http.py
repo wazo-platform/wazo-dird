@@ -52,6 +52,15 @@ class SourceItem(BaseSourceResource):
         body = self._service.get(source_uuid, visible_tenants)
         return source_schema.dump(body)
 
+    @required_acl('dird.backends.wazo.sources.{source_uuid}.update')
+    def put(self, source_uuid):
+        tenant = Tenant.autodetect()
+        visible_tenants = self._get_visible_tenants(tenant.uuid)
+        args = source_schema.load(request.get_json()).data
+        logger.critical('%s', args)
+        body = self._service.edit(source_uuid, visible_tenants, args)
+        return source_schema.dump(body)
+
     def _get_visible_tenants(self, tenant):
         token = request.headers['X-Auth-Token']
         auth_client = AuthClient(**self._auth_config)
