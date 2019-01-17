@@ -48,6 +48,12 @@ class SourceCRUD(BaseDAO):
                 raise NoSuchSource(source_uuid)
 
             self._update_to_db_format(source, **body)
+            try:
+                s.flush()
+            except exc.IntegrityError as e:
+                if e.orig.pgcode == self._UNIQUE_CONSTRAINT_CODE:
+                    raise DuplicatedSourceException(body['name'])
+                raise
 
     def get(self, source_uuid, visible_tenants):
         filter_ = self._multi_tenant_filter(source_uuid, visible_tenants)

@@ -182,7 +182,13 @@ class TestPut(BaseWazoCRUDTestCase):
         }
 
     @fixtures.wazo_source(name='foobar')
-    def test_put(self, foobar):
+    @fixtures.wazo_source(name='other')
+    def test_put(self, foobar, other):
+        assert_that(
+            calling(self.client.wazo_source.edit).with_args(foobar['uuid'], other),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=409)))
+        )
+
         assert_that(
             calling(self.client.wazo_source.edit).with_args(UNKNOWN_UUID, self.new_body),
             raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
@@ -227,6 +233,13 @@ class TestPut(BaseWazoCRUDTestCase):
     def test_put_multi_tenant(self, sub, main):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        assert_that(
+            calling(sub_tenant_client.wazo_source.edit).with_args(main['uuid'], sub),
+            not_(raises(Exception).matching(
+                has_properties(response=has_properties(status_code=409)))
+            )
+        )
 
         try:
             sub_tenant_client.wazo_source.edit(main['uuid'], self.new_body)

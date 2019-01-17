@@ -92,6 +92,10 @@ paths:
           $ref: '#/responses/UpdateError'
         '404':
           $ref: '#/responses/NotFoundError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
     delete:
       operationId: delete_wazo_source
       summary: Delete a `wazo` source configuration
