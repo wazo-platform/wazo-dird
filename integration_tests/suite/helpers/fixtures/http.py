@@ -19,10 +19,12 @@ def wazo_source(**source_args):
                 result = decorated(self, source, *args, **kwargs)
             finally:
                 try:
-                    # self.client.wazo_source.delete(result['uuid'])
-                    pass
-                except requests.HTTPError:
-                    pass
+                    self.client.wazo_source.delete(source['uuid'])
+                except requests.HTTPError as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
             return result
         return wrapper
     return decorator
