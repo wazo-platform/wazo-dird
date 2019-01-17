@@ -55,6 +55,17 @@ class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
     def client(self):
         return self.get_client()
 
+    def assert_unknown_source_exception(self, source_uuid, exception):
+        assert_that(exception.response.status_code, equal_to(404))
+        assert_that(
+            exception.response.json(),
+            has_entries(
+                error_id='unknown-source',
+                resource='sources',
+                details=has_entries(uuid=source_uuid),
+            )
+        )
+
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
         return Client(self.host, self.port, token=token, verify_certificate=False)
 
@@ -76,17 +87,7 @@ class TestDelete(BaseWazoCRUDTestCase):
         try:
             self.client.wazo_source.delete(UNKNOWN_UUID)
         except Exception as e:
-            assert_that(e.response.status_code, equal_to(404))
-            assert_that(
-                e.response.json(),
-                has_entries(
-                    error_id='unknown-source',
-                    resource='sources',
-                    details=has_entries(
-                        uuid=UNKNOWN_UUID,
-                    )
-                )
-            )
+            self.assert_unknown_source_exception(UNKNOWN_UUID, e)
 
     @fixtures.wazo_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.wazo_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
@@ -97,17 +98,7 @@ class TestDelete(BaseWazoCRUDTestCase):
         try:
             sub_tenant_client.wazo_source.delete(main['uuid'])
         except Exception as e:
-            assert_that(e.response.status_code, equal_to(404))
-            assert_that(
-                e.response.json(),
-                has_entries(
-                    error_id='unknown-source',
-                    resource='sources',
-                    details=has_entries(
-                        uuid=main['uuid'],
-                    )
-                )
-            )
+            self.assert_unknown_source_exception(main['uuid'], e)
 
         assert_that(
             calling(main_tenant_client.wazo_source.delete).with_args(sub['uuid']),
@@ -135,17 +126,7 @@ class TestGet(BaseWazoCRUDTestCase):
         try:
             self.client.wazo_source.get(UNKNOWN_UUID)
         except Exception as e:
-            assert_that(e.response.status_code, equal_to(404))
-            assert_that(
-                e.response.json(),
-                has_entries(
-                    error_id='unknown-source',
-                    resource='sources',
-                    details=has_entries(
-                        uuid=UNKNOWN_UUID,
-                    )
-                )
-            )
+            self.assert_unknown_source_exception(UNKNOWN_UUID, e)
 
     @fixtures.wazo_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.wazo_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
@@ -159,17 +140,7 @@ class TestGet(BaseWazoCRUDTestCase):
         try:
             sub_tenant_client.wazo_source.get(main['uuid'])
         except Exception as e:
-            assert_that(e.response.status_code, equal_to(404))
-            assert_that(
-                e.response.json(),
-                has_entries(
-                    error_id='unknown-source',
-                    resource='sources',
-                    details=has_entries(
-                        uuid=main['uuid'],
-                    )
-                )
-            )
+            self.assert_unknown_source_exception(main['uuid'], e)
 
 
 class TestWazoUser(BaseDirdIntegrationTest):
