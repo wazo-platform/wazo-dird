@@ -33,11 +33,10 @@ class NoSuchContact(ValueError):
 
 class NoSuchSource(APIException):
 
-    def __init__(self, tenant_uuid, source_uuid):
+    def __init__(self, source_uuid):
         msg = 'No such source: "{}"'.format(source_uuid)
         details = {
             'uuid': source_uuid,
-            'tenant_uuid': tenant_uuid,
         }
         super().__init__(404, msg, 'unknown-source', details, 'sources')
 

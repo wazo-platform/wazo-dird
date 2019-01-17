@@ -24,9 +24,10 @@ from .base_dird_integration_test import (
 from .helpers.fixtures import http as fixtures
 
 
-MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'
-SUB_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee2'
-VALID_TOKEN_MULTITENANT = 'valid-token-multitenant'
+MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
+SUB_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee11'
+VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
+VALID_TOKEN_SUB_TENANT = 'valid-token-sub-tenant'
 UNKNOWN_UUID = str(uuid4())
 
 
@@ -43,9 +44,15 @@ class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        host = 'localhost'
-        port = cls.service_port(9489, 'dird')
-        cls.client = Client(host, port, token=VALID_TOKEN_MULTITENANT, verify_certificate=False)
+        cls.host = 'localhost'
+        cls.port = cls.service_port(9489, 'dird')
+
+    @property
+    def client(self):
+        return self.get_client()
+
+    def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
+        return Client(self.host, self.port, token=token, verify_certificate=False)
 
 
 class TestPost(BaseWazoCRUDTestCase):
@@ -60,7 +67,7 @@ class TestPost(BaseWazoCRUDTestCase):
 
 class TestGet(BaseWazoCRUDTestCase):
 
-    @fixtures.wazo_source(name='foobar', auth={'key_file': '/path/to/key/file'})
+    @fixtures.wazo_source(name='foobar')
     def test_get(self, wazo):
         response = self.client.wazo_source.get(wazo['uuid'])
         assert_that(response, equal_to(wazo))
@@ -75,8 +82,37 @@ class TestGet(BaseWazoCRUDTestCase):
                     error_id='unknown-source',
                     resource='sources',
                     details=has_entries(
-                        tenant_uuid=MAIN_TENANT,
                         uuid=UNKNOWN_UUID,
+                    )
+                )
+            )
+
+    @fixtures.wazo_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.wazo_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
+    def test_get_multi_tenant(self, sub, main):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        response = main_tenant_client.wazo_source.get(main['uuid'])
+        assert_that(response, equal_to(main))
+
+        response = main_tenant_client.wazo_source.get(sub['uuid'])
+        assert_that(response, equal_to(sub))
+
+        response = sub_tenant_client.wazo_source.get(sub['uuid'])
+        assert_that(response, equal_to(sub))
+
+        try:
+            sub_tenant_client.wazo_source.get(main['uuid'])
+        except Exception as e:
+            assert_that(e.response.status_code, equal_to(404))
+            assert_that(
+                e.response.json(),
+                has_entries(
+                    error_id='unknown-source',
+                    resource='sources',
+                    details=has_entries(
+                        uuid=main['uuid'],
                     )
                 )
             )

@@ -46,7 +46,7 @@ class WazoUserView(BaseViewPlugin):
         api.add_resource(
             http.SourceItem,
             '/backends/wazo/sources/<source_uuid>',
-            resource_class_args=(wazo_backend_service,),
+            resource_class_args=(wazo_backend_service, config['auth']),
         )
 
 

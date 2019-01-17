@@ -17,16 +17,16 @@ class SourceCRUD(BaseDAO):
             s.flush()
             return self._from_db_format(source)
 
-    def get(self, tenant_uuid, source_uuid):
+    def get(self, source_uuid, visible_tenants):
         with self.new_session() as s:
             source = s.query(Source).filter(and_(
-                Source.tenant_uuid == tenant_uuid,
+                Source.tenant_uuid.in_(visible_tenants),
                 Source.uuid == source_uuid,
 
             )).first()
 
             if not source:
-                raise NoSuchSource(tenant_uuid, source_uuid)
+                raise NoSuchSource(source_uuid)
 
             return self._from_db_format(source)
 

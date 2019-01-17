@@ -6,11 +6,15 @@ from functools import wraps
 
 
 def wazo_source(**source_args):
+    source_args.setdefault('auth', {'key_file': '/path/to/key/file'})
+    source_args.setdefault('token', 'valid-token-master-tenant')
+
     def decorator(decorated):
 
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
-            source = self.client.wazo_source.create(source_args)
+            client = self.get_client(source_args['token'])
+            source = client.wazo_source.create(source_args)
             try:
                 result = decorated(self, source, *args, **kwargs)
             finally:
