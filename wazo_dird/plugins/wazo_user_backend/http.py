@@ -38,6 +38,13 @@ class SourceItem(BaseSourceResource):
         super().__init__(service)
         self._auth_config = auth_config
 
+    @required_acl('dird.backends.wazo.sources.{source_uuid}.delete')
+    def delete(self, source_uuid):
+        tenant = Tenant.autodetect()
+        visible_tenants = self._get_visible_tenants(tenant.uuid)
+        self._service.delete(source_uuid, visible_tenants)
+        return '', 204
+
     @required_acl('dird.backends.wazo.sources.{source_uuid}.read')
     def get(self, source_uuid):
         tenant = Tenant.autodetect()

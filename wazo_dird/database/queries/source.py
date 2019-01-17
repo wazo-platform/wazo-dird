@@ -17,18 +17,29 @@ class SourceCRUD(BaseDAO):
             s.flush()
             return self._from_db_format(source)
 
-    def get(self, source_uuid, visible_tenants):
+    def delete(self, source_uuid, visible_tenants):
+        filter_ = self._multi_tenant_filter(source_uuid, visible_tenants)
         with self.new_session() as s:
-            source = s.query(Source).filter(and_(
-                Source.tenant_uuid.in_(visible_tenants),
-                Source.uuid == source_uuid,
+            nb_deleted = s.query(Source).filter(filter_).delete(synchronize_session=False)
 
-            )).first()
+        if not nb_deleted:
+            raise NoSuchSource(source_uuid)
+
+    def get(self, source_uuid, visible_tenants):
+        filter_ = self._multi_tenant_filter(source_uuid, visible_tenants)
+        with self.new_session() as s:
+            source = s.query(Source).filter(filter_).first()
 
             if not source:
                 raise NoSuchSource(source_uuid)
 
             return self._from_db_format(source)
+
+    def _multi_tenant_filter(self, source_uuid, visible_tenants):
+        return and_(
+            Source.tenant_uuid.in_(visible_tenants),
+            Source.uuid == source_uuid,
+        )
 
     @staticmethod
     def _to_db_format(

@@ -5,16 +5,20 @@ from uuid import uuid4
 from mock import Mock
 from hamcrest import (
     assert_that,
+    calling,
     contains,
     contains_inanyorder,
     empty,
     equal_to,
     has_entries,
     has_entry,
+    has_properties,
+    not_,
 )
 
 from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
+from xivo_test_helpers.hamcrest.raises import raises
 from wazo_dird_client import Client
 
 from .base_dird_integration_test import (
@@ -55,6 +59,62 @@ class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
         return Client(self.host, self.port, token=token, verify_certificate=False)
 
 
+class TestDelete(BaseWazoCRUDTestCase):
+
+    @fixtures.wazo_source(name='foobar')
+    def test_delete(self, foobar):
+        assert_that(
+            calling(self.client.wazo_source.delete).with_args(foobar['uuid']),
+            not_(raises(Exception)),
+        )
+
+        assert_that(
+            calling(self.client.wazo_source.get).with_args(foobar['uuid']),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+        )
+
+        try:
+            self.client.wazo_source.delete(UNKNOWN_UUID)
+        except Exception as e:
+            assert_that(e.response.status_code, equal_to(404))
+            assert_that(
+                e.response.json(),
+                has_entries(
+                    error_id='unknown-source',
+                    resource='sources',
+                    details=has_entries(
+                        uuid=UNKNOWN_UUID,
+                    )
+                )
+            )
+
+    @fixtures.wazo_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.wazo_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
+    def test_delete_multi_tenant(self, sub, main):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        try:
+            sub_tenant_client.wazo_source.delete(main['uuid'])
+        except Exception as e:
+            assert_that(e.response.status_code, equal_to(404))
+            assert_that(
+                e.response.json(),
+                has_entries(
+                    error_id='unknown-source',
+                    resource='sources',
+                    details=has_entries(
+                        uuid=main['uuid'],
+                    )
+                )
+            )
+
+        assert_that(
+            calling(main_tenant_client.wazo_source.delete).with_args(sub['uuid']),
+            not_(raises(Exception)),
+        )
+
+
 class TestPost(BaseWazoCRUDTestCase):
 
     def test_multi_tenant(self):
@@ -93,13 +153,7 @@ class TestGet(BaseWazoCRUDTestCase):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
-        response = main_tenant_client.wazo_source.get(main['uuid'])
-        assert_that(response, equal_to(main))
-
         response = main_tenant_client.wazo_source.get(sub['uuid'])
-        assert_that(response, equal_to(sub))
-
-        response = sub_tenant_client.wazo_source.get(sub['uuid'])
         assert_that(response, equal_to(sub))
 
         try:
