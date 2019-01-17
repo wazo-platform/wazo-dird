@@ -25,6 +25,10 @@ Changelog
 * A new resource has been added to configure `wazo` backends
 
   * POST `/0.1/backends/wazo/sources`
+  * GET `/0.1/backends/wazo/sources`
+  * GET `/0.1/backends/wazo/sources/<source_uuid>`
+  * DELETE `/0.1/backends/wazo/sources/<source_uuid>`
+  * PUT `/0.1/backends/wazo/sources/<source_uuid>`
 
 
 16.16
