@@ -4,12 +4,10 @@
 import logging
 
 from flask import request
-from requests import HTTPError
 
-from xivo_auth_client import Client as AuthClient
-from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import AuthResource
 from xivo.tenant_flask_helpers import Tenant
+from wazo_dird.auth import required_acl
+from wazo_dird.helpers import BaseSourceResource
 
 from .schemas import (
     list_schema,
@@ -17,30 +15,6 @@ from .schemas import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-class BaseSourceResource(AuthResource):
-
-    def __init__(self, service, auth_config):
-        self._service = service
-        self._auth_config = auth_config
-
-    def _get_visible_tenants(self, tenant):
-        token = request.headers['X-Auth-Token']
-        auth_client = AuthClient(**self._auth_config)
-        auth_client.set_token(token)
-
-        try:
-            visible_tenants = auth_client.tenants.list(tenant_uuid=tenant)['items']
-        except HTTPError as e:
-            response = getattr(e, 'response', None)
-            status_code = getattr(response, 'status_code', None)
-            if status_code == 401:
-                logger.warning('a user is doing multi-tenant queries without the tenant list ACL')
-                return [tenant]
-            raise
-
-        return [tenant['uuid'] for tenant in visible_tenants]
 
 
 class SourceList(BaseSourceResource):
