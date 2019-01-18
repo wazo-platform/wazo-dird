@@ -39,12 +39,12 @@ class WazoUserView(BaseViewPlugin):
         wazo_backend_service = services.WazoBackendService(crud)
 
         api.add_resource(
-            http.SourceList,
+            http.WazoList,
             '/backends/wazo/sources',
             resource_class_args=(wazo_backend_service, config['auth']),
         )
         api.add_resource(
-            http.SourceItem,
+            http.WazoItem,
             '/backends/wazo/sources/<source_uuid>',
             resource_class_args=(wazo_backend_service, config['auth']),
         )

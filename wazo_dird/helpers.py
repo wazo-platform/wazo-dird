@@ -4,6 +4,7 @@
 import logging
 from flask import request
 from requests import HTTPError
+from xivo.tenant_flask_helpers import Tenant
 from xivo_auth_client import Client as AuthClient
 from wazo_dird.rest_api import AuthResource
 
@@ -47,7 +48,7 @@ class BaseService:
         return result
 
 
-class BaseSourceResource(AuthResource):
+class _BaseSourceResource(AuthResource):
 
     def __init__(self, service, auth_config):
         self._service = service
@@ -69,3 +70,52 @@ class BaseSourceResource(AuthResource):
             raise
 
         return [tenant['uuid'] for tenant in visible_tenants]
+
+
+class SourceList(_BaseSourceResource):
+
+    def get(self):
+        list_params, errors = self.list_schema.load(request.args)
+        tenant = Tenant.autodetect()
+        if list_params['recurse']:
+            visible_tenants = self._get_visible_tenants(tenant.uuid)
+        else:
+            visible_tenants = [tenant.uuid]
+
+        backends = self._service.list_(visible_tenants, **list_params)
+        filtered = self._service.count(visible_tenants, **list_params)
+        total = self._service.count(visible_tenants)
+
+        return {
+            'total': total,
+            'filtered': filtered,
+            'items': backends,
+        }
+
+    def post(self):
+        tenant = Tenant.autodetect()
+        args = self.source_schema.load(request.get_json()).data
+        body = self._service.create(tenant_uuid=tenant.uuid, **args)
+        return self.source_schema.dump(body)
+
+
+class SourceItem(_BaseSourceResource):
+
+    def delete(self, source_uuid):
+        tenant = Tenant.autodetect()
+        visible_tenants = self._get_visible_tenants(tenant.uuid)
+        self._service.delete(source_uuid, visible_tenants)
+        return '', 204
+
+    def get(self, source_uuid):
+        tenant = Tenant.autodetect()
+        visible_tenants = self._get_visible_tenants(tenant.uuid)
+        body = self._service.get(source_uuid, visible_tenants)
+        return self.source_schema.dump(body)
+
+    def put(self, source_uuid):
+        tenant = Tenant.autodetect()
+        visible_tenants = self._get_visible_tenants(tenant.uuid)
+        args = self.source_schema.load(request.get_json()).data
+        body = self._service.edit(source_uuid, visible_tenants, args)
+        return self.source_schema.dump(body)
