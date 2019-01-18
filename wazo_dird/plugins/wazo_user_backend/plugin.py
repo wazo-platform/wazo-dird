@@ -10,36 +10,20 @@ from xivo_confd_client import Client as ConfdClient
 
 from wazo_dird import (
     BaseSourcePlugin,
-    BaseViewPlugin,
     make_result_class,
 )
+from wazo_dird.helpers import BaseBackendView
 
 from . import http
 
 logger = logging.getLogger(__name__)
 
 
-class WazoUserView(BaseViewPlugin):
+class WazoUserView(BaseBackendView):
 
     backend = 'wazo'
-
-    def load(self, dependencies):
-        api = dependencies['api']
-        config = dependencies['config']
-        service = dependencies['services']['source']
-
-        args = (self.backend, service, config['auth'])
-
-        api.add_resource(
-            http.WazoList,
-            '/backends/{}/sources'.format(self.backend),
-            resource_class_args=args,
-        )
-        api.add_resource(
-            http.WazoItem,
-            '/backends/{}/sources/<source_uuid>'.format(self.backend),
-            resource_class_args=args,
-        )
+    list_resource = http.WazoList
+    item_resource = http.WazoItem
 
 
 class WazoUserPlugin(BaseSourcePlugin):

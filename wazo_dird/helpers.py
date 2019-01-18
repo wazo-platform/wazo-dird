@@ -6,6 +6,7 @@ from flask import request
 from requests import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 from xivo_auth_client import Client as AuthClient
+from wazo_dird import BaseViewPlugin
 from wazo_dird.rest_api import AuthResource
 
 logger = logging.getLogger()
@@ -120,3 +121,41 @@ class SourceItem(_BaseSourceResource):
         args = self.source_schema.load(request.get_json()).data
         body = self._service.edit(self._backend, source_uuid, visible_tenants, args)
         return self.source_schema.dump(body)
+
+
+class BaseBackendView(BaseViewPlugin):
+
+    _required_members = [
+        'backend',
+        'list_resource',
+        'item_resource',
+    ]
+
+    def __init__(self, *args, **kwargs):
+        members = [getattr(self, name, None) for name in self._required_members]
+        if None in members:
+            msg = '{} should have the following members: {}'.format(
+                self.__class__.__name__,
+                self._required_members,
+            )
+            raise Exception(msg)
+
+        super().__init__(*args, **kwargs)
+
+    def load(self, dependencies):
+        api = dependencies['api']
+        config = dependencies['config']
+        service = dependencies['services']['source']
+
+        args = (self.backend, service, config['auth'])
+
+        api.add_resource(
+            self.list_resource,
+            '/backends/{}/sources'.format(self.backend),
+            resource_class_args=args,
+        )
+        api.add_resource(
+            self.item_resource,
+            '/backends/{}/sources/<source_uuid>'.format(self.backend),
+            resource_class_args=args,
+        )
