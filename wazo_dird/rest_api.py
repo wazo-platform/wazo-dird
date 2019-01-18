@@ -17,6 +17,7 @@ from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
 from xivo.auth_verifier import AuthVerifier
 from xivo import http_helpers
+from xivo import mallow_helpers
 from xivo import rest_api_helpers
 from xivo.http_helpers import ReverseProxied
 
@@ -95,8 +96,19 @@ def handle_api_exception(func):
     return wrapper
 
 
-class ErrorCatchingResource(Resource):
+class LegacyErrorCatchingResource(Resource):
     method_decorators = [handle_api_exception] + Resource.method_decorators
+
+
+class LegacyAuthResource(LegacyErrorCatchingResource):
+    method_decorators = [auth_verifier.verify_token] + LegacyErrorCatchingResource.method_decorators
+
+
+class ErrorCatchingResource(Resource):
+    method_decorators = [
+        mallow_helpers.handle_validation_exception,
+        rest_api_helpers.handle_api_exception,
+    ] + Resource.method_decorators
 
 
 class AuthResource(ErrorCatchingResource):

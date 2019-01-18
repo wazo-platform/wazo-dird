@@ -4,6 +4,11 @@
 from uuid import uuid4
 from sqlalchemy import (Column, ForeignKey, Integer, schema, String, text, Text)
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.postgresql import (
+    ARRAY,
+    HSTORE,
+    JSON,
+)
 
 Base = declarative_base()
 
@@ -38,7 +43,11 @@ class Favorite(Base):
 
     __tablename__ = 'dird_favorite'
 
-    source_id = Column(Integer(), ForeignKey('dird_source.id', ondelete='CASCADE'), primary_key=True)
+    source_uuid = Column(
+        String(36),
+        ForeignKey('dird_source.uuid', ondelete='CASCADE'),
+        primary_key=True,
+    )
     contact_id = Column(Text(), primary_key=True)
     user_uuid = Column(String(38),
                        ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'),
@@ -62,9 +71,17 @@ class Phonebook(Base):
 class Source(Base):
 
     __tablename__ = 'dird_source'
+    __table_args__ = (
+        schema.UniqueConstraint('name', 'tenant_uuid'),
+    )
 
-    id = Column(Integer(), primary_key=True)
-    name = Column(Text(), nullable=False, unique=True)
+    uuid = Column(String(36), server_default=text('uuid_generate_v4()'), primary_key=True)
+    name = Column(Text(), nullable=False)
+    tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
+    searched_columns = Column(ARRAY(Text))
+    first_matched_columns = Column(ARRAY(Text))
+    format_columns = Column(HSTORE)
+    extra_fields = Column(JSON)
 
 
 class Tenant(Base):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import sys
@@ -55,7 +55,7 @@ def main():
     conn = psycopg2.connect(args.dird_db_uri)
     with conn:
         with conn.cursor() as cursor:
-            db_helper.create_db_extensions(cursor, ['uuid-ossp', 'unaccent'])
+            db_helper.create_db_extensions(cursor, ['uuid-ossp', 'unaccent', 'hstore'])
 
 
 if __name__ == '__main__':

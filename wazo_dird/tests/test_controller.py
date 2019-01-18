@@ -77,13 +77,7 @@ class TestController(TestCase):
         controller = Controller(config)
         controller.run()
 
-        self.load_views.assert_called_once_with(
-            config,
-            s.enabled,
-            ANY,
-            self.rest_api,
-            controller.auth_client,
-        )
+        self.load_views.assert_called_once_with(config, s.enabled, ANY, controller.auth_client)
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)

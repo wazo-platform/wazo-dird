@@ -8,23 +8,24 @@ from time import time
 
 from wazo_dird import BaseViewPlugin
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import api
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 
 
 class HeadersViewPlugin(BaseViewPlugin):
 
-    def load(self, args):
-        config = args['config'].get('views', {})
+    def load(self, dependencies):
+        api = dependencies['api']
+        config = dependencies['config'].get('views', {})
+
         displays = make_displays(config)
         Headers.configure(displays)
 
         api.add_resource(Headers, '/directories/lookup/<profile>/headers')
 
 
-class Headers(AuthResource):
+class Headers(LegacyAuthResource):
     displays = None
 
     @classmethod

@@ -10,7 +10,7 @@ from flask_restful import reqparse
 
 from wazo_dird import auth
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class DisabledFavoriteService:
         return []
 
 
-class Lookup(AuthResource):
+class Lookup(LegacyAuthResource):
     displays = None
     lookup_service = None
     favorite_service = DisabledFavoriteService()
@@ -73,7 +73,7 @@ class Lookup(AuthResource):
         return response
 
 
-class Reverse(AuthResource):
+class Reverse(LegacyAuthResource):
     reverse_service = None
 
     @classmethod
@@ -109,7 +109,7 @@ class Reverse(AuthResource):
         return response
 
 
-class FavoritesRead(AuthResource):
+class FavoritesRead(LegacyAuthResource):
     displays = None
     favorites_service = None
 
@@ -136,7 +136,7 @@ class FavoritesRead(AuthResource):
         return formatter.format_results(raw_results)
 
 
-class FavoritesWrite(AuthResource):
+class FavoritesWrite(LegacyAuthResource):
 
     favorites_service = None
 
@@ -174,7 +174,7 @@ class FavoritesWrite(AuthResource):
             return _error(404, str(e))
 
 
-class Personal(AuthResource):
+class Personal(LegacyAuthResource):
 
     displays = None
     personal_service = None

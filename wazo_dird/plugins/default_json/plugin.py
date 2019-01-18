@@ -6,7 +6,6 @@ import logging
 from collections import namedtuple
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import api
 
 from .http import (
     FavoritesRead,
@@ -27,14 +26,15 @@ class JsonViewPlugin(BaseViewPlugin):
     favorites_write_url = '/directories/favorites/<directory>/<contact>'
     personal_url = '/directories/personal/<profile>'
 
-    def load(self, args=None):
-        config = args['config'].get('views', {})
+    def load(self, dependencies):
+        api = dependencies['api']
+        config = dependencies['config'].get('views', {})
         displays = make_displays(config)
 
-        favorite_service = args['services'].get('favorites')
-        lookup_service = args['services'].get('lookup')
-        reverse_service = args['services'].get('reverse')
-        personal_service = args['services'].get('personal')
+        favorite_service = dependencies['services'].get('favorites')
+        lookup_service = dependencies['services'].get('lookup')
+        reverse_service = dependencies['services'].get('reverse')
+        personal_service = dependencies['services'].get('personal')
 
         if lookup_service:
             Lookup.configure(displays=displays,

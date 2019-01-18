@@ -6,7 +6,6 @@ import logging
 from collections import namedtuple
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import api
 
 from .http import Headers
 
@@ -15,8 +14,9 @@ logger = logging.getLogger(__name__)
 
 class HeadersViewPlugin(BaseViewPlugin):
 
-    def load(self, args):
-        config = args['config'].get('views', {})
+    def load(self, dependencies):
+        api = dependencies['api']
+        config = dependencies['config'].get('views', {})
         displays = make_displays(config)
         Headers.configure(displays)
 

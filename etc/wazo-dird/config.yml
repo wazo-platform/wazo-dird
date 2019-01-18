@@ -92,6 +92,7 @@ enabled_plugins:
     yealink_view: true
     gigaset_view: true
     htek_view: true
+    wazo_backend: true
 
 views:
   displays:

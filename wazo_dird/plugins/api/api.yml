@@ -141,6 +141,19 @@ parameters:
       started the contact lookup, e.g. `default`. More precisely, it is the name
       of the "Direct directory" defined in the web interface.
     required: true
+  recurse:
+    name: recurse
+    in: query
+    type: boolean
+    description: Should the query include sub-tenants
+    default: false
+    required: false
+  tenantuuid:
+    name: Wazo-Tenant
+    type: string
+    in: header
+    description: "The tenant's UUID, defining the ownership of a given resource."
+    required: false
   ProxyUrl:
     name: Proxy-URL
     in: header

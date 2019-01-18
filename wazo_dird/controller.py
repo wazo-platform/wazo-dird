@@ -14,7 +14,6 @@ from . import auth
 from . import plugin_manager
 from .bus import Bus
 from .rest_api import CoreRestApi
-
 from .service_discovery import self_check
 
 logger = logging.getLogger(__name__)
@@ -34,13 +33,14 @@ class Controller:
         self.auth_client = AuthClient(**self.config['auth'])
         self.token_renewer = TokenRenewer(self.auth_client)
         self.token_renewer.subscribe_to_token_change(self.auth_client.set_token)
-        self._service_registration_params = ['wazo-dird',
-                                             self.config.get('uuid'),
-                                             self.config.get('consul'),
-                                             self.config.get('service_discovery'),
-                                             self.config.get('bus'),
-                                             partial(self_check,
-                                                     self.config['rest_api']['https']['port'])]
+        self._service_registration_params = [
+            'wazo-dird',
+            self.config.get('uuid'),
+            self.config.get('consul'),
+            self.config.get('service_discovery'),
+            self.config.get('bus'),
+            partial(self_check, self.config['rest_api']['https']['port']),
+        ]
 
     def run(self):
         self.sources = plugin_manager.load_sources(
@@ -49,15 +49,18 @@ class Controller:
             self.auth_client,
             self.token_renewer,
         )
-        self.services = plugin_manager.load_services(self.config,
-                                                     self.config['enabled_plugins']['services'],
-                                                     self.sources,
-                                                     self.bus)
-        plugin_manager.load_views(self.config,
-                                  self.config['enabled_plugins']['views'],
-                                  self.services,
-                                  self.rest_api,
-                                  self.auth_client)
+        self.services = plugin_manager.load_services(
+            self.config,
+            self.config['enabled_plugins']['services'],
+            self.sources,
+            self.bus,
+        )
+        plugin_manager.load_views(
+            self.config,
+            self.config['enabled_plugins']['views'],
+            self.services,
+            self.auth_client,
+        )
 
         signal.signal(signal.SIGTERM, _signal_handler)
         with self.token_renewer:

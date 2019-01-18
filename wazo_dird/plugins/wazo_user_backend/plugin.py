@@ -1,17 +1,53 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 from xivo.config_helper import parse_config_file
 from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 
-from wazo_dird import BaseSourcePlugin
-from wazo_dird import make_result_class
+from wazo_dird import (
+    BaseSourcePlugin,
+    BaseViewPlugin,
+    database,
+    make_result_class,
+)
+
+from . import (
+    http,
+    services,
+)
 
 logger = logging.getLogger(__name__)
+
+
+class WazoUserView(BaseViewPlugin):
+
+    def load(self, dependencies):
+        api = dependencies['api']
+        config = dependencies['config']
+
+        db_uri = config['db_uri']
+        engine = create_engine(db_uri)
+        Session = scoped_session(sessionmaker())
+        Session.configure(bind=engine)
+        crud = database.SourceCRUD(Session)
+        wazo_backend_service = services.WazoBackendService(crud)
+
+        api.add_resource(
+            http.SourceList,
+            '/backends/wazo/sources',
+            resource_class_args=(wazo_backend_service, config['auth']),
+        )
+        api.add_resource(
+            http.SourceItem,
+            '/backends/wazo/sources/<source_uuid>',
+            resource_class_args=(wazo_backend_service, config['auth']),
+        )
 
 
 class WazoUserPlugin(BaseSourcePlugin):
@@ -26,12 +62,13 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._uuid = None
         self._search_params = {'view': 'directory', 'recurse': True}
 
-    def load(self, args):
-        self._searched_columns = args['config'].get(self.SEARCHED_COLUMNS, [])
-        self._first_matched_columns = args['config'].get(self.FIRST_MATCHED_COLUMNS, [])
-        self.name = args['config']['name']
+    def load(self, dependencies):
+        config = dependencies['config']
+        self._searched_columns = config.get(self.SEARCHED_COLUMNS, [])
+        self._first_matched_columns = config.get(self.FIRST_MATCHED_COLUMNS, [])
+        self.name = config['name']
 
-        auth_config = dict(args['config']['auth'])
+        auth_config = dict(config['auth'])
         if auth_config.get('key_file'):
             # File must be readable by wazo-dird
             key_file = parse_config_file(auth_config.pop('key_file'))
@@ -40,20 +77,20 @@ class WazoUserPlugin(BaseSourcePlugin):
         auth_client = self._AuthClientClass(**auth_config)
         self._token_renewer = TokenRenewer(auth_client)
 
-        confd_config = args['config']['confd']
+        confd_config = config['confd']
         logger.debug('confd config %s', confd_config)
         self._client = self._ConfdClientClass(**confd_config)
 
         self._SourceResult = make_result_class(
             self.name, 'id',
-            format_columns=args['config'].get(self.FORMAT_COLUMNS))
+            format_columns=config.get(self.FORMAT_COLUMNS))
 
-        self._search_params.update(args['config'].get('extra_search_params', {}))
+        self._search_params.update(config.get('extra_search_params', {}))
 
         self._token_renewer.subscribe_to_token_change(self._on_new_token)
         self._token_renewer.start()
 
-        logger.info('XiVO %s successfully loaded', args['config']['name'])
+        logger.info('Wazo %s successfully loaded', config['name'])
 
     def unload(self):
         token_renewer = getattr(self, '_token_renewer', None)

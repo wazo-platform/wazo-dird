@@ -53,7 +53,12 @@ class TestSourceManager(unittest.TestCase):
             'xivo_phonebook': True,
         }
 
-        manager = SourceManager(enabled_backends, {'sources': {}}, s.auth_client, s.token_renewer)
+        manager = SourceManager(
+            enabled_backends,
+            {'sources': {}},
+            s.auth_client,
+            s.token_renewer,
+        )
         manager._sources = s.sources
 
         result = manager.load_sources()
@@ -81,7 +86,6 @@ class TestSourceManager(unittest.TestCase):
                 'token_renewer': s.token_renewer,
             },
         )
-        assert_that(source2.name, equal_to('source2'))
         source2.load.assert_called_once_with(
             {
                 'config': config2,

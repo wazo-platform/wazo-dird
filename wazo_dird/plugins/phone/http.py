@@ -12,7 +12,7 @@ from time import time
 
 from wazo_dird.auth import required_acl
 from wazo_dird.exception import ProfileNotFoundError
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ def _error(code, msg):
             'status_code': code}, code
 
 
-class PhoneMenu(AuthResource):
+class PhoneMenu(LegacyAuthResource):
 
     def __init__(self, template, content_type):
         self.template = template
@@ -40,7 +40,7 @@ class PhoneMenu(AuthResource):
         return Response(response_xml, content_type=self.content_type, status=200)
 
 
-class PhoneInput(AuthResource):
+class PhoneInput(LegacyAuthResource):
 
     def __init__(self, template, content_type):
         self.template = template
@@ -57,7 +57,7 @@ class PhoneInput(AuthResource):
         return Response(response_xml, content_type=self.content_type, status=200)
 
 
-class PhoneLookup(AuthResource):
+class PhoneLookup(LegacyAuthResource):
 
     def __init__(self, template, content_type, phone_lookup_service, max_item_per_page=None):
         self.template = template

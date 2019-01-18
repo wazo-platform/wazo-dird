@@ -13,7 +13,7 @@ from time import time
 
 from wazo_dird import auth
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ parser = reqparse.RequestParser()
 parser.add_argument('format', type=str, required=False, location='args')
 
 
-class PersonalAll(AuthResource):
+class PersonalAll(LegacyAuthResource):
 
     personal_service = None
 
@@ -108,7 +108,7 @@ class PersonalAll(AuthResource):
         return {'items': contacts}, 200
 
 
-class PersonalOne(AuthResource):
+class PersonalOne(LegacyAuthResource):
 
     personal_service = None
 
@@ -177,7 +177,7 @@ class PersonalOne(AuthResource):
             return error, 404
 
 
-class PersonalImport(AuthResource):
+class PersonalImport(LegacyAuthResource):
 
     personal_service = None
 

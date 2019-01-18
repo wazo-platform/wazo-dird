@@ -5,7 +5,6 @@ import logging
 import re
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import api
 
 from .http import (
     PersonalAll,
@@ -24,8 +23,9 @@ class PersonalViewPlugin(BaseViewPlugin):
     personal_one_url = '/personal/<contact_id>'
     personal_import_url = '/personal/import'
 
-    def load(self, args=None):
-        personal_service = args['services'].get('personal')
+    def load(self, dependencies):
+        api = dependencies['api']
+        personal_service = dependencies['services'].get('personal')
         if personal_service:
             PersonalAll.configure(personal_service)
             PersonalOne.configure(personal_service)

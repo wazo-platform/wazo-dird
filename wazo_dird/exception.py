@@ -1,6 +1,8 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from xivo.rest_api_helpers import APIException
+
 
 class DatabaseServiceUnavailable(Exception):
 
@@ -29,6 +31,16 @@ class NoSuchContact(ValueError):
         super().__init__(message)
 
 
+class NoSuchSource(APIException):
+
+    def __init__(self, source_uuid):
+        msg = 'No such source: "{}"'.format(source_uuid)
+        details = {
+            'uuid': source_uuid,
+        }
+        super().__init__(404, msg, 'unknown-source', details, 'sources')
+
+
 class NoSuchTenant(ValueError):
 
     def __init__(self, tenant_name):
@@ -55,6 +67,14 @@ class DuplicatedPhonebookException(Exception):
 
     def __init__(self):
         super().__init__(self._msg)
+
+
+class DuplicatedSourceException(APIException):
+
+    def __init__(self, name):
+        msg = 'The name "{}" is already used'.format(name)
+        details = {'name': {'constraint_id': 'unique', 'message': msg}}
+        super().__init__(409, 'Conflict detected', 'conflict', details, 'sources')
 
 
 class ProfileNotFoundError(Exception):

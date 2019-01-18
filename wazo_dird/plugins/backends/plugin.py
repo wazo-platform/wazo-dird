@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import api
 
 from . import http
 from . import service
@@ -10,8 +9,10 @@ from . import service
 
 class BackendsViewPlugin(BaseViewPlugin):
 
-    def load(self, args):
-        backend_service = service.BackendService(args['config'])
+    def load(self, dependencies):
+        api = dependencies['api']
+        backend_service = service.BackendService(dependencies['config'])
+
         api.add_resource(
             http.Backends,
             '/backends',

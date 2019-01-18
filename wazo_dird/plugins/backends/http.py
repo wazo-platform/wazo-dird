@@ -4,12 +4,12 @@
 from flask import request
 
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.rest_api import LegacyAuthResource
 
 from .schemas import ListSchema
 
 
-class Backends(AuthResource):
+class Backends(LegacyAuthResource):
 
     def __init__(self, service):
         self._service = service

@@ -4,7 +4,7 @@
 import unittest
 
 from hamcrest import assert_that, equal_to, has_entries
-from mock import ANY, Mock, patch
+from mock import ANY, Mock
 
 from wazo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 from ..headers_view import DisplayColumn, Headers, HeadersViewPlugin, format_headers, make_displays
@@ -12,19 +12,24 @@ from ..headers_view import DisplayColumn, Headers, HeadersViewPlugin, format_hea
 
 class TestHeadersView(BaseHTTPViewTestCase):
 
+    def setUp(self):
+        super().setUp()
+        self.api = Mock()
+
     def tearDown(self):
         Headers.configure(displays=None)
 
-    @patch('wazo_dird.plugins.headers.headers_view.api.add_resource')
-    def test_that_load_add_the_route(self, add_resource):
+    def test_that_load_add_the_route(self):
         http_namespace = Mock()
-        args = {'http_namespace': http_namespace,
-                'rest_api': Mock(),
-                'config': {}}
+        args = {
+            'http_namespace': http_namespace,
+            'api': self.api,
+            'config': {},
+        }
 
         HeadersViewPlugin().load(args)
 
-        add_resource.assert_called_once_with(ANY, '/directories/lookup/<profile>/headers')
+        self.api.add_resource.assert_called_once_with(ANY, '/directories/lookup/<profile>/headers')
 
     def test_result(self):
         config = {'displays': {'display_1': [{'title': 'Firstname',
