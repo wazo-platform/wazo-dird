@@ -68,6 +68,7 @@ setup(
             'phonebook = wazo_dird.plugins.phonebook_service.plugin:PhonebookServicePlugin',
             'reverse = wazo_dird.plugins.reverse_service.plugin:ReverseServicePlugin',
             'service_discovery = wazo_dird.plugins.service_discovery_service.plugin:ServiceDiscoveryServicePlugin',
+            'source = wazo_dird.plugins.source_service.plugin:SourceServicePlugin',
         ],
         'wazo_dird.backends': [
             'csv = wazo_dird.plugins.csv_backend.plugin:CSVPlugin',

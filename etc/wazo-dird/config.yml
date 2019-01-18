@@ -76,6 +76,7 @@ enabled_plugins:
     reverse: true
     phonebook: true
     cleanup: true
+    source: true
   views:
     api_view: true
     backends_view: true

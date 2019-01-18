@@ -1,15 +1,34 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import logging
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
-logger = logging.getLogger(__name__)
+from wazo_dird import (
+    BaseServicePlugin,
+    database,
+)
 
 
-class WazoBackendService:
+class SourceServicePlugin(BaseServicePlugin):
 
-    def __init__(self, source_crud):
-        self._source_crud = source_crud
+    def load(self, dependencies):
+        self._config = dependencies['config']
+        db_uri = self._config['db_uri']
+        Session = self._new_db_session(db_uri)
+        return _SourceService(database.SourceCRUD(Session))
+
+    def _new_db_session(self, db_uri):
+        self._Session = scoped_session(sessionmaker())
+        engine = create_engine(db_uri)
+        self._Session.configure(bind=engine)
+        return self._Session
+
+
+class _SourceService:
+
+    def __init__(self, crud):
+        self._source_crud = crud
 
     def count(self, visible_tenants, **list_params):
         return self._source_crud.count(visible_tenants, **list_params)
