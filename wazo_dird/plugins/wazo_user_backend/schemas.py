@@ -4,8 +4,6 @@
 from marshmallow import (
     compat,
     exceptions,
-    Schema,
-    pre_load,
     utils,
     validates_schema,
 )
@@ -13,20 +11,12 @@ from xivo.mallow import fields
 from xivo.mallow.validate import (
     Length,
     Range,
-    validate_string_dict,
 )
 from xivo.mallow_helpers import ListSchema as _ListSchema
-
-
-class _BaseSchema(Schema):
-
-    class Meta:
-        ordered = True
-        strict = True
-
-    @pre_load
-    def ensude_dict(self, data):
-        return data or {}
+from wazo_dird.schemas import (
+    BaseSchema,
+    BaseSourceSchema,
+)
 
 
 class _VerifyCertificateField(fields.Field):
@@ -47,7 +37,7 @@ class _VerifyCertificateField(fields.Field):
             self.fail('invalid_utf8')
 
 
-class _ConfdConfigSchema(_BaseSchema):
+class _ConfdConfigSchema(BaseSchema):
     host = fields.String(validate=Length(min=1, max=1024), missing='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), missing=9486)
     verify_certificate = _VerifyCertificateField(missing=True)
@@ -56,7 +46,7 @@ class _ConfdConfigSchema(_BaseSchema):
     version = fields.String(validate=Length(min=1, max=16), missing='1.1')
 
 
-class _AuthConfigSchema(_BaseSchema):
+class _AuthConfigSchema(BaseSchema):
     host = fields.String(validate=Length(min=1, max=1024), missing='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), missing=9497)
     key_file = fields.String(validate=Length(min=1, max=1024), allow_none=True)
@@ -84,13 +74,7 @@ class _AuthConfigSchema(_BaseSchema):
         )
 
 
-class SourceSchema(_BaseSchema):
-    uuid = fields.UUID(dump_only=True)
-    tenant_uuid = fields.UUID(dump_only=True)
-    name = fields.String(validate=Length(min=1, max=512))
-    first_matched_columns = fields.List(fields.String(validate=Length(min=1, max=128)), missing=[])
-    searched_columns = fields.List(fields.String(validate=Length(min=1, max=128)), missing=[])
-    format_columns = fields.Dict(validate=validate_string_dict, missing={})
+class SourceSchema(BaseSourceSchema):
     auth = fields.Nested(_AuthConfigSchema, missing={})
     confd = fields.Nested(_ConfdConfigSchema, missing={})
 
