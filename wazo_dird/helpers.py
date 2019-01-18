@@ -50,9 +50,10 @@ class BaseService:
 
 class _BaseSourceResource(AuthResource):
 
-    def __init__(self, service, auth_config):
+    def __init__(self, backend, service, auth_config):
         self._service = service
         self._auth_config = auth_config
+        self._backend = backend
 
     def _get_visible_tenants(self, tenant):
         token = request.headers['X-Auth-Token']
@@ -82,9 +83,9 @@ class SourceList(_BaseSourceResource):
         else:
             visible_tenants = [tenant.uuid]
 
-        backends = self._service.list_(visible_tenants, **list_params)
-        filtered = self._service.count(visible_tenants, **list_params)
-        total = self._service.count(visible_tenants)
+        backends = self._service.list_(self._backend, visible_tenants, **list_params)
+        filtered = self._service.count(self._backend, visible_tenants, **list_params)
+        total = self._service.count(self._backend, visible_tenants)
 
         return {
             'total': total,
@@ -95,7 +96,7 @@ class SourceList(_BaseSourceResource):
     def post(self):
         tenant = Tenant.autodetect()
         args = self.source_schema.load(request.get_json()).data
-        body = self._service.create(tenant_uuid=tenant.uuid, **args)
+        body = self._service.create(self._backend, tenant_uuid=tenant.uuid, **args)
         return self.source_schema.dump(body)
 
 
@@ -104,18 +105,18 @@ class SourceItem(_BaseSourceResource):
     def delete(self, source_uuid):
         tenant = Tenant.autodetect()
         visible_tenants = self._get_visible_tenants(tenant.uuid)
-        self._service.delete(source_uuid, visible_tenants)
+        self._service.delete(self._backend, source_uuid, visible_tenants)
         return '', 204
 
     def get(self, source_uuid):
         tenant = Tenant.autodetect()
         visible_tenants = self._get_visible_tenants(tenant.uuid)
-        body = self._service.get(source_uuid, visible_tenants)
+        body = self._service.get(self._backend, source_uuid, visible_tenants)
         return self.source_schema.dump(body)
 
     def put(self, source_uuid):
         tenant = Tenant.autodetect()
         visible_tenants = self._get_visible_tenants(tenant.uuid)
         args = self.source_schema.load(request.get_json()).data
-        body = self._service.edit(source_uuid, visible_tenants, args)
+        body = self._service.edit(self._backend, source_uuid, visible_tenants, args)
         return self.source_schema.dump(body)

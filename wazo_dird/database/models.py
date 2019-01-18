@@ -82,6 +82,7 @@ class Source(Base):
     first_matched_columns = Column(ARRAY(Text))
     format_columns = Column(HSTORE)
     extra_fields = Column(JSON)
+    backend = Column(Text(), nullable=False)
 
 
 class Tenant(Base):

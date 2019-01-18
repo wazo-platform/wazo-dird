@@ -17,22 +17,22 @@ class SourceCRUD(BaseDAO):
 
     _UNIQUE_CONSTRAINT_CODE = '23505'
 
-    def count(self, visible_tenants, **list_params):
-        filter_ = self._list_filter(visible_tenants, **list_params)
+    def count(self, backend, visible_tenants, **list_params):
+        filter_ = self._list_filter(backend, visible_tenants, **list_params)
         with self.new_session() as s:
             return s.query(Source).filter(filter_).count()
 
-    def list_(self, visible_tenants, **list_params):
-        filter_ = self._list_filter(visible_tenants, **list_params)
+    def list_(self, backend, visible_tenants, **list_params):
+        filter_ = self._list_filter(backend, visible_tenants, **list_params)
         with self.new_session() as s:
             query = s.query(Source).filter(filter_)
             query = self._paginate(query, **list_params)
             return [self._from_db_format(row) for row in query.all()]
 
-    def create(self, source_body):
+    def create(self, backend, source_body):
         with self.new_session() as s:
             self._create_tenant(s, source_body['tenant_uuid'])
-            source = self._to_db_format(**source_body)
+            source = self._to_db_format(backend, **source_body)
             s.add(source)
             try:
                 s.flush()
@@ -43,16 +43,16 @@ class SourceCRUD(BaseDAO):
 
             return self._from_db_format(source)
 
-    def delete(self, source_uuid, visible_tenants):
-        filter_ = self._multi_tenant_filter(source_uuid, visible_tenants)
+    def delete(self, backend, source_uuid, visible_tenants):
+        filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
             nb_deleted = s.query(Source).filter(filter_).delete(synchronize_session=False)
 
         if not nb_deleted:
             raise NoSuchSource(source_uuid)
 
-    def edit(self, source_uuid, visible_tenants, body):
-        filter_ = self._multi_tenant_filter(source_uuid, visible_tenants)
+    def edit(self, backend, source_uuid, visible_tenants, body):
+        filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
             source = s.query(Source).filter(filter_).first()
 
@@ -67,8 +67,8 @@ class SourceCRUD(BaseDAO):
                     raise DuplicatedSourceException(body['name'])
                 raise
 
-    def get(self, source_uuid, visible_tenants):
-        filter_ = self._multi_tenant_filter(source_uuid, visible_tenants)
+    def get(self, backend, source_uuid, visible_tenants):
+        filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
             source = s.query(Source).filter(filter_).first()
 
@@ -77,8 +77,11 @@ class SourceCRUD(BaseDAO):
 
             return self._from_db_format(source)
 
-    def _list_filter(self, visible_tenants, uuid=None, name=None, search=None, **list_params):
-        filter_ = Source.tenant_uuid.in_(visible_tenants)
+    def _list_filter(self, backend, visible_tenants, uuid=None, name=None, search=None, **list_params):
+        filter_ = and_(
+            Source.tenant_uuid.in_(visible_tenants),
+            Source.backend == backend,
+        )
         if uuid is not None:
             filter_ = and_(filter_, Source.uuid == uuid)
         if name is not None:
@@ -89,8 +92,9 @@ class SourceCRUD(BaseDAO):
 
         return filter_
 
-    def _multi_tenant_filter(self, source_uuid, visible_tenants):
+    def _multi_tenant_filter(self, backend, source_uuid, visible_tenants):
         return and_(
+            Source.backend == backend,
             Source.tenant_uuid.in_(visible_tenants),
             Source.uuid == source_uuid,
         )
@@ -113,8 +117,8 @@ class SourceCRUD(BaseDAO):
 
         return query
 
-    def _to_db_format(self, tenant_uuid, *args, **kwargs):
-        source = Source(tenant_uuid=tenant_uuid)
+    def _to_db_format(self, backend, tenant_uuid, *args, **kwargs):
+        source = Source(backend=backend, tenant_uuid=tenant_uuid)
         return self._update_to_db_format(source, *args, **kwargs)
 
     @staticmethod

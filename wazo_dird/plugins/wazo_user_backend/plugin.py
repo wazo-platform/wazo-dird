@@ -21,20 +21,24 @@ logger = logging.getLogger(__name__)
 
 class WazoUserView(BaseViewPlugin):
 
+    backend = 'wazo'
+
     def load(self, dependencies):
         api = dependencies['api']
         config = dependencies['config']
         service = dependencies['services']['source']
 
+        args = (self.backend, service, config['auth'])
+
         api.add_resource(
             http.WazoList,
-            '/backends/wazo/sources',
-            resource_class_args=(service, config['auth']),
+            '/backends/{}/sources'.format(self.backend),
+            resource_class_args=args,
         )
         api.add_resource(
             http.WazoItem,
-            '/backends/wazo/sources/<source_uuid>',
-            resource_class_args=(service, config['auth']),
+            '/backends/{}/sources/<source_uuid>'.format(self.backend),
+            resource_class_args=args,
         )
 
 
