@@ -93,6 +93,5 @@ class SourceItem(BaseSourceResource):
         tenant = Tenant.autodetect()
         visible_tenants = self._get_visible_tenants(tenant.uuid)
         args = source_schema.load(request.get_json()).data
-        logger.critical('%s', args)
         body = self._service.edit(source_uuid, visible_tenants, args)
         return source_schema.dump(body)
