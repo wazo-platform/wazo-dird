@@ -72,4 +72,5 @@ class ListSchema(_ListSchema):
 
 
 source_schema = SourceSchema()
+source_list_schema = SourceSchema(many=True)
 list_schema = ListSchema()

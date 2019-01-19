@@ -16,6 +16,7 @@ enabled_plugins:
     source: true
   views:
     backends_view: true
+    csv_ws_backend: true
     default_json: true
     headers_view: true
     personal_view: true

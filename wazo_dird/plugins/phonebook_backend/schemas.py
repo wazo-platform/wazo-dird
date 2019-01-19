@@ -22,5 +22,6 @@ class ListSchema(_ListSchema):
     recurse = fields.Boolean(missing=False)
 
 
+source_list_schema = SourceSchema(many=True)
 source_schema = SourceSchema()
 list_schema = ListSchema()
