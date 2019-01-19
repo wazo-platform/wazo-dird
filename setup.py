@@ -87,6 +87,7 @@ setup(
             'headers_view = wazo_dird.plugins.headers.plugin:HeadersViewPlugin',
             'personal_view = wazo_dird.plugins.personal.plugin:PersonalViewPlugin',
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
+            'phonebook_backend = wazo_dird.plugins.phonebook_backend.plugin:PhonebookView',
             'tenant_migration = wazo_dird.plugins.phonebook_tenant_modifier.plugin:PhonebookTenantMoverPlugin',
             'aastra_view = wazo_dird.plugins.aastra.plugin:AastraViewPlugin',
             'cisco_view = wazo_dird.plugins.cisco.plugin:CiscoViewPlugin',
