@@ -55,6 +55,31 @@ def csv_ws_source(**source_args):
     return decorator
 
 
+def personal_source(**source_args):
+    source_args.setdefault('db_uri', 'postgresql')
+    source_args.setdefault('token', 'valid-token-master-tenant')
+
+    def decorator(decorated):
+
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            client = self.get_client(source_args['token'])
+            source = client.personal_source.create(source_args)
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.client.personal_source.delete(source['uuid'])
+                except requests.HTTPError as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+        return wrapper
+    return decorator
+
+
 def phonebook_source(**source_args):
     source_args.setdefault('db_uri', 'postgresql')
     source_args.setdefault('token', 'valid-token-master-tenant')

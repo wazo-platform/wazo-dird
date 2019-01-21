@@ -23,6 +23,7 @@ enabled_plugins:
     personal_view: true
     cisco_view: true
     wazo_backend: true
+    personal_backend: true
     phonebook_backend: true
 
 views:

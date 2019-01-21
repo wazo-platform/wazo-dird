@@ -95,6 +95,7 @@ setup(
             'cisco_view = wazo_dird.plugins.cisco.plugin:CiscoViewPlugin',
             'gigaset_view = wazo_dird.plugins.gigaset.plugin:GigasetViewPlugin',
             'htek_view = wazo_dird.plugins.htek.plugin:HtekViewPlugin',
+            'personal_backend = wazo_dird.plugins.personal_backend.plugin:PersonalView',
             'polycom_view = wazo_dird.plugins.polycom.plugin:PolycomViewPlugin',
             'snom_view = wazo_dird.plugins.snom.plugin:SnomViewPlugin',
             'thomson_view = wazo_dird.plugins.thomson.plugin:ThomsonViewPlugin',
