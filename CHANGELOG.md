@@ -30,6 +30,14 @@ Changelog
   * DELETE `/0.1/backends/csv_ws/sources/<source_uuid>`
   * PUT `/0.1/backends/csv_ws/sources/<source_uuid>`
 
+* A new resource has been added to configure `csv` backends
+
+  * POST `/0.1/backends/csv/sources`
+  * GET `/0.1/backends/csv/sources`
+  * GET `/0.1/backends/csv/sources/<source_uuid>`
+  * DELETE `/0.1/backends/csv/sources/<source_uuid>`
+  * PUT `/0.1/backends/csv/sources/<source_uuid>`
+
 * A new resource has been added to configure `phonebook` backends
 
   * POST `/0.1/backends/phonebook/sources`

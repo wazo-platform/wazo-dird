@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import csv
@@ -7,8 +7,18 @@ import logging
 from functools import partial
 from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
+from wazo_dird.helpers import BaseBackendView
+
+from . import http
 
 logger = logging.getLogger(__name__)
+
+
+class CSVView(BaseBackendView):
+
+    backend = 'csv'
+    list_resource = http.CSVList
+    item_resource = http.CSVItem
 
 
 class CSVPlugin(BaseSourcePlugin):
