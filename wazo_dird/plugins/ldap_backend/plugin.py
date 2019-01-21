@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import itertools
@@ -11,8 +11,18 @@ import uuid
 from ldap.filter import escape_filter_chars
 from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
+from wazo_dird.helpers import BaseBackendView
+
+from . import http
 
 logger = logging.getLogger(__name__)
+
+
+class LDAPView(BaseBackendView):
+
+    backend = 'ldap'
+    list_resource = http.LDAPList
+    item_resource = http.LDAPItem
 
 
 class LDAPPlugin(BaseSourcePlugin):

@@ -87,6 +87,7 @@ setup(
             'csv_ws_backend = wazo_dird.plugins.csv_ws_backend.plugin:CSVWSView',
             'default_json = wazo_dird.plugins.default_json.plugin:JsonViewPlugin',
             'headers_view = wazo_dird.plugins.headers.plugin:HeadersViewPlugin',
+            'ldap_backend = wazo_dird.plugins.ldap_backend.plugin:LDAPView',
             'personal_view = wazo_dird.plugins.personal.plugin:PersonalViewPlugin',
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
             'phonebook_backend = wazo_dird.plugins.phonebook_backend.plugin:PhonebookView',
