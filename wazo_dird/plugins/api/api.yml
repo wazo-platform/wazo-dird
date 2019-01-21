@@ -291,6 +291,16 @@ definitions:
       format_columns:
         type: object
         description: A mapping of new fields and a python format string to generate the new columns value
+  SourceItems:
+    properties:
+      total:
+        type: integer
+        description: The number of configured sources for this backend
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of configured sources matching the searched terms for this backend
+        readOnly: true
   PhonebookContact:
     properties:
       id:

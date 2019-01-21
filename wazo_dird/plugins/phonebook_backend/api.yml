@@ -36,7 +36,7 @@ paths:
         '201':
           description: The created source
           schema:
-            $ref: '#/definitions/PhoneSource'
+            $ref: '#/definitions/PhonebookSource'
           examples:
             application/json:
               name: shared
@@ -124,19 +124,12 @@ definitions:
   PhonebookSourceItems:
     title: PhonebookSourceItems
     allOf:
+      - $ref: '#/definitions/SourceItems'
       - properties:
           items:
             type: array
             items:
               $ref: '#/definitions/PhonebookSource'
-            readOnly: true
-          total:
-            type: integer
-            description: The number of configured `phonebook` sources
-            readOnly: true
-          filtered:
-            type: integer
-            description: The number of configured `phonebook` sources matching the searched terms
             readOnly: true
       - required:
           - items

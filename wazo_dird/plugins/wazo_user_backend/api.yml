@@ -127,19 +127,12 @@ definitions:
   WazoSourceItems:
     title: WazoSourceItems
     allOf:
+      - $ref: '#/definitions/SourceItems'
       - properties:
           items:
             type: array
             items:
               $ref: '#/definitions/WazoSource'
-            readOnly: true
-          total:
-            type: integer
-            description: The number of configured `wazo` sources
-            readOnly: true
-          filtered:
-            type: integer
-            description: The number of configured `wazo` sources matching the searched terms
             readOnly: true
       - required:
           - items
