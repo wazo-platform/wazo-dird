@@ -13,6 +13,7 @@ enabled_plugins:
     favorites: true
     personal: true
     reverse: true
+    source: true
   views:
     backends_view: true
     default_json: true
@@ -20,6 +21,7 @@ enabled_plugins:
     personal_view: true
     cisco_view: true
     wazo_backend: true
+    phonebook_backend: true
 
 views:
   displays:

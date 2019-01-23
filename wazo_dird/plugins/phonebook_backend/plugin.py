@@ -10,9 +10,19 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird import database
+from wazo_dird.helpers import BaseBackendView
 from wazo_dird.exception import InvalidConfigError
 
+from . import http
+
 logger = logging.getLogger(__name__)
+
+
+class PhonebookView(BaseBackendView):
+
+    backend = 'phonebook'
+    list_resource = http.PhonebookList
+    item_resource = http.PhonebookItem
 
 
 class PhonebookPlugin(BaseSourcePlugin):

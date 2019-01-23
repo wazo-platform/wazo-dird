@@ -269,6 +269,38 @@ definitions:
         type: string
       source_entry_id:
         type: string
+  Source:
+    properties:
+      uuid:
+        type: string
+        description: The source's UUID
+        readOnly: true
+      name:
+        type: string
+        description: The source's name
+      searched_columns:
+        type: array
+        items:
+          type: string
+          description: A list of columns which should be searched when doing a look up
+      first_matched_columns:
+        type: array
+        items:
+          type: string
+        description: A list of columns which should be searched when doing a reverse look up
+      format_columns:
+        type: object
+        description: A mapping of new fields and a python format string to generate the new columns value
+  SourceItems:
+    properties:
+      total:
+        type: integer
+        description: The number of configured sources for this backend
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of configured sources matching the searched terms for this backend
+        readOnly: true
   PhonebookContact:
     properties:
       id:

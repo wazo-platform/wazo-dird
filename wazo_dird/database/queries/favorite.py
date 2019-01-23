@@ -1,9 +1,7 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from sqlalchemy import (
-    and_,
-)
+from sqlalchemy import and_
 from sqlalchemy.orm.session import make_transient
 
 from wazo_dird.exception import (
@@ -19,10 +17,10 @@ from .base import BaseDAO
 
 class FavoriteCRUD(BaseDAO):
 
-    def create(self, xivo_user_uuid, source_name, contact_id):
+    def create(self, xivo_user_uuid, backend, source_name, contact_id):
         with self.new_session() as s:
             user = self._get_dird_user(s, xivo_user_uuid)
-            source = self._get_source(s, source_name)
+            source = self._get_source(s, backend, source_name)
             favorite = Favorite(source_uuid=source.uuid,
                                 contact_id=contact_id,
                                 user_uuid=user.xivo_user_uuid)
@@ -52,10 +50,14 @@ class FavoriteCRUD(BaseDAO):
             ).join(Source).filter(Favorite.user_uuid == xivo_user_uuid)
             return [(f.name, f.contact_id) for f in favorites.all()]
 
-    def _get_source(self, session, source_name):
-        source = session.query(Source).filter(Source.name == source_name).first()
+    def _get_source(self, session, backend, source_name):
+        source = session.query(Source).filter(and_(
+            Source.name == source_name,
+            Source.backend == backend,
+        )).first()
+
         if not source:
-            source = Source(name=source_name)
+            source = Source(backend=backend, name=source_name)
             session.add(source)
             session.flush()
 

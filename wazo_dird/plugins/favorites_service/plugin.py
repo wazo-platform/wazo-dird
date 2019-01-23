@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -92,6 +92,10 @@ class _FavoritesService(helpers.BaseService):
         self._xivo_uuid = config.get('uuid')
         if not self._xivo_uuid:
             logger.info('loaded without a UUID: published events will be incomplete')
+        source_config = self._config.get('sources', {})
+        self._source_backends = {
+            source['name']: source['type'] for source in source_config.values()
+        }
 
     def _configured_profiles(self):
         return self._config.get('services', {}).get('favorites', {}).keys()
@@ -152,7 +156,8 @@ class _FavoritesService(helpers.BaseService):
         if source not in self._available_sources():
             raise self.NoSuchSourceException(source)
 
-        self._crud.create(xivo_user_uuid, source, contact_id)
+        backend = self._source_backends[source]
+        self._crud.create(xivo_user_uuid, backend, source, contact_id)
         event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
         self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
 

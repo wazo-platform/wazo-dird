@@ -68,6 +68,7 @@ setup(
             'phonebook = wazo_dird.plugins.phonebook_service.plugin:PhonebookServicePlugin',
             'reverse = wazo_dird.plugins.reverse_service.plugin:ReverseServicePlugin',
             'service_discovery = wazo_dird.plugins.service_discovery_service.plugin:ServiceDiscoveryServicePlugin',
+            'source = wazo_dird.plugins.source_service.plugin:SourceServicePlugin',
         ],
         'wazo_dird.backends': [
             'csv = wazo_dird.plugins.csv_backend.plugin:CSVPlugin',
@@ -86,6 +87,7 @@ setup(
             'headers_view = wazo_dird.plugins.headers.plugin:HeadersViewPlugin',
             'personal_view = wazo_dird.plugins.personal.plugin:PersonalViewPlugin',
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
+            'phonebook_backend = wazo_dird.plugins.phonebook_backend.plugin:PhonebookView',
             'tenant_migration = wazo_dird.plugins.phonebook_tenant_modifier.plugin:PhonebookTenantMoverPlugin',
             'aastra_view = wazo_dird.plugins.aastra.plugin:AastraViewPlugin',
             'cisco_view = wazo_dird.plugins.cisco.plugin:CiscoViewPlugin',
