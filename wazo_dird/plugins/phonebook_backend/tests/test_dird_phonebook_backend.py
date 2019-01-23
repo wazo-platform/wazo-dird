@@ -16,6 +16,7 @@ class TestDirdPhonebook(unittest.TestCase):
 
     def setUp(self):
         self.source = PhonebookPlugin()
+        self.source._is_loaded.set()
         self.SourceResult = self.source._SourceResult = make_result_class('test', 'id', {})
         self.engine = self.source._search_engine = Mock()
 
