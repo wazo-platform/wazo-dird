@@ -3,6 +3,7 @@
 
 import logging
 
+from requests.exceptions import ConnectionError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from xivo.config_helper import parse_config_file
@@ -144,14 +145,31 @@ class WazoUserPlugin(BaseSourcePlugin):
     def _fetch_entries(self, term=None):
         try:
             uuid = self._get_uuid()
-        except Exception:
-            logger.exception('Cannot fetch UUID. No results will be returned')
+        except ConnectionError as e:
+            logger.info('%s', e)
+            return []
+        except Exception as e:
+            response = getattr(e, 'response', None)
+            status_code = getattr(response, 'status_code', None)
+            logger.info(
+                'Cannot fetch UUID status_code "%s". No results will be returned',
+                status_code,
+            )
             return []
 
         try:
             entries = self._fetch_users(term)
-        except Exception:
-            logger.exception('Cannot fetch entries. No results will be returned')
+        except ConnectionError as e:
+            logger.info('%s', e)
+            return []
+        except Exception as e:
+            response = getattr(e, 'response', None)
+            status_code = getattr(response, 'status_code', None)
+
+            logger.info(
+                'Cannot fetch entries status_code "%s". No results will be returned',
+                status_code,
+            )
             return []
 
         return (self._source_result_from_entry(entry, uuid)
