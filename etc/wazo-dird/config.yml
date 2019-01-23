@@ -62,39 +62,39 @@ consul:
 
 enabled_plugins:
   backends:
-    personal: true
-    wazo: true
     csv: true
     csv_ws: true
-    ldap: true
     dird_phonebook: true
+    ldap: true
+    personal: true
+    wazo: true
   services:
+    cleanup: true
     config: true
     favorites: true
     lookup: true
     personal: true
-    reverse: true
     phonebook: true
-    cleanup: true
+    reverse: true
     source: true
   views:
+    aastra_view: true
     api_view: true
     backends_view: true
+    cisco_view: true
     config_view: true
     default_json: true
+    gigaset_view: true
     headers_view: true
+    htek_view: true
     personal_view: true
-    phonebook_view: true
     phonebook_backend: true
-    aastra_view: true
-    cisco_view: true
+    phonebook_view: true
     polycom_view: true
     snom_view: true
     thomson_view: true
-    yealink_view: true
-    gigaset_view: true
-    htek_view: true
     wazo_backend: true
+    yealink_view: true
 
 views:
   displays:
