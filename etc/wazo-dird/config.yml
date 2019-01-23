@@ -85,6 +85,7 @@ enabled_plugins:
     headers_view: true
     personal_view: true
     phonebook_view: true
+    phonebook_backend: true
     aastra_view: true
     cisco_view: true
     polycom_view: true
