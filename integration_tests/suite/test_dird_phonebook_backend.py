@@ -84,7 +84,7 @@ class TestPhonebookBackend(unittest.TestCase):
             self.ron,
         ) = contacts
         config = {
-            'name': 'dird_phonebook',
+            'name': 'phonebook',
             'db_uri': DB_URI,
             'tenant': self.tenant,
             'phonebook_id': self.phonebook['id'],
@@ -99,7 +99,7 @@ class TestPhonebookBackend(unittest.TestCase):
             'auth_client': self.auth_client,
             'token_renewer': self.token_renewer,
         }
-        backend = BackendWrapper('dird_phonebook', dependencies)
+        backend = BackendWrapper('phonebook', dependencies)
         backend._source.finish_loading(dependencies)
         return backend
 
@@ -108,7 +108,7 @@ class TestPhonebookBackend(unittest.TestCase):
 
     def test_a_config_without_phonebook_id(self):
         config = {
-            'name': 'dird_phonebook',
+            'name': 'phonebook',
             'db_uri': DB_URI,
             'tenant': self.tenant,
             'phonebook_name': 'hogwarts',

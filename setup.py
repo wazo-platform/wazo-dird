@@ -73,7 +73,7 @@ setup(
         'wazo_dird.backends': [
             'csv = wazo_dird.plugins.csv_backend.plugin:CSVPlugin',
             'csv_ws = wazo_dird.plugins.csv_ws_backend.plugin:CSVWSPlugin',
-            'dird_phonebook = wazo_dird.plugins.phonebook_backend.plugin:PhonebookPlugin',
+            'phonebook = wazo_dird.plugins.phonebook_backend.plugin:PhonebookPlugin',
             'ldap = wazo_dird.plugins.ldap_backend.plugin:LDAPPlugin',
             'personal = wazo_dird.plugins.personal_backend.plugin:PersonalBackend',
             'wazo = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserPlugin',

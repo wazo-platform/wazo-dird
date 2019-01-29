@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
@@ -112,7 +112,7 @@ class TestSourceConfigManager(unittest.TestCase):
             },
             "xivodir": {
                 "name": "xivodir",
-                "type": "dird_phonebook",
+                "type": "phonebook",
             },
             None: {
                 "name": None,
@@ -131,7 +131,7 @@ class TestSourceConfigManager(unittest.TestCase):
         manager = SourceConfigManager(self.source_config)
 
         foobar_config = {'name': 'foobar',
-                         'type': 'dird_phonebook'}
+                         'type': 'phonebook'}
 
         manager.add_source(foobar_config)
 

@@ -6,7 +6,7 @@ enabled_plugins:
     csv: true
     csv_ws: true
     personal: true
-    dird_phonebook: true
+    phonebook: true
     unknown: true
   services:
     lookup: true

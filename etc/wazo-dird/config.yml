@@ -64,7 +64,7 @@ enabled_plugins:
   backends:
     csv: true
     csv_ws: true
-    dird_phonebook: true
+    phonebook: true
     ldap: true
     personal: true
     wazo: true
