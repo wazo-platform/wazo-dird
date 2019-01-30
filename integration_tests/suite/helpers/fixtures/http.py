@@ -5,6 +5,107 @@ import requests
 from functools import wraps
 
 
+def csv_source(**source_args):
+    source_args.setdefault('token', 'valid-token-master-tenant')
+    source_args.setdefault('file', '/tmp/fixture.csv')
+
+    def decorator(decorated):
+
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            client = self.get_client(source_args['token'])
+            source = client.csv_source.create(source_args)
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.client.csv_source.delete(source['uuid'])
+                except requests.HTTPError as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+        return wrapper
+    return decorator
+
+
+def csv_ws_source(**source_args):
+    source_args.setdefault('lookup_url', 'http://example.com/fixture')
+    source_args.setdefault('token', 'valid-token-master-tenant')
+
+    def decorator(decorated):
+
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            client = self.get_client(source_args['token'])
+            source = client.csv_ws_source.create(source_args)
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.client.csv_ws_source.delete(source['uuid'])
+                except requests.HTTPError as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+        return wrapper
+    return decorator
+
+
+def ldap_source(**source_args):
+    source_args.setdefault('token', 'valid-token-master-tenant')
+    source_args.setdefault('ldap_uri', 'ldap://example.org')
+    source_args.setdefault('ldap_base_dn', 'ou=people,dc=example,dc=org')
+
+    def decorator(decorated):
+
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            client = self.get_client(source_args['token'])
+            source = client.ldap_source.create(source_args)
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.client.ldap_source.delete(source['uuid'])
+                except requests.HTTPError as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+        return wrapper
+    return decorator
+
+
+def personal_source(**source_args):
+    source_args.setdefault('db_uri', 'postgresql')
+    source_args.setdefault('token', 'valid-token-master-tenant')
+
+    def decorator(decorated):
+
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            client = self.get_client(source_args['token'])
+            source = client.personal_source.create(source_args)
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.client.personal_source.delete(source['uuid'])
+                except requests.HTTPError as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+        return wrapper
+    return decorator
+
+
 def phonebook_source(**source_args):
     source_args.setdefault('db_uri', 'postgresql')
     source_args.setdefault('token', 'valid-token-master-tenant')

@@ -16,11 +16,15 @@ enabled_plugins:
     source: true
   views:
     backends_view: true
+    csv_backend: true
+    csv_ws_backend: true
     default_json: true
     headers_view: true
+    ldap_backend: true
     personal_view: true
     cisco_view: true
     wazo_backend: true
+    personal_backend: true
     phonebook_backend: true
 
 views:

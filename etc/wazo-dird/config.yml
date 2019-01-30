@@ -83,10 +83,14 @@ enabled_plugins:
     backends_view: true
     cisco_view: true
     config_view: true
+    csv_backend: true
+    csv_ws_backend: true
     default_json: true
     gigaset_view: true
     headers_view: true
     htek_view: true
+    ldap_backend: true
+    personal_backend: true
     personal_view: true
     phonebook_backend: true
     phonebook_view: true

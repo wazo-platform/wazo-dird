@@ -1,0 +1,137 @@
+paths:
+  /backends/personal/sources:
+    get:
+      operationId: list_personal_source
+      summary: Get all `personal` source configurations
+      description: '**Required ACL:** `dird.backends.personal.sources.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+      responses:
+        '200':
+          description: A list of configured `personal` sources
+          schema:
+            $ref: '#/definitions/PersonalSourceItems'
+    post:
+      operationId: create_personal_source
+      summary: Configure a source for the `personal` backend
+      description: '**Required ACL:** `dird.backends.personal.sources.create`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/PersonalSource'
+      responses:
+        '201':
+          description: The created source
+          schema:
+            $ref: '#/definitions/PersonalSource'
+          examples:
+            application/json:
+              name: Personals
+              searched_columns:
+                - firstname
+                - lastname
+              format_columns:
+                displayname: '{firstname} {lastname}'
+              db_uri: postgresql://localhost/dird
+        '400':
+          $ref: '#/responses/CreateError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+  /backends/personal/sources/{source_uuid}:
+    get:
+      operationId: get_a_personal_source
+      summary: Get a `personal` source configuration
+      description: '**Required ACL:** `dird.backends.personal.sources.{source_uuid}.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '200':
+          description: The `personal` source
+          schema:
+            $ref: '#/definitions/PersonalSource'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_personal_source
+      summary: Update a `personal` source configuration
+      description: '**Required ACL:** `dird.backends.personal.sources.{source_uuid}.update`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+        - name: body
+          in: body
+          description: The source configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/PersonalSource'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: delete_personal_source
+      summary: Delete a `personal` source configuration
+      description: '**Required ACL:** `dird.backends.personal.sources.{source_uuid}.delete`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+definitions:
+  PersonalSource:
+    title: PersonalSource
+    allOf:
+      - $ref: '#/definitions/Source'
+      - properties:
+          db_uri:
+            type: string
+            description: The URI of the DB which stores the favorites
+      - required:
+        - name
+        - db_uri
+  PersonalSourceItems:
+    title: PersonalSourceItems
+    allOf:
+      - $ref: '#/definitions/SourceItems'
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/PersonalSource'
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered

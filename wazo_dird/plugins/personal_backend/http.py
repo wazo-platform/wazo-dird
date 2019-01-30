@@ -15,33 +15,33 @@ from .schemas import (
 )
 
 
-class PhonebookList(SourceList):
+class PersonalList(SourceList):
 
     list_schema = list_schema
     source_schema = source_schema
     source_list_schema = source_list_schema
 
-    @required_acl('dird.backends.phonebook.sources.read')
+    @required_acl('dird.backends.personal.sources.read')
     def get(self):
         return super().get()
 
-    @required_acl('dird.backends.phonebook.sources.create')
+    @required_acl('dird.backends.personal.sources.create')
     def post(self):
         return super().post()
 
 
-class PhonebookItem(SourceItem):
+class PersonalItem(SourceItem):
 
     source_schema = source_schema
 
-    @required_acl('dird.backends.phonebook.sources.{source_uuid}.delete')
+    @required_acl('dird.backends.personal.sources.{source_uuid}.delete')
     def delete(self, source_uuid):
         return super().delete(source_uuid)
 
-    @required_acl('dird.backends.phonebook.sources.{source_uuid}.read')
+    @required_acl('dird.backends.personal.sources.{source_uuid}.read')
     def get(self, source_uuid):
         return super().get(source_uuid)
 
-    @required_acl('dird.backends.phonebook.sources.{source_uuid}.update')
+    @required_acl('dird.backends.personal.sources.{source_uuid}.update')
     def put(self, source_uuid):
         return super().put(source_uuid)

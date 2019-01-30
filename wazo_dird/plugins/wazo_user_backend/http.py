@@ -10,6 +10,7 @@ from wazo_dird.helpers import (
 from .schemas import (
     list_schema,
     source_schema,
+    source_list_schema,
 )
 
 
@@ -17,6 +18,7 @@ class WazoList(SourceList):
 
     list_schema = list_schema
     source_schema = source_schema
+    source_list_schema = source_list_schema
 
     @required_acl('dird.backends.wazo.sources.read')
     def get(self):

@@ -1,6 +1,42 @@
 Changelog
 =========
 
+19.03
+-----
+
+* A new resource has been added to configure `csv_ws` backends
+
+  * POST `/0.1/backends/csv_ws/sources`
+  * GET `/0.1/backends/csv_ws/sources`
+  * GET `/0.1/backends/csv_ws/sources/<source_uuid>`
+  * DELETE `/0.1/backends/csv_ws/sources/<source_uuid>`
+  * PUT `/0.1/backends/csv_ws/sources/<source_uuid>`
+
+* A new resource has been added to configure `csv` backends
+
+  * POST `/0.1/backends/csv/sources`
+  * GET `/0.1/backends/csv/sources`
+  * GET `/0.1/backends/csv/sources/<source_uuid>`
+  * DELETE `/0.1/backends/csv/sources/<source_uuid>`
+  * PUT `/0.1/backends/csv/sources/<source_uuid>`
+
+* A new resource has been added to configure `ldap` backends
+
+  * POST `/0.1/backends/ldap/sources`
+  * GET `/0.1/backends/ldap/sources`
+  * GET `/0.1/backends/ldap/sources/<source_uuid>`
+  * DELETE `/0.1/backends/ldap/sources/<source_uuid>`
+  * PUT `/0.1/backends/ldap/sources/<source_uuid>`
+
+* A new resource has been added to configure `personal` backends
+
+  * POST `/0.1/backends/personal/sources`
+  * GET `/0.1/backends/personal/sources`
+  * GET `/0.1/backends/personal/sources/<source_uuid>`
+  * DELETE `/0.1/backends/personal/sources/<source_uuid>`
+  * PUT `/0.1/backends/personal/sources/<source_uuid>`
+
+
 19.02
 -----
 

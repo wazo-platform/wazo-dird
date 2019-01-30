@@ -1,0 +1,145 @@
+paths:
+  /backends/csv/sources:
+    get:
+      operationId: list_csv_source
+      summary: Get all `csv` source configurations
+      description: '**Required ACL:** `dird.backends.csv.sources.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+      responses:
+        '200':
+          description: A list of configured `csv` sources
+          schema:
+            $ref: '#/definitions/CSVSourceItems'
+    post:
+      operationId: create_csv_source
+      summary: Configure a source for the `csv` backend
+      description: '**Required ACL:** `dird.backends.csv.sources.create`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/CSVSource'
+      responses:
+        '201':
+          description: The created source
+          schema:
+            $ref: '#/definitions/CSVSource'
+          examples:
+            application/json:
+              name: Internal
+              searched_columns:
+                - firstname
+                - lastname
+              format_columns:
+                displayname: '{firstname} {lastname}'
+              file: /tmp/directory.csv
+              delimiter: ':'
+              unique_column: 'uuid'
+        '400':
+          $ref: '#/responses/CreateError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+  /backends/csv/sources/{source_uuid}:
+    get:
+      operationId: get_a_csv_source
+      summary: Get a `csv` source configuration
+      description: '**Required ACL:** `dird.backends.csv.sources.{source_uuid}.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '200':
+          description: The `csv` source
+          schema:
+            $ref: '#/definitions/CSVSource'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_csv_source
+      summary: Update a `csv` source configuration
+      description: '**Required ACL:** `dird.backends.csv.sources.{source_uuid}.update`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+        - name: body
+          in: body
+          description: The source configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/CSVSource'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: delete_csv_source
+      summary: Delete a `csv` source configuration
+      description: '**Required ACL:** `dird.backends.csv.sources.{source_uuid}.delete`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+definitions:
+  CSVSource:
+    title: CSVSource
+    allOf:
+      - $ref: '#/definitions/Source'
+      - properties:
+          file:
+            type: string
+            description: The path of the CSV file
+          delimiter:
+            type: string
+            description: The field separator in the CSV
+            default: ','
+          unique_column:
+            type: string
+            description: The column to use for favorites
+      - required:
+        - name
+  CSVSourceItems:
+    title: CSVSourceItems
+    allOf:
+      - $ref: '#/definitions/SourceItems'
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/CSVSource'
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered

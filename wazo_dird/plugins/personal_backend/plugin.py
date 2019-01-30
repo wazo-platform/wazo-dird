@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -9,10 +9,20 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
 from wazo_dird import database
+from wazo_dird.helpers import BaseBackendView
+
+from . import http
 
 logger = logging.getLogger(__name__)
 
 Session = scoped_session(sessionmaker())
+
+
+class PersonalView(BaseBackendView):
+
+    backend = 'personal'
+    list_resource = http.PersonalList
+    item_resource = http.PersonalItem
 
 
 class PersonalBackend(BaseSourcePlugin):

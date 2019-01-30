@@ -84,14 +84,15 @@ class SourceList(_BaseSourceResource):
         else:
             visible_tenants = [tenant.uuid]
 
-        backends = self._service.list_(self._backend, visible_tenants, **list_params)
+        sources = self._service.list_(self._backend, visible_tenants, **list_params)
+        items, errors = self.source_list_schema.dump(sources)
         filtered = self._service.count(self._backend, visible_tenants, **list_params)
         total = self._service.count(self._backend, visible_tenants)
 
         return {
             'total': total,
             'filtered': filtered,
-            'items': backends,
+            'items': items,
         }
 
     def post(self):
@@ -119,8 +120,8 @@ class SourceItem(_BaseSourceResource):
         tenant = Tenant.autodetect()
         visible_tenants = self._get_visible_tenants(tenant.uuid)
         args = self.source_schema.load(request.get_json()).data
-        body = self._service.edit(self._backend, source_uuid, visible_tenants, args)
-        return self.source_schema.dump(body)
+        self._service.edit(self._backend, source_uuid, visible_tenants, args)
+        return '', 204
 
 
 class BaseBackendView(BaseViewPlugin):
