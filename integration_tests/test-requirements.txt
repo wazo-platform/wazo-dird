@@ -6,7 +6,8 @@ babel
 flask-babel
 docker-compose
 pyhamcrest
-pytest
+# pytest 4.2.0 has a bug: https://github.com/pytest-dev/pytest/issues/4700
+pytest!=4.2.0
 python-ldap
 sh
 mock
