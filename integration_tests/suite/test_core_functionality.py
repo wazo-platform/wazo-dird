@@ -250,23 +250,6 @@ class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
                     contains('Alice', 'AAA', '5555555555'))
 
 
-class TestCoreSourceLoadingWithABrokenBackend(BaseDirdIntegrationTest):
-
-    asset = 'broken_backend_config'
-
-    def test_with_a_broken_backend(self):
-        result = self.lookup('lice', 'default')
-
-        expected_results = [{'column_values': ['Alice', 'AAA', '5555555555'],
-                             'source': 'my_csv',
-                             'relations': EMPTY_RELATIONS}]
-
-        assert_that(result['results'],
-                    contains_inanyorder(*expected_results))
-        assert_that(self.service_logs(), contains_string('There is an error with this module: broken'))
-        assert_that(self.service_logs(), contains_string('has no name'))
-
-
 class TestDisplay(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'
