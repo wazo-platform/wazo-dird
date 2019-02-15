@@ -98,7 +98,7 @@ class CSVPlugin(BaseSourcePlugin):
         return self._make_unique(entry) in unique_ids
 
     def _low_case_match_entry(self, term, columns, entry):
-        logger.debug('Looking for %r in %s [%s]', term, entry, columns)
+        logger.debug('Looking for %r in %s %s', term, entry, columns)
         values = (entry[col].lower() for col in columns if col)
         for value in values:
             if term in value:
