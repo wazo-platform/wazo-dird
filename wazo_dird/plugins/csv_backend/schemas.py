@@ -10,6 +10,7 @@ from wazo_dird.schemas import BaseSourceSchema
 class SourceSchema(BaseSourceSchema):
     unique_column = fields.String(Length(min=1, max=128), allownone=True, missing=None)
     file = fields.String(Length(min=1), required=True)
+    separator = fields.String(Length(min=1, max=1), missing=',')
 
 
 class ListSchema(_ListSchema):

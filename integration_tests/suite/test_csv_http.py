@@ -37,6 +37,7 @@ class BaseCSVCRUDTestCase(BaseDirdIntegrationTest):
         'file': '/tmp/foobar.csv',
         'unique_column': 'id',
         'verify_certificate': False,
+        'separator': ';',
     }
 
     @classmethod
@@ -297,6 +298,7 @@ class TestPut(BaseCSVCRUDTestCase):
         self.new_body = {
             'name': 'new',
             'file': '/tmp/foobar.csv',
+            'separator': '|',
             'searched_columns': ['firstname'],
             'first_matched_columns': ['exten'],
             'format_columns': {
@@ -345,6 +347,7 @@ class TestPut(BaseCSVCRUDTestCase):
                 tenant_uuid=foobar['tenant_uuid'],
                 name='new',
                 file='/tmp/foobar.csv',
+                separator='|',
                 searched_columns=['firstname'],
                 first_matched_columns=['exten'],
                 format_columns={'name': '{firstname} {lastname}'},
