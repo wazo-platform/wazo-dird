@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -13,6 +13,7 @@ from hamcrest import (
 
 from .base_dird_integration_test import (
     absolute_file_name,
+    CSVWithMultipleDisplayTestCase,
     BackendWrapper,
 )
 
@@ -25,11 +26,11 @@ class _BaseCSVFileTestCase(unittest.TestCase):
             config = {'config': yaml.load(f)}
         config['config']['file'] = absolute_file_name(self.asset, config['config']['file'][1:])
         self.backend = BackendWrapper('csv', config)
+        super().setUp()
 
 
-class TestCSVBackend(_BaseCSVFileTestCase):
+class TestCSVBackend(_BaseCSVFileTestCase, CSVWithMultipleDisplayTestCase):
 
-    asset = 'csv_with_multiple_displays'
     source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
 
     def setUp(self):
