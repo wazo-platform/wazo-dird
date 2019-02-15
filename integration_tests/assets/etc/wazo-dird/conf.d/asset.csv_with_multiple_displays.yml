@@ -8,6 +8,7 @@ enabled_plugins:
   views:
     default_json: true
     headers_view: true
+    csv_backend: true
 
 views:
   displays:

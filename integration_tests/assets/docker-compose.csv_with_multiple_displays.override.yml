@@ -10,5 +10,4 @@ services:
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.csv_with_multiple_displays.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.csv_with_multiple_displays.my_test_csv.yml:/etc/wazo-dird/sources.d/my_test_csv.yml"
       - "./tmp/data/asset.csv_with_multiple_displays.test.csv:/tmp/data/test.csv"
