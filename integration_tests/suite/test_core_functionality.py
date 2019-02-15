@@ -316,21 +316,6 @@ class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
         assert_that(name, is_not(is_in(sh.docker('ps'))))
 
 
-class TestWithAnotherConfigDir(BaseDirdIntegrationTest):
-
-    asset = 'in_plugins_d'
-
-    def test_that_dird_can_load_source_plugins_in_another_dir(self):
-        result = self.lookup('lice', 'default')
-
-        expected_results = [{'column_values': ['Alice', 'AAA', '5555555555'],
-                             'source': 'my_csv',
-                             'relations': EMPTY_RELATIONS}]
-
-        assert_that(result['results'],
-                    contains_inanyorder(*expected_results))
-
-
 class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
 
     asset = 'sample_backend'
