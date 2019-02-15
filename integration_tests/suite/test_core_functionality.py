@@ -22,6 +22,7 @@ from wazo_dird import database
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
+    CSVWithMultipleDisplayTestCase,
     VALID_TOKEN,
     VALID_UUID,
 )
@@ -250,31 +251,7 @@ class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
                     contains('Alice', 'AAA', '5555555555'))
 
 
-class TestDisplay(BaseDirdIntegrationTest):
-
-    asset = 'csv_with_multiple_displays'
-
-    def setUp(self):
-        super().setUp()
-        my_csv_body = {
-            'name': 'my_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': ",",
-            'unique_column': 'id',
-            'searched_columns': ['fn', 'ln'],
-            'first_matches_columns': ['num'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-                'reverse': '{fn} {ln}'
-            }
-        }
-        self._source_uuid = self.client.csv_source.create(my_csv_body)['uuid']
-
-    def tearDown(self):
-        self.client.csv_source.delete(self._source_uuid)
-        super().tearDown()
+class TestDisplay(CSVWithMultipleDisplayTestCase):
 
     def test_that_the_display_is_really_applied_to_lookup(self):
         result = self.lookup('lice', 'default')
