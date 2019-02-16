@@ -99,27 +99,10 @@ class TestPhonebookBackend(unittest.TestCase):
             'auth_client': self.auth_client,
             'token_renewer': self.token_renewer,
         }
-        backend = BackendWrapper('phonebook', dependencies)
-        backend._source.finish_loading(dependencies)
-        return backend
+        return BackendWrapper('phonebook', dependencies)
 
     def tearDown(self):
         self.phonebook_crud.delete(self.tenant_uuid, self.phonebook['id'])
-
-    def test_a_config_without_phonebook_id(self):
-        config = {
-            'name': 'phonebook',
-            'db_uri': DB_URI,
-            'tenant': self.tenant,
-            'phonebook_name': 'hogwarts',
-            'searched_columns': ['firstname', 'lastname'],
-            'first_matched_columns': ['number'],
-        }
-        backend = self._load_backend(config)
-
-        result = backend.search('grid')
-
-        assert_that(result, contains(self.hagrid))
 
     def test_that_searching_for_grid_returns_agrid(self):
         result = self.backend.search('grid')
