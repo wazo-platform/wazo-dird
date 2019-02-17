@@ -13,6 +13,7 @@ enabled_plugins:
     yealink_view: true
     gigaset_view: true
     htek_view: true
+    csv_backend: true
 
 views:
   displays:
