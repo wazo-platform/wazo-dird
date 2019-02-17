@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from xml.dom.minidom import parseString as parse_xml
@@ -17,6 +17,36 @@ from .base_dird_integration_test import (
 class TestPhone(BaseDirdIntegrationTest):
 
     asset = 'phone'
+
+    def setUp(self):
+        super().setUp()
+        test_sorted_body = {
+            'name': 'test_sorted',
+            'file': '/tmp/data/test_sorted.csv',
+            'searched_columns': ['fn'],
+            'format_columns': {
+                'display_name': "{fn}",
+                'phone': "{num}",
+            },
+        }
+        test_fallback_body = {
+            'name': 'test_fallback',
+            'file': '/tmp/data/test_fallback.csv',
+            'searched_columns': ['fn', 'fn1'],
+            'format_columns': {
+                'display_name': "{fn}",
+                'display_name1': "{fn1}",
+                'phone': "{num}",
+                'phone1': "{num1}",
+            },
+        }
+        self.sorted_uuid = self.client.csv_source.create(test_sorted_body)['uuid']
+        self.fallback_uuid = self.client.csv_source.create(test_fallback_body)['uuid']
+
+    def tearDown(self):
+        for uuid in [self.sorted_uuid, self.fallback_uuid]:
+            self.client.csv_source.delete(uuid)
+        super().tearDown()
 
     def test_no_fallback_no_multiple_results(self):
         xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Ali', token=VALID_TOKEN)

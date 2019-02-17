@@ -1,8 +1,0 @@
-type: csv
-name: test_sorted
-file: /tmp/data/test_sorted.csv
-searched_columns:
-    - fn
-format_columns:
-    display_name: "{fn}"
-    phone: "{num}"

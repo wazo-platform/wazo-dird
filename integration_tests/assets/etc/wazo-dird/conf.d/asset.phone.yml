@@ -5,6 +5,7 @@ enabled_plugins:
     lookup: true
   views:
     cisco_view: true
+    csv_backend: true
 
 views:
   displays_phone:
