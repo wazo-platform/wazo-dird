@@ -87,7 +87,12 @@ class TestTenantMigration(BasePhonebookTestCase):
         assert_that(
             self.list_phonebooks(tenants[0]['name']).json(),
             has_entries(
-                items=contains(phonebook_0),
+                items=contains(has_entries(
+                    id=phonebook_0['id'],
+                    tenant_uuid=tenants[0]['new_uuid'],
+                    name=phonebook_0['name'],
+                    description=phonebook_0['description'],
+                )),
                 total=1,
             )
         )
@@ -96,7 +101,12 @@ class TestTenantMigration(BasePhonebookTestCase):
         assert_that(
             self.list_phonebooks(tenants[1]['name']).json(),
             has_entries(
-                items=contains(phonebook_1),
+                items=contains(has_entries(
+                    id=phonebook_1['id'],
+                    tenant_uuid=tenants[1]['new_uuid'],
+                    name=phonebook_1['name'],
+                    description=phonebook_1['description'],
+                )),
                 total=1,
             )
         )
@@ -105,7 +115,12 @@ class TestTenantMigration(BasePhonebookTestCase):
         assert_that(
             self.list_phonebooks(tenants[2]['name']).json(),
             has_entries(
-                items=contains(phonebook_2),
+                items=contains(has_entries(
+                    id=phonebook_2['id'],
+                    tenant_uuid=tenants[2]['new_uuid'],
+                    name=phonebook_2['name'],
+                    description=phonebook_2['description'],
+                )),
                 total=1,
             )
         )

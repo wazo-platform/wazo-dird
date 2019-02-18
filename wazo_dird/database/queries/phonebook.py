@@ -320,4 +320,5 @@ class PhonebookCRUD(BaseDAO):
             'id': phonebook.id,
             'name': phonebook.name,
             'description': phonebook.description,
+            'tenant_uuid': phonebook.tenant_uuid,
         }

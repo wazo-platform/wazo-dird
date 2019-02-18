@@ -218,14 +218,14 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
 
     def test_that_create_creates_a_phonebook_and_a_tenant(self):
         tenant = 'default'
-        body = {'name': 'main',
-                'description': 'The main phonebook for "default"'}
-        expected = dict(body)
-        expected['id'] = ANY
+        body = {
+            'name': 'main',
+            'description': 'The main phonebook for "default"',
+        }
 
         result = self._crud.create(tenant, body)
 
-        assert_that(result, equal_to(expected))
+        assert_that(result, has_entries(id=ANY, **body))
 
     def test_that_create_without_name_fails(self):
         tenant = 'default'
@@ -240,13 +240,10 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
     def test_that_create_without_description(self):
         tenant = 'default'
         body = {'name': 'nodesc'}
-        expected = {'id': ANY,
-                    'name': 'nodesc',
-                    'description': None}
 
         result = self._crud.create(tenant, body)
 
-        assert_that(result, equal_to(expected))
+        assert_that(result, has_entries(id=ANY, description=None, **body))
 
     def test_that_create_with_invalid_fields_raises(self):
         tenant = 'default'
@@ -329,10 +326,7 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
             new_body = {'name': 'new_name', 'description': 'lol'}
             result = self._crud.edit(tenant, phonebook['id'], new_body)
 
-        expected = dict(new_body)
-        expected['id'] = phonebook['id']
-
-        assert_that(result, equal_to(expected))
+        assert_that(result, has_entries(id=phonebook['id'], **new_body))
 
     def test_that_invalid_keys_raise_an_exception(self):
         tenant = 'tenant'
