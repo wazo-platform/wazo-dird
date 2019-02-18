@@ -149,13 +149,14 @@ class _FavoritesService(helpers.BaseService):
 
         return result
 
-    def new_favorite(self, source, contact_id, xivo_user_uuid):
-        if source not in self._available_sources():
-            raise self.NoSuchSourceException(source)
+    def new_favorite(self, source_name, contact_id, xivo_user_uuid):
+        if source_name not in self._available_sources():
+            raise self.NoSuchSourceException(source_name)
 
-        backend = self._source_backends[source]
-        self._crud.create(xivo_user_uuid, backend, source, contact_id)
-        event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
+        source = self._source_manager.get(source_name)
+        backend = source.backend
+        self._crud.create(xivo_user_uuid, backend, source_name, contact_id)
+        event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source_name, contact_id)
         self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
 
     def remove_favorite(self, source, contact_id, xivo_user_uuid):
