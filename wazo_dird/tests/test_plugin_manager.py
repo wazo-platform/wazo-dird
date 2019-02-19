@@ -3,8 +3,16 @@
 
 from unittest import TestCase
 
-from hamcrest import assert_that, calling, equal_to, raises, not_
-from mock import Mock, patch, sentinel as s
+from hamcrest import (
+    assert_that,
+    calling,
+    not_,
+    raises,
+)
+from mock import (
+    Mock,
+    patch,
+)
 
 from wazo_dird import plugin_manager
 
@@ -22,40 +30,3 @@ class TestPluginManagerServices(TestCase):
         with patch('wazo_dird.plugin_manager.services_extension_manager', None):
             assert_that(calling(plugin_manager.unload_services),
                         not_(raises(Exception)))
-
-
-@patch('wazo_dird.plugin_manager.SourceManager')
-class TestPluginManagerSources(TestCase):
-
-    def tearDown(self):
-        plugin_manager.source_manager = None
-
-    def test_load_sources_calls_source_manager(self, source_manager_init):
-        source_manager = source_manager_init.return_value
-
-        plugin_manager.load_sources(
-            s.enabled,
-            s.source_config_dir,
-            s.auth_client,
-            s.token_renewer,
-        )
-        source_manager_init.assert_called_once_with(
-            s.enabled,
-            s.source_config_dir,
-            s.auth_client,
-            s.token_renewer,
-        )
-        source_manager.load_sources.assert_called_once_with()
-
-    def test_load_sources_returns_result_from_source_manager_load(self, source_manager_init):
-        source_manager = source_manager_init.return_value
-        source_manager.load_sources.return_value = s.result
-
-        result = plugin_manager.load_sources(
-            s.enabled,
-            s.source_config_dir,
-            s.auth_client,
-            s.token_renewer,
-        )
-
-        assert_that(result, equal_to(s.result))

@@ -4,6 +4,7 @@
 from sqlalchemy import (
     and_,
     exc,
+    text,
 )
 from wazo_dird.exception import (
     DuplicatedSourceException,
@@ -78,10 +79,11 @@ class SourceCRUD(BaseDAO):
             return self._from_db_format(source)
 
     def _list_filter(self, backend, visible_tenants, uuid=None, name=None, search=None, **list_params):
-        filter_ = and_(
-            Source.tenant_uuid.in_(visible_tenants),
-            Source.backend == backend,
-        )
+        filter_ = text('true')
+        if visible_tenants is not None:
+            filter_ = and_(filter_, Source.tenant_uuid.in_(visible_tenants))
+        if backend is not None:
+            filter_ = and_(filter_, Source.backend == backend)
         if uuid is not None:
             filter_ = and_(filter_, Source.uuid == uuid)
         if name is not None:
@@ -141,10 +143,11 @@ class SourceCRUD(BaseDAO):
     def _from_db_format(source):
         return dict(
             uuid=source.uuid,
+            backend=source.backend,
             name=source.name,
             tenant_uuid=source.tenant_uuid,
             searched_columns=source.searched_columns,
             first_matched_columns=source.first_matched_columns,
             format_columns=source.format_columns,
-            **source.extra_fields
+            **source.extra_fields or {}
         )

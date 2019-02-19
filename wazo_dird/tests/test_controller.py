@@ -20,7 +20,6 @@ class TestController(TestCase):
         self.rest_api = patch('wazo_dird.controller.CoreRestApi').start().return_value
         self.load_services = patch('wazo_dird.plugin_manager.load_services').start()
         self.unload_services = patch('wazo_dird.plugin_manager.unload_services').start()
-        self.load_sources = patch('wazo_dird.plugin_manager.load_sources').start()
         self.load_views = patch('wazo_dird.plugin_manager.load_views').start()
 
     def tearDown(self):
@@ -49,21 +48,6 @@ class TestController(TestCase):
 
         self.load_services.assert_called_once_with(config, s.enabled, ANY, ANY)
         self.unload_services.assert_called_once_with()
-
-    def test_run_loads_sources(self):
-        config = self._create_config(**{
-            'enabled_plugins': {
-                'backends': s.enabled,
-                'services': {},
-            },
-            'sources': s.source_configs,
-            'service_discovery': {'enabled': False},
-        })
-
-        controller = Controller(config)
-        controller.run()
-
-        self.load_sources.assert_called_once_with(s.enabled, config, ANY, token_renewer)
 
     def test_run_loads_views(self):
         config = self._create_config(**{

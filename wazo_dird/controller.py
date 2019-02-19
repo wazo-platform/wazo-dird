@@ -15,6 +15,7 @@ from . import plugin_manager
 from .bus import Bus
 from .rest_api import CoreRestApi
 from .service_discovery import self_check
+from .source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
 
@@ -41,18 +42,18 @@ class Controller:
             self.config.get('bus'),
             partial(self_check, self.config['rest_api']['https']['port']),
         ]
-
-    def run(self):
-        self.sources = plugin_manager.load_sources(
+        self._source_manager = SourceManager(
             self.config['enabled_plugins']['backends'],
             self.config,
             self.auth_client,
             self.token_renewer,
         )
+
+    def run(self):
         self.services = plugin_manager.load_services(
             self.config,
             self.config['enabled_plugins']['services'],
-            self.sources,
+            self._source_manager,
             self.bus,
         )
         plugin_manager.load_views(
@@ -61,6 +62,7 @@ class Controller:
             self.services,
             self.auth_client,
         )
+        self._source_manager.set_source_service(self.services['source'])
 
         signal.signal(signal.SIGTERM, _signal_handler)
         with self.token_renewer:
@@ -70,5 +72,5 @@ class Controller:
                     self.rest_api.run()
                 finally:
                     plugin_manager.unload_services()
-                    plugin_manager.unload_sources()
+                    self._source_manager.unload_sources()
                     self.bus.stop()
