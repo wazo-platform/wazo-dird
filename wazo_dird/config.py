@@ -5,7 +5,6 @@ import argparse
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import (
-    parse_config_dir,
     parse_config_file,
     read_config_file_hierarchy,
 )
@@ -64,10 +63,8 @@ _DEFAULT_CONFIG = {
             'services': {},
         },
     },
-    'source_config_dir': '/etc/wazo-dird/sources.d',
     'user': 'www-data',
     'views': {},
-    'sources': {},
     'bus': {
         'enabled': True,
         'username': 'guest',
@@ -96,36 +93,15 @@ def load(logger, argv):
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
     _validate_configuration(file_config, logger)
     reinterpreted_config = _get_reinterpreted_raw_values(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
-    source_dir_configuration = _load_source_config_dir(logger, ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
     key_file = _load_key_file(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
 
     return ChainMap(
         reinterpreted_config,
         key_file,
-        source_dir_configuration,
         cli_config,
         file_config,
         _DEFAULT_CONFIG,
     )
-
-
-def _load_source_config_dir(logger, config):
-    source_config_dir = config.get('source_config_dir')
-    if not source_config_dir:
-        return {}
-
-    source_configs = parse_config_dir(source_config_dir)
-    sources = {}
-    for source_config in source_configs:
-        source_name = source_config.get('name')
-        if not source_name:
-            logger.warning('One of the configs has no name. Ignoring.')
-            logger.debug('Source config with no name: `%s`', config)
-            continue
-
-        sources[source_name] = source_config
-
-    return {'sources': sources}
 
 
 def _parse_cli_args(argv):
