@@ -5,6 +5,7 @@ searched_columns:
   - lastname
 first_matched_columns:
   - exten
+tenant_uuid: {{ tenant_uuid }}
 auth:
   host: auth
   verify_certificate: false

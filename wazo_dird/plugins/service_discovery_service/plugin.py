@@ -23,12 +23,13 @@ class ServiceDiscoveryServicePlugin(BaseServicePlugin):
     def __init__(self):
         self._service = None
 
-    def load(self, args):
-        config = args['config']
-        bus = args['bus']
-        source_manager = args['source_manager']
+    def load(self, dependencies):
+        config = dependencies['config']
+        bus = dependencies['bus']
+        source_manager = dependencies['source_manager']
+        controller = dependencies['controller']
 
-        self._service = _Service(config, bus, source_manager)
+        self._service = _Service(config, bus, source_manager, controller)
 
 
 class _Service:
@@ -37,7 +38,8 @@ class _Service:
                         routing_key='service.registered.*',
                         exclusive=True)
 
-    def __init__(self, config, bus, source_manager):
+    def __init__(self, config, bus, source_manager, controller):
+        self._controller = controller
         self._config = config
         self._source_manager = source_manager
         service_disco_config = config['services'].get('service_discovery')
@@ -45,7 +47,7 @@ class _Service:
             logger.info('"service_discovery" key missing from the configuration')
             return
         self._source_config_generator = SourceConfigGenerator(service_disco_config)
-        self._source_config_manager = SourceConfigManager(config['sources'])
+        self._source_config_manager = SourceConfigManager()
         self._profile_config_updater = ProfileConfigUpdater(config)
         bus.add_consumer(self.QUEUE, self._on_service_registered)
         finder = ServiceFinder(config['consul'])
@@ -85,8 +87,8 @@ class _Service:
             return
 
         self._source_config_manager.add_source(config)
-        # TODO: use the source service to "POST" a new config
-        self._source_manager.load_source(config['type'], source_name)
+        source_service = self._controller.services['source']
+        source_service.create('wazo', **config)
         self._profile_config_updater.on_service_added(source_name, service_name)
         logger.info('new source added %s', source_name)
 
@@ -115,17 +117,17 @@ def _find_first_uuid(tags):
 
 class SourceConfigManager:
 
-    def __init__(self, config):
-        self._config = config
+    def __init__(self):
+        self._loaded = set()
 
     def source_exists(self, source_name):
-        return source_name in self._config
+        return source_name in self._loaded
 
     def add_source(self, source_config):
         source_name = source_config.get('name')
         if not source_name:
             return
-        self._config[source_name] = source_config
+        self._loaded.add(source_name)
 
 
 class ProfileConfigUpdater:

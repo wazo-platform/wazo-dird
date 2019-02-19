@@ -43,6 +43,7 @@ services:
         uuid: uuid
         service_id: id
         service_key: key
+        tenant_uuid: 9b9c2b06-d2be-413f-8113-36239f4b866d
 
 rest_api:
   https:

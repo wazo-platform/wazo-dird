@@ -1,7 +1,6 @@
 # Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from unittest import skip
 from hamcrest import (
     assert_that,
     contains,
@@ -13,7 +12,6 @@ from xivo_test_helpers import until
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
-@skip('find how to implement service discovery')
 class TestDiscoveredWazoUser(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_disco'

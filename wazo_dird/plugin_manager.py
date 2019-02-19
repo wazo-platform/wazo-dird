@@ -12,14 +12,20 @@ logger = logging.getLogger(__name__)
 services_extension_manager = None
 
 
-def load_services(config, enabled_services, source_manager, bus):
+def load_services(config, enabled_services, source_manager, bus, controller):
     global services_extension_manager
     dependencies = {
         'config': config,
         'source_manager': source_manager,
         'bus': bus,
+        'controller': controller,
     }
-    services_extension_manager, services = _load_plugins('wazo_dird.services', enabled_services, dependencies)
+
+    services_extension_manager, services = _load_plugins(
+        'wazo_dird.services',
+        enabled_services,
+        dependencies,
+    )
     return services
 
 
