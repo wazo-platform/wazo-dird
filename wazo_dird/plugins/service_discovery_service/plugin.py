@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -14,7 +14,6 @@ from xivo.consul_helpers import ServiceFinder
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
 from wazo_dird import BaseServicePlugin
-from wazo_dird.plugin_manager import source_manager
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +26,9 @@ class ServiceDiscoveryServicePlugin(BaseServicePlugin):
     def load(self, args):
         config = args['config']
         bus = args['bus']
+        source_manager = args['source_manager']
 
-        self._service = _Service(config, bus)
+        self._service = _Service(config, bus, source_manager)
 
 
 class _Service:
@@ -37,8 +37,9 @@ class _Service:
                         routing_key='service.registered.*',
                         exclusive=True)
 
-    def __init__(self, config, bus):
+    def __init__(self, config, bus, source_manager):
         self._config = config
+        self._source_manager = source_manager
         service_disco_config = config['services'].get('service_discovery')
         if not service_disco_config:
             logger.info('"service_discovery" key missing from the configuration')
@@ -84,7 +85,8 @@ class _Service:
             return
 
         self._source_config_manager.add_source(config)
-        source_manager.load_source(config['type'], source_name)
+        # TODO: use the source service to "POST" a new config
+        self._source_manager.load_source(config['type'], source_name)
         self._profile_config_updater.on_service_added(source_name, service_name)
         logger.info('new source added %s', source_name)
 
