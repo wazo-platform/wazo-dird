@@ -46,7 +46,6 @@ class SourceManager:
             logger.info('no config found for %s', source_name)
             return
 
-        logger.critical('%s', source_config)
         manager = NamedExtensionManager(
             self._namespace,
             [source_config['backend']],
