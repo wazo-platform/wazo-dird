@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -27,6 +27,7 @@ class TestPersonalServicePlugin(unittest.TestCase):
 
     def setUp(self):
         self._crud = Mock(database.PersonalContactCRUD)
+        self._source_manager = Mock()
 
     def test_load_no_config(self):
         plugin = PersonalServicePlugin()
@@ -37,19 +38,23 @@ class TestPersonalServicePlugin(unittest.TestCase):
         plugin = PersonalServicePlugin()
         plugin._new_personal_contact_crud = Mock()
 
-        service = plugin.load({'config': {'db_uri': s.db_uri}, 'sources': {}})
+        service = plugin.load(
+            {'config': {'db_uri': s.db_uri}, 'source_manager': self._source_manager}
+        )
 
         assert_that(service, not_(none()))
 
     @patch('wazo_dird.plugins.personal_service.plugin._PersonalService')
-    def test_that_load_injects_config_and_sources_to_the_service(self, MockedPersonalService):
+    def test_that_load_injects_config_and_source_manager_to_the_service(self, MockedPersonalService):
         plugin = PersonalServicePlugin()
         plugin._new_personal_contact_crud = Mock()
 
         config = {'db_uri': s.db_uri}
-        service = plugin.load({'config': config, 'sources': {}})
+        service = plugin.load({'config': config, 'source_manager': self._source_manager})
 
-        MockedPersonalService.assert_called_once_with(config, {}, plugin._new_personal_contact_crud.return_value)
+        MockedPersonalService.assert_called_once_with(
+            config, self._source_manager, plugin._new_personal_contact_crud.return_value,
+        )
         assert_that(service, equal_to(MockedPersonalService.return_value))
 
     def test_that_create_contact_calls_crud_create_contact(self):

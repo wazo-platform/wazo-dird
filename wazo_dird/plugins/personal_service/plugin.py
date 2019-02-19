@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -21,18 +21,18 @@ class PersonalImportError(ValueError):
 
 class PersonalServicePlugin(BaseServicePlugin):
 
-    def load(self, args):
+    def load(self, dependencies):
         try:
-            config = args['config']
-            sources = args['sources']
+            config = dependencies['config']
+            source_manager = dependencies['source_manager']
         except KeyError:
-            msg = ('%s should be loaded with "config" and "sources" but received: %s'
-                   % (self.__class__.__name__, ','.join(args.keys())))
+            msg = ('%s should be loaded with "config" and "source_manager" but received: %s'
+                   % (self.__class__.__name__, ','.join(dependencies.keys())))
             raise ValueError(msg)
 
         crud = self._new_personal_contact_crud(config['db_uri'])
 
-        return _PersonalService(config, sources, crud)
+        return _PersonalService(config, source_manager, crud)
 
     def _new_personal_contact_crud(self, db_uri):
         self._Session = scoped_session(sessionmaker())
@@ -52,11 +52,10 @@ class _PersonalService:
             ValueError.__init__(self, message)
             self.errors = errors
 
-    def __init__(self, config, sources, crud):
+    def __init__(self, config, source_manager, crud):
         self._crud = crud
         self._config = config
-        self._source = next((source for source in sources.values() if source.backend == 'personal'),
-                            DisabledPersonalSource())
+        self._source_manager = source_manager
 
     def create_contact(self, contact_infos, token_infos):
         self.validate_contact(contact_infos)
@@ -98,7 +97,9 @@ class _PersonalService:
 
     def list_contacts(self, token_infos):
         contacts = self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
-        formatted_contacts = self._source.format_contacts(contacts)
+        # XXX which personal source to use here?
+        source = self._source_manager.get('personal')
+        formatted_contacts = source.format_contacts(contacts)
         return formatted_contacts
 
     def list_contacts_raw(self, token_infos):
