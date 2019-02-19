@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -17,13 +17,16 @@ class LookupServicePlugin(BaseServicePlugin):
     def __init__(self):
         self._service = None
 
-    def load(self, args):
+    def load(self, dependencies):
         try:
-            self._service = _LookupService(args['config'], args['sources'])
+            self._service = _LookupService(
+                dependencies['config'],
+                dependencies['source_manager'],
+            )
             return self._service
         except KeyError:
-            msg = ('%s should be loaded with "config" and "sources" but received: %s'
-                   % (self.__class__.__name__, ','.join(args.keys())))
+            msg = ('%s should be loaded with "config" and "source_manager" but received: %s'
+                   % (self.__class__.__name__, ','.join(dependencies.keys())))
             raise ValueError(msg)
 
     def unload(self):
@@ -52,7 +55,8 @@ class _LookupService(helpers.BaseService):
     def lookup(self, term, profile, xivo_user_uuid, args=None, token=None):
         args = args or {}
         futures = []
-        for source in self.source_by_profile(profile):
+        sources = self.source_by_profile(profile)
+        for source in sources:
             args['token'] = token
             args['xivo_user_uuid'] = xivo_user_uuid
             futures.append(self._async_search(source, term, args))

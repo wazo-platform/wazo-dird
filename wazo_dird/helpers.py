@@ -27,9 +27,9 @@ class RaiseStopper:
 
 class BaseService:
 
-    def __init__(self, config, sources, *args, **kwargs):
+    def __init__(self, config, source_manager, *args, **kwargs):
         self._config = config
-        self._sources = sources
+        self._source_manager = source_manager
 
     def config_by_profile(self, profile):
         return self._config.get('services', {}).get(self._service_name, {}).get(profile, {})
@@ -39,9 +39,14 @@ class BaseService:
         result = []
 
         for name, enabled in sources.items():
-            if not enabled or name not in self._sources:
+            if not enabled:
                 continue
-            result.append(self._sources[name])
+
+            source = self._source_manager.get(name)
+            if not source:
+                continue
+
+            result.append(source)
 
         if not result:
             logger.warning('Cannot find "%s" sources for profile %s', self._service_name, profile)

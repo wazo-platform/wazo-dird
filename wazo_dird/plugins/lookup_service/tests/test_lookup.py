@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -21,10 +21,13 @@ from ..plugin import (
 
 class TestLookupServicePlugin(unittest.TestCase):
 
+    def setUp(self):
+        self._source_manager = Mock()
+
     def test_load_no_config(self):
         plugin = LookupServicePlugin()
 
-        self.assertRaises(ValueError, plugin.load, {'sources': sentinel.sources})
+        self.assertRaises(ValueError, plugin.load, {'source_manager': self._source_manager})
 
     def test_load_no_sources(self):
         plugin = LookupServicePlugin()
@@ -34,7 +37,7 @@ class TestLookupServicePlugin(unittest.TestCase):
     def test_that_load_returns_a_service(self):
         plugin = LookupServicePlugin()
 
-        service = plugin.load({'sources': sentinel.sources,
+        service = plugin.load({'source_manager': self._source_manager,
                                'config': sentinel.config})
 
         assert_that(service, not_(none()))
@@ -44,9 +47,9 @@ class TestLookupServicePlugin(unittest.TestCase):
         plugin = LookupServicePlugin()
 
         service = plugin.load({'config': sentinel.config,
-                               'sources': sentinel.sources})
+                               'source_manager': self._source_manager})
 
-        MockedLookupService.assert_called_once_with(sentinel.config, sentinel.sources)
+        MockedLookupService.assert_called_once_with(sentinel.config, self._source_manager)
         assert_that(service, equal_to(MockedLookupService.return_value))
 
     def test_no_error_on_unload_not_loaded(self):
@@ -57,7 +60,7 @@ class TestLookupServicePlugin(unittest.TestCase):
     @patch('wazo_dird.plugins.lookup_service.plugin._LookupService')
     def test_that_unload_stops_the_services(self, MockedLookupService):
         plugin = LookupServicePlugin()
-        plugin.load({'config': sentinel.config, 'sources': sentinel.sources})
+        plugin.load({'config': sentinel.config, 'source_manager': self._source_manager})
 
         plugin.unload()
 
