@@ -4,13 +4,11 @@ services:
     depends_on:
       - dird
       - auth
+      - db
     environment:
-      TARGETS: "dird:9489 auth:9497"
+      TARGETS: "dird:9489 auth:9497 db:5432"
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.multiple_sources.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.multiple_sources.csv_2.yml:/etc/wazo-dird/sources.d/csv_2.yml"
-      - "./etc/wazo-dird/sources.d/asset.multiple_sources.csv_3.yml:/etc/wazo-dird/sources.d/csv_3.yml"
-      - "./etc/wazo-dird/sources.d/asset.multiple_sources.my_test_csv.yml:/etc/wazo-dird/sources.d/my_test_csv.yml"
       - "./tmp/data/asset.multiple_sources.other.csv:/tmp/data/other.csv"
       - "./tmp/data/asset.multiple_sources.test.csv:/tmp/data/test.csv"

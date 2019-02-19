@@ -30,7 +30,16 @@ _DEFAULT_CONFIG = {
     'debug': False,
     'enabled_plugins': {
         'backends': {},
-        'services': {},
+        'services': {
+            'cleanup': True,
+            'config': True,
+            'favorites': True,
+            'lookup': True,
+            'personal': True,
+            'phonebook': True,
+            'reverse': True,
+            'source': True,
+        },
         'views': {},
     },
     'log_level': 'info',

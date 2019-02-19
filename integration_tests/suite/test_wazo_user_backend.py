@@ -14,10 +14,30 @@ from hamcrest import (
 
 from xivo_test_helpers import until
 
+from .helpers.fixtures import http as fixtures
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     BackendWrapper,
 )
+
+WAZO_ASIA = {
+    'name': 'wazo_asia',
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar'},
+    'confd': {'host': 'asia', 'port': 9486, 'https': False},
+    'searched_columns': ['firstname', 'lastname'],
+}
+WAZO_AMERICA = {
+    'name': 'wazo_america',
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar'},
+    'confd': {'host': 'confd', 'port': 9486, 'https': False},
+    'searched_columns': ['firstname', 'lastname'],
+}
+WAZO_EUROPE = {
+    'name': 'wazo_europe',
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar'},
+    'confd': {'host': 'europe', 'port': 9486, 'https': False},
+    'searched_columns': ['firstname', 'lastname'],
+}
 
 
 class TestWazoUser(BaseDirdIntegrationTest):
@@ -107,7 +127,9 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_late_confd'
 
-    def test_given_confd_slow_to_start_when_lookup_then_first_returns_no_results_then_return_right_result(self):
+
+    @fixtures.wazo_source(**WAZO_AMERICA)
+    def test_no_result_until_started(self, source):
         # dird is not stuck on a late confd
         result = self.lookup('dyl', 'default')
         assert_that(result['results'], contains())
@@ -124,6 +146,19 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_multiple_wazo'
+
+    def setUp(self):
+        asia = self.client.wazo_source.create(WAZO_ASIA)
+        america = self.client.wazo_source.create(WAZO_AMERICA)
+        europe = self.client.wazo_source.create(WAZO_EUROPE)
+        self._source_uuids = [asia['uuid'], america['uuid'], europe['uuid']]
+
+    def tearDown(self):
+        for uuid in self._source_uuids:
+            try:
+                self.client.wazo_source.delete(uuid)
+            except Exception:
+                continue
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')

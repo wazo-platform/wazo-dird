@@ -7,6 +7,7 @@ enabled_plugins:
     lookup: true
   views:
     default_json: true
+    csv_backend: true
 
 views:
   displays:
@@ -47,36 +48,6 @@ rest_api:
     port: 9489
     certificate: /usr/local/share/ssl/dird/server.crt
     private_key: /usr/local/share/ssl/dird/server.key
-
-sources:
-  my_csv:
-    type: csv
-    name: my_csv
-    file: /tmp/data/test.csv
-    separator: "|"
-    unique_column: id
-    searched_columns:
-      - fn
-      - ln
-    format_columns:
-      lastname: "{ln}"
-      firstname: "{fn}"
-      number: "{num}"
-  my_other_csv:
-    type: csv
-    name: my_other_csv
-    file: /tmp/data/test.csv
-    separator: "|"
-    searched_columns:
-      - fn
-      - ln
-    format_columns:
-      lastname: "{ln}"
-      firstname: "{fn}"
-      number: "{num}"
-  broken:
-    type: broken_lookup
-    name: broken
 
 bus:
   enabled: false

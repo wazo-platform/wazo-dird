@@ -8,23 +8,12 @@ from hamcrest import (
     has_entries,
 )
 
-from wazo_dird_client import Client
-
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
-    VALID_TOKEN,
-)
+from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
 class TestBackends(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
-
-    def setUp(self):
-        super().setUp()
-        host = 'localhost'
-        port = self.service_port(9489, 'dird')
-        self.client = Client(host, port, token=VALID_TOKEN, verify_certificate=False)
 
     def test_list(self):
         result = self.client.backends.list()

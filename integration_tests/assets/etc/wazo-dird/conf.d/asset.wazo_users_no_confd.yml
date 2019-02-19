@@ -1,3 +1,5 @@
+db_uri: postgresql://asterisk:proformatique@db/asterisk
+
 enabled_plugins:
   backends:
     wazo: true

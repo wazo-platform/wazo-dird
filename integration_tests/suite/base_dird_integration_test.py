@@ -20,6 +20,8 @@ from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from xivo_test_helpers.db import DBUserClient
 from xivo_test_helpers.auth import AuthClient as MockAuthClient
 
+from wazo_dird_client import Client
+
 logger = logging.getLogger(__name__)
 
 requests.packages.urllib3.disable_warnings()
@@ -35,6 +37,7 @@ VALID_TOKEN = 'valid-token'
 VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
+VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
 
 
 def absolute_file_name(asset_name, path):
@@ -75,6 +78,22 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = ASSET_ROOT
     service = 'dird'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.host = 'localhost'
+        try:
+            cls.port = cls.service_port(9489, 'dird')
+        except Exception:
+            cls.port = None
+
+    def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
+        return Client(self.host, self.port, token=token, verify_certificate=False)
+
+    @property
+    def client(self):
+        return self.get_client()
 
     @classmethod
     def url(cls, *parts):
