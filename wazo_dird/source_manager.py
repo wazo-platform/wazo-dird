@@ -63,23 +63,6 @@ class SourceManager:
         except stevedore.exception.NoMatches:
             return None
 
-    # XXX remove?
-    def load_sources(self):
-        names = plugin_helpers.enabled_names(self._enabled_backends)
-        logger.debug('Enabled plugins: %s', names)
-        manager = NamedExtensionManager(
-            self._namespace,
-            names,
-            name_order=True,
-            on_load_failure_callback=plugin_helpers.on_load_failure,
-            on_missing_entrypoints_callback=plugin_helpers.on_missing_entrypoints,
-            invoke_on_load=True
-        )
-
-        configs_by_backend = self.group_configs_by_backend(self._source_configs)
-        manager.map(self._load_sources_using_backend, configs_by_backend)
-        return self._sources
-
     def unload_sources(self):
         logger.info('unloading all source plugins')
         for source in self._sources.values():
@@ -88,28 +71,6 @@ class SourceManager:
 
     def set_source_service(self, service):
         self._source_service = service
-
-    # XXX remove?
-    def _is_enabled(self, extension):
-        return extension.name in self._enabled_backends
-
-    # XXX remove?
-    def load_source(self, type_, name):
-        manager = EnabledExtensionManager(
-            namespace=self._namespace,
-            check_func=lambda extension: extension.name == type_,
-            invoke_on_load=False,
-        )
-        manager.map(self._add_source, name)
-
-    # XXX remove?
-    def _add_source(self, extension, name):
-        config = self._source_configs.get(name)
-        if not config:
-            logger.info('no config found for %s', name)
-            return
-
-        self._add_source_with_config(extension, config)
 
     def _add_source_with_config(self, extension, config):
         name = config['name']
@@ -130,21 +91,3 @@ class SourceManager:
             logger.exception('Failed to load back-end `%s` with config `%s`',
                              extension.name, name)
         return source
-
-    # XXX remove?
-    def _load_sources_using_backend(self, extension, configs_by_backend):
-        for config in configs_by_backend.get(extension.name, []):
-            self._add_source_with_config(extension, config)
-
-    # XXX remove?
-    @staticmethod
-    def group_configs_by_backend(source_configs):
-        configs_by_backend = defaultdict(list)
-        for source_config in source_configs.values():
-            source_type = source_config.get('type')
-            if not source_type:
-                logger.warning('One of the source config has no back-end type. Ignoring.')
-                logger.debug('Source config with no type: `%s`', source_config)
-                continue
-            configs_by_backend[source_type].append(source_config)
-        return configs_by_backend
