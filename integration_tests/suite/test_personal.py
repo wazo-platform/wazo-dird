@@ -33,6 +33,8 @@ from xivo_test_helpers.auth import (
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
+    PersonalOnlyTestCase,
+    MAIN_TENANT,
     VALID_UUID,
     VALID_TOKEN,
     VALID_TOKEN_1,
@@ -40,12 +42,7 @@ from .base_dird_integration_test import (
 )
 
 
-class TestListPersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestListPersonal(PersonalOnlyTestCase):
 
     def test_that_listing_empty_personal_returns_empty_list(self):
         result = self.list_personal()
@@ -95,12 +92,7 @@ class TestDeletedUser(BaseDirdIntegrationTest):
         publisher.publish(msg)
 
 
-class TestAddPersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestAddPersonal(PersonalOnlyTestCase):
 
     def test_that_created_personal_has_an_id(self):
         alice = self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN)
@@ -159,12 +151,7 @@ class TestAddPersonal(BaseDirdIntegrationTest):
             })))
 
 
-class TestRemovePersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestRemovePersonal(PersonalOnlyTestCase):
 
     def test_that_removing_unknown_personal_returns_404(self):
         result = self.delete_personal_result('unknown-id', VALID_TOKEN)
@@ -184,12 +171,7 @@ class TestRemovePersonal(BaseDirdIntegrationTest):
             has_entry('firstname', 'Charlie')))
 
 
-class TestPurgePersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestPurgePersonal(PersonalOnlyTestCase):
 
     def test_that_purged_personal_are_empty(self):
         self.post_personal({'firstname': 'Alice'})
@@ -202,12 +184,7 @@ class TestPurgePersonal(BaseDirdIntegrationTest):
         assert_that(result['items'], empty())
 
 
-class TestPersonalPersistence(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestPersonalPersistence(PersonalOnlyTestCase):
 
     def test_that_personal_are_saved_across_dird_restart(self):
         self.post_personal({'firstname': 'Foo'})
@@ -226,21 +203,24 @@ class TestPersonalPersistence(BaseDirdIntegrationTest):
         assert_that(result_before['items'][0]['id'], equal_to(result_after['items'][0]['id']))
 
 
-class TestPersonalVisibility(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
+class TestPersonalVisibility(PersonalOnlyTestCase):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
-        valid_token_1 = MockUserToken.some_token(token=VALID_TOKEN_1)
-        valid_token_2 = MockUserToken.some_token(token=VALID_TOKEN_2)
+        tenant_uuid = MAIN_TENANT
+        valid_token_1 = MockUserToken.some_token(
+            token=VALID_TOKEN_1,
+            metadata={'tenant_uuid': tenant_uuid},
+        )
+        valid_token_2 = MockUserToken.some_token(
+            token=VALID_TOKEN_2,
+            metadata={'tenant_uuid': tenant_uuid},
+        )
         mock_auth_client.set_token(valid_token_1)
         mock_auth_client.set_token(valid_token_2)
-
-    def tearDown(self):
-        self.purge_personal()
+        mock_auth_client.set_tenants({'items': [{'uuid': tenant_uuid}]})
 
     def test_that_personal_are_only_visible_for_the_same_token(self):
         self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN_1)
@@ -255,12 +235,7 @@ class TestPersonalVisibility(BaseDirdIntegrationTest):
         assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
 
 
-class TestPersonalListWithProfile(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestPersonalListWithProfile(PersonalOnlyTestCase):
 
     def test_listing_personal_with_unknow_profile(self):
         result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN)
@@ -283,20 +258,17 @@ class TestPersonalListWithProfile(BaseDirdIntegrationTest):
             has_entry('column_values', contains('Bob', None, None, False))))
 
 
-class TestLookupPersonal(BaseDirdIntegrationTest):
+class TestLookupPersonal(PersonalOnlyTestCase):
 
-    asset = 'personal_only'
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.post_personal({'firstname': 'Alice'})
-        cls.post_personal({'firstname': 'Bob'})
-        cls.post_personal({'firstname': 'Céline'})
-        cls.post_personal({'firstname': 'Etienne'})
-        cls.post_personal({'firstname': 'john', 'lastname': 'john', 'company': 'john'})
-        cls.post_personal({'firstname': 'empty-column', 'lastname': ''})
-        cls.post_personal({'firstname': 'Elice', 'lastname': 'Wowo', 'number': '123456'})
+    def setUp(self):
+        super().setUp()
+        self.post_personal({'firstname': 'Alice'})
+        self.post_personal({'firstname': 'Bob'})
+        self.post_personal({'firstname': 'Céline'})
+        self.post_personal({'firstname': 'Etienne'})
+        self.post_personal({'firstname': 'john', 'lastname': 'john', 'company': 'john'})
+        self.post_personal({'firstname': 'empty-column', 'lastname': ''})
+        self.post_personal({'firstname': 'Elice', 'lastname': 'Wowo', 'number': '123456'})
 
     def test_that_lookup_includes_personal_contacts(self):
         result = self.lookup('ali', 'default')
@@ -350,12 +322,7 @@ class TestLookupPersonal(BaseDirdIntegrationTest):
         assert_that(result['display'], is_(none()))
 
 
-class TestEditPersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestEditPersonal(PersonalOnlyTestCase):
 
     def test_that_edit_inexisting_personal_contact_returns_404(self):
         result = self.put_personal_result('unknown-id', {'firstname': 'John', 'lastname': 'Doe'}, VALID_TOKEN)
@@ -399,12 +366,7 @@ class TestEditPersonal(BaseDirdIntegrationTest):
                                                                'lastname': 'Narvidon'}))
 
 
-class TestEditInvalidPersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestEditInvalidPersonal(PersonalOnlyTestCase):
 
     def test_that_edit_personal_contact_with_invalid_values_return_404(self):
         contact = self.post_personal({'firstname': 'Ursule', 'lastname': 'Uparlende'})
@@ -418,12 +380,7 @@ class TestEditInvalidPersonal(BaseDirdIntegrationTest):
         assert_that(result.status_code, equal_to(400))
 
 
-class TestGetPersonal(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
-
-    def tearDown(self):
-        self.purge_personal()
+class TestGetPersonal(PersonalOnlyTestCase):
 
     def test_that_get_inexisting_personal_contact_returns_404(self):
         result = self.get_personal_result('unknown-id', VALID_TOKEN)

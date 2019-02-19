@@ -72,8 +72,11 @@ class TestPhonebookBackend(unittest.TestCase):
         self.phonebook_contact_crud = database.PhonebookContactCRUD(Session)
 
         self.phonebook = self.phonebook_crud.create(self.tenant_uuid, {'name': 'hogwarts'})
-        contacts = [self.phonebook_contact_crud.create(self.tenant_uuid, self.phonebook['id'], c)
-                    for c in contact_bodies]
+        print(self.phonebook)
+        contacts = [
+            self.phonebook_contact_crud.create(self.tenant_uuid, self.phonebook['id'], c)
+            for c in contact_bodies
+        ]
         (
             self.dumbledore,
             self.hermione,
@@ -84,9 +87,9 @@ class TestPhonebookBackend(unittest.TestCase):
             self.ron,
         ) = contacts
         config = {
-            'name': 'phonebook',
+            'tenant_uuid': self.tenant_uuid,
+            'name': 'hogwarts',
             'db_uri': DB_URI,
-            'tenant': self.tenant,
             'phonebook_id': self.phonebook['id'],
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['number'],

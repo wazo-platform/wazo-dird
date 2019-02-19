@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import ldap
@@ -19,6 +19,8 @@ from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     VALID_UUID,
 )
+from .helpers.fixtures import http as fixtures
+
 
 Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
 
@@ -101,6 +103,31 @@ class TestLDAP(BaseDirdIntegrationTest):
             super().tearDownClass()
             raise
 
+    def setUp(self):
+        super().setUp()
+        body = {
+            'name': 'test_ldap',
+            'ldap_uri': 'ldap://slapd',
+            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_password': 'wazopassword',
+            'unique_column': 'entryUUID',
+            'searched_columns': ['cn', 'telephoneNumber'],
+            'first_matched_columns': ['telephoneNumber'],
+            'format_columns':  {
+                'firstname': "{givenName}",
+                'lastname': "{sn}",
+                'number': "{telephoneNumber}",
+                'reverse': "{cn}",
+            }
+        }
+        source = self.client.ldap_source.create(body)
+        self.source_uuid = source['uuid']
+
+    def tearDown(self):
+        self.client.ldap_source.delete(self.source_uuid)
+        super().tearDown()
+
     def test_lookup_on_cn(self):
         result = self.lookup('Ali', 'default')
 
@@ -151,6 +178,32 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
     ]
     entry_uuids = []
 
+    def setUp(self):
+        body = {
+            'name': 'test_ldap',
+            'ldap_uri': 'ldap://slapd',
+            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_password': 'wazopassword',
+            'ldap_custom_filter': '(l=Québec)',
+            'unique_column': 'entryUUID',
+            'searched_columns': ['cn', 'telephoneNumber'],
+            'first_matched_columns': ['telephoneNumber'],
+            'format_columns':  {
+                'firstname': "{givenName}",
+                'lastname': "{sn}",
+                'number': "{telephoneNumber}",
+                'reverse': "{cn}",
+            }
+        }
+        super().setUp()
+        source = self.client.ldap_source.create(body)
+        self.source_uuid = source['uuid']
+
+    def tearDown(self):
+        self.client.ldap_source.delete(self.source_uuid)
+        super().tearDown()
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -178,7 +231,23 @@ class TestLDAPServiceIsInnactive(BaseDirdIntegrationTest):
 
     asset = 'ldap_service_innactive'
 
-    def test_lookup(self):
+    @fixtures.ldap_source(
+        name='test_ldap',
+        ldap_uri='ldap://slapd',
+        ldap_base_dn='ou=québec,dc=wazo-dird,dc=wazo,dc=community',
+        ldap_username='cn=admin,dc=wazo-dird,dc=wazo,dc=community',
+        ldap_password='wazopassword',
+        unique_column='entryUUID',
+        searched_columns=['cn', 'telephoneNumber'],
+        first_matched_columns=['telephoneNumber'],
+        format_columns={
+            'firstname': "{givenName}",
+            'lastname': "{sn}",
+            'number': "{telephoneNumber}",
+            'reverse': "{cn}",
+        }
+    )
+    def test_lookup(self, _):
         result = self.lookup('alice', 'default')
 
         start = time.time()
@@ -190,7 +259,23 @@ class TestLDAPServiceIsDown(BaseDirdIntegrationTest):
 
     asset = 'ldap_service_down'
 
-    def test_lookup(self):
+    @fixtures.ldap_source(
+        name='test_ldap',
+        ldap_uri='ldap://slapd',
+        ldap_base_dn='ou=québec,dc=wazo-dird,dc=wazo,dc=community',
+        ldap_username='cn=admin,dc=wazo-dird,dc=wazo,dc=community',
+        ldap_password='wazopassword',
+        unique_column='entryUUID',
+        searched_columns=['cn', 'telephoneNumber'],
+        first_matched_columns=['telephoneNumber'],
+        format_columns={
+            'firstname': "{givenName}",
+            'lastname': "{sn}",
+            'number': "{telephoneNumber}",
+            'reverse': "{cn}",
+        }
+    )
+    def test_lookup(self, _):
         result = self.lookup('alice', 'default')
 
         assert_that(result['results'], empty())

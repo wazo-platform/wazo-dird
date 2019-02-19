@@ -7,6 +7,7 @@ enabled_plugins:
     reverse: true
   views:
     default_json: true
+    ldap_backend: true
 
 views:
   displays:

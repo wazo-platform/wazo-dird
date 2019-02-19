@@ -22,19 +22,19 @@ from .base_dird_integration_test import (
 
 WAZO_ASIA = {
     'name': 'wazo_asia',
-    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar'},
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
     'confd': {'host': 'asia', 'port': 9486, 'https': False},
     'searched_columns': ['firstname', 'lastname'],
 }
 WAZO_AMERICA = {
     'name': 'wazo_america',
-    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar'},
-    'confd': {'host': 'confd', 'port': 9486, 'https': False},
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+    'confd': {'host': 'america', 'port': 9486, 'https': False},
     'searched_columns': ['firstname', 'lastname'],
 }
 WAZO_EUROPE = {
     'name': 'wazo_europe',
-    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar'},
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
     'confd': {'host': 'europe', 'port': 9486, 'https': False},
     'searched_columns': ['firstname', 'lastname'],
 }
@@ -127,7 +127,6 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_late_confd'
 
-
     @fixtures.wazo_source(**WAZO_AMERICA)
     def test_no_result_until_started(self, source):
         # dird is not stuck on a late confd
@@ -148,6 +147,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
     asset = 'wazo_users_multiple_wazo'
 
     def setUp(self):
+        super().setUp()
         asia = self.client.wazo_source.create(WAZO_ASIA)
         america = self.client.wazo_source.create(WAZO_AMERICA)
         europe = self.client.wazo_source.create(WAZO_EUROPE)
@@ -159,6 +159,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                 self.client.wazo_source.delete(uuid)
             except Exception:
                 continue
+        super().tearDown()
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
@@ -204,37 +205,26 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
         result = self.favorites('default')
 
-        expected_result = [
-            {
-                'column_values': ['Alice', None, '6543', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e160asia',
-                              'agent_id': 3,
-                              'endpoint_id': 2,
-                              'user_id': 1,
-                              'user_uuid': '7c12f90e-7391-4514-b482-5b75b57772e1',
-                              'source_entry_id': '1'},
-                'source': 'wazo_asia',
-            },
-            {
-                'column_values': ['John', 'Doe', '1234', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': 3,
-                              'endpoint_id': 2,
-                              'user_id': 1,
-                              'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
-                              'source_entry_id': '1'},
-                'source': 'wazo_america',
-            }
-        ]
-
-        assert_that(result['results'], contains_inanyorder(*expected_result))
+        assert_that(result['results'], contains_inanyorder(
+            has_entries(
+                source='wazo_asia',
+                column_values=contains('Alice', None, '6543', None),
+            ),
+            has_entries(
+                source='wazo_america',
+                column_values=contains('John', 'Doe', '1234', None),
+            ),
+        ))
 
 
 class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_missing_one_wazo'
 
-    def test_lookup_multiple_wazo(self):
+    @fixtures.wazo_source(**WAZO_AMERICA)
+    @fixtures.wazo_source(**WAZO_ASIA)
+    @fixtures.wazo_source(**WAZO_EUROPE)
+    def test_lookup_multiple_wazo(self, *_):
         result = self.lookup('john', 'default')
 
         expected_result = [
@@ -257,7 +247,10 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_404'
 
-    def test_lookup_multiple_wazo(self):
+    @fixtures.wazo_source(**WAZO_AMERICA)
+    @fixtures.wazo_source(**WAZO_ASIA)
+    @fixtures.wazo_source(**WAZO_EUROPE)
+    def test_lookup_multiple_wazo(self, *_):
         result = self.lookup('ar', 'default')
 
         expected_result = [
@@ -290,7 +283,10 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_timeout'
 
-    def test_lookup_multiple_wazo(self):
+    @fixtures.wazo_source(**WAZO_AMERICA)
+    @fixtures.wazo_source(**WAZO_ASIA)
+    @fixtures.wazo_source(**WAZO_EUROPE)
+    def test_lookup_multiple_wazo(self, *_):
         result = self.lookup('ar', 'default')
 
         expected_result = [

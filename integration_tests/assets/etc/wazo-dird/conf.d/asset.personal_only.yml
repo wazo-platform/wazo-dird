@@ -11,6 +11,7 @@ enabled_plugins:
     default_json: true
     headers_view: true
     personal_view: true
+    personal_backend: true
 
 views:
   displays:

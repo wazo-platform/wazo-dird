@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import sh
-import os
 
 from hamcrest import (
     all_of,
@@ -16,13 +15,11 @@ from hamcrest import (
     is_in,
     is_not,
 )
-from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from wazo_dird import database
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     CSVWithMultipleDisplayTestCase,
+    HalfBrokenTestCase,
     VALID_TOKEN,
     VALID_UUID,
 )
@@ -178,68 +175,7 @@ class TestReverse(BaseMultipleSourceLauncher):
         assert_that(result, equal_to(expected))
 
 
-class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
-
-    asset = 'half_broken'
-
-    def setUp(self):
-        super().setUp()
-        my_csv_body = {
-            'name': 'my_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': "|",
-            'unique_column': 'id',
-            'searched_columns': ['fn', 'ln'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-            }
-        }
-        my_other_csv_body = {
-            'name': 'my_other_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': "|",
-            'searched_columns': ['fn', 'ln'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-            }
-        }
-        broken_body = {
-            'name': 'broken',
-            'tenant_uuid': MAIN_TENANT,
-            'searched_columns': [],
-            'first_matched_columns': [],
-            'format_columns': {},
-        }
-        self._source_uuids = [
-            self.client.csv_source.create(my_csv_body)['uuid'],
-            self.client.csv_source.create(my_other_csv_body)['uuid'],
-        ]
-        db_port = self.service_port(5432, 'db')
-        db_uri = os.getenv(
-            'DB_URI',
-            'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port),
-        )
-        engine = create_engine(db_uri)
-        database.Base.metadata.bind = engine
-        database.Base.metadata.reflect()
-        database.Base.metadata.drop_all()
-        database.Base.metadata.create_all()
-        Session = scoped_session(sessionmaker())
-        self.source_crud = database.SourceCRUD(Session)
-        self.broken = self.source_crud.create('broken', broken_body)
-
-    def tearDown(self):
-        for uuid in self._source_uuids:
-            try:
-                self.client.csv_source.delete(uuid)
-            except Exception:
-                pass
-        self.source_crud.delete('broken', self.broken['uuid'], visible_tenants=[MAIN_TENANT])
-        super().tearDown()
+class TestLookupWhenASourceFails(HalfBrokenTestCase):
 
     def test_that_lookup_returns_some_results(self):
         result = self.lookup('al', 'default')

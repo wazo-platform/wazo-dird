@@ -10,4 +10,3 @@ services:
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.sample_backend.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.sample_backend.sample.yml:/etc/wazo-dird/sources.d/sample.yml"

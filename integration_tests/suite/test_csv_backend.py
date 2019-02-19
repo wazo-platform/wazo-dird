@@ -3,6 +3,7 @@
 
 import unittest
 import yaml
+import os
 
 from hamcrest import (
     assert_that,
@@ -15,6 +16,7 @@ from .base_dird_integration_test import (
     absolute_file_name,
     CSVWithMultipleDisplayTestCase,
     BackendWrapper,
+    VALID_UUID,
 )
 
 
@@ -29,32 +31,43 @@ class _BaseCSVFileTestCase(unittest.TestCase):
         super().setUp()
 
 
-class TestCSVBackend(_BaseCSVFileTestCase, CSVWithMultipleDisplayTestCase):
-
-    source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
+class TestCSVBackend(CSVWithMultipleDisplayTestCase):
 
     def setUp(self):
-        self._alice = {'id': '1', 'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
-        self._charles = {'id': '3', 'fn': 'Charles', 'ln': 'CCC', 'num': '555123555'}
         super().setUp()
+        self._alice = ['Alice', 'AAA', '5555555555']
+        self._charles = ['Charles', 'CCC', '555123555']
 
     def test_that_searching_for_lice_return_Alice(self):
-        result = self.backend.search('lice')
+        response = self.lookup('lice', 'default')
 
-        assert_that(result, contains(has_entries(**self._alice)))
+        favorite = [False]
+        assert_that(response['results'], contains(
+            has_entries(column_values=self._alice + favorite),
+        ))
 
     def test_reverse_lookup(self):
-        result = self.backend.first('5555555555')
+        response = self.reverse('5555555555', 'default', VALID_UUID)
 
-        assert_that(result, has_entries(**self._alice))
+        expected_display = '{} {}'.format(self._alice[0], self._alice[1])
+        assert_that(response, has_entries(display=expected_display))
 
     def test_that_listing_by_ids_works(self):
+        alice_id = '1'
+        charles_id = '3'
         unknown_id = '42'
 
-        result = self.backend.list([self._alice['id'], self._charles['id'], unknown_id])
+        self.put_favorite('my_csv', alice_id)
+        self.put_favorite('my_csv', charles_id)
+        self.put_favorite('my_csv', unknown_id)
 
-        assert_that(result, contains_inanyorder(has_entries(**self._alice),
-                                                has_entries(**self._charles)))
+        response = self.favorites('default')
+
+        favorite = [True]
+        assert_that(response['results'], contains(
+            has_entries(column_values=self._alice + favorite),
+            has_entries(column_values=self._charles + favorite),
+        ))
 
 
 class TestCSVNoUnique(_BaseCSVFileTestCase):

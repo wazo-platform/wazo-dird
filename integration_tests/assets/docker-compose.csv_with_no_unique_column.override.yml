@@ -9,5 +9,4 @@ services:
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.csv_with_no_unique_column.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.csv_with_no_unique_column.my_test_csv.yml:/etc/wazo-dird/sources.d/my_test_csv.yml"
       - "./tmp/data/asset.csv_with_no_unique_column.test.csv:/tmp/data/test.csv"

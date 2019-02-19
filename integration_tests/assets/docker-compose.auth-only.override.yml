@@ -9,4 +9,3 @@ services:
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.auth-only.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.auth-only.sample.yml:/etc/wazo-dird/sources.d/sample.yml"

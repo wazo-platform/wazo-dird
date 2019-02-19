@@ -5,6 +5,7 @@ enabled_plugins:
     lookup: true
   views:
     default_json: true
+    ldap_backend: true
 
 views:
   displays:

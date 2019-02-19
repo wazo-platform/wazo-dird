@@ -11,7 +11,6 @@ services:
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.ldap.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.ldap.test_ldap.yml:/etc/wazo-dird/sources.d/test_ldap.yml"
   slapd:
     image: nickstenning/slapd
     environment:

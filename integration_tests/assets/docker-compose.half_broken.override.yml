@@ -6,7 +6,7 @@ services:
       - dird
       - db
     environment:
-      TARGETS: "db:5432 dird:9489 auth:9497"
+      TARGETS: "dird:9489 auth:9497 db:5432"
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.half_broken.yml:/etc/wazo-dird/config.yml"

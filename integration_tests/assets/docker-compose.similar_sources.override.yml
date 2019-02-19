@@ -10,7 +10,5 @@ services:
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.similar_sources.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.similar_sources.csv_2.yml:/etc/wazo-dird/sources.d/csv_2.yml"
-      - "./etc/wazo-dird/sources.d/asset.similar_sources.csv.yml:/etc/wazo-dird/sources.d/csv.yml"
       - "./tmp/data/asset.similar_sources.test.csv:/tmp/data/test.csv"
       - "./tmp/data/asset.similar_sources.test_2.csv:/tmp/data/test_2.csv"

@@ -4,10 +4,14 @@
 import os
 import json
 import logging
+import requests
+
 from uuid import uuid4
 from contextlib import contextmanager
+from sqlalchemy.engine import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from wazo_dird import database
 
-import requests
 from hamcrest import (
     assert_that,
     equal_to,
@@ -38,6 +42,7 @@ VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
 VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
+MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
 
 
 def absolute_file_name(asset_name, path):
@@ -188,8 +193,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def delete_favorite(cls, directory, contact):
-        response = cls.delete_favorite_result(directory, contact, token=VALID_TOKEN)
+    def delete_favorite(cls, directory, contact, token=VALID_TOKEN):
+        response = cls.delete_favorite_result(directory, contact, token=token)
         assert_that(response.status_code, equal_to(204))
 
     @contextmanager
@@ -660,7 +665,7 @@ class CSVWithMultipleDisplayTestCase(BaseDirdIntegrationTest):
             'separator': ",",
             'unique_column': 'id',
             'searched_columns': ['fn', 'ln'],
-            'first_matches_columns': ['num'],
+            'first_matched_columns': ['num'],
             'format_columns': {
                 'lastname': "{ln}",
                 'firstname': "{fn}",
@@ -668,8 +673,94 @@ class CSVWithMultipleDisplayTestCase(BaseDirdIntegrationTest):
                 'reverse': '{fn} {ln}'
             }
         }
-        self._source_uuid = self.client.csv_source.create(my_csv_body)['uuid']
+        self._source = self.client.csv_source.create(my_csv_body)
 
     def tearDown(self):
-        self.client.csv_source.delete(self._source_uuid)
+        self.client.csv_source.delete(self._source['uuid'])
+        super().tearDown()
+
+
+class HalfBrokenTestCase(BaseDirdIntegrationTest):
+
+    asset = 'half_broken'
+
+    def setUp(self):
+        super().setUp()
+        db_port = self.service_port(5432, 'db')
+        db_uri = os.getenv(
+            'DB_URI',
+            'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port),
+        )
+        engine = create_engine(db_uri)
+        database.Base.metadata.bind = engine
+        database.Base.metadata.reflect()
+        database.Base.metadata.drop_all()
+        database.Base.metadata.create_all()
+        Session = scoped_session(sessionmaker())
+        self.source_crud = database.SourceCRUD(Session)
+
+        my_csv_body = {
+            'name': 'my_csv',
+            'file': '/tmp/data/test.csv',
+            'separator': "|",
+            'unique_column': 'id',
+            'searched_columns': ['fn', 'ln'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+            }
+        }
+        my_other_csv_body = {
+            'name': 'my_other_csv',
+            'file': '/tmp/data/test.csv',
+            'separator': "|",
+            'searched_columns': ['fn', 'ln'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+            }
+        }
+        broken_body = {
+            'name': 'broken',
+            'tenant_uuid': MAIN_TENANT,
+            'searched_columns': [],
+            'first_matched_columns': [],
+            'format_columns': {},
+        }
+        self._source_uuids = [
+            self.client.csv_source.create(my_csv_body)['uuid'],
+            self.client.csv_source.create(my_other_csv_body)['uuid'],
+        ]
+        self.broken = self.source_crud.create('broken', broken_body)
+
+    def tearDown(self):
+        for uuid in self._source_uuids:
+            try:
+                self.client.csv_source.delete(uuid)
+            except Exception:
+                pass
+        self.source_crud.delete('broken', self.broken['uuid'], visible_tenants=[MAIN_TENANT])
+        super().tearDown()
+
+
+class PersonalOnlyTestCase(BaseDirdIntegrationTest):
+
+    asset = 'personal_only'
+
+    def setUp(self):
+        super().setUp()
+        body = {
+            'name': 'personal',
+            'db_uri': 'postgresql://asterisk:proformatique@db/asterisk',
+            'searched_columns': ['firstname', 'lastname'],
+            'first_matched_columns': ['number'],
+            'format_columns': {'reverse': '{firstname} {lastname}'},
+        }
+        self.source = self.client.personal_source.create(body)
+
+    def tearDown(self):
+        self.purge_personal()
+        self.client.personal_source.delete(self.source['uuid'])
         super().tearDown()

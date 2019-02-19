@@ -6,6 +6,7 @@ enabled_plugins:
     favorites: true
   views:
     default_json: true
+    ldap_backend: true
 
 views:
   displays:

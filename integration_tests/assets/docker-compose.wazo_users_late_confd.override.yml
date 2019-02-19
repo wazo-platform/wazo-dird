@@ -10,10 +10,10 @@ services:
       PORTS: "dird:9489 auth:9497 db:5432"
   dird:
     depends_on:
-      - confd
+      - america
     volumes:
       - "./etc/wazo-dird/conf.d/asset.wazo_users_late_confd.yml:/etc/wazo-dird/config.yml"
-  confd:
+  america:
     image: python:2.7.13-stretch
     volumes:
       - "./confd_data/asset.wazo_users_late_confd:/tmp"

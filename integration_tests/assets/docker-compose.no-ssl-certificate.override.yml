@@ -6,5 +6,4 @@ services:
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.no-ssl-certificate.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.no-ssl-certificate.sample.yml:/etc/wazo-dird/sources.d/sample.yml"
       - "./ssl/dird/server.key:/tmp/ssl/dird/server.key"

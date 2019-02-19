@@ -6,8 +6,9 @@ services:
       - confd
       - consul
       - dird
+      - db
     environment:
-      TARGETS: "auth:9497 confd:9486 consul:8000 dird:9489"
+      TARGETS: "auth:9497 confd:9486 consul:8000 dird:9489 db:5432"
   confd:
     image: python:2.7.13-stretch
     volumes:
