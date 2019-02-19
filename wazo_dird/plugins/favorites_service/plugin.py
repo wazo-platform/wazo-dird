@@ -44,10 +44,10 @@ class FavoritesServicePlugin(BaseServicePlugin):
     def load(self, args):
         try:
             config = args['config']
-            sources = args['sources']
+            source_manager = args['source_manager']
             bus = args['bus']
         except KeyError:
-            msg = ('%s should be loaded with "config", "sources" and "bus" but received: %s'
+            msg = ('%s should be loaded with "config", "source_manager" and "bus" but received: %s'
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
@@ -61,7 +61,7 @@ class FavoritesServicePlugin(BaseServicePlugin):
 
         crud = self._new_favorite_crud(db_uri)
 
-        self._service = _FavoritesService(config, sources, crud, bus)
+        self._service = _FavoritesService(config, source_manager, crud, bus)
         return self._service
 
     def _new_favorite_crud(self, db_uri):
@@ -84,18 +84,15 @@ class _FavoritesService(helpers.BaseService):
     DuplicatedFavoriteException = exception.DuplicatedFavoriteException
     _service_name = 'favorites'
 
-    def __init__(self, config, sources, crud, bus):
-        super().__init__(config, sources, crud, bus)
+    def __init__(self, config, source_manager, crud, bus):
+        super().__init__(config, source_manager, crud, bus)
         self._executor = ThreadPoolExecutor(max_workers=10)
         self._crud = crud
         self._bus = bus
         self._xivo_uuid = config.get('uuid')
+        self._source_manager = source_manager
         if not self._xivo_uuid:
             logger.info('loaded without a UUID: published events will be incomplete')
-        source_config = self._config.get('sources', {})
-        self._source_backends = {
-            source['name']: source['type'] for source in source_config.values()
-        }
 
     def _configured_profiles(self):
         return self._config.get('services', {}).get('favorites', {}).keys()
@@ -123,7 +120,7 @@ class _FavoritesService(helpers.BaseService):
         args = {'token_infos': {'xivo_user_uuid': xivo_user_uuid}}
         futures = []
         for source_name, ids in self.favorite_ids(profile, xivo_user_uuid).items():
-            source = self._sources[source_name]
+            source = self._source_manager.get(source_name)
             futures.append(self._async_list(source, ids, args))
 
         params = {'return_when': ALL_COMPLETED}
@@ -139,7 +136,7 @@ class _FavoritesService(helpers.BaseService):
 
     def favorite_ids(self, profile, xivo_user_uuid):
         if profile not in self._configured_profiles():
-            raise self.NoSuchProfileException(profile)
+            return []
 
         favorites = self._crud.get(xivo_user_uuid)
         enabled_sources = [source.name for source in self.source_by_profile(profile)]

@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -27,11 +27,12 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
     def setUp(self):
         self._config = {'db_uri': s.db_uri}
+        self._source_manager = Mock()
 
     def test_load_no_config(self):
         plugin = FavoritesServicePlugin()
 
-        self.assertRaises(ValueError, plugin.load, {'sources': s.sources})
+        self.assertRaises(ValueError, plugin.load, {'source_manager': self._source_manager})
 
     def test_load_no_sources(self):
         plugin = FavoritesServicePlugin()
@@ -42,7 +43,7 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         plugin = FavoritesServicePlugin()
 
         with patch.object(plugin, '_new_favorite_crud'):
-            service = plugin.load({'sources': s.sources,
+            service = plugin.load({'source_manager': self._source_manager,
                                    'config': self._config,
                                    'bus': s.bus})
 
@@ -54,10 +55,15 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
         with patch.object(plugin, '_new_favorite_crud'):
             service = plugin.load({'config': self._config,
-                                   'sources': s.sources,
+                                   'source_manager': self._source_manager,
                                    'bus': s.bus})
 
-        MockedFavoritesService.assert_called_once_with(self._config, s.sources, ANY, s.bus)
+        MockedFavoritesService.assert_called_once_with(
+            self._config,
+            self._source_manager,
+            ANY,
+            s.bus,
+        )
         assert_that(service, equal_to(MockedFavoritesService.return_value))
 
     def test_no_error_on_unload_not_loaded(self):
@@ -70,7 +76,7 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         plugin = FavoritesServicePlugin()
         with patch.object(plugin, '_new_favorite_crud'):
             plugin.load({'config': self._config,
-                         'sources': s.sources,
+                         'source_manager': self._source_manager,
                          'bus': s.bus})
 
         plugin.unload()
@@ -85,10 +91,10 @@ class TestFavoritesService(unittest.TestCase):
 
     def test_that_unavailable_source_raises_404(self):
         config = {'services': {'favorites': {'my_profile': {'sources': ['one', 'two']}}}}
-        sources = {'one': Mock(), 'two': Mock(), 'three': Mock()}
+        source_manager = Mock()
         crud = Mock(database.FavoriteCRUD)
 
-        service = _FavoritesService(config, sources, crud, self.bus)
+        service = _FavoritesService(config, source_manager, crud, self.bus)
 
         assert_that(calling(service.new_favorite).with_args('three', 'the-id', s.xivo_user_uuid),
                     raises(service.NoSuchSourceException))
@@ -119,8 +125,9 @@ class TestFavoritesService(unittest.TestCase):
                 }
             },
         }
+        source_manager = sources
 
-        service = _FavoritesService(config, sources, crud, self.bus)
+        service = _FavoritesService(config, source_manager, crud, self.bus)
 
         results = service.favorites('my_profile', s.xivo_user_uuid)
 
@@ -159,7 +166,8 @@ class TestFavoritesService(unittest.TestCase):
             },
         }
 
-        service = _FavoritesService(config, sources, crud, self.bus)
+        source_manager = sources
+        service = _FavoritesService(config, source_manager, crud, self.bus)
 
         results = service.favorites('my_profile', s.xivo_user_uuid)
 
@@ -175,9 +183,9 @@ class TestFavoritesService(unittest.TestCase):
     def test_that_using_an_unconfigured_profile_raises(self):
         config = {'services': {'favorites': {'profile_1': {}}}}
         crud = Mock(database.FavoriteCRUD)
-        sources = {}
 
-        service = _FavoritesService(config, sources, crud, self.bus)
+        source_manager = Mock()
+        service = _FavoritesService(config, source_manager, crud, self.bus)
 
         assert_that(calling(service.favorites).with_args('my_profile', s.xivo_user_uuid),
                     raises(service.NoSuchProfileException))
@@ -229,7 +237,8 @@ class TestFavoritesService(unittest.TestCase):
                 }
             },
         }
-        service = _FavoritesService(config, sources, crud, self.bus)
+        source_manager = sources
+        service = _FavoritesService(config, source_manager, crud, self.bus)
 
         result = service.favorites('my_profile', s.xivo_user_uuid)
 
