@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import time
@@ -22,6 +22,9 @@ from ..plugin import (
 
 class TestReverseServicePlugin(unittest.TestCase):
 
+    def setUp(self):
+        self._source_manager = Mock()
+
     def test_load_no_config(self):
         plugin = ReverseServicePlugin()
 
@@ -35,7 +38,7 @@ class TestReverseServicePlugin(unittest.TestCase):
     def test_that_load_returns_a_service(self):
         plugin = ReverseServicePlugin()
 
-        service = plugin.load({'sources': sentinel.sources,
+        service = plugin.load({'source_manager': self._source_manager,
                                'config': sentinel.config})
 
         assert_that(service, not_(none()))
@@ -45,9 +48,9 @@ class TestReverseServicePlugin(unittest.TestCase):
         plugin = ReverseServicePlugin()
 
         service = plugin.load({'config': sentinel.config,
-                               'sources': sentinel.sources})
+                               'source_manager': self._source_manager})
 
-        MockedReverseService.assert_called_once_with(sentinel.config, sentinel.sources)
+        MockedReverseService.assert_called_once_with(sentinel.config, self._source_manager)
         assert_that(service, equal_to(MockedReverseService.return_value))
 
     def test_no_error_on_unload_not_loaded(self):
@@ -58,7 +61,7 @@ class TestReverseServicePlugin(unittest.TestCase):
     @patch('wazo_dird.plugins.reverse_service.plugin._ReverseService')
     def test_that_unload_stops_the_services(self, MockedReverseService):
         plugin = ReverseServicePlugin()
-        plugin.load({'config': sentinel.config, 'sources': sentinel.sources})
+        plugin.load({'config': sentinel.config, 'source_manager': self._source_manager})
 
         plugin.unload()
 

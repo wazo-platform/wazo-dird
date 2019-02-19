@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -17,13 +17,16 @@ class ReverseServicePlugin(BaseServicePlugin):
     def __init__(self):
         self._service = None
 
-    def load(self, args):
+    def load(self, dependencies):
         try:
-            self._service = _ReverseService(args['config'], args['sources'])
+            self._service = _ReverseService(
+                dependencies['config'],
+                dependencies['source_manager'],
+            )
             return self._service
         except KeyError:
-            msg = ('%s should be loaded with "config" and "sources" but received: %s'
-                   % (self.__class__.__name__, ','.join(args.keys())))
+            msg = ('%s should be loaded with "config" and "source_manager" but received: %s'
+                   % (self.__class__.__name__, ','.join(dependencies.keys())))
             raise ValueError(msg)
 
     def unload(self):
