@@ -103,8 +103,7 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
             has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))))
 
 
-class TestRemovingFavoriteAlreadyInexistant(BaseDirdIntegrationTest):
-    asset = 'sample_backend'
+class TestRemovingFavoriteAlreadyInexistant(CSVWithMultipleDisplayTestCase):
 
     def test_that_removing_an_inexisting_favorite_returns_404(self):
         result = self.delete_favorite_result('unknown_source', 'unknown_contact', token=VALID_TOKEN)

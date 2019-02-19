@@ -229,9 +229,7 @@ class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
         assert_that(name, is_not(is_in(sh.docker('ps'))))
 
 
-class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
-
-    asset = 'sample_backend'
+class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
 
     def test_that_lookup_returns_404(self):
         result = self.get_lookup_result('lice', 'unknown', token=VALID_TOKEN)

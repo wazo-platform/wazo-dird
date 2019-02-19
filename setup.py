@@ -77,7 +77,6 @@ setup(
             'ldap = wazo_dird.plugins.ldap_backend.plugin:LDAPPlugin',
             'personal = wazo_dird.plugins.personal_backend.plugin:PersonalBackend',
             'wazo = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserPlugin',
-            'sample = wazo_dird.plugins.sample_backend.plugin:SamplePlugin',
         ],
         'wazo_dird.views': [
             'api_view = wazo_dird.plugins.api.plugin:ApiViewPlugin',
