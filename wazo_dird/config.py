@@ -32,6 +32,7 @@ _DEFAULT_CONFIG = {
         'services': {
             'cleanup': True,
             'config': True,
+            'display': True,
             'favorites': True,
             'lookup': True,
             'personal': True,

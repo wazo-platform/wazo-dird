@@ -62,6 +62,7 @@ setup(
         'wazo_dird.services': [
             'cleanup = wazo_dird.plugins.cleanup_service.plugin:StorageCleanupServicePlugin',
             'config = wazo_dird.plugins.config_service.plugin:ConfigServicePlugin',
+            'display = wazo_dird.plugins.display_service.plugin:DisplayServicePlugin',
             'favorites = wazo_dird.plugins.favorites_service.plugin:FavoritesServicePlugin',
             'lookup = wazo_dird.plugins.lookup_service.plugin:LookupServicePlugin',
             'personal = wazo_dird.plugins.personal_service.plugin:PersonalServicePlugin',
