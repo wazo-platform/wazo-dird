@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import functools
-import uuid
 import os
 import unittest
 
@@ -11,6 +10,7 @@ from contextlib import (
     closing,
     contextmanager,
 )
+from uuid import uuid4
 from hamcrest import (
     any_of,
     assert_that,
@@ -43,6 +43,7 @@ from wazo_dird import (
     exception,
 )
 
+from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_dird.database.queries import base
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
@@ -51,7 +52,7 @@ Session = scoped_session(sessionmaker())
 
 
 def new_uuid():
-    return str(uuid.uuid4())
+    return str(uuid4())
 
 
 def expected(contact):
@@ -193,6 +194,108 @@ class TestBaseDAO(_BaseTest):
                 s.add(phonebook)
         except exc.InvalidRequestError:
             self.fail('Should not raise')
+
+
+class TestDisplayCRUD(_BaseTest):
+
+    def setUp(self):
+        super().setUp()
+        self._crud = database.DisplayCRUD(Session)
+
+    def test_create_no_error(self):
+        tenant_uuid = new_uuid()
+        name = 'english'
+        body = {
+            'tenant_uuid': tenant_uuid,
+            'name': name,
+            'columns': [
+                {
+                    'field': 'firstname',
+                    'title': 'Firstname',
+                },
+                {
+                    'field': 'lastname',
+                    'title': 'Lastname',
+                    'default': '',
+                },
+                {
+                    'field': 'number',
+                    'title': 'Number',
+                    'type': 'number',
+                },
+                {
+                    'field': 'mobile',
+                    'title': 'Mobile',
+                    'type': 'number',
+                    'number_display': '{firstname} {lastname} (Mobile)',
+                },
+            ],
+        }
+
+        result = self._crud.create(**body)
+
+        assert_that(result, has_entries(
+            uuid=uuid_(),
+            tenant_uuid=tenant_uuid,
+            name=name,
+            columns=contains(
+                has_entries(
+                    field='firstname',
+                    title='Firstname',
+                ),
+                has_entries(
+                    field='lastname',
+                    title='Lastname',
+                    default='',
+                ),
+                has_entries(
+                    field='number',
+                    title='Number',
+                    type='number',
+                ),
+                has_entries(
+                    field='mobile',
+                    title='Mobile',
+                    type='number',
+                    number_display='{firstname} {lastname} (Mobile)',
+                ),
+            ),
+        ))
+
+    def test_get(self):
+        tenant_uuid = new_uuid()
+        name = 'english'
+        body = {
+            'tenant_uuid': tenant_uuid,
+            'name': name,
+            'columns': [
+                {
+                    'field': 'firstname',
+                    'title': 'Firstname',
+                },
+                {
+                    'field': 'lastname',
+                    'title': 'Lastname',
+                    'default': '',
+                },
+                {
+                    'field': 'number',
+                    'title': 'Number',
+                    'type': 'number',
+                },
+                {
+                    'field': 'mobile',
+                    'title': 'Mobile',
+                    'type': 'number',
+                    'number_display': '{firstname} {lastname} (Mobile)',
+                },
+            ],
+        }
+
+        display = self._crud.create(**body)
+
+        result = self._crud.get(tenant_uuid, display['uuid'])
+        assert_that(result, equal_to(display))
 
 
 class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):

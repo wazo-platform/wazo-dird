@@ -3,6 +3,7 @@
 
 from uuid import uuid4
 from sqlalchemy import (Column, ForeignKey, Integer, schema, String, text, Text)
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import (
     ARRAY,
@@ -37,6 +38,30 @@ class ContactFields(Base):
     name = Column(Text(), nullable=False, index=True)
     value = Column(Text(), index=True)
     contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
+
+
+class Display(Base):
+
+    __tablename__ = 'dird_display'
+
+    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
+    tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE'))
+    name = Column(Text(), nullable=False)
+    columns = relationship('DisplayColumn', viewonly=True)
+
+
+class DisplayColumn(Base):
+
+    __tablename__ = 'dird_display_column'
+
+    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
+    display_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_display.uuid', ondelete='CASCADE'))
+    field = Column(Text(), nullable=False)
+    title = Column(Text())
+    type = Column(Text())
+    default = Column(Text())
+    number_display = Column(Text())
+    display = relationship('Display')
 
 
 class Favorite(Base):
