@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -7,25 +7,25 @@ from uuid import uuid4
 from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import contains_inanyorder
-from hamcrest import equal_to
 from hamcrest import has_entries
 from hamcrest import has_entry
 from hamcrest import has_item
 from hamcrest import not_
-from mock import ANY
-from mock import call
-from mock import Mock
+from mock import (
+    ANY,
+    call,
+    Mock,
+    sentinel as s,
+)
 
 from wazo_dird import make_result_class
 from wazo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
 from ..plugin import (
-    DisplayColumn,
     JsonViewPlugin,
-    make_displays,
 )
 from ..http import (
-    DisabledFavoriteService,
+    DisplayColumn,
     FavoritesRead,
     FavoritesWrite,
     Lookup,
@@ -43,12 +43,6 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         self.api = Mock()
         self.plugin = JsonViewPlugin()
 
-    def tearDown(self):
-        # reset class Lookup
-        Lookup.configure(displays=None, lookup_service=None, favorite_service=DisabledFavoriteService())
-        FavoritesRead.configure(displays=None, favorites_service=None)
-        FavoritesWrite.configure(favorites_service=None)
-
     def test_that_load_with_no_lookup_service_does_not_add_route(self):
         self.plugin.load({'config': {},
                           'http_namespace': Mock(),
@@ -61,17 +55,29 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         )
 
     def test_that_load_adds_the_lookup_route(self):
-        args = {
-            'config': {'displays': {},
-                       'profile_to_display': {}},
+        dependencies = {
+            'config': {'views': {'profile_to_display': s.profile_to_display}},
             'http_namespace': Mock(),
             'api': self.api,
-            'services': {'lookup': Mock()},
+            'services': {
+                'lookup': s.lookup_service,
+                'display': s.display_service,
+                'favorites': s.favorites_service,
+            },
         }
 
-        self.plugin.load(args)
+        self.plugin.load(dependencies)
 
-        self.api.add_resource.assert_any_call(Lookup, JsonViewPlugin.lookup_url)
+        self.api.add_resource.assert_any_call(
+            Lookup,
+            JsonViewPlugin.lookup_url,
+            resource_class_args=(
+                s.lookup_service,
+                s.favorites_service,
+                s.display_service,
+                s.profile_to_display,
+            ),
+        )
 
     def test_that_load_with_no_favorites_service_does_not_add_route(self):
         JsonViewPlugin().load({'config': {},
@@ -83,18 +89,28 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         assert_that(self.api.add_resource.call_args_list, not_(has_item(call(FavoritesWrite, ANY))))
 
     def test_that_load_adds_the_favorite_route(self):
-        args = {
-            'config': {'displays': {},
-                       'profile_to_display': {}},
+        dependencies = {
+            'config': {'views': {'profile_to_display': s.profile_to_display}},
             'http_namespace': Mock(),
             'api': self.api,
-            'services': {'favorites': Mock()},
+            'services': {
+                'favorites': s.favorite_service,
+                'display': s.display_service,
+            },
         }
 
-        JsonViewPlugin().load(args)
+        JsonViewPlugin().load(dependencies)
 
-        self.api.add_resource.assert_any_call(FavoritesRead, JsonViewPlugin.favorites_read_url)
-        self.api.add_resource.assert_any_call(FavoritesWrite, JsonViewPlugin.favorites_write_url)
+        self.api.add_resource.assert_any_call(
+            FavoritesRead,
+            JsonViewPlugin.favorites_read_url,
+            resource_class_args=(s.favorite_service, s.display_service, s.profile_to_display),
+        )
+        self.api.add_resource.assert_any_call(
+            FavoritesWrite,
+            JsonViewPlugin.favorites_write_url,
+            resource_class_args=(s.favorite_service,),
+        )
 
     def test_that_load_with_no_personal_service_does_not_add_route(self):
         JsonViewPlugin().load({'config': {},
@@ -105,65 +121,30 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         assert_that(self.api.add_resource.call_args_list, not_(has_item(call(Personal, ANY))))
 
     def test_that_load_adds_the_personal_routes(self):
-        args = {
-            'config': {'displays': {},
-                       'profile_to_display': {}},
+        dependencies = {
+            'config': {'views': {'profile_to_display': s.profile_to_display}},
             'http_namespace': Mock(),
             'api': self.api,
-            'services': {'personal': Mock()},
+            'services': {
+                'personal': s.personal_service,
+                'favorites': s.favorites_service,
+                'display': s.display_service,
+            },
         }
 
-        JsonViewPlugin().load(args)
+        JsonViewPlugin().load(dependencies)
 
-        self.api.add_resource.assert_any_call(Personal, JsonViewPlugin.personal_url)
-
-
-class TestMakeDisplays(unittest.TestCase):
-
-    def test_that_make_displays_with_no_config_returns_empty_dict(self):
-        result = make_displays({})
-
-        assert_that(result, equal_to({}))
-
-    def test_that_make_displays_generate_display_dict(self):
-        first_display = [
-            DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
-            DisplayColumn('Lastname', None, 'ln', 'lastname'),
-        ]
-        second_display = [
-            DisplayColumn('fn', 'some_type', 'N/A', 'firstname'),
-            DisplayColumn('ln', None, 'N/A', 'LAST'),
-        ]
-
-        config = {'displays': {'first_display': [{'title': 'Firstname',
-                                                  'type': None,
-                                                  'default': 'Unknown',
-                                                  'field': 'firstname'},
-                                                 {'title': 'Lastname',
-                                                  'type': None,
-                                                  'default': 'ln',
-                                                  'field': 'lastname'}],
-                               'second_display': [{'title': 'fn',
-                                                   'type': 'some_type',
-                                                   'default': 'N/A',
-                                                   'field': 'firstname'},
-                                                  {'title': 'ln',
-                                                   'type': None,
-                                                   'default': 'N/A',
-                                                   'field': 'LAST'}]},
-                  'profile_to_display': {'profile_1': 'first_display',
-                                         'profile_2': 'second_display',
-                                         'profile_3': 'first_display'}}
-
-        display_dict = make_displays(config)
-
-        expected = {
-            'profile_1': first_display,
-            'profile_2': second_display,
-            'profile_3': first_display,
-        }
-
-        assert_that(display_dict, equal_to(expected))
+        print(self.api.add_resource.call_args_list)
+        self.api.add_resource.assert_any_call(
+            Personal,
+            JsonViewPlugin.personal_url,
+            resource_class_args=(
+                s.personal_service,
+                s.favorites_service,
+                s.display_service,
+                s.profile_to_display,
+            ),
+        )
 
 
 class TestFormatResult(unittest.TestCase):

@@ -1,9 +1,10 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
 
 from time import time
+from collections import namedtuple
 
 from flask import request
 from flask_restful import reqparse
@@ -28,23 +29,56 @@ def _error(code, msg):
             'status_code': code}, code
 
 
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
+
+
 class DisabledFavoriteService:
 
     def favorite_ids(self, profile, xivo_user_uuid):
         return []
 
 
-class Lookup(LegacyAuthResource):
-    displays = None
-    lookup_service = None
-    favorite_service = DisabledFavoriteService()
+class _DisplayAwareResource:
 
-    @classmethod
-    def configure(cls, displays, lookup_service, favorite_service):
-        cls.displays = displays
-        cls.lookup_service = lookup_service
-        if favorite_service:
-            cls.favorite_service = favorite_service
+    def build_display(self, profile):
+        if profile not in self.profile_to_display:
+            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
+
+        display_name = self.profile_to_display[profile]
+        try:
+            display = self.display_service.list_(visible_tenants=None, name=display_name)[0]
+        except IndexError:
+            # TODO when the profile will configured by http interface this error will be removed
+            return _error(
+                400,
+                "The configured display for '{}: {}' does not exists".format(profile, display_name),
+            )
+
+        return self._make_display(display)
+
+    @staticmethod
+    def _make_display(display):
+        columns = display.get('columns')
+        if not columns:
+            return
+
+        return [
+            DisplayColumn(
+                column.get('title'),
+                column.get('type'),
+                column.get('default'),
+                column.get('field'),
+            ) for column in columns
+        ]
+
+
+class Lookup(LegacyAuthResource, _DisplayAwareResource):
+
+    def __init__(self, lookup_service, favorite_service, display_service, profile_to_display):
+        self.lookup_service = lookup_service
+        self.favorite_service = favorite_service
+        self.display_service = display_service
+        self.profile_to_display = profile_to_display
 
     @required_acl('dird.directories.lookup.{profile}.read')
     def get(self, profile):
@@ -53,9 +87,7 @@ class Lookup(LegacyAuthResource):
 
         logger.info('Lookup for %s with profile %s', term, profile)
 
-        if profile not in self.displays:
-            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
-
+        display = self.build_display(profile)
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid']
@@ -65,7 +97,7 @@ class Lookup(LegacyAuthResource):
                                                  xivo_user_uuid,
                                                  token=token)
         favorites = self.favorite_service.favorite_ids(profile, xivo_user_uuid)
-        formatter = _ResultFormatter(self.displays[profile])
+        formatter = _ResultFormatter(display)
         response = formatter.format_results(raw_results, favorites)
 
         response.update({'term': term})
@@ -74,11 +106,9 @@ class Lookup(LegacyAuthResource):
 
 
 class Reverse(LegacyAuthResource):
-    reverse_service = None
 
-    @classmethod
-    def configure(cls, reverse_service):
-        cls.reverse_service = reverse_service
+    def __init__(self, reverse_service):
+        self.reverse_service = reverse_service
 
     @required_acl('dird.directories.reverse.{profile}.{xivo_user_uuid}.read')
     def get(self, profile, xivo_user_uuid):
@@ -109,20 +139,17 @@ class Reverse(LegacyAuthResource):
         return response
 
 
-class FavoritesRead(LegacyAuthResource):
-    displays = None
-    favorites_service = None
+class FavoritesRead(LegacyAuthResource, _DisplayAwareResource):
 
-    @classmethod
-    def configure(cls, displays, favorites_service):
-        cls.displays = displays
-        cls.favorites_service = favorites_service
+    def __init__(self, favorites_service, display_service, profile_to_display):
+        self.favorites_service = favorites_service
+        self.display_service = display_service
+        self.profile_to_display = profile_to_display
 
     @required_acl('dird.directories.favorites.{profile}.read')
     def get(self, profile):
         logger.debug('Listing favorites with profile %s', profile)
-        if profile not in self.displays:
-            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
+        display = self.build_display(profile)
 
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
@@ -132,17 +159,14 @@ class FavoritesRead(LegacyAuthResource):
         except self.favorites_service.NoSuchProfileException as e:
             return _error(404, str(e))
 
-        formatter = _FavoriteResultFormatter(self.displays[profile])
+        formatter = _FavoriteResultFormatter(display)
         return formatter.format_results(raw_results)
 
 
 class FavoritesWrite(LegacyAuthResource):
 
-    favorites_service = None
-
-    @classmethod
-    def configure(cls, favorites_service):
-        cls.favorites_service = favorites_service
+    def __init__(self, favorites_service):
+        self.favorites_service = favorites_service
 
     @required_acl('dird.directories.favorites.{directory}.{contact}.update')
     def put(self, directory, contact):
@@ -174,18 +198,13 @@ class FavoritesWrite(LegacyAuthResource):
             return _error(404, str(e))
 
 
-class Personal(LegacyAuthResource):
+class Personal(LegacyAuthResource, _DisplayAwareResource):
 
-    displays = None
-    personal_service = None
-    favorite_service = DisabledFavoriteService()
-
-    @classmethod
-    def configure(cls, displays, personal_service, favorite_service):
-        cls.displays = displays
-        cls.personal_service = personal_service
-        if favorite_service:
-            cls.favorite_service = favorite_service
+    def __init__(self, personal_service, favorite_service, display_service, profile_to_display):
+        self.personal_service = personal_service
+        self.favorite_service = favorite_service or DisabledFavoriteService()
+        self.display_service = display_service
+        self.profile_to_display = profile_to_display
 
     @required_acl('dird.directories.personal.{profile}.read')
     def get(self, profile):
@@ -193,15 +212,14 @@ class Personal(LegacyAuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        if profile not in self.displays:
-            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
+        display = self.build_display(profile)
 
         raw_results = self.personal_service.list_contacts(token_infos)
         try:
             favorites = self.favorite_service.favorite_ids(profile, token_infos['xivo_user_uuid'])
         except self.favorite_service.NoSuchProfileException as e:
             return _error(404, str(e))
-        formatter = _ResultFormatter(self.displays[profile])
+        formatter = _ResultFormatter(display)
         return formatter.format_results(raw_results, favorites)
 
 
