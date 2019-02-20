@@ -1,39 +1,29 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
 
-from time import time
-
+from wazo_dird.exception import OldAPIException
+from wazo_dird.helpers import DisplayAwareResource
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 
 
-class Headers(LegacyAuthResource):
-    displays = None
+class Headers(LegacyAuthResource, DisplayAwareResource):
 
-    @classmethod
-    def configure(cls, displays):
-        cls.displays = displays
+    def __init__(self, display_service, profile_to_display):
+        self.display_service = display_service
+        self.profile_to_display = profile_to_display
 
     @required_acl('dird.directories.lookup.{profile}.headers.read')
     def get(self, profile):
         logger.debug('header request on profile %s', profile)
-        if profile not in self.displays:
-            logger.warning(
-                'profile %s does not exist, or associated display does not exist',
-                profile
-            )
-            error = {
-                'reason': ['The profile `{profile}` does not exist'.format(profile=profile)],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
-            return error, 404
-
-        display = self.displays[profile]
+        try:
+            display = self.build_display(profile)
+        except OldAPIException as e:
+            return e.body, e.status_code
         response = format_headers(display)
         return response
 

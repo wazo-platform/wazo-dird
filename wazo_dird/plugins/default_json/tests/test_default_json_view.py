@@ -18,6 +18,7 @@ from mock import (
     sentinel as s,
 )
 
+from wazo_dird.helpers import DisplayColumn
 from wazo_dird import make_result_class
 from wazo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
@@ -25,7 +26,6 @@ from ..plugin import (
     JsonViewPlugin,
 )
 from ..http import (
-    DisplayColumn,
     FavoritesRead,
     FavoritesWrite,
     Lookup,

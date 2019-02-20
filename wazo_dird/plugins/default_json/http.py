@@ -4,12 +4,13 @@
 import logging
 
 from time import time
-from collections import namedtuple
 
 from flask import request
 from flask_restful import reqparse
 
 from wazo_dird import auth
+from wazo_dird.exception import OldAPIException
+from wazo_dird.helpers import DisplayAwareResource
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import LegacyAuthResource
 
@@ -29,50 +30,13 @@ def _error(code, msg):
             'status_code': code}, code
 
 
-DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
-
-
 class DisabledFavoriteService:
 
     def favorite_ids(self, profile, xivo_user_uuid):
         return []
 
 
-class _DisplayAwareResource:
-
-    def build_display(self, profile):
-        if profile not in self.profile_to_display:
-            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
-
-        display_name = self.profile_to_display[profile]
-        try:
-            display = self.display_service.list_(visible_tenants=None, name=display_name)[0]
-        except IndexError:
-            # TODO when the profile will configured by http interface this error will be removed
-            return _error(
-                400,
-                "The configured display for '{}: {}' does not exists".format(profile, display_name),
-            )
-
-        return self._make_display(display)
-
-    @staticmethod
-    def _make_display(display):
-        columns = display.get('columns')
-        if not columns:
-            return
-
-        return [
-            DisplayColumn(
-                column.get('title'),
-                column.get('type'),
-                column.get('default'),
-                column.get('field'),
-            ) for column in columns
-        ]
-
-
-class Lookup(LegacyAuthResource, _DisplayAwareResource):
+class Lookup(LegacyAuthResource, DisplayAwareResource):
 
     def __init__(self, lookup_service, favorite_service, display_service, profile_to_display):
         self.lookup_service = lookup_service
@@ -87,7 +51,11 @@ class Lookup(LegacyAuthResource, _DisplayAwareResource):
 
         logger.info('Lookup for %s with profile %s', term, profile)
 
-        display = self.build_display(profile)
+        try:
+            display = self.build_display(profile)
+        except OldAPIException as e:
+            return e.body, e.status_code
+
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid']
@@ -139,7 +107,7 @@ class Reverse(LegacyAuthResource):
         return response
 
 
-class FavoritesRead(LegacyAuthResource, _DisplayAwareResource):
+class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
 
     def __init__(self, favorites_service, display_service, profile_to_display):
         self.favorites_service = favorites_service
@@ -149,7 +117,10 @@ class FavoritesRead(LegacyAuthResource, _DisplayAwareResource):
     @required_acl('dird.directories.favorites.{profile}.read')
     def get(self, profile):
         logger.debug('Listing favorites with profile %s', profile)
-        display = self.build_display(profile)
+        try:
+            display = self.build_display(profile)
+        except OldAPIException as e:
+            return e.body, e.status_code
 
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
@@ -198,7 +169,7 @@ class FavoritesWrite(LegacyAuthResource):
             return _error(404, str(e))
 
 
-class Personal(LegacyAuthResource, _DisplayAwareResource):
+class Personal(LegacyAuthResource, DisplayAwareResource):
 
     def __init__(self, personal_service, favorite_service, display_service, profile_to_display):
         self.personal_service = personal_service
@@ -212,7 +183,10 @@ class Personal(LegacyAuthResource, _DisplayAwareResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
-        display = self.build_display(profile)
+        try:
+            display = self.build_display(profile)
+        except OldAPIException as e:
+            return e.body, e.status_code
 
         raw_results = self.personal_service.list_contacts(token_infos)
         try:

@@ -8,12 +8,9 @@ from hamcrest import (
     equal_to,
 )
 
-from ..http import (
-    DisplayColumn,
-    _DisplayAwareResource,
-)
+from wazo_dird.helpers import DisplayColumn, DisplayAwareResource
 
-make_display = _DisplayAwareResource._make_display
+make_display = DisplayAwareResource._make_display
 
 
 class TestMakeDisplays(unittest.TestCase):

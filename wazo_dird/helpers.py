@@ -2,14 +2,53 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+
+from collections import namedtuple
 from flask import request
 from requests import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 from xivo_auth_client import Client as AuthClient
 from wazo_dird import BaseViewPlugin
+from wazo_dird.exception import NoSuchProfile
 from wazo_dird.rest_api import AuthResource
 
 logger = logging.getLogger()
+
+
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
+
+
+class DisplayAwareResource:
+
+    def build_display(self, profile):
+        if profile not in self.profile_to_display:
+            raise NoSuchProfile(profile)
+
+        display_name = self.profile_to_display[profile]
+        try:
+            display = self.display_service.list_(visible_tenants=None, name=display_name)[0]
+        except IndexError:
+            # TODO when the profile will configured by http interface this error will be removed
+            raise Exception(
+                "The configured display for '{}: {}' does not exists".format(profile, display_name),
+            )
+
+        return self._make_display(display)
+
+    @staticmethod
+    def _make_display(display):
+        columns = display.get('columns')
+        if not columns:
+            return
+
+        return [
+            DisplayColumn(
+                column.get('title'),
+                column.get('type'),
+                column.get('default'),
+                column.get('field'),
+            ) for column in columns
+        ]
 
 
 class RaiseStopper:
