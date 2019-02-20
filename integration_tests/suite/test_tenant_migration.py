@@ -1,8 +1,6 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import os
-
 from uuid import uuid4
 from contextlib import closing
 from hamcrest import (
@@ -12,13 +10,8 @@ from hamcrest import (
     has_entries,
 )
 from .base_dird_integration_test import BasePhonebookTestCase
-from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
 
 from wazo_dird import database
-
-Session = scoped_session(sessionmaker())
-DB_URI_TPL = 'postgresql://asterisk:proformatique@localhost:{port}'
 
 
 def new_uuid():
@@ -30,13 +23,6 @@ class TestTenantMigration(BasePhonebookTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        db_port = cls.service_port(5432, 'db')
-        db_uri = os.getenv('DB_URI', DB_URI_TPL.format(port=db_port))
-        engine = create_engine(db_uri)
-        database.Base.metadata.bind = engine
-        database.Base.metadata.reflect()
-        database.Base.metadata.drop_all()
-        database.Base.metadata.create_all()
 
     def test_tenant_uuid_migration(self):
         unknown_tenant_uuid = new_uuid()
@@ -48,7 +34,7 @@ class TestTenantMigration(BasePhonebookTestCase):
         ]
 
         # insert the old tenants in the dird DB
-        with closing(Session()) as s:
+        with closing(self.Session()) as s:
             for tenant in tenants:
                 s.add(database.Tenant(uuid=tenant['old_uuid'], name=tenant['name']))
             s.commit()
@@ -126,7 +112,7 @@ class TestTenantMigration(BasePhonebookTestCase):
         )
 
         # check that migrated tenants are deleted
-        with closing(Session()) as s:
+        with closing(self.Session()) as s:
             migrated_tenants = [t['old_uuid'] for t in tenants if t['name'] != 'unknown']
             matching_tenants = s.query(
                 database.Tenant,

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import functools
-import os
 import unittest
 
 from collections import defaultdict
@@ -27,11 +26,6 @@ from hamcrest import (
 )
 from mock import ANY
 
-from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import (
-    scoped_session,
-    sessionmaker,
-)
 from sqlalchemy import (
     and_,
     func,
@@ -48,7 +42,7 @@ from wazo_dird.database.queries import base
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 
-Session = scoped_session(sessionmaker())
+Session = None
 
 
 def new_uuid():
@@ -82,15 +76,9 @@ class DBStarter(BaseDirdIntegrationTest):
 
 
 def setup_module():
+    global Session
     DBStarter.setUpClass()
-    db_port = DBStarter.service_port(5432, 'db')
-    default_db_uri = 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port)
-    db_uri = os.getenv('DB_URI', default_db_uri)
-    engine = create_engine(db_uri)
-    database.Base.metadata.bind = engine
-    database.Base.metadata.reflect()
-    database.Base.metadata.drop_all()
-    database.Base.metadata.create_all()
+    Session = DBStarter.Session
 
 
 def teardown_module():

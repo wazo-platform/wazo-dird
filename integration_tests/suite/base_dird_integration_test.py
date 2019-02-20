@@ -93,6 +93,23 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         except Exception:
             cls.port = None
 
+        db_uri = os.getenv('DB_URI', None)
+        if not db_uri:
+            try:
+                db_port = cls.service_port(5432, 'db')
+            except Exception:
+                print('asset starting without a db connection')
+                return
+            db_uri = 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port)
+
+        cls.db_uri = db_uri
+        engine = create_engine(cls.db_uri)
+        database.Base.metadata.bind = engine
+        database.Base.metadata.reflect()
+        database.Base.metadata.drop_all()
+        database.Base.metadata.create_all()
+        cls.Session = scoped_session(sessionmaker())
+
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
         return Client(self.host, self.port, token=token, verify_certificate=False)
 
@@ -696,8 +713,7 @@ class HalfBrokenTestCase(BaseDirdIntegrationTest):
         database.Base.metadata.reflect()
         database.Base.metadata.drop_all()
         database.Base.metadata.create_all()
-        Session = scoped_session(sessionmaker())
-        self.source_crud = database.SourceCRUD(Session)
+        self.source_crud = database.SourceCRUD(self.Session)
 
         my_csv_body = {
             'name': 'my_csv',

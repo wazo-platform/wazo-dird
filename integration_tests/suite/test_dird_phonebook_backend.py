@@ -1,7 +1,6 @@
 # Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import os
 import random
 import string
 import unittest
@@ -9,13 +8,11 @@ import unittest
 from uuid import uuid4
 from mock import Mock
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to
-from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
 
 from wazo_dird import database
 from .base_dird_integration_test import BaseDirdIntegrationTest, BackendWrapper
 
-Session = scoped_session(sessionmaker())
+Session = None
 DB_URI = None
 
 
@@ -25,15 +22,11 @@ class DBStarter(BaseDirdIntegrationTest):
 
 
 def setup_module():
+    global Session
     global DB_URI
     DBStarter.setUpClass()
-    db_port = DBStarter.service_port(5432, 'db')
-    DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port))
-    engine = create_engine(DB_URI)
-    database.Base.metadata.bind = engine
-    database.Base.metadata.reflect()
-    database.Base.metadata.drop_all()
-    database.Base.metadata.create_all()
+    Session = DBStarter.Session
+    DB_URI = DBStarter.db_uri
 
 
 def teardown_module():
