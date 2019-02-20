@@ -83,6 +83,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = ASSET_ROOT
     service = 'dird'
+    displays = []
 
     @classmethod
     def setUpClass(cls):
@@ -109,6 +110,17 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         database.Base.metadata.drop_all()
         database.Base.metadata.create_all()
         cls.Session = scoped_session(sessionmaker())
+        cls.create_displays()
+
+    @classmethod
+    def create_displays(cls):
+        if not cls.displays:
+            return
+
+        display_crud = database.DisplayCRUD(cls.Session)
+        for display in cls.displays:
+            display.setdefault('tenant_uuid', MAIN_TENANT)
+            display_crud.create(**display)
 
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
         return Client(self.host, self.port, token=token, verify_certificate=False)
