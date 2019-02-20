@@ -52,7 +52,6 @@ def upgrade():
         sa.Column(
             'field',
             sa.Text(),
-            nullable=False,
         ),
         sa.Column(
             'default',

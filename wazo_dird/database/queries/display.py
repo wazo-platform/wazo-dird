@@ -91,7 +91,9 @@ class DisplayCRUD(BaseDAO):
     def _from_db_format(display):
         columns = []
         for column in display.columns:
-            d = {'field': column.field}
+            d = {}
+            if column.field is not None:
+                d['field'] = column.field
             if column.title is not None:
                 d['title'] = column.title
             if column.type is not None:

@@ -56,7 +56,7 @@ class DisplayColumn(Base):
 
     uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
     display_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_display.uuid', ondelete='CASCADE'))
-    field = Column(Text(), nullable=False)
+    field = Column(Text())
     title = Column(Text())
     type = Column(Text())
     default = Column(Text())
