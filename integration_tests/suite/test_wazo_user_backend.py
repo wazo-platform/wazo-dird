@@ -189,9 +189,6 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                     'title': 'Number',
                     'field': 'exten',
                 },
-                {
-                    'title': 'Mobile',
-                },
             ],
         },
     ]
@@ -216,7 +213,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
         expected_result = [
             {
-                'column_values': ['Charles', 'European', '9012', None],
+                'column_values': ['Charles', 'European', '9012'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
                               'agent_id': None,
                               'endpoint_id': 42,
@@ -226,7 +223,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                 'source': 'wazo_europe',
             },
             {
-                'column_values': ['Mary', 'Sue', '1465', None],
+                'column_values': ['Mary', 'Sue', '1465'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': 2,
@@ -236,7 +233,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                 'source': 'wazo_america',
             },
             {
-                'column_values': ['Charles', 'Kenedy', '', None],
+                'column_values': ['Charles', 'Kenedy', ''],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': None,
@@ -258,11 +255,11 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(
             has_entries(
                 source='wazo_asia',
-                column_values=contains('Alice', None, '6543', None),
+                column_values=contains('Alice', None, '6543'),
             ),
             has_entries(
                 source='wazo_america',
-                column_values=contains('John', 'Doe', '1234', None),
+                column_values=contains('John', 'Doe', '1234'),
             ),
         ))
 
@@ -286,9 +283,6 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
                     'title': 'Number',
                     'field': 'exten',
                 },
-                {
-                    'title': 'Mobile',
-                },
             ],
         },
     ]
@@ -301,7 +295,7 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 
         expected_result = [
             {
-                'column_values': ['John', 'Doe', '1234', None],
+                'column_values': ['John', 'Doe', '1234'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': 3,
                               'endpoint_id': 2,
@@ -334,9 +328,6 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
                     'title': 'Number',
                     'field': 'exten',
                 },
-                {
-                    'title': 'Mobile',
-                },
             ],
         },
     ]
@@ -349,7 +340,7 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 
         expected_result = [
             {
-                'column_values': ['Mary', 'Sue', '1465', None],
+                'column_values': ['Mary', 'Sue', '1465'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': 2,
@@ -359,7 +350,7 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
                 'source': 'wazo_america',
             },
             {
-                'column_values': ['Charles', 'Kenedy', '', None],
+                'column_values': ['Charles', 'Kenedy', ''],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': None,
@@ -392,9 +383,6 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
                     'title': 'Number',
                     'field': 'exten',
                 },
-                {
-                    'title': 'Mobile',
-                },
             ],
         },
     ]
@@ -407,7 +395,7 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
 
         expected_result = [
             {
-                'column_values': ['Mary', 'Sue', '1465', None],
+                'column_values': ['Mary', 'Sue', '1465'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': 2,
@@ -417,7 +405,7 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
                 'source': 'wazo_america',
             },
             {
-                'column_values': ['Charles', 'Kenedy', '', None],
+                'column_values': ['Charles', 'Kenedy', ''],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': None,
