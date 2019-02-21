@@ -1,13 +1,22 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
 
 from hamcrest import assert_that, equal_to, has_entries
-from mock import ANY, Mock
+from mock import (
+    ANY,
+    Mock,
+    sentinel as s,
+)
 
 from wazo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
-from ..headers_view import DisplayColumn, Headers, HeadersViewPlugin, format_headers, make_displays
+from wazo_dird.helpers import DisplayColumn
+from ..plugin import HeadersViewPlugin
+from ..http import (
+    Headers,
+    format_headers,
+)
 
 
 class TestHeadersView(BaseHTTPViewTestCase):
@@ -16,98 +25,60 @@ class TestHeadersView(BaseHTTPViewTestCase):
         super().setUp()
         self.api = Mock()
 
-    def tearDown(self):
-        Headers.configure(displays=None)
-
     def test_that_load_add_the_route(self):
         http_namespace = Mock()
-        args = {
+        dependencies = {
             'http_namespace': http_namespace,
             'api': self.api,
-            'config': {},
+            'config': {'views': {'profile_to_display': s.profile_to_display}},
+            'services': {
+                'display': s.display_service,
+            },
         }
 
-        HeadersViewPlugin().load(args)
+        HeadersViewPlugin().load(dependencies)
 
-        self.api.add_resource.assert_called_once_with(ANY, '/directories/lookup/<profile>/headers')
+        self.api.add_resource.assert_called_once_with(
+            ANY,
+            '/directories/lookup/<profile>/headers',
+            resource_class_args=(s.display_service, s.profile_to_display),
+        )
 
     def test_result(self):
-        config = {'displays': {'display_1': [{'title': 'Firstname',
-                                              'type': None,
-                                              'default': 'Unknown',
-                                              'field': 'firstname'},
-                                             {'title': 'Lastname',
-                                              'type': None,
-                                              'default': 'ln',
-                                              'field': 'lastname'}],
-                               'display_2': [{'title': 'fn',
-                                              'type': 'some_type',
-                                              'default': 'N/A',
-                                              'field': 'firstname'},
-                                             {'title': 'ln',
-                                              'type': None,
-                                              'default': 'N/A',
-                                              'field': 'LAST'}]},
-                  'profile_to_display': {'profile_1': 'display_1',
-                                         'profile_2': 'display_2',
-                                         'profile_3': 'display_1'}}
-        Headers.configure(displays=make_displays(config))
+        display_service = Mock()
+        display_service.list_.return_value = [
+            {
+                'name': 'display_2',
+                'columns': [
+                    {
+                        'title': 'fn',
+                        'type': 'some_type',
+                        'default': 'N/A',
+                        'field': 'firstname',
+                    },
+                    {
+                        'title': 'ln',
+                        'type': None,
+                        'default': 'N/A',
+                        'field': 'LAST',
+                    },
+                ],
+            },
+        ]
 
-        result = Headers().get('profile_2')
+        profile_to_display = {
+            'profile_1': 'display_1',
+            'profile_2': 'display_2',
+            'profile_3': 'display_1',
+        }
+
+        result = Headers(display_service, profile_to_display).get('profile_2')
 
         expected_result = {
             'column_headers': ['fn', 'ln'],
             'column_types': ['some_type', None],
         }
         assert_that(result, equal_to(expected_result))
-
-
-class TestMakeDisplays(unittest.TestCase):
-
-    def test_that_make_displays_with_no_config_returns_empty_dict(self):
-        result = make_displays({})
-
-        assert_that(result, equal_to({}))
-
-    def test_that_make_displays_generate_display_dict(self):
-        first_display = [
-            DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
-            DisplayColumn('Lastname', None, 'ln', 'lastname'),
-        ]
-        second_display = [
-            DisplayColumn('fn', 'some_type', 'N/A', 'firstname'),
-            DisplayColumn('ln', None, 'N/A', 'LAST'),
-        ]
-
-        config = {'displays': {'first_display': [{'title': 'Firstname',
-                                                  'type': None,
-                                                  'default': 'Unknown',
-                                                  'field': 'firstname'},
-                                                 {'title': 'Lastname',
-                                                  'type': None,
-                                                  'default': 'ln',
-                                                  'field': 'lastname'}],
-                               'second_display': [{'title': 'fn',
-                                                   'type': 'some_type',
-                                                   'default': 'N/A',
-                                                   'field': 'firstname'},
-                                                  {'title': 'ln',
-                                                   'type': None,
-                                                   'default': 'N/A',
-                                                   'field': 'LAST'}]},
-                  'profile_to_display': {'profile_1': 'first_display',
-                                         'profile_2': 'second_display',
-                                         'profile_3': 'first_display'}}
-
-        display_dict = make_displays(config)
-
-        expected = {
-            'profile_1': first_display,
-            'profile_2': second_display,
-            'profile_3': first_display,
-        }
-
-        assert_that(display_dict, equal_to(expected))
 
 
 class TestFormatHeaders(unittest.TestCase):
