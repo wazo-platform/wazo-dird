@@ -78,6 +78,8 @@ class DBStarter(BaseDirdIntegrationTest):
 def setup_module():
     global Session
     DBStarter.setUpClass()
+    database.Base.metadata.drop_all()
+    database.Base.metadata.create_all()
     Session = DBStarter.Session
 
 

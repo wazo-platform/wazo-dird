@@ -104,13 +104,20 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
             db_uri = 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port)
 
         cls.db_uri = db_uri
-        engine = create_engine(cls.db_uri)
-        database.Base.metadata.bind = engine
+        cls.engine = create_engine(cls.db_uri)
+        database.Base.metadata.bind = cls.engine
         database.Base.metadata.reflect()
-        database.Base.metadata.drop_all()
         database.Base.metadata.create_all()
         cls.Session = scoped_session(sessionmaker())
         cls.create_displays()
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            database.Base.metadata.drop_all()
+        except Exception as e:
+            print(e)
+        super().tearDownClass()
 
     @classmethod
     def create_displays(cls):
@@ -712,19 +719,31 @@ class CSVWithMultipleDisplayTestCase(BaseDirdIntegrationTest):
 class HalfBrokenTestCase(BaseDirdIntegrationTest):
 
     asset = 'half_broken'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'default': 'Unknown',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'default': 'Unknown',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'default': '',
+                    'field': 'number',
+                },
+            ],
+        },
+    ]
 
     def setUp(self):
         super().setUp()
-        db_port = self.service_port(5432, 'db')
-        db_uri = os.getenv(
-            'DB_URI',
-            'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port),
-        )
-        engine = create_engine(db_uri)
-        database.Base.metadata.bind = engine
-        database.Base.metadata.reflect()
-        database.Base.metadata.drop_all()
-        database.Base.metadata.create_all()
         self.source_crud = database.SourceCRUD(self.Session)
 
         my_csv_body = {
