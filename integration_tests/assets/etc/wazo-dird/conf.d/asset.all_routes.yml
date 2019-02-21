@@ -28,23 +28,6 @@ enabled_plugins:
     phonebook_backend: true
 
 views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        default: Unknown
-        field: firstname
-      -
-        title: Lastname
-        default: Unknown
-        field: lastname
-      -
-        title: Number
-        default:
-        field: number
-      -
-        field: favorite
-        type: favorite
   displays_phone:
     default:
       name:

@@ -9,20 +9,6 @@ enabled_plugins:
     headers_view: true
 
 views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        default: Unknown
-        field: firstname
-      -
-        title: Lastname
-        default: Unknown
-        field: lastname
-      -
-        title: Description
-        default:
-        field: description
   profile_to_display:
     default: default_display
 

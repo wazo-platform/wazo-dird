@@ -39,6 +39,32 @@ WAZO_EUROPE = {
     'searched_columns': ['firstname', 'lastname'],
 }
 
+DISPLAYS = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'default': '',
+                    'field': 'exten',
+                },
+                {
+                    'title': 'Mobile',
+                    'default': '',
+                    'field': 'mobile_phone_number',
+                },
+            ],
+        },
+    ]
+
 
 class TestWazoUser(BaseDirdIntegrationTest):
 
@@ -117,6 +143,7 @@ class TestWazoUser(BaseDirdIntegrationTest):
 class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_no_confd'
+    displays = DISPLAYS
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):
         result = self.lookup('dyl', 'default')
@@ -126,6 +153,7 @@ class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_late_confd'
+    displays = DISPLAYS
 
     @fixtures.wazo_source(**WAZO_AMERICA)
     def test_no_result_until_started(self, source):
@@ -145,6 +173,28 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_multiple_wazo'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'field': 'exten',
+                },
+                {
+                    'title': 'Mobile',
+                },
+            ],
+        },
+    ]
 
     def setUp(self):
         super().setUp()
@@ -220,6 +270,28 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_missing_one_wazo'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'field': 'exten',
+                },
+                {
+                    'title': 'Mobile',
+                },
+            ],
+        },
+    ]
 
     @fixtures.wazo_source(**WAZO_AMERICA)
     @fixtures.wazo_source(**WAZO_ASIA)
@@ -246,6 +318,28 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_404'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'field': 'exten',
+                },
+                {
+                    'title': 'Mobile',
+                },
+            ],
+        },
+    ]
 
     @fixtures.wazo_source(**WAZO_AMERICA)
     @fixtures.wazo_source(**WAZO_ASIA)
@@ -282,6 +376,28 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_timeout'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'field': 'exten',
+                },
+                {
+                    'title': 'Mobile',
+                },
+            ],
+        },
+    ]
 
     @fixtures.wazo_source(**WAZO_AMERICA)
     @fixtures.wazo_source(**WAZO_ASIA)

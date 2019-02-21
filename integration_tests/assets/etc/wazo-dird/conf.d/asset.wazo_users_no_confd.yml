@@ -9,22 +9,6 @@ enabled_plugins:
     default_json: true
 
 views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        field: firstname
-      -
-        title: Lastname
-        field: lastname
-      -
-        title: Number
-        default:
-        field: exten
-      -
-        title: Mobile
-        default:
-        mobile_phone_number:
   profile_to_display:
     default: default_display
 

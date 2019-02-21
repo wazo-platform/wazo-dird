@@ -13,20 +13,6 @@ enabled_plugins:
     csv_backend: true
 
 views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        default: Unknown
-        field: firstname
-      -
-        title: Lastname
-        default: Unknown
-        field: lastname
-      -
-        title: Number
-        default:
-        field: number
   profile_to_display:
     default: default_display
 

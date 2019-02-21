@@ -8,17 +8,6 @@ enabled_plugins:
     ldap_backend: true
 
 views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        field: firstname
-      -
-        title: Lastname
-        field: lastname
-      -
-        title: Number
-        field: number
   profile_to_display:
     default: default_display
 

@@ -16,20 +16,6 @@ enabled_plugins:
     csv_backend: true
 
 views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        field: firstname
-      -
-        title: Lastname
-        field: lastname
-      -
-        title: Number
-        field: number
-      -
-        title: Favorite
-        type: favorite
   displays_phone:
     default:
       name:

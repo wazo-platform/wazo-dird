@@ -10,22 +10,6 @@ enabled_plugins:
     wazo_backend: true
 
 views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        field: firstname
-      -
-        title: Lastname
-        field: lastname
-      -
-        title: Number
-        default:
-        field: exten
-      -
-        title: Mobile
-        default:
-        field: mobile_phone_number
   profile_to_display:
     default: default_display
 

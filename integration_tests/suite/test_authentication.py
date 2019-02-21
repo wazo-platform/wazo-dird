@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from hamcrest import (
@@ -17,6 +17,28 @@ from .base_dird_integration_test import (
 class TestAuthentication(BaseDirdIntegrationTest):
 
     asset = 'auth-only'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'default': 'Unknown',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'default': 'Unknown',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Description',
+                    'default': '',
+                    'field': 'description',
+                },
+            ],
+        },
+    ]
 
     def test_no_auth_gives_401(self):
         result = self.get_headers_result('default', token=None)

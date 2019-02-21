@@ -37,6 +37,28 @@ EMPTY_RELATIONS = {'xivo_id': None,
 class BaseMultipleSourceLauncher(BaseDirdIntegrationTest):
 
     asset = 'multiple_sources'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'default': 'Unknown',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'default': 'Unknown',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'default': '',
+                    'field': 'number',
+                },
+            ],
+        },
+    ]
 
     my_csv_body = {
         'name': 'my_csv',
