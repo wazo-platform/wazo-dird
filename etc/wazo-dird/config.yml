@@ -101,28 +101,6 @@ enabled_plugins:
     yealink_view: true
 
 views:
-  displays:
-    default_display:
-      -
-        title: Name
-        field: name
-        type: name
-      -
-        title: Number
-        field: phone
-        type: number
-      -
-        title: Mobile
-        field: phone_mobile
-        type: callable
-      -
-        title: Favorite
-        field: favorite
-        type: favorite
-      -
-        title: Personal
-        field: personal
-        type: personal
   displays_phone:
     default:
       name:
