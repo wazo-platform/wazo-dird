@@ -47,7 +47,6 @@ class _Service:
             logger.info('"service_discovery" key missing from the configuration')
             return
         self._source_config_generator = SourceConfigGenerator(service_disco_config)
-        self._source_config_manager = SourceConfigManager()
         self._profile_config_updater = ProfileConfigUpdater(config)
         bus.add_consumer(self.QUEUE, self._on_service_registered)
         finder = ServiceFinder(config['consul'])
@@ -83,14 +82,21 @@ class _Service:
             return
 
         source_name = config.get('name')
-        if self._source_config_manager.source_exists(source_name):
+        source_service = self._controller.services['source']
+        if self._source_exists(source_service, config):
             return
 
-        self._source_config_manager.add_source(config)
-        source_service = self._controller.services['source']
         source_service.create('wazo', **config)
         self._profile_config_updater.on_service_added(source_name, service_name)
         logger.info('new source added %s', source_name)
+
+    def _source_exists(self, source_service, config):
+        search_params = {
+            'backend': 'wazo',
+            'visible_tenants': [config['tenant_uuid']],
+            'name': config['name'],
+        }
+        return True if source_service.list_(**search_params) else False
 
     def _on_service_registered(self, body, message):
         try:
@@ -113,21 +119,6 @@ def _find_first_uuid(tags):
             return str(UUID(tag))
         except (AttributeError, ValueError):
             continue
-
-
-class SourceConfigManager:
-
-    def __init__(self):
-        self._loaded = set()
-
-    def source_exists(self, source_name):
-        return source_name in self._loaded
-
-    def add_source(self, source_config):
-        source_name = source_config.get('name')
-        if not source_name:
-            return
-        self._loaded.add(source_name)
 
 
 class ProfileConfigUpdater:
