@@ -39,8 +39,8 @@ from wazo_dird import (
 
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_dird.database.queries import base
-
 from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.fixtures import db as fixtures
 
 Session = None
 
@@ -189,10 +189,6 @@ class TestBaseDAO(_BaseTest):
 
 class TestDisplayCRUD(_BaseTest):
 
-    def setUp(self):
-        super().setUp()
-        self._crud = database.DisplayCRUD(Session)
-
     def test_create_no_error(self):
         tenant_uuid = new_uuid()
         name = 'english'
@@ -223,7 +219,7 @@ class TestDisplayCRUD(_BaseTest):
             ],
         }
 
-        result = self._crud.create(**body)
+        result = self.display_crud.create(**body)
 
         assert_that(result, has_entries(
             uuid=uuid_(),
@@ -253,73 +249,38 @@ class TestDisplayCRUD(_BaseTest):
             ),
         ))
 
-    def test_get(self):
-        tenant_uuid = new_uuid()
-        name = 'english'
-        body = {
-            'tenant_uuid': tenant_uuid,
-            'name': name,
-            'columns': [
-                {
-                    'field': 'firstname',
-                    'title': 'Firstname',
-                },
-                {
-                    'field': 'lastname',
-                    'title': 'Lastname',
-                    'default': '',
-                },
-                {
-                    'field': 'number',
-                    'title': 'Number',
-                    'type': 'number',
-                },
-                {
-                    'field': 'mobile',
-                    'title': 'Mobile',
-                    'type': 'number',
-                    'number_display': '{firstname} {lastname} (Mobile)',
-                },
-            ],
-        }
-
-        display = self._crud.create(**body)
-
-        result = self._crud.get(tenant_uuid, display['uuid'])
+    @fixtures.display()
+    def test_get(self, display):
+        result = self.display_crud.get(display['tenant_uuid'], display['uuid'])
         assert_that(result, equal_to(display))
 
-    def test_delete_with_the_right_tenant(self):
-        display = self._crud.create(name='display', tenant_uuid=new_uuid(), columns=[])
-
+    @fixtures.display()
+    def test_delete_with_the_right_tenant(self, display):
         assert_that(
-            calling(self._crud.delete).with_args([display['tenant_uuid']], display['uuid']),
+            calling(self.display_crud.delete).with_args([display['tenant_uuid']], display['uuid']),
             not_(raises(Exception)),
         )
         assert_that(
-            calling(self._crud.delete).with_args([display['tenant_uuid']], display['uuid']),
+            calling(self.display_crud.delete).with_args([display['tenant_uuid']], display['uuid']),
             raises(exception.NoSuchDisplay),
         )
 
-    def test_delete_with_the_wrong_tenant(self):
-        display = self._crud.create(name='display', tenant_uuid=new_uuid(), columns=[])
-
+    @fixtures.display()
+    def test_delete_with_the_wrong_tenant(self, display):
         assert_that(
-            calling(self._crud.delete).with_args([new_uuid()], display['uuid']),
+            calling(self.display_crud.delete).with_args([new_uuid()], display['uuid']),
             raises(exception.NoSuchDisplay),
         )
 
-        self._crud.delete([display['tenant_uuid']], display['uuid'])
-
-    def test_delete_with_no_tenant(self):
-        display = self._crud.create(name='display', tenant_uuid=new_uuid(), columns=[])
-
+    @fixtures.display()
+    def test_delete_with_no_tenant(self, display):
         assert_that(
-            calling(self._crud.delete).with_args(None, display['uuid']),
+            calling(self.display_crud.delete).with_args(None, display['uuid']),
             not_(raises(exception.NoSuchDisplay)),
         )
 
         assert_that(
-            calling(self._crud.delete).with_args([], display['uuid']),
+            calling(self.display_crud.delete).with_args([], display['uuid']),
             raises(exception.NoSuchDisplay),
         )
 
