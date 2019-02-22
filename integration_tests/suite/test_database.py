@@ -250,9 +250,31 @@ class TestDisplayCRUD(_BaseTest):
         ))
 
     @fixtures.display()
-    def test_get(self, display):
-        result = self.display_crud.get(display['tenant_uuid'], display['uuid'])
+    def test_get_with_the_right_tenant(self, display):
+        result = self.display_crud.get([display['tenant_uuid']], display['uuid'])
         assert_that(result, equal_to(display))
+
+        assert_that(
+            calling(self.display_crud.get).with_args([display['tenant_uuid']], new_uuid()),
+            raises(exception.NoSuchDisplay),
+        )
+
+    @fixtures.display()
+    def test_get_with_the_wrong_tenant(self, display):
+        assert_that(
+            calling(self.display_crud.get).with_args([new_uuid()], display['uuid']),
+            raises(exception.NoSuchDisplay),
+        )
+
+    @fixtures.display()
+    def test_get_with_no_tenant(self, display):
+        result = self.display_crud.get(None, display['uuid'])
+        assert_that(result, equal_to(display))
+
+        assert_that(
+            calling(self.display_crud.get).with_args([], display['uuid']),
+            raises(exception.NoSuchDisplay),
+        )
 
     @fixtures.display()
     def test_delete_with_the_right_tenant(self, display):

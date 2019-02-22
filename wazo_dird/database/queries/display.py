@@ -30,25 +30,19 @@ class DisplayCRUD(BaseDAO):
         }
 
     def delete(self, visible_tenants, display_uuid):
-        if not visible_tenants and visible_tenants is not None:
-            raise NoSuchDisplay(display_uuid)
-
-        filter_ = Display.uuid == display_uuid
-        if visible_tenants:
-            filter_ = and_(filter_, Display.tenant_uuid.in_(visible_tenants))
-
+        filter_ = self._build_filter(visible_tenants, display_uuid)
         with self.new_session() as s:
             nb_deleted = s.query(Display).filter(filter_).delete(synchronize_session=False)
 
         if not nb_deleted:
             raise NoSuchDisplay(display_uuid)
 
-    def get(self, tenant_uuid, display_uuid):
+    def get(self, visible_tenants, display_uuid):
+        filter_ = self._build_filter(visible_tenants, display_uuid)
         with self.new_session() as s:
-            display = s.query(Display).filter(and_(
-                Display.tenant_uuid == tenant_uuid,
-                Display.uuid == display_uuid,
-            )).first()
+            display = s.query(Display).filter(filter_).first()
+            if not display:
+                raise NoSuchDisplay(display_uuid)
 
             return self._from_db_format(display)
 
@@ -58,6 +52,16 @@ class DisplayCRUD(BaseDAO):
             query = s.query(Display).filter(filter_)
             query = self._paginate(query, **list_params)
             return [self._from_db_format(row) for row in query.all()]
+
+    def _build_filter(self, visible_tenants, display_uuid):
+        if not visible_tenants and visible_tenants is not None:
+            raise NoSuchDisplay(display_uuid)
+
+        filter_ = Display.uuid == display_uuid
+        if visible_tenants:
+            filter_ = and_(filter_, Display.tenant_uuid.in_(visible_tenants))
+
+        return filter_
 
     def _list_filter(self, visible_tenants, uuid=None, name=None, search=None, **list_params):
         filter_ = text('true')
