@@ -6,9 +6,8 @@ from hamcrest import (
     assert_that,
     contains_inanyorder,
     empty,
-    equal_to,
+    has_entries,
     has_properties,
-    is_,
 )
 from mock import (
     Mock,
@@ -64,7 +63,9 @@ class TestPhoneLookupService(TestCase):
 
         results = self.phone_lookup_service.lookup('foo', self.profile, s.uuid, s.token)
 
-        assert_that(results['results'], equal_to(sorted(formatted_results)))
+        assert_that(results, has_entries(
+            results=sorted(formatted_results),
+        ))
         self.lookup_service.lookup.assert_called_once_with('foo', self.profile, s.uuid, {}, s.token)
         formatter.format_results.assert_called_once_with(self.lookup_service.lookup.return_value)
 
@@ -81,8 +82,10 @@ class TestPhoneLookupService(TestCase):
 
         results = self.phone_lookup_service.lookup('foo', self.profile, s.uuid, s.token, limit)
 
-        assert_that(results['results'], equal_to(self.formatted_results[:1]))
-        assert_that(results['limit'], equal_to(limit))
+        assert_that(results, has_entries(
+            results=self.formatted_results[:1],
+            limit=limit,
+        ))
 
     def test_lookup_offset(self, Formatter):
         Formatter.return_value = self.formatter
@@ -94,10 +97,12 @@ class TestPhoneLookupService(TestCase):
             'foo', self.profile, s.uuid, s.token, limit, offset,
         )
 
-        assert_that(results['results'], equal_to(self.formatted_results[1:2]))
-        assert_that(results['offset'], equal_to(offset))
-        assert_that(results['previous_offset'], equal_to(0))
-        assert_that(results['next_offset'], equal_to(2))
+        assert_that(results, has_entries(
+            results=self.formatted_results[1:2],
+            offset=offset,
+            previous_offset=0,
+            next_offset=2,
+        ))
 
     def test_lookup_return_no_next_offset_when_has_no_more_results(self, Formatter):
         Formatter.return_value = self.formatter
@@ -109,16 +114,20 @@ class TestPhoneLookupService(TestCase):
             'foo', self.profile, s.uuid, s.token, limit, offset,
         )
 
-        assert_that(results['results'], equal_to(self.formatted_results))
-        assert_that(results['next_offset'], is_(None))
+        assert_that(results, has_entries(
+            results=self.formatted_results,
+            next_offset=None,
+        ))
 
     def test_lookup_return_no_previous_offset_when_has_no_previous_results(self, Formatter):
         Formatter.return_value = self.formatter
 
         results = self.phone_lookup_service.lookup('foo', self.profile, s.uuid, s.token)
 
-        assert_that(results['results'], equal_to(self.formatted_results))
-        assert_that(results['previous_offset'], is_(None))
+        assert_that(results, has_entries(
+            results=self.formatted_results,
+            previous_offset=None,
+        ))
 
 
 class TestResultFormater(TestCase):
