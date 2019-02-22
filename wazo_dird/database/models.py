@@ -4,6 +4,7 @@
 from uuid import uuid4
 from sqlalchemy import (Column, ForeignKey, Integer, schema, String, text, Text)
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import (
     ARRAY,
@@ -91,6 +92,66 @@ class Phonebook(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
+
+
+class Profile(Base):
+
+    __tablename__ = 'dird_profile'
+
+    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
+    tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE'))
+    name = Column(Text(), nullable=False)
+    display_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_display.uuid', ondelete='SET NULL'))
+
+    display = relationship('Display')
+    profile_sources = relationship(
+        'ProfileSource',
+        cascade='all, delete-orphan',
+    )
+    sources = association_proxy('profile_sources', 'source')
+    profile_services = relationship('ProfileService')
+
+
+class ProfileSource(Base):
+
+    __tablename__ = 'dird_profile_source'
+
+    profile_uuid = Column(
+        String(UUID_LENGTH),
+        ForeignKey('dird_profile.uuid', ondelete='CASCADE'),
+        primary_key=True,
+    )
+    source_uuid = Column(
+        String(UUID_LENGTH),
+        ForeignKey('dird_source.uuid', ondelete='CASCADE'),
+        primary_key=True,
+    )
+
+
+class ProfileService(Base):
+
+    __tablename__ = 'dird_profile_service'
+
+    profile_uuid = Column(
+        String(UUID_LENGTH),
+        ForeignKey('dird_profile.uuid', ondelete='CASCADE'),
+        primary_key=True,
+    )
+    service_uuid = Column(
+        String(UUID_LENGTH),
+        ForeignKey('dird_service.uuid', ondelete='CASCADE'),
+        primary_key=True,
+    )
+    config = Column(JSON)
+    service = relationship('Service')
+
+
+class Service(Base):
+
+    __tablename__ = 'dird_service'
+
+    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
+    name = Column(Text(), unique=True, nullable=False)
 
 
 class Source(Base):
