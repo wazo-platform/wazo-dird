@@ -90,6 +90,7 @@ def teardown_module():
 class _BaseTest(unittest.TestCase):
 
     def setUp(self):
+        self.display_crud = database.DisplayCRUD(Session)
         self._contact_1 = {
             'firtname': 'Finley',
             'lastname': 'Shelley',
