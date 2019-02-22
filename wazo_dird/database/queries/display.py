@@ -5,6 +5,7 @@ from sqlalchemy import (
     and_,
     text,
 )
+from wazo_dird.exception import NoSuchDisplay
 from .base import BaseDAO
 from ..import (
     Display,
@@ -27,6 +28,20 @@ class DisplayCRUD(BaseDAO):
             'name': name,
             'columns': columns,
         }
+
+    def delete(self, visible_tenants, display_uuid):
+        if not visible_tenants and visible_tenants is not None:
+            raise NoSuchDisplay(display_uuid)
+
+        filter_ = Display.uuid == display_uuid
+        if visible_tenants:
+            filter_ = and_(filter_, Display.tenant_uuid.in_(visible_tenants))
+
+        with self.new_session() as s:
+            nb_deleted = s.query(Display).filter(filter_).delete(synchronize_session=False)
+
+        if not nb_deleted:
+            raise NoSuchDisplay(display_uuid)
 
     def get(self, tenant_uuid, display_uuid):
         with self.new_session() as s:

@@ -287,6 +287,41 @@ class TestDisplayCRUD(_BaseTest):
         result = self._crud.get(tenant_uuid, display['uuid'])
         assert_that(result, equal_to(display))
 
+    def test_delete_with_the_right_tenant(self):
+        display = self._crud.create(name='display', tenant_uuid=new_uuid(), columns=[])
+
+        assert_that(
+            calling(self._crud.delete).with_args([display['tenant_uuid']], display['uuid']),
+            not_(raises(Exception)),
+        )
+        assert_that(
+            calling(self._crud.delete).with_args([display['tenant_uuid']], display['uuid']),
+            raises(exception.NoSuchDisplay),
+        )
+
+    def test_delete_with_the_wrong_tenant(self):
+        display = self._crud.create(name='display', tenant_uuid=new_uuid(), columns=[])
+
+        assert_that(
+            calling(self._crud.delete).with_args([new_uuid()], display['uuid']),
+            raises(exception.NoSuchDisplay),
+        )
+
+        self._crud.delete([display['tenant_uuid']], display['uuid'])
+
+    def test_delete_with_no_tenant(self):
+        display = self._crud.create(name='display', tenant_uuid=new_uuid(), columns=[])
+
+        assert_that(
+            calling(self._crud.delete).with_args(None, display['uuid']),
+            not_(raises(exception.NoSuchDisplay)),
+        )
+
+        assert_that(
+            calling(self._crud.delete).with_args([], display['uuid']),
+            raises(exception.NoSuchDisplay),
+        )
+
 
 class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
 

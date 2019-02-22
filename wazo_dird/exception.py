@@ -18,6 +18,16 @@ class DatabaseServiceUnavailable(Exception):
         super().__init__('Postgresql is unavailable')
 
 
+class NoSuchDisplay(APIException):
+
+    def __init__(self, display_uuid):
+        msg = 'No such display: "{}"'.format(display_uuid)
+        details = {
+            'uuid': display_uuid,
+        }
+        super().__init__(404, msg, 'unknown-display', details, 'displays')
+
+
 class NoSuchFavorite(ValueError):
 
     def __init__(self, contact_id):
