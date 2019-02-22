@@ -8,25 +8,6 @@ enabled_plugins:
     csv_backend: true
 
 views:
-  displays_phone:
-    default:
-      name:
-        - display_name
-      number:
-        -
-          field:
-            - phone
-    test_fallback:
-      name:
-        - display_name
-        - display_name1
-      number:
-        -
-          field:
-            - phone
-        -
-          field:
-            - phone1
   profile_to_display_phone:
     test_fallback: test_fallback
     test_sorted: default

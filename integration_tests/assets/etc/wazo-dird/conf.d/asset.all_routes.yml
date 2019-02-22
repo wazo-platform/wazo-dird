@@ -28,15 +28,6 @@ enabled_plugins:
     phonebook_backend: true
 
 views:
-  displays_phone:
-    default:
-      name:
-        - display_name
-      number:
-        -
-          field:
-            - phone
-
   profile_to_display:
     default: default_display
   profile_to_display_phone:

@@ -23,6 +23,18 @@ class TestPhoneView(BaseDirdIntegrationTest):
 
     asset = 'phone_view'
     profile = 'default'
+    displays = [
+        {
+            'name': 'default',
+            'columns': [
+                {
+                    'field': 'phone',
+                    'type': 'number',
+                    'number_display': '{display_name}',
+                },
+            ],
+        }
+    ]
 
     def setUp(self):
         super().setUp()

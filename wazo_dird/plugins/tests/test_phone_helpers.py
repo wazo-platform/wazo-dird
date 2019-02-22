@@ -1,14 +1,32 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from hamcrest import assert_that, equal_to, is_
-from mock import Mock, patch, sentinel
 from unittest import TestCase
-from wazo_dird.exception import InvalidConfigError, ProfileNotFoundError
-from wazo_dird.plugins.phone_helpers import _PhoneFormattedResult, _PhoneLookupService,\
-    _PhoneResultFormatter, _new_formatters_from_config
+from hamcrest import (
+    assert_that,
+    contains_inanyorder,
+    empty,
+    equal_to,
+    has_properties,
+    is_,
+)
+from mock import (
+    Mock,
+    patch,
+    sentinel as s,
+)
+from wazo_dird import make_result_class
+from wazo_dird.exception import ProfileNotFoundError
+from wazo_dird.plugins.phone_helpers import (
+    _PhoneFormattedResult,
+    _PhoneLookupService,
+    _PhoneResultFormatter as Formatter,
+)
+
+Result = make_result_class('test')
 
 
+@patch('wazo_dird.plugins.phone_helpers._PhoneResultFormatter')
 class TestPhoneLookupService(TestCase):
 
     def setUp(self):
@@ -18,397 +36,238 @@ class TestPhoneLookupService(TestCase):
             _PhoneFormattedResult('Carol', '3'),
         ]
         self.profile = 'profile1'
-        self.formatter = Mock(_PhoneResultFormatter)
+        self.formatter = Mock(Formatter)
         self.formatter.format_results.return_value = self.formatted_results
-        self.formatters = {self.profile: self.formatter}
-        self.lookup_service = Mock()
-        self.phone_lookup_service = _PhoneLookupService(self.lookup_service, self.formatters)
 
-    def test_lookup(self):
+        self.display_service = Mock()
+        self.lookup_service = Mock()
+        display = {'name': 'display_name', 'columns': []}
+        profile_to_display_phone = {
+            'profile1': 'display_name',
+        }
+        self.display_service.list_.return_value = [display]
+
+        self.phone_lookup_service = _PhoneLookupService(
+            self.lookup_service,
+            self.display_service,
+            profile_to_display_phone,
+        )
+
+    def test_lookup(self, Formatter):
         formatted_results = [
             _PhoneFormattedResult('Bob', '2'),
             _PhoneFormattedResult('Alice', '1'),
         ]
+        formatter = Formatter.return_value = Mock()
         # return a copy of formatted_results to test that sorting works
-        self.formatter.format_results.side_effect = lambda _: list(formatted_results)
+        formatter.format_results.side_effect = lambda _: list(formatted_results)
 
-        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token)
+        results = self.phone_lookup_service.lookup('foo', self.profile, s.uuid, s.token)
 
         assert_that(results['results'], equal_to(sorted(formatted_results)))
-        self.lookup_service.lookup.assert_called_once_with('foo', self.profile, sentinel.uuid, {}, sentinel.token)
-        self.formatter.format_results.assert_called_once_with(self.lookup_service.lookup.return_value)
+        self.lookup_service.lookup.assert_called_once_with('foo', self.profile, s.uuid, {}, s.token)
+        formatter.format_results.assert_called_once_with(self.lookup_service.lookup.return_value)
 
-    def test_lookup_raise_when_unknown_profile(self):
-        self.assertRaises(ProfileNotFoundError,
-                          self.phone_lookup_service.lookup, 'foo', 'unknown_profile', sentinel.uuid, sentinel.token)
+    def test_lookup_raise_when_unknown_profile(self, _):
+        self.assertRaises(
+            ProfileNotFoundError,
+            self.phone_lookup_service.lookup, 'foo', 'unknown_profile', s.uuid, s.token,
+        )
 
-    def test_lookup_limit(self):
+    def test_lookup_limit(self, Formatter):
+        Formatter.return_value = self.formatter
+
         limit = 1
 
-        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token, limit)
+        results = self.phone_lookup_service.lookup('foo', self.profile, s.uuid, s.token, limit)
 
         assert_that(results['results'], equal_to(self.formatted_results[:1]))
         assert_that(results['limit'], equal_to(limit))
 
-    def test_lookup_offset(self):
+    def test_lookup_offset(self, Formatter):
+        Formatter.return_value = self.formatter
+
         offset = 1
         limit = 1
 
-        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token, limit, offset)
+        results = self.phone_lookup_service.lookup(
+            'foo', self.profile, s.uuid, s.token, limit, offset,
+        )
 
         assert_that(results['results'], equal_to(self.formatted_results[1:2]))
         assert_that(results['offset'], equal_to(offset))
         assert_that(results['previous_offset'], equal_to(0))
         assert_that(results['next_offset'], equal_to(2))
 
-    def test_lookup_return_no_next_offset_when_has_no_more_results(self):
+    def test_lookup_return_no_next_offset_when_has_no_more_results(self, Formatter):
+        Formatter.return_value = self.formatter
+
         offset = 0
         limit = len(self.formatted_results)
 
-        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token, limit, offset)
+        results = self.phone_lookup_service.lookup(
+            'foo', self.profile, s.uuid, s.token, limit, offset,
+        )
 
         assert_that(results['results'], equal_to(self.formatted_results))
         assert_that(results['next_offset'], is_(None))
 
-    def test_lookup_return_no_previous_offset_when_has_no_previous_results(self):
-        results = self.phone_lookup_service.lookup('foo', self.profile, sentinel.uuid, sentinel.token)
+    def test_lookup_return_no_previous_offset_when_has_no_previous_results(self, Formatter):
+        Formatter.return_value = self.formatter
+
+        results = self.phone_lookup_service.lookup('foo', self.profile, s.uuid, s.token)
 
         assert_that(results['results'], equal_to(self.formatted_results))
         assert_that(results['previous_offset'], is_(None))
 
 
-class TestPhoneResultFormatter(TestCase):
+class TestResultFormater(TestCase):
 
     def setUp(self):
-        self.name = ['name1', 'name2']
-        self.number = [
-            {
-                'field': ['number1', 'number2'],
-            }
-        ]
-        self.config = {
-            'name': self.name,
-            'number': self.number,
-        }
-
-    def test_format_results(self):
-        fields = {
-            'name1': 'John',
-            'number1': '1',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('John', '1')]))
-
-    def test_format_results_return_strip_number(self):
-        fields = {
-            'name1': 'John',
-            'number1': '1(418)-555.1234',
-        }
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('John', '14185551234')]))
-
-    def test_format_results_return_none_when_number_with_unauthorized_characters(self):
-        fields = {
-            'name1': 'John',
-            'number1': '()abcd',
-        }
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([]))
-
-    def test_format_results_return_special_number_when_pattern_matchs(self):
-        fields = {
-            'name1': 'John',
-            'number1': '+33(0)123456789',
-        }
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('John', '0033123456789')]))
-
-    def test_format_results_return_number_with_special_characters(self):
-        fields1 = {
-            'name1': 'John',
-            'number1': '*10',
-        }
-        formatted_results1 = self._format_results(fields1)
-
-        fields2 = {
-            'name1': 'John',
-            'number1': '#10',
-        }
-        formatted_results2 = self._format_results(fields2)
-
-        fields3 = {
-            'name1': 'John',
-            'number1': '+10',
-        }
-
-        formatted_results3 = self._format_results(fields3)
-
-        assert_that(formatted_results1, equal_to([('John', '*10')]))
-        assert_that(formatted_results2, equal_to([('John', '#10')]))
-        assert_that(formatted_results3, equal_to([('John', '+10')]))
-
-    def test_results_have_attributes(self):
-        fields = {
-            'name1': 'John',
-            'number1': '1',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results[0].name, equal_to('John'))
-        assert_that(formatted_results[0].number, equal_to('1'))
-
-    def test_format_results_use_fallback_name(self):
-        fields = {
-            'name2': 'James',
-            'number1': '1',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('James', '1')]))
-
-    def test_format_results_use_fallback_name_when_name_is_false(self):
-        fields = {
-            'name1': '',
-            'name2': 'James',
-            'number1': '1',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('James', '1')]))
-
-    def test_format_results_no_name(self):
-        fields = {
-            'number1': '1',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([]))
-
-    def test_format_results_use_fallback_number(self):
-        fields = {
-            'name1': 'John',
-            'number2': '2',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('John', '2')]))
-
-    def test_format_results_no_number(self):
-        fields = {
-            'name1': 'John',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([]))
-
-    def test_format_results_multiple(self):
-        self.number.append({
-            'field': ['mobile1', 'mobile2']
-        })
-        fields = {
-            'name1': 'John',
-            'number1': '1',
-            'mobile1': '3',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('John', '1'), ('John', '3')]))
-
-    def test_format_results_multiple_missing_first(self):
-        self.number.append({
-            'field': ['mobile1', 'mobile2']
-        })
-        fields = {
-            'name1': 'John',
-            'mobile1': '3',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('John', '3')]))
-
-    def test_format_results_with_name_format(self):
-        self.number[0]['name_format'] = '{name}-{number}'
-        fields = {
-            'name1': 'John',
-            'number1': '1',
-        }
-
-        formatted_results = self._format_results(fields)
-
-        assert_that(formatted_results, equal_to([('John-1', '1')]))
-
-    def test_new_from_config(self):
-        config = {
-            'name': [
-                'name1',
-                'name2',
-            ],
-            'number': [
+        self.display = {
+            'name': 'my display',
+            'columns': [
                 {
-                    'field': [
-                        'phone',
-                        'phone1'
-                    ],
-                    'name_format': '{name}',
-                }
+                    'field': 'number1',
+                    'number_display': '{name1}',
+                    'type': 'number',
+                },
             ]
         }
+        self.formatter = Formatter(self.display)
 
-        formatter = _PhoneResultFormatter.new_from_config(config)
+    def test_format_results(self):
+        raw_results = [{'name1': 'John', 'number1': '1'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
 
-        assert_that(formatter._name_config, equal_to(config['name']))
-        assert_that(formatter._number_config, equal_to(config['number']))
+        results = self.formatter.format_results(lookup_results)
 
-    def test_new_from_config_invalid_type(self):
-        config = None
+        assert_that(results, contains_inanyorder(
+            ('John', '1'),
+        ))
 
-        self._assert_invalid_config(config, 'views/displays_phone')
+    def test_format_results_return_strip_number(self):
+        raw_results = [{'name1': 'John', 'number1': '1(418)-555.1234'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
 
-    def test_new_from_config_missing_name_key(self):
-        del self.config['name']
+        results = self.formatter.format_results(lookup_results)
 
-        self._assert_invalid_config(self.config, 'views/displays_phone')
+        assert_that(results, contains_inanyorder(
+            ('John', '14185551234'),
+        ))
 
-    def test_new_from_config_missing_number_key(self):
-        del self.config['number']
+    def test_format_results_return_none_when_number_with_unauthorized_characters(self):
+        raw_results = [{'name1': 'John', 'number1': '()abcd'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
 
-        self._assert_invalid_config(self.config, 'views/displays_phone')
+        results = self.formatter.format_results(lookup_results)
 
-    def test_new_from_config_name_invalid_type(self):
-        self.config['name'] = 'foo'
+        assert_that(results, empty())
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/name')
+    def test_format_results_return_special_number_when_pattern_matchs(self):
+        raw_results = [{'name1': 'John', 'number1': '+33(0)123456789'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
 
-    def test_new_from_config_name_invalid_length(self):
-        self.config['name'] = []
+        results = self.formatter.format_results(lookup_results)
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/name')
+        assert_that(results, contains_inanyorder(
+            ('John', '0033123456789'),
+        ))
 
-    def test_new_from_config_name_item_invalid_type(self):
-        self.config['name'] = [None]
+    def test_format_results_return_number_with_special_characters(self):
+        raw_results_1 = [{'name1': 'John', 'number1': '*10'}]
+        lookup_results_1 = [Result(raw_result) for raw_result in raw_results_1]
+        results_1 = self.formatter.format_results(lookup_results_1)
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/name/0')
+        raw_results_2 = [{'name1': 'John', 'number1': '#10'}]
+        lookup_results_2 = [Result(raw_result) for raw_result in raw_results_2]
+        results_2 = self.formatter.format_results(lookup_results_2)
 
-    def test_new_from_config_number_invalid_type(self):
-        self.config['number'] = None
+        raw_results_3 = [{'name1': 'John', 'number1': '+10'}]
+        lookup_results_3 = [Result(raw_result) for raw_result in raw_results_3]
+        results_3 = self.formatter.format_results(lookup_results_3)
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/number')
+        assert_that(results_1, contains_inanyorder(('John', '*10')))
+        assert_that(results_2, contains_inanyorder(('John', '#10')))
+        assert_that(results_3, contains_inanyorder(('John', '+10')))
 
-    def test_new_from_config_number_invalid_length(self):
-        self.config['number'] = []
+    def test_results_have_attributes(self):
+        raw_results = [{'name1': 'John', 'number1': '1'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/number')
+        results = self.formatter.format_results(lookup_results)
 
-    def test_new_from_config_number_item_invalid_type(self):
-        self.config['number'] = [None]
+        assert_that(results, contains_inanyorder(
+            has_properties(name='John', number='1'),
+        ))
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/number/0')
+    def test_format_results_no_name(self):
+        raw_results = [{'number1': '1'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
 
-    def test_new_from_config_number_item_missing_field_key(self):
-        self.config['number'] = [{}]
+        results = self.formatter.format_results(lookup_results)
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/number/0')
+        assert_that(results, empty())
 
-    def test_new_from_config_number_item_invalid_field_key_type(self):
-        self.config['number'] = [{'field': 'lol'}]
+    def test_format_results_no_number(self):
+        raw_results = [{'name1': 'John'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/number/0/field')
+        results = self.formatter.format_results(lookup_results)
 
-    def test_new_from_config_number_item_invalid_field_key_item_type(self):
-        self.config['number'] = [{'field': [None]}]
+        assert_that(results, empty())
 
-        self._assert_invalid_config(self.config, 'views/displays_phone/number/0/field/0')
-
-    def test_new_from_config_number_item_invalid_name_format_key_type(self):
-        self.config['number'] = [{'field': ['a'], 'name_format': {}}]
-
-        self._assert_invalid_config(self.config, 'views/displays_phone/number/0/name_format')
-
-    def _format_results(self, fields):
-        formatter = _PhoneResultFormatter(self.name, self.number)
-        lookup_result = Mock()
-        lookup_result.fields = fields
-        return formatter.format_results([lookup_result])
-
-    def _assert_invalid_config(self, config, location_path):
-        try:
-            _PhoneResultFormatter.new_from_config(config)
-        except InvalidConfigError as e:
-            assert_that(e.location_path, equal_to(location_path))
-        else:
-            self.fail('InvalidConfigError not raised')
-
-
-class TestNewFormattersFromConfig(TestCase):
-
-    def setUp(self):
-        self.config = {
-            'displays_phone': {},
+    def test_format_results_multiple(self):
+        display = {
+            'name': 'my display',
+            'columns': [
+                {
+                    'field': 'number',
+                    'number_display': '{name}',
+                    'type': 'number',
+                },
+                {
+                    'field': 'mobile',
+                    'number_display': '{name}',
+                    'type': 'number',
+                },
+            ],
         }
+        formatter = Formatter(display)
 
-    @patch('wazo_dird.plugins.phone_helpers._PhoneResultFormatter')
-    def test_new_from_config(self, mock_Display):
-        views_config = {
-            'displays_phone': {
-                'default': sentinel.default_display,
-            },
-            'profile_to_display_phone': {
-                'foo': 'default',
-            }
+        raw_results = [{'name': 'John', 'number': '1', 'mobile': '3'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
+
+        results = formatter.format_results(lookup_results)
+
+        assert_that(results, contains_inanyorder(
+            ('John', '1'),
+            ('John', '3'),
+        ))
+
+    def test_format_results_multiple_missing_first(self):
+        display = {
+            'name': 'my display',
+            'columns': [
+                {
+                    'field': 'number',
+                    'number_display': '{name}',
+                    'type': 'number',
+                },
+                {
+                    'field': 'mobile',
+                    'number_display': '{name}',
+                    'type': 'number',
+                },
+            ],
         }
+        formatter = Formatter(display)
 
-        formatters = _new_formatters_from_config(views_config)
+        raw_results = [{'name': 'John', 'mobile': '3'}]
+        lookup_results = [Result(raw_result) for raw_result in raw_results]
 
-        mock_Display.new_from_config.assert_called_once_with(sentinel.default_display)
-        assert_that(formatters, equal_to({'foo': mock_Display.new_from_config.return_value}))
+        results = formatter.format_results(lookup_results)
 
-    def test_new_from_config_invalid_type(self):
-        config = None
-
-        self._assert_invalid_config(config, 'views')
-
-    def test_new_from_config_missing_displays_phone_key(self):
-        del self.config['displays_phone']
-
-        self._assert_invalid_config(self.config, 'views')
-
-    def test_new_from_config_displays_phone_invalid_type(self):
-        self.config['displays_phone'] = 'foo'
-
-        self._assert_invalid_config(self.config, 'views/displays_phone')
-
-    def test_new_from_config_profile_to_display_phone_invalid_type(self):
-        self.config['profile_to_display_phone'] = 'foo'
-
-        self._assert_invalid_config(self.config, 'views/profile_to_display_phone')
-
-    def test_new_from_config_profile_to_display_phone_invalid_item_type(self):
-        self.config['profile_to_display_phone'] = {'default': None}
-
-        self._assert_invalid_config(self.config, 'views/profile_to_display_phone/default')
-
-    def test_new_from_config_profile_to_display_phone_missing_display(self):
-        self.config['profile_to_display_phone'] = {'foo': 'anchovy'}
-
-        self._assert_invalid_config(self.config, 'views/profile_to_display_phone/foo')
-
-    def _assert_invalid_config(self, config, location_path):
-        try:
-            _new_formatters_from_config(config)
-        except InvalidConfigError as e:
-            assert_that(e.location_path, equal_to(location_path))
-        else:
-            self.fail('InvalidConfigError not raised')
+        assert_that(results, contains_inanyorder(
+            ('John', '3'),
+        ))
