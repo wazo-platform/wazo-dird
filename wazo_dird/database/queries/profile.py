@@ -64,6 +64,25 @@ class ProfileCRUD(BaseDAO):
             profile = s.query(Profile).filter(filter_).first()
             return self._profile_schema.dump(profile).data
 
+    def list_(self, visible_tenants, **list_params):
+        filter_ = self._list_filter(visible_tenants, **list_params)
+        with self.new_session() as s:
+            query = s.query(Profile).filter(filter_)
+            # add pagination here
+            return [self._profile_schema.dump(row).data for row in query.all()]
+
+    def _list_filter(self, visible_tenants, uuid=None, name=None, **list_params):
+        filter_ = text('true')
+        if visible_tenants is not None:
+            if not visible_tenants:
+                return text('false')
+            filter_ = and_(filter_, Profile.tenant_uuid.in_(visible_tenants))
+        if uuid is not None:
+            filter_ = and_(filter_, Profile.uuid == uuid)
+        if name is not None:
+            filter_ = and_(filter_, Profile.name == name)
+        return filter_
+
     @staticmethod
     def _create_profile(session, body):
         display = body.get('display') or {}

@@ -1458,6 +1458,66 @@ class TestProfileCRUD(_BaseTest):
             ),
         ))
 
+    @fixtures.profile(
+        name='one',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+        display=None,
+        services={},
+    )
+    @fixtures.profile(
+        name='two',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+        display=None,
+        services={},
+    )
+    @fixtures.profile(
+        name='three',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+        display=None,
+        services={},
+    )
+    def test_list(self, three, two, one):
+        tenant_uuid = 'f537dcbf-2504-428f-967d-503cf7cbb66d'
+
+        result = self.profile_crud.list_([tenant_uuid])
+        assert_that(result, contains_inanyorder(one, two, three))
+
+        result = self.profile_crud.list_([tenant_uuid], name='one')
+        assert_that(result, contains_inanyorder(one))
+
+        result = self.profile_crud.list_(None)
+        assert_that(result, contains_inanyorder(one, two, three))
+
+        result = self.profile_crud.list_([])
+        assert_that(result, empty())
+
+    @fixtures.profile(
+        name='one',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+        display=None,
+        services={},
+    )
+    @fixtures.profile(
+        name='two',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+        display=None,
+        services={},
+    )
+    @fixtures.profile(
+        name='three',
+        tenant_uuid='76e03904-efa5-4885-a824-cfa5701da777',
+        display=None,
+        services={},
+    )
+    def test_list_multi_tenant(self, three, two, one):
+        tenant_uuid = 'f537dcbf-2504-428f-967d-503cf7cbb66d'
+
+        result = self.profile_crud.list_([tenant_uuid])
+        assert_that(result, contains_inanyorder(one, two))
+
+        result = self.profile_crud.list_([tenant_uuid], name='three')
+        assert_that(result, empty())
+
     @fixtures.profile()
     def test_delete(self, profile):
         unknown_uuid = '26f11ad0-e509-4208-92bf-ce55afae9267'
