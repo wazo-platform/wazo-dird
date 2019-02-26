@@ -5,6 +5,7 @@ from sqlalchemy import (
     and_,
     text,
 )
+from wazo_dird.database import schemas
 from wazo_dird.exception import NoSuchDisplay
 from .base import BaseDAO
 from ..import (
@@ -15,19 +16,16 @@ from ..import (
 
 class DisplayCRUD(BaseDAO):
 
-    def create(self, tenant_uuid, name, columns):
+    _display_schema = schemas.DisplaySchema()
+
+    def create(self, tenant_uuid, name, columns, uuid=None):
         with self.new_session() as s:
             self._create_tenant(s, tenant_uuid)
-            uuid = self._add_display(s, tenant_uuid=tenant_uuid, name=name)
+            display = self._add_display(s, tenant_uuid=tenant_uuid, name=name, uuid=uuid)
             for column in columns:
-                self._add_column(s, display_uuid=uuid, **column)
-
-        return {
-            'uuid': uuid,
-            'tenant_uuid': tenant_uuid,
-            'name': name,
-            'columns': columns,
-        }
+                self._add_column(s, display_uuid=display.uuid, **column)
+            s.flush()
+            return self._display_schema.dump(display).data
 
     def delete(self, visible_tenants, display_uuid):
         filter_ = self._build_filter(visible_tenants, display_uuid)
@@ -104,28 +102,7 @@ class DisplayCRUD(BaseDAO):
         display = Display(**display_body)
         session.add(display)
         session.flush()
-        return display.uuid
+        return display
 
-    @staticmethod
-    def _from_db_format(display):
-        columns = []
-        for column in display.columns:
-            d = {}
-            if column.field is not None:
-                d['field'] = column.field
-            if column.title is not None:
-                d['title'] = column.title
-            if column.type is not None:
-                d['type'] = column.type
-            if column.number_display is not None:
-                d['number_display'] = column.number_display
-            if column.default is not None:
-                d['default'] = column.default
-            columns.append(d)
-
-        return {
-            'uuid': display.uuid,
-            'tenant_uuid': display.tenant_uuid,
-            'name': display.name,
-            'columns': columns,
-        }
+    def _from_db_format(self, display):
+        return self._display_schema.dump(display).data

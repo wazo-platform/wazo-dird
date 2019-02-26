@@ -9,6 +9,10 @@ from .models import (
     DisplayColumn,
     Favorite,
     Phonebook,
+    Profile,
+    ProfileService,
+    ProfileServiceSource,
+    Service,
     Source,
     Tenant,
     User,
@@ -29,6 +33,7 @@ from .queries.phonebook import (
     PhonebookContactCRUD,
     PhonebookContactSearchEngine,
 )
+from .queries.profile import ProfileCRUD
 from .queries.tenant import TenantCRUD
 from .queries.source import SourceCRUD
 
@@ -49,6 +54,11 @@ __all__ = [
     'PhonebookCRUD',
     'PhonebookContactCRUD',
     'PhonebookContactSearchEngine',
+    'Profile',
+    'ProfileCRUD',
+    'ProfileService',
+    'ProfileServiceSource',
+    'Service',
     'Source',
     'SourceCRUD',
     'Tenant',

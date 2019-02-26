@@ -39,6 +39,21 @@ def display(**display_args):
     return decorator
 
 
+def profile(**profile_args):
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            profile = self.profile_crud.create(profile_args)
+            try:
+                result = decorated(self, profile, *args, **kwargs)
+            finally:
+                # self.profile_crud.delete(profile['uuid'])
+                pass
+            return result
+        return wrapper
+    return decorator
+
+
 def source(**source_args):
     source_args.setdefault('backend', 'csv')
     source_args.setdefault('tenant_uuid', _new_uuid())

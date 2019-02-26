@@ -95,11 +95,15 @@ class SourceCRUD(BaseDAO):
         return filter_
 
     def _multi_tenant_filter(self, backend, source_uuid, visible_tenants):
-        return and_(
+        filter_ = and_(
             Source.backend == backend,
-            Source.tenant_uuid.in_(visible_tenants),
             Source.uuid == source_uuid,
         )
+
+        if visible_tenants is None:
+            return filter_
+
+        return and_(filter_, Source.tenant_uuid.in_(visible_tenants))
 
     def _paginate(self, query, limit=None, offset=None, order=None, direction=None, **ignored):
         if order and direction:
@@ -119,8 +123,8 @@ class SourceCRUD(BaseDAO):
 
         return query
 
-    def _to_db_format(self, backend, tenant_uuid, *args, **kwargs):
-        source = Source(backend=backend, tenant_uuid=tenant_uuid)
+    def _to_db_format(self, backend, tenant_uuid, uuid=None, *args, **kwargs):
+        source = Source(uuid=uuid, backend=backend, tenant_uuid=tenant_uuid)
         return self._update_to_db_format(source, *args, **kwargs)
 
     @staticmethod

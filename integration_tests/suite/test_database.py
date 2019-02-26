@@ -91,6 +91,7 @@ class _BaseTest(unittest.TestCase):
 
     def setUp(self):
         self.display_crud = database.DisplayCRUD(Session)
+        self.profile_crud = database.ProfileCRUD(Session)
         self.source_crud = database.SourceCRUD(Session)
 
         self._contact_1 = {
@@ -1293,3 +1294,166 @@ class TestPersonalContactSearchEngine(_BaseTest):
         result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
 
         assert_that(result, empty())
+
+
+class TestProfileCRUD(_BaseTest):
+
+    @fixtures.display()
+    @fixtures.source()
+    @fixtures.source()
+    def test_create_no_error(self, source_2, source_1, display):
+        tenant_uuid = new_uuid()
+        name = 'my-profile'
+        body = {
+            'tenant_uuid': tenant_uuid,
+            'name': name,
+            'display': {'uuid': display['uuid']},
+            'services': {
+                'lookup': {
+                    'sources': [
+                        {'uuid': source_1['uuid']},
+                        {'uuid': source_2['uuid']},
+                    ],
+                    'timeout': 5,
+                },
+                'reverse': {
+                    'sources': [{'uuid': source_2['uuid']}],
+                    'timeout': 0.5,
+                },
+            }
+        }
+
+        result = self.profile_crud.create(body)
+
+        assert_that(result, has_entries(
+            uuid=uuid_(),
+            tenant_uuid=tenant_uuid,
+            name=name,
+            display=has_entries(uuid=display['uuid']),
+            services=has_entries(
+                lookup=has_entries(
+                    sources=contains(
+                        has_entries(uuid=source_1['uuid']),
+                        has_entries(uuid=source_2['uuid']),
+                    ),
+                    timeout=5,
+                ),
+                reverse=has_entries(
+                    sources=contains(
+                        has_entries(uuid=source_2['uuid']),
+                    ),
+                    timeout=0.5,
+                ),
+            ),
+        ))
+
+    @fixtures.source()
+    @fixtures.source()
+    def test_create_unknown_display(self, source_2, source_1):
+        body = {
+            'tenant_uuid': new_uuid(),
+            'name': 'profile',
+            'display': {'uuid': 'b20524b7-7c87-4b0d-ba22-19656a77c3e2'},
+            'services': {},
+        }
+
+        assert_that(
+            calling(self.profile_crud.create).with_args(body),
+            raises(exception.NoSuchDisplay),
+        )
+
+    @fixtures.display()
+    def test_create_unknown_source(self, display):
+        body = {
+            'tenant_uuid': new_uuid(),
+            'name': 'profile',
+            'display_uuid': None,
+            'services': {
+                'lookup': {
+                    'sources': [{'uuid': 'eb124746-09be-44db-b01d-5b7dc1ea59a3'}],
+                },
+            }
+        }
+
+        assert_that(
+            calling(self.profile_crud.create).with_args(body),
+            raises(exception.NoSuchSource),
+        )
+
+        body = {
+            'tenant_uuid': new_uuid(),
+            'name': 'profile',
+            'display_uuid': None,
+            'services': {
+                'lookup': {
+                    'sources': [{'id': 42}],
+                },
+            }
+        }
+
+        assert_that(
+            calling(self.profile_crud.create).with_args(body),
+            raises(exception.NoSuchSource),
+        )
+
+    @fixtures.display(
+        uuid='b76f21a2-c1ab-4f4c-b71e-dac6c7c18275',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+        columns=[
+            {'title': 'Firstname', 'field': 'firstname'},
+        ],
+    )
+    @fixtures.source(
+        uuid='91c48535-5104-4052-9b85-7a3b211ea1b0',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+    )
+    @fixtures.source(
+        uuid='a36ce082-03ac-40c6-95d9-8b06fc2ea788',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+    )
+    @fixtures.profile(
+        name='detailed',
+        tenant_uuid='f537dcbf-2504-428f-967d-503cf7cbb66d',
+        display={'uuid': 'b76f21a2-c1ab-4f4c-b71e-dac6c7c18275'},
+        services={
+            'lookup': {
+                'sources': [
+                    {'uuid': '91c48535-5104-4052-9b85-7a3b211ea1b0'},
+                    {'uuid': 'a36ce082-03ac-40c6-95d9-8b06fc2ea788'},
+                ],
+                'timeout': 3,
+            },
+            'reverse': {
+                'sources': [
+                    {'uuid': '91c48535-5104-4052-9b85-7a3b211ea1b0'},
+                ],
+                'timeout': 0.5,
+            },
+        },
+    )
+    def test_get_detailed(self, profile, source_2, source_1, display):
+        tenant_uuid = 'f537dcbf-2504-428f-967d-503cf7cbb66d'
+
+        result = self.profile_crud.get([tenant_uuid], profile['uuid'])
+
+        assert_that(result, has_entries(
+            uuid=profile['uuid'],
+            name=profile['name'],
+            tenant_uuid=profile['tenant_uuid'],
+            display=display,
+            services=has_entries(
+                lookup=has_entries(
+                    sources=contains_inanyorder(
+                        has_entries(uuid=source_1['uuid'], backend=source_1['backend']),
+                        has_entries(uuid=source_2['uuid'], backend=source_2['backend']),
+                    ),
+                    timeout=3,
+                ),
+                reverse=has_entries(
+                    sources=contains_inanyorder(
+                        has_entries(uuid=source_1['uuid'], backend=source_1['backend']),
+                    ),
+                    timeout=0.5,
+                ),
+            ),
+        ))
