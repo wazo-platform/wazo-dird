@@ -74,7 +74,7 @@ def upgrade():
         sa.Column(
             'service_uuid',
             sa.String(36),
-            sa.ForeignKey('dird_source.uuid', ondelete='CASCADE'),
+            sa.ForeignKey('dird_service.uuid', ondelete='CASCADE'),
             nullable=False,
         ),
         sa.Column(
@@ -88,7 +88,7 @@ def upgrade():
         sa.Column(
             'profile_service_uuid',
             sa.String(36),
-            sa.ForeignKey('dird_profile.uuid', ondelete='CASCADE'),
+            sa.ForeignKey('dird_profile_service.uuid', ondelete='CASCADE'),
             nullable=False,
         ),
         sa.Column(
@@ -100,8 +100,8 @@ def upgrade():
     )
 
 
-
 def downgrade():
+    op.drop_table('dird_profile_service_source')
     op.drop_table('dird_profile_service')
     op.drop_table('dird_profile_source')
     op.drop_table('dird_profile')
