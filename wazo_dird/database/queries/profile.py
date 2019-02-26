@@ -4,6 +4,7 @@
 from sqlalchemy import (
     and_,
     exc,
+    text,
 )
 
 from wazo_dird.database import schemas
@@ -40,6 +41,19 @@ class ProfileCRUD(BaseDAO):
                         s, profile_service_uuid, source_uuid,
                     )
         return body
+
+    def delete(self, visible_tenants, profile_uuid):
+        filter_ = Profile.uuid == profile_uuid
+        if visible_tenants is not None:
+            if not visible_tenants:
+                raise exception.NoSuchProfile(profile_uuid)
+            filter_ = and_(filter_, Profile.tenant_uuid.in_(visible_tenants))
+
+        with self.new_session() as s:
+            nb_deleted = s.query(Profile).filter(filter_).delete(synchronize_session=False)
+
+        if not nb_deleted:
+            raise exception.NoSuchProfile(profile_uuid)
 
     def get(self, visible_tenants, profile_uuid):
         filter_ = and_(

@@ -40,6 +40,11 @@ def display(**display_args):
 
 
 def profile(**profile_args):
+    profile_args.setdefault('name', _random_string(10))
+    profile_args.setdefault('tenant_uuid', _new_uuid())
+    profile_args.setdefault('services', {})
+    profile_args.setdefault('display', None)
+
     def decorator(decorated):
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
@@ -47,8 +52,10 @@ def profile(**profile_args):
             try:
                 result = decorated(self, profile, *args, **kwargs)
             finally:
-                # self.profile_crud.delete(profile['uuid'])
-                pass
+                try:
+                    self.profile_crud.delete(None, profile['uuid'])
+                except exception.NoSuchProfile:
+                    pass
             return result
         return wrapper
     return decorator

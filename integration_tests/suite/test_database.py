@@ -1457,3 +1457,27 @@ class TestProfileCRUD(_BaseTest):
                 ),
             ),
         ))
+
+    @fixtures.profile()
+    def test_delete(self, profile):
+        unknown_uuid = '26f11ad0-e509-4208-92bf-ce55afae9267'
+
+        assert_that(
+            calling(self.profile_crud.delete).with_args(None, unknown_uuid),
+            raises(exception.NoSuchProfile),
+        )
+
+        assert_that(
+            calling(self.profile_crud.delete).with_args([unknown_uuid], profile['uuid']),
+            raises(exception.NoSuchProfile),
+        )
+
+        assert_that(
+            calling(self.profile_crud.delete).with_args([], profile['uuid']),
+            raises(exception.NoSuchProfile),
+        )
+
+        assert_that(
+            calling(self.profile_crud.delete).with_args([profile['tenant_uuid']], profile['uuid']),
+            not_(raises(Exception)),
+        )
