@@ -70,7 +70,7 @@ class Favorite(Base):
     __tablename__ = 'dird_favorite'
 
     source_uuid = Column(
-        String(36),
+        String(UUID_LENGTH),
         ForeignKey('dird_source.uuid', ondelete='CASCADE'),
         primary_key=True,
     )
@@ -159,7 +159,7 @@ class Source(Base):
         schema.UniqueConstraint('name', 'tenant_uuid'),
     )
 
-    uuid = Column(String(36), server_default=text('uuid_generate_v4()'), primary_key=True)
+    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
     name = Column(Text(), nullable=False)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
     searched_columns = Column(ARRAY(Text))
