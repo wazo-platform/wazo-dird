@@ -58,23 +58,13 @@ def upgrade():
     )
 
     op.create_table(
-        'dird_profile_source',
-        sa.Column(
-            'profile_uuid',
-            sa.String(36),
-            sa.ForeignKey('dird_profile.uuid', ondelete='CASCADE'),
-            nullable=False,
-        ),
-        sa.Column(
-            'source_uuid',
-            sa.String(36),
-            sa.ForeignKey('dird_source.uuid', ondelete='CASCADE'),
-            nullable=False,
-        ),
-    )
-
-    op.create_table(
         'dird_profile_service',
+        sa.Column(
+            'uuid',
+            sa.String(36),
+            server_default=sa.text('uuid_generate_v4()'),
+            primary_key=True,
+        ),
         sa.Column(
             'profile_uuid',
             sa.String(36),
@@ -92,6 +82,23 @@ def upgrade():
             JSON,
         ),
     )
+
+    op.create_table(
+        'dird_profile_service_source',
+        sa.Column(
+            'profile_service_uuid',
+            sa.String(36),
+            sa.ForeignKey('dird_profile.uuid', ondelete='CASCADE'),
+            nullable=False,
+        ),
+        sa.Column(
+            'source_uuid',
+            sa.String(36),
+            sa.ForeignKey('dird_source.uuid', ondelete='CASCADE'),
+            nullable=False,
+        ),
+    )
+
 
 
 def downgrade():

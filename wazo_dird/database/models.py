@@ -104,21 +104,16 @@ class Profile(Base):
     display_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_display.uuid', ondelete='SET NULL'))
 
     display = relationship('Display')
-    profile_sources = relationship(
-        'ProfileSource',
-        cascade='all, delete-orphan',
-    )
-    sources = association_proxy('profile_sources', 'source')
-    profile_services = relationship('ProfileService')
+    services = relationship('ProfileService')
 
 
-class ProfileSource(Base):
+class ProfileServiceSource(Base):
 
-    __tablename__ = 'dird_profile_source'
+    __tablename__ = 'dird_profile_service_source'
 
-    profile_uuid = Column(
+    profile_service_uuid = Column(
         String(UUID_LENGTH),
-        ForeignKey('dird_profile.uuid', ondelete='CASCADE'),
+        ForeignKey('dird_profile_service.uuid', ondelete='CASCADE'),
         primary_key=True,
     )
     source_uuid = Column(
@@ -126,24 +121,27 @@ class ProfileSource(Base):
         ForeignKey('dird_source.uuid', ondelete='CASCADE'),
         primary_key=True,
     )
+    sources = relationship('Source')
 
 
 class ProfileService(Base):
 
     __tablename__ = 'dird_profile_service'
 
+    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
     profile_uuid = Column(
         String(UUID_LENGTH),
         ForeignKey('dird_profile.uuid', ondelete='CASCADE'),
-        primary_key=True,
     )
     service_uuid = Column(
         String(UUID_LENGTH),
         ForeignKey('dird_service.uuid', ondelete='CASCADE'),
-        primary_key=True,
     )
     config = Column(JSON)
+
     service = relationship('Service')
+    profile_service_sources = relationship('ProfileServiceSource')
+    sources = association_proxy('profile_service_sources', 'sources')
 
 
 class Service(Base):
