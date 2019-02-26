@@ -91,6 +91,8 @@ class _BaseTest(unittest.TestCase):
 
     def setUp(self):
         self.display_crud = database.DisplayCRUD(Session)
+        self.source_crud = database.SourceCRUD(Session)
+
         self._contact_1 = {
             'firtname': 'Finley',
             'lastname': 'Shelley',

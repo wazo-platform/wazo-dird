@@ -37,3 +37,28 @@ def display(**display_args):
             return result
         return wrapper
     return decorator
+
+
+def source(**source_args):
+    source_args.setdefault('backend', 'csv')
+    source_args.setdefault('tenant_uuid', _new_uuid())
+    source_args.setdefault('name', _random_string(10))
+    source_args.setdefault('searched_columns', [])
+    source_args.setdefault('first_matched_columns', [])
+    source_args.setdefault('format_columns', {})
+    backend = source_args.pop('backend')
+
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            source = self.source_crud.create(backend, source_args)
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.source_crud.delete(backend, source['uuid'], visible_tenants=None)
+                except exception.NoSuchSource:
+                    pass
+            return result
+        return wrapper
+    return decorator
