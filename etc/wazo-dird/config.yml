@@ -75,6 +75,7 @@ enabled_plugins:
     lookup: true
     personal: true
     phonebook: true
+    profile: true
     reverse: true
     source: true
   views:

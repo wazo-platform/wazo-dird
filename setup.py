@@ -67,6 +67,7 @@ setup(
             'lookup = wazo_dird.plugins.lookup_service.plugin:LookupServicePlugin',
             'personal = wazo_dird.plugins.personal_service.plugin:PersonalServicePlugin',
             'phonebook = wazo_dird.plugins.phonebook_service.plugin:PhonebookServicePlugin',
+            'profile = wazo_dird.plugins.profile_service.plugin:ProfileServicePlugin',
             'reverse = wazo_dird.plugins.reverse_service.plugin:ReverseServicePlugin',
             'service_discovery = wazo_dird.plugins.service_discovery_service.plugin:ServiceDiscoveryServicePlugin',
             'source = wazo_dird.plugins.source_service.plugin:SourceServicePlugin',

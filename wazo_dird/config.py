@@ -37,6 +37,7 @@ _DEFAULT_CONFIG = {
             'lookup': True,
             'personal': True,
             'phonebook': True,
+            'profile': True,
             'reverse': True,
             'source': True,
         },
