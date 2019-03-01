@@ -31,10 +31,15 @@ class FavoriteCRUD(BaseDAO):
 
     def delete(self, xivo_user_uuid, source_name, contact_id):
         with self.new_session() as s:
-            source_uuid = s.query(Source.uuid).filter(Source.name == source_name).scalar()
-            filter_ = and_(Favorite.contact_id == contact_id,
-                           Favorite.user_uuid == xivo_user_uuid,
-                           Favorite.source_uuid == source_uuid)
+            matching_source_uuids = s.query(Source.uuid).filter(Source.name == source_name).all()
+            if not matching_source_uuids:
+                raise NoSuchFavorite((source_name, contact_id))
+
+            filter_ = and_(
+                Favorite.contact_id == contact_id,
+                Favorite.user_uuid == xivo_user_uuid,
+                Favorite.source_uuid.in_(matching_source_uuids),
+            )
             deleted = s.query(Favorite).filter(filter_).delete(synchronize_session=False)
 
             s.commit()
