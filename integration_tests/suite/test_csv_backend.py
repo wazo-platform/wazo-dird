@@ -13,6 +13,7 @@ from hamcrest import (
 
 from .base_dird_integration_test import (
     absolute_file_name,
+    BaseDirdIntegrationTest,
     CSVWithMultipleDisplayTestCase,
     BackendWrapper,
     VALID_UUID,
