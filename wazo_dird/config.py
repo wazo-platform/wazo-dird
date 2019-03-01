@@ -66,7 +66,6 @@ _DEFAULT_CONFIG = {
         },
     },
     'user': 'www-data',
-    'views': {},
     'bus': {
         'enabled': True,
         'username': 'guest',

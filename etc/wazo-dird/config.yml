@@ -101,22 +101,7 @@ enabled_plugins:
     wazo_backend: true
     yealink_view: true
 
-views:
-  profile_to_display:
-    default: default_display
-  profile_to_display_phone:
-    default_phone: default
-
 services:
-  lookup:
-    default_phone:
-      sources:
-        internal: true
-      timeout: 0.5
-  favorites:
-    default:
-      sources:
-        personal: true
   service_discovery:
     template_path: /etc/wazo-dird/templates.d
     services: {}
