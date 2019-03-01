@@ -1503,7 +1503,13 @@ class TestProfileCRUD(_BaseTest):
         result = self.profile_crud.list_(None)
         assert_that(result, contains_inanyorder(one, two, three))
 
+        result = self.profile_crud.list_(None, name='one')
+        assert_that(result, contains_inanyorder(one))
+
         result = self.profile_crud.list_([])
+        assert_that(result, empty())
+
+        result = self.profile_crud.list_(['2cbe9aba-6f15-4907-9fa6-9efb0b65028b'])
         assert_that(result, empty())
 
     @fixtures.profile(
