@@ -93,6 +93,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
     assets_root = ASSET_ROOT
     service = 'dird'
     displays = DEFAULT_DISPLAYS
+    sources = []
+    profiles = []
 
     @classmethod
     def setUpClass(cls):
@@ -119,6 +121,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         database.Base.metadata.create_all()
         cls.Session = scoped_session(sessionmaker())
         cls.create_displays()
+        cls.create_sources()
+        cls.create_profiles()
 
     @classmethod
     def tearDownClass(cls):
@@ -130,13 +134,56 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def create_displays(cls):
-        if not cls.displays:
-            return
-
         display_crud = database.DisplayCRUD(cls.Session)
         for display in cls.displays:
             display.setdefault('tenant_uuid', MAIN_TENANT)
-            display_crud.create(**display)
+            response = display_crud.create(**display)
+            display['uuid'] = response['uuid']
+
+    @classmethod
+    def create_sources(cls):
+        source_crud = database.SourceCRUD(cls.Session)
+        for source in cls.sources:
+            source.setdefault('tenant_uuid', MAIN_TENANT)
+            source.setdefault('first_matched_columns', [])
+            source.setdefault('format_columns', {})
+            source_copy = dict(source)
+            backend = source_copy.pop('backend')
+            result = source_crud.create(backend, source_copy)
+            source['uuid'] = result['uuid']
+
+    @classmethod
+    def create_profiles(cls):
+        profile_crud = database.ProfileCRUD(cls.Session)
+        for profile in cls.profiles:
+            profile.setdefault('tenant_uuid', MAIN_TENANT)
+            profile['display'] = cls._display_from_name(profile.get('display'))
+            for service_name, service_config in profile.get('services', {}).items():
+                sources = service_config.get('sources', [])
+                inserted_sources = []
+                for source in sources:
+                    if isinstance(source, dict):
+                        inserted_sources.append(source)
+                    else:
+                        inserted_source = cls._source_from_name(source)
+                        inserted_sources.append(inserted_source)
+                service_config['sources'] = inserted_sources
+            profile_crud.create(profile)
+
+    @classmethod
+    def _source_from_name(cls, source_name):
+        for source in cls.sources:
+            if source['name'] == source_name:
+                return source
+
+    @classmethod
+    def _display_from_name(cls, display_name):
+        if isinstance(display_name, dict):
+            return display_name
+
+        for display in cls.displays:
+            if display['name'] == display_name:
+                return display
 
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
         return Client(self.host, self.port, token=token, verify_certificate=False)
