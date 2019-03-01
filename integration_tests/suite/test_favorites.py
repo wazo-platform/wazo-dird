@@ -141,7 +141,7 @@ class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
         tenants = {
             'items': [
                 {'uuid': 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10', 'name': 'first'},
-                {'uuid': str(uuid.uuid4()), 'name': 'second'},
+                {'uuid': TENANT_UUID_2, 'name': 'second'},
             ]
         }
         mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
@@ -149,7 +149,6 @@ class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
             metadata={'tenant_uuid': tenants['items'][0]['uuid']},
         )
         user_token_2 = MockUserToken.some_token(
-
             metadata={'tenant_uuid': tenants['items'][1]['uuid']},
         )
         mock_auth_client.set_token(user_token_1)
