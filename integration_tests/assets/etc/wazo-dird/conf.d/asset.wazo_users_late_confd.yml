@@ -3,8 +3,6 @@ db_uri: postgresql://asterisk:proformatique@db/asterisk
 enabled_plugins:
   backends:
     wazo: true
-  services:
-    lookup: true
   views:
     default_json: true
     wazo_backend: true

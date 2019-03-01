@@ -1,7 +1,7 @@
 enabled_plugins:
-  backends:
-  services:
-  views:
+  backends: {}
+  services: {}
+  views: {}
 
 rest_api:
   https:

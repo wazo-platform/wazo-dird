@@ -5,8 +5,6 @@ auth:
 enabled_plugins:
   backends:
     csv: true
-  services:
-    config: true
   views:
     config_view: true
 rest_api:

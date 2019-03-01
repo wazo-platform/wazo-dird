@@ -1,20 +1,10 @@
 enabled_plugins:
   backends:
     csv: true
-  services:
-    lookup: true
-    service_discovery: true
   views:
     default_json: true
 
-views:
-  profile_to_display:
-    default: default_display
-
 services:
-  lookup:
-    default:
-      sources: {}
   service_discovery:
     template_path: /etc/wazo-dird/templates.d/
     services:

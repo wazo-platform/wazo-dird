@@ -68,16 +68,6 @@ enabled_plugins:
     ldap: true
     personal: true
     wazo: true
-  services:
-    cleanup: true
-    config: true
-    favorites: true
-    lookup: true
-    personal: true
-    phonebook: true
-    profile: true
-    reverse: true
-    source: true
   views:
     aastra_view: true
     api_view: true

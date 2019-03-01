@@ -8,12 +8,6 @@ enabled_plugins:
     personal: true
     phonebook: true
     unknown: true
-  services:
-    lookup: true
-    favorites: true
-    personal: true
-    reverse: true
-    source: true
   views:
     backends_view: true
     csv_backend: true

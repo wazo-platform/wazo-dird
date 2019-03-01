@@ -1,9 +1,6 @@
 enabled_plugins:
   backends:
     wazo: true
-  services:
-    lookup: true
-    favorites: true
   views:
     default_json: true
     wazo_backend: true

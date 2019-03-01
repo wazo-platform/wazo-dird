@@ -1,9 +1,6 @@
 enabled_plugins:
   backends:
     ldap: true
-  services:
-    lookup: true
-    favorites: true
   views:
     default_json: true
     ldap_backend: true
