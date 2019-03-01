@@ -15,9 +15,6 @@ class DisplayServicePlugin(BaseServicePlugin):
     def load(self, dependencies):
         self._config = dependencies['config']
         db_uri = self._config['db_uri']
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.critical('DB_URI %s', db_uri)
         Session = self._new_db_session(db_uri)
         return _DisplayService(database.DisplayCRUD(Session))
 
