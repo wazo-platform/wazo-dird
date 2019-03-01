@@ -20,7 +20,7 @@ from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     CSVWithMultipleDisplayTestCase,
     HalfBrokenTestCase,
-    VALID_TOKEN,
+    VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
 )
 MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
@@ -178,7 +178,7 @@ class TestReverse(BaseMultipleSourceLauncher):
         assert_that(result, equal_to(expected))
 
     def test_reverse_with_xivo_user_uuid(self):
-        result = self.get_reverse_result('1111', 'default', VALID_UUID, VALID_TOKEN)
+        result = self.get_reverse_result('1111', 'default', VALID_UUID, VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(200))
 
     def test_reverse_when_multi_result(self):
@@ -254,7 +254,7 @@ class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
 class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
 
     def test_that_lookup_returns_404(self):
-        result = self.get_lookup_result('lice', 'unknown', token=VALID_TOKEN)
+        result = self.get_lookup_result('lice', 'unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         error = result.json()
 
@@ -263,7 +263,7 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
                                                      contains_string('unknown'))))
 
     def test_that_headers_returns_404(self):
-        result = self.get_headers_result('unknown', token=VALID_TOKEN)
+        result = self.get_headers_result('unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         error = result.json()
 
@@ -272,7 +272,7 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
                                                      contains_string('unknown'))))
 
     def test_that_favorites_returns_404(self):
-        result = self.get_favorites_result('unknown', token=VALID_TOKEN)
+        result = self.get_favorites_result('unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         error = result.json()
 
@@ -281,7 +281,7 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
                                                      contains_string('unknown'))))
 
     def test_that_personal_returns_404(self):
-        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN)
+        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         error = result.json()
 

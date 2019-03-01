@@ -36,7 +36,7 @@ from .base_dird_integration_test import (
     PersonalOnlyTestCase,
     MAIN_TENANT,
     VALID_UUID,
-    VALID_TOKEN,
+    VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_1,
     VALID_TOKEN_2,
 )
@@ -122,13 +122,13 @@ class TestAddPersonal(PersonalOnlyTestCase):
             has_entry('column_values', contains('Alice', None, None, False))))
 
     def test_that_adding_invalid_personal_returns_400(self):
-        result = self.post_personal_result({'': 'invalid'}, VALID_TOKEN)
+        result = self.post_personal_result({'': 'invalid'}, VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(400))
 
     def test_that_adding_duplicated_personal_returns_409(self):
-        self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN)
-        result = self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN)
+        self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN_MAIN_TENANT)
+        result = self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(409))
 
@@ -154,8 +154,7 @@ class TestAddPersonal(PersonalOnlyTestCase):
 class TestRemovePersonal(PersonalOnlyTestCase):
 
     def test_that_removing_unknown_personal_returns_404(self):
-        result = self.delete_personal_result('unknown-id', VALID_TOKEN)
-
+        result = self.delete_personal_result('unknown-id', VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(404))
 
     def test_that_removed_personal_are_not_listed(self):
@@ -238,7 +237,7 @@ class TestPersonalVisibility(PersonalOnlyTestCase):
 class TestPersonalListWithProfile(PersonalOnlyTestCase):
 
     def test_listing_personal_with_unknow_profile(self):
-        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN)
+        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(404))
 
@@ -325,13 +324,13 @@ class TestLookupPersonal(PersonalOnlyTestCase):
 class TestEditPersonal(PersonalOnlyTestCase):
 
     def test_that_edit_inexisting_personal_contact_returns_404(self):
-        result = self.put_personal_result('unknown-id', {'firstname': 'John', 'lastname': 'Doe'}, VALID_TOKEN)
+        body = {'firstname': 'John', 'lastname': 'Doe'}
+        result = self.put_personal_result('unknown-id', body, VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(404))
 
     def test_that_edit_personal_contact_replaces_attributes(self):
         contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
-
         put_result = self.put_personal(contact['id'], {'firstname': 'Nicolas', 'company': 'acme'})
 
         assert_that(put_result, has_key('id'))
@@ -353,17 +352,14 @@ class TestEditPersonal(PersonalOnlyTestCase):
     def test_that_edit_cannot_duplicate_contacts(self):
         contact_1 = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
         self.post_personal({'firstname': 'Paul', 'lastname': 'Narvidon'})
-
-        put_result = self.put_personal_result(contact_1['id'], {'firstname': 'Paul', 'lastname': 'Narvidon'}, VALID_TOKEN)
+        put_result = self.put_personal_result(contact_1['id'], {'firstname': 'Paul', 'lastname': 'Narvidon'}, VALID_TOKEN_MAIN_TENANT)
         assert_that(put_result.status_code, equal_to(409))
 
         list_result = self.list_personal()
-        assert_that(list_result['items'], contains_inanyorder({'id': ANY,
-                                                               'firstname': 'Noémie',
-                                                               'lastname': 'Narvidon'},
-                                                              {'id': ANY,
-                                                               'firstname': 'Paul',
-                                                               'lastname': 'Narvidon'}))
+        assert_that(list_result['items'], contains_inanyorder(
+            {'id': ANY, 'firstname': 'Noémie', 'lastname': 'Narvidon'},
+            {'id': ANY, 'firstname': 'Paul', 'lastname': 'Narvidon'},
+        ))
 
 
 class TestEditInvalidPersonal(PersonalOnlyTestCase):
@@ -371,20 +367,18 @@ class TestEditInvalidPersonal(PersonalOnlyTestCase):
     def test_that_edit_personal_contact_with_invalid_values_return_404(self):
         contact = self.post_personal({'firstname': 'Ursule', 'lastname': 'Uparlende'})
 
-        result = self.put_personal_result(contact['id'],
-                                          {'firstname': 'Ulga',
-                                           'company': 'acme',
-                                           '': 'invalid'},
-                                          VALID_TOKEN)
-
+        result = self.put_personal_result(
+            contact['id'],
+            {'firstname': 'Ulga', 'company': 'acme', '': 'invalid'},
+            VALID_TOKEN_MAIN_TENANT,
+        )
         assert_that(result.status_code, equal_to(400))
 
 
 class TestGetPersonal(PersonalOnlyTestCase):
 
     def test_that_get_inexisting_personal_contact_returns_404(self):
-        result = self.get_personal_result('unknown-id', VALID_TOKEN)
-
+        result = self.get_personal_result('unknown-id', VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(404))
 
     def test_that_get_returns_all_attributes(self):

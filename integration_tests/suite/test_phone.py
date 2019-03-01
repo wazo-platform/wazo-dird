@@ -9,7 +9,7 @@ from hamcrest import (
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
-    VALID_TOKEN,
+    VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
 )
 
@@ -67,30 +67,42 @@ class TestPhone(BaseDirdIntegrationTest):
                 'phone1': "{num1}",
             },
         }
-        self.sorted_uuid = self.client.csv_source.create(test_sorted_body)['uuid']
-        self.fallback_uuid = self.client.csv_source.create(test_fallback_body)['uuid']
-
-    def tearDown(self):
-        for uuid in [self.sorted_uuid, self.fallback_uuid]:
-            self.client.csv_source.delete(uuid)
-        super().tearDown()
+    ]
+    profiles = [
+        {
+            'name': 'test_fallback',
+            'display': 'test_fallback',
+            'services': {'lookup': {'sources': ['test_fallback']}},
+        },
+        {
+            'name': 'test_sorted',
+            'display': 'default',
+            'services': {'lookup': {'sources': ['test_sorted']}},
+        },
+    ]
 
     def test_no_fallback_no_multiple_results(self):
-        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Ali', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(
+            'test_fallback', VALID_UUID, term='Ali', token=VALID_TOKEN_MAIN_TENANT,
+        )
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Alice', '101')]))
 
     def test_no_results(self):
-        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Dia', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(
+            'test_fallback', VALID_UUID, term='Dia', token=VALID_TOKEN_MAIN_TENANT,
+        )
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('No entries', '')]))
 
     def test_results_are_sorted(self):
-        xml_content = self.get_lookup_cisco('test_sorted', VALID_UUID, term='A', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(
+            'test_sorted', VALID_UUID, term='A', token=VALID_TOKEN_MAIN_TENANT,
+        )
 
         results = self._get_directory_entries(xml_content)
 

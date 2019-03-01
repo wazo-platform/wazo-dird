@@ -106,7 +106,9 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
 class TestRemovingFavoriteAlreadyInexistant(CSVWithMultipleDisplayTestCase):
 
     def test_that_removing_an_inexisting_favorite_returns_404(self):
-        result = self.delete_favorite_result('unknown_source', 'unknown_contact', token=VALID_TOKEN)
+        result = self.delete_favorite_result(
+            'unknown_source', 'unknown_contact', token=VALID_TOKEN_MAIN_TENANT
+        )
 
         assert_that(result.status_code, equal_to(404))
 

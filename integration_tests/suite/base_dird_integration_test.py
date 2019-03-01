@@ -34,10 +34,9 @@ ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
 CA_CERT = os.path.join(ASSET_ROOT, 'ssl', 'dird', 'server.crt')
 DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}/asterisk')
 
-VALID_UUID = 'uuid'
+VALID_UUID = 'uuid-tenant-master'
 VALID_UUID_1 = 'uuid-1'
 
-VALID_TOKEN = 'valid-token'
 VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
@@ -168,7 +167,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def lookup(cls, term, profile, token=VALID_TOKEN):
+    def lookup(cls, term, profile, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.get_lookup_result(term, profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -183,7 +182,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def headers(cls, profile):
-        response = cls.get_headers_result(profile, token=VALID_TOKEN)
+        response = cls.get_headers_result(profile, token=VALID_TOKEN_MAIN_TENANT)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
@@ -198,7 +197,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def reverse(cls, exten, profile, xivo_user_uuid, token=VALID_TOKEN):
+    def reverse(cls, exten, profile, xivo_user_uuid, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.get_reverse_result(exten, profile, xivo_user_uuid, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -212,7 +211,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def favorites(cls, profile, token=VALID_TOKEN):
+    def favorites(cls, profile, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.get_favorites_result(profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -226,7 +225,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def put_favorite(cls, directory, contact, token=VALID_TOKEN):
+    def put_favorite(cls, directory, contact, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.put_favorite_result(directory, contact, token=token)
         assert_that(response.status_code, equal_to(204))
 
@@ -239,12 +238,12 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def delete_favorite(cls, directory, contact, token=VALID_TOKEN):
+    def delete_favorite(cls, directory, contact, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.delete_favorite_result(directory, contact, token=token)
         assert_that(response.status_code, equal_to(204))
 
     @contextmanager
-    def favorite(self, source, source_entry_id, token=VALID_TOKEN):
+    def favorite(self, source, source_entry_id, token=VALID_TOKEN_MAIN_TENANT):
         self.put_favorite(source, source_entry_id, token)
         try:
             yield
@@ -252,7 +251,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
             self.delete_favorite_result(source, source_entry_id, token)
 
     @classmethod
-    def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN):
+    def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
         return requests.post(
             cls.url('tenants', tenant, 'phonebooks'),
             data=json.dumps(phonebook_body),
@@ -261,7 +260,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN):
+    def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
         return requests.put(
             url,
@@ -271,7 +270,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def post_phonebook_contact(cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN):
+    def post_phonebook_contact(
+            cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN_MAIN_TENANT
+    ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
         return requests.post(
             url,
@@ -281,7 +282,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def import_phonebook_contact(cls, tenant, phonebook_id, body, token=VALID_TOKEN):
+    def import_phonebook_contact(cls, tenant, phonebook_id, body, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', 'import')
         return requests.post(
             url,
@@ -291,7 +292,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def put_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN):
+    def put_phonebook_contact(
+            cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN_MAIN_TENANT,
+    ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
         return requests.put(
             url,
@@ -311,13 +314,13 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def post_personal(cls, personal_infos, token=VALID_TOKEN):
+    def post_personal(cls, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.post_personal_result(personal_infos, token)
         assert_that(response.status_code, equal_to(201))
         return response.json()
 
     @classmethod
-    def post_tenant_migration(cls, tenants, token=VALID_TOKEN):
+    def post_tenant_migration(cls, tenants, token=VALID_TOKEN_MAIN_TENANT):
         return requests.post(
             cls.url('phonebook_move_tenant'),
             data=json.dumps(tenants),
@@ -326,7 +329,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         )
 
     @contextmanager
-    def personal(self, personal_infos, token=VALID_TOKEN):
+    def personal(self, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
         response = self.post_personal(personal_infos, token)
         try:
             yield response
@@ -345,7 +348,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def import_personal(cls, personal_infos, token=VALID_TOKEN, encoding='utf-8'):
+    def import_personal(cls, personal_infos, token=VALID_TOKEN_MAIN_TENANT, encoding='utf-8'):
         response = cls.import_personal_result(personal_infos, token, encoding)
         assert_that(response.status_code, equal_to(201))
         return response.json()
@@ -359,14 +362,14 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def list_personal(cls, token=VALID_TOKEN):
+    def list_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.list_personal_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
     @classmethod
     def list_phonebooks(cls, tenant, token=None, **kwargs):
-        token = token or VALID_TOKEN
+        token = token or VALID_TOKEN_MAIN_TENANT
         url = cls.url('tenants', tenant, 'phonebooks')
         return requests.get(url, params=kwargs, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
@@ -380,7 +383,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def export_personal(cls, token=VALID_TOKEN):
+    def export_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.export_personal_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.text
@@ -394,13 +397,13 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_personal(cls, personal_id, token=VALID_TOKEN):
+    def get_personal(cls, personal_id, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.get_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
     @classmethod
-    def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
+    def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
         return requests.get(
             url,
@@ -409,7 +412,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def get_phonebook_contact(cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN):
+    def get_phonebook_contact(
+            cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN_MAIN_TENANT,
+    ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
         return requests.get(
             url,
@@ -418,7 +423,9 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def list_phonebook_contacts(cls, tenant, phonebook_id, token=VALID_TOKEN, **kwargs):
+    def list_phonebook_contacts(
+            cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT, **kwargs
+    ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
         return requests.get(
             url,
@@ -438,7 +445,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def put_personal(cls, personal_id, personal_infos, token=VALID_TOKEN):
+    def put_personal(cls, personal_id, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.put_personal_result(personal_id, personal_infos, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -452,17 +459,19 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def delete_personal(cls, personal_id, token=VALID_TOKEN):
+    def delete_personal(cls, personal_id, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.delete_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(204))
 
     @classmethod
-    def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN):
+    def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
         return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
     @classmethod
-    def delete_phonebook_contact(cls, tenant, phonebook_id, contact_id, token=VALID_TOKEN):
+    def delete_phonebook_contact(
+            cls, tenant, phonebook_id, contact_id, token=VALID_TOKEN_MAIN_TENANT,
+    ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_id)
         return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
 
@@ -475,7 +484,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def purge_personal(cls, token=VALID_TOKEN):
+    def purge_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.purge_personal_result(token)
         assert_that(response.status_code, equal_to(204))
 
@@ -488,7 +497,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_personal_with_profile(cls, profile, token=VALID_TOKEN):
+    def get_personal_with_profile(cls, profile, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -503,7 +512,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_menu_cisco(cls, profile, xivo_user_uuid, proxy=None, token=VALID_TOKEN):
+    def get_menu_cisco(cls, profile, xivo_user_uuid, proxy=None, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.get_menu_cisco_result(profile, xivo_user_uuid, proxy, token)
         assert_that(response.status_code, equal_to(200))
         return response.text
@@ -518,7 +527,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_input_cisco(cls, profile, xivo_user_uuid, proxy=None, token=VALID_TOKEN):
+    def get_input_cisco(cls, profile, xivo_user_uuid, proxy=None, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.get_input_cisco_result(profile, xivo_user_uuid, proxy, token)
         assert_that(response.status_code, equal_to(200))
         return response.text
@@ -536,8 +545,13 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         return result
 
     @classmethod
-    def get_lookup_cisco(cls, profile, xivo_user_uuid, term, proxy=None, token=VALID_TOKEN, limit=None, offset=None):
-        response = cls.get_lookup_cisco_result(profile, xivo_user_uuid, proxy, term, token, limit, offset)
+    def get_lookup_cisco(
+            cls, profile, xivo_user_uuid, term,
+            proxy=None, token=VALID_TOKEN_MAIN_TENANT, limit=None, offset=None,
+    ):
+        response = cls.get_lookup_cisco_result(
+            profile, xivo_user_uuid, proxy, term, token, limit, offset,
+        )
         assert_that(response.status_code, equal_to(200))
         return response.text
 
