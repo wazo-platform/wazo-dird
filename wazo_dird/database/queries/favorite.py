@@ -56,9 +56,4 @@ class FavoriteCRUD(BaseDAO):
             Source.backend == backend,
         )).first()
 
-        if not source:
-            source = Source(backend=backend, name=source_name)
-            session.add(source)
-            session.flush()
-
         return source
