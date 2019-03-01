@@ -1043,18 +1043,23 @@ class TestFavoriteCrud(_BaseTest):
         assert_that(self._favorite_exists(xivo_user_uuid, source_name, contact_id))
 
     @with_user_uuid
-    def test_that_creating_the_same_favorite_raises(self, xivo_user_uuid):
+    @fixtures.source(backend='backend', name='source')
+    def test_that_creating_the_same_favorite_raises(self, source, user_uuid):
         source, contact_id, backend = 'source', 'the-contact-id', 'backend'
-        self._crud.create(xivo_user_uuid, backend, source, contact_id)
+        self._crud.create(user_uuid, backend, source, contact_id)
         assert_that(
-            calling(self._crud.create).with_args(xivo_user_uuid, backend, source, contact_id),
+            calling(self._crud.create).with_args(user_uuid, backend, source, contact_id),
             raises(exception.DuplicatedFavoriteException),
         )
 
     @with_user_uuid
     @with_user_uuid
-    def test_get(self, user_1, user_2):
-        backend = 'backend'
+    @fixtures.source(name='s1')
+    @fixtures.source(name='s2')
+    @fixtures.source(name='s3')
+    def test_get(self, source_3, source_2, source_1, user_1, user_2):
+        backend = source_1['backend']
+
         self._crud.create(user_1, backend, 's1', '1')
         self._crud.create(user_1, backend, 's2', '1')
         self._crud.create(user_1, backend, 's1', '42')
@@ -1074,8 +1079,9 @@ class TestFavoriteCrud(_BaseTest):
             ('s3', '1'),
         ))
 
+    @fixtures.source(backend='backend', name='source')
     @with_user_uuid
-    def test_that_delete_removes_a_favorite(self, xivo_user_uuid):
+    def test_that_delete_removes_a_favorite(self, xivo_user_uuid, source):
         backend = 'backend'
         self._crud.create(xivo_user_uuid, backend, 'source', 'the-contact-id')
 
@@ -1086,9 +1092,10 @@ class TestFavoriteCrud(_BaseTest):
             equal_to(False),
         )
 
+    @fixtures.source(backend='backend', name='source')
     @with_user_uuid
     @with_user_uuid
-    def test_that_delete_does_not_remove_favorites_from_other_users(self, user_1, user_2):
+    def test_that_delete_does_not_remove_favorites_from_other_users(self, user_1, user_2, source):
         backend = 'backend'
         self._crud.create(user_2, backend, 'source', 'the-contact-id')
 
@@ -1099,15 +1106,17 @@ class TestFavoriteCrud(_BaseTest):
 
         assert_that(self._favorite_exists(user_2, 'source', 'the-contact-id'))
 
+    @fixtures.source(backend='backend', name='source')
     @with_user_uuid
-    def test_that_delete_raises_if_not_found(self, xivo_user_uuid):
+    def test_that_delete_raises_if_not_found(self, xivo_user_uuid, source):
         assert_that(
             calling(self._crud.delete).with_args(xivo_user_uuid, 'source', 'the-contact-id'),
             raises(exception.NoSuchFavorite),
         )
 
+    @fixtures.source(backend='backend', name='source')
     @with_user_uuid
-    def test_that_delete_from_an_unknown_source_raises(self, xivo_user_uuid):
+    def test_that_delete_from_an_unknown_source_raises(self, xivo_user_uuid, source):
         backend = 'backend'
         self._crud.create(xivo_user_uuid, backend, 'source', 'the-contact-id')
 
