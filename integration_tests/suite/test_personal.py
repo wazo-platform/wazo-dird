@@ -91,8 +91,8 @@ class TestDeletedUser(BaseDirdIntegrationTest):
 class TestAddPersonal(PersonalOnlyTestCase):
 
     def test_that_created_personal_has_an_id(self):
-        alice = self.post_personal({'firstname': 'Alice'}, token=VALID_TOKEN)
-        bob = self.post_personal({'firstname': 'Bob'}, token=VALID_TOKEN)
+        alice = self.post_personal({'firstname': 'Alice'})
+        bob = self.post_personal({'firstname': 'Bob'})
 
         assert_that(alice['id'], not_(equal_to(bob['id'])))
 
@@ -301,13 +301,8 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         assert_that(result['results'], contains_inanyorder(
             has_entry('column_values', contains('empty-column', None, None, False))))
 
-    def test_reverse_lookup_with_alias_me(self):
-        result = self.reverse('123456', 'default', VALID_UUID)
-
-        assert_that(result['display'], equal_to('Elice Wowo'))
-
     def test_reverse_lookup_with_xivo_user_uuid(self):
-        result = self.reverse('123456', 'default', 'uuid')
+        result = self.reverse('123456', 'default', VALID_UUID)
 
         assert_that(result['display'], equal_to('Elice Wowo'))
 
