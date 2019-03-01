@@ -37,3 +37,6 @@ class _ProfileService:
             return profile
 
         raise exception.NoSuchProfile(name)
+
+    def list_(self, visible_tenants, **list_params):
+        return self._profile_crud.list_(visible_tenants, **list_params)
