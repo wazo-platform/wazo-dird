@@ -44,10 +44,9 @@ class TestPhone(BaseDirdIntegrationTest):
             ],
         },
     ]
-
-    def setUp(self):
-        super().setUp()
-        test_sorted_body = {
+    sources = [
+        {
+            'backend': 'csv',
             'name': 'test_sorted',
             'file': '/tmp/data/test_sorted.csv',
             'searched_columns': ['fn'],
@@ -55,8 +54,9 @@ class TestPhone(BaseDirdIntegrationTest):
                 'display_name': "{fn}",
                 'phone': "{num}",
             },
-        }
-        test_fallback_body = {
+        },
+        {
+            'backend': 'csv',
             'name': 'test_fallback',
             'file': '/tmp/data/test_fallback.csv',
             'searched_columns': ['fn', 'fn1'],

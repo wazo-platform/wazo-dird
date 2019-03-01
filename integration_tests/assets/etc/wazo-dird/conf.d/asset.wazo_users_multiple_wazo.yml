@@ -8,24 +8,6 @@ enabled_plugins:
     default_json: true
     wazo_backend: true
 
-views:
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        wazo_america: true
-        wazo_asia: true
-        wazo_europe: true
-  favorites:
-    default:
-      sources:
-        wazo_america: true
-        wazo_asia: true
-        wazo_europe: true
-
 rest_api:
   https:
     listen: 0.0.0.0

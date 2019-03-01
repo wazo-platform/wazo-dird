@@ -67,10 +67,6 @@ class TestDeletedUser(BaseDirdIntegrationTest):
         self._connection = kombu.Connection(bus_url)
         self._connection.connect()
 
-    def tearDown(self):
-        self._connection.release()
-        self.purge_personal()
-
     def test_that_deleting_a_user_deletes_its_storage(self):
         def check():
             result = self.list_personal()

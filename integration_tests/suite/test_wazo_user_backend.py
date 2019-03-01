@@ -14,25 +14,27 @@ from hamcrest import (
 
 from xivo_test_helpers import until
 
-from .helpers.fixtures import http as fixtures
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     BackendWrapper,
 )
 
 WAZO_ASIA = {
+    'backend': 'wazo',
     'name': 'wazo_asia',
     'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
     'confd': {'host': 'asia', 'port': 9486, 'https': False},
     'searched_columns': ['firstname', 'lastname'],
 }
 WAZO_AMERICA = {
+    'backend': 'wazo',
     'name': 'wazo_america',
     'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
     'confd': {'host': 'america', 'port': 9486, 'https': False},
     'searched_columns': ['firstname', 'lastname'],
 }
 WAZO_EUROPE = {
+    'backend': 'wazo',
     'name': 'wazo_europe',
     'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
     'confd': {'host': 'europe', 'port': 9486, 'https': False},
@@ -144,6 +146,14 @@ class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_no_confd'
     displays = DISPLAYS
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['wazo_america']}},
+        },
+    ]
+    sources = [WAZO_AMERICA]
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):
         result = self.lookup('dyl', 'default')
@@ -154,9 +164,17 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_late_confd'
     displays = DISPLAYS
+    sources = [WAZO_AMERICA]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['wazo_america']}},
+        },
+    ]
+    sources = [WAZO_AMERICA]
 
-    @fixtures.wazo_source(**WAZO_AMERICA)
-    def test_no_result_until_started(self, source):
+    def test_no_result_until_started(self):
         # dird is not stuck on a late confd
         result = self.lookup('dyl', 'default')
         assert_that(result['results'], contains())
@@ -192,21 +210,17 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
             ],
         },
     ]
-
-    def setUp(self):
-        super().setUp()
-        asia = self.client.wazo_source.create(WAZO_ASIA)
-        america = self.client.wazo_source.create(WAZO_AMERICA)
-        europe = self.client.wazo_source.create(WAZO_EUROPE)
-        self._source_uuids = [asia['uuid'], america['uuid'], europe['uuid']]
-
-    def tearDown(self):
-        for uuid in self._source_uuids:
-            try:
-                self.client.wazo_source.delete(uuid)
-            except Exception:
-                continue
-        super().tearDown()
+    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+                'favorites': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+            },
+        },
+    ]
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
@@ -267,6 +281,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_missing_one_wazo'
+    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
     displays = [
         {
             'name': 'default_display',
@@ -286,11 +301,17 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
             ],
         },
     ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+            },
+        },
+    ]
 
-    @fixtures.wazo_source(**WAZO_AMERICA)
-    @fixtures.wazo_source(**WAZO_ASIA)
-    @fixtures.wazo_source(**WAZO_EUROPE)
-    def test_lookup_multiple_wazo(self, *_):
+    def test_lookup_multiple_wazo(self):
         result = self.lookup('john', 'default')
 
         expected_result = [
@@ -331,11 +352,18 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
             ],
         },
     ]
+    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+            },
+        },
+    ]
 
-    @fixtures.wazo_source(**WAZO_AMERICA)
-    @fixtures.wazo_source(**WAZO_ASIA)
-    @fixtures.wazo_source(**WAZO_EUROPE)
-    def test_lookup_multiple_wazo(self, *_):
+    def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [
@@ -386,11 +414,21 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
             ],
         },
     ]
+    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {
+                    'sources': ['wazo_america', 'wazo_asia', 'wazo_europe'],
+                    'timeout': 1,
+                },
+            },
+        },
+    ]
 
-    @fixtures.wazo_source(**WAZO_AMERICA)
-    @fixtures.wazo_source(**WAZO_ASIA)
-    @fixtures.wazo_source(**WAZO_EUROPE)
-    def test_lookup_multiple_wazo(self, *_):
+    def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [

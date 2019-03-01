@@ -816,10 +816,9 @@ class CSVWithMultipleDisplayTestCase(BaseDirdIntegrationTest):
             ],
         },
     ]
-
-    def setUp(self):
-        super().setUp()
-        my_csv_body = {
+    sources = [
+        {
+            'backend': 'csv',
             'name': 'my_csv',
             'file': '/tmp/data/test.csv',
             'separator': ",",
@@ -832,12 +831,27 @@ class CSVWithMultipleDisplayTestCase(BaseDirdIntegrationTest):
                 'number': "{num}",
                 'reverse': '{fn} {ln}'
             }
-        }
-        self._source = self.client.csv_source.create(my_csv_body)
-
-    def tearDown(self):
-        self.client.csv_source.delete(self._source['uuid'])
-        super().tearDown()
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['my_csv'], 'timeout': 0.5},
+                'favorites': {'sources': ['my_csv'], 'timeout': 0.5},
+                'reverse': {'sources': ['my_csv'], 'timeout': 0.5},
+            },
+        },
+        {
+            'name': 'test',
+            'display': 'second_display',
+            'services': {
+                'lookup': {'sources': ['my_csv']},
+                'favorites': {'sources': ['my_csv']},
+            },
+        },
+    ]
 
 
 class HalfBrokenTestCase(BaseDirdIntegrationTest):
@@ -865,12 +879,24 @@ class HalfBrokenTestCase(BaseDirdIntegrationTest):
             ],
         },
     ]
-
-    def setUp(self):
-        super().setUp()
-        self.source_crud = database.SourceCRUD(self.Session)
-
-        my_csv_body = {
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {
+                    'sources': ['my_csv', 'broken', 'my_other_csv'],
+                    'timeout': 0.5,
+                },
+                'favorites': {
+                    'sources': ['my_csv', 'broken', 'my_other_csv'],
+                },
+            },
+        },
+    ]
+    sources = [
+        {
+            'backend': 'csv',
             'name': 'my_csv',
             'file': '/tmp/data/test.csv',
             'separator': "|",
@@ -881,8 +907,9 @@ class HalfBrokenTestCase(BaseDirdIntegrationTest):
                 'firstname': "{fn}",
                 'number': "{num}",
             }
-        }
-        my_other_csv_body = {
+        },
+        {
+            'backend': 'csv',
             'name': 'my_other_csv',
             'file': '/tmp/data/test.csv',
             'separator': "|",
@@ -892,28 +919,16 @@ class HalfBrokenTestCase(BaseDirdIntegrationTest):
                 'firstname': "{fn}",
                 'number': "{num}",
             }
-        }
-        broken_body = {
+        },
+        {
+            'backend': 'broken',
             'name': 'broken',
             'tenant_uuid': MAIN_TENANT,
             'searched_columns': [],
             'first_matched_columns': [],
             'format_columns': {},
-        }
-        self._source_uuids = [
-            self.client.csv_source.create(my_csv_body)['uuid'],
-            self.client.csv_source.create(my_other_csv_body)['uuid'],
-        ]
-        self.broken = self.source_crud.create('broken', broken_body)
-
-    def tearDown(self):
-        for uuid in self._source_uuids:
-            try:
-                self.client.csv_source.delete(uuid)
-            except Exception:
-                pass
-        self.source_crud.delete('broken', self.broken['uuid'], visible_tenants=[MAIN_TENANT])
-        super().tearDown()
+        },
+    ]
 
 
 class PersonalOnlyTestCase(BaseDirdIntegrationTest):
@@ -934,6 +949,7 @@ class PersonalOnlyTestCase(BaseDirdIntegrationTest):
                 {
                     'title': 'Number',
                     'field': 'number',
+                    'number_display': '{firstname} {lastname}',
                 },
                 {
                     'title': 'Favorite',
@@ -942,19 +958,28 @@ class PersonalOnlyTestCase(BaseDirdIntegrationTest):
             ],
         },
     ]
-
-    def setUp(self):
-        super().setUp()
-        body = {
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['personal']},
+                'reverse': {'sources': ['personal']},
+                'favorites': {'sources': ['personal']},
+            },
+        },
+    ]
+    sources = [
+        {
+            'backend': 'personal',
             'name': 'personal',
             'db_uri': 'postgresql://asterisk:proformatique@db/asterisk',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['number'],
             'format_columns': {'reverse': '{firstname} {lastname}'},
-        }
-        self.source = self.client.personal_source.create(body)
+        },
+    ]
 
     def tearDown(self):
         self.purge_personal()
-        self.client.personal_source.delete(self.source['uuid'])
         super().tearDown()

@@ -83,6 +83,36 @@ def add_contacts(contacts, ldap_uri):
 class TestLDAP(BaseDirdIntegrationTest):
 
     asset = 'ldap'
+    sources = [
+        {
+            'backend': 'ldap',
+            'name': 'test_ldap',
+            'ldap_uri': 'ldap://slapd',
+            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_password': 'wazopassword',
+            'unique_column': 'entryUUID',
+            'searched_columns': ['cn', 'telephoneNumber'],
+            'first_matched_columns': ['telephoneNumber'],
+            'format_columns':  {
+                'firstname': "{givenName}",
+                'lastname': "{sn}",
+                'number': "{telephoneNumber}",
+                'reverse': "{cn}",
+            }
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['test_ldap']},
+                'reverse': {'sources': ['test_ldap']},
+                'favorites': {'sources': ['test_ldap']},
+            },
+        },
+    ]
 
     CONTACTS = [
         Contact('Alice', 'Wonderland', '1001', 'Lyon'),
@@ -102,31 +132,6 @@ class TestLDAP(BaseDirdIntegrationTest):
         except Exception:
             super().tearDownClass()
             raise
-
-    def setUp(self):
-        super().setUp()
-        body = {
-            'name': 'test_ldap',
-            'ldap_uri': 'ldap://slapd',
-            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_password': 'wazopassword',
-            'unique_column': 'entryUUID',
-            'searched_columns': ['cn', 'telephoneNumber'],
-            'first_matched_columns': ['telephoneNumber'],
-            'format_columns':  {
-                'firstname': "{givenName}",
-                'lastname': "{sn}",
-                'number': "{telephoneNumber}",
-                'reverse': "{cn}",
-            }
-        }
-        source = self.client.ldap_source.create(body)
-        self.source_uuid = source['uuid']
-
-    def tearDown(self):
-        self.client.ldap_source.delete(self.source_uuid)
-        super().tearDown()
 
     def test_lookup_on_cn(self):
         result = self.lookup('Ali', 'default')
@@ -170,16 +175,9 @@ class TestLDAP(BaseDirdIntegrationTest):
 class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
 
     asset = 'ldap_city'
-
-    CONTACTS = [
-        Contact('Alice', 'Wonderland', '1001', 'Lyon'),
-        Contact('Bob', 'Barker', '1002', 'Québec'),
-        Contact('Charlé', 'Doe', '1003', 'Québec'),
-    ]
-    entry_uuids = []
-
-    def setUp(self):
-        body = {
+    sources = [
+        {
+            'backend': 'ldap',
             'name': 'test_ldap',
             'ldap_uri': 'ldap://slapd',
             'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
@@ -195,14 +193,22 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
                 'number': "{telephoneNumber}",
                 'reverse': "{cn}",
             }
-        }
-        super().setUp()
-        source = self.client.ldap_source.create(body)
-        self.source_uuid = source['uuid']
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['test_ldap']}},
+        },
+    ]
 
-    def tearDown(self):
-        self.client.ldap_source.delete(self.source_uuid)
-        super().tearDown()
+    CONTACTS = [
+        Contact('Alice', 'Wonderland', '1001', 'Lyon'),
+        Contact('Bob', 'Barker', '1002', 'Québec'),
+        Contact('Charlé', 'Doe', '1003', 'Québec'),
+    ]
+    entry_uuids = []
 
     @classmethod
     def setUpClass(cls):
@@ -230,24 +236,34 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
 class TestLDAPServiceIsInnactive(BaseDirdIntegrationTest):
 
     asset = 'ldap_service_innactive'
+    sources = [
+        {
+            'backend': 'ldap',
+            'name': 'test_ldap',
+            'ldap_uri': 'ldap://slapd',
+            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_password': 'wazopassword',
+            'unique_column': 'entryUUID',
+            'searched_columns': ['cn', 'telephoneNumber'],
+            'first_matched_columns': ['telephoneNumber'],
+            'format_columns': {
+                'firstname': "{givenName}",
+                'lastname': "{sn}",
+                'number': "{telephoneNumber}",
+                'reverse': "{cn}",
+            }
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['test_ldap']}},
+        },
+    ]
 
-    @fixtures.ldap_source(
-        name='test_ldap',
-        ldap_uri='ldap://slapd',
-        ldap_base_dn='ou=québec,dc=wazo-dird,dc=wazo,dc=community',
-        ldap_username='cn=admin,dc=wazo-dird,dc=wazo,dc=community',
-        ldap_password='wazopassword',
-        unique_column='entryUUID',
-        searched_columns=['cn', 'telephoneNumber'],
-        first_matched_columns=['telephoneNumber'],
-        format_columns={
-            'firstname': "{givenName}",
-            'lastname': "{sn}",
-            'number': "{telephoneNumber}",
-            'reverse': "{cn}",
-        }
-    )
-    def test_lookup(self, _):
+    def test_lookup(self):
         result = self.lookup('alice', 'default')
 
         start = time.time()
@@ -258,24 +274,34 @@ class TestLDAPServiceIsInnactive(BaseDirdIntegrationTest):
 class TestLDAPServiceIsDown(BaseDirdIntegrationTest):
 
     asset = 'ldap_service_down'
+    sources = [
+        {
+            'backend': 'ldap',
+            'name': 'test_ldap',
+            'ldap_uri': 'ldap://slapd',
+            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
+            'ldap_password': 'wazopassword',
+            'unique_column': 'entryUUID',
+            'searched_columns': ['cn', 'telephoneNumber'],
+            'first_matched_columns': ['telephoneNumber'],
+            'format_columns': {
+                'firstname': "{givenName}",
+                'lastname': "{sn}",
+                'number': "{telephoneNumber}",
+                'reverse': "{cn}",
+            }
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['test_ldap']}},
+        },
+    ]
 
-    @fixtures.ldap_source(
-        name='test_ldap',
-        ldap_uri='ldap://slapd',
-        ldap_base_dn='ou=québec,dc=wazo-dird,dc=wazo,dc=community',
-        ldap_username='cn=admin,dc=wazo-dird,dc=wazo,dc=community',
-        ldap_password='wazopassword',
-        unique_column='entryUUID',
-        searched_columns=['cn', 'telephoneNumber'],
-        first_matched_columns=['telephoneNumber'],
-        format_columns={
-            'firstname': "{givenName}",
-            'lastname': "{sn}",
-            'number': "{telephoneNumber}",
-            'reverse': "{cn}",
-        }
-    )
-    def test_lookup(self, _):
+    def test_lookup(self):
         result = self.lookup('alice', 'default')
 
         assert_that(result['results'], empty())

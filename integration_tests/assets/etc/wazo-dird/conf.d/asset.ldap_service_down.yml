@@ -7,16 +7,6 @@ enabled_plugins:
     default_json: true
     ldap_backend: true
 
-views:
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        test_ldap: true
-
 rest_api:
   https:
     listen: 0.0.0.0

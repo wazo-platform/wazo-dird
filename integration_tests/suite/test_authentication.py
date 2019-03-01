@@ -39,6 +39,16 @@ class TestAuthentication(BaseDirdIntegrationTest):
             ],
         },
     ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': []},
+                'reverse': {'sources': []},
+            },
+        },
+    ]
 
     def test_no_auth_gives_401(self):
         result = self.get_headers_result('default', token=None)

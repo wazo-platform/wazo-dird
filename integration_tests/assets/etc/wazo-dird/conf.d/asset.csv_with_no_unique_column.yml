@@ -6,17 +6,6 @@ enabled_plugins:
   views:
     default_json: true
 
-views:
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        my_csv: true
-      timeout: 0.5
-
 rest_api:
   https:
     listen: 0.0.0.0

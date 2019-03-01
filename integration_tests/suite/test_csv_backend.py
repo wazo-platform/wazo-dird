@@ -3,7 +3,6 @@
 
 import unittest
 import yaml
-import os
 
 from hamcrest import (
     assert_that,
@@ -105,16 +104,36 @@ class TestCSVWithAccents(_BaseCSVFileTestCase):
         assert_that(result, contains(has_entries(**self._pepe)))
 
 
-class TestCSVSeparator(_BaseCSVFileTestCase):
+class TestCSVSeparator(BaseDirdIntegrationTest):
 
     asset = 'csv_with_pipes'
-    source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
-
-    def setUp(self):
-        self._alice = {'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
-        super().setUp()
+    sources = [
+        {
+            'backend': 'csv',
+            'name': 'my_csv',
+            'file': '/tmp/data/test.csv',
+            'separator': "|",
+            'searched_columns': ['fn', 'ln'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+            },
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['my_csv']}},
+        },
+    ]
 
     def test_lookup_with_pipe(self):
-        result = self.backend.search('al')
+        result = self.lookup('al', 'default')
 
-        assert_that(result, contains(has_entries(**self._alice)))
+        assert_that(result['results'], contains_inanyorder(
+            has_entries(
+                column_values=contains('Alice', 'AAA', '5555555555'),
+            ),
+        ))

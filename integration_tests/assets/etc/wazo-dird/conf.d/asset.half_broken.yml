@@ -9,25 +9,6 @@ enabled_plugins:
     default_json: true
     csv_backend: true
 
-views:
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        my_csv: true
-        broken: true
-        my_other_csv: true
-      timeout: 0.5
-  favorites:
-    default:
-      sources:
-        my_csv: true
-        broken: true
-        my_other_csv: true
-
 rest_api:
   https:
     listen: 0.0.0.0

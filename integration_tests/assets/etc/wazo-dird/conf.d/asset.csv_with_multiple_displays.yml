@@ -10,34 +10,6 @@ enabled_plugins:
     headers_view: true
     csv_backend: true
 
-views:
-  profile_to_display:
-    default: default_display
-    test: second_display
-
-services:
-  lookup:
-    test:
-      sources:
-        my_csv: true
-    default:
-      sources:
-        my_csv: true
-      timeout: 0.5
-  favorites:
-    test:
-      sources:
-        my_csv: true
-    default:
-      sources:
-        my_csv: true
-      timeout: 0.5
-  reverse:
-    default:
-      sources:
-        my_csv: true
-      timeout: 0.5
-
 rest_api:
   https:
     listen: 0.0.0.0

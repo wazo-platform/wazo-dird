@@ -59,64 +59,78 @@ class BaseMultipleSourceLauncher(BaseDirdIntegrationTest):
             ],
         },
     ]
-
-    my_csv_body = {
-        'name': 'my_csv',
-        'file': '/tmp/data/test.csv',
-        'searched_columns': ['ln', 'fn'],
-        'first_matched_columns': ['num'],
-        'format_columns': {
-            'lastname': "{ln}",
-            'firstname': "{fn}",
-            'number': "{num}",
-            'reverse': "{fn} {ln}",
-        }
-    }
-    second_csv_body = {
-        'name': 'second_csv',
-        'file': '/tmp/data/test.csv',
-        'searched_columns': ['ln'],
-        'first_matched_columns': ['num'],
-        'format_columns': {
-            'lastname': "{ln}",
-            'firstname': "{fn}",
-            'number': "{num}",
-            'reverse': "{fn} {ln}",
-        }
-    }
-    third_csv_body = {
-        'name': 'third_csv',
-        'file': '/tmp/data/other.csv',
-        'unique_column': 'clientno',
-        'searched_columns': [
-            'firstname',
-            'lastname',
-            'number',
-        ],
-        'first_matched_columns': [
-            'number',
-            'mobile',
-        ],
-        'format_columns': {
-            'reverse': "{firstname} {lastname}",
-        }
-    }
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {
+                    'sources': [
+                        'my_csv',
+                        'second_csv',
+                        'third_csv',
+                    ],
+                },
+                'reverse': {
+                    'sources': [
+                        'my_csv',
+                        'second_csv',
+                        'third_csv',
+                    ],
+                },
+            },
+        },
+    ]
+    sources = [
+        {
+            'backend': 'csv',
+            'name': 'my_csv',
+            'file': '/tmp/data/test.csv',
+            'searched_columns': ['ln', 'fn'],
+            'first_matched_columns': ['num'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+                'reverse': "{fn} {ln}",
+            }
+        },
+        {
+            'backend': 'csv',
+            'name': 'second_csv',
+            'file': '/tmp/data/test.csv',
+            'searched_columns': ['ln'],
+            'first_matched_columns': ['num'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+                'reverse': "{fn} {ln}",
+            },
+        },
+        {
+            'backend': 'csv',
+            'name': 'third_csv',
+            'file': '/tmp/data/other.csv',
+            'unique_column': 'clientno',
+            'searched_columns': [
+                'firstname',
+                'lastname',
+                'number',
+            ],
+            'first_matched_columns': [
+                'number',
+                'mobile',
+            ],
+            'format_columns': {
+                'reverse': "{firstname} {lastname}",
+            }
+        },
+    ]
 
     def setUp(self):
         super().setUp()
-        self._source_uuids = [
-            self.client.csv_source.create(self.my_csv_body)['uuid'],
-            self.client.csv_source.create(self.second_csv_body)['uuid'],
-            self.client.csv_source.create(self.third_csv_body)['uuid'],
-        ]
-
-    def tearDown(self):
-        for uuid in self._source_uuids:
-            try:
-                self.client.csv_source.delete(uuid)
-            except Exception:
-                pass
-        super().tearDown()
+        self._source_uuids = [source['uuid'] for source in self.sources]
 
 
 class TestCoreSourceManagement(BaseMultipleSourceLauncher):

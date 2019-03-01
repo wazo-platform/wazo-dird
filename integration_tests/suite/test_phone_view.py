@@ -35,10 +35,9 @@ class TestPhoneView(BaseDirdIntegrationTest):
             ],
         }
     ]
-
-    def setUp(self):
-        super().setUp()
-        test_csv_body = {
+    sources = [
+        {
+            'backend': 'csv',
             'name': 'test_csv',
             'file': '/tmp/data/test.csv',
             'searched_columns': ['ln', 'fn'],
@@ -49,11 +48,14 @@ class TestPhoneView(BaseDirdIntegrationTest):
                 'phone': "{num}",
             },
         }
-        self.source_uuid = self.client.csv_source.create(test_csv_body)['uuid']
-
-    def tearDown(self):
-        self.client.csv_source.delete(self.source_uuid)
-        super().tearDown()
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default',
+            'services': {'lookup': {'sources': ['test_csv']}}
+        },
+    ]
 
     def test_given_invalid_offset_then_lookup_return_400(self):
         result = self.get_lookup_cisco_result(self.profile, VALID_UUID, term='A', token=VALID_TOKEN_MAIN_TENANT, offset=-1)

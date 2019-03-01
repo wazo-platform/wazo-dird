@@ -3,19 +3,12 @@ enabled_plugins:
     csv: true
   services:
     lookup: true
+    favorites: true
+    reverse: true
   views:
     default_json: true
-
-views:
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        my_csv: true
-      timeout: 0.5
+    headers_view: true
+    csv_backend: true
 
 rest_api:
   https:

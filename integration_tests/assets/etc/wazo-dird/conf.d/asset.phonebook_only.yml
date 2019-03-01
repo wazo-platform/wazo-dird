@@ -1,3 +1,10 @@
 enabled_plugins:
   views:
     tenant_migration: true
+
+rest_api:
+  https:
+    listen: 0.0.0.0
+    port: 9489
+    certificate: /usr/local/share/ssl/dird/server.crt
+    private_key: /usr/local/share/ssl/dird/server.key

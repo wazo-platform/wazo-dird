@@ -8,17 +8,6 @@ enabled_plugins:
     default_json: true
     headers_view: true
 
-views:
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        sample_plugin: true
-      timeout: 0.5
-
 rest_api:
   https:
     listen: 0.0.0.0

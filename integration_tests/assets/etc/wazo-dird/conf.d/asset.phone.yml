@@ -7,20 +7,6 @@ enabled_plugins:
     cisco_view: true
     csv_backend: true
 
-views:
-  profile_to_display_phone:
-    test_fallback: test_fallback
-    test_sorted: default
-
-services:
-  lookup:
-    test_fallback:
-      sources:
-        test_fallback: true
-    test_sorted:
-      sources:
-        test_sorted: true
-
 rest_api:
   https:
     listen: 0.0.0.0

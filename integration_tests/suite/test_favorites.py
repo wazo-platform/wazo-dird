@@ -20,12 +20,120 @@ from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     CSVWithMultipleDisplayTestCase,
     PersonalOnlyTestCase,
-    VALID_TOKEN,
+    VALID_TOKEN_MAIN_TENANT,
 )
-from .helpers.fixtures import http as fixtures
+
+TENANT_UUID_2 = str(uuid.uuid4())
 
 
-class _BaseMultiTokenFavoriteTest(CSVWithMultipleDisplayTestCase):
+class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
+
+    asset = 'csv_with_multiple_displays'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'default': 'Unknown',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'default': 'Unknown',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'default': '',
+                    'field': 'number',
+                },
+                {
+                    'field': 'favorite',
+                    'type': 'favorite',
+                },
+            ],
+        },
+        {
+            'name': 'second_display',
+            'columns': [
+                {
+                    'title': 'fn',
+                    'default': 'Unknown',
+                    'field': 'firstname',
+                    'type': 'firstname',
+                },
+                {
+                    'title': 'ln',
+                    'default': 'Unknown',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Empty',
+                    'field': 'not_there',
+                },
+                {
+                    'type': 'status',
+                },
+                {
+                    'title': 'Default',
+                    'default': 'Default',
+                },
+            ],
+        },
+    ]
+    sources = [
+        {
+            'backend': 'csv',
+            'name': 'my_csv',
+            'file': '/tmp/data/test.csv',
+            'separator': ",",
+            'unique_column': 'id',
+            'searched_columns': ['fn', 'ln'],
+            'first_matched_columns': ['num'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+                'reverse': '{fn} {ln}'
+            }
+        },
+        {
+            'backend': 'csv',
+            'tenant_uuid': TENANT_UUID_2,
+            'name': 'my_csv',
+            'file': '/tmp/data/test.csv',
+            'separator': ",",
+            'unique_column': 'id',
+            'searched_columns': ['fn', 'ln'],
+            'first_matched_columns': ['num'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+                'reverse': '{fn} {ln}'
+            }
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['my_csv'], 'timeout': 0.5},
+                'favorites': {'sources': ['my_csv'], 'timeout': 0.5},
+                'reverse': {'sources': ['my_csv'], 'timeout': 0.5},
+            },
+        },
+        {
+            'name': 'test',
+            'display': 'second_display',
+            'services': {
+                'lookup': {'sources': ['my_csv']},
+                'favorites': {'sources': ['my_csv']},
+            },
+        },
+    ]
 
     @classmethod
     def setUpClass(cls):
@@ -151,9 +259,7 @@ class TestFavoritesInPersonalResults(PersonalOnlyTestCase):
         assert_that(favorites['results'], contains())
 
 
-class TestFavoritesBusEvents(BaseDirdIntegrationTest):
-
-    asset = 'personal_only'
+class TestFavoritesBusEvents(PersonalOnlyTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -178,14 +284,7 @@ class TestFavoritesBusEvents(BaseDirdIntegrationTest):
         cls.token_1 = user_token_1.token_id
         cls.token_2 = user_token_2.token_id
 
-    @fixtures.personal_source(
-        name='personal',
-        db_uri='postgresql://asterisk:proformatique@db/asterisk',
-        searched_columns=['firstname', 'lastname'],
-        first_matched_columns=['number'],
-        format_columns={'reverse': '{firstname} {lastname}'},
-    )
-    def test_that_adding_favorite_produces_bus_event(self, _):
+    def test_that_adding_favorite_produces_bus_event(self):
         bus_port = self.service_port(5672, 'rabbitmq')
         bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
         until.true(bus.is_up, tries=5)

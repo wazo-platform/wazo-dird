@@ -1025,7 +1025,8 @@ class TestFavoriteCrud(_BaseTest):
         super().setUp()
         self._crud = database.FavoriteCRUD(Session)
 
-    def test_that_create_creates_a_favorite(self):
+    @fixtures.source(backend='backend', name='foobar')
+    def test_that_create_creates_a_favorite(self, source):
         xivo_user_uuid = new_uuid()
         source_name = 'foobar'
         contact_id = 'the-contact-id'

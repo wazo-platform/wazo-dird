@@ -13,24 +13,6 @@ enabled_plugins:
     personal_view: true
     personal_backend: true
 
-views:
-  profile_to_display:
-    default: default_display
-
-services:
-  favorites:
-    default:
-      sources:
-        personal: true
-  lookup:
-    default:
-      sources:
-        personal: true
-  reverse:
-    default:
-      sources:
-        personal: true
-
 rest_api:
   https:
     listen: 0.0.0.0
