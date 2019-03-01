@@ -78,6 +78,15 @@ class SourceCRUD(BaseDAO):
 
             return self._from_db_format(source)
 
+    def get_by_uuid(self, uuid):
+        with self.new_session() as s:
+            source = s.query(Source).filter(Source.uuid == uuid).first()
+
+            if not source:
+                raise NoSuchSource(uuid)
+
+            return self._from_db_format(source)
+
     def _list_filter(self, backend, visible_tenants, uuid=None, name=None, search=None, **list_params):
         filter_ = text('true')
         if visible_tenants is not None:

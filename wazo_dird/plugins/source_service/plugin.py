@@ -45,9 +45,8 @@ class _SourceService:
     def get(self, backend, source_uuid, visible_tenants):
         return self._source_crud.get(backend, source_uuid, visible_tenants)
 
-    def get_by_name(self, source_name):
-        for source in self._source_crud.list_(None, None, name=source_name):
-            return source
+    def get_by_uuid(self, uuid):
+        return self._source_crud.get_by_uuid(uuid)
 
     def list_(self, backend, visible_tenants, **list_params):
         return self._source_crud.list_(backend, visible_tenants, **list_params)

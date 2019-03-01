@@ -13,6 +13,7 @@ from stevedore import (
 )
 from xivo import plugin_helpers
 
+from wazo_dird import exception
 
 logger = logging.getLogger(__name__)
 
@@ -31,19 +32,19 @@ class SourceManager:
         self._source_service = None
         self._source_lock = threading.Lock()
 
-    def get(self, source_name):
-        # XXX the parameter will be a UUID at the end of the migration making the source unique
+    def get(self, source_uuid):
         with self._source_lock:
-            source = self._sources.get(source_name)
+            source = self._sources.get(source_uuid)
             if not source:
-                self._sources[source_name] = self._load_source(source_name)
+                self._sources[source_uuid] = self._load_source(source_uuid)
 
-            return self._sources[source_name]
+            return self._sources[source_uuid]
 
-    def _load_source(self, source_name):
-        source_config = self._source_service.get_by_name(source_name)
-        if not source_config:
-            logger.info('no config found for %s', source_name)
+    def _load_source(self, source_uuid):
+        try:
+            source_config = self._source_service.get_by_uuid(source_uuid)
+        except exception.NoSuchSource:
+            logger.info('no source found with uuid %s', source_uuid)
             return
 
         manager = NamedExtensionManager(

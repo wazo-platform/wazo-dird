@@ -9,7 +9,6 @@ from requests import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 from xivo_auth_client import Client as AuthClient
 from wazo_dird import BaseViewPlugin
-from wazo_dird.exception import NoSuchProfile
 from wazo_dird.rest_api import AuthResource
 
 logger = logging.getLogger()
@@ -20,19 +19,8 @@ DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'
 
 class DisplayAwareResource:
 
-    def build_display(self, profile):
-        if profile not in self.profile_to_display:
-            raise NoSuchProfile(profile)
-
-        display_name = self.profile_to_display[profile]
-        try:
-            display = self.display_service.list_(visible_tenants=None, name=display_name)[0]
-        except IndexError:
-            # TODO when the profile will configured by http interface this error will be removed
-            raise Exception(
-                "The configured display for '{}: {}' does not exists".format(profile, display_name),
-            )
-
+    def build_display(self, profile_config):
+        display = profile_config.get('display', {})
         return self._make_display(display)
 
     @staticmethod
@@ -66,29 +54,31 @@ class RaiseStopper:
 
 class BaseService:
 
-    def __init__(self, config, source_manager, *args, **kwargs):
+    def __init__(self, config, source_manager, controller, *args, **kwargs):
         self._config = config
         self._source_manager = source_manager
+        self._controller = controller
 
     def config_by_profile(self, profile):
         return self._config.get('services', {}).get(self._service_name, {}).get(profile, {})
 
-    def source_by_profile(self, profile):
-        sources = self.config_by_profile(profile).get('sources', {})
+    def source_from_profile(self, profile_config):
+        service_config = profile_config.get('services', {}).get(self._service_name, {})
+        sources = service_config.get('sources', [])
+
         result = []
-
-        for name, enabled in sources.items():
-            if not enabled:
-                continue
-
-            source = self._source_manager.get(name)
+        for source in sources:
+            source = self._source_manager.get(source['uuid'])
             if not source:
                 continue
 
             result.append(source)
 
         if not result:
-            logger.warning('Cannot find "%s" sources for profile %s', self._service_name, profile)
+            logger.warning(
+                'Cannot find "%s" sources for profile %s',
+                self._service_name, profile_config['name'],
+            )
 
         return result
 
