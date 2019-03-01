@@ -7,6 +7,7 @@ from time import time
 
 from flask import request
 from flask_restful import reqparse
+from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
 from wazo_dird.exception import OldAPIException
@@ -38,11 +39,11 @@ class DisabledFavoriteService:
 
 class Lookup(LegacyAuthResource, DisplayAwareResource):
 
-    def __init__(self, lookup_service, favorite_service, display_service, profile_to_display):
+    def __init__(self, lookup_service, favorite_service, display_service, profile_service):
         self.lookup_service = lookup_service
         self.favorite_service = favorite_service
         self.display_service = display_service
-        self.profile_to_display = profile_to_display
+        self.profile_service = profile_service
 
     @required_acl('dird.directories.lookup.{profile}.read')
     def get(self, profile):
@@ -51,8 +52,10 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
 
         logger.info('Lookup for %s with profile %s', term, profile)
 
+        tenant = Tenant.autodetect()
         try:
-            display = self.build_display(profile)
+            profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
+            display = self.build_display(profile_config)
         except OldAPIException as e:
             return e.body, e.status_code
 
@@ -60,11 +63,14 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
         token_infos = auth.client().token.get(token)
         xivo_user_uuid = token_infos['xivo_user_uuid']
 
-        raw_results = self.lookup_service.lookup(term,
-                                                 profile,
-                                                 xivo_user_uuid,
-                                                 token=token)
-        favorites = self.favorite_service.favorite_ids(profile, xivo_user_uuid)
+        raw_results = self.lookup_service.lookup(
+            profile_config,
+            tenant.uuid,
+            term,
+            xivo_user_uuid,
+            token=token,
+        )
+        favorites = self.favorite_service.favorite_ids(profile_config, xivo_user_uuid).by_name
         formatter = _ResultFormatter(display)
         response = formatter.format_results(raw_results, favorites)
 
@@ -75,8 +81,9 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
 
 class Reverse(LegacyAuthResource):
 
-    def __init__(self, reverse_service):
+    def __init__(self, reverse_service, profile_service):
         self.reverse_service = reverse_service
+        self.profile_service = profile_service
 
     @required_acl('dird.directories.reverse.{profile}.{xivo_user_uuid}.read')
     def get(self, profile, xivo_user_uuid):
@@ -84,11 +91,16 @@ class Reverse(LegacyAuthResource):
         args = parser_reverse.parse_args()
         exten = args['exten']
 
+        tenant = Tenant.autodetect()
+        try:
+            profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
+        except OldAPIException as e:
+            return e.body, e.status_code
+
         logger.info('Reverse for %s with profile %s', exten, profile)
 
-        # TODO check if profile exists
-
         raw_result = self.reverse_service.reverse(
+            profile_config,
             exten,
             profile,
             xivo_user_uuid=xivo_user_uuid,
@@ -109,16 +121,18 @@ class Reverse(LegacyAuthResource):
 
 class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
 
-    def __init__(self, favorites_service, display_service, profile_to_display):
+    def __init__(self, favorites_service, display_service, profile_service):
         self.favorites_service = favorites_service
         self.display_service = display_service
-        self.profile_to_display = profile_to_display
+        self.profile_service = profile_service
 
     @required_acl('dird.directories.favorites.{profile}.read')
     def get(self, profile):
         logger.debug('Listing favorites with profile %s', profile)
+        tenant = Tenant.autodetect()
         try:
-            display = self.build_display(profile)
+            profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
+            display = self.build_display(profile_config)
         except OldAPIException as e:
             return e.body, e.status_code
 
@@ -126,7 +140,10 @@ class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
         token_infos = auth.client().token.get(token)
 
         try:
-            raw_results = self.favorites_service.favorites(profile, token_infos['xivo_user_uuid'])
+            raw_results = self.favorites_service.favorites(
+                profile_config,
+                token_infos['xivo_user_uuid'],
+            )
         except self.favorites_service.NoSuchProfileException as e:
             return _error(404, str(e))
 
@@ -144,8 +161,14 @@ class FavoritesWrite(LegacyAuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
+        tenant = Tenant.autodetect()
         try:
-            self.favorites_service.new_favorite(directory, contact, token_infos['xivo_user_uuid'])
+            self.favorites_service.new_favorite(
+                tenant.uuid,
+                directory,
+                contact,
+                token_infos['xivo_user_uuid'],
+            )
         except self.favorites_service.DuplicatedFavoriteException:
             return _error(409, 'Adding this favorite would create a duplicate')
         except self.favorites_service.NoSuchSourceException as e:
@@ -157,8 +180,10 @@ class FavoritesWrite(LegacyAuthResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
+        tenant = Tenant.autodetect()
         try:
             self.favorites_service.remove_favorite(
+                tenant.uuid,
                 directory,
                 contact,
                 token_infos['xivo_user_uuid'],
@@ -171,11 +196,11 @@ class FavoritesWrite(LegacyAuthResource):
 
 class Personal(LegacyAuthResource, DisplayAwareResource):
 
-    def __init__(self, personal_service, favorite_service, display_service, profile_to_display):
+    def __init__(self, personal_service, favorite_service, display_service, profile_service):
         self.personal_service = personal_service
         self.favorite_service = favorite_service or DisabledFavoriteService()
         self.display_service = display_service
-        self.profile_to_display = profile_to_display
+        self.profile_service = profile_service
 
     @required_acl('dird.directories.personal.{profile}.read')
     def get(self, profile):
@@ -183,14 +208,23 @@ class Personal(LegacyAuthResource, DisplayAwareResource):
         token = request.headers.get('X-Auth-Token', '')
         token_infos = auth.client().token.get(token)
 
+        tenant = Tenant.autodetect()
         try:
-            display = self.build_display(profile)
+            profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
+            display = self.build_display(profile_config)
         except OldAPIException as e:
             return e.body, e.status_code
 
-        raw_results = self.personal_service.list_contacts(token_infos)
+        raw_results = self.personal_service.list_contacts(
+            tenant.uuid,
+            token_infos['xivo_user_uuid'],
+        )
+
         try:
-            favorites = self.favorite_service.favorite_ids(profile, token_infos['xivo_user_uuid'])
+            favorites = self.favorite_service.favorite_ids(
+                profile_config,
+                token_infos['xivo_user_uuid'],
+            ).by_name
         except self.favorite_service.NoSuchProfileException as e:
             return _error(404, str(e))
         formatter = _ResultFormatter(display)

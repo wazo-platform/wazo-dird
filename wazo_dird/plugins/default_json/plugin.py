@@ -26,13 +26,11 @@ class JsonViewPlugin(BaseViewPlugin):
 
     def load(self, dependencies):
         api = dependencies['api']
-        config = dependencies['config'].get('views', {})
-        profile_to_display = config.get('profile_to_display', {})
-
         favorite_service = dependencies['services'].get('favorites')
         lookup_service = dependencies['services'].get('lookup')
         reverse_service = dependencies['services'].get('reverse')
         personal_service = dependencies['services'].get('personal')
+        profile_service = dependencies['services'].get('profile')
         display_service = dependencies['services'].get('display')
 
         if lookup_service:
@@ -43,7 +41,7 @@ class JsonViewPlugin(BaseViewPlugin):
                     lookup_service,
                     favorite_service,
                     display_service,
-                    profile_to_display,
+                    profile_service,
                 ),
             )
         else:
@@ -53,7 +51,10 @@ class JsonViewPlugin(BaseViewPlugin):
             api.add_resource(
                 Reverse,
                 self.reverse_url,
-                resource_class_args=(reverse_service,),
+                resource_class_args=(
+                    reverse_service,
+                    profile_service,
+                ),
             )
         else:
             logger.error('%s disabled: no service plugin `reverse`', self.reverse_url)
@@ -65,7 +66,7 @@ class JsonViewPlugin(BaseViewPlugin):
                 resource_class_args=(
                     favorite_service,
                     display_service,
-                    profile_to_display,
+                    profile_service,
                 ),
             )
             api.add_resource(
@@ -85,7 +86,7 @@ class JsonViewPlugin(BaseViewPlugin):
                     personal_service,
                     favorite_service,
                     display_service,
-                    profile_to_display,
+                    profile_service,
                 ),
             )
         else:

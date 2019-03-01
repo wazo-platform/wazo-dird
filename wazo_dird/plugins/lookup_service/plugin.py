@@ -22,6 +22,7 @@ class LookupServicePlugin(BaseServicePlugin):
             self._service = _LookupService(
                 dependencies['config'],
                 dependencies['source_manager'],
+                dependencies['controller'],
             )
             return self._service
         except KeyError:
@@ -52,18 +53,20 @@ class _LookupService(helpers.BaseService):
         future.name = source.name
         return future
 
-    def lookup(self, term, profile, xivo_user_uuid, args=None, token=None):
+    def lookup(self, profile_config, tenant_uuid, term, xivo_user_uuid, args=None, token=None):
         args = args or {}
         futures = []
-        sources = self.source_by_profile(profile)
+        sources = self.source_from_profile(profile_config)
         for source in sources:
             args['token'] = token
             args['xivo_user_uuid'] = xivo_user_uuid
             futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}
-        if 'timeout' in self.config_by_profile(profile):
-            params['timeout'] = self.config_by_profile(profile)['timeout']
+        service_config = self.get_service_config(profile_config)
+        timeout = service_config.get('timeout')
+        if timeout:
+            params['timeout'] = timeout
 
         done, _ = wait(futures, **params)
         results = []

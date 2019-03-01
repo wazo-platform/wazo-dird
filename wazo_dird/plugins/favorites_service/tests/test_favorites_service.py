@@ -3,24 +3,20 @@
 
 import unittest
 
-from hamcrest import (assert_that,
-                      calling,
-                      contains,
-                      contains_inanyorder,
-                      equal_to,
-                      not_,
-                      none,
-                      raises)
-from mock import (ANY,
-                  Mock,
-                  patch,
-                  sentinel as s)
-from wazo_dird import database, bus
-
-from ..plugin import (
-    FavoritesServicePlugin,
-    _FavoritesService,
+from hamcrest import (
+    assert_that,
+    equal_to,
+    not_,
+    none,
 )
+from mock import (
+    ANY,
+    Mock,
+    patch,
+    sentinel as s,
+)
+
+from ..plugin import FavoritesServicePlugin
 
 
 class TestFavoritesServicePlugin(unittest.TestCase):
@@ -43,9 +39,14 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         plugin = FavoritesServicePlugin()
 
         with patch.object(plugin, '_new_favorite_crud'):
-            service = plugin.load({'source_manager': self._source_manager,
-                                   'config': self._config,
-                                   'bus': s.bus})
+            service = plugin.load(
+                {
+                    'source_manager': self._source_manager,
+                    'config': self._config,
+                    'bus': s.bus,
+                    'controller': s.controller,
+                }
+            )
 
         assert_that(service, not_(none()))
 
@@ -54,13 +55,19 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         plugin = FavoritesServicePlugin()
 
         with patch.object(plugin, '_new_favorite_crud'):
-            service = plugin.load({'config': self._config,
-                                   'source_manager': self._source_manager,
-                                   'bus': s.bus})
+            service = plugin.load(
+                {
+                    'config': self._config,
+                    'source_manager': self._source_manager,
+                    'bus': s.bus,
+                    'controller': s.controller,
+                }
+            )
 
         MockedFavoritesService.assert_called_once_with(
             self._config,
             self._source_manager,
+            s.controller,
             ANY,
             s.bus,
         )

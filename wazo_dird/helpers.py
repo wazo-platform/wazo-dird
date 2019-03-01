@@ -59,9 +59,6 @@ class BaseService:
         self._source_manager = source_manager
         self._controller = controller
 
-    def config_by_profile(self, profile):
-        return self._config.get('services', {}).get(self._service_name, {}).get(profile, {})
-
     def source_from_profile(self, profile_config):
         service_config = profile_config.get('services', {}).get(self._service_name, {})
         sources = service_config.get('sources', [])
@@ -81,6 +78,9 @@ class BaseService:
             )
 
         return result
+
+    def get_service_config(self, profile_config):
+        return profile_config.get('services', {}).get(self._service_name, {})
 
 
 class _BaseSourceResource(AuthResource):

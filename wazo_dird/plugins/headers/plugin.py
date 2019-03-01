@@ -14,12 +14,11 @@ class HeadersViewPlugin(BaseViewPlugin):
 
     def load(self, dependencies):
         api = dependencies['api']
-        config = dependencies['config'].get('views', {})
-        profile_to_display = config.get('profile_to_display', {})
         display_service = dependencies['services'].get('display')
+        profile_service = dependencies['services'].get('profile')
 
         api.add_resource(
             Headers,
             '/directories/lookup/<profile>/headers',
-            resource_class_args=(display_service, profile_to_display),
+            resource_class_args=(display_service, profile_service),
         )

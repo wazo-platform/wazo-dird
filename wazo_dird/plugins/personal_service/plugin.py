@@ -25,6 +25,7 @@ class PersonalServicePlugin(BaseServicePlugin):
         try:
             config = dependencies['config']
             source_manager = dependencies['source_manager']
+            controller = dependencies['controller']
         except KeyError:
             msg = ('%s should be loaded with "config" and "source_manager" but received: %s'
                    % (self.__class__.__name__, ','.join(dependencies.keys())))
@@ -32,7 +33,7 @@ class PersonalServicePlugin(BaseServicePlugin):
 
         crud = self._new_personal_contact_crud(config['db_uri'])
 
-        return _PersonalService(config, source_manager, crud)
+        return _PersonalService(config, source_manager, crud, controller)
 
     def _new_personal_contact_crud(self, db_uri):
         self._Session = scoped_session(sessionmaker())
@@ -52,10 +53,11 @@ class _PersonalService:
             ValueError.__init__(self, message)
             self.errors = errors
 
-    def __init__(self, config, source_manager, crud):
+    def __init__(self, config, source_manager, crud, controller):
         self._crud = crud
         self._config = config
         self._source_manager = source_manager
+        self._controller = controller
 
     def create_contact(self, contact_infos, token_infos):
         self.validate_contact(contact_infos)
@@ -95,15 +97,24 @@ class _PersonalService:
     def purge_contacts(self, token_infos):
         self._crud.delete_all_personal_contacts(token_infos['xivo_user_uuid'])
 
-    def list_contacts(self, token_infos):
-        contacts = self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
-        # XXX which personal source to use here?
-        source = self._source_manager.get('personal')
+    def list_contacts(self, tenant_uuid, user_uuid):
+        personal_source = self._find_personal_source(tenant_uuid)
+        if not personal_source:
+            logger.info('no personal source configured for tenant %s', tenant_uuid)
+            return []
+
+        contacts = self._crud.list_personal_contacts(user_uuid)
+        source = self._source_manager.get(personal_source['uuid'])
         formatted_contacts = source.format_contacts(contacts)
         return formatted_contacts
 
     def list_contacts_raw(self, token_infos):
         return self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
+
+    def _find_personal_source(self, tenant_uuid):
+        source_service = self._controller.services['source']
+        for source in source_service.list_('personal', [tenant_uuid]):
+            return source
 
     @staticmethod
     def validate_contact(contact_infos, existing_contact_uuids=None):

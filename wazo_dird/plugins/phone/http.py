@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -10,8 +10,12 @@ from flask_restful.inputs import natural
 from flask_restful import reqparse
 from time import time
 
+from xivo.tenant_flask_helpers import Tenant
 from wazo_dird.auth import required_acl
-from wazo_dird.exception import ProfileNotFoundError
+from wazo_dird.exception import (
+    OldAPIException,
+    ProfileNotFoundError,
+)
 from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
@@ -78,13 +82,26 @@ class PhoneLookup(LegacyAuthResource):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('lookup'))
         token = request.headers['X-Auth-Token']
 
+        tenant = Tenant.autodetect()
         try:
-            results = self.phone_lookup_service.lookup(term,
-                                                       profile,
-                                                       xivo_user_uuid=xivo_user_uuid,
-                                                       token=token,
-                                                       limit=limit,
-                                                       offset=offset)
+            profile_config = self.phone_lookup_service.profile_service.get_by_name(
+                tenant.uuid,
+                profile,
+            )
+        except OldAPIException as e:
+            logger.warning('phone lookup failed: unknown profile %r', profile)
+            return _error(e.status_code, 'The profile `{profile}` does not exist'.format(profile=profile))
+
+        try:
+            results = self.phone_lookup_service.lookup(
+                profile_config,
+                tenant.uuid,
+                term,
+                xivo_user_uuid=xivo_user_uuid,
+                token=token,
+                limit=limit,
+                offset=offset,
+            )
         except ProfileNotFoundError:
             logger.warning('phone lookup failed: unknown profile %r', profile)
             return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))

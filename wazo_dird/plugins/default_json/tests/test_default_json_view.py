@@ -56,13 +56,13 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_adds_the_lookup_route(self):
         dependencies = {
-            'config': {'views': {'profile_to_display': s.profile_to_display}},
             'http_namespace': Mock(),
             'api': self.api,
             'services': {
                 'lookup': s.lookup_service,
                 'display': s.display_service,
                 'favorites': s.favorites_service,
+                'profile': s.profile_service,
             },
         }
 
@@ -75,7 +75,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                 s.lookup_service,
                 s.favorites_service,
                 s.display_service,
-                s.profile_to_display,
+                s.profile_service,
             ),
         )
 
@@ -90,12 +90,12 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_adds_the_favorite_route(self):
         dependencies = {
-            'config': {'views': {'profile_to_display': s.profile_to_display}},
             'http_namespace': Mock(),
             'api': self.api,
             'services': {
                 'favorites': s.favorite_service,
                 'display': s.display_service,
+                'profile': s.profile_service,
             },
         }
 
@@ -104,7 +104,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         self.api.add_resource.assert_any_call(
             FavoritesRead,
             JsonViewPlugin.favorites_read_url,
-            resource_class_args=(s.favorite_service, s.display_service, s.profile_to_display),
+            resource_class_args=(s.favorite_service, s.display_service, s.profile_service),
         )
         self.api.add_resource.assert_any_call(
             FavoritesWrite,
@@ -122,13 +122,13 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_adds_the_personal_routes(self):
         dependencies = {
-            'config': {'views': {'profile_to_display': s.profile_to_display}},
             'http_namespace': Mock(),
             'api': self.api,
             'services': {
                 'personal': s.personal_service,
                 'favorites': s.favorites_service,
                 'display': s.display_service,
+                'profile': s.profile_service,
             },
         }
 
@@ -142,7 +142,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                 s.personal_service,
                 s.favorites_service,
                 s.display_service,
-                s.profile_to_display,
+                s.profile_service,
             ),
         )
 
