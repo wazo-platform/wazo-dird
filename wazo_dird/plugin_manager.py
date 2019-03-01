@@ -19,6 +19,7 @@ def load_services(config, enabled_services, source_manager, bus, controller):
         'source_manager': source_manager,
         'bus': bus,
         'controller': controller,
+        'auth_client': controller.auth_client,
     }
 
     services_extension_manager, services = _load_plugins(

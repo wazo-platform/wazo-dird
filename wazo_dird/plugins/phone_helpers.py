@@ -29,10 +29,7 @@ class _PhoneLookupService:
         self._display_service = display_service
         self.profile_service = profile_service
 
-    def lookup(
-            self, profile_config, tenant_uuid, term, xivo_user_uuid, token,
-            limit=None, offset=0,
-    ):
+    def lookup(self, profile_config, term, tenant_uuid, user_uuid, token, limit=None, offset=0):
         display = profile_config['display']
         formatter = _PhoneResultFormatter(display)
 
@@ -40,7 +37,7 @@ class _PhoneLookupService:
             profile_config,
             tenant_uuid,
             term,
-            xivo_user_uuid=xivo_user_uuid,
+            xivo_user_uuid=user_uuid,
             args={},
             token=token,
         )

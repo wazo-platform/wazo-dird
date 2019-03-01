@@ -54,6 +54,18 @@ class NoSuchProfile(OldAPIException):
         super().__init__(status_code, body)
 
 
+class NoSuchUser(OldAPIException):
+
+    def __init__(self, user_uuid):
+        status_code = 404
+        body = {
+            'reason': ['The user `{}` does not exist'.format(user_uuid)],
+            'timestamp': [time()],
+            'status_code': status_code,
+        }
+        super().__init__(status_code, body)
+
+
 class NoSuchContact(ValueError):
 
     def __init__(self, contact_id):

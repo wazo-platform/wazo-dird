@@ -19,6 +19,7 @@ from hamcrest import (
 from stevedore import DriverManager
 
 from xivo import url_helpers
+from xivo_auth_client import Client as AuthClient
 from xivo_test_helpers import until
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from xivo_test_helpers.db import DBUserClient
@@ -123,6 +124,12 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         cls.create_displays()
         cls.create_sources()
         cls.create_profiles()
+        auth_client = AuthClient('localhost', cls.service_port(9497, 'auth'), verify_certificate=False)
+        auth_client.users.new(
+            uuid=VALID_UUID,
+            tenant_uuid=MAIN_TENANT,
+            username='foobar',
+        )
 
     @classmethod
     def tearDownClass(cls):

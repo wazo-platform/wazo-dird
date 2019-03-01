@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from wazo_dird import BaseViewPlugin
@@ -21,11 +21,30 @@ class CiscoViewPlugin(BaseViewPlugin):
 
     def load(self, dependencies):
         api = dependencies['api']
+        auth_client = dependencies['auth_client']
         phone_lookup_service = new_phone_lookup_service_from_args(dependencies)
-        api.add_resource(PhoneMenu, self.cisco_menu, endpoint='CiscoPhoneMenu',
-                         resource_class_args=(TEMPLATE_CISCO_MENU, CONTENT_TYPE))
-        api.add_resource(PhoneInput, self.cisco_input, endpoint='CiscoPhoneInput',
-                         resource_class_args=(TEMPLATE_CISCO_INPUT, CONTENT_TYPE))
-        api.add_resource(PhoneLookup, self.cisco_lookup, endpoint='CiscoPhoneLookup',
-                         resource_class_args=(TEMPLATE_CISCO_RESULTS, CONTENT_TYPE,
-                                              phone_lookup_service, MAX_ITEM_PER_PAGE))
+
+        api.add_resource(
+            PhoneMenu,
+            self.cisco_menu,
+            endpoint='CiscoPhoneMenu',
+            resource_class_args=(TEMPLATE_CISCO_MENU, CONTENT_TYPE),
+        )
+        api.add_resource(
+            PhoneInput,
+            self.cisco_input,
+            endpoint='CiscoPhoneInput',
+            resource_class_args=(TEMPLATE_CISCO_INPUT, CONTENT_TYPE),
+        )
+        api.add_resource(
+            PhoneLookup,
+            self.cisco_lookup,
+            endpoint='CiscoPhoneLookup',
+            resource_class_args=(
+                TEMPLATE_CISCO_RESULTS,
+                CONTENT_TYPE,
+                phone_lookup_service,
+                auth_client,
+                MAX_ITEM_PER_PAGE,
+            ),
+        )
