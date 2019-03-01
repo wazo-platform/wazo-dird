@@ -56,7 +56,7 @@ _DEFAULT_CONFIG = {
         },
         'cors': {
             'enabled': True,
-            'allow_headers': ['Content-Type', 'X-Auth-Token'],
+            'allow_headers': ['Content-Type', 'X-Auth-Token', 'Wazo-Tenant'],
         },
     },
     'services': {

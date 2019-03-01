@@ -19,4 +19,5 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
+      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
