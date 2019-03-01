@@ -223,34 +223,36 @@ class TestDisplayCRUD(_BaseTest):
         }
 
         result = self.display_crud.create(**body)
-
-        assert_that(result, has_entries(
-            uuid=uuid_(),
-            tenant_uuid=tenant_uuid,
-            name=name,
-            columns=contains(
-                has_entries(
-                    field='firstname',
-                    title='Firstname',
+        try:
+            assert_that(result, has_entries(
+                uuid=uuid_(),
+                tenant_uuid=tenant_uuid,
+                name=name,
+                columns=contains(
+                    has_entries(
+                        field='firstname',
+                        title='Firstname',
+                    ),
+                    has_entries(
+                        field='lastname',
+                        title='Lastname',
+                        default='',
+                    ),
+                    has_entries(
+                        field='number',
+                        title='Number',
+                        type='number',
+                    ),
+                    has_entries(
+                        field='mobile',
+                        title='Mobile',
+                        type='number',
+                        number_display='{firstname} {lastname} (Mobile)',
+                    ),
                 ),
-                has_entries(
-                    field='lastname',
-                    title='Lastname',
-                    default='',
-                ),
-                has_entries(
-                    field='number',
-                    title='Number',
-                    type='number',
-                ),
-                has_entries(
-                    field='mobile',
-                    title='Mobile',
-                    type='number',
-                    number_display='{firstname} {lastname} (Mobile)',
-                ),
-            ),
-        ))
+            ))
+        finally:
+            self.display_crud.delete(None, result['uuid'])
 
     @fixtures.display()
     def test_get_with_the_right_tenant(self, display):
@@ -1326,27 +1328,30 @@ class TestProfileCRUD(_BaseTest):
 
         result = self.profile_crud.create(body)
 
-        assert_that(result, has_entries(
-            uuid=uuid_(),
-            tenant_uuid=tenant_uuid,
-            name=name,
-            display=has_entries(uuid=display['uuid']),
-            services=has_entries(
-                lookup=has_entries(
-                    sources=contains(
-                        has_entries(uuid=source_1['uuid']),
-                        has_entries(uuid=source_2['uuid']),
+        try:
+            assert_that(result, has_entries(
+                uuid=uuid_(),
+                tenant_uuid=tenant_uuid,
+                name=name,
+                display=has_entries(uuid=display['uuid']),
+                services=has_entries(
+                    lookup=has_entries(
+                        sources=contains(
+                            has_entries(uuid=source_1['uuid']),
+                            has_entries(uuid=source_2['uuid']),
+                        ),
+                        timeout=5,
                     ),
-                    timeout=5,
-                ),
-                reverse=has_entries(
-                    sources=contains(
-                        has_entries(uuid=source_2['uuid']),
+                    reverse=has_entries(
+                        sources=contains(
+                            has_entries(uuid=source_2['uuid']),
+                        ),
+                        timeout=0.5,
                     ),
-                    timeout=0.5,
                 ),
-            ),
-        ))
+            ))
+        finally:
+            self.profile_crud.delete(None, result['uuid'])
 
     @fixtures.source()
     @fixtures.source()

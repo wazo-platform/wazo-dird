@@ -61,13 +61,18 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
         self.put_favorite('my_csv', charles_id)
         self.put_favorite('my_csv', unknown_id)
 
-        response = self.favorites('default')
+        try:
+            response = self.favorites('default')
 
-        favorite = [True]
-        assert_that(response['results'], contains(
-            has_entries(column_values=self._alice + favorite),
-            has_entries(column_values=self._charles + favorite),
-        ))
+            favorite = [True]
+            assert_that(response['results'], contains(
+                has_entries(column_values=self._alice + favorite),
+                has_entries(column_values=self._charles + favorite),
+            ))
+        finally:
+            self.delete_favorite('my_csv', alice_id)
+            self.delete_favorite('my_csv', charles_id)
+            self.delete_favorite('my_csv', unknown_id)
 
 
 class TestCSVNoUnique(_BaseCSVFileTestCase):
