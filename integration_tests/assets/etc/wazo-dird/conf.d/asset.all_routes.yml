@@ -21,6 +21,11 @@ enabled_plugins:
     personal_backend: true
     phonebook_backend: true
 
+auth:
+  host: auth
+  username: any
+  password: thing
+
 rest_api:
   https:
     listen: 0.0.0.0
@@ -29,7 +34,11 @@ rest_api:
     private_key: /usr/local/share/ssl/dird/server.key
 
 bus:
-  enabled: false
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest
+  enabled: true
 
 service_discovery:
   enabled: false

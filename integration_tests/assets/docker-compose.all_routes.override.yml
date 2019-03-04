@@ -6,8 +6,9 @@ services:
       - auth
       - dird
       - db
+      - rabbitmq
     environment:
-      TARGETS: "dird:9489 auth:9497 db:5432"
+      TARGETS: "dird:9489 auth:9497 db:5432 rabbitmq:5672"
       TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
   dird:
     volumes:
@@ -16,3 +17,7 @@ services:
       - "./etc/wazo-dird/conf.d/asset.all_routes.auth.yml:/etc/wazo-dird/conf.d/auth.yml"
       - "./etc/wazo-dird/conf.d/asset.all_routes.yml:/etc/wazo-dird/config.yml"
       - "./tmp/data/asset.all_routes.test.csv:/tmp/data/test.csv"
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - "5672"
