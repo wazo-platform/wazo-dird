@@ -124,12 +124,15 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         cls.create_displays()
         cls.create_sources()
         cls.create_profiles()
-        auth_client = AuthClient('localhost', cls.service_port(9497, 'auth'), verify_certificate=False)
-        auth_client.users.new(
-            uuid=VALID_UUID,
-            tenant_uuid=MAIN_TENANT,
-            username='foobar',
-        )
+        try:
+            auth_client = AuthClient('localhost', cls.service_port(9497, 'auth'), verify_certificate=False)
+            auth_client.users.new(
+                uuid=VALID_UUID,
+                tenant_uuid=MAIN_TENANT,
+                username='foobar',
+            )
+        except Exception:
+            pass
 
     @classmethod
     def tearDownClass(cls):
