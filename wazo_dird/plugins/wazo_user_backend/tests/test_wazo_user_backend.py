@@ -20,6 +20,7 @@ from mock import (
 from wazo_dird import make_result_class
 from ..plugin import WazoUserPlugin
 
+TENANT_UUID = '02153e33-4b59-4a9f-8cd1-7e917b306e1d'
 AUTH_CONFIG = {
     'host': 'xivo.example.com',
     'backend': 'wazo_user',
@@ -33,6 +34,7 @@ CONFD_CONFIG = {
 }
 DEFAULT_ARGS = {
     'config': {
+        'tenant_uuid': TENANT_UUID,
         'confd': CONFD_CONFIG,
         'auth': AUTH_CONFIG,
         'name': 'my_test_xivo',

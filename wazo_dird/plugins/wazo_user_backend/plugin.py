@@ -57,6 +57,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         confd_config = config['confd']
         logger.debug('confd config %s', confd_config)
         self._client = self._ConfdClientClass(**confd_config)
+        self._client.set_tenant(config['tenant_uuid'])
 
         self._SourceResult = make_result_class(
             self.name, 'id',
