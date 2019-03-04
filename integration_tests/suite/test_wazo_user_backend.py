@@ -17,6 +17,7 @@ from xivo_test_helpers import until
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     BackendWrapper,
+    MAIN_TENANT,
 )
 
 WAZO_ASIA = {
@@ -94,6 +95,7 @@ class TestWazoUser(BaseDirdIntegrationTest):
     def backend_config(self):
         return {
             'type': 'wazo',
+            'tenant_uuid': MAIN_TENANT,
             'name': 'wazo_america',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['exten'],
