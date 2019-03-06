@@ -98,9 +98,10 @@ class _ProfileService:
         for source in available_sources:
             if source['backend'] not in auto_generated_source_backends:
                 continue
-            if not source['name'].startswith('auto_'):
-                continue
-            result.append(source)
+            if source['name'] == 'personal':
+                result.append(source)
+            if source['name'].startswith('auto_'):
+                result.append(source)
         return result
 
     def _find_auto_generated_display(self, tenant_uuid):

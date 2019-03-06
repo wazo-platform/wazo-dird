@@ -42,6 +42,7 @@ class _SourceService:
         exclusive=True,
     )
     _personal_source_body = {
+        'name': 'personal',
         'format_columns': {
             'phone': '{number}',
             'name': '{firstname} {lastname}',
@@ -126,7 +127,6 @@ class _SourceService:
     def _add_personal_source(self, tenant_uuid, name):
         backend = 'personal'
         body = dict(self._personal_source_body)
-        body['name'] = 'auto_{}_{}'.format(backend, name)
         body['tenant_uuid'] = tenant_uuid
         body['db_uri'] = self._db_uri
         self._add_source(backend, body)
