@@ -17,7 +17,56 @@ from xivo_test_helpers import until
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     BackendWrapper,
+    MAIN_TENANT,
 )
+
+WAZO_ASIA = {
+    'backend': 'wazo',
+    'name': 'wazo_asia',
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+    'confd': {'host': 'asia', 'port': 9486, 'https': False},
+    'searched_columns': ['firstname', 'lastname'],
+}
+WAZO_AMERICA = {
+    'backend': 'wazo',
+    'name': 'wazo_america',
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+    'confd': {'host': 'america', 'port': 9486, 'https': False},
+    'searched_columns': ['firstname', 'lastname'],
+}
+WAZO_EUROPE = {
+    'backend': 'wazo',
+    'name': 'wazo_europe',
+    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+    'confd': {'host': 'europe', 'port': 9486, 'https': False},
+    'searched_columns': ['firstname', 'lastname'],
+}
+
+DISPLAYS = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'default': '',
+                    'field': 'exten',
+                },
+                {
+                    'title': 'Mobile',
+                    'default': '',
+                    'field': 'mobile_phone_number',
+                },
+            ],
+        },
+    ]
 
 
 class TestWazoUser(BaseDirdIntegrationTest):
@@ -46,6 +95,7 @@ class TestWazoUser(BaseDirdIntegrationTest):
     def backend_config(self):
         return {
             'type': 'wazo',
+            'tenant_uuid': MAIN_TENANT,
             'name': 'wazo_america',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['exten'],
@@ -97,6 +147,15 @@ class TestWazoUser(BaseDirdIntegrationTest):
 class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_no_confd'
+    displays = DISPLAYS
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['wazo_america']}},
+        },
+    ]
+    sources = [WAZO_AMERICA]
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):
         result = self.lookup('dyl', 'default')
@@ -106,8 +165,18 @@ class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_late_confd'
+    displays = DISPLAYS
+    sources = [WAZO_AMERICA]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['wazo_america']}},
+        },
+    ]
+    sources = [WAZO_AMERICA]
 
-    def test_given_confd_slow_to_start_when_lookup_then_first_returns_no_results_then_return_right_result(self):
+    def test_no_result_until_started(self):
         # dird is not stuck on a late confd
         result = self.lookup('dyl', 'default')
         assert_that(result['results'], contains())
@@ -124,13 +193,43 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_multiple_wazo'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'field': 'exten',
+                },
+            ],
+        },
+    ]
+    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+                'favorites': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+            },
+        },
+    ]
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [
             {
-                'column_values': ['Charles', 'European', '9012', None],
+                'column_values': ['Charles', 'European', '9012'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
                               'agent_id': None,
                               'endpoint_id': 42,
@@ -140,7 +239,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                 'source': 'wazo_europe',
             },
             {
-                'column_values': ['Mary', 'Sue', '1465', None],
+                'column_values': ['Mary', 'Sue', '1465'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': 2,
@@ -150,7 +249,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                 'source': 'wazo_america',
             },
             {
-                'column_values': ['Charles', 'Kenedy', '', None],
+                'column_values': ['Charles', 'Kenedy', ''],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': None,
@@ -169,42 +268,57 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
         result = self.favorites('default')
 
-        expected_result = [
-            {
-                'column_values': ['Alice', None, '6543', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e160asia',
-                              'agent_id': 3,
-                              'endpoint_id': 2,
-                              'user_id': 1,
-                              'user_uuid': '7c12f90e-7391-4514-b482-5b75b57772e1',
-                              'source_entry_id': '1'},
-                'source': 'wazo_asia',
-            },
-            {
-                'column_values': ['John', 'Doe', '1234', None],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': 3,
-                              'endpoint_id': 2,
-                              'user_id': 1,
-                              'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
-                              'source_entry_id': '1'},
-                'source': 'wazo_america',
-            }
-        ]
-
-        assert_that(result['results'], contains_inanyorder(*expected_result))
+        assert_that(result['results'], contains_inanyorder(
+            has_entries(
+                source='wazo_asia',
+                column_values=contains('Alice', None, '6543'),
+            ),
+            has_entries(
+                source='wazo_america',
+                column_values=contains('John', 'Doe', '1234'),
+            ),
+        ))
 
 
 class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_missing_one_wazo'
+    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'field': 'exten',
+                },
+            ],
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+            },
+        },
+    ]
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('john', 'default')
 
         expected_result = [
             {
-                'column_values': ['John', 'Doe', '1234', None],
+                'column_values': ['John', 'Doe', '1234'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': 3,
                               'endpoint_id': 2,
@@ -221,13 +335,42 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_404'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'field': 'exten',
+                },
+            ],
+        },
+    ]
+    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+            },
+        },
+    ]
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [
             {
-                'column_values': ['Mary', 'Sue', '1465', None],
+                'column_values': ['Mary', 'Sue', '1465'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': 2,
@@ -237,7 +380,7 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
                 'source': 'wazo_america',
             },
             {
-                'column_values': ['Charles', 'Kenedy', '', None],
+                'column_values': ['Charles', 'Kenedy', ''],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': None,
@@ -254,13 +397,45 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_timeout'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'field': 'exten',
+                },
+            ],
+        },
+    ]
+    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {
+                    'sources': ['wazo_america', 'wazo_asia', 'wazo_europe'],
+                    'timeout': 1,
+                },
+            },
+        },
+    ]
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
 
         expected_result = [
             {
-                'column_values': ['Mary', 'Sue', '1465', None],
+                'column_values': ['Mary', 'Sue', '1465'],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': 2,
@@ -270,7 +445,7 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
                 'source': 'wazo_america',
             },
             {
-                'column_values': ['Charles', 'Kenedy', '', None],
+                'column_values': ['Charles', 'Kenedy', ''],
                 'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
                               'agent_id': None,
                               'endpoint_id': None,

@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -17,13 +17,17 @@ class ReverseServicePlugin(BaseServicePlugin):
     def __init__(self):
         self._service = None
 
-    def load(self, args):
+    def load(self, dependencies):
         try:
-            self._service = _ReverseService(args['config'], args['sources'])
+            self._service = _ReverseService(
+                dependencies['config'],
+                dependencies['source_manager'],
+                dependencies['controller'],
+            )
             return self._service
         except KeyError:
-            msg = ('%s should be loaded with "config" and "sources" but received: %s'
-                   % (self.__class__.__name__, ','.join(args.keys())))
+            msg = ('%s should be loaded with "config" and "source_manager" but received: %s'
+                   % (self.__class__.__name__, ','.join(dependencies.keys())))
             raise ValueError(msg)
 
     def unload(self):
@@ -43,10 +47,10 @@ class _ReverseService(helpers.BaseService):
     def stop(self):
         self._executor.shutdown()
 
-    def reverse(self, exten, profile, args=None, xivo_user_uuid=None, token=None):
+    def reverse(self, profile_config, exten, profile, args=None, xivo_user_uuid=None, token=None):
         args = args or {}
         futures = []
-        sources = self.source_by_profile(profile)
+        sources = self.source_from_profile(profile_config)
         logger.debug('Reverse lookup for {} in sources {}'.format(exten, [source.name for source in sources]))
         for source in sources:
             args['token'] = token
@@ -54,8 +58,10 @@ class _ReverseService(helpers.BaseService):
             futures.append(self._async_reverse(source, exten, args))
 
         params = {}
-        if 'timeout' in self.config_by_profile(profile):
-            params['timeout'] = self.config_by_profile(profile)['timeout']
+        service_config = self.get_service_config(profile_config)
+        timeout = service_config.get('timeout')
+        if timeout:
+            params['timeout'] = timeout
 
         try:
             for future in as_completed(futures, **params):

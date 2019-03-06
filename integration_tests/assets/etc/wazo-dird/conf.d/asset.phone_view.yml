@@ -1,8 +1,6 @@
 enabled_plugins:
   backends:
     csv: true
-  services:
-    lookup: true
   views:
     default_json: true
     aastra_view: true
@@ -13,40 +11,7 @@ enabled_plugins:
     yealink_view: true
     gigaset_view: true
     htek_view: true
-
-views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        field: firstname
-      -
-        title: Lastname
-        field: lastname
-      -
-        title: Number
-        field: number
-      -
-        title: Favorite
-        type: favorite
-  displays_phone:
-    default:
-      name:
-        - display_name
-      number:
-        -
-          field:
-            - phone
-  profile_to_display:
-    default: default_display
-  profile_to_display_phone:
-    default: default
-
-services:
-  lookup:
-    default:
-      sources:
-        test_csv: true
+    csv_backend: true
 
 rest_api:
   https:

@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import unittest
@@ -13,7 +13,10 @@ from hamcrest import (
 
 from .base_dird_integration_test import (
     absolute_file_name,
+    BaseDirdIntegrationTest,
+    CSVWithMultipleDisplayTestCase,
     BackendWrapper,
+    VALID_UUID,
 )
 
 
@@ -25,35 +28,51 @@ class _BaseCSVFileTestCase(unittest.TestCase):
             config = {'config': yaml.load(f)}
         config['config']['file'] = absolute_file_name(self.asset, config['config']['file'][1:])
         self.backend = BackendWrapper('csv', config)
-
-
-class TestCSVBackend(_BaseCSVFileTestCase):
-
-    asset = 'csv_with_multiple_displays'
-    source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
-
-    def setUp(self):
-        self._alice = {'id': '1', 'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
-        self._charles = {'id': '3', 'fn': 'Charles', 'ln': 'CCC', 'num': '555123555'}
         super().setUp()
 
-    def test_that_searching_for_lice_return_Alice(self):
-        result = self.backend.search('lice')
 
-        assert_that(result, contains(has_entries(**self._alice)))
+class TestCSVBackend(CSVWithMultipleDisplayTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self._alice = ['Alice', 'AAA', '5555555555']
+        self._charles = ['Charles', 'CCC', '555123555']
+
+    def test_that_searching_for_lice_return_Alice(self):
+        response = self.lookup('lice', 'default')
+
+        favorite = [False]
+        assert_that(response['results'], contains(
+            has_entries(column_values=self._alice + favorite),
+        ))
 
     def test_reverse_lookup(self):
-        result = self.backend.first('5555555555')
+        response = self.reverse('5555555555', 'default', VALID_UUID)
 
-        assert_that(result, has_entries(**self._alice))
+        expected_display = '{} {}'.format(self._alice[0], self._alice[1])
+        assert_that(response, has_entries(display=expected_display))
 
     def test_that_listing_by_ids_works(self):
+        alice_id = '1'
+        charles_id = '3'
         unknown_id = '42'
 
-        result = self.backend.list([self._alice['id'], self._charles['id'], unknown_id])
+        self.put_favorite('my_csv', alice_id)
+        self.put_favorite('my_csv', charles_id)
+        self.put_favorite('my_csv', unknown_id)
 
-        assert_that(result, contains_inanyorder(has_entries(**self._alice),
-                                                has_entries(**self._charles)))
+        try:
+            response = self.favorites('default')
+
+            favorite = [True]
+            assert_that(response['results'], contains(
+                has_entries(column_values=self._alice + favorite),
+                has_entries(column_values=self._charles + favorite),
+            ))
+        finally:
+            self.delete_favorite('my_csv', alice_id)
+            self.delete_favorite('my_csv', charles_id)
+            self.delete_favorite('my_csv', unknown_id)
 
 
 class TestCSVNoUnique(_BaseCSVFileTestCase):
@@ -91,16 +110,36 @@ class TestCSVWithAccents(_BaseCSVFileTestCase):
         assert_that(result, contains(has_entries(**self._pepe)))
 
 
-class TestCSVSeparator(_BaseCSVFileTestCase):
+class TestCSVSeparator(BaseDirdIntegrationTest):
 
     asset = 'csv_with_pipes'
-    source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
-
-    def setUp(self):
-        self._alice = {'fn': 'Alice', 'ln': 'AAA', 'num': '5555555555'}
-        super().setUp()
+    sources = [
+        {
+            'backend': 'csv',
+            'name': 'my_csv',
+            'file': '/tmp/data/test.csv',
+            'separator': "|",
+            'searched_columns': ['fn', 'ln'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+            },
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {'lookup': {'sources': ['my_csv']}},
+        },
+    ]
 
     def test_lookup_with_pipe(self):
-        result = self.backend.search('al')
+        result = self.lookup('al', 'default')
 
-        assert_that(result, contains(has_entries(**self._alice)))
+        assert_that(result['results'], contains_inanyorder(
+            has_entries(
+                column_values=contains('Alice', 'AAA', '5555555555'),
+            ),
+        ))

@@ -4,9 +4,9 @@ services:
     depends_on:
       - dird
       - auth
+      - db
     environment:
-      TARGETS: "dird:9489 auth:9497"
+      TARGETS: "dird:9489 auth:9497 db:5432"
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.auth-only.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/sources.d/asset.auth-only.sample.yml:/etc/wazo-dird/sources.d/sample.yml"

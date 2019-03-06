@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -14,7 +14,6 @@ from xivo.consul_helpers import ServiceFinder
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
 from wazo_dird import BaseServicePlugin
-from wazo_dird.plugin_manager import source_manager
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +23,13 @@ class ServiceDiscoveryServicePlugin(BaseServicePlugin):
     def __init__(self):
         self._service = None
 
-    def load(self, args):
-        config = args['config']
-        bus = args['bus']
+    def load(self, dependencies):
+        config = dependencies['config']
+        bus = dependencies['bus']
+        source_manager = dependencies['source_manager']
+        controller = dependencies['controller']
 
-        self._service = _Service(config, bus)
+        self._service = _Service(config, bus, source_manager, controller)
 
 
 class _Service:
@@ -37,14 +38,15 @@ class _Service:
                         routing_key='service.registered.*',
                         exclusive=True)
 
-    def __init__(self, config, bus):
+    def __init__(self, config, bus, source_manager, controller):
+        self._controller = controller
         self._config = config
+        self._source_manager = source_manager
         service_disco_config = config['services'].get('service_discovery')
         if not service_disco_config:
             logger.info('"service_discovery" key missing from the configuration')
             return
         self._source_config_generator = SourceConfigGenerator(service_disco_config)
-        self._source_config_manager = SourceConfigManager(config['sources'])
         self._profile_config_updater = ProfileConfigUpdater(config)
         bus.add_consumer(self.QUEUE, self._on_service_registered)
         finder = ServiceFinder(config['consul'])
@@ -80,13 +82,21 @@ class _Service:
             return
 
         source_name = config.get('name')
-        if self._source_config_manager.source_exists(source_name):
+        source_service = self._controller.services['source']
+        if self._source_exists(source_service, config):
             return
 
-        self._source_config_manager.add_source(config)
-        source_manager.load_source(config['type'], source_name)
+        source_service.create('wazo', **config)
         self._profile_config_updater.on_service_added(source_name, service_name)
         logger.info('new source added %s', source_name)
+
+    def _source_exists(self, source_service, config):
+        search_params = {
+            'backend': 'wazo',
+            'visible_tenants': [config['tenant_uuid']],
+            'name': config['name'],
+        }
+        return True if source_service.list_(**search_params) else False
 
     def _on_service_registered(self, body, message):
         try:
@@ -109,21 +119,6 @@ def _find_first_uuid(tags):
             return str(UUID(tag))
         except (AttributeError, ValueError):
             continue
-
-
-class SourceConfigManager:
-
-    def __init__(self, config):
-        self._config = config
-
-    def source_exists(self, source_name):
-        return source_name in self._config
-
-    def add_source(self, source_config):
-        source_name = source_config.get('name')
-        if not source_name:
-            return
-        self._config[source_name] = source_config
 
 
 class ProfileConfigUpdater:

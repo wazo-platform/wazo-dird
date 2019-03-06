@@ -1,44 +1,9 @@
 enabled_plugins:
   backends:
     csv: true
-  services:
-    lookup: true
-    favorites: true
   views:
     default_json: true
-
-views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        default: Unknown
-        field: firstname
-      -
-        title: Lastname
-        default: Unknown
-        field: lastname
-      -
-        title: Number
-        default:
-        field: number
-      -
-        title: Favorite
-        type: favorite
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        csv: true
-        csv_2: true
-  favorites:
-    default:
-      sources:
-        csv: true
-        csv_2: true
+    csv_backend: true
 
 rest_api:
   https:

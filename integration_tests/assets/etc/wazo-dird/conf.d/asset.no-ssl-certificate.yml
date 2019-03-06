@@ -1,37 +1,9 @@
 enabled_plugins:
   backends:
     sample: true
-  services:
-    lookup: true
-    favorites: true
   views:
     default_json: true
     headers_view: true
-
-views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        default: Unknown
-        field: firstname
-      -
-        title: Lastname
-        default: Unknown
-        field: lastname
-      -
-        title: Description
-        default:
-        field: description
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        sample_plugin: true
-      timeout: 0.5
 
 rest_api:
   https:

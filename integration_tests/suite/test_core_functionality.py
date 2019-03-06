@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import sh
@@ -18,9 +18,12 @@ from hamcrest import (
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
-    VALID_TOKEN,
+    CSVWithMultipleDisplayTestCase,
+    HalfBrokenTestCase,
+    VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
 )
+MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
 
 
 EMPTY_RELATIONS = {'xivo_id': None,
@@ -31,9 +34,106 @@ EMPTY_RELATIONS = {'xivo_id': None,
                    'source_entry_id': None}
 
 
-class TestCoreSourceManagement(BaseDirdIntegrationTest):
+class BaseMultipleSourceLauncher(BaseDirdIntegrationTest):
 
     asset = 'multiple_sources'
+    displays = [
+        {
+            'name': 'default_display',
+            'columns': [
+                {
+                    'title': 'Firstname',
+                    'default': 'Unknown',
+                    'field': 'firstname',
+                },
+                {
+                    'title': 'Lastname',
+                    'default': 'Unknown',
+                    'field': 'lastname',
+                },
+                {
+                    'title': 'Number',
+                    'default': '',
+                    'field': 'number',
+                },
+            ],
+        },
+    ]
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {
+                'lookup': {
+                    'sources': [
+                        'my_csv',
+                        'second_csv',
+                        'third_csv',
+                    ],
+                },
+                'reverse': {
+                    'sources': [
+                        'my_csv',
+                        'second_csv',
+                        'third_csv',
+                    ],
+                },
+            },
+        },
+    ]
+    sources = [
+        {
+            'backend': 'csv',
+            'name': 'my_csv',
+            'file': '/tmp/data/test.csv',
+            'searched_columns': ['ln', 'fn'],
+            'first_matched_columns': ['num'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+                'reverse': "{fn} {ln}",
+            }
+        },
+        {
+            'backend': 'csv',
+            'name': 'second_csv',
+            'file': '/tmp/data/test.csv',
+            'searched_columns': ['ln'],
+            'first_matched_columns': ['num'],
+            'format_columns': {
+                'lastname': "{ln}",
+                'firstname': "{fn}",
+                'number': "{num}",
+                'reverse': "{fn} {ln}",
+            },
+        },
+        {
+            'backend': 'csv',
+            'name': 'third_csv',
+            'file': '/tmp/data/other.csv',
+            'unique_column': 'clientno',
+            'searched_columns': [
+                'firstname',
+                'lastname',
+                'number',
+            ],
+            'first_matched_columns': [
+                'number',
+                'mobile',
+            ],
+            'format_columns': {
+                'reverse': "{firstname} {lastname}",
+            }
+        },
+    ]
+
+    def setUp(self):
+        super().setUp()
+        self._source_uuids = [source['uuid'] for source in self.sources]
+
+
+class TestCoreSourceManagement(BaseMultipleSourceLauncher):
 
     alice_aaa = {'column_values': ['Alice', 'AAA', '5555555555'],
                  'source': 'my_csv',
@@ -54,11 +154,10 @@ class TestCoreSourceManagement(BaseDirdIntegrationTest):
         assert_that(result['results'], contains_inanyorder(self.alice_aaa, self.alice_alan))
 
 
-class TestReverse(BaseDirdIntegrationTest):
-
-    asset = 'multiple_sources'
+class TestReverse(BaseMultipleSourceLauncher):
 
     def setUp(self):
+        super().setUp()
         self.alice_expected_fields = {'clientno': '1',
                                       'firstname': 'Alice',
                                       'lastname': 'Alan',
@@ -93,7 +192,7 @@ class TestReverse(BaseDirdIntegrationTest):
         assert_that(result, equal_to(expected))
 
     def test_reverse_with_xivo_user_uuid(self):
-        result = self.get_reverse_result('1111', 'default', VALID_UUID, VALID_TOKEN)
+        result = self.get_reverse_result('1111', 'default', VALID_UUID, VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(200))
 
     def test_reverse_when_multi_result(self):
@@ -112,9 +211,7 @@ class TestReverse(BaseDirdIntegrationTest):
         assert_that(result, equal_to(expected))
 
 
-class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
-
-    asset = 'half_broken'
+class TestLookupWhenASourceFails(HalfBrokenTestCase):
 
     def test_that_lookup_returns_some_results(self):
         result = self.lookup('al', 'default')
@@ -126,56 +223,7 @@ class TestLookupWhenASourceFails(BaseDirdIntegrationTest):
                     contains('Alice', 'AAA', '5555555555'))
 
 
-class TestCoreSourceLoadingWithABrokenConfig(BaseDirdIntegrationTest):
-
-    asset = 'broken_source_config'
-
-    def test_multiple_source_from_the_same_backend(self):
-        result = self.lookup('lice', 'default')
-
-        expected_results = [{'column_values': ['Alice', 'AAA', '5555555555'],
-                             'source': 'my_csv',
-                             'relations': EMPTY_RELATIONS}]
-
-        assert_that(result['results'],
-                    contains_inanyorder(*expected_results))
-
-
-class TestBrokenDisplayConfig(BaseDirdIntegrationTest):
-
-    asset = 'broken_display_config'
-
-    def test_given_a_broken_display_config_when_headers_then_does_not_break_the_other_displays(self):
-        result = self.headers('default')
-
-        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
-
-    def test_given_a_broken_display_config_when_lookup_then_does_not_break_the_other_displays(self):
-        result = self.lookup('lice', 'default')
-
-        assert_that(result['column_headers'], contains('Firstname', 'Lastname', 'Number'))
-
-
-class TestCoreSourceLoadingWithABrokenBackend(BaseDirdIntegrationTest):
-
-    asset = 'broken_backend_config'
-
-    def test_with_a_broken_backend(self):
-        result = self.lookup('lice', 'default')
-
-        expected_results = [{'column_values': ['Alice', 'AAA', '5555555555'],
-                             'source': 'my_csv',
-                             'relations': EMPTY_RELATIONS}]
-
-        assert_that(result['results'],
-                    contains_inanyorder(*expected_results))
-        assert_that(self.service_logs(), contains_string('There is an error with this module: broken'))
-        assert_that(self.service_logs(), contains_string('has no name'))
-
-
-class TestDisplay(BaseDirdIntegrationTest):
-
-    asset = 'csv_with_multiple_displays'
+class TestDisplay(CSVWithMultipleDisplayTestCase):
 
     def test_that_the_display_is_really_applied_to_lookup(self):
         result = self.lookup('lice', 'default')
@@ -217,27 +265,10 @@ class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
         assert_that(name, is_not(is_in(sh.docker('ps'))))
 
 
-class TestWithAnotherConfigDir(BaseDirdIntegrationTest):
-
-    asset = 'in_plugins_d'
-
-    def test_that_dird_can_load_source_plugins_in_another_dir(self):
-        result = self.lookup('lice', 'default')
-
-        expected_results = [{'column_values': ['Alice', 'AAA', '5555555555'],
-                             'source': 'my_csv',
-                             'relations': EMPTY_RELATIONS}]
-
-        assert_that(result['results'],
-                    contains_inanyorder(*expected_results))
-
-
-class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
-
-    asset = 'sample_backend'
+class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
 
     def test_that_lookup_returns_404(self):
-        result = self.get_lookup_result('lice', 'unknown', token=VALID_TOKEN)
+        result = self.get_lookup_result('lice', 'unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         error = result.json()
 
@@ -246,7 +277,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
                                                      contains_string('unknown'))))
 
     def test_that_headers_returns_404(self):
-        result = self.get_headers_result('unknown', token=VALID_TOKEN)
+        result = self.get_headers_result('unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         error = result.json()
 
@@ -255,7 +286,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
                                                      contains_string('unknown'))))
 
     def test_that_favorites_returns_404(self):
-        result = self.get_favorites_result('unknown', token=VALID_TOKEN)
+        result = self.get_favorites_result('unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         error = result.json()
 
@@ -264,7 +295,7 @@ class Test404WhenUnknownProfile(BaseDirdIntegrationTest):
                                                      contains_string('unknown'))))
 
     def test_that_personal_returns_404(self):
-        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN)
+        result = self.get_personal_with_profile_result('unknown', token=VALID_TOKEN_MAIN_TENANT)
 
         error = result.json()
 

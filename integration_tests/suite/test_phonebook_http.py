@@ -17,7 +17,6 @@ from hamcrest import (
 from mock import ANY
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from xivo_test_helpers.hamcrest.raises import raises
-from wazo_dird_client import Client
 
 from .base_dird_integration_test import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
@@ -37,16 +36,6 @@ class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
         'db_uri': 'db',
     }
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.host = 'localhost'
-        cls.port = cls.service_port(9489, 'dird')
-
-    @property
-    def client(self):
-        return self.get_client()
-
     def assert_unknown_source_exception(self, source_uuid, exception):
         assert_that(exception.response.status_code, equal_to(404))
         assert_that(
@@ -57,9 +46,6 @@ class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
                 details=has_entries(uuid=source_uuid),
             )
         )
-
-    def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
-        return Client(self.host, self.port, token=token, verify_certificate=False)
 
     @contextmanager
     def source(self, client, *args, **kwargs):

@@ -1,45 +1,9 @@
 enabled_plugins:
   backends:
     wazo: true
-  services:
-    lookup: true
-    favorites: true
   views:
     default_json: true
-
-views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        field: firstname
-      -
-        title: Lastname
-        field: lastname
-      -
-        title: Number
-        default:
-        field: exten
-      -
-        title: Mobile
-        default:
-        mobile_phone_number:
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        wazo_america: true
-        wazo_asia: true
-        wazo_europe: true
-  favorites:
-    default:
-      sources:
-        wazo_america: true
-        wazo_asia: true
-        wazo_europe: true
+    wazo_backend: true
 
 rest_api:
   https:

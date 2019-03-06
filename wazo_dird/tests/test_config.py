@@ -58,20 +58,3 @@ class TestConfig(TestCase):
         result = config.load(s.logger, ['-l', 'ERROR'])
 
         assert_that(result['log_level'], equal_to(logging.ERROR))
-
-    def test_multiple_profile_type_number_return_true(self, _):
-        profile = [
-            {'title': 'Number', 'type': 'number'},
-            {'title': 'Mobile', 'type': 'number'},
-        ]
-        result = config._multiple_profile_type_number(profile)
-
-        assert_that(result, equal_to(True))
-
-    def test_multiple_profile_type_number_return_false(self, _):
-        profile = [
-            {'title': 'Number', 'type': 'number'},
-        ]
-        result = config._multiple_profile_type_number(profile)
-
-        assert_that(result, equal_to(False))

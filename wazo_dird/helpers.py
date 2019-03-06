@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+
+from collections import namedtuple
 from flask import request
 from requests import HTTPError
 from xivo.tenant_flask_helpers import Tenant
@@ -10,6 +12,31 @@ from wazo_dird import BaseViewPlugin
 from wazo_dird.rest_api import AuthResource
 
 logger = logging.getLogger()
+
+
+DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
+
+
+class DisplayAwareResource:
+
+    def build_display(self, profile_config):
+        display = profile_config.get('display', {})
+        return self._make_display(display)
+
+    @staticmethod
+    def _make_display(display):
+        columns = display.get('columns')
+        if not columns:
+            return
+
+        return [
+            DisplayColumn(
+                column.get('title'),
+                column.get('type'),
+                column.get('default'),
+                column.get('field'),
+            ) for column in columns
+        ]
 
 
 class RaiseStopper:
@@ -27,26 +54,33 @@ class RaiseStopper:
 
 class BaseService:
 
-    def __init__(self, config, sources, *args, **kwargs):
+    def __init__(self, config, source_manager, controller, *args, **kwargs):
         self._config = config
-        self._sources = sources
+        self._source_manager = source_manager
+        self._controller = controller
 
-    def config_by_profile(self, profile):
-        return self._config.get('services', {}).get(self._service_name, {}).get(profile, {})
+    def source_from_profile(self, profile_config):
+        service_config = profile_config.get('services', {}).get(self._service_name, {})
+        sources = service_config.get('sources', [])
 
-    def source_by_profile(self, profile):
-        sources = self.config_by_profile(profile).get('sources', {})
         result = []
-
-        for name, enabled in sources.items():
-            if not enabled or name not in self._sources:
+        for source in sources:
+            source = self._source_manager.get(source['uuid'])
+            if not source:
                 continue
-            result.append(self._sources[name])
+
+            result.append(source)
 
         if not result:
-            logger.warning('Cannot find "%s" sources for profile %s', self._service_name, profile)
+            logger.warning(
+                'Cannot find "%s" sources for profile %s',
+                self._service_name, profile_config['name'],
+            )
 
         return result
+
+    def get_service_config(self, profile_config):
+        return profile_config.get('services', {}).get(self._service_name, {})
 
 
 class _BaseSourceResource(AuthResource):

@@ -23,6 +23,13 @@ def delete_user(session, xivo_user_uuid):
     session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).delete()
 
 
+def extract_constraint_name(error):
+    try:
+        return error.orig.diag.constraint_name
+    except AttributeError:
+        return None
+
+
 def list_contacts_by_uuid(session, uuids):
     if not uuids:
         return []

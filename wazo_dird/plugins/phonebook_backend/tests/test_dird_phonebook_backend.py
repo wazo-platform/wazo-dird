@@ -16,7 +16,6 @@ class TestDirdPhonebook(unittest.TestCase):
 
     def setUp(self):
         self.source = PhonebookPlugin()
-        self.source._is_loaded.set()
         self.SourceResult = self.source._SourceResult = make_result_class('test', 'id', {})
         self.engine = self.source._search_engine = Mock()
 
@@ -29,7 +28,7 @@ class TestDirdPhonebook(unittest.TestCase):
         phonebooks = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
 
         with patch.object(self.source, '_crud', Mock(list=Mock(return_value=phonebooks))):
-            id_ = self.source._get_phonebook_id(s.tenant_uuid, {'phonebook_name': 'bar'})
+            id_ = self.source._get_phonebook_id(s.tenant_uuid, {'name': 'bar'})
 
         assert_that(id_, equal_to(2))
 

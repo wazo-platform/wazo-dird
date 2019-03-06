@@ -1,9 +1,7 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
-
-from collections import namedtuple
 
 from wazo_dird import BaseViewPlugin
 
@@ -28,68 +26,68 @@ class JsonViewPlugin(BaseViewPlugin):
 
     def load(self, dependencies):
         api = dependencies['api']
-        config = dependencies['config'].get('views', {})
-        displays = make_displays(config)
-
         favorite_service = dependencies['services'].get('favorites')
         lookup_service = dependencies['services'].get('lookup')
         reverse_service = dependencies['services'].get('reverse')
         personal_service = dependencies['services'].get('personal')
+        profile_service = dependencies['services'].get('profile')
+        display_service = dependencies['services'].get('display')
 
         if lookup_service:
-            Lookup.configure(displays=displays,
-                             lookup_service=lookup_service,
-                             favorite_service=favorite_service)
-
-            api.add_resource(Lookup, self.lookup_url)
+            api.add_resource(
+                Lookup,
+                self.lookup_url,
+                resource_class_args=(
+                    lookup_service,
+                    favorite_service,
+                    display_service,
+                    profile_service,
+                ),
+            )
         else:
             logger.error('%s disabled: no service plugin `lookup`', self.lookup_url)
 
         if reverse_service:
-            Reverse.configure(reverse_service=reverse_service)
-
-            api.add_resource(Reverse, self.reverse_url)
+            api.add_resource(
+                Reverse,
+                self.reverse_url,
+                resource_class_args=(
+                    reverse_service,
+                    profile_service,
+                ),
+            )
         else:
             logger.error('%s disabled: no service plugin `reverse`', self.reverse_url)
 
         if favorite_service:
-            FavoritesRead.configure(displays=displays,
-                                    favorites_service=favorite_service)
-            FavoritesWrite.configure(favorites_service=favorite_service)
-
-            api.add_resource(FavoritesRead, self.favorites_read_url)
-            api.add_resource(FavoritesWrite, self.favorites_write_url)
+            api.add_resource(
+                FavoritesRead,
+                self.favorites_read_url,
+                resource_class_args=(
+                    favorite_service,
+                    display_service,
+                    profile_service,
+                ),
+            )
+            api.add_resource(
+                FavoritesWrite,
+                self.favorites_write_url,
+                resource_class_args=(favorite_service,),
+            )
         else:
             logger.error('%s disabled: no service plugin `favorites`', self.favorites_read_url)
             logger.error('%s disabled: no service plugin `favorites`', self.favorites_write_url)
 
         if personal_service:
-            Personal.configure(displays=displays,
-                               personal_service=personal_service,
-                               favorite_service=favorite_service)
-            api.add_resource(Personal, self.personal_url)
+            api.add_resource(
+                Personal,
+                self.personal_url,
+                resource_class_args=(
+                    personal_service,
+                    favorite_service,
+                    display_service,
+                    profile_service,
+                ),
+            )
         else:
             logger.error('%s disabled: no service plugin `personal`', self.personal_url)
-
-
-def make_displays(view_config):
-    result = {}
-    for profile, display_name in view_config.get('profile_to_display', {}).items():
-        result[profile] = _make_display_from_name(view_config, display_name)
-    return result
-
-
-def _make_display_from_name(view_config, display_name):
-    if display_name not in view_config['displays']:
-        logger.warning('Display `%s` is not defined.', display_name)
-    display = view_config['displays'].get(display_name, [])
-    return [
-        DisplayColumn(column.get('title'),
-                      column.get('type'),
-                      column.get('default'),
-                      column.get('field'))
-        for column in display
-    ]
-
-
-DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])

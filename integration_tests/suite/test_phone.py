@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from xml.dom.minidom import parseString as parse_xml
@@ -9,7 +9,7 @@ from hamcrest import (
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
-    VALID_TOKEN,
+    VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
 )
 
@@ -17,44 +17,92 @@ from .base_dird_integration_test import (
 class TestPhone(BaseDirdIntegrationTest):
 
     asset = 'phone'
+    displays = [
+        {
+            'name': 'default',
+            'columns': [
+                {
+                    'field': 'phone',
+                    'type': 'number',
+                    'number_display': '{display_name}',
+                },
+            ],
+        },
+        {
+            'name': 'test_fallback',
+            'columns': [
+                {
+                    'field': 'phone',
+                    'type': 'number',
+                    'number_display': '{display_name}',
+                },
+                {
+                    'field': 'phone1',
+                    'type': 'number',
+                    'number_display': '{display_name1}',
+                },
+            ],
+        },
+    ]
+    sources = [
+        {
+            'backend': 'csv',
+            'name': 'test_sorted',
+            'file': '/tmp/data/test_sorted.csv',
+            'searched_columns': ['fn'],
+            'format_columns': {
+                'display_name': "{fn}",
+                'phone': "{num}",
+            },
+        },
+        {
+            'backend': 'csv',
+            'name': 'test_fallback',
+            'file': '/tmp/data/test_fallback.csv',
+            'searched_columns': ['fn', 'fn1'],
+            'format_columns': {
+                'display_name': "{fn}",
+                'display_name1': "{fn1}",
+                'phone': "{num}",
+                'phone1': "{num1}",
+            },
+        }
+    ]
+    profiles = [
+        {
+            'name': 'test_fallback',
+            'display': 'test_fallback',
+            'services': {'lookup': {'sources': ['test_fallback']}},
+        },
+        {
+            'name': 'test_sorted',
+            'display': 'default',
+            'services': {'lookup': {'sources': ['test_sorted']}},
+        },
+    ]
 
     def test_no_fallback_no_multiple_results(self):
-        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Ali', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(
+            'test_fallback', VALID_UUID, term='Ali', token=VALID_TOKEN_MAIN_TENANT,
+        )
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('Alice', '101')]))
 
-    def test_fallback_no_multiple_results(self):
-        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Bob', token=VALID_TOKEN)
-
-        results = self._get_directory_entries(xml_content)
-
-        assert_that(results, equal_to([('Bobby', '201')]))
-
-    def test_no_fallback_multiple_results(self):
-        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Char', token=VALID_TOKEN)
-
-        results = self._get_directory_entries(xml_content)
-
-        assert_that(results, equal_to([('Charles', '301'), ('Charles', '302')]))
-
     def test_no_results(self):
-        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Dia', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(
+            'test_fallback', VALID_UUID, term='Dia', token=VALID_TOKEN_MAIN_TENANT,
+        )
 
         results = self._get_directory_entries(xml_content)
 
         assert_that(results, equal_to([('No entries', '')]))
 
-    def test_fallback_multiple_results(self):
-        xml_content = self.get_lookup_cisco('test_fallback', VALID_UUID, term='Eti', token=VALID_TOKEN)
-
-        results = self._get_directory_entries(xml_content)
-
-        assert_that(results, equal_to([('Etienne', '501'), ('Etienne', '502')]))
-
     def test_results_are_sorted(self):
-        xml_content = self.get_lookup_cisco('test_sorted', VALID_UUID, term='A', token=VALID_TOKEN)
+        xml_content = self.get_lookup_cisco(
+            'test_sorted', VALID_UUID, term='A', token=VALID_TOKEN_MAIN_TENANT,
+        )
 
         results = self._get_directory_entries(xml_content)
 

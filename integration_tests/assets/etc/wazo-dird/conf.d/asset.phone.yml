@@ -1,43 +1,9 @@
 enabled_plugins:
   backends:
     csv: true
-  services:
-    lookup: true
   views:
     cisco_view: true
-
-views:
-  displays_phone:
-    default:
-      name:
-        - display_name
-      number:
-        -
-          field:
-            - phone
-    test_fallback:
-      name:
-        - display_name
-        - display_name1
-      number:
-        -
-          field:
-            - phone
-        -
-          field:
-            - phone1
-  profile_to_display_phone:
-    test_fallback: test_fallback
-    test_sorted: default
-
-services:
-  lookup:
-    test_fallback:
-      sources:
-        test_fallback: true
-    test_sorted:
-      sources:
-        test_sorted: true
+    csv_backend: true
 
 rest_api:
   https:

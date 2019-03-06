@@ -1,48 +1,11 @@
 enabled_plugins:
   backends:
     personal: true
-  services:
-    personal: true
-    favorites: true
-    lookup: true
-    reverse: true
-    cleanup: true
   views:
     default_json: true
     headers_view: true
     personal_view: true
-
-views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        field: firstname
-      -
-        title: Lastname
-        field: lastname
-      -
-        title: Number
-        field: number
-      -
-        title: Favorite
-        type: favorite
-  profile_to_display:
-    default: default_display
-
-services:
-  favorites:
-    default:
-      sources:
-        personal: true
-  lookup:
-    default:
-      sources:
-        personal: true
-  reverse:
-    default:
-      sources:
-        personal: true
+    personal_backend: true
 
 rest_api:
   https:

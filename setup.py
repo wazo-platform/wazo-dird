@@ -62,10 +62,12 @@ setup(
         'wazo_dird.services': [
             'cleanup = wazo_dird.plugins.cleanup_service.plugin:StorageCleanupServicePlugin',
             'config = wazo_dird.plugins.config_service.plugin:ConfigServicePlugin',
+            'display = wazo_dird.plugins.display_service.plugin:DisplayServicePlugin',
             'favorites = wazo_dird.plugins.favorites_service.plugin:FavoritesServicePlugin',
             'lookup = wazo_dird.plugins.lookup_service.plugin:LookupServicePlugin',
             'personal = wazo_dird.plugins.personal_service.plugin:PersonalServicePlugin',
             'phonebook = wazo_dird.plugins.phonebook_service.plugin:PhonebookServicePlugin',
+            'profile = wazo_dird.plugins.profile_service.plugin:ProfileServicePlugin',
             'reverse = wazo_dird.plugins.reverse_service.plugin:ReverseServicePlugin',
             'service_discovery = wazo_dird.plugins.service_discovery_service.plugin:ServiceDiscoveryServicePlugin',
             'source = wazo_dird.plugins.source_service.plugin:SourceServicePlugin',
@@ -73,11 +75,10 @@ setup(
         'wazo_dird.backends': [
             'csv = wazo_dird.plugins.csv_backend.plugin:CSVPlugin',
             'csv_ws = wazo_dird.plugins.csv_ws_backend.plugin:CSVWSPlugin',
-            'dird_phonebook = wazo_dird.plugins.phonebook_backend.plugin:PhonebookPlugin',
+            'phonebook = wazo_dird.plugins.phonebook_backend.plugin:PhonebookPlugin',
             'ldap = wazo_dird.plugins.ldap_backend.plugin:LDAPPlugin',
             'personal = wazo_dird.plugins.personal_backend.plugin:PersonalBackend',
             'wazo = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserPlugin',
-            'sample = wazo_dird.plugins.sample_backend.plugin:SamplePlugin',
         ],
         'wazo_dird.views': [
             'api_view = wazo_dird.plugins.api.plugin:ApiViewPlugin',

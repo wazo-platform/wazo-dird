@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from hamcrest import (
@@ -9,7 +9,7 @@ from hamcrest import (
 
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
-    VALID_TOKEN,
+    VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_NO_ACL,
 )
 
@@ -17,6 +17,13 @@ from .base_dird_integration_test import (
 class TestAuthentication(BaseDirdIntegrationTest):
 
     asset = 'auth-only'
+    profiles = [
+        {
+            'name': 'default',
+            'display': 'default_display',
+            'services': {},
+        },
+    ]
 
     def test_no_auth_gives_401(self):
         result = self.get_headers_result('default', token=None)
@@ -24,7 +31,7 @@ class TestAuthentication(BaseDirdIntegrationTest):
         assert_that(result.status_code, equal_to(401))
 
     def test_valid_auth_gives_result(self):
-        result = self.get_headers_result('default', token=VALID_TOKEN)
+        result = self.get_headers_result('default', token=VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(200))
 
@@ -39,7 +46,7 @@ class TestAuthenticationError(BaseDirdIntegrationTest):
     asset = 'no_auth_server'
 
     def test_no_auth_server_gives_503(self):
-        result = self.get_headers_result('default', token=VALID_TOKEN)
+        result = self.get_headers_result('default', token=VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(503))
         assert_that(result.json()['reason'][0], contains_string('Authentication server unreachable'))

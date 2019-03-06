@@ -1,7 +1,6 @@
 # Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import os
 import random
 import string
 import unittest
@@ -9,13 +8,11 @@ import unittest
 from uuid import uuid4
 from mock import Mock
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to
-from sqlalchemy.engine import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
 
 from wazo_dird import database
 from .base_dird_integration_test import BaseDirdIntegrationTest, BackendWrapper
 
-Session = scoped_session(sessionmaker())
+Session = None
 DB_URI = None
 
 
@@ -25,15 +22,11 @@ class DBStarter(BaseDirdIntegrationTest):
 
 
 def setup_module():
+    global Session
     global DB_URI
     DBStarter.setUpClass()
-    db_port = DBStarter.service_port(5432, 'db')
-    DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port))
-    engine = create_engine(DB_URI)
-    database.Base.metadata.bind = engine
-    database.Base.metadata.reflect()
-    database.Base.metadata.drop_all()
-    database.Base.metadata.create_all()
+    Session = DBStarter.Session
+    DB_URI = DBStarter.db_uri
 
 
 def teardown_module():
@@ -72,8 +65,11 @@ class TestPhonebookBackend(unittest.TestCase):
         self.phonebook_contact_crud = database.PhonebookContactCRUD(Session)
 
         self.phonebook = self.phonebook_crud.create(self.tenant_uuid, {'name': 'hogwarts'})
-        contacts = [self.phonebook_contact_crud.create(self.tenant_uuid, self.phonebook['id'], c)
-                    for c in contact_bodies]
+        print(self.phonebook)
+        contacts = [
+            self.phonebook_contact_crud.create(self.tenant_uuid, self.phonebook['id'], c)
+            for c in contact_bodies
+        ]
         (
             self.dumbledore,
             self.hermione,
@@ -84,9 +80,9 @@ class TestPhonebookBackend(unittest.TestCase):
             self.ron,
         ) = contacts
         config = {
-            'name': 'dird_phonebook',
+            'tenant_uuid': self.tenant_uuid,
+            'name': 'hogwarts',
             'db_uri': DB_URI,
-            'tenant': self.tenant,
             'phonebook_id': self.phonebook['id'],
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['number'],
@@ -99,27 +95,10 @@ class TestPhonebookBackend(unittest.TestCase):
             'auth_client': self.auth_client,
             'token_renewer': self.token_renewer,
         }
-        backend = BackendWrapper('dird_phonebook', dependencies)
-        backend._source.finish_loading(dependencies)
-        return backend
+        return BackendWrapper('phonebook', dependencies)
 
     def tearDown(self):
         self.phonebook_crud.delete(self.tenant_uuid, self.phonebook['id'])
-
-    def test_a_config_without_phonebook_id(self):
-        config = {
-            'name': 'dird_phonebook',
-            'db_uri': DB_URI,
-            'tenant': self.tenant,
-            'phonebook_name': 'hogwarts',
-            'searched_columns': ['firstname', 'lastname'],
-            'first_matched_columns': ['number'],
-        }
-        backend = self._load_backend(config)
-
-        result = backend.search('grid')
-
-        assert_that(result, contains(self.hagrid))
 
     def test_that_searching_for_grid_returns_agrid(self):
         result = self.backend.search('grid')

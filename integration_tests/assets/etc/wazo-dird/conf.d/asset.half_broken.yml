@@ -2,44 +2,9 @@ enabled_plugins:
   backends:
     csv: true
     broken_lookup: true
-  services:
-    favorites: true
-    lookup: true
   views:
     default_json: true
-
-views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        default: Unknown
-        field: firstname
-      -
-        title: Lastname
-        default: Unknown
-        field: lastname
-      -
-        title: Number
-        default:
-        field: number
-  profile_to_display:
-    default: default_display
-
-services:
-  lookup:
-    default:
-      sources:
-        my_csv: true
-        broken: true
-        my_other_csv: true
-      timeout: 0.5
-  favorites:
-    default:
-      sources:
-        my_csv: true
-        broken: true
-        my_other_csv: true
+    csv_backend: true
 
 rest_api:
   https:
@@ -47,36 +12,6 @@ rest_api:
     port: 9489
     certificate: /usr/local/share/ssl/dird/server.crt
     private_key: /usr/local/share/ssl/dird/server.key
-
-sources:
-  my_csv:
-    type: csv
-    name: my_csv
-    file: /tmp/data/test.csv
-    separator: "|"
-    unique_column: id
-    searched_columns:
-      - fn
-      - ln
-    format_columns:
-      lastname: "{ln}"
-      firstname: "{fn}"
-      number: "{num}"
-  my_other_csv:
-    type: csv
-    name: my_other_csv
-    file: /tmp/data/test.csv
-    separator: "|"
-    searched_columns:
-      - fn
-      - ln
-    format_columns:
-      lastname: "{ln}"
-      firstname: "{fn}"
-      number: "{num}"
-  broken:
-    type: broken_lookup
-    name: broken
 
 bus:
   enabled: false

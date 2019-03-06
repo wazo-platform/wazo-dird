@@ -6,14 +6,8 @@ enabled_plugins:
     csv: true
     csv_ws: true
     personal: true
-    dird_phonebook: true
+    phonebook: true
     unknown: true
-  services:
-    lookup: true
-    favorites: true
-    personal: true
-    reverse: true
-    source: true
   views:
     backends_view: true
     csv_backend: true
@@ -27,49 +21,10 @@ enabled_plugins:
     personal_backend: true
     phonebook_backend: true
 
-views:
-  displays:
-    default_display:
-      -
-        title: Firstname
-        default: Unknown
-        field: firstname
-      -
-        title: Lastname
-        default: Unknown
-        field: lastname
-      -
-        title: Number
-        default:
-        field: number
-      -
-        field: favorite
-        type: favorite
-  displays_phone:
-    default:
-      name:
-        - display_name
-      number:
-        -
-          field:
-            - phone
-
-  profile_to_display:
-    default: default_display
-  profile_to_display_phone:
-    default_phone: default
-
-services:
-  lookup:
-    default:
-      sources:
-        sample: true
-      timeout: 0.5
-  favorites:
-    default:
-      sources:
-        sample: true
-      timeout: 0.5
+auth:
+  host: auth
+  username: any
+  password: thing
 
 rest_api:
   https:
@@ -79,7 +34,11 @@ rest_api:
     private_key: /usr/local/share/ssl/dird/server.key
 
 bus:
-  enabled: false
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest
+  enabled: true
 
 service_discovery:
   enabled: false

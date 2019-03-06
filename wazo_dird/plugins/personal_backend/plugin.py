@@ -42,9 +42,11 @@ class PersonalBackend(BaseSourcePlugin):
             is_deletable=True
         )
         self._SourceResult = lambda contact: result_class(self._remove_empty_values(contact))
-        self._search_engine = search_engine or self._new_search_engine(config['config']['db_uri'],
-                                                                       config['config'].get(self.SEARCHED_COLUMNS),
-                                                                       config['config'].get(self.FIRST_MATCHED_COLUMNS))
+        self._search_engine = search_engine or self._new_search_engine(
+            config['config']['db_uri'],
+            config['config'].get(self.SEARCHED_COLUMNS),
+            config['config'].get(self.FIRST_MATCHED_COLUMNS),
+        )
 
     def search(self, term, args=None):
         logger.debug('Searching personal contacts with %s', term)
@@ -60,7 +62,7 @@ class PersonalBackend(BaseSourcePlugin):
             return contact
 
     def list(self, source_entry_ids, args):
-        logger.debug('Listing personal contacts')
+        logger.debug('Listing personal contacts: %s', source_entry_ids)
         user_uuid = args['token_infos']['xivo_user_uuid']
         matching_contacts = self._search_engine.list_personal_contacts(user_uuid, source_entry_ids)
         return self.format_contacts(matching_contacts)
@@ -71,9 +73,11 @@ class PersonalBackend(BaseSourcePlugin):
     def _new_search_engine(self, db_uri, searched_columns, first_match_columns):
         engine = create_engine(db_uri)
         Session.configure(bind=engine)
-        return database.PersonalContactSearchEngine(Session,
-                                                    searched_columns,
-                                                    first_match_columns)
+        return database.PersonalContactSearchEngine(
+            Session,
+            searched_columns,
+            first_match_columns,
+        )
 
     @staticmethod
     def _remove_empty_values(dict_):

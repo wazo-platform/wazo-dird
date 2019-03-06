@@ -1,19 +1,22 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import logging
 import re
 
 from collections import namedtuple
 from operator import attrgetter
-from wazo_dird.exception import InvalidConfigError, ProfileNotFoundError
+
+logger = logging.getLogger(__name__)
 
 
-def new_phone_lookup_service_from_args(args):
-    # args is the same "args" argument that is passed to the load method of view plugins
-    lookup_service = args['services']['lookup']
-    views_config = args['config'].get('views', {})
-    formatters = _new_formatters_from_config(views_config)
-    return _PhoneLookupService(lookup_service, formatters)
+def new_phone_lookup_service_from_args(dependencies):
+    # dependencies is the same "dependencies" argument that is passed to the load method of view plugins
+    lookup_service = dependencies['services']['lookup']
+    display_service = dependencies['services']['display']
+    profile_service = dependencies['services']['profile']
+
+    return _PhoneLookupService(lookup_service, display_service, profile_service)
 
 
 _PhoneFormattedResult = namedtuple('_PhoneFormattedResult', ['name', 'number'])
@@ -21,16 +24,23 @@ _PhoneFormattedResult = namedtuple('_PhoneFormattedResult', ['name', 'number'])
 
 class _PhoneLookupService:
 
-    def __init__(self, lookup_service, formatters):
+    def __init__(self, lookup_service, display_service, profile_service):
         self._lookup_service = lookup_service
-        self._formatters = formatters
+        self._display_service = display_service
+        self.profile_service = profile_service
 
-    def lookup(self, term, profile, xivo_user_uuid, token, limit=None, offset=0):
-        formatter = self._formatters.get(profile)
-        if formatter is None:
-            raise ProfileNotFoundError(profile)
+    def lookup(self, profile_config, term, tenant_uuid, user_uuid, token, limit=None, offset=0):
+        display = profile_config['display']
+        formatter = _PhoneResultFormatter(display)
 
-        lookup_results = self._lookup_service.lookup(term, profile, xivo_user_uuid, {}, token)
+        lookup_results = self._lookup_service.lookup(
+            profile_config,
+            tenant_uuid,
+            term,
+            xivo_user_uuid=user_uuid,
+            args={},
+            token=token,
+        )
         formatted_results = formatter.format_results(lookup_results)
         formatted_results.sort(key=attrgetter('name', 'number'))
 
@@ -73,9 +83,8 @@ class _PhoneResultFormatter:
     _SPECIAL_NUMBER_REGEX = re.compile(r'^\+(\d+)\(\d+\)(\d+)$')
     _PARENTHESES_REGEX = re.compile(r'[\(\)]')
 
-    def __init__(self, name_config, number_config):
-        self._name_config = name_config
-        self._number_config = number_config
+    def __init__(self, display):
+        self._number_fields = self._extract_number_fields(display)
 
     def format_results(self, lookup_results):
         results = []
@@ -84,33 +93,36 @@ class _PhoneResultFormatter:
         return results
 
     def _format_result(self, fields, out):
-        name = self._get_value_from_candidates(fields, self._name_config)
-        if name is None:
-            return
-
-        for number_config_item in self._number_config:
-            pretty_number = self._get_value_from_candidates(fields, number_config_item['field'])
-            if pretty_number is None:
+        for display_name, number in self._extract_results(fields):
+            number = self._normalize_number(number)
+            if not number:
                 continue
+            out.append(_PhoneFormattedResult(display_name, number))
 
-            number = self._extract_number_from_pretty_number(pretty_number)
+    def _normalize_number(self, number):
+        number = self._extract_number_from_pretty_number(number)
+        return number
+
+    def _extract_results(self, fields):
+        for candidate in self._number_fields:
+            number = fields.get(candidate['field'])
             if not number:
                 continue
 
-            name_format = number_config_item.get('name_format')
-            if name_format:
-                display_name = name_format.format(name=name, number=number)
-            else:
-                display_name = name
+            number_display = candidate.get('number_display')
+            if not number_display:
+                continue
 
-            out.append(_PhoneFormattedResult(display_name, number))
+            try:
+                name = number_display.format(**fields)
+            except KeyError:
+                logger.info(
+                    'phone lookup found a result be could not format a name %s %s',
+                    number_display, fields,
+                )
+                continue
 
-    def _get_value_from_candidates(self, fields, candidates):
-        for candidate in candidates:
-            v = fields.get(candidate)
-            if v:
-                return v
-        return None
+            yield name, number
 
     def _extract_number_from_pretty_number(self, pretty_number):
         number_with_parentheses = self._INVALID_CHARACTERS_REGEX.sub('', pretty_number)
@@ -118,109 +130,12 @@ class _PhoneResultFormatter:
         number_with_parentheses = self._SPECIAL_NUMBER_REGEX.sub(r'00\1\2', number_with_parentheses)
         return self._PARENTHESES_REGEX.sub('', number_with_parentheses)
 
-    @classmethod
-    def new_from_config(cls, display_config):
-        missing = object()
+    @staticmethod
+    def _extract_number_fields(display):
+        if not display:
+            return []
 
-        if not isinstance(display_config, dict):
-            # XXX error location path is in fact "views/displays_phone/<display_name>"... but we don't
-            #     have the display_name information here...
-            raise InvalidConfigError('views/displays_phone',
-                                     'expected dict: was {}'.format(display_config))
-
-        name_config = display_config.get('name', missing)
-        if name_config is missing:
-            raise InvalidConfigError('views/displays_phone',
-                                     'missing "name" key')
-
-        if not isinstance(name_config, list):
-            raise InvalidConfigError('views/displays_phone/name',
-                                     'expected list: was {}'.format(name_config))
-
-        if not name_config:
-            raise InvalidConfigError('views/displays_phone/name',
-                                     'expected length > 0')
-
-        for i, candidate in enumerate(name_config):
-            if not isinstance(candidate, str):
-                raise InvalidConfigError('views/displays_phone/name/{}'.format(i),
-                                         'expected str: was {}'.format(candidate))
-
-        number_config = display_config.get('number', missing)
-        if number_config is missing:
-            raise InvalidConfigError('views/displays_phone', 'missing "number" key')
-
-        if not isinstance(number_config, list):
-            raise InvalidConfigError('views/displays_phone/number',
-                                     'expected list: was {}'.format(number_config))
-
-        if not number_config:
-            raise InvalidConfigError('views/displays_phone/number',
-                                     'expected length > 0')
-
-        for i, number_config_item in enumerate(number_config):
-            if not isinstance(number_config_item, dict):
-                raise InvalidConfigError('views/displays_phone/number/{}'.format(i),
-                                         'expected dict: was {}'.format(number_config_item))
-
-            field = number_config_item.get('field', missing)
-            if field is missing:
-                raise InvalidConfigError('views/displays_phone/number/{}'.format(i),
-                                         'missing "field" key')
-
-            if not isinstance(field, list):
-                raise InvalidConfigError('views/displays_phone/number/{}/field'.format(i),
-                                         'expected list: was {}'.format(field))
-
-            if not field:
-                raise InvalidConfigError('views/displays_phone/number/{}/field'.format(i),
-                                         'expected length > 0')
-
-            for j, candidate in enumerate(field):
-                if not isinstance(candidate, str):
-                    raise InvalidConfigError('views/displays_phone/number/{}/field/{}'.format(i, j),
-                                             'expected str: was {}'.format(candidate))
-
-            name_format = number_config_item.get('name_format', missing)
-            if name_format is not missing and not isinstance(name_format, str):
-                raise InvalidConfigError('views/displays_phone/number/{}/name_format'.format(i),
-                                         'expected str: was {}'.format(name_format))
-
-        return cls(name_config, number_config)
-
-
-def _new_formatters_from_config(views_config):
-    missing = object()
-
-    if not isinstance(views_config, dict):
-        raise InvalidConfigError('views', 'expected dict: was {}'.format(views_config))
-
-    displays_config = views_config.get('displays_phone', missing)
-    if displays_config is missing:
-        raise InvalidConfigError('views', 'missing "displays_phone" key')
-
-    if not isinstance(displays_config, dict):
-        raise InvalidConfigError('views/displays_phone', 'expected dict: was {}'.format(displays_config))
-
-    formatters_by_display_name = {}
-    for display_name, display_config in displays_config.items():
-        formatters_by_display_name[display_name] = _PhoneResultFormatter.new_from_config(display_config)
-
-    profile_to_display = views_config.get('profile_to_display_phone', {})
-    if not isinstance(profile_to_display, dict):
-        raise InvalidConfigError('views/profile_to_display_phone',
-                                 'expected dict: was {}'.format(profile_to_display))
-
-    formatters_by_profile_name = {}
-    for profile_name, display_name in profile_to_display.items():
-        if not isinstance(display_name, str):
-            raise InvalidConfigError('views/profile_to_display_phone/{}'.format(profile_name),
-                                     'expected str: was {}'.format(display_name))
-
-        if display_name not in formatters_by_display_name:
-            raise InvalidConfigError('views/profile_to_display_phone/{}'.format(profile_name),
-                                     'undefined display {}'.format(display_name))
-
-        formatters_by_profile_name[profile_name] = formatters_by_display_name[display_name]
-
-    return formatters_by_profile_name
+        return [
+            field for field in display['columns']
+            if field.get('type') == 'number' and field.get('field')
+        ]

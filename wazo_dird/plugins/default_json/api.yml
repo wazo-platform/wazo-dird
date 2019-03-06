@@ -26,6 +26,7 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
+      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/Term'
   /directories/reverse/{profile}/{xivo_user_uuid}:
@@ -52,6 +53,7 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
+      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/XivoUserUUID'
       - $ref: '#/parameters/Exten'
@@ -76,6 +78,7 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
+      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
   /directories/favorites/{directory}/{contact}:
     put:
@@ -94,6 +97,7 @@ paths:
         '409':
           $ref: '#/responses/DuplicateFavorite'
       parameters:
+      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Directory'
       - $ref: '#/parameters/FavoriteID'
     delete:
@@ -116,6 +120,7 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
+      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Directory'
       - $ref: '#/parameters/FavoriteID'
   /directories/personal/{profile}:
@@ -139,4 +144,5 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
+      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'

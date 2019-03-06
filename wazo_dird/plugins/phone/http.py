@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -9,9 +9,14 @@ from flask import render_template
 from flask_restful.inputs import natural
 from flask_restful import reqparse
 from time import time
+from requests.exceptions import HTTPError
 
 from wazo_dird.auth import required_acl
-from wazo_dird.exception import ProfileNotFoundError
+from wazo_dird.exception import (
+    OldAPIException,
+    ProfileNotFoundError,
+    NoSuchUser,
+)
 from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
@@ -59,10 +64,14 @@ class PhoneInput(LegacyAuthResource):
 
 class PhoneLookup(LegacyAuthResource):
 
-    def __init__(self, template, content_type, phone_lookup_service, max_item_per_page=None):
+    def __init__(
+            self, template, content_type, phone_lookup_service, auth_client,
+            max_item_per_page=None,
+    ):
         self.template = template
         self.content_type = content_type
         self.phone_lookup_service = phone_lookup_service
+        self.auth_client = auth_client
 
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('limit', type=natural, required=False, default=max_item_per_page, location='args')
@@ -79,12 +88,25 @@ class PhoneLookup(LegacyAuthResource):
         token = request.headers['X-Auth-Token']
 
         try:
-            results = self.phone_lookup_service.lookup(term,
-                                                       profile,
-                                                       xivo_user_uuid=xivo_user_uuid,
-                                                       token=token,
-                                                       limit=limit,
-                                                       offset=offset)
+            tenant_uuid = self._get_user_tenant_uuid(xivo_user_uuid)
+            profile_config = self.phone_lookup_service.profile_service.get_by_name(
+                tenant_uuid,
+                profile,
+            )
+        except OldAPIException as e:
+            logger.warning('%s', e.body['reason'][0])
+            return e.body, e.status_code
+
+        try:
+            results = self.phone_lookup_service.lookup(
+                profile_config,
+                term,
+                tenant_uuid,
+                user_uuid=xivo_user_uuid,
+                token=token,
+                limit=limit,
+                offset=offset,
+            )
         except ProfileNotFoundError:
             logger.warning('phone lookup failed: unknown profile %r', profile)
             return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
@@ -102,6 +124,15 @@ class PhoneLookup(LegacyAuthResource):
 
         return Response(response_xml, content_type=self.content_type, status=200)
 
+    def _get_user_tenant_uuid(self, user_uuid):
+        try:
+            return self.auth_client.users.get(user_uuid)['tenant_uuid']
+        except HTTPError as e:
+            response = getattr(e, 'response', None)
+            status_code = getattr(response, 'status_code', None)
+            if status_code == 404:
+                raise NoSuchUser(user_uuid)
+            raise
 
 def _build_next_url(current):
     if current == 'menu':

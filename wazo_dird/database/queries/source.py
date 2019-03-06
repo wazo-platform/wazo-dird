@@ -4,6 +4,7 @@
 from sqlalchemy import (
     and_,
     exc,
+    text,
 )
 from wazo_dird.exception import (
     DuplicatedSourceException,
@@ -77,11 +78,21 @@ class SourceCRUD(BaseDAO):
 
             return self._from_db_format(source)
 
+    def get_by_uuid(self, uuid):
+        with self.new_session() as s:
+            source = s.query(Source).filter(Source.uuid == uuid).first()
+
+            if not source:
+                raise NoSuchSource(uuid)
+
+            return self._from_db_format(source)
+
     def _list_filter(self, backend, visible_tenants, uuid=None, name=None, search=None, **list_params):
-        filter_ = and_(
-            Source.tenant_uuid.in_(visible_tenants),
-            Source.backend == backend,
-        )
+        filter_ = text('true')
+        if visible_tenants is not None:
+            filter_ = and_(filter_, Source.tenant_uuid.in_(visible_tenants))
+        if backend is not None:
+            filter_ = and_(filter_, Source.backend == backend)
         if uuid is not None:
             filter_ = and_(filter_, Source.uuid == uuid)
         if name is not None:
@@ -93,11 +104,15 @@ class SourceCRUD(BaseDAO):
         return filter_
 
     def _multi_tenant_filter(self, backend, source_uuid, visible_tenants):
-        return and_(
+        filter_ = and_(
             Source.backend == backend,
-            Source.tenant_uuid.in_(visible_tenants),
             Source.uuid == source_uuid,
         )
+
+        if visible_tenants is None:
+            return filter_
+
+        return and_(filter_, Source.tenant_uuid.in_(visible_tenants))
 
     def _paginate(self, query, limit=None, offset=None, order=None, direction=None, **ignored):
         if order and direction:
@@ -117,8 +132,8 @@ class SourceCRUD(BaseDAO):
 
         return query
 
-    def _to_db_format(self, backend, tenant_uuid, *args, **kwargs):
-        source = Source(backend=backend, tenant_uuid=tenant_uuid)
+    def _to_db_format(self, backend, tenant_uuid, uuid=None, *args, **kwargs):
+        source = Source(uuid=uuid, backend=backend, tenant_uuid=tenant_uuid)
         return self._update_to_db_format(source, *args, **kwargs)
 
     @staticmethod
@@ -141,10 +156,11 @@ class SourceCRUD(BaseDAO):
     def _from_db_format(source):
         return dict(
             uuid=source.uuid,
+            backend=source.backend,
             name=source.name,
             tenant_uuid=source.tenant_uuid,
             searched_columns=source.searched_columns,
             first_matched_columns=source.first_matched_columns,
             format_columns=source.format_columns,
-            **source.extra_fields
+            **source.extra_fields or {}
         )

@@ -1,13 +1,31 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from time import time
 from xivo.rest_api_helpers import APIException
+
+
+class OldAPIException(Exception):
+
+    def __init__(self, status_code, body):
+        self.status_code = status_code
+        self.body = body
 
 
 class DatabaseServiceUnavailable(Exception):
 
     def __init__(self):
         super().__init__('Postgresql is unavailable')
+
+
+class NoSuchDisplay(APIException):
+
+    def __init__(self, display_uuid):
+        msg = 'No such display: "{}"'.format(display_uuid)
+        details = {
+            'uuid': display_uuid,
+        }
+        super().__init__(404, msg, 'unknown-display', details, 'displays')
 
 
 class NoSuchFavorite(ValueError):
@@ -22,6 +40,30 @@ class NoSuchPhonebook(ValueError):
     def __init__(self, phonebook_id):
         message = 'No such phonebook: {}'.format(phonebook_id)
         super().__init__(message)
+
+
+class NoSuchProfile(OldAPIException):
+
+    def __init__(self, profile):
+        status_code = 404
+        body = {
+            'reason': ['The profile `{}` does not exist'.format(profile)],
+            'timestamp': [time()],
+            'status_code': status_code,
+        }
+        super().__init__(status_code, body)
+
+
+class NoSuchUser(OldAPIException):
+
+    def __init__(self, user_uuid):
+        status_code = 404
+        body = {
+            'reason': ['The user `{}` does not exist'.format(user_uuid)],
+            'timestamp': [time()],
+            'status_code': status_code,
+        }
+        super().__init__(status_code, body)
 
 
 class NoSuchContact(ValueError):
