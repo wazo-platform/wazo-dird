@@ -142,7 +142,7 @@ class _SourceService:
 
     def _add_office365_source(self, tenant_uuid, name):
         backend = 'office365'
-        body = dict(self._personal_source_body)
+        body = dict(self._office_365_source_body)
         body['name'] = 'auto_{}_{}'.format(backend, name)
         body['tenant_uuid'] = tenant_uuid
         body['db_uri'] = self._db_uri
