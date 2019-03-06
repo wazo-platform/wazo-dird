@@ -1,5 +1,5 @@
 # Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
-# SPDX-License-Identifier: GPL-3.0+
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import (Column, ForeignKey, Integer, schema, String, text, Text)
 from sqlalchemy.orm import relationship

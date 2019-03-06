@@ -1,5 +1,5 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
-# SPDX-License-Identifier: GPL-3.0+
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_dird import BaseViewPlugin
 from wazo_dird.plugins.phone_helpers import new_phone_lookup_service_from_args

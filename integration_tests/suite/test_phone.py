@@ -1,5 +1,5 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
-# SPDX-License-Identifier: GPL-3.0+
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from xml.dom.minidom import parseString as parse_xml
 from hamcrest import (

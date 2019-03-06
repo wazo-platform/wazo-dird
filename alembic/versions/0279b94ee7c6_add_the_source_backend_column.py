@@ -1,5 +1,5 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
-# SPDX-License-Identifier: GPL-3.0+
+# SPDX-License-Identifier: GPL-3.0-or-later
 """add the source.backend column
 
 Revision ID: 0279b94ee7c6
