@@ -84,12 +84,14 @@ class _SourceService:
         },
         'endpoint': 'https://graph.microsoft.com/v1.0/me/contacts',
         'format_columns': {
-            'name': '{firstname} {lastname}',
-            'phone_mobile': '{mobile}',
-            'reverse': '{firstname} {lastname}',
+            'name': '{givenName} {surname}',
+            'phone_mobile': '{mobilePhone}',
+            'reverse': '{givenName} {surname}',
+            'phone': '{businessPhones[0]}',
+            'email': '{emailAddress[0][address]}',
         },
-        'searched_columns': ['firstname', 'lastname', 'mobile', 'number'],
-        'first_matched_columns': ['mobile', 'number'],
+        'searched_columns': ['givenName', 'surname', 'businessPhones'],
+        'first_matched_columns': ['mobilePhone', 'businessPhones'],
     }
 
     def __init__(self, crud, bus, db_uri):
