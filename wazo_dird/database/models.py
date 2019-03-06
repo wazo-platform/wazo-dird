@@ -98,6 +98,9 @@ class Phonebook(Base):
 class Profile(Base):
 
     __tablename__ = 'dird_profile'
+    __table_args__ = (
+        schema.UniqueConstraint('name', 'tenant_uuid'),
+    )
 
     uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE'))
