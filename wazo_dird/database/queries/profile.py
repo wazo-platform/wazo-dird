@@ -69,7 +69,7 @@ class ProfileCRUD(BaseDAO):
         with self.new_session() as s:
             query = s.query(Profile).filter(filter_)
             # add pagination here
-            return [self._profile_schema.dump(row).data for row in query.all()]
+            return self._profile_schema.dump(query.all(), many=True).data
 
     def _list_filter(self, visible_tenants, uuid=None, name=None, **list_params):
         filter_ = text('true')

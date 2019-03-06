@@ -1,7 +1,6 @@
 # Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from uuid import uuid4
 from sqlalchemy import (Column, ForeignKey, Integer, schema, String, text, Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -14,7 +13,7 @@ from sqlalchemy.dialects.postgresql import (
 
 Base = declarative_base()
 
-UUID_LENGTH = len(str(uuid4()))
+UUID_LENGTH = 36
 
 
 class Contact(Base):
@@ -48,6 +47,7 @@ class Display(Base):
     uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE'))
     name = Column(Text(), nullable=False)
+
     columns = relationship('DisplayColumn', viewonly=True)
 
 
@@ -62,6 +62,7 @@ class DisplayColumn(Base):
     type = Column(Text())
     default = Column(Text())
     number_display = Column(Text())
+
     display = relationship('Display')
 
 
@@ -121,6 +122,7 @@ class ProfileServiceSource(Base):
         ForeignKey('dird_source.uuid', ondelete='CASCADE'),
         primary_key=True,
     )
+
     sources = relationship('Source')
 
 

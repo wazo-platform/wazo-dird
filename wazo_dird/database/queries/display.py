@@ -42,14 +42,14 @@ class DisplayCRUD(BaseDAO):
             if not display:
                 raise NoSuchDisplay(display_uuid)
 
-            return self._from_db_format(display)
+            return self._display_schema.dump(display).data
 
     def list_(self, visible_tenants, **list_params):
         filter_ = self._list_filter(visible_tenants, **list_params)
         with self.new_session() as s:
             query = s.query(Display).filter(filter_)
             query = self._paginate(query, **list_params)
-            return [self._from_db_format(row) for row in query.all()]
+            return self._display_schema.dump(query.all(), many=True).data
 
     def _build_filter(self, visible_tenants, display_uuid):
         if not visible_tenants and visible_tenants is not None:
@@ -103,6 +103,3 @@ class DisplayCRUD(BaseDAO):
         session.add(display)
         session.flush()
         return display
-
-    def _from_db_format(self, display):
-        return self._display_schema.dump(display).data

@@ -73,8 +73,8 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                     'favorite',
                     'email',
                 ),
-                results=contains(has_entries(
-                    column_values=contains_inanyorder(
+                results=contains_inanyorder(has_entries(
+                    column_values=contains(
                         'Alice',
                         '1234',
                         None,
