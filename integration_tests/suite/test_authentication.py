@@ -17,36 +17,11 @@ from .base_dird_integration_test import (
 class TestAuthentication(BaseDirdIntegrationTest):
 
     asset = 'auth-only'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'default': 'Unknown',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'default': 'Unknown',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Description',
-                    'default': '',
-                    'field': 'description',
-                },
-            ],
-        },
-    ]
     profiles = [
         {
             'name': 'default',
             'display': 'default_display',
-            'services': {
-                'lookup': {'sources': []},
-                'reverse': {'sources': []},
-            },
+            'services': {},
         },
     ]
 
