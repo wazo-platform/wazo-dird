@@ -50,6 +50,10 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         self.mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
 
     def test_lookup(self):
+        # TODO add a /status and remove the sleep
+        import time
+        time.sleep(6)
+
         self._publish_tenant_created_event()
         self._publish_context_created_event()
         token = self._create_user()
