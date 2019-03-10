@@ -1,8 +1,6 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import sh
-
 from hamcrest import (
     all_of,
     any_of,
@@ -12,10 +10,13 @@ from hamcrest import (
     contains_string,
     equal_to,
     has_length,
-    is_in,
-    is_not,
 )
 
+from .helpers.base import (
+    BaseDirdIntegrationTest,
+    CSVWithMultipleDisplayTestCase,
+    HalfBrokenTestCase,
+)
 from .helpers.config import (
     new_multiple_sources_config,
 )
@@ -23,12 +24,6 @@ from .helpers.config import (
 from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
-)
-
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
-    CSVWithMultipleDisplayTestCase,
-    HalfBrokenTestCase,
 )
 
 
@@ -43,17 +38,7 @@ EMPTY_RELATIONS = {'xivo_id': None,
 class BaseMultipleSourceLauncher(BaseDirdIntegrationTest):
 
     asset = 'multiple_sources'
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls._config = new_multiple_sources_config(cls.Session)
-        cls._config.setup()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls._config.tear_down()
-        super().tearDownClass()
+    config_factory = new_multiple_sources_config
 
 
 class TestCoreSourceManagement(BaseMultipleSourceLauncher):
@@ -175,17 +160,6 @@ class TestDisplay(CSVWithMultipleDisplayTestCase):
                     contains('fn', 'ln', 'Empty', None, 'Default'))
         assert_that(result['column_types'],
                     contains('firstname', None, None, 'status', None))
-
-
-class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
-
-    asset = 'no_plugins'
-
-    def test_that_dird_does_not_run_when_not_configured(self):
-        self._assert_no_docker_image_running(self.service)
-
-    def _assert_no_docker_image_running(self, name):
-        assert_that(name, is_not(is_in(sh.docker('ps'))))
 
 
 class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):

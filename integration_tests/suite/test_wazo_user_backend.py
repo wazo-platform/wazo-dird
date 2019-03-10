@@ -14,18 +14,19 @@ from hamcrest import (
 
 from xivo_test_helpers import until
 
+from .helpers.base import (
+    BaseDirdIntegrationTest,
+    DirdAssetRunningTestCase,
+)
 from .helpers.config import (
     new_wazo_users_config,
     new_wazo_users_multiple_wazo_config,
 )
 from .helpers.constants import MAIN_TENANT
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
-    BackendWrapper,
-)
+from .base_dird_integration_test import BackendWrapper
 
 
-class TestWazoUser(BaseDirdIntegrationTest):
+class TestWazoUser(DirdAssetRunningTestCase):
 
     asset = 'wazo_users'
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"

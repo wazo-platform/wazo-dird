@@ -2,7 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
+import os
 
+ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
+CA_CERT = os.path.join(ASSET_ROOT, 'ssl', 'dird', 'server.crt')
+DB_URI_FMT = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}/asterisk')
 VALID_UUID = 'uuid-tenant-master'
 VALID_UUID_1 = 'uuid-1'
 VALID_TOKEN_1 = 'valid-token-1'

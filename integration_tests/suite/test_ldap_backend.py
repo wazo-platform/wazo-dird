@@ -15,10 +15,8 @@ from hamcrest import (
     has_entry,
 )
 
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
-    VALID_UUID,
-)
+from .helpers.base import BaseDirdIntegrationTest
+from .helpers.constants import VALID_UUID
 from .helpers.config import (
     new_ldap_city_config,
     new_ldap_config,

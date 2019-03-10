@@ -7,12 +7,12 @@ from hamcrest import (
     equal_to,
 )
 
+from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_phone_config
 from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
 )
-from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
 class TestPhone(BaseDirdIntegrationTest):

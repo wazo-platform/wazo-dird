@@ -5,10 +5,8 @@ from hamcrest import (
     assert_that,
     equal_to,
 )
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
-    VALID_TOKEN_MAIN_TENANT,
-)
+from .helpers.base import BaseDirdIntegrationTest
+from .helpers.constants import VALID_TOKEN_MAIN_TENANT
 
 
 class TestDBRestart(BaseDirdIntegrationTest):

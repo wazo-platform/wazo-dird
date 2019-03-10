@@ -9,7 +9,7 @@ from hamcrest import (
     equal_to,
     has_entries,
 )
-from .base_dird_integration_test import BasePhonebookTestCase
+from .helpers.base import BasePhonebookTestCase
 
 
 class TestList(BasePhonebookTestCase):

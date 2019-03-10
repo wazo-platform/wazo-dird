@@ -9,7 +9,7 @@ from hamcrest import (
     empty,
     has_entries,
 )
-from .base_dird_integration_test import BasePhonebookTestCase
+from .helpers.base import BasePhonebookTestCase
 
 from wazo_dird import database
 

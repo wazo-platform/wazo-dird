@@ -16,15 +16,15 @@ from xivo_test_helpers.auth import (
     MockUserToken,
 )
 
+from .helpers.base import (
+    BaseDirdIntegrationTest,
+    CSVWithMultipleDisplayTestCase,
+    PersonalOnlyTestCase,
+)
 from .helpers.config import new_csv_with_multiple_displays_config
 from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     TENANT_UUID_2,
-)
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
-    CSVWithMultipleDisplayTestCase,
-    PersonalOnlyTestCase,
 )
 
 

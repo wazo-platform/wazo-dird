@@ -11,7 +11,7 @@ from hamcrest import (
 
 from xivo_test_helpers import until
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.base import BaseDirdIntegrationTest
 
 
 @skip('fix the implementation')

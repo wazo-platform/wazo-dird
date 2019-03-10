@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -8,7 +8,7 @@ from hamcrest import (
     matches_regexp,
 )
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.base import BaseDirdIntegrationTest
 
 
 class TestPersonalExport(BaseDirdIntegrationTest):

@@ -39,7 +39,7 @@ from wazo_dird import (
 
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_dird.database.queries import base
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.base import DBRunningTestCase
 from .helpers.fixtures import db as fixtures
 
 Session = None
@@ -70,7 +70,7 @@ def with_user_uuid(f):
     return wrapped
 
 
-class DBStarter(BaseDirdIntegrationTest):
+class DBStarter(DBRunningTestCase):
 
     asset = 'database'
 

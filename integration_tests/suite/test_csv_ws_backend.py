@@ -1,12 +1,13 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (assert_that, contains, empty, has_entries)
 
-from .base_dird_integration_test import BaseDirdIntegrationTest, BackendWrapper
+from .helpers.base import DirdAssetRunningTestCase
+from .base_dird_integration_test import BackendWrapper
 
 
-class _BaseCSVWSBackend(BaseDirdIntegrationTest):
+class _BaseCSVWSBackend(DirdAssetRunningTestCase):
 
     def setUp(self):
         self.backend = BackendWrapper('csv_ws', {'config': self.backend_config()})

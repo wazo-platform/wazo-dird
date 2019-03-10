@@ -8,7 +8,7 @@ from hamcrest import (
     has_entries,
 )
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.base import BaseDirdIntegrationTest
 
 
 class TestBackends(BaseDirdIntegrationTest):

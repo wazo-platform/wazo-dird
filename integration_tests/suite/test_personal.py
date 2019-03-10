@@ -39,7 +39,7 @@ from .helpers.constants import (
     VALID_TOKEN_2,
 )
 
-from .base_dird_integration_test import (
+from .helpers.base import (
     BaseDirdIntegrationTest,
     PersonalOnlyTestCase,
 )

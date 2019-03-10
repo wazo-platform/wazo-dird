@@ -7,12 +7,12 @@ from hamcrest import (
     equal_to,
 )
 
+from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_auth_only_config
 from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_NO_ACL,
 )
-from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
 class TestAuthentication(BaseDirdIntegrationTest):
@@ -39,6 +39,11 @@ class TestAuthentication(BaseDirdIntegrationTest):
 class TestAuthenticationError(BaseDirdIntegrationTest):
 
     asset = 'no_auth_server'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.stop_service(service_name='auth')
 
     def test_no_auth_server_gives_503(self):
         result = self.get_headers_result('default', token=VALID_TOKEN_MAIN_TENANT)
