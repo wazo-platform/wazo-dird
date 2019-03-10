@@ -349,26 +349,26 @@ class TestContactGet(_BasePhonebookContactTestCase):
 
     def test_unknown_tenant_phonebook_or_contact(self):
         self.set_tenants(self.tenant_2)
-        res = self.get(self.tenant_2, self.phonebook_1['id'], self.contact_id)
+        res = self._get(self.tenant_2, self.phonebook_1['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown tenant')
 
-        res = self.get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self._get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown tenant')
 
         self.set_tenants(self.tenant_1)
-        res = self.get(self.tenant_1, self.phonebook_2['id'], self.contact_id)
+        res = self._get(self.tenant_1, self.phonebook_2['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown phonebook')
 
         self.delete_phonebook_contact(self.tenant_1, self.phonebook_1['id'], self.contact_id)
-        res = self.get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self._get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown contact')
 
     def test_get(self):
         self.set_tenants(self.tenant_1)
-        res = self.get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self._get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
         assert_that(res.json(), equal_to(self.contact))
 
-    def get(self, tenant, phonebook_id, contact_id):
+    def _get(self, tenant, phonebook_id, contact_id):
         return self.get_phonebook_contact(tenant, phonebook_id, contact_id)
 
 

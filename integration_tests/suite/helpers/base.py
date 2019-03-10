@@ -130,13 +130,13 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_config(cls, token):
         url = cls.url('config')
-        return requests.get(url, headers={'X-Auth-Token': token}, verify=CA_CERT).json()
+        return cls.get(url, token=token).json()
 
     @classmethod
     def get_lookup_result(cls, term, profile, token=None):
         params = {'term': term}
         url = cls.url('directories', 'lookup', profile)
-        return requests.get(url, params=params, headers={'X-Auth-Token': token}, verify=CA_CERT)
+        return cls.get(url, params=params, token=token)
 
     @classmethod
     def lookup(cls, term, profile, token=VALID_TOKEN_MAIN_TENANT):
@@ -147,10 +147,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_headers_result(cls, profile, token=None):
         url = cls.url('directories', 'lookup', profile, 'headers')
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, token=token)
 
     @classmethod
     def headers(cls, profile):
@@ -162,11 +159,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     def get_reverse_result(cls, exten, profile, xivo_user_uuid, token=None):
         params = {'exten': exten}
         url = cls.url('directories', 'reverse', profile, xivo_user_uuid)
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, token=token)
 
     @classmethod
     def reverse(cls, exten, profile, xivo_user_uuid, token=VALID_TOKEN_MAIN_TENANT):
@@ -177,10 +170,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_favorites_result(cls, profile, token=None):
         url = cls.url('directories', 'favorites', profile)
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, token=token)
 
     @classmethod
     def favorites(cls, profile, token=VALID_TOKEN_MAIN_TENANT):
@@ -328,10 +318,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def list_personal_result(cls, token=None):
         url = cls.url('personal')
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, token=token)
 
     @classmethod
     def list_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
@@ -343,16 +330,12 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     def list_phonebooks(cls, tenant, token=None, **kwargs):
         token = token or VALID_TOKEN_MAIN_TENANT
         url = cls.url('tenants', tenant, 'phonebooks')
-        return requests.get(url, params=kwargs, headers={'X-Auth-Token': token}, verify=CA_CERT)
+        return cls.get(url, params=kwargs, token=token)
 
     @classmethod
     def export_personal_result(cls, token=None):
         url = cls.url('personal')
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token},
-                              verify=CA_CERT,
-                              params={'format': 'text/csv'})
-        return result
+        return cls.get(url, params={'format': 'text/csv'}, token=token)
 
     @classmethod
     def export_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
@@ -363,10 +346,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_personal_result(cls, personal_id, token=None):
         url = cls.url('personal', personal_id)
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, token=token)
 
     @classmethod
     def get_personal(cls, personal_id, token=VALID_TOKEN_MAIN_TENANT):
@@ -377,34 +357,21 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        return requests.get(
-            url,
-            headers={'X-Auth-Token': token},
-            verify=CA_CERT,
-        )
+        return cls.get(url, token=token)
 
     @classmethod
     def get_phonebook_contact(
             cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN_MAIN_TENANT,
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
-        return requests.get(
-            url,
-            headers={'X-Auth-Token': token},
-            verify=CA_CERT,
-        )
+        return cls.get(url, token=token)
 
     @classmethod
     def list_phonebook_contacts(
             cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT, **kwargs
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
-        return requests.get(
-            url,
-            params=kwargs,
-            headers={'X-Auth-Token': token},
-            verify=CA_CERT,
-        )
+        return cls.get(url, params=kwargs, token=token)
 
     @classmethod
     def put_personal_result(cls, personal_id, personal_infos, token=None):
@@ -463,10 +430,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_personal_with_profile_result(cls, profile, token=None):
         url = cls.url('directories', 'personal', profile)
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, token=token)
 
     @classmethod
     def get_personal_with_profile(cls, profile, token=VALID_TOKEN_MAIN_TENANT):
@@ -477,11 +441,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_menu_cisco_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
         url = cls.url('directories', 'menu', profile, xivo_user_uuid, 'cisco')
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_menu_cisco(cls, profile, xivo_user_uuid, proxy=None, token=VALID_TOKEN_MAIN_TENANT):
@@ -492,11 +452,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_input_cisco_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
         url = cls.url('directories', 'input', profile, xivo_user_uuid, 'cisco')
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_input_cisco(cls, profile, xivo_user_uuid, proxy=None, token=VALID_TOKEN_MAIN_TENANT):
@@ -509,12 +465,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
                                 proxy=None, term=None, token=None, limit=None, offset=None):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'cisco')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_lookup_cisco(
@@ -530,113 +481,73 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def get_input_aastra_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
         url = cls.url('directories', 'input', profile, xivo_user_uuid, 'aastra')
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_lookup_aastra_result(cls, profile, xivo_user_uuid,
                                  proxy=None, term=None, token=None, limit=None, offset=None):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'aastra')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_input_polycom_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
         url = cls.url('directories', 'input', profile, xivo_user_uuid, 'polycom')
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_lookup_polycom_result(cls, profile, xivo_user_uuid,
                                   proxy=None, term=None, token=None, limit=None, offset=None):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'polycom')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_input_snom_result(cls, profile, xivo_user_uuid, proxy=None, token=None):
         url = cls.url('directories', 'input', profile, xivo_user_uuid, 'snom')
-        result = requests.get(url,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_lookup_snom_result(cls, profile, xivo_user_uuid,
                                proxy=None, term=None, token=None, limit=None, offset=None):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'snom')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_lookup_thomson_result(cls, profile, xivo_user_uuid,
                                   proxy=None, term=None, token=None, limit=None, offset=None):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'thomson')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_lookup_yealink_result(cls, profile, xivo_user_uuid,
                                   proxy=None, term=None, token=None, limit=None, offset=None):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'yealink')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_lookup_gigaset_result(cls, profile, xivo_user_uuid,
                                   proxy=None, term=None, token=None, limit=None, offset=None):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'gigaset')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
 
     @classmethod
     def get_lookup_htek_result(cls, profile, xivo_user_uuid,
                                proxy=None, term=None, token=None, limit=None, offset=None):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'htek')
         params = {'term': term, 'limit': limit, 'offset': offset}
-        result = requests.get(url,
-                              params=params,
-                              headers={'X-Auth-Token': token,
-                                       'Proxy-URL': proxy},
-                              verify=CA_CERT)
-        return result
+        return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
+
+    @staticmethod
+    def get(*args, **kwargs):
+        token = kwargs.pop('token', None)
+        kwargs.setdefault('headers', {'X-Auth-Token': token})
+        kwargs.setdefault('verify', CA_CERT)
+        return requests.get(*args, **kwargs)
 
 
 class BasePhonebookTestCase(BaseDirdIntegrationTest):
