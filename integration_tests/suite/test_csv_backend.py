@@ -11,12 +11,13 @@ from hamcrest import (
     has_entries,
 )
 
+from .helpers.config import new_csv_with_pipes_config
+from .helpers.constants import VALID_UUID
 from .base_dird_integration_test import (
     absolute_file_name,
     BaseDirdIntegrationTest,
     CSVWithMultipleDisplayTestCase,
     BackendWrapper,
-    VALID_UUID,
 )
 
 
@@ -113,27 +114,7 @@ class TestCSVWithAccents(_BaseCSVFileTestCase):
 class TestCSVSeparator(BaseDirdIntegrationTest):
 
     asset = 'csv_with_pipes'
-    sources = [
-        {
-            'backend': 'csv',
-            'name': 'my_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': "|",
-            'searched_columns': ['fn', 'ln'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-            },
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {'lookup': {'sources': ['my_csv']}},
-        },
-    ]
+    config_factory = new_csv_with_pipes_config
 
     def test_lookup_with_pipe(self):
         result = self.lookup('al', 'default')

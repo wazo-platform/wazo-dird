@@ -1,6 +1,8 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import uuid
+
 VALID_UUID = 'uuid-tenant-master'
 VALID_UUID_1 = 'uuid-1'
 VALID_TOKEN_1 = 'valid-token-1'
@@ -18,3 +20,4 @@ DEFAULT_DISPLAYS = [
         ],
     },
 ]
+TENANT_UUID_2 = str(uuid.uuid4())

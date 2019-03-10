@@ -1,11 +1,12 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
+from .helpers.config import new_phone_view_config
+from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
 )
+from .base_dird_integration_test import BaseDirdIntegrationTest
 
 from hamcrest import (
     assert_that,
@@ -23,39 +24,7 @@ class TestPhoneView(BaseDirdIntegrationTest):
 
     asset = 'phone_view'
     profile = 'default'
-    displays = [
-        {
-            'name': 'default',
-            'columns': [
-                {
-                    'field': 'phone',
-                    'type': 'number',
-                    'number_display': '{display_name}',
-                },
-            ],
-        }
-    ]
-    sources = [
-        {
-            'backend': 'csv',
-            'name': 'test_csv',
-            'file': '/tmp/data/test.csv',
-            'searched_columns': ['ln', 'fn'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'display_name': "{fn} {ln}",
-                'phone': "{num}",
-            },
-        }
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default',
-            'services': {'lookup': {'sources': ['test_csv']}}
-        },
-    ]
+    config_factory = new_phone_view_config
 
     def test_given_invalid_offset_then_lookup_return_400(self):
         result = self.get_lookup_cisco_result(self.profile, VALID_UUID, term='A', token=VALID_TOKEN_MAIN_TENANT, offset=-1)

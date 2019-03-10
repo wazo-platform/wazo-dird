@@ -14,59 +14,15 @@ from hamcrest import (
 
 from xivo_test_helpers import until
 
+from .helpers.config import (
+    new_wazo_users_config,
+    new_wazo_users_multiple_wazo_config,
+)
+from .helpers.constants import MAIN_TENANT
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     BackendWrapper,
-    MAIN_TENANT,
 )
-
-WAZO_ASIA = {
-    'backend': 'wazo',
-    'name': 'wazo_asia',
-    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
-    'confd': {'host': 'asia', 'port': 9486, 'https': False},
-    'searched_columns': ['firstname', 'lastname'],
-}
-WAZO_AMERICA = {
-    'backend': 'wazo',
-    'name': 'wazo_america',
-    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
-    'confd': {'host': 'america', 'port': 9486, 'https': False},
-    'searched_columns': ['firstname', 'lastname'],
-}
-WAZO_EUROPE = {
-    'backend': 'wazo',
-    'name': 'wazo_europe',
-    'auth': {'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
-    'confd': {'host': 'europe', 'port': 9486, 'https': False},
-    'searched_columns': ['firstname', 'lastname'],
-}
-
-DISPLAYS = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'default': '',
-                    'field': 'exten',
-                },
-                {
-                    'title': 'Mobile',
-                    'default': '',
-                    'field': 'mobile_phone_number',
-                },
-            ],
-        },
-    ]
 
 
 class TestWazoUser(BaseDirdIntegrationTest):
@@ -147,15 +103,7 @@ class TestWazoUser(BaseDirdIntegrationTest):
 class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_no_confd'
-    displays = DISPLAYS
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {'lookup': {'sources': ['wazo_america']}},
-        },
-    ]
-    sources = [WAZO_AMERICA]
+    config_factory = new_wazo_users_config
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):
         result = self.lookup('dyl', 'default')
@@ -165,16 +113,7 @@ class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_late_confd'
-    displays = DISPLAYS
-    sources = [WAZO_AMERICA]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {'lookup': {'sources': ['wazo_america']}},
-        },
-    ]
-    sources = [WAZO_AMERICA]
+    config_factory = new_wazo_users_config
 
     def test_no_result_until_started(self):
         # dird is not stuck on a late confd
@@ -193,36 +132,7 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_multiple_wazo'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'field': 'exten',
-                },
-            ],
-        },
-    ]
-    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
-                'favorites': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
-            },
-        },
-    ]
+    config_factory = new_wazo_users_multiple_wazo_config
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
@@ -283,35 +193,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_missing_one_wazo'
-    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'field': 'exten',
-                },
-            ],
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
-            },
-        },
-    ]
+    config_factory = new_wazo_users_multiple_wazo_config
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('john', 'default')
@@ -335,35 +217,7 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_404'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'field': 'exten',
-                },
-            ],
-        },
-    ]
-    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
-            },
-        },
-    ]
+    config_factory = new_wazo_users_multiple_wazo_config
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')
@@ -397,38 +251,7 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
 
     asset = 'wazo_users_two_working_one_timeout'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'field': 'exten',
-                },
-            ],
-        },
-    ]
-    sources = [WAZO_ASIA, WAZO_AMERICA, WAZO_EUROPE]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {
-                    'sources': ['wazo_america', 'wazo_asia', 'wazo_europe'],
-                    'timeout': 1,
-                },
-            },
-        },
-    ]
+    config_factory = new_wazo_users_multiple_wazo_config
 
     def test_lookup_multiple_wazo(self):
         result = self.lookup('ar', 'default')

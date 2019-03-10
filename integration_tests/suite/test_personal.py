@@ -31,14 +31,17 @@ from xivo_test_helpers.auth import (
     MockUserToken,
 )
 
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
-    PersonalOnlyTestCase,
+from .helpers.constants import (
     MAIN_TENANT,
     VALID_UUID,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_1,
     VALID_TOKEN_2,
+)
+
+from .base_dird_integration_test import (
+    BaseDirdIntegrationTest,
+    PersonalOnlyTestCase,
 )
 
 

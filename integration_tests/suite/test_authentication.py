@@ -7,23 +7,18 @@ from hamcrest import (
     equal_to,
 )
 
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
+from .helpers.config import new_auth_only_config
+from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_NO_ACL,
 )
+from .base_dird_integration_test import BaseDirdIntegrationTest
 
 
 class TestAuthentication(BaseDirdIntegrationTest):
 
     asset = 'auth-only'
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {},
-        },
-    ]
+    config_factory = new_auth_only_config
 
     def test_no_auth_gives_401(self):
         result = self.get_headers_result('default', token=None)

@@ -27,6 +27,19 @@ from xivo_test_helpers.auth import AuthClient as MockAuthClient
 
 from wazo_dird_client import Client
 
+from .helpers.config import (
+    new_csv_with_multiple_displays_config,
+    new_half_broken_config,
+    new_null_config,
+    new_personal_only_config,
+)
+
+from .helpers.constants import (
+    VALID_UUID,
+    MAIN_TENANT,
+    VALID_TOKEN_MAIN_TENANT,
+)
+
 logger = logging.getLogger(__name__)
 
 requests.packages.urllib3.disable_warnings()
@@ -34,25 +47,6 @@ requests.packages.urllib3.disable_warnings()
 ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', 'assets')
 CA_CERT = os.path.join(ASSET_ROOT, 'ssl', 'dird', 'server.crt')
 DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}/asterisk')
-
-VALID_UUID = 'uuid-tenant-master'
-VALID_UUID_1 = 'uuid-1'
-
-VALID_TOKEN_1 = 'valid-token-1'
-VALID_TOKEN_2 = 'valid-token-2'
-VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
-VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
-MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
-DEFAULT_DISPLAYS = [
-    {
-        'name': 'default_display',
-        'columns': [
-            {'title': 'Firstname', 'field': 'firstname'},
-            {'title': 'Lastname', 'field': 'lastname'},
-            {'title': 'Number', 'field': 'number'},
-        ],
-    },
-]
 
 
 def absolute_file_name(asset_name, path):
@@ -93,9 +87,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = ASSET_ROOT
     service = 'dird'
-    displays = DEFAULT_DISPLAYS
-    sources = []
-    profiles = []
+    config_factory = new_null_config
 
     @classmethod
     def setUpClass(cls):
@@ -112,6 +104,7 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
                 db_port = cls.service_port(5432, 'db')
             except Exception:
                 print('asset starting without a db connection')
+                cls.config = cls.config_factory(Session=None)
                 return
             db_uri = 'postgresql://asterisk:proformatique@localhost:{port}'.format(port=db_port)
 
@@ -121,9 +114,8 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
         database.Base.metadata.reflect()
         database.Base.metadata.create_all()
         cls.Session = scoped_session(sessionmaker())
-        cls.create_displays()
-        cls.create_sources()
-        cls.create_profiles()
+        cls.config = cls.config_factory(cls.Session)
+        cls.config.setup()
         try:
             auth_client = AuthClient('localhost', cls.service_port(9497, 'auth'), verify_certificate=False)
             auth_client.users.new(
@@ -136,64 +128,12 @@ class BaseDirdIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.config.tear_down()
         try:
             database.Base.metadata.drop_all()
         except Exception as e:
             print(e)
         super().tearDownClass()
-
-    @classmethod
-    def create_displays(cls):
-        display_crud = database.DisplayCRUD(cls.Session)
-        for display in cls.displays:
-            display.setdefault('tenant_uuid', MAIN_TENANT)
-            response = display_crud.create(**display)
-            display['uuid'] = response['uuid']
-
-    @classmethod
-    def create_sources(cls):
-        source_crud = database.SourceCRUD(cls.Session)
-        for source in cls.sources:
-            source.setdefault('tenant_uuid', MAIN_TENANT)
-            source.setdefault('first_matched_columns', [])
-            source.setdefault('format_columns', {})
-            source_copy = dict(source)
-            backend = source_copy.pop('backend')
-            result = source_crud.create(backend, source_copy)
-            source['uuid'] = result['uuid']
-
-    @classmethod
-    def create_profiles(cls):
-        profile_crud = database.ProfileCRUD(cls.Session)
-        for profile in cls.profiles:
-            profile.setdefault('tenant_uuid', MAIN_TENANT)
-            profile['display'] = cls._display_from_name(profile.get('display'))
-            for service_name, service_config in profile.get('services', {}).items():
-                sources = service_config.get('sources', [])
-                inserted_sources = []
-                for source in sources:
-                    if isinstance(source, dict):
-                        inserted_sources.append(source)
-                    else:
-                        inserted_source = cls._source_from_name(source)
-                        inserted_sources.append(inserted_source)
-                service_config['sources'] = inserted_sources
-            profile_crud.create(profile)
-
-    @classmethod
-    def _source_from_name(cls, source_name):
-        for source in cls.sources:
-            if source['name'] == source_name:
-                return source
-
-    @classmethod
-    def _display_from_name(cls, display_name):
-        if isinstance(display_name, dict):
-            return display_name
-
-        for display in cls.displays:
-            if display['name'] == display_name:
-                return display
 
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
         return Client(self.host, self.port, token=token, verify_certificate=False)
@@ -773,222 +713,19 @@ class BasePhonebookTestCase(BaseDirdIntegrationTest):
 class CSVWithMultipleDisplayTestCase(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'default': 'Unknown',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'default': 'Unknown',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'default': '',
-                    'field': 'number',
-                },
-                {
-                    'field': 'favorite',
-                    'type': 'favorite',
-                },
-            ],
-        },
-        {
-            'name': 'second_display',
-            'columns': [
-                {
-                    'title': 'fn',
-                    'default': 'Unknown',
-                    'field': 'firstname',
-                    'type': 'firstname',
-                },
-                {
-                    'title': 'ln',
-                    'default': 'Unknown',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Empty',
-                    'field': 'not_there',
-                },
-                {
-                    'type': 'status',
-                },
-                {
-                    'title': 'Default',
-                    'default': 'Default',
-                },
-            ],
-        },
-    ]
-    sources = [
-        {
-            'backend': 'csv',
-            'name': 'my_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': ",",
-            'unique_column': 'id',
-            'searched_columns': ['fn', 'ln'],
-            'first_matched_columns': ['num'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-                'reverse': '{fn} {ln}'
-            }
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {'sources': ['my_csv'], 'timeout': 0.5},
-                'favorites': {'sources': ['my_csv'], 'timeout': 0.5},
-                'reverse': {'sources': ['my_csv'], 'timeout': 0.5},
-            },
-        },
-        {
-            'name': 'test',
-            'display': 'second_display',
-            'services': {
-                'lookup': {'sources': ['my_csv']},
-                'favorites': {'sources': ['my_csv']},
-            },
-        },
-    ]
+    config_factory = new_csv_with_multiple_displays_config
 
 
 class HalfBrokenTestCase(BaseDirdIntegrationTest):
 
     asset = 'half_broken'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'default': 'Unknown',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'default': 'Unknown',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'default': '',
-                    'field': 'number',
-                },
-            ],
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {
-                    'sources': ['my_csv', 'broken', 'my_other_csv'],
-                    'timeout': 0.5,
-                },
-                'favorites': {
-                    'sources': ['my_csv', 'broken', 'my_other_csv'],
-                },
-            },
-        },
-    ]
-    sources = [
-        {
-            'backend': 'csv',
-            'name': 'my_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': "|",
-            'unique_column': 'id',
-            'searched_columns': ['fn', 'ln'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-            }
-        },
-        {
-            'backend': 'csv',
-            'name': 'my_other_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': "|",
-            'searched_columns': ['fn', 'ln'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-            }
-        },
-        {
-            'backend': 'broken',
-            'name': 'broken',
-            'tenant_uuid': MAIN_TENANT,
-            'searched_columns': [],
-            'first_matched_columns': [],
-            'format_columns': {},
-        },
-    ]
+    config_factory = new_half_broken_config
 
 
 class PersonalOnlyTestCase(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'field': 'number',
-                    'number_display': '{firstname} {lastname}',
-                },
-                {
-                    'title': 'Favorite',
-                    'type': 'favorite',
-                },
-            ],
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {'sources': ['personal']},
-                'reverse': {'sources': ['personal']},
-                'favorites': {'sources': ['personal']},
-            },
-        },
-    ]
-    sources = [
-        {
-            'backend': 'personal',
-            'name': 'personal',
-            'db_uri': 'postgresql://asterisk:proformatique@db/asterisk',
-            'searched_columns': ['firstname', 'lastname'],
-            'first_matched_columns': ['number'],
-            'format_columns': {'reverse': '{firstname} {lastname}'},
-        },
-    ]
+    config_factory = new_personal_only_config
 
     def tearDown(self):
         self.purge_personal()

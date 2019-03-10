@@ -16,124 +16,22 @@ from xivo_test_helpers.auth import (
     MockUserToken,
 )
 
+from .helpers.config import new_csv_with_multiple_displays_config
+from .helpers.constants import (
+    VALID_TOKEN_MAIN_TENANT,
+    TENANT_UUID_2,
+)
 from .base_dird_integration_test import (
     BaseDirdIntegrationTest,
     CSVWithMultipleDisplayTestCase,
     PersonalOnlyTestCase,
-    VALID_TOKEN_MAIN_TENANT,
 )
-
-TENANT_UUID_2 = str(uuid.uuid4())
 
 
 class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
 
     asset = 'csv_with_multiple_displays'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'default': 'Unknown',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'default': 'Unknown',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'default': '',
-                    'field': 'number',
-                },
-                {
-                    'field': 'favorite',
-                    'type': 'favorite',
-                },
-            ],
-        },
-        {
-            'name': 'second_display',
-            'columns': [
-                {
-                    'title': 'fn',
-                    'default': 'Unknown',
-                    'field': 'firstname',
-                    'type': 'firstname',
-                },
-                {
-                    'title': 'ln',
-                    'default': 'Unknown',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Empty',
-                    'field': 'not_there',
-                },
-                {
-                    'type': 'status',
-                },
-                {
-                    'title': 'Default',
-                    'default': 'Default',
-                },
-            ],
-        },
-    ]
-    sources = [
-        {
-            'backend': 'csv',
-            'name': 'my_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': ",",
-            'unique_column': 'id',
-            'searched_columns': ['fn', 'ln'],
-            'first_matched_columns': ['num'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-                'reverse': '{fn} {ln}'
-            }
-        },
-        {
-            'backend': 'csv',
-            'tenant_uuid': TENANT_UUID_2,
-            'name': 'my_csv',
-            'file': '/tmp/data/test.csv',
-            'separator': ",",
-            'unique_column': 'id',
-            'searched_columns': ['fn', 'ln'],
-            'first_matched_columns': ['num'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-                'reverse': '{fn} {ln}'
-            }
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {'sources': ['my_csv'], 'timeout': 0.5},
-                'favorites': {'sources': ['my_csv'], 'timeout': 0.5},
-                'reverse': {'sources': ['my_csv'], 'timeout': 0.5},
-            },
-        },
-        {
-            'name': 'test',
-            'display': 'second_display',
-            'services': {
-                'lookup': {'sources': ['my_csv']},
-                'favorites': {'sources': ['my_csv']},
-            },
-        },
-    ]
+    config_factory = new_csv_with_multiple_displays_config
 
     @classmethod
     def setUpClass(cls):
