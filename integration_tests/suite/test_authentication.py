@@ -17,7 +17,7 @@ from .helpers.constants import (
 
 class TestAuthentication(BaseDirdIntegrationTest):
 
-    asset = 'auth-only'
+    asset = 'all_routes'
     config_factory = new_auth_only_config
 
     def test_no_auth_gives_401(self):
