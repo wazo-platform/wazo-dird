@@ -548,7 +548,7 @@ class BasePhonebookTestCase(BaseDirdIntegrationTest):
 
 class CSVWithMultipleDisplayTestCase(BaseDirdIntegrationTest):
 
-    asset = 'csv_with_multiple_displays'
+    asset = 'all_routes'
     config_factory = new_csv_with_multiple_displays_config
 
 
