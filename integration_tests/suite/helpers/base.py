@@ -181,10 +181,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def put_favorite_result(cls, directory, contact, token=None):
         url = cls.url('directories', 'favorites', directory, contact)
-        result = requests.put(url,
-                              headers={'X-Auth-Token': token},
-                              verify=CA_CERT)
-        return result
+        return cls.put(url, token=token)
 
     @classmethod
     def put_favorite(cls, directory, contact, token=VALID_TOKEN_MAIN_TENANT):
@@ -224,12 +221,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        return requests.put(
-            url,
-            data=json.dumps(phonebook_body),
-            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
-            verify=CA_CERT,
-        )
+        return cls.put(url, data=json.dumps(phonebook_body), token=token)
 
     @classmethod
     def post_phonebook_contact(
@@ -258,12 +250,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
             cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN_MAIN_TENANT,
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
-        return requests.put(
-            url,
-            data=json.dumps(contact_body),
-            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
-            verify=CA_CERT,
-        )
+        return cls.put(url, data=json.dumps(contact_body), token=token)
 
     @classmethod
     def post_personal_result(cls, personal_infos, token=None):
@@ -376,12 +363,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def put_personal_result(cls, personal_id, personal_infos, token=None):
         url = cls.url('personal', personal_id)
-        result = requests.put(url,
-                              data=json.dumps(personal_infos),
-                              headers={'X-Auth-Token': token,
-                                       'Content-Type': 'application/json'},
-                              verify=CA_CERT)
-        return result
+        return cls.put(url, data=json.dumps(personal_infos), token=token)
 
     @classmethod
     def put_personal(cls, personal_id, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
@@ -548,6 +530,13 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         kwargs.setdefault('headers', {'X-Auth-Token': token})
         kwargs.setdefault('verify', CA_CERT)
         return requests.get(*args, **kwargs)
+
+    @staticmethod
+    def put(*args, **kwargs):
+        token = kwargs.pop('token', None)
+        kwargs.setdefault('headers', {'X-Auth-Token': token, 'Content-Type': 'application/json'})
+        kwargs.setdefault('verify', CA_CERT)
+        return requests.put(*args, **kwargs)
 
 
 class BasePhonebookTestCase(BaseDirdIntegrationTest):

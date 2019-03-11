@@ -477,28 +477,28 @@ class TestContactPut(_BasePhonebookContactTestCase):
         body = {'firstname': 'Bob'}
 
         self.set_tenants(self.tenant_2)
-        res = self.put(self.tenant_2, self.phonebook_1['id'], self.contact_id, body)
+        res = self._put(self.tenant_2, self.phonebook_1['id'], self.contact_id, body)
         assert_that(res.status_code, equal_to(404), 'unknown tenant')
 
-        res = self.put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
+        res = self._put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
         assert_that(res.status_code, equal_to(404), 'unknown tenant')
 
         self.set_tenants(self.tenant_1)
-        res = self.put(self.tenant_1, self.phonebook_2['id'], self.contact_id, body)
+        res = self._put(self.tenant_1, self.phonebook_2['id'], self.contact_id, body)
         assert_that(res.status_code, equal_to(404), 'unknown phonebook')
 
         self.delete_phonebook_contact(self.tenant_1, self.phonebook_1['id'], self.contact_id)
-        res = self.put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
+        res = self._put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
         assert_that(res.status_code, equal_to(404), 'unknown contact')
 
     def test_put(self):
         body = {'firstname': 'Bob'}
 
         self.set_tenants(self.tenant_1)
-        res = self.put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
+        res = self._put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
         assert_that(res.json(), has_entries(id=self.contact_id, firstname='Bob'))
 
-    def put(self, tenant, phonebook_id, contact_id, body):
+    def _put(self, tenant, phonebook_id, contact_id, body):
         return self.put_phonebook_contact(tenant, phonebook_id, contact_id, body)
 
 
