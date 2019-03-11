@@ -208,12 +208,8 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
-        return requests.post(
-            cls.url('tenants', tenant, 'phonebooks'),
-            data=json.dumps(phonebook_body),
-            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
-            verify=CA_CERT,
-        )
+        url = cls.url('tenants', tenant, 'phonebooks')
+        return cls.post(url, data=json.dumps(phonebook_body), token=token)
 
     @classmethod
     def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
@@ -225,22 +221,13 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
             cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN_MAIN_TENANT
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
-        return requests.post(
-            url,
-            data=json.dumps(contact_body),
-            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
-            verify=CA_CERT,
-        )
+        return cls.post(url, data=json.dumps(contact_body), token=token)
 
     @classmethod
     def import_phonebook_contact(cls, tenant, phonebook_id, body, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', 'import')
-        return requests.post(
-            url,
-            data=body,
-            headers={'X-Auth-Token': token, 'Context-Type': 'text/csv; charset=utf-8'},
-            verify=CA_CERT,
-        )
+        headers = {'X-Auth-Token': token, 'Context-Type': 'text/csv; charset=utf-8'}
+        return cls.post(url, data=body, headers=headers)
 
     @classmethod
     def put_phonebook_contact(
@@ -252,12 +239,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def post_personal_result(cls, personal_infos, token=None):
         url = cls.url('personal')
-        result = requests.post(url,
-                               data=json.dumps(personal_infos),
-                               headers={'X-Auth-Token': token,
-                                        'Content-Type': 'application/json'},
-                               verify=CA_CERT)
-        return result
+        return cls.post(url, data=json.dumps(personal_infos), token=token)
 
     @classmethod
     def post_personal(cls, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
@@ -267,12 +249,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def post_tenant_migration(cls, tenants, token=VALID_TOKEN_MAIN_TENANT):
-        return requests.post(
-            cls.url('phonebook_move_tenant'),
-            data=json.dumps(tenants),
-            headers={'X-Auth-Token': token, 'Content-Type': 'application/json'},
-            verify=CA_CERT,
-        )
+        return cls.post(cls.url('phonebook_move_tenant'), data=json.dumps(tenants), token=token)
 
     @contextmanager
     def personal(self, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
@@ -286,12 +263,8 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     def import_personal_result(cls, csv, token=None, encoding='utf-8'):
         url = cls.url('personal', 'import')
         content_type = 'text/csv; charset={}'.format(encoding)
-        result = requests.post(url,
-                               data=csv,
-                               headers={'X-Auth-Token': token,
-                                        'Content-Type': content_type},
-                               verify=CA_CERT)
-        return result
+        headers = {'X-Auth-Token': token, 'Content-Type': content_type}
+        return cls.post(url, data=csv, headers=headers)
 
     @classmethod
     def import_personal(cls, personal_infos, token=VALID_TOKEN_MAIN_TENANT, encoding='utf-8'):
@@ -528,6 +501,13 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         kwargs.setdefault('headers', {'X-Auth-Token': token})
         kwargs.setdefault('verify', CA_CERT)
         return requests.get(*args, **kwargs)
+
+    @staticmethod
+    def post(*args, **kwargs):
+        token = kwargs.pop('token', None)
+        kwargs.setdefault('headers', {'X-Auth-Token': token, 'Content-Type': 'application/json'})
+        kwargs.setdefault('verify', CA_CERT)
+        return requests.post(*args, **kwargs)
 
     @staticmethod
     def put(*args, **kwargs):
