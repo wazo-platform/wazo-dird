@@ -10,6 +10,7 @@ enabled_plugins:
     unknown: true
   views:
     backends_view: true
+    config_view: true
     csv_backend: true
     csv_ws_backend: true
     default_json: true
@@ -20,6 +21,10 @@ enabled_plugins:
     wazo_backend: true
     personal_backend: true
     phonebook_backend: true
+
+foo:
+    bar: main
+    other: 42
 
 auth:
   host: auth

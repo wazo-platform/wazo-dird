@@ -9,7 +9,7 @@ from .helpers.constants import VALID_TOKEN_MAIN_TENANT
 
 class TestConfigView(BaseDirdIntegrationTest):
 
-    asset = 'config-view'
+    asset = 'all_routes'
 
     def test_get_config(self):
         result = self.get_config(token=VALID_TOKEN_MAIN_TENANT)
