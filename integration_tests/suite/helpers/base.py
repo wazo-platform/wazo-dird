@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
-import json
 import uuid
 
 from contextlib import contextmanager
@@ -209,19 +208,19 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks')
-        return cls.post(url, data=json.dumps(phonebook_body), token=token)
+        return cls.post(url, json=phonebook_body, token=token)
 
     @classmethod
     def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        return cls.put(url, data=json.dumps(phonebook_body), token=token)
+        return cls.put(url, json=phonebook_body, token=token)
 
     @classmethod
     def post_phonebook_contact(
             cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN_MAIN_TENANT
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
-        return cls.post(url, data=json.dumps(contact_body), token=token)
+        return cls.post(url, json=contact_body, token=token)
 
     @classmethod
     def import_phonebook_contact(cls, tenant, phonebook_id, body, token=VALID_TOKEN_MAIN_TENANT):
@@ -234,12 +233,12 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
             cls, tenant, phonebook_id, contact_uuid, contact_body, token=VALID_TOKEN_MAIN_TENANT,
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid)
-        return cls.put(url, data=json.dumps(contact_body), token=token)
+        return cls.put(url, json=contact_body, token=token)
 
     @classmethod
     def post_personal_result(cls, personal_infos, token=None):
         url = cls.url('personal')
-        return cls.post(url, data=json.dumps(personal_infos), token=token)
+        return cls.post(url, json=personal_infos, token=token)
 
     @classmethod
     def post_personal(cls, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
@@ -249,7 +248,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def post_tenant_migration(cls, tenants, token=VALID_TOKEN_MAIN_TENANT):
-        return cls.post(cls.url('phonebook_move_tenant'), data=json.dumps(tenants), token=token)
+        return cls.post(cls.url('phonebook_move_tenant'), json=tenants, token=token)
 
     @contextmanager
     def personal(self, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
@@ -333,7 +332,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def put_personal_result(cls, personal_id, personal_infos, token=None):
         url = cls.url('personal', personal_id)
-        return cls.put(url, data=json.dumps(personal_infos), token=token)
+        return cls.put(url, json=personal_infos, token=token)
 
     @classmethod
     def put_personal(cls, personal_id, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
