@@ -88,7 +88,6 @@ class _SourceService:
             'phone_mobile': '{mobilePhone}',
             'reverse': '{givenName} {surname}',
             'phone': '{businessPhones[0]}',
-            'email': '{emailAddresses[0][address]}',
         },
         'searched_columns': ['givenName', 'surname', 'businessPhones'],
         'first_matched_columns': ['mobilePhone', 'businessPhones'],
