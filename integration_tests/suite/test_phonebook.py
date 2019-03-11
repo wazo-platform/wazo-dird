@@ -312,26 +312,26 @@ class TestContactDelete(_BasePhonebookContactTestCase):
 
     def test_unknown_tenant_phonebook_or_contact(self):
         self.set_tenants(self.tenant_2)
-        res = self.delete(self.tenant_2, self.phonebook_1['id'], self.contact_id)
+        res = self._delete(self.tenant_2, self.phonebook_1['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown tenant')
 
-        res = self.delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self._delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown tenant')
 
         self.set_tenants(self.tenant_1)
-        res = self.delete(self.tenant_1, self.phonebook_2['id'], self.contact_id)
+        res = self._delete(self.tenant_1, self.phonebook_2['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown phonebook')
 
-        self.delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
-        res = self.delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        self._delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self._delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown contact')
 
     def test_delete(self):
         self.set_tenants(self.tenant_1)
-        res = self.delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        res = self._delete(self.tenant_1, self.phonebook_1['id'], self.contact_id)
         assert_that(res.status_code, equal_to(204))
 
-    def delete(self, tenant, phonebook_id, contact_id):
+    def _delete(self, tenant, phonebook_id, contact_id):
         return self.delete_phonebook_contact(tenant, phonebook_id, contact_id)
 
 

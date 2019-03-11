@@ -191,10 +191,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def delete_favorite_result(cls, directory, contact, token=None):
         url = cls.url('directories', 'favorites', directory, contact)
-        result = requests.delete(url,
-                                 headers={'X-Auth-Token': token},
-                                 verify=CA_CERT)
-        return result
+        return cls.delete(url, token=token)
 
     @classmethod
     def delete_favorite(cls, directory, contact, token=VALID_TOKEN_MAIN_TENANT):
@@ -374,10 +371,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def delete_personal_result(cls, personal_id, token=None):
         url = cls.url('personal', personal_id)
-        result = requests.delete(url,
-                                 headers={'X-Auth-Token': token},
-                                 verify=CA_CERT)
-        return result
+        return cls.delete(url, token=token)
 
     @classmethod
     def delete_personal(cls, personal_id, token=VALID_TOKEN_MAIN_TENANT):
@@ -387,22 +381,19 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
+        return cls.delete(url, token=token)
 
     @classmethod
     def delete_phonebook_contact(
             cls, tenant, phonebook_id, contact_id, token=VALID_TOKEN_MAIN_TENANT,
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_id)
-        return requests.delete(url, headers={'X-Auth-Token': token}, verify=CA_CERT)
+        return cls.delete(url, token=token)
 
     @classmethod
     def purge_personal_result(cls, token=None):
         url = cls.url('personal')
-        result = requests.delete(url,
-                                 headers={'X-Auth-Token': token},
-                                 verify=CA_CERT)
-        return result
+        return cls.delete(url, token=token)
 
     @classmethod
     def purge_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
@@ -523,6 +514,13 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         url = cls.url('directories', 'lookup', profile, xivo_user_uuid, 'htek')
         params = {'term': term, 'limit': limit, 'offset': offset}
         return cls.get(url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
+
+    @staticmethod
+    def delete(*args, **kwargs):
+        token = kwargs.pop('token', None)
+        kwargs.setdefault('headers', {'X-Auth-Token': token})
+        kwargs.setdefault('verify', CA_CERT)
+        return requests.delete(*args, **kwargs)
 
     @staticmethod
     def get(*args, **kwargs):
