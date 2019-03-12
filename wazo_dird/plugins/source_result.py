@@ -12,7 +12,7 @@ class _NoKeyErrorFormatter(string.Formatter):
     def format(self, format_string, *args, **kwargs):
         try:
             return super().format(format_string, *args, **kwargs).strip()
-        except IndexError:
+        except Exception:
             return None
 
     def get_value(self, key, args, kwargs):

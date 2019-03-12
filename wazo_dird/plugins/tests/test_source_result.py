@@ -22,7 +22,12 @@ class TestSourceResult(unittest.TestCase):
 
     def setUp(self):
         self.xivo_id = sentinel.xivo_id
-        self.fields = {'client_no': 1, 'firstname': 'fn', 'lastname': 'ln'}
+        self.fields = {
+            'client_no': 1,
+            'firstname': 'fn',
+            'lastname': 'ln',
+            'list': [{'foo': 'bar'}, None],
+        }
         self.empty_relations = {
             'xivo_id': self.xivo_id,
             'agent_id': None,
@@ -89,7 +94,9 @@ class TestSourceResult(unittest.TestCase):
                 'ln': '{lastname}',
                 'name': '{firstname} {lastname}',
                 'simple_error': '{missing}',
-                'complex_error': '{missing[0][field]}'
+                'complex_error': '{missing[0][field]}',
+                'super_complex_error': '{list[0][missing]}',
+                'crazy_error': '{list[1][missing]}',
             }
         )
 
@@ -101,6 +108,8 @@ class TestSourceResult(unittest.TestCase):
             name='fn ln',
             simple_error=None,
             complex_error=None,
+            super_complex_error=None,
+            crazy_error=None,
         ))
 
     def test_that_the_source_entry_id_is_added_to_relations(self):
