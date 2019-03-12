@@ -1,17 +1,21 @@
-# Copyright (C) 2014-2016 Avencall
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
 
-from hamcrest import (assert_that,
-                      equal_to,
-                      has_entries,
-                      none,
-                      is_)
+from hamcrest import (
+    assert_that,
+    equal_to,
+    has_entries,
+    is_,
+    none,
+)
 from mock import sentinel
-from wazo_dird.plugins.source_result import (_SourceResult,
-                                             make_result_class,
-                                             _NoKeyErrorFormatter as Formatter)
+from wazo_dird.plugins.source_result import (
+    _NoKeyErrorFormatter as Formatter,
+    _SourceResult,
+    make_result_class,
+)
 
 
 class TestSourceResult(unittest.TestCase):
@@ -78,13 +82,26 @@ class TestSourceResult(unittest.TestCase):
         assert_that(r.get_unique(), equal_to('1'))
 
     def test_that_format_columns_transformation_are_applied(self):
-        SourceResult = make_result_class(sentinel.name, format_columns={'fn': '{firstname}',
-                                                                        'ln': '{lastname}',
-                                                                        'name': '{firstname} {lastname}'})
+        SourceResult = make_result_class(
+            sentinel.name,
+            format_columns={
+                'fn': '{firstname}',
+                'ln': '{lastname}',
+                'name': '{firstname} {lastname}',
+                'simple_error': '{missing}',
+                'complex_error': '{missing[0][field]}'
+            }
+        )
 
         r = SourceResult(self.fields)
 
-        assert_that(r.fields, has_entries('fn', 'fn', 'ln', 'ln', 'name', 'fn ln'))
+        assert_that(r.fields, has_entries(
+            fn='fn',
+            ln='ln',
+            name='fn ln',
+            simple_error=None,
+            complex_error=None,
+        ))
 
     def test_that_the_source_entry_id_is_added_to_relations(self):
         SourceResult = make_result_class('foobar', unique_column='email')

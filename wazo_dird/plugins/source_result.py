@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -10,7 +10,10 @@ logger = logging.getLogger(__name__)
 class _NoKeyErrorFormatter(string.Formatter):
 
     def format(self, format_string, *args, **kwargs):
-        return super().format(format_string, *args, **kwargs).strip()
+        try:
+            return super().format(format_string, *args, **kwargs).strip()
+        except IndexError:
+            return None
 
     def get_value(self, key, args, kwargs):
         if isinstance(key, str):
