@@ -12,7 +12,7 @@ from hamcrest import (
 )
 from mock import sentinel
 from wazo_dird.plugins.source_result import (
-    _NoKeyErrorFormatter as Formatter,
+    _NoErrorFormatter as Formatter,
     _SourceResult,
     make_result_class,
 )

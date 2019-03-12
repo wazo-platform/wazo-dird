@@ -7,7 +7,7 @@ import string
 logger = logging.getLogger(__name__)
 
 
-class _NoKeyErrorFormatter(string.Formatter):
+class _NoErrorFormatter(string.Formatter):
 
     def format(self, format_string, *args, **kwargs):
         try:
@@ -32,7 +32,7 @@ class _SourceResult:
     _format_columns = {}
 
     def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, user_uuid=None, endpoint_id=None):
-        self._formatter = _NoKeyErrorFormatter()
+        self._formatter = _NoErrorFormatter()
         self.fields = dict(fields)
         source_entry_id = self.get_unique() if self._unique_column else None
         self.relations = {'xivo_id': xivo_id,
