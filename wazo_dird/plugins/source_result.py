@@ -12,8 +12,8 @@ class _NoErrorFormatter(string.Formatter):
     def format(self, format_string, *args, **kwargs):
         try:
             return super().format(format_string, *args, **kwargs).strip()
-        except Exception:
-            logger.debug('skipping string formatting %s', format_string)
+        except Exception as e:
+            logger.debug('skipping string formatting %s %s: %s', format_string, e.__class__.__name__, e)
             return None
 
     def get_value(self, key, args, kwargs):
