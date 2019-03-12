@@ -13,6 +13,7 @@ class _NoErrorFormatter(string.Formatter):
         try:
             return super().format(format_string, *args, **kwargs).strip()
         except Exception:
+            logger.debug('skipping string formatting %s', format_string)
             return None
 
     def get_value(self, key, args, kwargs):
