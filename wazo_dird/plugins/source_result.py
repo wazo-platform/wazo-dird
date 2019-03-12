@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -7,10 +7,14 @@ import string
 logger = logging.getLogger(__name__)
 
 
-class _NoKeyErrorFormatter(string.Formatter):
+class _NoErrorFormatter(string.Formatter):
 
     def format(self, format_string, *args, **kwargs):
-        return super().format(format_string, *args, **kwargs).strip()
+        try:
+            return super().format(format_string, *args, **kwargs).strip()
+        except Exception as e:
+            logger.debug('skipping string formatting %s %s: %s', format_string, e.__class__.__name__, e)
+            return None
 
     def get_value(self, key, args, kwargs):
         if isinstance(key, str):
@@ -29,7 +33,7 @@ class _SourceResult:
     _format_columns = {}
 
     def __init__(self, fields, xivo_id=None, agent_id=None, user_id=None, user_uuid=None, endpoint_id=None):
-        self._formatter = _NoKeyErrorFormatter()
+        self._formatter = _NoErrorFormatter()
         self.fields = dict(fields)
         source_entry_id = self.get_unique() if self._unique_column else None
         self.relations = {'xivo_id': xivo_id,
