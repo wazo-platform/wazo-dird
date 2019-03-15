@@ -19,7 +19,7 @@ from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from xivo_test_helpers.hamcrest.raises import raises
 from wazo_dird_client import Client
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
 
 MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'

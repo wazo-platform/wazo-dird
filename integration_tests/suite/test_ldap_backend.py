@@ -15,11 +15,14 @@ from hamcrest import (
     has_entry,
 )
 
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
-    VALID_UUID,
+from .helpers.base import BaseDirdIntegrationTest
+from .helpers.constants import VALID_UUID
+from .helpers.config import (
+    new_ldap_city_config,
+    new_ldap_config,
+    new_ldap_service_down_config,
+    new_ldap_service_innactive_config,
 )
-from .helpers.fixtures import http as fixtures
 
 
 Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
@@ -83,36 +86,7 @@ def add_contacts(contacts, ldap_uri):
 class TestLDAP(BaseDirdIntegrationTest):
 
     asset = 'ldap'
-    sources = [
-        {
-            'backend': 'ldap',
-            'name': 'test_ldap',
-            'ldap_uri': 'ldap://slapd',
-            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_password': 'wazopassword',
-            'unique_column': 'entryUUID',
-            'searched_columns': ['cn', 'telephoneNumber'],
-            'first_matched_columns': ['telephoneNumber'],
-            'format_columns':  {
-                'firstname': "{givenName}",
-                'lastname': "{sn}",
-                'number': "{telephoneNumber}",
-                'reverse': "{cn}",
-            }
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {'sources': ['test_ldap']},
-                'reverse': {'sources': ['test_ldap']},
-                'favorites': {'sources': ['test_ldap']},
-            },
-        },
-    ]
+    config_factory = new_ldap_config
 
     CONTACTS = [
         Contact('Alice', 'Wonderland', '1001', 'Lyon'),
@@ -175,33 +149,7 @@ class TestLDAP(BaseDirdIntegrationTest):
 class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
 
     asset = 'ldap_city'
-    sources = [
-        {
-            'backend': 'ldap',
-            'name': 'test_ldap',
-            'ldap_uri': 'ldap://slapd',
-            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_password': 'wazopassword',
-            'ldap_custom_filter': '(l=Québec)',
-            'unique_column': 'entryUUID',
-            'searched_columns': ['cn', 'telephoneNumber'],
-            'first_matched_columns': ['telephoneNumber'],
-            'format_columns':  {
-                'firstname': "{givenName}",
-                'lastname': "{sn}",
-                'number': "{telephoneNumber}",
-                'reverse': "{cn}",
-            }
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {'lookup': {'sources': ['test_ldap']}},
-        },
-    ]
+    config_factory = new_ldap_city_config
 
     CONTACTS = [
         Contact('Alice', 'Wonderland', '1001', 'Lyon'),
@@ -236,32 +184,7 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
 class TestLDAPServiceIsInnactive(BaseDirdIntegrationTest):
 
     asset = 'ldap_service_innactive'
-    sources = [
-        {
-            'backend': 'ldap',
-            'name': 'test_ldap',
-            'ldap_uri': 'ldap://slapd',
-            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_password': 'wazopassword',
-            'unique_column': 'entryUUID',
-            'searched_columns': ['cn', 'telephoneNumber'],
-            'first_matched_columns': ['telephoneNumber'],
-            'format_columns': {
-                'firstname': "{givenName}",
-                'lastname': "{sn}",
-                'number': "{telephoneNumber}",
-                'reverse': "{cn}",
-            }
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {'lookup': {'sources': ['test_ldap']}},
-        },
-    ]
+    config_factory = new_ldap_service_innactive_config
 
     def test_lookup(self):
         result = self.lookup('alice', 'default')
@@ -274,32 +197,7 @@ class TestLDAPServiceIsInnactive(BaseDirdIntegrationTest):
 class TestLDAPServiceIsDown(BaseDirdIntegrationTest):
 
     asset = 'ldap_service_down'
-    sources = [
-        {
-            'backend': 'ldap',
-            'name': 'test_ldap',
-            'ldap_uri': 'ldap://slapd',
-            'ldap_base_dn': 'ou=québec,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_username': 'cn=admin,dc=wazo-dird,dc=wazo,dc=community',
-            'ldap_password': 'wazopassword',
-            'unique_column': 'entryUUID',
-            'searched_columns': ['cn', 'telephoneNumber'],
-            'first_matched_columns': ['telephoneNumber'],
-            'format_columns': {
-                'firstname': "{givenName}",
-                'lastname': "{sn}",
-                'number': "{telephoneNumber}",
-                'reverse': "{cn}",
-            }
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {'lookup': {'sources': ['test_ldap']}},
-        },
-    ]
+    config_factory = new_ldap_service_down_config
 
     def test_lookup(self):
         result = self.lookup('alice', 'default')

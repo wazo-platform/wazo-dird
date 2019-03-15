@@ -7,8 +7,9 @@ from hamcrest import (
     equal_to,
 )
 
-from .base_dird_integration_test import (
-    BaseDirdIntegrationTest,
+from .helpers.base import BaseDirdIntegrationTest
+from .helpers.config import new_phone_config
+from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
 )
@@ -17,69 +18,7 @@ from .base_dird_integration_test import (
 class TestPhone(BaseDirdIntegrationTest):
 
     asset = 'phone'
-    displays = [
-        {
-            'name': 'default',
-            'columns': [
-                {
-                    'field': 'phone',
-                    'type': 'number',
-                    'number_display': '{display_name}',
-                },
-            ],
-        },
-        {
-            'name': 'test_fallback',
-            'columns': [
-                {
-                    'field': 'phone',
-                    'type': 'number',
-                    'number_display': '{display_name}',
-                },
-                {
-                    'field': 'phone1',
-                    'type': 'number',
-                    'number_display': '{display_name1}',
-                },
-            ],
-        },
-    ]
-    sources = [
-        {
-            'backend': 'csv',
-            'name': 'test_sorted',
-            'file': '/tmp/data/test_sorted.csv',
-            'searched_columns': ['fn'],
-            'format_columns': {
-                'display_name': "{fn}",
-                'phone': "{num}",
-            },
-        },
-        {
-            'backend': 'csv',
-            'name': 'test_fallback',
-            'file': '/tmp/data/test_fallback.csv',
-            'searched_columns': ['fn', 'fn1'],
-            'format_columns': {
-                'display_name': "{fn}",
-                'display_name1': "{fn1}",
-                'phone': "{num}",
-                'phone1': "{num1}",
-            },
-        }
-    ]
-    profiles = [
-        {
-            'name': 'test_fallback',
-            'display': 'test_fallback',
-            'services': {'lookup': {'sources': ['test_fallback']}},
-        },
-        {
-            'name': 'test_sorted',
-            'display': 'default',
-            'services': {'lookup': {'sources': ['test_sorted']}},
-        },
-    ]
+    config_factory = new_phone_config
 
     def test_no_fallback_no_multiple_results(self):
         xml_content = self.get_lookup_cisco(

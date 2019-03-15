@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import time
@@ -8,10 +8,11 @@ from hamcrest import (
     contains_string,
 )
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.base import DirdAssetRunningTestCase
 
 
-class TestHTTPSMissingCertificate(BaseDirdIntegrationTest):
+class TestHTTPSMissingCertificate(DirdAssetRunningTestCase):
+
     asset = 'no-ssl-certificate'
 
     def test_given_inexisting_SSL_certificate_when_dird_starts_then_dird_stops(self):
@@ -27,7 +28,8 @@ class TestHTTPSMissingCertificate(BaseDirdIntegrationTest):
         assert_that(log, contains_string("No such file or directory: '/tmp/ssl/dird/server.crt'"))
 
 
-class TestHTTPSMissingPrivateKey(BaseDirdIntegrationTest):
+class TestHTTPSMissingPrivateKey(DirdAssetRunningTestCase):
+
     asset = 'no-ssl-private-key'
 
     def test_given_inexisting_SSL_private_key_when_dird_starts_then_dird_stops(self):

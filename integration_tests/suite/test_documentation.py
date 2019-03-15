@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -6,10 +6,10 @@ import pprint
 
 from hamcrest import assert_that, empty
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.base import DirdAssetRunningTestCase
 
 
-class TestDocumentation(BaseDirdIntegrationTest):
+class TestDocumentation(DirdAssetRunningTestCase):
 
     asset = 'documentation'
 

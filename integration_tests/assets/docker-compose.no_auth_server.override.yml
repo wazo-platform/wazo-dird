@@ -2,9 +2,11 @@ version: '3'
 services:
   sync:
     depends_on:
+      - auth
       - dird
+      - db
     environment:
-      TARGETS: "dird:9489"
+      TARGETS: "auth:9497 dird:9489 db:5432"
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.no_auth_server.yml:/etc/wazo-dird/config.yml"

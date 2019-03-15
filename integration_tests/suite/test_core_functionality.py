@@ -1,8 +1,6 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import sh
-
 from hamcrest import (
     all_of,
     any_of,
@@ -12,18 +10,21 @@ from hamcrest import (
     contains_string,
     equal_to,
     has_length,
-    is_in,
-    is_not,
 )
 
-from .base_dird_integration_test import (
+from .helpers.base import (
     BaseDirdIntegrationTest,
     CSVWithMultipleDisplayTestCase,
     HalfBrokenTestCase,
+)
+from .helpers.config import (
+    new_multiple_sources_config,
+)
+
+from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_UUID,
 )
-MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
 
 
 EMPTY_RELATIONS = {'xivo_id': None,
@@ -37,100 +38,7 @@ EMPTY_RELATIONS = {'xivo_id': None,
 class BaseMultipleSourceLauncher(BaseDirdIntegrationTest):
 
     asset = 'multiple_sources'
-    displays = [
-        {
-            'name': 'default_display',
-            'columns': [
-                {
-                    'title': 'Firstname',
-                    'default': 'Unknown',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'default': 'Unknown',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'default': '',
-                    'field': 'number',
-                },
-            ],
-        },
-    ]
-    profiles = [
-        {
-            'name': 'default',
-            'display': 'default_display',
-            'services': {
-                'lookup': {
-                    'sources': [
-                        'my_csv',
-                        'second_csv',
-                        'third_csv',
-                    ],
-                },
-                'reverse': {
-                    'sources': [
-                        'my_csv',
-                        'second_csv',
-                        'third_csv',
-                    ],
-                },
-            },
-        },
-    ]
-    sources = [
-        {
-            'backend': 'csv',
-            'name': 'my_csv',
-            'file': '/tmp/data/test.csv',
-            'searched_columns': ['ln', 'fn'],
-            'first_matched_columns': ['num'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-                'reverse': "{fn} {ln}",
-            }
-        },
-        {
-            'backend': 'csv',
-            'name': 'second_csv',
-            'file': '/tmp/data/test.csv',
-            'searched_columns': ['ln'],
-            'first_matched_columns': ['num'],
-            'format_columns': {
-                'lastname': "{ln}",
-                'firstname': "{fn}",
-                'number': "{num}",
-                'reverse': "{fn} {ln}",
-            },
-        },
-        {
-            'backend': 'csv',
-            'name': 'third_csv',
-            'file': '/tmp/data/other.csv',
-            'unique_column': 'clientno',
-            'searched_columns': [
-                'firstname',
-                'lastname',
-                'number',
-            ],
-            'first_matched_columns': [
-                'number',
-                'mobile',
-            ],
-            'format_columns': {
-                'reverse': "{firstname} {lastname}",
-            }
-        },
-    ]
-
-    def setUp(self):
-        super().setUp()
-        self._source_uuids = [source['uuid'] for source in self.sources]
+    config_factory = new_multiple_sources_config
 
 
 class TestCoreSourceManagement(BaseMultipleSourceLauncher):
@@ -252,17 +160,6 @@ class TestDisplay(CSVWithMultipleDisplayTestCase):
                     contains('fn', 'ln', 'Empty', None, 'Default'))
         assert_that(result['column_types'],
                     contains('firstname', None, None, 'status', None))
-
-
-class TestConfigurationWithNoPlugins(BaseDirdIntegrationTest):
-
-    asset = 'no_plugins'
-
-    def test_that_dird_does_not_run_when_not_configured(self):
-        self._assert_no_docker_image_running(self.service)
-
-    def _assert_no_docker_image_running(self, name):
-        assert_that(name, is_not(is_in(sh.docker('ps'))))
 
 
 class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):

@@ -22,7 +22,7 @@ from xivo_test_helpers.auth import (
     MockUserToken,
 )
 
-from .base_dird_integration_test import BaseDirdIntegrationTest
+from .helpers.base import BaseDirdIntegrationTest
 
 
 class TestConfigAutoCreation(BaseDirdIntegrationTest):

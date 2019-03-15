@@ -3,12 +3,13 @@
 
 from hamcrest import assert_that, has_entries
 
-from .base_dird_integration_test import BaseDirdIntegrationTest, VALID_TOKEN_MAIN_TENANT
+from .helpers.base import BaseDirdIntegrationTest
+from .helpers.constants import VALID_TOKEN_MAIN_TENANT
 
 
 class TestConfigView(BaseDirdIntegrationTest):
 
-    asset = 'config-view'
+    asset = 'all_routes'
 
     def test_get_config(self):
         result = self.get_config(token=VALID_TOKEN_MAIN_TENANT)
