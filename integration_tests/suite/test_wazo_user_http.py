@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
-from uuid import uuid4
 from hamcrest import (
     assert_that,
     calling,
@@ -21,12 +20,13 @@ from wazo_dird_client import Client
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
-
-MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
-SUB_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee11'
-VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
-VALID_TOKEN_SUB_TENANT = 'valid-token-sub-tenant'
-UNKNOWN_UUID = str(uuid4())
+from .helpers.constants import (
+    MAIN_TENANT,
+    SUB_TENANT,
+    UNKNOWN_UUID,
+    VALID_TOKEN_MAIN_TENANT,
+    VALID_TOKEN_SUB_TENANT,
+)
 
 
 class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
