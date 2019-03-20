@@ -3,8 +3,20 @@
 
 from wazo_dird import BaseViewPlugin
 
+from . import http
+
 
 class DisplaysViewPlugin(BaseViewPlugin):
 
     def load(self, dependencies):
-        pass
+        api = dependencies['api']
+
+        api.add_resource(
+            http.Displays,
+            '/displays',
+        )
+
+        api.add_resource(
+            http.Display,
+            '/displays/<display_uuid>',
+        )
