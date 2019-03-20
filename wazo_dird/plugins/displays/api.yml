@@ -37,6 +37,26 @@ paths:
           description: The created display
           schema:
             $ref: '#/definitions/Display'
+          examples:
+            application/json:
+              name: english
+              fields:
+                -
+                  title: Firstname
+                  field: firstname
+                -
+                  title: Lastname
+                  field: lastname
+                  default: ''
+                -
+                  title: Number
+                  field: number
+                  number_display: "{firstname} {lastname}"
+                  type: number
+                -
+                  title: Email
+                  field: email
+                  type: email
         '400':
           $ref: '#/responses/CreateError'
   /displays/{display_uuid}:
