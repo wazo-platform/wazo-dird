@@ -131,7 +131,7 @@ definitions:
     title: Field
     allOf:
       - properties:
-          name:
+          field:
             type: string
             description: The name of the field to display in this column
           title:
