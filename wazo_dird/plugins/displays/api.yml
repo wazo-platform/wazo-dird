@@ -1,0 +1,171 @@
+paths:
+  /displays:
+    get:
+      operationId: list_display
+      summary: List displays
+      description: '**Required ACL:** `dird.displays.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        '200':
+          description: A list of configured displays
+          schema:
+            $ref: '#/definitions/DisplayItems'
+    post:
+      summary: Create a new display configuration
+      description: '**Required ACL:** `dird.displays.create`'
+      operationId: create_display
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/Display'
+      responses:
+        '201':
+          description: The created display
+          schema:
+            $ref: '#/definitions/Display'
+        '400':
+          $ref: '#/responses/CreateError'
+  /displays/{display_uuid}:
+    get:
+      operationId: get_display
+      summary: Get display
+      description: '**Required ACL:** `dird.displays.{display_uuid}.read`'
+      tags:
+        - configuration
+      parameters:
+      - $ref: '#/parameters/tenantuuid'
+      - $ref: '#/parameters/displayuuid'
+      responses:
+        '200':
+          description: Display
+          schema:
+            $ref: '#/definitions/Display'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_display
+      summary: Update display
+      description: '**Required ACL:** `dird.displays.{display_uuid}.update`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/displayuuid'
+        - name: body
+          in: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/Display'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    delete:
+      operationId: delete_display
+      summary: Delete display
+      description: '**Required ACL:** `dird.displays.{display_uuid}.delete`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/displayuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+parameters:
+  displayuuid:
+    required: true
+    type: string
+    name: display_uuid
+    in: path
+    description: the display's UUID
+definitions:
+  Display:
+    title: Display
+    allOf:
+      - properties:
+          uuid:
+            type: string
+            description: The display's UUID
+            readOnly: true
+          name:
+            type: string
+            description: The name of the display
+          fields:
+            type: array
+            items:
+              $ref: '#/definitions/DisplayField'
+            default: []
+      - required:
+          - name
+  DisplayIdentifier:
+    title: DisplayUUID
+    allOf:
+      - properties:
+          uuid:
+            type: string
+            description: "The display's UUID"
+      - required:
+          - uuid
+  DisplayField:
+    title: Field
+    allOf:
+      - properties:
+          name:
+            type: string
+            description: The name of the field to display in this column
+          title:
+            type: string
+            description: A human readable name for this column
+          type:
+            type: string
+            description: The type of this column
+          default:
+            type: string
+            description: A default value if theres no result in this column
+          number_display:
+            type: string
+            description: A format string that overrides the default display. for number columns only.
+      - required:
+          - name
+  DisplayItems:
+    title: DisplayItems
+    allOf:
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/Display'
+            readOnly: true
+          total:
+            type: integer
+            description: The number of configured displays
+            readOnly: true
+          filtered:
+            type: integer
+            description: The number of configured displays matching the searched terms
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered
