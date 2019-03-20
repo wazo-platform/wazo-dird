@@ -40,7 +40,7 @@ paths:
           examples:
             application/json:
               name: english
-              fields:
+              columns:
                 -
                   title: Firstname
                   field: firstname
@@ -131,10 +131,10 @@ definitions:
           name:
             type: string
             description: The name of the display
-          fields:
+          columns:
             type: array
             items:
-              $ref: '#/definitions/DisplayField'
+              $ref: '#/definitions/DisplayColumn'
             default: []
       - required:
           - name
@@ -147,8 +147,8 @@ definitions:
             description: "The display's UUID"
       - required:
           - uuid
-  DisplayField:
-    title: Field
+  DisplayColumn:
+    title: Column
     allOf:
       - properties:
           field:
