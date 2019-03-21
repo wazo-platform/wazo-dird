@@ -1,6 +1,8 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import requests
+from contextlib import contextmanager
 from hamcrest import (
     assert_that,
     calling,
@@ -91,30 +93,27 @@ class TestPost(BaseDisplayTestCase):
             ],
         }
 
-        display = self.client.displays.create(body)
-
-        assert_that(display, has_entries(
-            uuid=uuid_(),
-            tenant_uuid=MAIN_TENANT,
-            columns=contains(
-                has_entries(
-                    field='fn',
-                    title='Firstname',
-                    default='',
-                    type=None,
-                    number_display=None,
+        with self.create(self.client, body) as display:
+            assert_that(display, has_entries(
+                uuid=uuid_(),
+                tenant_uuid=MAIN_TENANT,
+                columns=contains(
+                    has_entries(
+                        field='fn',
+                        title='Firstname',
+                        default='',
+                        type=None,
+                        number_display=None,
+                    ),
+                    has_entries(
+                        field='mobile',
+                        title='Mobile',
+                        type='number',
+                        number_display='{firstname} (Mobile)',
+                        default=None,
+                    ),
                 ),
-                has_entries(
-                    field='mobile',
-                    title='Mobile',
-                    type='number',
-                    number_display='{firstname} (Mobile)',
-                    default=None,
-                ),
-            ),
-        ))
-
-        # TODO remove the display
+            ))
 
     def test_multi_tenant(self):
         body = {'name': 'foo', 'columns': [{'field': 'fn'}]}
@@ -127,10 +126,8 @@ class TestPost(BaseDisplayTestCase):
             raises(Exception).matching(has_properties(response=has_properties(status_code=401)))
         )
 
-        display = main_tenant_client.displays.create(body, tenant_uuid=SUB_TENANT)
-        assert_that(display, has_entries(tenant_uuid=SUB_TENANT))
-
-        # TODO remove the display
+        with self.create(main_tenant_client, body, tenant_uuid=SUB_TENANT) as display:
+            assert_that(display, has_entries(tenant_uuid=SUB_TENANT))
 
     def assert_invalid_body(self, body):
         try:
@@ -140,3 +137,17 @@ class TestPost(BaseDisplayTestCase):
             assert_that(e.response.json(), has_entries(error_id='invalid-data'))
         else:
             self.fail('Should have raised: {}'.format(body))
+
+    @contextmanager
+    def create(self, client, *args, **kwargs):
+        display = client.displays.create(*args, **kwargs)
+        try:
+            yield display
+        finally:
+            try:
+                self.client.displays.delete(display['uuid'])
+            except requests.HTTPError as e:
+                response = getattr(e, 'response', None)
+                status_code = getattr(response, 'status_code', None)
+                if status_code != 404:
+                    raise
