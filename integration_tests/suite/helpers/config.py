@@ -16,17 +16,18 @@ def _random_string(n):
     return ''.join(random.choice(string.ascii_lowercase) for _ in range(n))
 
 
-class Config:
+DEFAULT_DISPLAY = {
+    'tenant_uuid': MAIN_TENANT,
+    'name': 'default_display',
+    'columns': [
+        {'title': 'Firstname', 'field': 'firstname'},
+        {'title': 'Lastname', 'field': 'lastname'},
+        {'title': 'Number', 'field': 'number'},
+    ],
+}
 
-    default_display = {
-        'tenant_uuid': MAIN_TENANT,
-        'name': 'default_display',
-        'columns': [
-            {'title': 'Firstname', 'field': 'firstname'},
-            {'title': 'Lastname', 'field': 'lastname'},
-            {'title': 'Number', 'field': 'number'},
-        ],
-    }
+
+class Config:
 
     def __init__(self, Session):
         self.display_crud = database.DisplayCRUD(Session)
@@ -42,9 +43,6 @@ class Config:
         self.created_sources = {}
 
     def setup(self):
-        if not self.displays:
-            self.displays.append(self.default_display)
-
         self._create_displays()
         self._create_sources()
         self._create_profiles()
@@ -124,6 +122,7 @@ class Config:
 
 def new_auth_only_config(Session):
     config = Config(Session)
+    config.with_display(**DEFAULT_DISPLAY)
     config.with_profile(name='default', display='default_display')
     return config
 
@@ -202,6 +201,7 @@ def new_csv_with_multiple_displays_config(Session):
 
 def new_csv_with_pipes_config(Session):
     config = Config(Session)
+    config.with_display(**DEFAULT_DISPLAY)
     config.with_source(
         backend='csv',
         name='my_csv',
@@ -224,6 +224,7 @@ def new_csv_with_pipes_config(Session):
 
 def new_half_broken_config(Session):
     config = Config(Session)
+    config.with_display(**DEFAULT_DISPLAY)
     config.with_profile(
         name='default',
         display='default_display',
@@ -266,6 +267,7 @@ def new_half_broken_config(Session):
 
 def new_ldap_config(Session):
     config = Config(Session)
+    config.with_display(**DEFAULT_DISPLAY)
     config.with_source(
         backend='ldap',
         name='test_ldap',
@@ -297,6 +299,7 @@ def new_ldap_config(Session):
 
 def new_ldap_city_config(Session):
     config = Config(Session)
+    config.with_display(**DEFAULT_DISPLAY)
     config.with_source(
         backend='ldap',
         name='test_ldap',
@@ -325,6 +328,7 @@ def new_ldap_city_config(Session):
 
 def new_ldap_service_down_config(Session):
     config = Config(Session)
+    config.with_display(**DEFAULT_DISPLAY)
     config.with_source(
         backend='ldap',
         name='test_ldap',
@@ -352,6 +356,7 @@ def new_ldap_service_down_config(Session):
 
 def new_ldap_service_innactive_config(Session):
     config = Config(Session)
+    config.with_display(**DEFAULT_DISPLAY)
     config.with_source(
         backend='ldap',
         name='test_ldap',
@@ -379,6 +384,7 @@ def new_ldap_service_innactive_config(Session):
 
 def new_multiple_sources_config(Session):
     config = Config(Session)
+    config.with_display(**DEFAULT_DISPLAY)
     config.with_source(
         backend='csv',
         name='my_csv',
@@ -608,4 +614,3 @@ def new_wazo_users_multiple_wazo_config(Session):
         },
     )
     return config
-
