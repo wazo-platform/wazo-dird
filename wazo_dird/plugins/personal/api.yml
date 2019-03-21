@@ -54,7 +54,7 @@ paths:
           schema:
             $ref: '#/definitions/Contact'
         '409':
-          $ref: '#/definitions/DuplicateContact'
+          $ref: '#/responses/DuplicateContact'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
     delete:
@@ -115,7 +115,7 @@ paths:
         '404':
           $ref: '#/responses/PersonalContactIDInvalid'
         '409':
-          $ref: '#/definitions/DuplicateContact'
+          $ref: '#/responses/DuplicateContact'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
     delete:
