@@ -7,6 +7,7 @@ from hamcrest import (
     assert_that,
     calling,
     contains,
+    contains_inanyorder,
     equal_to,
     has_entries,
     has_properties,
@@ -58,6 +59,68 @@ class TestDelete(BaseDisplayTestCase):
             calling(main_tenant_client.displays.delete).with_args(sub['uuid']),
             not_(raises(Exception)),
         )
+
+
+class TestList(BaseDisplayTestCase):
+
+    @fixtures.display(name='abc')
+    @fixtures.display(name='bcd')
+    @fixtures.display(name='cde')
+    def search(self, c, b, a):
+        result = self.client.displays.list()
+        self.assert_list_result(result, contains_inanyorder(a, b, c), total=3, filtered=3)
+
+        result = self.client.displays.list(name='abc')
+        self.assert_list_result(result, contains(a), total=3, filtered=1)
+
+        result = self.client.displays.list(uuid=c['uuid'])
+        self.assert_list_result(result, contains(c), total=3, filtered=1)
+
+        result = self.client.displays.list(search='b')
+        self.assert_list_result(result, contains_inanyorder(a, b), total=3, filtered=2)
+
+    @fixtures.display(name='abc', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(name='bcd', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(name='cde', token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, c, b, a):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        result = main_tenant_client.displays.list()
+        self.assert_list_result(result, contains_inanyorder(a, b), total=2, filtered=2)
+
+        result = main_tenant_client.displays.list(recurse=True)
+        self.assert_list_result(result, contains_inanyorder(a, b, c), total=3, filtered=3)
+
+        result = sub_tenant_client.displays.list()
+        self.assert_list_result(result, contains(c), total=1, filtered=1)
+
+        result = sub_tenant_client.displays.list(recurse=True)
+        self.assert_list_result(result, contains(c), total=1, filtered=1)
+
+    @fixtures.display(name='abc')
+    @fixtures.display(name='bcd')
+    @fixtures.display(name='cde')
+    def test_pagination(self, c, b, a):
+        result = self.client.displays.list(order='name')
+        self.assert_list_result(result, contains(a, b, c), total=3, filtered=3)
+
+        result = self.client.displays.list(order='name', direction='desc')
+        self.assert_list_result(result, contains(c, b, a), total=3, filtered=3)
+
+        result = self.client.displays.list(order='name', limit=2)
+        self.assert_list_result(result, contains(a, b), total=3, filtered=3)
+
+        result = self.client.displays.list(order='name', offset=2)
+        self.assert_list_result(result, contains(c), total=3, filtered=3)
+
+    @staticmethod
+    def assert_list_result(result, items, total, filtered):
+        assert_that(result, has_entries(
+            items=items,
+            total=total,
+            filtered=filtered,
+        ))
 
 
 class TestPost(BaseDisplayTestCase):

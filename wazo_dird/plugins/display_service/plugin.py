@@ -54,6 +54,9 @@ class _DisplayService:
         self._display_crud = crud
         bus.add_consumer(self.QUEUE, self._on_new_tenant)
 
+    def count(self, visible_tenants, **list_params):
+        return self._display_crud.count(visible_tenants, **list_params)
+
     def create(self, **body):
         return self._display_crud.create(**body)
 

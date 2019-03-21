@@ -13,7 +13,9 @@ from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import AuthResource
 
 from .schemas import (
+    display_list_schema,
     display_schema,
+    list_schema,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +31,22 @@ class Displays(_BaseResource):
 
     @required_acl('dird.displays.read')
     def get(self):
-        pass
+        list_params, errors = list_schema.load(request.args)
+        if list_params['recurse']:
+            visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        else:
+            visible_tenants = [Tenant.autodetect().uuid]
+
+        displays = self._display_service.list_(visible_tenants, **list_params)
+        items, errors = display_list_schema.dump(displays)
+        filtered = self._display_service.count(visible_tenants, **list_params)
+        total = self._display_service.count(visible_tenants)
+
+        return {
+            'total': total,
+            'filtered': filtered,
+            'items': items,
+        }
 
     @required_acl('dird.displays.create')
     def post(self):

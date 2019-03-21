@@ -3,6 +3,7 @@
 
 from sqlalchemy import (
     and_,
+    func,
     text,
 )
 from wazo_dird.database import schemas
@@ -17,6 +18,12 @@ from ..import (
 class DisplayCRUD(BaseDAO):
 
     _display_schema = schemas.DisplaySchema()
+
+    def count(self, visible_tenants, **list_params):
+        filter_ = self._list_filter(visible_tenants, **list_params)
+        with self.new_session() as s:
+            query = s.query(func.count(Display.uuid)).filter(filter_)
+            return query.scalar()
 
     def create(self, tenant_uuid, name, columns, uuid=None):
         with self.new_session() as s:
