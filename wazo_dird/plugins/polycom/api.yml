@@ -76,3 +76,7 @@ paths:
       - $ref: '#/parameters/Offset'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
+
+definitions:
+  PolycomIPPhoneDirectory:
+  PolycomIPPhoneInput:
