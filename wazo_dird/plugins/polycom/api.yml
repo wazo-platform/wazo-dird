@@ -79,4 +79,6 @@ paths:
 
 definitions:
   PolycomIPPhoneDirectory:
+    type: string
   PolycomIPPhoneInput:
+    type: string
