@@ -4,7 +4,10 @@
 import logging
 
 from flask import request
-from xivo.tenant_flask_helpers import Tenant
+from xivo.tenant_flask_helpers import (
+    Tenant,
+    token,
+)
 
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import AuthResource
@@ -40,7 +43,9 @@ class Display(_BaseResource):
 
     @required_acl('dird.displays.{display_uuid}.delete')
     def delete(self, display_uuid):
-        pass
+        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        self._display_service.delete(display_uuid, visible_tenants)
+        return '', 204
 
     @required_acl('dird.displays.{display_uuid}.read')
     def get(self, display_uuid):

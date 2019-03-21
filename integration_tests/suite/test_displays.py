@@ -8,10 +8,12 @@ from hamcrest import (
     equal_to,
     has_entries,
     has_properties,
+    not_,
 )
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from xivo_test_helpers.hamcrest.raises import raises
 from .helpers.base import BaseDirdIntegrationTest
+from .helpers.fixtures import http as fixtures
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
@@ -23,6 +25,37 @@ from .helpers.constants import (
 class BaseDisplayTestCase(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
+
+
+class TestDelete(BaseDisplayTestCase):
+
+    @fixtures.display()
+    def test_delete(self, display):
+        assert_that(
+            calling(self.client.displays.delete).with_args(display['uuid']),
+            not_(raises(Exception)),
+        )
+
+        assert_that(
+            calling(self.client.displays.delete).with_args(display['uuid']),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+    @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, sub, main):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        assert_that(
+            calling(sub_tenant_client.displays.delete).with_args(main['uuid']),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+        assert_that(
+            calling(main_tenant_client.displays.delete).with_args(sub['uuid']),
+            not_(raises(Exception)),
+        )
 
 
 class TestPost(BaseDisplayTestCase):
