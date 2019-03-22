@@ -33,7 +33,9 @@ class CSVWSPlugin(BaseSourcePlugin):
         self._first_matched_columns = config['config'].get(self.FIRST_MATCHED_COLUMNS, [])
         self._searched_columns = config['config'].get(self.SEARCHED_COLUMNS, [])
         self._unique_column = config['config'].get(self.UNIQUE_COLUMN)
+        backend = config['config'].get('backend', '')
         self._SourceResult = make_result_class(
+            backend,
             config['config']['name'],
             self._unique_column,
             config['config'].get(self.FORMAT_COLUMNS, {}))

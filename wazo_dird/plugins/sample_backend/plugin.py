@@ -19,7 +19,9 @@ class SamplePlugin(BaseSourcePlugin):
         self._config = args.get('config', {})
         self._name = self._config.get('name', 'sample_directory')
         self._format_columns = self._config.get(self.FORMAT_COLUMNS, {})
-        SourceResult = make_result_class(self._name, 'id', self._format_columns)
+
+        backend = self._config.get('backend', '')
+        SourceResult = make_result_class(backend, self._name, 'id', self._format_columns)
         self._result = SourceResult(self._sample_result)
 
     def search(self, term, args=None):

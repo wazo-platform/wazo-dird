@@ -51,7 +51,14 @@ class PhonebookPlugin(BaseSourcePlugin):
         self._search_engine = database.PhonebookContactSearchEngine(
             Session, tenant_uuid, phonebook_id, searched_columns, first_matched_columns
         )
-        self._SourceResult = make_result_class(self._source_name, unique_column, format_columns)
+
+        backend = self._source_name = config.get('backend', '')
+        self._SourceResult = make_result_class(
+            backend,
+            self._source_name,
+            unique_column,
+            format_columns
+        )
 
         logger.info('%s loaded', self._source_name)
 

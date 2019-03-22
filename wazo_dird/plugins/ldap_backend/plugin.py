@@ -320,9 +320,12 @@ class _LDAPResultFormatter:
     def __init__(self, ldap_config):
         self._unique_column = ldap_config.unique_column()
         self._bin_uuid = ldap_config.has_binary_uuid()
-        self._SourceResult = make_result_class(ldap_config.name(),
-                                               self._unique_column,
-                                               ldap_config.format_columns())
+        self._SourceResult = make_result_class(
+            'ldap',
+            ldap_config.name(),
+            self._unique_column,
+            ldap_config.format_columns()
+        )
 
     def format(self, raw_results):
         results = []

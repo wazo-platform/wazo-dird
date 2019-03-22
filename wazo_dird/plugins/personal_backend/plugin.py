@@ -32,10 +32,12 @@ class PersonalBackend(BaseSourcePlugin):
 
         unique_column = 'id'
         source_name = config['config']['name']
+        source_backend = config['config'].get('backend', '')
         format_columns = config['config'].get(self.FORMAT_COLUMNS, {})
 
         result_class = make_result_class(
             source_name,
+            source_backend,
             unique_column,
             format_columns,
             is_personal=True,
