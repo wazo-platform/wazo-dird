@@ -20,6 +20,7 @@ from .helpers.fixtures import http as fixtures
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
+    UNKNOWN_UUID,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
@@ -58,6 +59,33 @@ class TestDelete(BaseDisplayTestCase):
         assert_that(
             calling(main_tenant_client.displays.delete).with_args(sub['uuid']),
             not_(raises(Exception)),
+        )
+
+
+class TestGet(BaseDisplayTestCase):
+
+    @fixtures.display()
+    def test_get(self, display):
+        response = self.client.displays.get(display['uuid'])
+        assert_that(response, equal_to(display))
+
+        assert_that(
+            calling(self.client.displays.delete).with_args(UNKNOWN_UUID),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+    @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, sub, main):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        response = main_tenant_client.displays.get(sub['uuid'])
+        assert_that(response, equal_to(sub))
+
+        assert_that(
+            calling(sub_tenant_client.displays.get).with_args(main['uuid']),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
         )
 
 

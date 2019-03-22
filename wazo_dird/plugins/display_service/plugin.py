@@ -63,6 +63,9 @@ class _DisplayService:
     def delete(self, display_uuid, visible_tenants):
         return self._display_crud.delete(visible_tenants, display_uuid)
 
+    def get(self, display_uuid, visible_tenants):
+        return self._display_crud.get(visible_tenants, display_uuid)
+
     def list_(self, visible_tenants, **list_params):
         return self._display_crud.list_(visible_tenants, **list_params)
 
