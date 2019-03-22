@@ -29,6 +29,7 @@ class _NoErrorFormatter(string.Formatter):
 class _SourceResult:
 
     _unique_column = None
+    backend = None
     source = None
     _format_columns = {}
 
@@ -80,7 +81,7 @@ class _SourceResult:
                                                self.relations['endpoint_id'])
 
 
-def make_result_class(source_name, unique_column=None, format_columns=None, is_deletable=False, is_personal=False):
+def make_result_class(source_backend, source_name, unique_column=None, format_columns=None, is_deletable=False, is_personal=False):
     if not unique_column:
         unique_column = _SourceResult._unique_column
     if not format_columns:
@@ -88,6 +89,7 @@ def make_result_class(source_name, unique_column=None, format_columns=None, is_d
 
     class SourceResult(_SourceResult):
         source = source_name
+        backend = source_backend
         _unique_column = unique_column
         _format_columns = format_columns
 

@@ -261,6 +261,7 @@ class _ResultFormatter:
             'column_values': [result.fields.get(d.field, d.default) for d in self._display],
             'relations': result.relations,
             'source': result.source,
+            'backend': result.backend
         }
 
     def _is_favorite(self, result):
