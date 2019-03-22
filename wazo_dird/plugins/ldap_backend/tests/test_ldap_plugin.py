@@ -521,7 +521,7 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.ldap_config.name.return_value = self.name
         self.ldap_config.unique_column.return_value = self.unique_column
         self.ldap_config.format_columns.return_value = self.format_columns
-        self.SourceResult = make_result_class(self.name, self.unique_column, self.format_columns)
+        self.SourceResult = make_result_class('ldap', self.name, self.unique_column, self.format_columns)
 
     def test_format(self):
         formatter = self._new_formatter(has_binary_uuid=False)

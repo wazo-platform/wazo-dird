@@ -148,6 +148,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                               'user_uuid': 'ce36bbb4-ae97-4f7d-8a36-d82b96120418',
                               'source_entry_id': '100'},
                 'source': 'wazo_europe',
+                'backend': 'wazo',
             },
             {
                 'column_values': ['Mary', 'Sue', '1465'],
@@ -158,6 +159,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                               'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                               'source_entry_id': '2'},
                 'source': 'wazo_america',
+                'backend': 'wazo',
             },
             {
                 'column_values': ['Charles', 'Kenedy', ''],
@@ -168,6 +170,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                               'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                               'source_entry_id': '100'},
                 'source': 'wazo_america',
+                'backend': 'wazo',
             }
         ]
 
@@ -209,6 +212,7 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
                               'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
                               'source_entry_id': '1'},
                 'source': 'wazo_america',
+                'backend': 'wazo'
             },
         ]
 
@@ -233,6 +237,7 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
                               'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                               'source_entry_id': '2'},
                 'source': 'wazo_america',
+                'backend': 'wazo'
             },
             {
                 'column_values': ['Charles', 'Kenedy', ''],
@@ -243,6 +248,7 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
                               'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                               'source_entry_id': '100'},
                 'source': 'wazo_america',
+                'backend': 'wazo'
             }
         ]
 
@@ -267,6 +273,7 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
                               'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                               'source_entry_id': '2'},
                 'source': 'wazo_america',
+                'backend': 'wazo'
             },
             {
                 'column_values': ['Charles', 'Kenedy', ''],
@@ -277,6 +284,7 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
                               'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                               'source_entry_id': '100'},
                 'source': 'wazo_america',
+                'backend': 'wazo'
             }
         ]
 

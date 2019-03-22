@@ -34,6 +34,7 @@ CONFD_CONFIG = {
 }
 DEFAULT_ARGS = {
     'config': {
+        'backend': 'wazo',
         'tenant_uuid': TENANT_UUID,
         'confd': CONFD_CONFIG,
         'auth': AUTH_CONFIG,
@@ -46,7 +47,7 @@ UUID = 'my-xivo-uuid'
 UUID_1 = '55abf77c-5744-44a0-9c36-34da29f647cb'
 UUID_2 = '22f51ae2-296d-4340-a7d5-3567ae66df73'
 
-SourceResult = make_result_class(DEFAULT_ARGS['config']['name'],
+SourceResult = make_result_class(DEFAULT_ARGS['config']['backend'], DEFAULT_ARGS['config']['name'],
                                  unique_column='id')
 
 CONFD_USER_1 = {

@@ -88,6 +88,7 @@ class TestSourceResult(unittest.TestCase):
 
     def test_that_format_columns_transformation_are_applied(self):
         SourceResult = make_result_class(
+            sentinel.backend,
             sentinel.name,
             format_columns={
                 'fn': '{firstname}',
@@ -113,7 +114,7 @@ class TestSourceResult(unittest.TestCase):
         ))
 
     def test_that_the_source_entry_id_is_added_to_relations(self):
-        SourceResult = make_result_class('foobar', unique_column='email')
+        SourceResult = make_result_class('foo_backend', 'foobar', unique_column='email')
 
         r = SourceResult({'fn': 'Foo',
                           'ln': 'Bar',
@@ -125,14 +126,18 @@ class TestSourceResult(unittest.TestCase):
 class TestMakeResultClass(unittest.TestCase):
 
     def test_source_name(self):
-        SourceResult = make_result_class(sentinel.source_name)
+        SourceResult = make_result_class(sentinel.backend, sentinel.source_name)
 
         s = SourceResult({})
 
         assert_that(s.source, equal_to(sentinel.source_name))
 
     def test_source_unique_column(self):
-        SourceResult = make_result_class(sentinel.source_name, 'the-unique-column')
+        SourceResult = make_result_class(
+            sentinel.backend,
+            sentinel.source_name,
+            'the-unique-column'
+        )
 
         s = SourceResult({})
 
@@ -140,8 +145,11 @@ class TestMakeResultClass(unittest.TestCase):
         assert_that(s._format_columns, equal_to({}))
 
     def test_format_columns(self):
-        SourceResult = make_result_class(sentinel.source_name,
-                                         format_columns={'to': '{from}'})
+        SourceResult = make_result_class(
+            sentinel.backend,
+            sentinel.source_name,
+            format_columns={'to': '{from}'}
+        )
 
         s = SourceResult({})
 
@@ -149,8 +157,11 @@ class TestMakeResultClass(unittest.TestCase):
         assert_that(s._unique_column, none())
 
     def test_deletable(self):
-        SourceResult = make_result_class(sentinel.source_name,
-                                         is_deletable=True)
+        SourceResult = make_result_class(
+            sentinel.backend,
+            sentinel.source_name,
+            is_deletable=True
+        )
 
         s = SourceResult({})
 

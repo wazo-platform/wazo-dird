@@ -20,7 +20,7 @@ class TestSampleBackend(unittest.TestCase):
         self.source.load({})
 
     def test_search(self):
-        SourceResult = make_result_class('sample_directory', 'id')
+        SourceResult = make_result_class('sample_backend', 'sample_directory', 'id')
         only_result = SourceResult({
             'id': 1,
             'firstname': 'John',
@@ -35,7 +35,7 @@ class TestSampleBackend(unittest.TestCase):
         assert_that(results, contains(only_result))
 
     def test_first_match(self):
-        SourceResult = make_result_class('sample_directory', 'id')
+        SourceResult = make_result_class('sample_backend', 'sample_directory', 'id')
         only_result = SourceResult({
             'id': 1,
             'firstname': 'John',
