@@ -242,3 +242,90 @@ class TestPost(BaseDisplayTestCase):
                 status_code = getattr(response, 'status_code', None)
                 if status_code != 404:
                     raise
+
+
+class TestPut(BaseDisplayTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.valid_body = {
+            'name': 'display',
+            'columns': [
+                {
+                    'field': 'fn',
+                    'title': 'Firstname',
+                    'default': '',
+                },
+                {
+                    'field': 'mobile',
+                    'title': 'Mobile',
+                    'type': 'number',
+                    'number_display': '{firstname} (Mobile)',
+                    'default': None,
+                },
+            ],
+        }
+
+    @fixtures.display()
+    def test_put(self, display):
+        self.client.displays.edit(display['uuid'], self.valid_body)
+
+        result = self.client.displays.get(display['uuid'])
+        assert_that(result, has_entries(
+            uuid=display['uuid'],
+            tenant_uuid=display['tenant_uuid'],
+            name=self.valid_body['name'],
+            columns=contains(
+                has_entries(self.valid_body['columns'][0]),
+                has_entries(self.valid_body['columns'][1]),
+            ),
+        ))
+
+        assert_that(
+            calling(self.client.displays.edit).with_args(UNKNOWN_UUID, self.valid_body),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+    @fixtures.display()
+    def test_invalid_bodies(self, display):
+        invalid_bodies = [
+            {},
+            {'name': None},
+            {'name': 'foobar'},
+            {'name': 'foobar', 'columns': []},
+            {'name': 'foobar', 'columns': [{}]},
+        ]
+
+        for body in invalid_bodies:
+            self.assert_invalid_body(display['uuid'], body)
+
+    def assert_invalid_body(self, display_uuid, body):
+        try:
+            self.client.displays.edit(display_uuid, body)
+        except Exception as e:
+            assert_that(e.response.status_code, equal_to(400))
+            assert_that(e.response.json(), has_entries(error_id='invalid-data'))
+        else:
+            self.fail('Should have raised: {}'.format(body))
+
+    @fixtures.display(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(name='foosub', token=VALID_TOKEN_SUB_TENANT)
+    def test_put_multi_tenant(self, sub, main):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        assert_that(
+            calling(main_tenant_client.displays.edit).with_args(main['uuid'], sub),
+            not_(raises(Exception)),
+            'failed to create a duplicate in different tenants',
+        )
+
+        assert_that(
+            calling(sub_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+        assert_that(
+            calling(main_tenant_client.displays.edit).with_args(sub['uuid'], self.valid_body),
+            not_(raises(Exception)),
+        )

@@ -72,4 +72,7 @@ class Display(_BaseResource):
 
     @required_acl('dird.displays.{display_uuid}.update')
     def put(self, display_uuid):
-        pass
+        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        args = display_schema.load(request.get_json()).data
+        self._display_service.edit(display_uuid, visible_tenants=visible_tenants, **args)
+        return '', 204

@@ -42,6 +42,21 @@ class DisplayCRUD(BaseDAO):
         if not nb_deleted:
             raise NoSuchDisplay(display_uuid)
 
+    def edit(self, visible_tenants, display_uuid, name, columns):
+        filter_ = self._build_filter(visible_tenants, display_uuid)
+        with self.new_session() as s:
+            display = s.query(Display).filter(filter_).first()
+            if not display:
+                raise NoSuchDisplay(display_uuid)
+
+            s.query(DisplayColumn).filter(
+                DisplayColumn.display_uuid == display_uuid,
+            ).delete(synchronize_session=False)
+
+            display.name = name
+            for column in columns:
+                self._add_column(s, display_uuid=display_uuid, **column)
+
     def get(self, visible_tenants, display_uuid):
         filter_ = self._build_filter(visible_tenants, display_uuid)
         with self.new_session() as s:

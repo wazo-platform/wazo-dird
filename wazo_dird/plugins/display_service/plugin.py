@@ -63,6 +63,9 @@ class _DisplayService:
     def delete(self, display_uuid, visible_tenants):
         return self._display_crud.delete(visible_tenants, display_uuid)
 
+    def edit(self, display_uuid, visible_tenants, **body):
+        return self._display_crud.edit(visible_tenants, display_uuid, **body)
+
     def get(self, display_uuid, visible_tenants):
         return self._display_crud.get(visible_tenants, display_uuid)
 
