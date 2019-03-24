@@ -1,0 +1,140 @@
+paths:
+  /profiles:
+    post:
+      operationId: create_profile
+      summary: Create a new configuration profile
+      description: '**Required ACL:** `dird.profiles.create`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The profile configuration
+          schema:
+            $ref: '#/definitions/Profile'
+      responses:
+        '201':
+          description: The created profile
+          schema:
+            $ref: '#/definitions/Profile'
+        '400':
+          $ref: '#/responses/CreateError'
+    get:
+      operationId: list_profile
+      summary: List all configured profiles
+      description: '**Required ACL:** `dird.profiles.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        '200':
+          description: A list of configured profiles
+          schema:
+            $ref: '#/definitions/ProfileItems'
+  /profiles/{profile_uuid}:
+    get:
+      operationId: get_profile
+      summary: Get a profile configuration
+      description: '**Required ACL:** `dird.profiles.{profile_uuid}.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/profileuuid'
+      responses:
+        '200':
+          description: Profile
+          schema:
+            $ref: '#/definitions/Profile'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_profile
+      summary: Update a profile configuration
+      description: '**Required ACL:** `dird.profiles.{profile_uuid}.update`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/profileuuid'
+        - name: body
+          in: body
+          description: The profile configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/Profile'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    delete:
+      operationId: delete_profile
+      summary: Delete a profile configuration
+      description: '**Required ACL:** `dird.profiles.{profile_uuid}.delete`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/profileuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+definitions:
+  Profile:
+    title: Profile
+    allOf:
+      - properties:
+          uuid:
+            type: string
+            readOnly: true
+          name:
+            type: string
+            description: The name of the profile
+          display:
+            $ref: '#/definitions/DisplayIdentifier'
+          services:
+            type: array
+            items:
+              $ref: '#/definitions/ServiceConfiguration'
+      - required:
+          - name
+  ProfileItems:
+    title: ProfileItems
+    allOf:
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/Profile'
+            readOnly: true
+          total:
+            type: integer
+            description: The number of configured profiles
+            readOnly: true
+          filtered:
+            type: integer
+            description: The number of configured profiles matching the searched terms
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered
+parameters:
+  profileuuid:
+    required: true
+    type: string
+    name: profile_uuid
+    in: path
+    description: "the profile's UUID"
