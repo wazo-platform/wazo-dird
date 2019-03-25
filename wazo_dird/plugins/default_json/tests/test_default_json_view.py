@@ -152,7 +152,8 @@ class TestFormatResult(unittest.TestCase):
     def setUp(self):
         self.source_name = 'my_source'
         self.xivo_id = 'my_xivo_abc'
-        self.SourceResult = make_result_class(self.source_name, unique_column='id')
+        backend = 'my_backend'
+        self.SourceResult = make_result_class(backend, self.source_name, unique_column='id')
 
     def test_that_format_results_adds_columns_headers(self):
         display = [
@@ -217,6 +218,7 @@ class TestFormatResult(unittest.TestCase):
                               'endpoint_id': None,
                               'source_entry_id': '1'},
                 'source': self.source_name,
+                'backend': 'my_backend',
             },
             {
                 'column_values': ['Bob', 'BBB', None, '5555556666', 'Canada'],
@@ -227,6 +229,7 @@ class TestFormatResult(unittest.TestCase):
                               'endpoint_id': 'endpoint_id',
                               'source_entry_id': 'user_id'},
                 'source': self.source_name,
+                'backend': 'my_backend',
             },
         ]))
 
@@ -268,6 +271,7 @@ class TestFormatResult(unittest.TestCase):
                                      'telephoneNumber': '5555556666'},
                                     self.xivo_id, 'agent_id', 2, UUID2, 'endpoint_id')
         result3 = make_result_class(
+            'personal',
             'personal_source',
             unique_column='id',
             is_personal=True,

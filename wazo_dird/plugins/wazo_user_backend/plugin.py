@@ -59,7 +59,9 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._client = self._ConfdClientClass(**confd_config)
         self._client.set_tenant(config['tenant_uuid'])
 
+        backend = config.get('backend', '')
         self._SourceResult = make_result_class(
+            backend,
             self.name, 'id',
             format_columns=config.get(self.FORMAT_COLUMNS))
 

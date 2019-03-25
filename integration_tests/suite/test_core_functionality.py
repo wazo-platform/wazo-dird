@@ -45,9 +45,11 @@ class TestCoreSourceManagement(BaseMultipleSourceLauncher):
 
     alice_aaa = {'column_values': ['Alice', 'AAA', '5555555555'],
                  'source': 'my_csv',
+                 'backend': 'csv',
                  'relations': EMPTY_RELATIONS}
     alice_alan = {'column_values': ['Alice', 'Alan', '1111'],
                   'source': 'third_csv',
+                  'backend': 'csv',
                   'relations': {'xivo_id': None,
                                 'user_id': None,
                                 'user_uuid': None,

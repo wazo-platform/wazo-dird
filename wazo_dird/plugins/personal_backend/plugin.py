@@ -35,6 +35,7 @@ class PersonalBackend(BaseSourcePlugin):
         format_columns = config['config'].get(self.FORMAT_COLUMNS, {})
 
         result_class = make_result_class(
+            'personal',
             source_name,
             unique_column,
             format_columns,
