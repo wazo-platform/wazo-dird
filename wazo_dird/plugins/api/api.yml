@@ -214,6 +214,9 @@ definitions:
           type: string
   Lookup:
     properties:
+      backend:
+        type: string
+        description: Backend type
       column_headers:
         type: array
         description: Labels for the headers
@@ -233,6 +236,7 @@ definitions:
         type: string
         description: Search term used for these results
     required:
+    - backend
     - column_headers
     - column_types
     - results
