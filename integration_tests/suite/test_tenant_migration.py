@@ -10,6 +10,7 @@ from hamcrest import (
     has_entries,
 )
 from .helpers.base import BasePhonebookTestCase
+from .helpers.constants import DIRD_TOKEN_TENANT
 
 from wazo_dird import database
 
@@ -41,7 +42,11 @@ class TestTenantMigration(BasePhonebookTestCase):
 
         # Pre-set the UUIDs in the base class to match the values in the DB
         for tenant in tenants:
-            self.tenants[tenant['name']] = {'uuid': tenant['old_uuid']}
+            self.tenants[tenant['name']] = {
+                'uuid': tenant['old_uuid'],
+                'name': tenant['name'],
+                'parent_uuid': DIRD_TOKEN_TENANT,
+            }
 
         # Create a phonebook in each tenants
         self.set_tenants(tenants[0]['name'])
@@ -66,7 +71,11 @@ class TestTenantMigration(BasePhonebookTestCase):
 
         # Set the new UUIDS in the test cache such that the auth mock returns the new UUIDs
         for tenant in tenants:
-            self.tenants[tenant['name']] = {'uuid': tenant['new_uuid']}
+            self.tenants[tenant['name']] = {
+                'uuid': tenant['new_uuid'],
+                'name': tenant['name'],
+                'parent_uuid': DIRD_TOKEN_TENANT,
+            }
 
         # wazo-auth now returns the new UUID and wazo-dird still return the matching phonebook
         self.set_tenants(tenants[0]['name'])

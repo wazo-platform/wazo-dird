@@ -14,6 +14,7 @@ VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
 VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
 MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
+DIRD_TOKEN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'
 DEFAULT_DISPLAYS = [
     {
         'name': 'default_display',
