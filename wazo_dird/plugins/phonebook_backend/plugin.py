@@ -52,9 +52,8 @@ class PhonebookPlugin(BaseSourcePlugin):
             Session, tenant_uuid, phonebook_id, searched_columns, first_matched_columns
         )
 
-        backend = self._source_name = config.get('backend', '')
         self._SourceResult = make_result_class(
-            backend,
+            'phonebook',
             self._source_name,
             unique_column,
             format_columns
