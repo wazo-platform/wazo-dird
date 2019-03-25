@@ -77,7 +77,7 @@ class DisplayCRUD(BaseDAO):
         if not visible_tenants and visible_tenants is not None:
             raise NoSuchDisplay(display_uuid)
 
-        filter_ = Display.uuid == display_uuid
+        filter_ = Display.uuid == str(display_uuid)
         if visible_tenants:
             filter_ = and_(filter_, Display.tenant_uuid.in_(visible_tenants))
 

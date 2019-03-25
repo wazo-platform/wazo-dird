@@ -1,6 +1,14 @@
 Changelog
 =========
 
+19.06
+-----
+
+* A new resource has been added to config lookup `profiles`
+
+  * POST `/0.1/profiles`
+
+
 19.05
 -----
 

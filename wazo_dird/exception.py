@@ -20,7 +20,8 @@ class DatabaseServiceUnavailable(Exception):
 
 class NoSuchDisplay(APIException):
 
-    def __init__(self, display_uuid):
+    def __init__(self, uuid):
+        display_uuid = str(uuid)
         msg = 'No such display: "{}"'.format(display_uuid)
         details = {
             'uuid': display_uuid,
@@ -75,7 +76,8 @@ class NoSuchContact(ValueError):
 
 class NoSuchSource(APIException):
 
-    def __init__(self, source_uuid):
+    def __init__(self, uuid):
+        source_uuid = str(uuid)
         msg = 'No such source: "{}"'.format(source_uuid)
         details = {
             'uuid': source_uuid,

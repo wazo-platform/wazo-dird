@@ -118,23 +118,6 @@ definitions:
             readOnly: true
       - required:
           - name
-  ServiceConfiguration:
-    title: Service
-    allOf:
-      - properties:
-          name:
-            type: string
-            description: The service name
-          sources:
-            type: array
-            items:
-              $ref: '#/definitions/SourceIdentifier'
-            default: []
-          options:
-            type: object
-            description: Service specific configuration options
-      - required:
-          - name
   ServiceItems:
     title: ServiceItems
     allOf:
@@ -176,15 +159,6 @@ definitions:
           - uuid
           - backend
           - name
-  SourceIdentifier:
-    title: SourceUUID
-    allOf:
-      - properties:
-          uuid:
-            type: string
-            description: The source's UUID
-      - required:
-        - uuid
   SourceItems:
     title: SourceItems
     allOf:

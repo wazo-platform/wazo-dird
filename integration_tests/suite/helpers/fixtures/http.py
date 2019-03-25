@@ -6,6 +6,7 @@ from functools import wraps
 
 
 def csv_source(**source_args):
+    source_args.setdefault('name', 'csv')
     source_args.setdefault('token', 'valid-token-master-tenant')
     source_args.setdefault('file', '/tmp/fixture.csv')
 

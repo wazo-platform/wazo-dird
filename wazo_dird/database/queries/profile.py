@@ -36,7 +36,7 @@ class ProfileCRUD(BaseDAO):
                     s, body['uuid'], service_uuid, config,
                 )
                 for source in config['sources']:
-                    source_uuid = source.get('uuid')
+                    source_uuid = str(source.get('uuid'))
                     self._create_profile_service_source(
                         s, profile_service_uuid, source_uuid,
                     )

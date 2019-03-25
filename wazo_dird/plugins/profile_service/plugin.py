@@ -51,7 +51,11 @@ class _ProfileService:
         bus.add_consumer(self._QUEUE, self._on_new_context)
 
     def create(self, **body):
-        return self._profile_crud.create(body)
+        try:
+            return self._profile_crud.create(body)
+        except (exception.NoSuchDisplay, exception.NoSuchSource) as e:
+            e.status_code = 400
+            raise e
 
     def get_by_name(self, tenant_uuid, name):
         for profile in self._profile_crud.list_([tenant_uuid], name=name):

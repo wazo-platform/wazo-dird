@@ -86,6 +86,7 @@ enabled_plugins:
     personal_view: true
     phonebook_backend: true
     phonebook_view: true
+    profiles_view: true
     polycom_view: true
     snom_view: true
     thomson_view: true
