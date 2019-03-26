@@ -1,6 +1,19 @@
 Changelog
 =========
 
+19.05
+-----
+
+* A new resource has been added to configure `displays`
+
+
+  * POST `/0.1/displays`
+  * GET `/0.1/displays`
+  * DELETE `/0.1/displays/<display_uuid>`
+  * GET `/0.1/displays/<display_uuid>`
+  * PUT `/0.1/displays/<display_uuid>`
+
+
 19.03
 -----
 
