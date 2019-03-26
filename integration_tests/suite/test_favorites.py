@@ -23,8 +23,9 @@ from .helpers.base import (
 )
 from .helpers.config import new_csv_with_multiple_displays_config
 from .helpers.constants import (
-    VALID_TOKEN_MAIN_TENANT,
+    MAIN_TENANT,
     TENANT_UUID_2,
+    VALID_TOKEN_MAIN_TENANT,
 )
 
 
@@ -38,7 +39,7 @@ class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
         super().setUpClass()
         tenants = {
             'items': [
-                {'uuid': 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10', 'name': 'first'},
+                {'uuid': MAIN_TENANT, 'name': 'first'},
                 {'uuid': TENANT_UUID_2, 'name': 'second'},
             ]
         }

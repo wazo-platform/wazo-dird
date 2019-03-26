@@ -55,6 +55,32 @@ def csv_ws_source(**source_args):
     return decorator
 
 
+def display(**display_args):
+    display_args.setdefault('token', 'valid-token-master-tenant')
+    display_args.setdefault('name', 'display')
+    display_args.setdefault('columns', [{'field': 'fn'}])
+
+    def decorator(decorated):
+
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            client = self.get_client(display_args['token'])
+            display = client.displays.create(display_args)
+            try:
+                result = decorated(self, display, *args, **kwargs)
+            finally:
+                try:
+                    self.client.displays.delete(display['uuid'])
+                except requests.HTTPError as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+        return wrapper
+    return decorator
+
+
 def ldap_source(**source_args):
     source_args.setdefault('token', 'valid-token-master-tenant')
     source_args.setdefault('ldap_uri', 'ldap://example.org')

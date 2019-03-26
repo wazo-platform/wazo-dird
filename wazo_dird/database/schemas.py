@@ -1,25 +1,31 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import marshmallow
+
 from xivo.mallow import fields
-from wazo_dird.schemas import (
-    BaseSchema,
-)
+from xivo.mallow.validate import Length
+from wazo_dird.schemas import BaseSchema
 
 
 class DisplayColumnSchema(BaseSchema):
-    field = fields.String()
-    title = fields.String()
-    type = fields.String()
-    default = fields.String()
-    number_display = fields.String()
+    field = fields.String(allow_none=True)
+    title = fields.String(allow_none=True)
+    type = fields.String(allow_none=True)
+    default = fields.String(allow_none=True)
+    number_display = fields.String(allow_none=True)
+
+    @marshmallow.validates_schema
+    def check_not_empty(self, data):
+        if not data:
+            raise marshmallow.ValidationError('Empty columns are now allowed')
 
 
 class DisplaySchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
-    name = fields.String()
-    columns = fields.Nested(DisplayColumnSchema, many=True)
+    name = fields.String(validate=Length(min=1, max=512), required=True)
+    columns = fields.Nested(DisplayColumnSchema, many=True, required=True, validate=Length(min=1))
 
 
 class SourceSchema(BaseSchema):

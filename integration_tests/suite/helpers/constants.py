@@ -13,8 +13,10 @@ VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
 VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
+VALID_TOKEN_SUB_TENANT = 'valid-token-sub-tenant'
 MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
 DIRD_TOKEN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'
+SUB_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee11'
 DEFAULT_DISPLAYS = [
     {
         'name': 'default_display',
@@ -26,3 +28,4 @@ DEFAULT_DISPLAYS = [
     },
 ]
 TENANT_UUID_2 = str(uuid.uuid4())
+UNKNOWN_UUID = '00000000-0000-0000-0000-000000000000'

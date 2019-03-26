@@ -77,6 +77,7 @@ enabled_plugins:
     csv_backend: true
     csv_ws_backend: true
     default_json: true
+    displays_view: true
     gigaset_view: true
     headers_view: true
     htek_view: true
