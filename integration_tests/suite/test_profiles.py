@@ -1,6 +1,9 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from contextlib import contextmanager
+from requests import HTTPError
+
 from hamcrest import (
     assert_that,
     calling,
@@ -8,6 +11,7 @@ from hamcrest import (
     equal_to,
     has_entries,
     has_properties,
+    not_,
 )
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
@@ -25,6 +29,76 @@ from .helpers.fixtures import http as fixtures
 class BaseProfileTestCase(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
+
+    @contextmanager
+    def profile(self, client, *args, **kwargs):
+        profile = client.profiles.create(*args, **kwargs)
+        try:
+            yield profile
+        finally:
+            try:
+                self.client.profiles.delete(profile['uuid'])
+            except HTTPError as e:
+                response = getattr(e, 'response', None)
+                status_code = getattr(response, 'status_code', None)
+                if status_code != 404:
+                    raise
+
+
+class TestDelete(BaseProfileTestCase):
+
+    @fixtures.display()
+    @fixtures.csv_source()
+    def test_delete(self, source, display):
+        body = {
+            'name': 'profile',
+            'display': display,
+            'services': {'lookup': {'sources': [source]}},
+        }
+        with self.profile(self.client, body) as profile:
+            assert_that(
+                calling(self.client.profiles.delete).with_args(profile['uuid']),
+                not_(raises(Exception)),
+            )
+
+            assert_that(
+                calling(self.client.profiles.delete).with_args(profile['uuid']),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
+    @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, sub_source, sub_display, main_source, main_display):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        body = {
+            'name': 'profile',
+            'display': main_display,
+            'services': {'lookup': {'sources': [main_source]}},
+        }
+        with self.profile(main_tenant_client, body) as profile:
+            assert_that(
+                calling(sub_tenant_client.profiles.delete).with_args(profile['uuid']),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
+        body = {
+            'name': 'profile',
+            'display': sub_display,
+            'services': {'lookup': {'sources': [sub_source]}},
+        }
+        with self.profile(sub_tenant_client, body) as profile:
+            assert_that(
+                calling(main_tenant_client.profiles.delete).with_args(profile['uuid']),
+                not_(raises(Exception)),
+            )
 
 
 class TestPost(BaseProfileTestCase):

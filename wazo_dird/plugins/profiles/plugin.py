@@ -17,3 +17,9 @@ class ProfilesViewPlugin(BaseViewPlugin):
             '/profiles',
             resource_class_args=(profile_service,),
         )
+
+        api.add_resource(
+            http.Profile,
+            '/profiles/<profile_uuid>',
+            resource_class_args=(profile_service,),
+        )

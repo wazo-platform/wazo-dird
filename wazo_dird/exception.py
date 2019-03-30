@@ -55,6 +55,17 @@ class NoSuchProfile(OldAPIException):
         super().__init__(status_code, body)
 
 
+class NoSuchProfileAPIException(APIException):
+
+    def __init__(self, uuid):
+        profile_uuid = str(uuid)
+        msg = 'No such profile: "{}"'.format(profile_uuid)
+        details = {
+            'uuid': profile_uuid,
+        }
+        super().__init__(404, msg, 'unknown-profile', details, 'profiles')
+
+
 class NoSuchUser(OldAPIException):
 
     def __init__(self, user_uuid):

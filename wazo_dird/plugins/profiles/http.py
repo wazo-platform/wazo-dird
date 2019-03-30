@@ -6,6 +6,7 @@ import logging
 from flask import request
 from xivo.tenant_flask_helpers import (
     Tenant,
+    token,
 )
 
 from wazo_dird.auth import required_acl
@@ -34,3 +35,12 @@ class Profiles(_BaseResource):
         body = self._profile_service.create(tenant_uuid=tenant.uuid, **args)
         logger.critical('%s', pformat(args))
         return profile_schema.dump(body).data, 201
+
+
+class Profile(_BaseResource):
+
+    @required_acl('dird.profiles.{profile_uuid}.delete')
+    def delete(self, profile_uuid):
+        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        self._profile_service.delete(profile_uuid, visible_tenants)
+        return '', 204

@@ -57,6 +57,9 @@ class _ProfileService:
             e.status_code = 400
             raise e
 
+    def delete(self, profile_uuid, visible_tenants):
+        self._profile_crud.delete(visible_tenants, profile_uuid)
+
     def get_by_name(self, tenant_uuid, name):
         for profile in self._profile_crud.list_([tenant_uuid], name=name):
             return profile
