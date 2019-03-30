@@ -101,6 +101,56 @@ class TestDelete(BaseProfileTestCase):
             )
 
 
+class TestGet(BaseProfileTestCase):
+
+    @fixtures.display()
+    @fixtures.csv_source()
+    def test_get(self, source, display):
+        body = {
+            'name': 'profile',
+            'display': display,
+            'services': {'lookup': {'sources': [source]}},
+        }
+        with self.profile(self.client, body) as profile:
+            response = self.client.profiles.get(profile['uuid'])
+            assert_that(response, equal_to(profile))
+
+        assert_that(
+            calling(self.client.profiles.get).with_args(UNKNOWN_UUID),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+    @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, sub_source, sub_display, main_source, main_display):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        body = {
+            'name': 'profile',
+            'display': main_display,
+            'services': {'lookup': {'sources': [main_source]}},
+        }
+        with self.profile(main_tenant_client, body) as profile:
+            assert_that(
+                calling(sub_tenant_client.profiles.get).with_args(profile['uuid']),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
+        body = {
+            'name': 'profile',
+            'display': sub_display,
+            'services': {'lookup': {'sources': [sub_source]}},
+        }
+        with self.profile(sub_tenant_client, body) as profile:
+            result = main_tenant_client.profiles.get(profile['uuid'])
+            assert_that(result, equal_to(result))
+
+
 class TestPost(BaseProfileTestCase):
 
     @fixtures.display()

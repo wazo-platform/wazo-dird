@@ -62,6 +62,9 @@ class ProfileCRUD(BaseDAO):
         )
         with self.new_session() as s:
             profile = s.query(Profile).filter(filter_).first()
+            if not profile:
+                raise exception.NoSuchProfileAPIException(profile_uuid)
+
             return self._profile_schema.dump(profile).data
 
     def list_(self, visible_tenants, **list_params):

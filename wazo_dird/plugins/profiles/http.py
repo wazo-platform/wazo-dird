@@ -44,3 +44,9 @@ class Profile(_BaseResource):
         visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
         self._profile_service.delete(profile_uuid, visible_tenants)
         return '', 204
+
+    @required_acl('dird.profiles.{profile_uuid}.read')
+    def get(self, profile_uuid):
+        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        profile = self._profile_service.get(profile_uuid, visible_tenants)
+        return profile_schema.dump(profile).data

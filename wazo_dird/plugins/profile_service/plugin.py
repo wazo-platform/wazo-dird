@@ -60,6 +60,9 @@ class _ProfileService:
     def delete(self, profile_uuid, visible_tenants):
         self._profile_crud.delete(visible_tenants, profile_uuid)
 
+    def get(self, profile_uuid, visible_tenants):
+        return self._profile_crud.get(visible_tenants, profile_uuid)
+
     def get_by_name(self, tenant_uuid, name):
         for profile in self._profile_crud.list_([tenant_uuid], name=name):
             return profile
