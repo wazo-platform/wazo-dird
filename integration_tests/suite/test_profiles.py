@@ -159,24 +159,23 @@ class TestPost(BaseProfileTestCase):
             },
         }
 
-        profile = self.client.profiles.create(body)
-
-        assert_that(profile, has_entries(
-            uuid=uuid_(),
-            tenant_uuid=MAIN_TENANT,
-            name='profile',
-            display=has_entries(uuid=display['uuid']),
-            services=has_entries(
-                lookup=has_entries(
-                    sources=contains(has_entries(uuid=source['uuid'])),
-                    options=has_entries(timeout=5)
+        with self.profile(self.client, body) as profile:
+            assert_that(profile, has_entries(
+                uuid=uuid_(),
+                tenant_uuid=MAIN_TENANT,
+                name='profile',
+                display=has_entries(uuid=display['uuid']),
+                services=has_entries(
+                    lookup=has_entries(
+                        sources=contains(has_entries(uuid=source['uuid'])),
+                        options=has_entries(timeout=5)
+                    ),
+                    reverse=has_entries(
+                        sources=contains(has_entries(uuid=source['uuid'])),
+                        options=has_entries(timeout=0.5)
+                    ),
                 ),
-                reverse=has_entries(
-                    sources=contains(has_entries(uuid=source['uuid'])),
-                    options=has_entries(timeout=0.5)
-                ),
-            ),
-        ))
+            ))
 
     @fixtures.csv_source(token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.csv_source(token=VALID_TOKEN_SUB_TENANT)
@@ -202,9 +201,8 @@ class TestPost(BaseProfileTestCase):
             'display': sub_display,
             'services': {'lookup': {'sources': [sub_source]}},
         }
-        profile = main_tenant_client.profiles.create(body, tenant_uuid=SUB_TENANT)
-        assert_that(profile, has_entries(tenant_uuid=SUB_TENANT))
-        # TODO remove the profile
+        with self.profile(main_tenant_client, body, tenant_uuid=SUB_TENANT) as profile:
+            assert_that(profile, has_entries(tenant_uuid=SUB_TENANT))
 
     def assert_invalid_body(self, body):
         try:
