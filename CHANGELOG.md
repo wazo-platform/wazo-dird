@@ -4,6 +4,8 @@ Changelog
 19.05
 -----
 
+* When performing `GET /directories/lookup/{profile}`, the backend type of every contact is now returned
+
 * A new resource has been added to configure `displays`
 
 
