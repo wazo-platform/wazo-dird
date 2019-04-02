@@ -50,11 +50,16 @@ class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
         user_token_2 = MockUserToken.some_token(
             metadata={'tenant_uuid': tenants['items'][1]['uuid']},
         )
+        user_token_3 = MockUserToken.some_token(
+            metadata={'tenant_uuid': tenants['items'][0]['uuid']},
+        )
         mock_auth_client.set_token(user_token_1)
         mock_auth_client.set_token(user_token_2)
+        mock_auth_client.set_token(user_token_3)
         mock_auth_client.set_tenants(tenants)
         cls.token_1 = user_token_1.token_id
         cls.token_2 = user_token_2.token_id
+        cls.token_3 = user_token_3.token_id
 
 
 class TestFavorites(_BaseMultiTokenFavoriteTest):
@@ -73,7 +78,7 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
     def test_that_favorites_are_only_visible_for_the_same_token(self):
         with self.favorite('my_csv', '1', token=self.token_1), \
                 self.favorite('my_csv', '2', token=self.token_1), \
-                self.favorite('my_csv', '3', token=self.token_2):
+                self.favorite('my_csv', '3', token=self.token_3):
             result = self.favorites('default', token=self.token_1)
 
         assert_that(result['results'], contains_inanyorder(
