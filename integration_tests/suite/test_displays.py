@@ -94,7 +94,7 @@ class TestList(BaseDisplayTestCase):
     @fixtures.display(name='abc')
     @fixtures.display(name='bcd')
     @fixtures.display(name='cde')
-    def search(self, c, b, a):
+    def test_search(self, c, b, a):
         result = self.client.displays.list()
         self.assert_list_result(result, contains_inanyorder(a, b, c), total=3, filtered=3)
 
