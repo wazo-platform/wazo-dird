@@ -1,7 +1,6 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import uuid
 import os
 
 ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
@@ -27,5 +26,5 @@ DEFAULT_DISPLAYS = [
         ],
     },
 ]
-TENANT_UUID_2 = str(uuid.uuid4())
+TENANT_UUID_2 = '4c3c6c6f-7dda-4561-9cc0-a2d757c725dd'
 UNKNOWN_UUID = '00000000-0000-0000-0000-000000000000'
