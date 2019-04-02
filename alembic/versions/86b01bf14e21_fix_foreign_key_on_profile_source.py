@@ -58,7 +58,7 @@ def upgrade():
     profile_to_tenant_query = sa.sql.select([profile_table.c.uuid, profile_table.c.tenant_uuid])
     rows = op.get_bind().execute(profile_to_tenant_query).fetchall()
     profile_to_tenant = {row.uuid: row.tenant_uuid for row in rows}
-    for uuid, tenant_uuid in profile_to_tenant:
+    for uuid, tenant_uuid in profile_to_tenant.items():
         op.execute(
             profile_service_table
             .update()
@@ -70,19 +70,19 @@ def upgrade():
         [profile_service_table.c.uuid, profile_service_table.c.profile_tenant_uuid]
     )
     rows = op.get_bind().execute(profile_service_to_tenant_query).fetchall()
-    profile_service_to_tenant = {row.uuid: row.tenant_uuid for row in rows}
-    for uuid, tenant_uuid in profile_service_to_tenant:
+    profile_service_to_tenant = {row.uuid: row.profile_tenant_uuid for row in rows}
+    for uuid, tenant_uuid in profile_service_to_tenant.items():
         op.execute(
             profile_service_source_table
             .update()
-            .where(profile_service_source_table.c.profile_uuid == uuid)
+            .where(profile_service_source_table.c.profile_service_uuid == uuid)
             .values(profile_tenant_uuid=tenant_uuid)
         )
 
     source_to_tenant_query = sa.sql.select([source_table.c.uuid, source_table.c.tenant_uuid])
     rows = op.get_bind().execute(source_to_tenant_query).fetchall()
     source_to_tenant = {row.uuid: row.tenant_uuid for row in rows}
-    for uuid, tenant_uuid in source_to_tenant:
+    for uuid, tenant_uuid in source_to_tenant.items():
         op.execute(
             profile_service_source_table
             .update()
