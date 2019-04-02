@@ -6,7 +6,11 @@ Changelog
 
 * A new resource has been added to config lookup `profiles`
 
+  * GET `/0.1/profiles`
   * POST `/0.1/profiles`
+  * DELETE `/0.1/profiles/<profile_uuid>`
+  * GET `/0.1/profiles/<profile_uuid>`
+  * PUT `/0.1/profiles/<profile_uuid>`
 
 
 19.05
