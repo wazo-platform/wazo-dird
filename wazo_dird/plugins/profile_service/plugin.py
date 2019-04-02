@@ -60,6 +60,13 @@ class _ProfileService:
     def delete(self, profile_uuid, visible_tenants):
         self._profile_crud.delete(visible_tenants, profile_uuid)
 
+    def edit(self, profile_uuid, visible_tenants, **body):
+        try:
+            return self._profile_crud.edit(visible_tenants, profile_uuid, body)
+        except (exception.NoSuchDisplay, exception.NoSuchSource) as e:
+            e.status_code = 400
+            raise e
+
     def get(self, profile_uuid, visible_tenants):
         return self._profile_crud.get(visible_tenants, profile_uuid)
 

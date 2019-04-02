@@ -27,39 +27,44 @@ class ProfileCRUD(BaseDAO):
     _profile_schema = schemas.ProfileSchema()
 
     def create(self, body):
+        tenant_uuid = body['tenant_uuid']
         with self.new_session() as s:
-            self._create_tenant(s, body['tenant_uuid'])
+            self._create_tenant(s, tenant_uuid)
             body['uuid'] = self._create_profile(s, body)
-            for service_name, config in body['services'].items():
-                service_uuid = self._create_service(s, service_name)
-                profile_service_uuid = self._create_profile_service(
-                    s, body['uuid'], service_uuid, config,
-                )
-                for source in config['sources']:
-                    source_uuid = str(source.get('uuid'))
-                    self._create_profile_service_source(
-                        s, profile_service_uuid, source_uuid,
-                    )
+            self._associate_all_services(s, tenant_uuid, body['uuid'], body['services'])
         return body
 
     def delete(self, visible_tenants, profile_uuid):
-        filter_ = Profile.uuid == profile_uuid
-        if visible_tenants is not None:
-            if not visible_tenants:
-                raise exception.NoSuchProfileAPIException(profile_uuid)
-            filter_ = and_(filter_, Profile.tenant_uuid.in_(visible_tenants))
-
+        filter_ = self._build_filter(visible_tenants, profile_uuid)
         with self.new_session() as s:
             nb_deleted = s.query(Profile).filter(filter_).delete(synchronize_session=False)
 
         if not nb_deleted:
             raise exception.NoSuchProfileAPIException(profile_uuid)
 
+    def edit(self, visible_tenants, profile_uuid, body):
+        filter_ = self._build_filter(visible_tenants, profile_uuid)
+        with self.new_session() as s:
+            self._dissociate_all_services(s, profile_uuid)
+
+            profile = s.query(Profile).filter(filter_).first()
+            if not profile:
+                raise exception.NoSuchProfileAPIException(profile_uuid)
+
+            profile.name = body['name']
+            profile.display_uuid = body['display']['uuid']
+            profile.display_tenant_uuid = profile.tenant_uuid
+            try:
+                s.flush()
+            except exc.IntegrityError as e:
+                if extract_constraint_name(e) == 'dird_profile_display_uuid_tenant_fkey':
+                    raise exception.NoSuchDisplay(body['display']['uuid'])
+                raise
+
+            self._associate_all_services(s, profile.tenant_uuid, profile_uuid, body['services'])
+
     def get(self, visible_tenants, profile_uuid):
-        filter_ = and_(
-            Profile.uuid == profile_uuid,
-            Profile.tenant_uuid.in_(visible_tenants),
-        )
+        filter_ = self._build_filter(visible_tenants, profile_uuid)
         with self.new_session() as s:
             profile = s.query(Profile).filter(filter_).first()
             if not profile:
@@ -73,6 +78,31 @@ class ProfileCRUD(BaseDAO):
             query = s.query(Profile).filter(filter_)
             # add pagination here
             return self._profile_schema.dump(query.all(), many=True).data
+
+    def _build_filter(self, visible_tenants, profile_uuid):
+        filter_ = Profile.uuid == profile_uuid
+        if visible_tenants is not None:
+            if not visible_tenants:
+                raise exception.NoSuchProfileAPIException(profile_uuid)
+            filter_ = and_(filter_, Profile.tenant_uuid.in_(visible_tenants))
+        return filter_
+
+    def _associate_all_services(self, session, tenant_uuid, profile_uuid, services):
+        for service_name, config in services.items():
+            service_uuid = self._create_service(session, service_name)
+            profile_service_uuid = self._create_profile_service(
+                session, tenant_uuid, profile_uuid, service_uuid, config,
+            )
+            for source in config['sources']:
+                source_uuid = str(source.get('uuid'))
+                self._create_profile_service_source(
+                    session, tenant_uuid, profile_service_uuid, source_uuid,
+                )
+
+    def _dissociate_all_services(self, session, profile_uuid):
+        session.query(ProfileService).filter(
+            ProfileService.profile_uuid == profile_uuid,
+        ).delete(synchronize_session=False)
 
     def _list_filter(self, visible_tenants, uuid=None, name=None, **list_params):
         filter_ = text('true')
@@ -94,22 +124,24 @@ class ProfileCRUD(BaseDAO):
             tenant_uuid=body['tenant_uuid'],
             name=body['name'],
             display_uuid=display_uuid,
+            display_tenant_uuid=body['tenant_uuid'],
         )
         session.add(profile)
         try:
             session.flush()
         except exc.IntegrityError as e:
-            if extract_constraint_name(e) == 'dird_profile_display_uuid_fkey':
+            if extract_constraint_name(e) == 'dird_profile_display_uuid_tenant_fkey':
                 raise exception.NoSuchDisplay(display_uuid)
             raise
         return profile.uuid
 
     @staticmethod
-    def _create_profile_service(session, profile_uuid, service_uuid, config):
+    def _create_profile_service(session, tenant_uuid, profile_uuid, service_uuid, config):
         config = dict(config)
         config.pop('sources', None)
         profile_service = ProfileService(
             profile_uuid=profile_uuid,
+            profile_tenant_uuid=tenant_uuid,
             service_uuid=service_uuid,
             config=config,
         )
@@ -118,19 +150,21 @@ class ProfileCRUD(BaseDAO):
         return profile_service.uuid
 
     @staticmethod
-    def _create_profile_service_source(session, profile_service_uuid, source_uuid):
+    def _create_profile_service_source(session, tenant_uuid, profile_service_uuid, source_uuid):
         if source_uuid is None:
             raise exception.NoSuchSource(source_uuid)
 
         profile_service_source = ProfileServiceSource(
             profile_service_uuid=profile_service_uuid,
+            profile_tenant_uuid=tenant_uuid,
             source_uuid=source_uuid,
+            source_tenant_uuid=tenant_uuid,
         )
         session.add(profile_service_source)
         try:
             session.flush()
         except exc.IntegrityError as e:
-            if extract_constraint_name(e) == 'dird_profile_service_source_source_uuid_fkey':
+            if extract_constraint_name(e) == 'dird_profile_service_source_source_uuid_tenant_fkey':
                 raise exception.NoSuchSource(source_uuid)
             raise
 

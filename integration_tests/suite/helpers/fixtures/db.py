@@ -54,7 +54,7 @@ def profile(**profile_args):
             finally:
                 try:
                     self.profile_crud.delete(None, profile['uuid'])
-                except exception.NoSuchProfile:
+                except exception.NoSuchProfileAPIException:
                     pass
             return result
         return wrapper

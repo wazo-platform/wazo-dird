@@ -50,3 +50,10 @@ class Profile(_BaseResource):
         visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
         profile = self._profile_service.get(profile_uuid, visible_tenants)
         return profile_schema.dump(profile).data
+
+    @required_acl('dird.profiles.{profile_uuid}.update')
+    def put(self, profile_uuid):
+        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        args = profile_schema.load(request.get_json()).data
+        self._profile_service.edit(profile_uuid, visible_tenants=visible_tenants, **args)
+        return '', 204

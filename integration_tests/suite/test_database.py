@@ -48,6 +48,8 @@ Session = None
 def new_uuid():
     return str(uuid4())
 
+TENANT_UUID = new_uuid()
+
 
 def expected(contact):
     result = {'id': ANY}
@@ -1310,14 +1312,13 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
 class TestProfileCRUD(_BaseTest):
 
-    @fixtures.display()
-    @fixtures.source()
-    @fixtures.source()
+    @fixtures.display(tenant_uuid=TENANT_UUID)
+    @fixtures.source(tenant_uuid=TENANT_UUID)
+    @fixtures.source(tenant_uuid=TENANT_UUID)
     def test_create_no_error(self, source_2, source_1, display):
-        tenant_uuid = new_uuid()
         name = 'my-profile'
         body = {
-            'tenant_uuid': tenant_uuid,
+            'tenant_uuid': TENANT_UUID,
             'name': name,
             'display': {'uuid': display['uuid']},
             'services': {
@@ -1340,7 +1341,7 @@ class TestProfileCRUD(_BaseTest):
         try:
             assert_that(result, has_entries(
                 uuid=uuid_(),
-                tenant_uuid=tenant_uuid,
+                tenant_uuid=TENANT_UUID,
                 name=name,
                 display=has_entries(uuid=display['uuid']),
                 services=has_entries(
@@ -1362,11 +1363,11 @@ class TestProfileCRUD(_BaseTest):
         finally:
             self.profile_crud.delete(None, result['uuid'])
 
-    @fixtures.source()
-    @fixtures.source()
+    @fixtures.source(tenant_uuid=TENANT_UUID)
+    @fixtures.source(tenant_uuid=TENANT_UUID)
     def test_create_unknown_display(self, source_2, source_1):
         body = {
-            'tenant_uuid': new_uuid(),
+            'tenant_uuid': TENANT_UUID,
             'name': 'profile',
             'display': {'uuid': 'b20524b7-7c87-4b0d-ba22-19656a77c3e2'},
             'services': {},
@@ -1377,10 +1378,10 @@ class TestProfileCRUD(_BaseTest):
             raises(exception.NoSuchDisplay),
         )
 
-    @fixtures.display()
+    @fixtures.display(tenant_uuid=TENANT_UUID)
     def test_create_unknown_source(self, display):
         body = {
-            'tenant_uuid': new_uuid(),
+            'tenant_uuid': TENANT_UUID,
             'name': 'profile',
             'display_uuid': None,
             'services': {
@@ -1545,17 +1546,17 @@ class TestProfileCRUD(_BaseTest):
 
         assert_that(
             calling(self.profile_crud.delete).with_args(None, unknown_uuid),
-            raises(exception.NoSuchProfile),
+            raises(exception.NoSuchProfileAPIException),
         )
 
         assert_that(
             calling(self.profile_crud.delete).with_args([unknown_uuid], profile['uuid']),
-            raises(exception.NoSuchProfile),
+            raises(exception.NoSuchProfileAPIException),
         )
 
         assert_that(
             calling(self.profile_crud.delete).with_args([], profile['uuid']),
-            raises(exception.NoSuchProfile),
+            raises(exception.NoSuchProfileAPIException),
         )
 
         assert_that(

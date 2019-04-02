@@ -169,8 +169,7 @@ class TestPost(BaseProfileTestCase):
     @fixtures.display()
     @fixtures.csv_source()
     @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
-    @fixtures.csv_source(token=VALID_TOKEN_SUB_TENANT)
-    def test_unknown_resources(self, unknown_source, unknown_display, source, display):
+    def test_unknown_display(self, unknown_display, source, display):
         for uuid in [UNKNOWN_UUID, unknown_display['uuid']]:
             unknown_display = {
                 'name': 'unknown_display',
@@ -184,6 +183,10 @@ class TestPost(BaseProfileTestCase):
                 assert_that(e.response.status_code, equal_to(400))
                 assert_that(e.response.json(), has_entries(error_id='unknown-display'))
 
+    @fixtures.display()
+    @fixtures.csv_source()
+    @fixtures.csv_source(token=VALID_TOKEN_SUB_TENANT)
+    def test_unknown_sources(self, unknown_source, source, display):
         for uuid in [UNKNOWN_UUID, unknown_source['uuid']]:
             unknown_source = {
                 'name': 'unknown_source',
@@ -262,3 +265,122 @@ class TestPost(BaseProfileTestCase):
             assert_that(e.response.json(), has_entries(error_id='invalid-data'))
         else:
             self.fail('Should have raised: {}'.format(body))
+
+
+class TestPut(BaseProfileTestCase):
+
+    @fixtures.display()
+    @fixtures.display()
+    @fixtures.csv_source()
+    @fixtures.csv_source()
+    def test_put(self, s2, s1, d2, d1):
+        body = {
+            'name': 'profile',
+            'display': d1,
+            'services': {'lookup': {'sources': [s1]}},
+        }
+        with self.profile(self.client, body) as profile:
+            new_body = {
+                'name': 'updated',
+                'display': d2,
+                'services': {
+                    'reverse': {'sources': [s1, s2]},
+                    'favorites': {'sources': [s2]},
+                }
+            }
+            self.client.profiles.edit(profile['uuid'], new_body)
+
+            assert_that(self.client.profiles.get(profile['uuid']), has_entries(
+                uuid=profile['uuid'],
+                name='updated',
+                services=has_entries(
+                    reverse=has_entries(
+                        sources=contains(
+                            has_entries(uuid=s1['uuid']),
+                            has_entries(uuid=s2['uuid']),
+                        ),
+                    ),
+                    favorites=has_entries(
+                        sources=contains(
+                            has_entries(uuid=s2['uuid']),
+                        ),
+                    ),
+                ),
+            ))
+
+        assert_that(
+            calling(self.client.profiles.edit).with_args(UNKNOWN_UUID, new_body),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+    @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, sub_source, sub_display, main_source, main_display):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        body = {
+            'name': 'profile',
+            'display': main_display,
+            'services': {'lookup': {'sources': [main_source]}},
+        }
+        with self.profile(main_tenant_client, body) as profile:
+            assert_that(
+                calling(sub_tenant_client.profiles.edit).with_args(profile['uuid'], body),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
+        body = {
+            'name': 'profile',
+            'display': sub_display,
+            'services': {'lookup': {'sources': [sub_source]}},
+        }
+        with self.profile(sub_tenant_client, body) as profile:
+            result = main_tenant_client.profiles.edit(profile['uuid'], body)
+            assert_that(result, equal_to(result))
+
+    @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.csv_source()
+    def test_unknown_display(self, source, sub_display, main_display):
+        body = {
+            'name': 'profile',
+            'display': main_display,
+            'services': {'lookup': {'sources': [source]}},
+        }
+
+        with self.profile(self.client, body) as profile:
+            for display_uuid in [sub_display['uuid'], UNKNOWN_UUID]:
+                new_body = dict(body)
+                new_body['display'] = {'uuid': display_uuid}
+                assert_that(
+                    calling(self.client.profiles.edit).with_args(profile['uuid'], new_body),
+                    raises(Exception).matching(
+                        has_properties(response=has_properties(status_code=400)),
+                    ),
+                )
+
+    @fixtures.display()
+    @fixtures.csv_source(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_SUB_TENANT)
+    def test_unknown_source(self, sub_source, main_source, display):
+        body = {
+            'name': 'profile',
+            'display': display,
+            'services': {'lookup': {'sources': [main_source]}},
+        }
+
+        with self.profile(self.client, body) as profile:
+            for source_uuid in [sub_source['uuid'], UNKNOWN_UUID]:
+                new_body = dict(body)
+                new_body['services']['lookup']['sources'] = [{'uuid': source_uuid}]
+                assert_that(
+                    calling(self.client.profiles.edit).with_args(profile['uuid'], new_body),
+                    raises(Exception).matching(
+                        has_properties(response=has_properties(status_code=400)),
+                    ),
+                )
