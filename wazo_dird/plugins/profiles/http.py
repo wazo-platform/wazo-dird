@@ -13,6 +13,8 @@ from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import AuthResource
 
 from .schemas import (
+    list_schema,
+    profile_list_schema,
     profile_schema,
 )
 
@@ -27,13 +29,30 @@ class _BaseResource(AuthResource):
 
 class Profiles(_BaseResource):
 
+    @required_acl('dird.profiles.read')
+    def get(self):
+        list_params, errors = list_schema.load(request.args)
+        if list_params['recurse']:
+            visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        else:
+            visible_tenants = [Tenant.autodetect().uuid]
+
+        profiles = self._profile_service.list_(visible_tenants, **list_params)
+        items, errors = profile_list_schema.dump(profiles)
+        filtered = self._profile_service.count(visible_tenants, **list_params)
+        total = self._profile_service.count(visible_tenants)
+
+        return {
+            'total': total,
+            'filtered': filtered,
+            'items': items,
+        }
+
     @required_acl('dird.profiles.create')
     def post(self):
         tenant = Tenant.autodetect()
         args = profile_schema.load(request.get_json()).data
-        from pprint import pformat
         body = self._profile_service.create(tenant_uuid=tenant.uuid, **args)
-        logger.critical('%s', pformat(args))
         return profile_schema.dump(body).data, 201
 
 

@@ -11,6 +11,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from hamcrest import (
     assert_that,
     equal_to,
+    has_entries,
 )
 
 from xivo import url_helpers
@@ -515,6 +516,14 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         kwargs.setdefault('headers', {'X-Auth-Token': token, 'Content-Type': 'application/json'})
         kwargs.setdefault('verify', CA_CERT)
         return requests.put(*args, **kwargs)
+
+    @staticmethod
+    def assert_list_result(result, items, total, filtered):
+        assert_that(result, has_entries(
+            items=items,
+            total=total,
+            filtered=filtered,
+        ))
 
 
 class BasePhonebookTestCase(BaseDirdIntegrationTest):

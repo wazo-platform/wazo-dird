@@ -4,6 +4,7 @@
 from sqlalchemy import (
     and_,
     exc,
+    func,
     text,
 )
 
@@ -25,6 +26,12 @@ from ..import (
 class ProfileCRUD(BaseDAO):
 
     _profile_schema = schemas.ProfileSchema()
+
+    def count(self, visible_tenants, **list_params):
+        filter_ = self._list_filter(visible_tenants, **list_params)
+        with self.new_session() as s:
+            query = s.query(func.count(Profile.uuid)).filter(filter_)
+            return query.scalar()
 
     def create(self, body):
         tenant_uuid = body['tenant_uuid']
@@ -76,7 +83,7 @@ class ProfileCRUD(BaseDAO):
         filter_ = self._list_filter(visible_tenants, **list_params)
         with self.new_session() as s:
             query = s.query(Profile).filter(filter_)
-            # add pagination here
+            query = self._paginate(query, **list_params)
             return self._profile_schema.dump(query.all(), many=True).data
 
     def _build_filter(self, visible_tenants, profile_uuid):
@@ -104,7 +111,7 @@ class ProfileCRUD(BaseDAO):
             ProfileService.profile_uuid == profile_uuid,
         ).delete(synchronize_session=False)
 
-    def _list_filter(self, visible_tenants, uuid=None, name=None, **list_params):
+    def _list_filter(self, visible_tenants, uuid=None, name=None, search=None, **list_params):
         filter_ = text('true')
         if visible_tenants is not None:
             if not visible_tenants:
@@ -114,7 +121,29 @@ class ProfileCRUD(BaseDAO):
             filter_ = and_(filter_, Profile.uuid == uuid)
         if name is not None:
             filter_ = and_(filter_, Profile.name == name)
+        if search is not None:
+            pattern = '%{}%'.format(search)
+            filter_ = and_(filter_, Profile.name.ilike(pattern))
         return filter_
+
+    @staticmethod
+    def _paginate(query, limit=None, offset=None, order=None, direction=None, **ignored):
+        if order and direction:
+            field = None
+            if order == 'name':
+                field = Profile.name
+
+            if field:
+                order_clause = field.asc() if direction == 'asc' else field.desc()
+                query = query.order_by(order_clause)
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        if offset is not None:
+            query = query.offset(offset)
+
+        return query
 
     @staticmethod
     def _create_profile(session, body):

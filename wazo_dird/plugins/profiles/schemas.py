@@ -57,4 +57,6 @@ class ListSchema(_ListSchema):
     recurse = fields.Boolean(missing=False)
 
 
+list_schema = ListSchema()
+profile_list_schema = ProfileSchema(many=True)
 profile_schema = ProfileSchema()

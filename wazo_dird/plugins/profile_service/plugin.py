@@ -50,6 +50,9 @@ class _ProfileService:
         self._controller = controller
         bus.add_consumer(self._QUEUE, self._on_new_context)
 
+    def count(self, visible_tenants, **list_params):
+        return self._profile_crud.count(visible_tenants, **list_params)
+
     def create(self, **body):
         try:
             return self._profile_crud.create(body)

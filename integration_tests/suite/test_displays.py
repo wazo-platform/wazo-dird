@@ -142,14 +142,6 @@ class TestList(BaseDisplayTestCase):
         result = self.client.displays.list(order='name', offset=2)
         self.assert_list_result(result, contains(c), total=3, filtered=3)
 
-    @staticmethod
-    def assert_list_result(result, items, total, filtered):
-        assert_that(result, has_entries(
-            items=items,
-            total=total,
-            filtered=filtered,
-        ))
-
 
 class TestPost(BaseDisplayTestCase):
 

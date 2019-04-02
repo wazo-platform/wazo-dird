@@ -8,6 +8,7 @@ from hamcrest import (
     assert_that,
     calling,
     contains,
+    contains_inanyorder,
     equal_to,
     has_entries,
     has_properties,
@@ -149,6 +150,88 @@ class TestGet(BaseProfileTestCase):
         with self.profile(sub_tenant_client, body) as profile:
             result = main_tenant_client.profiles.get(profile['uuid'])
             assert_that(result, equal_to(result))
+
+
+class TestList(BaseProfileTestCase):
+
+    @fixtures.display()
+    @fixtures.csv_source()
+    def test_search(self, source, display):
+        base_body = {'display': display, 'services': {'lookup': {'sources': [source]}}}
+        body_abc = dict(name='abc', **base_body)
+        body_bcd = dict(name='bcd', **base_body)
+        body_cde = dict(name='cde', **base_body)
+
+        with self.profile(self.client, body_abc) as abc, \
+                self.profile(self.client, body_bcd) as bcd, \
+                self.profile(self.client, body_cde) as cde:
+            result = self.client.profiles.list()
+            self.assert_list_result(result, contains_inanyorder(abc, bcd, cde), total=3, filtered=3)
+
+            result = self.client.profiles.list(name='abc')
+            self.assert_list_result(result, contains(abc), total=3, filtered=1)
+
+            result = self.client.profiles.list(uuid=cde['uuid'])
+            self.assert_list_result(result, contains(cde), total=3, filtered=1)
+
+            result = self.client.profiles.list(search='b')
+            self.assert_list_result(result, contains_inanyorder(abc, bcd), total=3, filtered=2)
+
+    @fixtures.display()
+    @fixtures.csv_source()
+    def test_pagination(self, source, display):
+        base_body = {'display': display, 'services': {'lookup': {'sources': [source]}}}
+        body_abc = dict(name='abc', **base_body)
+        body_bcd = dict(name='bcd', **base_body)
+        body_cde = dict(name='cde', **base_body)
+
+        with self.profile(self.client, body_abc) as abc, \
+                self.profile(self.client, body_bcd) as bcd, \
+                self.profile(self.client, body_cde) as cde:
+            result = self.client.profiles.list(order='name')
+            self.assert_list_result(result, contains(abc, bcd, cde), total=3, filtered=3)
+
+            result = self.client.profiles.list(order='name', direction='desc')
+            self.assert_list_result(result, contains(cde, bcd, abc), total=3, filtered=3)
+
+            result = self.client.profiles.list(order='name', limit=2)
+            self.assert_list_result(result, contains(abc, bcd), total=3, filtered=3)
+
+            result = self.client.profiles.list(order='name', offset=2)
+            self.assert_list_result(result, contains(cde), total=3, filtered=3)
+
+    @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.csv_source(token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, sub_source, main_source, sub_display, main_display):
+        main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        body_main_profile = {
+            'name': 'main',
+            'display': main_display,
+            'services': {'lookup': {'sources': [main_source]}},
+        }
+        body_sub_profile = {
+            'name': 'sub',
+            'display': sub_display,
+            'services': {'lookup': {'sources': [sub_source]}},
+        }
+
+        with self.profile(main_tenant_client, body_main_profile) as main, \
+                self.profile(sub_tenant_client, body_sub_profile) as sub:
+            result = main_tenant_client.profiles.list()
+            self.assert_list_result(result, contains(main), total=1, filtered=1)
+
+            result = main_tenant_client.profiles.list(recurse=True)
+            self.assert_list_result(result, contains_inanyorder(main, sub), total=2, filtered=2)
+
+            result = sub_tenant_client.profiles.list()
+            self.assert_list_result(result, contains_inanyorder(sub), total=1, filtered=1)
+
+            result = sub_tenant_client.profiles.list(recurse=True)
+            self.assert_list_result(result, contains_inanyorder(sub), total=1, filtered=1)
 
 
 class TestPost(BaseProfileTestCase):
