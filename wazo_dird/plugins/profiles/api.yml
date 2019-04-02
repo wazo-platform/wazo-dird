@@ -20,6 +20,8 @@ paths:
             $ref: '#/definitions/Profile'
         '400':
           $ref: '#/responses/CreateError'
+        '409':
+          $ref: '#/responses/DuplicateError'
     get:
       operationId: list_profile
       summary: List all configured profiles
@@ -78,6 +80,8 @@ paths:
           $ref: '#/responses/UpdateError'
         '404':
           $ref: '#/responses/NotFoundError'
+        '409':
+          $ref: '#/responses/DuplicateError'
     delete:
       operationId: delete_profile
       summary: Delete a profile configuration
@@ -92,6 +96,11 @@ paths:
           $ref: '#/responses/ResourceDeleted'
         '404':
           $ref: '#/responses/NotFoundError'
+responses:
+  DuplicateError:
+    description: The name already exist
+    schema:
+      $ref: '#/definitions/APIError'
 definitions:
   Profile:
     title: Profile

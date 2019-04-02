@@ -64,8 +64,11 @@ class ProfileCRUD(BaseDAO):
             try:
                 s.flush()
             except exc.IntegrityError as e:
-                if extract_constraint_name(e) == 'dird_profile_display_uuid_tenant_fkey':
+                constraint_name = extract_constraint_name(e)
+                if constraint_name == 'dird_profile_display_uuid_tenant_fkey':
                     raise exception.NoSuchDisplay(body['display']['uuid'])
+                elif constraint_name == 'dird_profile_tenant_name':
+                    raise exception.DuplicatedProfileException(body['name'])
                 raise
 
             self._associate_all_services(s, profile.tenant_uuid, profile_uuid, body['services'])
@@ -159,8 +162,11 @@ class ProfileCRUD(BaseDAO):
         try:
             session.flush()
         except exc.IntegrityError as e:
-            if extract_constraint_name(e) == 'dird_profile_display_uuid_tenant_fkey':
+            constraint_name = extract_constraint_name(e)
+            if constraint_name == 'dird_profile_display_uuid_tenant_fkey':
                 raise exception.NoSuchDisplay(display_uuid)
+            elif constraint_name == 'dird_profile_tenant_name':
+                raise exception.DuplicatedProfileException(body['name'])
             raise
         return profile.uuid
 

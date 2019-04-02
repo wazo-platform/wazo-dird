@@ -251,6 +251,23 @@ class TestPost(BaseProfileTestCase):
 
     @fixtures.display()
     @fixtures.csv_source()
+    def test_duplicate(self, source, display):
+        body = {
+            'name': 'profile',
+            'display': display,
+            'services': {'lookup': {'sources': [source]}},
+        }
+
+        with self.profile(self.client, body):
+            assert_that(
+                calling(self.client.profiles.create).with_args(body),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409)),
+                ),
+            )
+
+    @fixtures.display()
+    @fixtures.csv_source()
     @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
     def test_unknown_display(self, unknown_display, source, display):
         for uuid in [UNKNOWN_UUID, unknown_display['uuid']]:
@@ -395,6 +412,23 @@ class TestPut(BaseProfileTestCase):
             calling(self.client.profiles.edit).with_args(UNKNOWN_UUID, new_body),
             raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
         )
+
+    @fixtures.display()
+    @fixtures.csv_source()
+    def test_duplicate(self, s1, d1):
+        body = {
+            'display': d1,
+            'services': {'lookup': {'sources': [s1]}},
+        }
+
+        with self.profile(self.client, dict(name='a', **body)), \
+                self.profile(self.client, dict(name='b', **body)) as b:
+            assert_that(
+                calling(self.client.profiles.edit).with_args(b['uuid'], dict(name='a', **body)),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409)),
+                ),
+            )
 
     @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.csv_source(token=VALID_TOKEN_MAIN_TENANT)
