@@ -14,11 +14,9 @@ class SourceSchema(BaseSourceSchema):
 class ListSchema(_ListSchema):
 
     searchable_columns = ['uuid', 'name', 'db_uri']
+    sort_columns = ['name', 'db_uri']
+    default_sort_column = 'name'
 
-    order = fields.WazoOrder(
-        sort_columns=['name', 'db_uri'],
-        default_sort_column='name',
-    )
     recurse = fields.Boolean(missing=False)
 
 
