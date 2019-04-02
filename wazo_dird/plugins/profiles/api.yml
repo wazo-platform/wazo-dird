@@ -33,6 +33,7 @@ paths:
         - $ref: '#/parameters/direction'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
       responses:
         '200':
           description: A list of configured profiles
