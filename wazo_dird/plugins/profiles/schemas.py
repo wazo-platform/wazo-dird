@@ -49,11 +49,9 @@ class ProfileSchema(BaseSchema):
 class ListSchema(_ListSchema):
 
     searchable_columns = ['uuid', 'name']
+    sort_columns = ['name']
+    default_sort_column = 'name'
 
-    order = fields.WazoOrder(
-        sort_columns=['name'],
-        default_sort_column='name',
-    )
     recurse = fields.Boolean(missing=False)
 
 
