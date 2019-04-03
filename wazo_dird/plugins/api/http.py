@@ -34,6 +34,8 @@ class ApiResource(ErrorCatchingResource):
                 logger.debug('API spec for module "%s" does not exist', module.module_name)
             except IndexError:
                 logger.debug('Could not find API spec from module "%s"', module.module_name)
+            except NotImplementedError:
+                logger.debug('Are you sure you have an __init__ file in your module "%s"?', module.module_name)
         api_spec = ChainMap(*specs)
 
         if not api_spec.get('info'):
