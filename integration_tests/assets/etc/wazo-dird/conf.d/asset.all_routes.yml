@@ -22,6 +22,7 @@ enabled_plugins:
     wazo_backend: true
     personal_backend: true
     phonebook_backend: true
+    profiles_view: true
 
 foo:
     bar: main

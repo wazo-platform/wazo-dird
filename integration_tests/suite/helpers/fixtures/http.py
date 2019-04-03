@@ -1,18 +1,28 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import random
 import requests
+import string
+
 from functools import wraps
+
+from ..constants import VALID_TOKEN_MAIN_TENANT
+
+
+def random_string(length=10):
+    return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
 
 
 def csv_source(**source_args):
-    source_args.setdefault('token', 'valid-token-master-tenant')
-    source_args.setdefault('file', '/tmp/fixture.csv')
-
     def decorator(decorated):
 
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
+            source_args.setdefault('name', random_string())
+            source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
+            source_args.setdefault('file', '/tmp/fixture.csv')
+
             client = self.get_client(source_args['token'])
             source = client.csv_source.create(source_args)
             try:
@@ -32,7 +42,7 @@ def csv_source(**source_args):
 
 def csv_ws_source(**source_args):
     source_args.setdefault('lookup_url', 'http://example.com/fixture')
-    source_args.setdefault('token', 'valid-token-master-tenant')
+    source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
 
@@ -56,7 +66,7 @@ def csv_ws_source(**source_args):
 
 
 def display(**display_args):
-    display_args.setdefault('token', 'valid-token-master-tenant')
+    display_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
     display_args.setdefault('name', 'display')
     display_args.setdefault('columns', [{'field': 'fn'}])
 
@@ -82,7 +92,7 @@ def display(**display_args):
 
 
 def ldap_source(**source_args):
-    source_args.setdefault('token', 'valid-token-master-tenant')
+    source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
     source_args.setdefault('ldap_uri', 'ldap://example.org')
     source_args.setdefault('ldap_base_dn', 'ou=people,dc=example,dc=org')
 
@@ -109,7 +119,7 @@ def ldap_source(**source_args):
 
 def personal_source(**source_args):
     source_args.setdefault('db_uri', 'postgresql')
-    source_args.setdefault('token', 'valid-token-master-tenant')
+    source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
 
@@ -134,7 +144,7 @@ def personal_source(**source_args):
 
 def phonebook_source(**source_args):
     source_args.setdefault('db_uri', 'postgresql')
-    source_args.setdefault('token', 'valid-token-master-tenant')
+    source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
 
@@ -159,7 +169,7 @@ def phonebook_source(**source_args):
 
 def wazo_source(**source_args):
     source_args.setdefault('auth', {'key_file': '/path/to/key/file'})
-    source_args.setdefault('token', 'valid-token-master-tenant')
+    source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
 

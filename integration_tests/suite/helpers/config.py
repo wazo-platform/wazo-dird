@@ -166,7 +166,7 @@ def new_csv_with_multiple_displays_config(Session):
     config.with_source(
         backend='csv',
         tenant_uuid=TENANT_UUID_2,
-        name='my_csv',
+        name='my_csv_2',
         file='/tmp/data/test.csv',
         separator=",",
         unique_column='id',

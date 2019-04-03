@@ -43,6 +43,9 @@ class ContactFields(Base):
 class Display(Base):
 
     __tablename__ = 'dird_display'
+    __table_args__ = (
+        schema.UniqueConstraint('uuid', 'tenant_uuid'),
+    )
 
     uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE'))
@@ -99,13 +102,22 @@ class Profile(Base):
 
     __tablename__ = 'dird_profile'
     __table_args__ = (
+        schema.UniqueConstraint('uuid', 'tenant_uuid'),
         schema.UniqueConstraint('name', 'tenant_uuid'),
+        schema.ForeignKeyConstraint(
+            ['display_uuid', 'display_tenant_uuid'],
+            ['dird_display.uuid', 'dird_display.tenant_uuid'],
+            ondelete='SET NULL',
+            name='dird_profile_display_uuid_tenant_fkey',
+        ),
+        schema.CheckConstraint('tenant_uuid = display_tenant_uuid'),
     )
 
     uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE'))
     name = Column(Text(), nullable=False)
-    display_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_display.uuid', ondelete='SET NULL'))
+    display_tenant_uuid = Column(String(UUID_LENGTH))
+    display_uuid = Column(String(UUID_LENGTH))
 
     display = relationship('Display')
     services = relationship('ProfileService')
@@ -114,17 +126,26 @@ class Profile(Base):
 class ProfileServiceSource(Base):
 
     __tablename__ = 'dird_profile_service_source'
+    __table_args__ = (
+        schema.ForeignKeyConstraint(
+            ['profile_service_uuid', 'profile_tenant_uuid'],
+            ['dird_profile_service.uuid', 'dird_profile_service.profile_tenant_uuid'],
+            ondelete='CASCADE',
+            name='dird_profile_service_source_profile_service_uuid_tenant_fkey',
+        ),
+        schema.ForeignKeyConstraint(
+            ['source_uuid', 'source_tenant_uuid'],
+            ['dird_source.uuid', 'dird_source.tenant_uuid'],
+            ondelete='CASCADE',
+            name='dird_profile_service_source_source_uuid_tenant_fkey',
+        ),
+        schema.CheckConstraint('profile_tenant_uuid = source_tenant_uuid'),
+    )
 
-    profile_service_uuid = Column(
-        String(UUID_LENGTH),
-        ForeignKey('dird_profile_service.uuid', ondelete='CASCADE'),
-        primary_key=True,
-    )
-    source_uuid = Column(
-        String(UUID_LENGTH),
-        ForeignKey('dird_source.uuid', ondelete='CASCADE'),
-        primary_key=True,
-    )
+    profile_service_uuid = Column(String(UUID_LENGTH), primary_key=True)
+    profile_tenant_uuid = Column(String(UUID_LENGTH))
+    source_uuid = Column(String(UUID_LENGTH), primary_key=True)
+    source_tenant_uuid = Column(String(UUID_LENGTH))
 
     sources = relationship('Source')
 
@@ -132,12 +153,19 @@ class ProfileServiceSource(Base):
 class ProfileService(Base):
 
     __tablename__ = 'dird_profile_service'
+    __table_args__ = (
+        schema.UniqueConstraint('uuid', 'profile_tenant_uuid'),
+        schema.ForeignKeyConstraint(
+            ['profile_uuid', 'profile_tenant_uuid'],
+            ['dird_profile.uuid', 'dird_profile.tenant_uuid'],
+            ondelete='CASCADE',
+            name='dird_profile_service_profile_uuid_tenant_fkey',
+        ),
+    )
 
     uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
-    profile_uuid = Column(
-        String(UUID_LENGTH),
-        ForeignKey('dird_profile.uuid', ondelete='CASCADE'),
-    )
+    profile_uuid = Column(String(UUID_LENGTH))
+    profile_tenant_uuid = Column(String(UUID_LENGTH))
     service_uuid = Column(
         String(UUID_LENGTH),
         ForeignKey('dird_service.uuid', ondelete='CASCADE'),
@@ -161,6 +189,7 @@ class Source(Base):
 
     __tablename__ = 'dird_source'
     __table_args__ = (
+        schema.UniqueConstraint('uuid', 'tenant_uuid'),
         schema.UniqueConstraint('name', 'tenant_uuid'),
     )
 

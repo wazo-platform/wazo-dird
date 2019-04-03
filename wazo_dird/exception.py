@@ -20,7 +20,8 @@ class DatabaseServiceUnavailable(Exception):
 
 class NoSuchDisplay(APIException):
 
-    def __init__(self, display_uuid):
+    def __init__(self, uuid):
+        display_uuid = str(uuid)
         msg = 'No such display: "{}"'.format(display_uuid)
         details = {
             'uuid': display_uuid,
@@ -54,6 +55,17 @@ class NoSuchProfile(OldAPIException):
         super().__init__(status_code, body)
 
 
+class NoSuchProfileAPIException(APIException):
+
+    def __init__(self, uuid):
+        profile_uuid = str(uuid)
+        msg = 'No such profile: "{}"'.format(profile_uuid)
+        details = {
+            'uuid': profile_uuid,
+        }
+        super().__init__(404, msg, 'unknown-profile', details, 'profiles')
+
+
 class NoSuchUser(OldAPIException):
 
     def __init__(self, user_uuid):
@@ -75,7 +87,8 @@ class NoSuchContact(ValueError):
 
 class NoSuchSource(APIException):
 
-    def __init__(self, source_uuid):
+    def __init__(self, uuid):
+        source_uuid = str(uuid)
         msg = 'No such source: "{}"'.format(source_uuid)
         details = {
             'uuid': source_uuid,
@@ -109,6 +122,14 @@ class DuplicatedPhonebookException(Exception):
 
     def __init__(self):
         super().__init__(self._msg)
+
+
+class DuplicatedProfileException(APIException):
+
+    def __init__(self, name):
+        msg = 'The name "{}" is already used'.format(name)
+        details = {'name': {'constraint_id': 'unique', 'message': msg}}
+        super().__init__(409, 'Conflict detected', 'conflict', details, 'profiles')
 
 
 class DuplicatedSourceException(APIException):

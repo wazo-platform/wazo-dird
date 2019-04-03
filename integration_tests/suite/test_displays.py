@@ -94,7 +94,7 @@ class TestList(BaseDisplayTestCase):
     @fixtures.display(name='abc')
     @fixtures.display(name='bcd')
     @fixtures.display(name='cde')
-    def search(self, c, b, a):
+    def test_search(self, c, b, a):
         result = self.client.displays.list()
         self.assert_list_result(result, contains_inanyorder(a, b, c), total=3, filtered=3)
 
@@ -141,14 +141,6 @@ class TestList(BaseDisplayTestCase):
 
         result = self.client.displays.list(order='name', offset=2)
         self.assert_list_result(result, contains(c), total=3, filtered=3)
-
-    @staticmethod
-    def assert_list_result(result, items, total, filtered):
-        assert_that(result, has_entries(
-            items=items,
-            total=total,
-            filtered=filtered,
-        ))
 
 
 class TestPost(BaseDisplayTestCase):

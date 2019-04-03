@@ -50,8 +50,28 @@ class _ProfileService:
         self._controller = controller
         bus.add_consumer(self._QUEUE, self._on_new_context)
 
+    def count(self, visible_tenants, **list_params):
+        return self._profile_crud.count(visible_tenants, **list_params)
+
     def create(self, **body):
-        return self._profile_crud.create(body)
+        try:
+            return self._profile_crud.create(body)
+        except (exception.NoSuchDisplay, exception.NoSuchSource) as e:
+            e.status_code = 400
+            raise e
+
+    def delete(self, profile_uuid, visible_tenants):
+        self._profile_crud.delete(visible_tenants, profile_uuid)
+
+    def edit(self, profile_uuid, visible_tenants, **body):
+        try:
+            return self._profile_crud.edit(visible_tenants, profile_uuid, body)
+        except (exception.NoSuchDisplay, exception.NoSuchSource) as e:
+            e.status_code = 400
+            raise e
+
+    def get(self, profile_uuid, visible_tenants):
+        return self._profile_crud.get(visible_tenants, profile_uuid)
 
     def get_by_name(self, tenant_uuid, name):
         for profile in self._profile_crud.list_([tenant_uuid], name=name):
