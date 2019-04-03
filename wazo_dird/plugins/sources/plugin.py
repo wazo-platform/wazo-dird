@@ -3,8 +3,17 @@
 
 from wazo_dird import BaseViewPlugin
 
+from . import http
+
 
 class SourcesViewPlugin(BaseViewPlugin):
 
     def load(self, dependencies):
-        pass
+        api = dependencies['api']
+        source_service = dependencies['services']['source']
+
+        api.add_resource(
+            http.Sources,
+            '/sources',
+            resource_class_args=(source_service,),
+        )
