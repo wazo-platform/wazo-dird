@@ -190,9 +190,9 @@ def downgrade():
     )
 
     # Remove the unique constraints
-    op.drop_constraint('dird_profile_uuid_tenant')
-    op.drop_constraint('dird_profile_service_uuid_tenant')
-    op.drop_constraint('dird_source_uuid_tenant')
+    op.drop_constraint('dird_profile_uuid_tenant', 'dird_profile')
+    op.drop_constraint('dird_profile_service_uuid_tenant', 'dird_profile_service')
+    op.drop_constraint('dird_source_uuid_tenant', 'dird_source')
 
     # Drop the columns
     op.drop_column('dird_profile_service', 'profile_tenant_uuid')
