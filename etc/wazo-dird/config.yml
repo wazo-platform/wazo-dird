@@ -89,6 +89,7 @@ enabled_plugins:
     profiles_view: true
     polycom_view: true
     snom_view: true
+    sources: true
     thomson_view: true
     wazo_backend: true
     yealink_view: true
