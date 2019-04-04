@@ -3,15 +3,18 @@
 
 from hamcrest import (
     assert_that,
+    calling,
     contains,
     contains_inanyorder,
-    has_entries,
+    has_properties,
 )
 
+from xivo_test_helpers.hamcrest.raises import raises
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
 from .helpers.constants import (
     MAIN_TENANT,
+    SUB_TENANT,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
@@ -70,6 +73,11 @@ class TestList(BaseDirdIntegrationTest):
             self._source_to_dict('personal', **bcd),
         ), total=2, filtered=2)
 
+        result = main_tenant_client.sources.list(tenant_uuid=SUB_TENANT, recurse=True)
+        self.assert_list_result(result, contains(
+            self._source_to_dict('personal', **bcd),
+        ), total=1, filtered=1)
+
         result = sub_tenant_client.sources.list()
         self.assert_list_result(result, contains(
             self._source_to_dict('personal', **bcd),
@@ -79,6 +87,11 @@ class TestList(BaseDirdIntegrationTest):
         self.assert_list_result(result, contains(
             self._source_to_dict('personal', **bcd),
         ), total=1, filtered=1)
+
+        assert_that(
+            calling(sub_tenant_client.sources.list).with_args(tenant_uuid=MAIN_TENANT, recurse=True),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=401)))
+        )
 
     @fixtures.ldap_source(name='abc')
     @fixtures.personal_source(name='bcd')

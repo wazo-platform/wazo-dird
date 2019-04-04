@@ -5,9 +5,7 @@ import logging
 
 from collections import namedtuple
 from flask import request
-from requests import HTTPError
 from xivo.tenant_flask_helpers import Tenant
-from xivo_auth_client import Client as AuthClient
 from wazo_dird import BaseViewPlugin
 from wazo_dird.rest_api import AuthResource
 
@@ -90,23 +88,6 @@ class _BaseSourceResource(AuthResource):
         self._auth_config = auth_config
         self._backend = backend
 
-    def _get_visible_tenants(self, tenant):
-        token = request.headers['X-Auth-Token']
-        auth_client = AuthClient(**self._auth_config)
-        auth_client.set_token(token)
-
-        try:
-            visible_tenants = auth_client.tenants.list(tenant_uuid=tenant)['items']
-        except HTTPError as e:
-            response = getattr(e, 'response', None)
-            status_code = getattr(response, 'status_code', None)
-            if status_code == 401:
-                logger.warning('a user is doing multi-tenant queries without the tenant list ACL')
-                return [tenant]
-            raise
-
-        return [tenant['uuid'] for tenant in visible_tenants]
-
 
 class SourceList(_BaseSourceResource):
 
@@ -114,7 +95,7 @@ class SourceList(_BaseSourceResource):
         list_params, errors = self.list_schema.load(request.args)
         tenant = Tenant.autodetect()
         if list_params['recurse']:
-            visible_tenants = self._get_visible_tenants(tenant.uuid)
+            visible_tenants = self.get_visible_tenants(tenant.uuid)
         else:
             visible_tenants = [tenant.uuid]
 
@@ -140,19 +121,19 @@ class SourceItem(_BaseSourceResource):
 
     def delete(self, source_uuid):
         tenant = Tenant.autodetect()
-        visible_tenants = self._get_visible_tenants(tenant.uuid)
+        visible_tenants = self.get_visible_tenants(tenant.uuid)
         self._service.delete(self._backend, source_uuid, visible_tenants)
         return '', 204
 
     def get(self, source_uuid):
         tenant = Tenant.autodetect()
-        visible_tenants = self._get_visible_tenants(tenant.uuid)
+        visible_tenants = self.get_visible_tenants(tenant.uuid)
         body = self._service.get(self._backend, source_uuid, visible_tenants)
         return self.source_schema.dump(body)
 
     def put(self, source_uuid):
         tenant = Tenant.autodetect()
-        visible_tenants = self._get_visible_tenants(tenant.uuid)
+        visible_tenants = self.get_visible_tenants(tenant.uuid)
         args = self.source_schema.load(request.get_json()).data
         self._service.edit(self._backend, source_uuid, visible_tenants, args)
         return '', 204
