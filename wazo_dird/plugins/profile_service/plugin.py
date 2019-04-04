@@ -2,20 +2,15 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from collections import OrderedDict
+from itertools import islice
+
 import kombu
-
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
+from sqlalchemy.orm import scoped_session, sessionmaker
+from wazo_dird import BaseServicePlugin, database, exception
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.context.event import CreateContextEvent
-
-from wazo_dird import exception
-
-from wazo_dird import (
-    BaseServicePlugin,
-    database,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +73,19 @@ class _ProfileService:
             return profile
 
         raise exception.NoSuchProfile(name)
+
+    def get_lookup_sources_from_profile_name(self, tenant_uuid, name, **list_params):
+        profile = self.get_by_name(tenant_uuid, name)
+        sources = {}
+        for source in profile.get('services', {}).get('lookup', {}).get('sources', []):
+            if source.get('name'):
+                sources[source.get('name')] = source
+
+        count = self._count(sources, **list_params)
+        filtered = self._filtered(sources, **list_params)
+        sources = self._paginate(sources, **list_params)
+
+        return count, filtered, sources
 
     def list_(self, visible_tenants, **list_params):
         return self._profile_crud.list_(visible_tenants, **list_params)
@@ -149,3 +157,32 @@ class _ProfileService:
             self._auto_create_profile(body['tenant_uuid'], body['name'])
         finally:
             message.ack()
+
+    def _paginate(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
+        selected_sources = OrderedDict()
+        sources = OrderedDict(sorted(sources.items()))
+
+        if limit is not None:
+            limit = offset+limit
+            selected_sources = OrderedDict(islice(sources.items(), offset, limit))
+
+        if limit is None:
+            selected_sources = OrderedDict(islice(sources.items(), offset, None))
+
+        if direction is not None:
+            if direction == 'asc':
+                return OrderedDict(sorted(selected_sources.items()))
+            else:
+                return OrderedDict(reversed(sorted(selected_sources.items())))
+
+        if direction is None:
+            return selected_sources
+
+    def _count(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
+        return len(sources)
+
+    def _filtered(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
+        if limit:
+            return limit
+        else:
+            return len(sources) - offset
