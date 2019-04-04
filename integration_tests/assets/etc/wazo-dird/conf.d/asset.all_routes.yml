@@ -23,6 +23,7 @@ enabled_plugins:
     personal_backend: true
     phonebook_backend: true
     profiles_view: true
+    sources_view: true
 
 foo:
     bar: main

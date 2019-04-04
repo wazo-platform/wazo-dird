@@ -119,6 +119,8 @@ class SourceCRUD(BaseDAO):
             field = None
             if order == 'name':
                 field = Source.name
+            if order == 'backend':
+                field = Source.backend
 
             if field:
                 order_clause = field.asc() if direction == 'asc' else field.desc()
