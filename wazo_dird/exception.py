@@ -43,16 +43,15 @@ class NoSuchPhonebook(ValueError):
         super().__init__(message)
 
 
-class NoSuchProfile(OldAPIException):
+class NoSuchProfile(APIException):
 
     def __init__(self, profile):
         status_code = 404
-        body = {
-            'reason': ['The profile `{}` does not exist'.format(profile)],
-            'timestamp': [time()],
-            'status_code': status_code,
+        message = 'The given profile `{}` does not exist'.format(profile)
+        details = {
+            'profile': profile,
         }
-        super().__init__(status_code, body)
+        super().__init__(status_code, message, 'unknown-profile', details)
 
 
 class NoSuchProfileAPIException(APIException):
