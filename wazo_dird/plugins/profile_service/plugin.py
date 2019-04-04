@@ -158,25 +158,29 @@ class _ProfileService:
         finally:
             message.ack()
 
-    def _paginate(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
+    def _paginate(self, sources, limit=None, offset=0, order='name', direction=None, **ignored):
         selected_sources = OrderedDict()
         sources = OrderedDict(sorted(sources.items()))
 
-        if limit is not None:
-            limit = offset+limit
-            selected_sources = OrderedDict(islice(sources.items(), offset, limit))
-
-        if limit is None:
-            selected_sources = OrderedDict(islice(sources.items(), offset, None))
-
         if direction is not None:
             if direction == 'asc':
-                return OrderedDict(sorted(selected_sources.items()))
+                selected_sources = OrderedDict(sorted(sources.items(), key=lambda x: sources[x[0]][order]))
             else:
-                return OrderedDict(reversed(sorted(selected_sources.items())))
+                selected_sources = OrderedDict(
+                    reversed(
+                        sorted(sources.items(), key=lambda x: sources[x[0]][order])
+                    )
+                )
 
         if direction is None:
-            return selected_sources
+            selected_sources = sources
+
+        if limit is not None:
+            limit = offset + limit
+            return OrderedDict(islice(selected_sources.items(), offset, limit))
+
+        if limit is None:
+            return OrderedDict(islice(selected_sources.items(), offset, None))
 
     def _count(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
         return len(sources)
