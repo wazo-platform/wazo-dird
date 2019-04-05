@@ -278,7 +278,7 @@ def new_ldap_config(Session):
         unique_column='entryUUID',
         searched_columns=['cn', 'telephoneNumber'],
         first_matched_columns=['telephoneNumber'],
-        format_columns= {
+        format_columns={
             'firstname': "{givenName}",
             'lastname': "{sn}",
             'number': "{telephoneNumber}",
@@ -311,7 +311,7 @@ def new_ldap_city_config(Session):
         unique_column='entryUUID',
         searched_columns=['cn', 'telephoneNumber'],
         first_matched_columns=['telephoneNumber'],
-        format_columns= {
+        format_columns={
             'firstname': "{givenName}",
             'lastname': "{sn}",
             'number': "{telephoneNumber}",
