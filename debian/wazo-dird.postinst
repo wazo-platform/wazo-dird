@@ -8,17 +8,11 @@ DAEMONNAME='wazo-dird'
 OLD_NGINX_CONFIG="/etc/nginx/locations/https-available/xivo-dird /etc/nginx/locations/https-enabled/xivo-dird"
 
 
-pg_is_running () {
-	pg_lsclusters --no-header | grep -q online
-}
-
 case "$1" in
 	configure)
-		if pg_is_running ; then
-			wazo-dird-init-db --user postgres
-			echo "Upgrading wazo-dird database ..."
-			(cd $DIRD_ALEMBIC_INI_PATH && python3-alembic -c alembic.ini upgrade head)
-		fi
+		wazo-dird-init-db --user postgres
+		echo "Upgrading wazo-dird database ..."
+		(cd $DIRD_ALEMBIC_INI_PATH && python3-alembic -c alembic.ini upgrade head)
 
 		if [ ! -e "$LOG_FILENAME" ]; then
 			# The log filename was renamed in Wazo 18.05 Debian Stretch
