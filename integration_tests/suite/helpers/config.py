@@ -614,3 +614,45 @@ def new_wazo_users_multiple_wazo_config(Session):
         },
     )
     return config
+
+
+def new_wazo_users_multiple_wazo_numbered_config(Session):
+    config = Config(Session)
+    config.with_display(
+        name='default_display',
+        columns=[
+            {'title': 'Firstname', 'field': 'firstname'},
+            {'title': 'Lastname', 'field': 'lastname'},
+            {'title': 'Number', 'field': 'exten'},
+        ],
+    )
+    config.with_source(
+        backend='wazo1',
+        name='wazo_asia',
+        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        confd={'host': 'asia', 'port': 9486, 'https': False},
+        searched_columns=['firstname', 'lastname'],
+    )
+    config.with_source(
+        backend='wazo2',
+        name='wazo_america',
+        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        confd={'host': 'america', 'port': 9486, 'https': False},
+        searched_columns=['firstname', 'lastname'],
+    )
+    config.with_source(
+        backend='wazo3',
+        name='wazo_europe',
+        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        confd={'host': 'europe', 'port': 9486, 'https': False},
+        searched_columns=['firstname', 'lastname'],
+    )
+    config.with_profile(
+        name='default',
+        display='default_display',
+        services={
+            'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+            'favorites': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+        },
+    )
+    return config
