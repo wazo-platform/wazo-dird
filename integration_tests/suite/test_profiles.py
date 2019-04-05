@@ -90,6 +90,20 @@ class TestDelete(BaseProfileTestCase):
                 ),
             )
 
+            assert_that(
+                calling(sub_tenant_client.profiles.delete).with_args(profile['uuid'], tenant_uuid=MAIN_TENANT),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=401)),
+                ),
+            )
+
+            assert_that(
+                calling(main_tenant_client.profiles.delete).with_args(profile['uuid'], tenant_uuid=SUB_TENANT),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
         body = {
             'name': 'profile',
             'display': sub_display,
@@ -139,6 +153,20 @@ class TestGet(BaseProfileTestCase):
                 calling(sub_tenant_client.profiles.get).with_args(profile['uuid']),
                 raises(Exception).matching(
                     has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
+            assert_that(
+                calling(main_tenant_client.profiles.get).with_args(profile['uuid'], tenant_uuid=SUB_TENANT),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
+            assert_that(
+                calling(sub_tenant_client.profiles.get).with_args(profile['uuid'], tenant_uuid=MAIN_TENANT),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=401)),
                 ),
             )
 
@@ -232,6 +260,14 @@ class TestList(BaseProfileTestCase):
 
             result = sub_tenant_client.profiles.list(recurse=True)
             self.assert_list_result(result, contains_inanyorder(sub), total=1, filtered=1)
+
+            result = main_tenant_client.profiles.list(tenant_uuid=SUB_TENANT, recurse=True)
+            self.assert_list_result(result, contains_inanyorder(sub), total=1, filtered=1)
+
+            assert_that(
+                calling(sub_tenant_client.profiles.list).with_args(tenant_uuid=MAIN_TENANT),
+                raises(Exception).matching(has_properties(response=has_properties(status_code=401)))
+            )
 
 
 class TestPost(BaseProfileTestCase):
@@ -448,6 +484,20 @@ class TestPut(BaseProfileTestCase):
                 calling(sub_tenant_client.profiles.edit).with_args(profile['uuid'], body),
                 raises(Exception).matching(
                     has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
+            assert_that(
+                calling(main_tenant_client.profiles.edit).with_args(profile['uuid'], body, tenant_uuid=SUB_TENANT),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=404)),
+                ),
+            )
+
+            assert_that(
+                calling(sub_tenant_client.profiles.edit).with_args(profile['uuid'], body, tenant_uuid=MAIN_TENANT),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=401)),
                 ),
             )
 

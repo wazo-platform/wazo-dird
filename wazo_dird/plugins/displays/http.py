@@ -4,10 +4,7 @@
 import logging
 
 from flask import request
-from xivo.tenant_flask_helpers import (
-    Tenant,
-    token,
-)
+from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import AuthResource
@@ -32,10 +29,11 @@ class Displays(_BaseResource):
     @required_acl('dird.displays.read')
     def get(self):
         list_params, errors = list_schema.load(request.args)
+        tenant_uuid = Tenant.autodetect().uuid
         if list_params['recurse']:
-            visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+            visible_tenants = self.get_visible_tenants(tenant_uuid)
         else:
-            visible_tenants = [Tenant.autodetect().uuid]
+            visible_tenants = [tenant_uuid]
 
         displays = self._display_service.list_(visible_tenants, **list_params)
         items, errors = display_list_schema.dump(displays)
@@ -60,19 +58,22 @@ class Display(_BaseResource):
 
     @required_acl('dird.displays.{display_uuid}.delete')
     def delete(self, display_uuid):
-        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        tenant_uuid = Tenant.autodetect().uuid
+        visible_tenants = self.get_visible_tenants(tenant_uuid)
         self._display_service.delete(display_uuid, visible_tenants)
         return '', 204
 
     @required_acl('dird.displays.{display_uuid}.read')
     def get(self, display_uuid):
-        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        tenant_uuid = Tenant.autodetect().uuid
+        visible_tenants = self.get_visible_tenants(tenant_uuid)
         display = self._display_service.get(display_uuid, visible_tenants)
         return display_schema.dump(display).data
 
     @required_acl('dird.displays.{display_uuid}.update')
     def put(self, display_uuid):
-        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        tenant_uuid = Tenant.autodetect().uuid
+        visible_tenants = self.get_visible_tenants(tenant_uuid)
         args = display_schema.load(request.get_json()).data
         self._display_service.edit(display_uuid, visible_tenants=visible_tenants, **args)
         return '', 204

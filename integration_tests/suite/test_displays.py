@@ -57,6 +57,16 @@ class TestDelete(BaseDisplayTestCase):
         )
 
         assert_that(
+            calling(main_tenant_client.displays.delete).with_args(main['uuid'], tenant_uuid=SUB_TENANT),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+        assert_that(
+            calling(sub_tenant_client.displays.delete).with_args(main['uuid'], tenant_uuid=MAIN_TENANT),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+        )
+
+        assert_that(
             calling(main_tenant_client.displays.delete).with_args(sub['uuid']),
             not_(raises(Exception)),
         )
@@ -84,8 +94,18 @@ class TestGet(BaseDisplayTestCase):
         assert_that(response, equal_to(sub))
 
         assert_that(
+            calling(main_tenant_client.displays.get).with_args(main['uuid'], tenant_uuid=SUB_TENANT),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+        assert_that(
             calling(sub_tenant_client.displays.get).with_args(main['uuid']),
             raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+        assert_that(
+            calling(sub_tenant_client.displays.get).with_args(main['uuid'], tenant_uuid=MAIN_TENANT),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
         )
 
 
@@ -120,11 +140,19 @@ class TestList(BaseDisplayTestCase):
         result = main_tenant_client.displays.list(recurse=True)
         self.assert_list_result(result, contains_inanyorder(a, b, c), total=3, filtered=3)
 
+        result = main_tenant_client.displays.list(tenant_uuid=SUB_TENANT, recurse=True)
+        self.assert_list_result(result, contains_inanyorder(c), total=1, filtered=1)
+
         result = sub_tenant_client.displays.list()
         self.assert_list_result(result, contains(c), total=1, filtered=1)
 
         result = sub_tenant_client.displays.list(recurse=True)
         self.assert_list_result(result, contains(c), total=1, filtered=1)
+
+        assert_that(
+            calling(sub_tenant_client.displays.list).with_args(tenant_uuid=MAIN_TENANT),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+        )
 
     @fixtures.display(name='abc')
     @fixtures.display(name='bcd')
@@ -314,6 +342,16 @@ class TestPut(BaseDisplayTestCase):
 
         assert_that(
             calling(sub_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+        )
+
+        assert_that(
+            calling(sub_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body, tenant_uuid=MAIN_TENANT),
+            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+        )
+
+        assert_that(
+            calling(main_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body, tenant_uuid=SUB_TENANT),
             raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
         )
 

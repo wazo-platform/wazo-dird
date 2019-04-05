@@ -32,10 +32,11 @@ class Profiles(_BaseResource):
     @required_acl('dird.profiles.read')
     def get(self):
         list_params, errors = list_schema.load(request.args)
+        tenant_uuid = Tenant.autodetect().uuid
         if list_params['recurse']:
-            visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+            visible_tenants = self.get_visible_tenants(tenant_uuid)
         else:
-            visible_tenants = [Tenant.autodetect().uuid]
+            visible_tenants = [tenant_uuid]
 
         profiles = self._profile_service.list_(visible_tenants, **list_params)
         items, errors = profile_list_schema.dump(profiles)
@@ -60,19 +61,22 @@ class Profile(_BaseResource):
 
     @required_acl('dird.profiles.{profile_uuid}.delete')
     def delete(self, profile_uuid):
-        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        tenant_uuid = Tenant.autodetect().uuid
+        visible_tenants = self.get_visible_tenants(tenant_uuid)
         self._profile_service.delete(profile_uuid, visible_tenants)
         return '', 204
 
     @required_acl('dird.profiles.{profile_uuid}.read')
     def get(self, profile_uuid):
-        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        tenant_uuid = Tenant.autodetect().uuid
+        visible_tenants = self.get_visible_tenants(tenant_uuid)
         profile = self._profile_service.get(profile_uuid, visible_tenants)
         return profile_schema.dump(profile).data
 
     @required_acl('dird.profiles.{profile_uuid}.update')
     def put(self, profile_uuid):
-        visible_tenants = [tenant.uuid for tenant in token.visible_tenants()]
+        tenant_uuid = Tenant.autodetect().uuid
+        visible_tenants = self.get_visible_tenants(tenant_uuid)
         args = profile_schema.load(request.get_json()).data
         self._profile_service.edit(profile_uuid, visible_tenants=visible_tenants, **args)
         return '', 204
