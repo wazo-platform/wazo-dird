@@ -94,6 +94,7 @@ enabled_plugins:
     wazo_backend: true
     yealink_view: true
     sources_view: true
+    profile_sources_view: true
 
 services:
   service_discovery:

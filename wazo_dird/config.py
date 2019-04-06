@@ -41,9 +41,7 @@ _DEFAULT_CONFIG = {
             'reverse': True,
             'source': True,
         },
-        'views': {
-            'sources': True,
-        },
+        'views': {},
     },
     'log_level': 'info',
     'log_filename': '/var/log/wazo-dird.log',

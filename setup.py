@@ -106,7 +106,7 @@ setup(
             'thomson_view = wazo_dird.plugins.thomson.plugin:ThomsonViewPlugin',
             'yealink_view = wazo_dird.plugins.yealink.plugin:YealinkViewPlugin',
             'wazo_backend = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserView',
-            'sources = wazo_dird.plugins.lookup_sources.plugin:SourceViewPlugin',
+            'profile_sources_view = wazo_dird.plugins.lookup_sources.plugin:SourceViewPlugin',
         ],
     }
 )
