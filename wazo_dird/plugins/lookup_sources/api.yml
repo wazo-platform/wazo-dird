@@ -4,47 +4,51 @@ paths:
       summary: List all sources configured for the given profile
       description: '**Required ACL:** `dird.directories.lookup.{profile}.sources.read`'
       tags:
-      - directories
+        - directories
       parameters:
-      - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/tenantuuid'
-      - $ref: '#/parameters/order'
-      - $ref: '#/parameters/direction'
-      - $ref: '#/parameters/limit'
-      - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/Profile'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
       responses:
         '200':
           description: List of sources
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Phonebook'
+            $ref: '#/definitions/ProfileSourceItems'
         '400':
           $ref: '#/responses/InvalidParameters'
-        '401':
-          description: Unauthorized
-          $ref: '#/definitions/Error'
         '404':
-          $ref: '#/definitions/Error'
-responses:
-  DuplicatePhonebook:
-    description: This phonebook already exists
-    schema:
-      $ref: '#/definitions/Error'
-  InvalidTenant:
-    description: The tenant is not a valid ascii alphanumeric string
-    schema:
-      $ref: '#/definitions/Error'
-parameters:
-  PhonebookID:
-    name: phonebook_id
-    type: integer
-    required: true
-    in: path
-    description: The phonebook's ID
-  Tenant:
-    name: tenant
-    in: path
-    type: string
-    description: The tenant defines the ownership of a given resource.
-    required: true
+          $ref: '#/responses/NotFoundError'
+definitions:
+  ProfileSource:
+    properties:
+      uuid:
+        type: string
+        description: "The source's UUID"
+        readOnly: true
+      backend:
+        type: string
+        description: "The name of the source's backend"
+      name:
+        type: string
+        description: "The source's name"
+      tenant_uuid:
+        type: string
+        description: "The UUID of the tenant of this source"
+  ProfileSourceItems:
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/ProfileSource'
+      total:
+        type: integer
+        description: The number of configured sources for this backend
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of configured sources matching the searched terms for this backend
+        readOnly: true
