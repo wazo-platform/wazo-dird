@@ -46,6 +46,7 @@ class NoSuchPhonebook(ValueError):
 class NoSuchProfile(OldAPIException):
 
     def __init__(self, profile):
+        self.profile = profile
         status_code = 404
         body = {
             'reason': ['The profile `{}` does not exist'.format(profile)],

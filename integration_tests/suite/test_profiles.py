@@ -19,7 +19,7 @@ from hamcrest import (
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 
-from .helpers.config import new_wazo_users_multiple_wazo_numbered_config
+from .helpers.config import new_multi_source_profile
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
     MAIN_TENANT,
@@ -559,37 +559,44 @@ class TestPut(BaseProfileTestCase):
 
 class TestGetSourcesFromProfile(BaseProfileTestCase):
 
-    config_factory = new_wazo_users_multiple_wazo_numbered_config
-
-    SOURCES = ['wazo_america', 'wazo_europe', 'wazo_asia']
-    SOURCES_ASC = ['wazo_america', 'wazo_asia', 'wazo_europe']
-    SOURCES_BACKEND_ORDER = ['wazo_asia', 'wazo_america', 'wazo_europe']
-    PROFILE = 'default'
+    config_factory = new_multi_source_profile
 
     def test_when_get_then_sources_returned(self):
-        response = self.client.directories.list_sources(self.PROFILE)
+        response = self.client.directories.list_sources('main')
 
-        assert_that(response.get('items'), contains_inanyorder(*self.SOURCES))
+        assert_that(response['items'], contains_inanyorder(
+            has_entries(name='a_wazo_main', backend='wazo'),
+            has_entries(name='personal_main', backend='personal'),
+            has_entries(name='csv_main', backend='csv'),
+        ))
 
     def test_given_asc_direction_when_get_then_sources_returned(self):
         list_params = {'direction': 'asc'}
 
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
+        response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), contains(*self.SOURCES_ASC))
+        assert_that(response['items'], contains(
+            has_entries(name='a_wazo_main'),
+            has_entries(name='csv_main'),
+            has_entries(name='personal_main'),
+        ))
 
     def test_given_desc_direction_when_get_then_sources_returned(self):
         list_params = {'direction': 'desc'}
 
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
+        response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), contains(*list(reversed(self.SOURCES_ASC))))
+        assert_that(response['items'], contains(
+            has_entries(name='personal_main', backend='personal'),
+            has_entries(name='csv_main', backend='csv'),
+            has_entries(name='a_wazo_main', backend='wazo'),
+        ))
 
     def test_given_random_direction_when_get_then_bad_request(self):
         list_params = {'direction': '42'}
 
         assert_that(
-            calling(self.client.directories.list_sources).with_args(self.PROFILE, **list_params),
+            calling(self.client.directories.list_sources).with_args('main', **list_params),
             raises(HTTPError).matching(
                 has_properties(response=has_properties(status_code=400)),
             ),
@@ -598,39 +605,53 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
     def test_given_name_order_when_get_then_sources_returned(self):
         list_params = {'order': 'name'}
 
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
+        response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), contains(*self.SOURCES_ASC))
+        assert_that(response['items'], contains(
+            has_entries(name='a_wazo_main', backend='wazo'),
+            has_entries(name='csv_main', backend='csv'),
+            has_entries(name='personal_main', backend='personal'),
+        ))
 
     def test_given_backend_order_when_get_then_sources_returned(self):
         list_params = {'order': 'backend'}
 
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
-        print(response.get('items'))
+        response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), contains(*self.SOURCES_BACKEND_ORDER))
+        assert_that(response['items'], contains(
+            has_entries(name='csv_main', backend='csv'),
+            has_entries(name='personal_main', backend='personal'),
+            has_entries(name='a_wazo_main', backend='wazo'),
+        ))
 
     def test_given_random_order_when_get_then_bad_request(self):
         list_params = {'order': '42'}
 
         assert_that(
-            calling(self.client.directories.list_sources).with_args(self.PROFILE, **list_params),
+            calling(self.client.directories.list_sources).with_args('main', **list_params),
             raises(HTTPError).matching(
                 has_properties(response=has_properties(status_code=400)),
             ),
         )
 
-    def test_given_wrong_tenant_when_get_then_unauthorized(self):
+    def test_given_wrong_tenant_when_get_then_not_found(self):
         assert_that(
-            calling(self.client.directories.list_sources).with_args(self.PROFILE, tenant_uuid='42'),
+            calling(self.client.directories.list_sources).with_args('main', tenant_uuid=SUB_TENANT),
             raises(HTTPError).matching(
-                has_properties(response=has_properties(status_code=401)),
+                has_properties(response=has_properties(status_code=404)),
             ),
         )
 
-    def test_given_sub_tenant_when_get_main_tenant_then_unauthorized(self):
         assert_that(
-            calling(self.client.directories.list_sources).with_args(self.PROFILE, tenant_uuid='42'),
+            calling(self.client.directories.list_sources).with_args('sub', tenant_uuid=SUB_TENANT),
+            not_(raises(Exception)),
+        )
+
+    def test_given_sub_tenant_when_get_main_tenant_then_unauthorized(self):
+        sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        assert_that(
+            calling(sub_tenant_client.directories.list_sources).with_args('main', tenant_uuid=MAIN_TENANT),
             raises(HTTPError).matching(
                 has_properties(response=has_properties(status_code=401)),
             ),
@@ -639,28 +660,36 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
     def test_given_limit_when_get_then_sources_returned(self):
         list_params = {'limit': '1'}
 
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
+        response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), contains(self.SOURCES_ASC[0]))
+        assert_that(response['items'], contains(
+            has_entries(name='a_wazo_main', backend='wazo'),
+        ))
 
     def test_given_over_limit_when_get_then_sources_returned(self):
         list_params = {'limit': '42'}
 
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
+        response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), contains_inanyorder(*self.SOURCES))
+        assert_that(response['items'], contains(
+            has_entries(name='a_wazo_main', backend='wazo'),
+            has_entries(name='csv_main', backend='csv'),
+            has_entries(name='personal_main', backend='personal'),
+        ))
 
     def test_given_offset_when_get_then_sources_returned(self):
         list_params = {'offset': '2'}
 
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
+        response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), contains(self.SOURCES_ASC[-1]))
+        assert_that(response['items'], contains(
+            has_entries(name='personal_main', backend='personal'),
+        ))
 
     def test_given_oversized_offset_when_get_then_no_sources_returned(self):
         list_params = {'offset': '42'}
 
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
+        response = self.client.directories.list_sources('main', **list_params)
 
         assert_that(response.get('items'), is_(empty()))
 
@@ -670,7 +699,8 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
             'offset': '1',
             'order': 'backend',
         }
-        response = self.client.directories.list_sources(self.PROFILE, **list_params)
+        response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), contains('wazo_america'))
-        assert_that(len(response.get('items')), is_(1))
+        assert_that(response['items'], contains(
+            has_entries(name='personal_main', backend='personal'),
+        ))

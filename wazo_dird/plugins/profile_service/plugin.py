@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-from collections import OrderedDict
 from itertools import islice
+from operator import itemgetter
 
 import kombu
 from sqlalchemy import create_engine
@@ -75,12 +75,15 @@ class _ProfileService:
         raise exception.NoSuchProfile(name)
 
     def get_sources_from_profile_name(self, tenant_uuid, name, **list_params):
-        profile = self.get_by_name(tenant_uuid, name)
-        sources = set()
+        try:
+            profile = self.get_by_name(tenant_uuid, name)
+        except exception.NoSuchProfile as e:
+            raise exception.NoSuchProfileAPIException(e.profile)
+        sources = {}
         for service in profile.get('services', {}).values():
             for source in service.get('sources', []):
-                sources.add(source['name'])
-        sources = list(sources)
+                sources[source['uuid']] = source
+        sources = list(sources.values())
 
         count = self._count(sources, **list_params)
         filtered = self._filtered(sources, **list_params)
@@ -159,29 +162,18 @@ class _ProfileService:
         finally:
             message.ack()
 
-    def _paginate(self, sources, limit=None, offset=0, order='name', direction=None, **ignored):
-        selected_sources = OrderedDict()
-        sources = OrderedDict(sorted(sources.items()))
+    def _paginate(self, sources, limit=None, offset=0, order='name', direction='asc', **ignored):
+        selected_sources = []
 
-        if direction is not None:
-            if direction == 'asc':
-                selected_sources = OrderedDict(sorted(sources.items(), key=lambda x: sources[x[0]][order]))
-            else:
-                selected_sources = OrderedDict(
-                    reversed(
-                        sorted(sources.items(), key=lambda x: sources[x[0]][order])
-                    )
-                )
-
-        if direction is None:
-            selected_sources = sources
+        reverse = direction != 'asc'
+        selected_sources = sorted(sources, key=itemgetter(order), reverse=reverse)
 
         if limit is not None:
             limit = offset + limit
-            return OrderedDict(islice(selected_sources.items(), offset, limit))
+            return list(islice(selected_sources, offset, limit))
 
         if limit is None:
-            return OrderedDict(islice(selected_sources.items(), offset, None))
+            return list(islice(selected_sources, offset, None))
 
     def _count(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
         return len(sources)
