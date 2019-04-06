@@ -74,12 +74,13 @@ class _ProfileService:
 
         raise exception.NoSuchProfile(name)
 
-    def get_lookup_sources_from_profile_name(self, tenant_uuid, name, **list_params):
+    def get_sources_from_profile_name(self, tenant_uuid, name, **list_params):
         profile = self.get_by_name(tenant_uuid, name)
-        sources = {}
-        for source in profile.get('services', {}).get('lookup', {}).get('sources', []):
-            if source.get('name'):
-                sources[source.get('name')] = source
+        sources = set()
+        for service in profile.get('services', {}).values():
+            for source in service.get('sources', []):
+                sources.add(source['name'])
+        sources = list(sources)
 
         count = self._count(sources, **list_params)
         filtered = self._filtered(sources, **list_params)

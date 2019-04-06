@@ -1,8 +1,8 @@
 paths:
-  /directories/lookup/{profile}/sources:
+  /directories/{profile}/sources:
     get:
       summary: List all sources configured for the given profile
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.sources.read`'
+      description: '**Required ACL:** `dird.directories.{profile}.sources.read`'
       tags:
         - directories
       parameters:

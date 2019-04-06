@@ -565,24 +565,23 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
     SOURCES_ASC = ['wazo_america', 'wazo_asia', 'wazo_europe']
     SOURCES_BACKEND_ORDER = ['wazo_asia', 'wazo_america', 'wazo_europe']
     PROFILE = 'default'
-    SERVICE = 'lookup'
 
     def test_when_get_then_sources_returned(self):
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE)
+        response = self.client.directories.list_sources(self.PROFILE)
 
         assert_that(response.get('items'), contains_inanyorder(*self.SOURCES))
 
     def test_given_asc_direction_when_get_then_sources_returned(self):
         list_params = {'direction': 'asc'}
 
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
 
         assert_that(response.get('items'), contains(*self.SOURCES_ASC))
 
     def test_given_desc_direction_when_get_then_sources_returned(self):
         list_params = {'direction': 'desc'}
 
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
 
         assert_that(response.get('items'), contains(*list(reversed(self.SOURCES_ASC))))
 
@@ -590,7 +589,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
         list_params = {'direction': '42'}
 
         assert_that(
-            calling(self.client.directories.list_sources).with_args(self.PROFILE, self.SERVICE, **list_params),
+            calling(self.client.directories.list_sources).with_args(self.PROFILE, **list_params),
             raises(HTTPError).matching(
                 has_properties(response=has_properties(status_code=400)),
             ),
@@ -599,14 +598,14 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
     def test_given_name_order_when_get_then_sources_returned(self):
         list_params = {'order': 'name'}
 
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
 
         assert_that(response.get('items'), contains(*self.SOURCES_ASC))
 
     def test_given_backend_order_when_get_then_sources_returned(self):
         list_params = {'order': 'backend'}
 
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
         print(response.get('items'))
 
         assert_that(response.get('items'), contains(*self.SOURCES_BACKEND_ORDER))
@@ -615,7 +614,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
         list_params = {'order': '42'}
 
         assert_that(
-            calling(self.client.directories.list_sources).with_args(self.PROFILE, self.SERVICE, **list_params),
+            calling(self.client.directories.list_sources).with_args(self.PROFILE, **list_params),
             raises(HTTPError).matching(
                 has_properties(response=has_properties(status_code=400)),
             ),
@@ -623,7 +622,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
     def test_given_wrong_tenant_when_get_then_unauthorized(self):
         assert_that(
-            calling(self.client.directories.list_sources).with_args(self.PROFILE, self.SERVICE, tenant_uuid='42'),
+            calling(self.client.directories.list_sources).with_args(self.PROFILE, tenant_uuid='42'),
             raises(HTTPError).matching(
                 has_properties(response=has_properties(status_code=401)),
             ),
@@ -631,7 +630,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
     def test_given_sub_tenant_when_get_main_tenant_then_unauthorized(self):
         assert_that(
-            calling(self.client.directories.list_sources).with_args(self.PROFILE, self.SERVICE, tenant_uuid='42'),
+            calling(self.client.directories.list_sources).with_args(self.PROFILE, tenant_uuid='42'),
             raises(HTTPError).matching(
                 has_properties(response=has_properties(status_code=401)),
             ),
@@ -640,28 +639,28 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
     def test_given_limit_when_get_then_sources_returned(self):
         list_params = {'limit': '1'}
 
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
 
         assert_that(response.get('items'), contains(self.SOURCES_ASC[0]))
 
     def test_given_over_limit_when_get_then_sources_returned(self):
         list_params = {'limit': '42'}
 
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
 
         assert_that(response.get('items'), contains_inanyorder(*self.SOURCES))
 
     def test_given_offset_when_get_then_sources_returned(self):
         list_params = {'offset': '2'}
 
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
 
         assert_that(response.get('items'), contains(self.SOURCES_ASC[-1]))
 
     def test_given_oversized_offset_when_get_then_no_sources_returned(self):
         list_params = {'offset': '42'}
 
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
 
         assert_that(response.get('items'), is_(empty()))
 
@@ -671,7 +670,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
             'offset': '1',
             'order': 'backend',
         }
-        response = self.client.directories.list_sources(self.PROFILE, self.SERVICE, **list_params)
+        response = self.client.directories.list_sources(self.PROFILE, **list_params)
 
         assert_that(response.get('items'), contains('wazo_america'))
         assert_that(len(response.get('items')), is_(1))

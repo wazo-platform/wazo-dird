@@ -16,4 +16,4 @@ class SourceViewPlugin(BaseServicePlugin):
         api = dependencies['api']
         profile_service = dependencies['services']['profile']
         args = (profile_service,)
-        api.add_resource(SourceResource, '/directories/lookup/<profile>/sources', resource_class_args=args)
+        api.add_resource(SourceResource, '/directories/<profile>/sources', resource_class_args=args)

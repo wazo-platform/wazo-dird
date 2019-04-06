@@ -14,12 +14,12 @@ class SourceResource(AuthResource):
     def __init__(self, profile_service):
         self._profile_service = profile_service
 
-    @required_acl('dird.directories.lookup.{profile}.sources.read')
+    @required_acl('dird.directories.{profile}.sources.read')
     def get(self, profile):
         args, errors = ListSchema().load(request.args)
         tenant_uuid = Tenant.autodetect().uuid
 
-        count, filtered, sources = self._profile_service.get_lookup_sources_from_profile_name(
+        count, filtered, sources = self._profile_service.get_sources_from_profile_name(
             tenant_uuid=tenant_uuid,
             name=profile,
             **args
