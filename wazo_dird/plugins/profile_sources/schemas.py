@@ -7,6 +7,6 @@ from xivo.mallow_helpers import ListSchema as _ListSchema
 
 class ListSchema(_ListSchema):
 
-    searchable_columns = ['uuid', 'name']
+    searchable_columns = ['uuid', 'name', 'backend']
     sort_columns = ['name', 'backend']
     default_sort_column = 'name'

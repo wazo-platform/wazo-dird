@@ -21,7 +21,7 @@ class SourceResource(AuthResource):
 
         count, filtered, sources = self._profile_service.get_sources_from_profile_name(
             tenant_uuid=tenant_uuid,
-            name=profile,
+            profile_name=profile,
             **args
         )
 

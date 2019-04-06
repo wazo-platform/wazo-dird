@@ -74,9 +74,9 @@ class _ProfileService:
 
         raise exception.NoSuchProfile(name)
 
-    def get_sources_from_profile_name(self, tenant_uuid, name, **list_params):
+    def get_sources_from_profile_name(self, tenant_uuid, profile_name, **list_params):
         try:
-            profile = self.get_by_name(tenant_uuid, name)
+            profile = self.get_by_name(tenant_uuid, profile_name)
         except exception.NoSuchProfile as e:
             raise exception.NoSuchProfileAPIException(e.profile)
         sources = {}
@@ -85,11 +85,12 @@ class _ProfileService:
                 sources[source['uuid']] = source
         sources = list(sources.values())
 
-        count = self._count(sources, **list_params)
-        filtered = self._filtered(sources, **list_params)
+        total = len(sources)
+        sources = self._filter_sources(sources, **list_params)
+        filtered = len(sources)
         sources = self._paginate(sources, **list_params)
 
-        return count, filtered, sources
+        return total, filtered, sources
 
     def list_(self, visible_tenants, **list_params):
         return self._profile_crud.list_(visible_tenants, **list_params)
@@ -174,6 +175,29 @@ class _ProfileService:
 
         if limit is None:
             return list(islice(selected_sources, offset, None))
+
+    def _filter_sources(self, sources, name=None, backend=None, uuid=None, search=None, **ignored):
+        logger.critical('%s %s', search, ignored)
+        filtered_sources = []
+        for source in sources:
+            if name and source['name'] != name:
+                continue
+            if backend and source['backend'] != backend:
+                continue
+            if uuid and source['uuid'] != uuid:
+                continue
+            if search:
+                match = False
+                term = search.lower()
+                for field in (source['name'].lower(), source['backend'].lower()):
+                    if term in field:
+                        match = True
+                        break
+                if not match:
+                    continue
+
+            filtered_sources.append(source)
+        return filtered_sources
 
     def _count(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
         return len(sources)

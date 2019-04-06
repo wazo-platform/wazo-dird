@@ -704,3 +704,29 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
         assert_that(response['items'], contains(
             has_entries(name='personal_main', backend='personal'),
         ))
+
+    def test_searches(self):
+        response = self.client.directories.list_sources('main', name='personal_main')
+        assert_that(response, has_entries(
+            total=3,
+            filtered=1,
+            items=contains(has_entries(name='personal_main', backend='personal')),
+        ))
+
+        response = self.client.directories.list_sources('main', backend='csv')
+        assert_that(response, has_entries(
+            total=3,
+            filtered=1,
+            items=contains(has_entries(name='csv_main', backend='csv')),
+        ))
+
+        response = self.client.directories.list_sources('main', search='s')
+        print(response)
+        assert_that(response, has_entries(
+            total=3,
+            filtered=2,
+            items=contains(
+                has_entries(name='csv_main', backend='csv'),
+                has_entries(name='personal_main', backend='personal'),
+            ),
+        ))
