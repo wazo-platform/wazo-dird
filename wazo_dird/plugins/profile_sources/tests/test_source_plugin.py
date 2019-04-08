@@ -13,7 +13,7 @@ class TestSourcePlugin(TestCase):
 
     DEPENDENCIES = {
         'api': Mock(),
-        'source_service': Mock(),
+        'services': {'profile': Mock()},
     }
 
     def setUp(self):
