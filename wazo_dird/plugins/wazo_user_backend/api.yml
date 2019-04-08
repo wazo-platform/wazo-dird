@@ -178,7 +178,7 @@ definitions:
         readOnly: true
       filtered:
         type: integer
-        description: The number of contacts matching the searched terms
+        description: The number of contacts in this source (filtered is not implemented)
         readOnly: True
       items:
         type: array

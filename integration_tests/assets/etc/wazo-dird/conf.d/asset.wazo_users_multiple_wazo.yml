@@ -4,6 +4,7 @@ enabled_plugins:
   views:
     default_json: true
     wazo_backend: true
+    sources_view: true
 
 rest_api:
   https:

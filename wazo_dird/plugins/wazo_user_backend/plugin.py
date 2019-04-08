@@ -25,6 +25,18 @@ class WazoUserView(BaseBackendView):
     backend = 'wazo'
     list_resource = http.WazoList
     item_resource = http.WazoItem
+    contact_list_resource = http.WazoContactList
+
+    def load(self, dependencies):
+        super().load(dependencies)
+        api = dependencies['api']
+        source_service = dependencies['services']['source']
+
+        api.add_resource(
+            self.contact_list_resource,
+            "/backends/wazo/sources/<source_uuid>/contacts",
+            resource_class_args=((source_service,)),
+        )
 
 
 class WazoUserPlugin(BaseSourcePlugin):
