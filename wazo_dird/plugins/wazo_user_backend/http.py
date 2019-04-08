@@ -1,12 +1,10 @@
 # Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from flask import request
+
 from xivo.tenant_flask_helpers import Tenant
 
-from xivo_auth_client import Client as AuthClient
-from xivo_confd_client import Client as ConfdClient
-
-from wazo_dird import exception
 from wazo_dird.auth import required_acl
 from wazo_dird.helpers import (
     SourceItem,
@@ -14,7 +12,9 @@ from wazo_dird.helpers import (
 )
 from wazo_dird.rest_api import AuthResource
 
+from .contact import ContactLister
 from .schemas import (
+    contact_list_schema,
     list_schema,
     source_schema,
     source_list_schema,
@@ -61,17 +61,12 @@ class WazoContactList(AuthResource):
     @required_acl('dird.backends.wazo.sources.{source_uuid}.contacts.read')
     def get(self, source_uuid):
         tenant_uuid = Tenant.autodetect().uuid
-        source_config = self._source_service.get('wazo', source_uuid, visible_tenants=[tenant_uuid])
+        visible_tenants = self.get_visible_tenants(tenant_uuid)
+        list_params = contact_list_schema.load(request.args).data
+        source_config = self._source_service.get('wazo', source_uuid, visible_tenants)
 
-        auth = AuthClient(**source_config['auth'])
-        token = auth.token.new(backend='wazo_user', expiration='60')['token']
-        confd = ConfdClient(token=token, **source_config['confd'])
-        confd.set_tenant(tenant_uuid)
-
-        try:
-            response = confd.users.list(view='directory')
-        except Exception as e:
-            raise exception.XiVOConfdError(confd, e)
+        lister = ContactLister.from_config(source_config)
+        response = lister.list(**list_params)
 
         return {
             'total': response['total'],

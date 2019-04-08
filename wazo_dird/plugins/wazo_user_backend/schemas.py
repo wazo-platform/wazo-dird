@@ -69,6 +69,16 @@ class ListSchema(_ListSchema):
     recurse = fields.Boolean(missing=False)
 
 
+class ContactListSchema(_ListSchema):
+
+    searchable_columns = ['uuid', 'firstname', 'lastname']
+    sort_columns = ['firstname', 'lastname']
+    default_sort_column = 'firstname'
+
+    recurse = fields.Boolean(missing=False)
+
+
+contact_list_schema = ContactListSchema()
 source_schema = SourceSchema()
 source_list_schema = SourceSchema(many=True)
 list_schema = ListSchema()
