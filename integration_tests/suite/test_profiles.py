@@ -181,7 +181,7 @@ class TestGet(BaseProfileTestCase):
         }
         with self.profile(sub_tenant_client, body) as profile:
             result = main_tenant_client.profiles.get(profile['uuid'])
-            assert_that(result, equal_to(result))
+            assert_that(result, equal_to(profile))
 
 
 class TestList(BaseProfileTestCase):
@@ -511,8 +511,17 @@ class TestPut(BaseProfileTestCase):
             'services': {'lookup': {'sources': [sub_source]}},
         }
         with self.profile(sub_tenant_client, body) as profile:
-            result = main_tenant_client.profiles.edit(profile['uuid'], body)
-            assert_that(result, equal_to(result))
+            main_tenant_client.profiles.edit(profile['uuid'], body)
+            result = main_tenant_client.profiles.get(profile['uuid'])
+            assert_that(result, has_entries(
+                uuid=profile['uuid'],
+                tenant_uuid=profile['tenant_uuid'],
+                display=has_entries(uuid=sub_display['uuid']),
+                name='profile',
+                services=has_entries(
+                    lookup=has_entries(sources=contains(has_entries(uuid=sub_source['uuid']))),
+                )
+            ))
 
     @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
