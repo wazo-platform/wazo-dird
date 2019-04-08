@@ -5,6 +5,8 @@ from xivo.tenant_flask_helpers import Tenant
 
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
+
+from wazo_dird import exception
 from wazo_dird.auth import required_acl
 from wazo_dird.helpers import (
     SourceItem,
@@ -60,12 +62,16 @@ class WazoContactList(AuthResource):
     def get(self, source_uuid):
         tenant_uuid = Tenant.autodetect().uuid
         source_config = self._source_service.get('wazo', source_uuid, visible_tenants=[tenant_uuid])
+
         auth = AuthClient(**source_config['auth'])
         token = auth.token.new(backend='wazo_user', expiration='60')['token']
         confd = ConfdClient(token=token, **source_config['confd'])
         confd.set_tenant(tenant_uuid)
 
-        response = confd.users.list(view='directory')
+        try:
+            response = confd.users.list(view='directory')
+        except Exception as e:
+            raise exception.XiVOConfdError(confd, e)
 
         return {
             'total': response['total'],

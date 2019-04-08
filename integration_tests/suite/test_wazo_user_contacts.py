@@ -97,6 +97,16 @@ class TestWazoContactList(BaseDirdIntegrationTest):
             raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
         )
 
+    def test_with_no_confd(self):
+        self.stop_service('america')
+        try:
+            assert_that(
+                calling(self.contacts).with_args(self.client, self.source_uuid),
+                raises(Exception).matching(has_properties(response=has_properties(status_code=503)))
+            )
+        finally:
+            self.start_service('america')
+
     def contacts(self, client, uuid, *args, **kwargs):
         return client.backends.list_contacts_from_source(
             backend=BACKEND,
