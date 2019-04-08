@@ -570,6 +570,16 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
             has_entries(name='csv_main', backend='csv'),
         ))
 
+    def test_that_now_all_source_info_is_returned(self):
+        response = self.client.directories.list_sources('main')
+
+        assert_that(response['items'][0], contains_inanyorder(
+            'uuid',
+            'tenant_uuid',
+            'name',
+            'backend',
+        ))
+
     def test_given_asc_direction_when_get_then_sources_returned(self):
         list_params = {'direction': 'asc'}
 
@@ -691,7 +701,11 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
         response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response.get('items'), is_(empty()))
+        assert_that(response, has_entries(
+            total=3,
+            filtered=3,
+            items=empty(),
+        ))
 
     def test_given_order_offset_limit_when_get_then_sources_returned(self):
         list_params = {
@@ -701,8 +715,10 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
         }
         response = self.client.directories.list_sources('main', **list_params)
 
-        assert_that(response['items'], contains(
-            has_entries(name='personal_main', backend='personal'),
+        assert_that(response, has_entries(
+            items=contains(has_entries(name='personal_main', backend='personal')),
+            total=3,
+            filtered=3,
         ))
 
     def test_searches(self):
@@ -721,7 +737,6 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
         ))
 
         response = self.client.directories.list_sources('main', search='s')
-        print(response)
         assert_that(response, has_entries(
             total=3,
             filtered=2,

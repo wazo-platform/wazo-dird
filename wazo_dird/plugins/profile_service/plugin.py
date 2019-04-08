@@ -177,7 +177,6 @@ class _ProfileService:
             return list(islice(selected_sources, offset, None))
 
     def _filter_sources(self, sources, name=None, backend=None, uuid=None, search=None, **ignored):
-        logger.critical('%s %s', search, ignored)
         filtered_sources = []
         for source in sources:
             if name and source['name'] != name:
