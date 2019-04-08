@@ -8,6 +8,7 @@ from wazo_dird import database
 
 from .constants import (
     MAIN_TENANT,
+    SUB_TENANT,
     TENANT_UUID_2,
 )
 
@@ -278,7 +279,7 @@ def new_ldap_config(Session):
         unique_column='entryUUID',
         searched_columns=['cn', 'telephoneNumber'],
         first_matched_columns=['telephoneNumber'],
-        format_columns= {
+        format_columns={
             'firstname': "{givenName}",
             'lastname': "{sn}",
             'number': "{telephoneNumber}",
@@ -311,7 +312,7 @@ def new_ldap_city_config(Session):
         unique_column='entryUUID',
         searched_columns=['cn', 'telephoneNumber'],
         first_matched_columns=['telephoneNumber'],
-        format_columns= {
+        format_columns={
             'firstname': "{givenName}",
             'lastname': "{sn}",
             'number': "{telephoneNumber}",
@@ -611,6 +612,81 @@ def new_wazo_users_multiple_wazo_config(Session):
         services={
             'lookup': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
             'favorites': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
+        },
+    )
+    return config
+
+
+def new_multi_source_profile(Session):
+    config = Config(Session)
+    config.with_display(
+        name='main_display',
+        tenant_uuid=MAIN_TENANT,
+        columns=[{'title': 'Firstname', 'field': 'firstname'}],
+    )
+    config.with_display(
+        name='sub_display',
+        tenant_uuid=SUB_TENANT,
+        columns=[{'title': 'Firstname', 'field': 'firstname'}],
+    )
+    config.with_source(
+        backend='csv',
+        tenant_uuid=MAIN_TENANT,
+        name='csv_main',
+        file='/tmp/test.csv',
+    )
+    config.with_source(
+        backend='csv',
+        tenant_uuid=SUB_TENANT,
+        name='csv_sub',
+        file='/tmp/test.csv',
+    )
+    config.with_source(
+        backend='personal',
+        tenant_uuid=MAIN_TENANT,
+        name='personal_main',
+        db_uri='db_uri',
+    )
+    config.with_source(
+        backend='personal',
+        tenant_uuid=SUB_TENANT,
+        name='personal_sub',
+        db_uri='db_uri',
+    )
+    config.with_source(
+        backend='wazo',
+        name='a_wazo_main',
+        tenant_uuid=MAIN_TENANT,
+        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        confd={'host': 'asia', 'port': 9486, 'https': False},
+        searched_columns=['firstname', 'lastname'],
+    )
+    config.with_source(
+        backend='wazo',
+        tenant_uuid=SUB_TENANT,
+        name='wazo_sub',
+        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        confd={'host': 'america', 'port': 9486, 'https': False},
+        searched_columns=['firstname', 'lastname'],
+    )
+    config.with_profile(
+        name='main',
+        tenant_uuid=MAIN_TENANT,
+        display='main_display',
+        services={
+            'lookup': {'sources': ['a_wazo_main', 'personal_main']},
+            'favorites': {'sources': ['a_wazo_main', 'personal_main']},
+            'reverse': {'sources': ['csv_main', 'personal_main']},
+        },
+    )
+    config.with_profile(
+        name='sub',
+        tenant_uuid=SUB_TENANT,
+        display='sub_display',
+        services={
+            'lookup': {'sources': ['wazo_sub', 'personal_sub']},
+            'favorites': {'sources': ['wazo_sub', 'personal_sub']},
+            'reverse': {'sources': ['csv_sub', 'personal_sub']},
         },
     )
     return config

@@ -2,20 +2,15 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from itertools import islice
+from operator import itemgetter
+
 import kombu
-
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
+from sqlalchemy.orm import scoped_session, sessionmaker
+from wazo_dird import BaseServicePlugin, database, exception
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.context.event import CreateContextEvent
-
-from wazo_dird import exception
-
-from wazo_dird import (
-    BaseServicePlugin,
-    database,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +73,24 @@ class _ProfileService:
             return profile
 
         raise exception.NoSuchProfile(name)
+
+    def get_sources_from_profile_name(self, tenant_uuid, profile_name, **list_params):
+        try:
+            profile = self.get_by_name(tenant_uuid, profile_name)
+        except exception.NoSuchProfile as e:
+            raise exception.NoSuchProfileAPIException(e.profile)
+        sources = {}
+        for service in profile.get('services', {}).values():
+            for source in service.get('sources', []):
+                sources[source['uuid']] = source
+        sources = list(sources.values())
+
+        total = len(sources)
+        sources = self._filter_sources(sources, **list_params)
+        filtered = len(sources)
+        sources = self._paginate(sources, **list_params)
+
+        return total, filtered, sources
 
     def list_(self, visible_tenants, **list_params):
         return self._profile_crud.list_(visible_tenants, **list_params)
@@ -149,3 +162,47 @@ class _ProfileService:
             self._auto_create_profile(body['tenant_uuid'], body['name'])
         finally:
             message.ack()
+
+    def _paginate(self, sources, limit=None, offset=0, order='name', direction='asc', **ignored):
+        selected_sources = []
+
+        reverse = direction != 'asc'
+        selected_sources = sorted(sources, key=itemgetter(order), reverse=reverse)
+
+        if limit is not None:
+            limit = offset + limit
+            return list(islice(selected_sources, offset, limit))
+
+        if limit is None:
+            return list(islice(selected_sources, offset, None))
+
+    def _filter_sources(self, sources, name=None, backend=None, uuid=None, search=None, **ignored):
+        filtered_sources = []
+        for source in sources:
+            if name and source['name'] != name:
+                continue
+            if backend and source['backend'] != backend:
+                continue
+            if uuid and source['uuid'] != uuid:
+                continue
+            if search:
+                match = False
+                term = search.lower()
+                for field in (source['name'].lower(), source['backend'].lower()):
+                    if term in field:
+                        match = True
+                        break
+                if not match:
+                    continue
+
+            filtered_sources.append(source)
+        return filtered_sources
+
+    def _count(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
+        return len(sources)
+
+    def _filtered(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
+        if limit:
+            return limit
+        else:
+            return len(sources) - offset

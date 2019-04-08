@@ -29,10 +29,10 @@ class DisplaySchema(BaseSchema):
 
 
 class SourceSchema(BaseSchema):
-    uuid = fields.UUID(dump_only=True)
-    tenant_uuid = fields.UUID(dump_only=True)
-    name = fields.String()
     backend = fields.String()
+    name = fields.String()
+    tenant_uuid = fields.UUID(dump_only=True)
+    uuid = fields.UUID(dump_only=True)
 
 
 class ServiceSchema(BaseSchema):
