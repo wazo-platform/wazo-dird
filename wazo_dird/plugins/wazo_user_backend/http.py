@@ -64,6 +64,7 @@ class WazoContactList(AuthResource):
         token = auth.token.new(backend='wazo_user', expiration='60')['token']
         confd = ConfdClient(token=token, **source_config['confd'])
         confd.set_tenant(tenant_uuid)
+
         response = confd.users.list(view='directory')
 
         return {
