@@ -12,7 +12,7 @@ from wazo_dird.helpers import (
 )
 from wazo_dird.rest_api import AuthResource
 
-from .contact import ContactLister
+from .contact import ContactLister, registry
 from .schemas import (
     contact_list_schema,
     list_schema,
@@ -65,7 +65,7 @@ class WazoContactList(AuthResource):
         list_params = contact_list_schema.load(request.args).data
         source_config = self._source_service.get('wazo', source_uuid, visible_tenants)
 
-        lister = ContactLister.from_config(source_config)
+        lister = ContactLister(registry.get(source_config))
         response = lister.list(**list_params)
 
         return {

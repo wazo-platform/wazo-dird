@@ -34,6 +34,7 @@ CONFD_CONFIG = {
 }
 DEFAULT_ARGS = {
     'config': {
+        'uuid': 'ae086548-2d36-4367-8914-8dfcd8645ca7',
         'backend': 'wazo',
         'tenant_uuid': TENANT_UUID,
         'confd': CONFD_CONFIG,
@@ -138,10 +139,9 @@ SOURCE_2 = SourceResult(
 class _BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self._FakedConfdClient = Mock(return_value=Mock(name='confd_client'))
-        self._FakedAuthClient = Mock(return_value=Mock(name='auth_client'))
-        self._confd_client = self._FakedConfdClient.return_value
-        self._source = WazoUserPlugin(self._FakedConfdClient, self._FakedAuthClient)
+        self._source = WazoUserPlugin()
+        self._confd_client = Mock()
+        self._source._client = self._confd_client
 
 
 class TestWazoUserBackendSearch(_BaseTest):
@@ -174,17 +174,22 @@ class TestWazoUserBackendSearch(_BaseTest):
 
         assert_that(result, contains(SOURCE_2))
 
-    @patch('wazo_dird.plugins.wazo_user_backend.plugin.TokenRenewer', Mock())
     def test_that_search_uses_extra_search_params(self):
         config = dict(DEFAULT_ARGS)
         config['config']['extra_search_params'] = {'context': 'inside'}
 
-        self._source.load(DEFAULT_ARGS)
+        with patch('wazo_dird.plugins.wazo_user_backend.plugin.registry') as registry:
+            self._source.load(DEFAULT_ARGS)
 
-        self._source.search(term='paul')
+            self._source.search(term='paul')
 
-        self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='paul', context='inside')
+            client = registry.get.return_value
+            client.users.list.assert_called_once_with(
+                recurse=True,
+                view='directory',
+                search='paul',
+                context='inside',
+            )
 
     def test_first_match(self):
         self._source._first_matched_columns = ['exten']
@@ -244,70 +249,3 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source._fetch_entries()
 
         assert_that(result, empty())
-
-
-@patch('wazo_dird.plugins.wazo_user_backend.plugin.TokenRenewer', Mock())
-class TestWazoUserBackendInitialisation(_BaseTest):
-
-    def setUp(self):
-        super().setUp()
-        self._confd_client.infos.return_value = {'uuid': UUID}
-
-    def test_load_searched_columns(self):
-        self._source.load(DEFAULT_ARGS)
-
-        assert_that(self._source._searched_columns,
-                    equal_to(DEFAULT_ARGS['config']['searched_columns']))
-
-    def test_load_name(self):
-        self._source.load(DEFAULT_ARGS)
-
-        assert_that(self._source.name,
-                    equal_to(DEFAULT_ARGS['config']['name']))
-
-    def test_load_client(self):
-        self._source.load(DEFAULT_ARGS)
-
-        confd_config = DEFAULT_ARGS['config']['confd']
-        self._FakedConfdClient.assert_called_once_with(**confd_config)
-
-        assert_that(self._source._client, self._confd_client)
-
-    @patch('wazo_dird.plugins.wazo_user_backend.plugin.parse_config_file')
-    def test_load_with_key_file(self, parse_config_file):
-        parse_config_file.return_value = {
-            'service_id': 'the-service-id',
-            'service_key': 'the-service-key',
-        }
-
-        config = copy.deepcopy(DEFAULT_ARGS)
-        config['config']['auth'] = {
-            'host': 'localhost',
-            'username': 'foo',
-            'password': 'bar',
-            'key_file': '/path/to/key/file',
-        }
-
-        self._source.load(config)
-
-        self._FakedAuthClient.assert_called_once_with(
-            host='localhost',
-            username='the-service-id',
-            password='the-service-key',
-        )
-
-    def test_load_with_no_key_file(self):
-        config = copy.deepcopy(DEFAULT_ARGS)
-        config['config']['auth'] = {
-            'host': 'localhost',
-            'username': 'foo',
-            'password': 'bar',
-        }
-
-        self._source.load(config)
-
-        self._FakedAuthClient.assert_called_once_with(
-            host='localhost',
-            username='foo',
-            password='bar',
-        )

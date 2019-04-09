@@ -4,10 +4,6 @@
 import logging
 
 from requests.exceptions import ConnectionError
-from xivo.config_helper import parse_config_file
-from xivo.token_renewer import TokenRenewer
-from xivo_auth_client import Client as AuthClient
-from xivo_confd_client import Client as ConfdClient
 
 from wazo_dird import (
     BaseSourcePlugin,
@@ -16,6 +12,7 @@ from wazo_dird import (
 from wazo_dird.helpers import BaseBackendView
 
 from . import http
+from .contact import registry
 
 logger = logging.getLogger(__name__)
 
@@ -38,15 +35,16 @@ class WazoUserView(BaseBackendView):
             resource_class_args=((source_service,)),
         )
 
+    def unload(self):
+        registry.unregister_all()
+
 
 class WazoUserPlugin(BaseSourcePlugin):
 
     _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield', 'email',
                    'description', 'mobile_phone_number', 'voicemail_number']
 
-    def __init__(self, ConfdClientClass=ConfdClient, AuthClientClass=AuthClient):
-        self._AuthClientClass = AuthClientClass
-        self._ConfdClientClass = ConfdClientClass
+    def __init__(self):
         self._client = None
         self._uuid = None
         self._search_params = {'view': 'directory', 'recurse': True}
@@ -56,41 +54,19 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._searched_columns = config.get(self.SEARCHED_COLUMNS, [])
         self._first_matched_columns = config.get(self.FIRST_MATCHED_COLUMNS, [])
         self.name = config['name']
+        self._client = registry.get(config)
 
-        auth_config = dict(config['auth'])
-        if auth_config.get('key_file'):
-            # File must be readable by wazo-dird
-            key_file = parse_config_file(auth_config.pop('key_file'))
-            auth_config['username'] = key_file['service_id']
-            auth_config['password'] = key_file['service_key']
-        auth_client = self._AuthClientClass(**auth_config)
-        self._token_renewer = TokenRenewer(auth_client)
-
-        confd_config = config['confd']
-        logger.debug('confd config %s', confd_config)
-        self._client = self._ConfdClientClass(**confd_config)
-        self._client.set_tenant(config['tenant_uuid'])
-
-        backend = config.get('backend', '')
         self._SourceResult = make_result_class(
-            backend,
-            self.name, 'id',
-            format_columns=config.get(self.FORMAT_COLUMNS))
-
+            'wazo',
+            self.name,
+            'id',
+            format_columns=config.get(self.FORMAT_COLUMNS),
+        )
         self._search_params.update(config.get('extra_search_params', {}))
-
-        self._token_renewer.subscribe_to_token_change(self._on_new_token)
-        self._token_renewer.start()
-
         logger.info('Wazo %s successfully loaded', config['name'])
 
     def unload(self):
-        token_renewer = getattr(self, '_token_renewer', None)
-        if not token_renewer:
-            return
-
-        logger.info('stopping token renewer')
-        token_renewer.stop()
+        registry.unregister_all()
 
     def name(self):
         return self.name
@@ -180,10 +156,6 @@ class WazoUserPlugin(BaseSourcePlugin):
             search_params['search'] = term
         users = self._client.users.list(**search_params)
         return (user for user in users['items'])
-
-    def _on_new_token(self, token):
-        logger.debug('new token received')
-        self._client.set_token(token)
 
     def _source_result_from_entry(self, entry, uuid):
         return self._SourceResult({key: entry.get(key) for key in self._valid_keys},
