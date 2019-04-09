@@ -110,7 +110,84 @@ paths:
           $ref: '#/responses/ResourceDeleted'
         '404':
           $ref: '#/responses/NotFoundError'
+  /backends/wazo/sources/{source_uuid}/contacts:
+    get:
+      description: '**Required ACL:** `dird.backends.wazo.sources.{source_uuid}.contacts.read`'
+      operationId: list_contacts from source
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - in: path
+          name: source_uuid
+          required: true
+          description: Source uuid
+          type: string
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
+      summary: Retrieve all contacts from `wazo`
+      tags:
+        - wazo
+      responses:
+        '200':
+          description: Contacts as fetched from the Wazo engine.
+          schema:
+            $ref: '#/definitions/WazoContactList'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No such source
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          description: Another service is unavailable (e.g. wazo-auth, xivo-confd, ...)
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
+  WazoContact:
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the contact
+      firstname:
+        type: string
+        description: The firstname of the contact
+      lastname:
+        type: string
+        description: The lastname of the contact
+      email:
+        type: string
+        description: The email address of the contact
+      exten:
+        type: string
+        description: The internal number of that contact
+      mobile_phone_number:
+        type: string
+        description: The mobile phone number of that contact
+      voicemail_number:
+        type: string
+        description: The voicemail number of that contact
+  WazoContactList:
+    properties:
+      total:
+        type: integer
+        description: The number of contacts in this source
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of contacts matching the searched terms
+        readOnly: True
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/WazoContact'
+    required:
+      - items
+      - total
+      - filtered
   WazoSource:
     title: WazoSource
     allOf:
