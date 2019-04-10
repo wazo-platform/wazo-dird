@@ -78,7 +78,18 @@ class ContactListSchema(_ListSchema):
     recurse = fields.Boolean(missing=False)
 
 
-contact_list_schema = ContactListSchema()
+class ContactSchema(BaseSchema):
+    uuid = fields.String()
+    firstname = fields.String()
+    lastname = fields.String()
+    email = fields.String()
+    exten = fields.String()
+    mobile_phone_number = fields.String()
+    voicemail_number = fields.String()
+
+
+contact_list_param_schema = ContactListSchema()
+contact_list_schema = ContactSchema(many=True)
 source_schema = SourceSchema()
 source_list_schema = SourceSchema(many=True)
 list_schema = ListSchema()

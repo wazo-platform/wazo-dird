@@ -60,6 +60,16 @@ class TestWazoContactList(BaseDirdIntegrationTest):
             ),
         ))
 
+        assert_that(result['items'][0].keys(), contains_inanyorder(
+            'uuid',
+            'firstname',
+            'lastname',
+            'exten',
+            'voicemail_number',
+            'mobile_phone_number',
+            'email',
+        ))
+
         assert_that(
             calling(self.contacts).with_args(self.client, UNKNOWN_UUID),
             raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
