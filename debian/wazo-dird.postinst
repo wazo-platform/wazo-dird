@@ -37,14 +37,6 @@ case "$1" in
 					done
 				)
 			fi
-			if [ -e /etc/xivo-dird/sources.d ]; then
-				(
-					shopt -s nullglob
-					for f in /etc/xivo-dird/sources.d/*; do
-						mv "${f}" /etc/wazo-dird/sources.d/
-					done
-				)
-			fi
 			if [ -e /etc/xivo-dird/templates.d ]; then
 				(
 					shopt -s nullglob
@@ -53,7 +45,7 @@ case "$1" in
 					done
 				)
 			fi
-			rm -rf /etc/xivo-auth
+			rm -rf /etc/xivo-dird
 
 			ln -sf	/etc/nginx/locations/https-available/$DAEMONNAME \
 					/etc/nginx/locations/https-enabled/$DAEMONNAME
@@ -66,6 +58,13 @@ case "$1" in
 		# Remove the old PID file directory
 		if dpkg --compare-versions "$2" lt '18.05~'; then
 			rm -rf /var/run/xivo-dird
+		fi
+
+		# Remove old configuration files
+		if dpkg --compare-versions "$2" lt '19.06~'; then
+			rm -f /etc/wazo-dird/conf.d/050-xivo-services.yml
+			rm -f /etc/wazo-dird/conf.d/050-xivo-sources.yml
+			rm -f /etc/wazo-dird/conf.d/050-xivo-views.yml
 		fi
 	;;
 
