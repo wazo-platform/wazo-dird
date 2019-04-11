@@ -46,7 +46,7 @@ paths:
               format_columns:
                 displayname: '{firstname} {lastname}'
               file: /tmp/directory.csv
-              delimiter: ':'
+              separator: ':'
               unique_column: 'uuid'
         '400':
           $ref: '#/responses/CreateError'
@@ -120,7 +120,7 @@ definitions:
           file:
             type: string
             description: The path of the CSV file
-          delimiter:
+          separator:
             type: string
             description: The field separator in the CSV
             default: ','
