@@ -110,12 +110,16 @@ class _FavoritesService(helpers.BaseService):
         future.name = source.name
         return future
 
-    def favorites(self, profile_config, xivo_user_uuid):
+    def favorites(self, profile_config, xivo_user_uuid, token=None):
         favorites_config = profile_config.get('services', {}).get('favorites', {})
         if not favorites_config:
             raise self.NoSuchProfileException(profile_config['name'])
 
-        args = {'token_infos': {'xivo_user_uuid': xivo_user_uuid}}
+        args = {
+            'token_infos': {'xivo_user_uuid': xivo_user_uuid},
+            'token': token,
+            'xivo_user_uuid': xivo_user_uuid,
+        }
         futures = []
         favorite_map = self.favorite_ids(profile_config, xivo_user_uuid).by_uuid
         for source_uuid, ids in favorite_map.items():

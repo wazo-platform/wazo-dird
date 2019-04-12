@@ -143,6 +143,7 @@ class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
             raw_results = self.favorites_service.favorites(
                 profile_config,
                 token_infos['xivo_user_uuid'],
+                token,
             )
         except self.favorites_service.NoSuchProfileException as e:
             return _error(404, str(e))
