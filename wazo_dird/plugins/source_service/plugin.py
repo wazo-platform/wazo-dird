@@ -144,7 +144,6 @@ class _SourceService:
         body = dict(self._office_365_source_body)
         body['name'] = 'auto_{}_{}'.format(backend, name)
         body['tenant_uuid'] = tenant_uuid
-        body['db_uri'] = self._db_uri
         self._add_source(backend, body)
 
     def _auto_create_sources(self, tenant_uuid, name):
