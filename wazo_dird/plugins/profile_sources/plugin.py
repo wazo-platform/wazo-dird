@@ -3,14 +3,14 @@
 
 import logging
 
-from wazo_dird import BaseServicePlugin
+from wazo_dird import BaseViewPlugin
 
 from .http import SourceResource
 
 logger = logging.getLogger(__name__)
 
 
-class SourceViewPlugin(BaseServicePlugin):
+class SourceViewPlugin(BaseViewPlugin):
 
     def load(self, dependencies):
         api = dependencies['api']

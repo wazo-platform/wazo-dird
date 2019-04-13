@@ -10,6 +10,7 @@ from wazo_dird import rest_api
 
 logger = logging.getLogger(__name__)
 services_extension_manager = None
+views_extension_manager = None
 
 
 def load_services(config, enabled_services, source_manager, bus, controller):
@@ -35,7 +36,18 @@ def unload_services():
         services_extension_manager.map_method('unload')
 
 
+def unload_views():
+    def unload_view(ext, *args, **kwargs):
+        if hasattr(ext.obj, 'unload'):
+            logger.info('unloading view: %s', ext.name)
+            ext.obj.unload()
+
+    if views_extension_manager:
+        views_extension_manager.map(unload_view)
+
+
 def load_views(config, enabled_views, services, auth_client):
+    global views_extension_manager
     dependencies = {
         'config': config,
         'services': services,

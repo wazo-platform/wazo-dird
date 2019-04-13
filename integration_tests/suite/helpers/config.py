@@ -606,6 +606,14 @@ def new_wazo_users_multiple_wazo_config(Session):
         confd={'host': 'europe', 'port': 9486, 'https': False},
         searched_columns=['firstname', 'lastname'],
     )
+    config.with_source(
+        tenant_uuid=SUB_TENANT,
+        backend='wazo',
+        name='wazo_america_sub',
+        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        confd={'host': 'america', 'port': 9486, 'https': False},
+        searched_columns=['firstname', 'lastname'],
+    )
     config.with_profile(
         name='default',
         display='default_display',

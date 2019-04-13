@@ -51,6 +51,7 @@ class TestWazoUser(DirdAssetRunningTestCase):
 
     def backend_config(self):
         return {
+            'uuid': '39679e98-a33a-4bc7-81b6-c581a61b41a5',
             'type': 'wazo',
             'tenant_uuid': MAIN_TENANT,
             'name': 'wazo_america',
