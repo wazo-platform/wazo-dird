@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import abc
@@ -26,7 +26,7 @@ class BaseServicePlugin(metaclass=abc.ABCMeta):
 class BaseViewPlugin(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def load(self, args):
+    def load(self, dependencies):
         '''
         The load method is responsible of acquiring resources for the plugin and
         add the routes to the http_app.

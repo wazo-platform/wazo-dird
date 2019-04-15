@@ -7,10 +7,7 @@ from hamcrest import (
     assert_that,
     equal_to,
 )
-from mock import (
-    Mock,
-    sentinel as s,
-)
+from mock import Mock
 
 from ..contact import ContactLister
 

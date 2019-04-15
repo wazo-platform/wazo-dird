@@ -18,21 +18,21 @@ class ServiceConfigSchema(BaseSchema):
 
 class ServiceDictSchema(fields.Nested):
 
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
+    def _serialize(self, nested_obj, attr, obj, **_):
+        if nested_obj is None:
             return None
 
         result = {}
-        for service_name, service_config in value.items():
+        for service_name, service_config in nested_obj.items():
             result[service_name] = ServiceConfigSchema().dump(service_config).data
         return result
 
-    def _deserialize(self, value, attr, obj, **kwargs):
-        if value is None:
+    def _deserialize(self, nested_obj, attr, obj, **_):
+        if nested_obj is None:
             return None
 
         result = {}
-        for service_name, service_config in value.items():
+        for service_name, service_config in nested_obj.items():
             result[service_name] = ServiceConfigSchema().load(service_config).data
         return result
 
