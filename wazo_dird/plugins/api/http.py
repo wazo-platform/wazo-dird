@@ -23,7 +23,7 @@ class ApiResource(ErrorCatchingResource):
         for module in iter_entry_points(group=self.api_entry_point):
             try:
                 plugin_package = module.module_name.rsplit('.', 1)[0]
-                spec = yaml.load(resource_string(plugin_package, self.api_filename))
+                spec = yaml.safe_load(resource_string(plugin_package, self.api_filename))
                 if not spec:
                     logger.debug('plugin has no API spec: %s', plugin_package)
                 else:

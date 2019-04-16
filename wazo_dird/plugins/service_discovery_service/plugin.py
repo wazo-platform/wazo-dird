@@ -204,4 +204,4 @@ class SourceConfigGenerator:
         template_args['port'] = port
 
         yaml_representation = template.render(template_args)
-        return yaml.load(yaml_representation)
+        return yaml.safe_load(yaml_representation)

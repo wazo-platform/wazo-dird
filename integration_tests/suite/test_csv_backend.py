@@ -28,7 +28,7 @@ class _BaseCSVFileTestCase(unittest.TestCase):
     def setUp(self):
         config_file = absolute_file_name(self.asset, self.source_config)
         with open(config_file) as f:
-            config = {'config': yaml.load(f)}
+            config = {'config': yaml.safe_load(f)}
         config['config']['file'] = absolute_file_name(self.asset, config['config']['file'][1:])
         self.backend = BackendWrapper('csv', config)
         super().setUp()
