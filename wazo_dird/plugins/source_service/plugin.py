@@ -25,7 +25,7 @@ class SourceServicePlugin(BaseServicePlugin):
         self._config = dependencies['config']
         db_uri = self._config['db_uri']
         Session = self._new_db_session(db_uri)
-        return _SourceService(database.SourceCRUD(Session), bus, db_uri)
+        return _SourceService(database.SourceCRUD(Session), bus)
 
     def _new_db_session(self, db_uri):
         self._Session = scoped_session(sessionmaker())
@@ -93,9 +93,8 @@ class _SourceService:
         'first_matched_columns': ['mobilePhone', 'businessPhones'],
     }
 
-    def __init__(self, crud, bus, db_uri):
+    def __init__(self, crud, bus):
         self._source_crud = crud
-        self._db_uri = db_uri
         bus.add_consumer(self._QUEUE, self._on_new_tenant)
 
     def count(self, backend, visible_tenants, **list_params):
@@ -129,7 +128,6 @@ class _SourceService:
         backend = 'personal'
         body = dict(self._personal_source_body)
         body['tenant_uuid'] = tenant_uuid
-        body['db_uri'] = self._db_uri
         self._add_source(backend, body)
 
     def _add_wazo_user_source(self, tenant_uuid, name):

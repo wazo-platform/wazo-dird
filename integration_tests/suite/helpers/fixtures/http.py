@@ -118,7 +118,6 @@ def ldap_source(**source_args):
 
 
 def personal_source(**source_args):
-    source_args.setdefault('db_uri', 'postgresql')
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):

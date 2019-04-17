@@ -46,7 +46,7 @@ class VerifyCertificateField(fields.Field):
 class BaseSourceSchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
-    name = fields.String(validate=Length(min=1, max=512))
+    name = fields.String(validate=Length(min=1, max=512), required=True)
     first_matched_columns = fields.List(fields.String(validate=Length(min=1, max=128)), missing=[])
     searched_columns = fields.List(fields.String(validate=Length(min=1, max=128)), missing=[])
     format_columns = fields.Dict(validate=validate_string_dict, missing={})
