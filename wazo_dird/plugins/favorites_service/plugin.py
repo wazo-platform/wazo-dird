@@ -5,15 +5,13 @@ import logging
 
 from collections import defaultdict, namedtuple
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
 from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
 from xivo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
 from wazo_dird import BaseServicePlugin, helpers
 from wazo_dird import database, exception
+from wazo_dird.database.helpers import Session
 
 logger = logging.getLogger(__name__)
 
@@ -52,24 +50,10 @@ class FavoritesServicePlugin(BaseServicePlugin):
                    % (self.__class__.__name__, ','.join(args.keys())))
             raise ValueError(msg)
 
-        try:
-            db_uri = config['db_uri']
-        except KeyError:
-            msg = '{} should be loaded with a config containing "db_uri" but received: {}'.format(
-                self.__class__.__name__, ','.join(config.keys())
-            )
-            raise ValueError(msg)
-
-        crud = self._new_favorite_crud(db_uri)
+        crud = database.FavoriteCRUD(Session)
 
         self._service = _FavoritesService(config, source_manager, controller, crud, bus)
         return self._service
-
-    def _new_favorite_crud(self, db_uri):
-        self._Session = scoped_session(sessionmaker())
-        engine = create_engine(db_uri)
-        self._Session.configure(bind=engine)
-        return database.FavoriteCRUD(self._Session)
 
     def unload(self):
         if self._service:

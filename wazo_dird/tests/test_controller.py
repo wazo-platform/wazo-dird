@@ -14,6 +14,7 @@ TokenRenewer = Mock(return_value=token_renewer)
 
 
 @patch('wazo_dird.controller.TokenRenewer', TokenRenewer)
+@patch('wazo_dird.controller.init_db', Mock())
 class TestController(TestCase):
 
     def setUp(self):
@@ -76,4 +77,5 @@ class TestController(TestCase):
         config.setdefault('services', Mock())
         config.setdefault('source_config_dir', Mock())
         config.setdefault('views', Mock())
+        config.setdefault('db_uri', s.db_uri)
         return config

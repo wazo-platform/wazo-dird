@@ -4,11 +4,9 @@
 import logging
 import kombu
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.auth.events import TenantCreatedEvent
+from wazo_dird.database.helpers import Session
 
 from wazo_dird import (
     BaseServicePlugin,
@@ -21,17 +19,8 @@ logger = logging.getLogger(__name__)
 class DisplayServicePlugin(BaseServicePlugin):
 
     def load(self, dependencies):
-        config = dependencies['config']
         bus = dependencies['bus']
-        db_uri = config['db_uri']
-        Session = self._new_db_session(db_uri)
         return _DisplayService(database.DisplayCRUD(Session), bus)
-
-    def _new_db_session(self, db_uri):
-        self._Session = scoped_session(sessionmaker())
-        engine = create_engine(db_uri)
-        self._Session.configure(bind=engine)
-        return self._Session
 
 
 class _DisplayService:

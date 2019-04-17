@@ -3,11 +3,9 @@
 
 import logging
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
 from wazo_dird import BaseServicePlugin
 from wazo_dird import database, exception
+from wazo_dird.database.helpers import Session
 
 logger = logging.getLogger(__name__)
 
@@ -31,15 +29,8 @@ class PersonalServicePlugin(BaseServicePlugin):
                    % (self.__class__.__name__, ','.join(dependencies.keys())))
             raise ValueError(msg)
 
-        crud = self._new_personal_contact_crud(config['db_uri'])
-
+        crud = database.PersonalContactCRUD(Session)
         return _PersonalService(config, source_manager, crud, controller)
-
-    def _new_personal_contact_crud(self, db_uri):
-        self._Session = scoped_session(sessionmaker())
-        engine = create_engine(db_uri)
-        self._Session.configure(bind=engine)
-        return database.PersonalContactCRUD(self._Session)
 
 
 class _PersonalService:

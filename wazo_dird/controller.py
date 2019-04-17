@@ -16,6 +16,7 @@ from .bus import Bus
 from .rest_api import CoreRestApi
 from .service_discovery import self_check
 from .source_manager import SourceManager
+from .database.helpers import init_db
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ class Controller:
 
     def __init__(self, config):
         self.config = config
+        init_db(config['db_uri'])
         self.rest_api = CoreRestApi(self.config)
         self.bus = Bus(config)
         auth.set_auth_config(self.config['auth'])
