@@ -3,19 +3,15 @@
 
 import logging
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
 from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
 from wazo_dird import database
 from wazo_dird.helpers import BaseBackendView
+from wazo_dird.database.helpers import Session
 
 from . import http
 
 logger = logging.getLogger(__name__)
-
-Session = scoped_session(sessionmaker())
 
 
 class PersonalView(BaseBackendView):
@@ -44,7 +40,6 @@ class PersonalBackend(BaseSourcePlugin):
         )
         self._SourceResult = lambda contact: result_class(self._remove_empty_values(contact))
         self._search_engine = search_engine or self._new_search_engine(
-            config['config']['db_uri'],
             config['config'].get(self.SEARCHED_COLUMNS),
             config['config'].get(self.FIRST_MATCHED_COLUMNS),
         )
@@ -71,9 +66,7 @@ class PersonalBackend(BaseSourcePlugin):
     def format_contacts(self, contacts):
         return [self._SourceResult(contact) for contact in contacts]
 
-    def _new_search_engine(self, db_uri, searched_columns, first_match_columns):
-        engine = create_engine(db_uri)
-        Session.configure(bind=engine)
+    def _new_search_engine(self, searched_columns, first_match_columns):
         return database.PersonalContactSearchEngine(
             Session,
             searched_columns,
