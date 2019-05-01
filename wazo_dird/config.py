@@ -25,8 +25,9 @@ _DEFAULT_CONFIG = {
         'port': 8500,
         'verify': '/usr/share/xivo-certs/server.crt',
     },
-    'extra_config_files': '/etc/wazo-dird/conf.d/',
+    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'debug': False,
+    'extra_config_files': '/etc/wazo-dird/conf.d/',
     'enabled_plugins': {
         'backends': {},
         'services': {
