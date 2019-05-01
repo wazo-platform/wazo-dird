@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class PhonebookMoverService:
 
-    def __init__(self, db_uri):
+    def __init__(self):
         self._tenant_crud = database.TenantCRUD(Session)
         self._phonebook_crud = database.PhonebookCRUD(Session)
 
