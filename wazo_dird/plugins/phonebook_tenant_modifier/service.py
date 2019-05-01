@@ -4,18 +4,14 @@
 import logging
 
 from wazo_dird import database
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from wazo_dird.database.helpers import Session
 
 logger = logging.getLogger(__name__)
 
 
 class PhonebookMoverService:
 
-    def __init__(self, db_uri):
-        Session = scoped_session(sessionmaker())
-        engine = create_engine(db_uri)
-        Session.configure(bind=engine)
+    def __init__(self):
         self._tenant_crud = database.TenantCRUD(Session)
         self._phonebook_crud = database.PhonebookCRUD(Session)
 

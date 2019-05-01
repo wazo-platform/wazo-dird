@@ -1,6 +1,13 @@
 Changelog
 =========
 
+19.07
+-----
+
+* The `personal` service and backend now uses the global `db_uri`. The `db_uri` field is no longer
+  part of the body of a personal source
+
+
 19.06
 -----
 

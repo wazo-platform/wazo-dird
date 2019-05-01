@@ -4,11 +4,9 @@
 import logging
 import kombu
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.auth.events import TenantCreatedEvent
+from wazo_dird.database.helpers import Session
 
 from wazo_dird import (
     BaseServicePlugin,
@@ -22,16 +20,7 @@ class SourceServicePlugin(BaseServicePlugin):
 
     def load(self, dependencies):
         bus = dependencies['bus']
-        self._config = dependencies['config']
-        db_uri = self._config['db_uri']
-        Session = self._new_db_session(db_uri)
-        return _SourceService(database.SourceCRUD(Session), bus, db_uri)
-
-    def _new_db_session(self, db_uri):
-        self._Session = scoped_session(sessionmaker())
-        engine = create_engine(db_uri)
-        self._Session.configure(bind=engine)
-        return self._Session
+        return _SourceService(database.SourceCRUD(Session), bus)
 
 
 class _SourceService:
@@ -93,9 +82,8 @@ class _SourceService:
         'first_matched_columns': ['mobilePhone', 'businessPhones'],
     }
 
-    def __init__(self, crud, bus, db_uri):
+    def __init__(self, crud, bus):
         self._source_crud = crud
-        self._db_uri = db_uri
         bus.add_consumer(self._QUEUE, self._on_new_tenant)
 
     def count(self, backend, visible_tenants, **list_params):
@@ -129,7 +117,6 @@ class _SourceService:
         backend = 'personal'
         body = dict(self._personal_source_body)
         body['tenant_uuid'] = tenant_uuid
-        body['db_uri'] = self._db_uri
         self._add_source(backend, body)
 
     def _add_wazo_user_source(self, tenant_uuid, name):

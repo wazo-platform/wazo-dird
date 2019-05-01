@@ -45,7 +45,6 @@ paths:
                 - lastname
               format_columns:
                 displayname: '{firstname} {lastname}'
-              db_uri: postgresql://localhost/dird
         '400':
           $ref: '#/responses/CreateError'
         '409':
@@ -114,13 +113,8 @@ definitions:
     title: PersonalSource
     allOf:
       - $ref: '#/definitions/Source'
-      - properties:
-          db_uri:
-            type: string
-            description: The URI of the DB which stores the favorites
       - required:
         - name
-        - db_uri
   PersonalSourceItems:
     title: PersonalSourceItems
     allOf:

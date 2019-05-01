@@ -14,8 +14,7 @@ from . import (
 class PhonebookTenantMoverPlugin(BaseViewPlugin):
 
     def load(self, dependencies):
-        db_uri = dependencies['config']['db_uri']
-        tenant_mover_service = service.PhonebookMoverService(db_uri)
+        tenant_mover_service = service.PhonebookMoverService()
         api.add_resource(
             http.PhonebookMover,
             '/phonebook_move_tenant',

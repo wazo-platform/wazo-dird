@@ -1,17 +1,16 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
 import kombu
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.user.event import DeleteUserEvent
 
 from wazo_dird import BaseServicePlugin
 from wazo_dird import database
+from wazo_dird.database.helpers import Session
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +21,9 @@ class StorageCleanupServicePlugin(BaseServicePlugin):
         self._service = None
 
     def load(self, args):
-        config = args['config']
-        db_uri = config['db_uri']
         bus = args['bus']
 
-        self._service = _StorageCleanupService(db_uri, bus)
+        self._service = _StorageCleanupService(bus)
 
 
 class _StorageCleanupService:
@@ -34,11 +31,7 @@ class _StorageCleanupService:
     _exchange = kombu.Exchange('xivo', type='topic')
     _routing_key = 'config.user.deleted'
 
-    def __init__(self, db_uri, bus):
-        self._db_uri = db_uri
-        self._Session = scoped_session(sessionmaker())
-        engine = create_engine(db_uri)
-        self._Session.configure(bind=engine)
+    def __init__(self, bus):
         queue = kombu.Queue(exchange=self._exchange,
                             routing_key=self._routing_key,
                             exclusive=True)
@@ -47,7 +40,7 @@ class _StorageCleanupService:
     # executed in the consumer thread
     def _remove_user(self, user_uuid):
         logger.info('User Deleted event received, removing user %s', user_uuid)
-        session = self._Session()
+        session = Session()
         database.delete_user(session, user_uuid)
         session.commit()
 

@@ -38,15 +38,12 @@ class TestFavoritesServicePlugin(unittest.TestCase):
     def test_that_load_returns_a_service(self):
         plugin = FavoritesServicePlugin()
 
-        with patch.object(plugin, '_new_favorite_crud'):
-            service = plugin.load(
-                {
-                    'source_manager': self._source_manager,
-                    'config': self._config,
-                    'bus': s.bus,
-                    'controller': s.controller,
-                }
-            )
+        service = plugin.load({
+            'source_manager': self._source_manager,
+            'config': self._config,
+            'bus': s.bus,
+            'controller': s.controller,
+        })
 
         assert_that(service, not_(none()))
 
@@ -54,15 +51,12 @@ class TestFavoritesServicePlugin(unittest.TestCase):
     def test_that_load_injects_config_to_the_service(self, MockedFavoritesService):
         plugin = FavoritesServicePlugin()
 
-        with patch.object(plugin, '_new_favorite_crud'):
-            service = plugin.load(
-                {
-                    'config': self._config,
-                    'source_manager': self._source_manager,
-                    'bus': s.bus,
-                    'controller': s.controller,
-                }
-            )
+        service = plugin.load({
+            'config': self._config,
+            'source_manager': self._source_manager,
+            'bus': s.bus,
+            'controller': s.controller,
+        })
 
         MockedFavoritesService.assert_called_once_with(
             self._config,
@@ -81,15 +75,12 @@ class TestFavoritesServicePlugin(unittest.TestCase):
     @patch('wazo_dird.plugins.favorites_service.plugin._FavoritesService')
     def test_that_unload_stops_the_services(self, MockedFavoritesService):
         plugin = FavoritesServicePlugin()
-        with patch.object(plugin, '_new_favorite_crud'):
-            plugin.load(
-                {
-                    'config': self._config,
-                    'source_manager': self._source_manager,
-                    'bus': s.bus,
-                    'controller': s.controller,
-                },
-            )
+        plugin.load({
+            'config': self._config,
+            'source_manager': self._source_manager,
+            'bus': s.bus,
+            'controller': s.controller,
+        })
 
         plugin.unload()
 

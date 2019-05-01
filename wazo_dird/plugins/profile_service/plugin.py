@@ -6,11 +6,10 @@ from itertools import islice
 from operator import itemgetter
 
 import kombu
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
 from wazo_dird import BaseServicePlugin, database, exception
 from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.context.event import CreateContextEvent
+from wazo_dird.database.helpers import Session
 
 logger = logging.getLogger(__name__)
 
@@ -18,18 +17,9 @@ logger = logging.getLogger(__name__)
 class ProfileServicePlugin(BaseServicePlugin):
 
     def load(self, dependencies):
-        config = dependencies['config']
         bus = dependencies['bus']
         controller = dependencies['controller']
-        db_uri = config['db_uri']
-        Session = self._new_db_session(db_uri)
         return _ProfileService(database.ProfileCRUD(Session), bus, controller)
-
-    def _new_db_session(self, db_uri):
-        self._Session = scoped_session(sessionmaker())
-        engine = create_engine(db_uri)
-        self._Session.configure(bind=engine)
-        return self._Session
 
 
 class _ProfileService:
