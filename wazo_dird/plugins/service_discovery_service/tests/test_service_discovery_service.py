@@ -251,7 +251,7 @@ class TestProfileConfigUpdater(unittest.TestCase):
 
         updater = ProfileConfigUpdater(self.config)
 
-        updater.on_service_added(self.source_name, 'xivo-ctid-ng')
+        updater.on_service_added(self.source_name, 'wazo-calld')
 
         assert_that(self.config['services'], equal_to(original_services))
 
