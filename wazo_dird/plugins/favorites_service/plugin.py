@@ -152,7 +152,11 @@ class _FavoritesService(helpers.BaseService):
         backend = source['backend']
         self._crud.create(xivo_user_uuid, backend, source_name, contact_id)
         event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source_name, contact_id)
-        self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
+        try:
+            self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
+        except OSError as e:
+            logger.error('failed to publish bus event %s', e)
+            logger.info('%s', event)
 
     def remove_favorite(self, tenant_uuid, source_name, contact_id, xivo_user_uuid):
         sources = self._available_sources(tenant_uuid)
