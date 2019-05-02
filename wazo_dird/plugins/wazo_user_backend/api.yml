@@ -229,34 +229,3 @@ definitions:
           version:
             type: string
             default: "1.1"
-  WazoAuthConfig:
-    title: Auth
-    allOf:
-      - $ref: '#/definitions/ExternalServiceConfig'
-      - properties:
-          port:
-            type: integer
-            default: 9497
-          key_file:
-            type: string
-            description: The path the the file containing the credentials
-          username:
-            type: string
-            description: The username to use when not using a key_file
-          password:
-            type: string
-            description: The password to use when not using a key_file
-          version:
-            type: string
-            default: "0.1"
-  ExternalServiceConfig:
-    properties:
-      host:
-        type: string
-        default: localhost
-      verify_certificate:
-        type: string
-        description: If the HTTPs certificates should be verified and the path of the certificate if a custom certificate is used.
-        default: true
-      timeout:
-        type: number
