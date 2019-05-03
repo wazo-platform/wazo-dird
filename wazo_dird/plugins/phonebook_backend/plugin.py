@@ -3,13 +3,11 @@
 
 import logging
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird import database
-from wazo_dird.helpers import BaseBackendView
+from wazo_dird.database.helpers import Session
 from wazo_dird.exception import InvalidConfigError
+from wazo_dird.helpers import BaseBackendView
 
 from . import http
 
@@ -32,17 +30,13 @@ class PhonebookPlugin(BaseSourcePlugin):
 
     def load(self, dependencies):
         logger.debug('Loading phonebook source')
-        Session = scoped_session(sessionmaker())
         unique_column = 'id'
         config = dependencies['config']
         self._source_name = config['name']
         format_columns = config.get(self.FORMAT_COLUMNS, {})
-        db_uri = config['db_uri']
         searched_columns = config.get(self.SEARCHED_COLUMNS)
         first_matched_columns = config.get(self.FIRST_MATCHED_COLUMNS)
 
-        engine = create_engine(db_uri)
-        Session.configure(bind=engine)
         self._crud = database.PhonebookCRUD(Session)
 
         tenant_uuid = config['tenant_uuid']
