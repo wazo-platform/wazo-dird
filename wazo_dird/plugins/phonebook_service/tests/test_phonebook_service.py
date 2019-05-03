@@ -26,7 +26,7 @@ from ..plugin import (
 class TestPhonebookServicePlugin(unittest.TestCase):
 
     def setUp(self):
-        self.args = {'config': {'db_uri': s.db_uri}}
+        self.args = {'config': {}}
 
     def test_that_loading_without_a_proper_config_raises(self):
         plugin = Plugin()
