@@ -34,7 +34,7 @@ paths:
             $ref: '#/definitions/WazoSource'
       responses:
         '201':
-          description: The created display
+          description: The created source
           schema:
             $ref: '#/definitions/WazoSource'
           examples:
@@ -215,17 +215,3 @@ definitions:
           - items
           - total
           - filtered
-  ConfdConfig:
-    title: Confd
-    allOf:
-      - $ref: '#/definitions/ExternalServiceConfig'
-      - properties:
-          port:
-            type: integer
-            default: 9486
-          https:
-            type: boolean
-            default: true
-          version:
-            type: string
-            default: "1.1"

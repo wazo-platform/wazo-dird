@@ -410,3 +410,17 @@ definitions:
         default: true
       timeout:
         type: number
+  ConfdConfig:
+    title: Confd
+    allOf:
+      - $ref: '#/definitions/ExternalServiceConfig'
+      - properties:
+          port:
+            type: integer
+            default: 9486
+          https:
+            type: boolean
+            default: true
+          version:
+            type: string
+            default: "1.1"

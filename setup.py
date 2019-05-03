@@ -84,6 +84,7 @@ setup(
             'api_view = wazo_dird.plugins.api.plugin:ApiViewPlugin',
             'backends_view = wazo_dird.plugins.backends.plugin:BackendsViewPlugin',
             'config_view = wazo_dird.plugins.config.plugin:ConfigViewPlugin',
+            'conference_view = wazo_dird.plugins.conference_backend.plugin:ConferenceViewPlugin',
             'csv_backend = wazo_dird.plugins.csv_backend.plugin:CSVView',
             'csv_ws_backend = wazo_dird.plugins.csv_ws_backend.plugin:CSVWSView',
             'displays_view = wazo_dird.plugins.displays.plugin:DisplaysViewPlugin',
