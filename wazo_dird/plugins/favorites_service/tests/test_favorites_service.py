@@ -22,7 +22,7 @@ from ..plugin import FavoritesServicePlugin
 class TestFavoritesServicePlugin(unittest.TestCase):
 
     def setUp(self):
-        self._config = {'db_uri': s.db_uri}
+        self._config = {}
         self._source_manager = Mock()
 
     def test_load_no_config(self):
