@@ -9,7 +9,9 @@ from hamcrest import (
     contains_inanyorder,
     contains_string,
     equal_to,
+    has_item,
     has_length,
+    has_entries,
 )
 
 from .helpers.base import (
@@ -39,6 +41,32 @@ class BaseMultipleSourceLauncher(BaseDirdIntegrationTest):
 
     asset = 'multiple_sources'
     config_factory = new_multiple_sources_config
+
+
+class TestSourceModification(BaseMultipleSourceLauncher):
+
+    def test_source_update(self):
+        response = self.lookup('alan', 'default')
+        assert_that(response, has_entries(results=contains(
+            has_entries(column_values=contains(
+                'Alice',
+                'Alan',
+                '1111',
+            ))
+        )))
+
+        source = self.client.csv_source.list(name='third_csv')['items'][0]
+        source['format_columns']['firstname'] = 'SUCCESS {firstname}'
+        self.client.csv_source.edit(source['uuid'], source)
+
+        response = self.lookup('alan', 'default')
+        assert_that(response, has_entries(results=contains(
+            has_entries(column_values=contains(
+                'SUCCESS Alice',
+                'Alan',
+                '1111',
+            ))
+        )))
 
 
 class TestCoreSourceManagement(BaseMultipleSourceLauncher):

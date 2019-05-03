@@ -40,6 +40,10 @@ class SourceManager:
 
             return self._sources[source_uuid]
 
+    def invalidate(self, source_uuid):
+        with self._source_lock:
+            self._sources.pop(source_uuid, None)
+
     def _load_source(self, source_uuid):
         try:
             source_config = self._source_service.get_by_uuid(source_uuid)
