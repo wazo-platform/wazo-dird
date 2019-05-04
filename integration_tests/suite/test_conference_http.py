@@ -29,6 +29,7 @@ from .helpers.fixtures import http as fixtures
 
 HTTP_401 = has_properties(response=has_properties(status_code=401))
 HTTP_404 = has_properties(response=has_properties(status_code=404))
+HTTP_409 = has_properties(response=has_properties(status_code=409))
 
 
 class BaseConferenceCRUDTestCase(BaseDirdIntegrationTest):
@@ -326,3 +327,100 @@ class TestPost(BaseConferenceCRUDTestCase):
                 calling(sub_tenant_client.conference_source.create).with_args(self.valid_body),
                 not_(raises(Exception)),
             )
+
+
+class TestPut(BaseConferenceCRUDTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.new_body = {
+            'name': 'new',
+            'auth': {'username': 'foo', 'password': 'secret'},
+            'searched_columns': ['firstname'],
+            'first_matched_columns': ['exten'],
+            'format_columns': {
+                'name': '{firstname} {lastname}',
+            }
+        }
+
+    @fixtures.conference_source(name='foobar')
+    @fixtures.conference_source(name='other')
+    def test_put(self, foobar, other):
+        assert_that(
+            calling(self.client.conference_source.edit).with_args(foobar['uuid'], other),
+            raises(Exception).matching(HTTP_409)
+        )
+
+        assert_that(
+            calling(self.client.conference_source.edit).with_args(UNKNOWN_UUID, self.new_body),
+            raises(Exception).matching(HTTP_404)
+        )
+
+        try:
+            self.client.conference_source.edit(foobar['uuid'], {})
+        except Exception as e:
+            assert_that(e.response.status_code, equal_to(400))
+            assert_that(
+                e.response.json(),
+                has_entries(
+                    message=ANY,
+                    error_id='invalid-data',
+                    details=has_entries('auth', ANY),
+                ),
+            )
+        else:
+            self.fail('Should have raised')
+
+        assert_that(
+            calling(self.client.conference_source.edit).with_args(foobar['uuid'], self.new_body),
+            not_(raises(Exception)),
+        )
+
+        result = self.client.conference_source.get(foobar['uuid'])
+        assert_that(
+            result,
+            has_entries(
+                uuid=foobar['uuid'],
+                tenant_uuid=foobar['tenant_uuid'],
+                name='new',
+                auth=has_entries(username='foo', password='secret'),
+                searched_columns=['firstname'],
+                first_matched_columns=['exten'],
+                format_columns={'name': '{firstname} {lastname}'},
+            )
+        )
+
+    @fixtures.conference_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.conference_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
+    def test_put_multi_tenant(self, sub, main):
+        main_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        assert_that(
+            calling(sub_client.conference_source.edit).with_args(main['uuid'], sub),
+            not_(raises(Exception).matching(HTTP_409)),
+        )
+
+        assert_that(
+            calling(sub_client.conference_source.edit).with_args(main['uuid'], self.new_body),
+            raises(Exception).matching(HTTP_404),
+        )
+
+        assert_that(
+            calling(sub_client.conference_source.edit).with_args(
+                main['uuid'], self.new_body, tenant_uuid=MAIN_TENANT,
+            ),
+            raises(Exception).matching(HTTP_401),
+        )
+
+        assert_that(
+            calling(main_client.conference_source.edit).with_args(
+                main['uuid'], self.new_body, tenant_uuid=SUB_TENANT,
+            ),
+            raises(Exception).matching(HTTP_404),
+        )
+
+        assert_that(
+            calling(main_client.conference_source.edit).with_args(sub['uuid'], self.new_body),
+            not_(raises(Exception)),
+        )
