@@ -7,12 +7,18 @@ from wazo_dird.helpers import (
 )
 from wazo_dird.auth import required_acl
 
-from .schemas import source_schema
+from .schemas import (
+    list_schema,
+    source_schema,
+    source_list_schema,
+)
 
 
 class ConferenceList(SourceList):
 
+    list_schema = list_schema
     source_schema = source_schema
+    source_list_schema = source_list_schema
 
     @required_acl('dird.backends.conference.sources.read')
     def get(self):

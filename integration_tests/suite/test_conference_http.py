@@ -5,6 +5,8 @@ from contextlib import contextmanager
 from hamcrest import (
     assert_that,
     calling,
+    contains,
+    contains_inanyorder,
     equal_to,
     has_entries,
     has_properties,
@@ -131,6 +133,146 @@ class TestGet(BaseConferenceCRUDTestCase):
             calling(sub_client.conference_source.get).with_args(
                 main['uuid'], tenant_uuid=MAIN_TENANT,
             ),
+            raises(Exception).matching(HTTP_401),
+        )
+
+
+class TestList(BaseConferenceCRUDTestCase):
+
+    @fixtures.conference_source(name='abc')
+    @fixtures.conference_source(name='bcd')
+    @fixtures.conference_source(name='cde')
+    def test_searches(self, c, b, a):
+        assert_that(
+            self.client.conference_source.list(),
+            has_entries(
+                items=contains_inanyorder(a, b, c),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            self.client.conference_source.list(name='abc'),
+            has_entries(
+                items=contains(a),
+                total=3,
+                filtered=1,
+            )
+        )
+
+        assert_that(
+            self.client.conference_source.list(uuid=c['uuid']),
+            has_entries(
+                items=contains(c),
+                total=3,
+                filtered=1,
+            )
+        )
+
+        assert_that(
+            self.client.conference_source.list(search='b'),
+            has_entries(
+                items=contains_inanyorder(a, b),
+                total=3,
+                filtered=2,
+            )
+        )
+
+    @fixtures.conference_source(name='abc')
+    @fixtures.conference_source(name='bcd')
+    @fixtures.conference_source(name='cde')
+    def test_pagination(self, c, b, a):
+        assert_that(
+            self.client.conference_source.list(order='name'),
+            has_entries(
+                items=contains(a, b, c),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            self.client.conference_source.list(order='name', direction='desc'),
+            has_entries(
+                items=contains(c, b, a),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            self.client.conference_source.list(order='name', limit=2),
+            has_entries(
+                items=contains(a, b),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            self.client.conference_source.list(order='name', offset=2),
+            has_entries(
+                items=contains(c),
+                total=3,
+                filtered=3,
+            )
+        )
+
+    @fixtures.conference_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.conference_source(name='bcd', token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.conference_source(name='cde', token=VALID_TOKEN_SUB_TENANT)
+    def test_multi_tenant(self, c, b, a):
+        main_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        assert_that(
+            main_client.conference_source.list(),
+            has_entries(
+                items=contains_inanyorder(a, b),
+                total=2,
+                filtered=2,
+            )
+        )
+
+        assert_that(
+            main_client.conference_source.list(recurse=True),
+            has_entries(
+                items=contains_inanyorder(a, b, c),
+                total=3,
+                filtered=3,
+            )
+        )
+
+        assert_that(
+            main_client.conference_source.list(tenant_uuid=SUB_TENANT),
+            has_entries(
+                items=contains_inanyorder(c),
+                total=1,
+                filtered=1,
+            )
+        )
+
+        assert_that(
+            sub_client.conference_source.list(),
+            has_entries(
+                items=contains_inanyorder(c),
+                total=1,
+                filtered=1,
+            )
+        )
+
+        assert_that(
+            sub_client.conference_source.list(recurse=True),
+            has_entries(
+                items=contains_inanyorder(c),
+                total=1,
+                filtered=1,
+            )
+        )
+
+        assert_that(
+            calling(sub_client.conference_source.list).with_args(tenant_uuid=MAIN_TENANT),
             raises(Exception).matching(HTTP_401),
         )
 
