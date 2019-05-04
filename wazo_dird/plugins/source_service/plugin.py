@@ -20,7 +20,8 @@ class SourceServicePlugin(BaseServicePlugin):
 
     def load(self, dependencies):
         bus = dependencies['bus']
-        return _SourceService(database.SourceCRUD(Session), bus)
+        source_manager = dependencies['source_manager']
+        return _SourceService(database.SourceCRUD(Session), bus, source_manager)
 
 
 class _SourceService:
@@ -82,8 +83,9 @@ class _SourceService:
         'first_matched_columns': ['mobilePhone', 'businessPhones'],
     }
 
-    def __init__(self, crud, bus):
+    def __init__(self, crud, bus, source_manager):
         self._source_crud = crud
+        self._source_manager = source_manager
         bus.add_consumer(self._QUEUE, self._on_new_tenant)
 
     def count(self, backend, visible_tenants, **list_params):
@@ -96,7 +98,9 @@ class _SourceService:
         return self._source_crud.delete(backend, source_uuid, visible_tenants)
 
     def edit(self, backend, source_uuid, visible_tenants, body):
-        return self._source_crud.edit(backend, source_uuid, visible_tenants, body)
+        result = self._source_crud.edit(backend, source_uuid, visible_tenants, body)
+        self._source_manager.invalidate(source_uuid)
+        return result
 
     def get(self, backend, source_uuid, visible_tenants):
         return self._source_crud.get(backend, source_uuid, visible_tenants)

@@ -390,6 +390,7 @@ def new_multiple_sources_config(Session):
         backend='csv',
         name='my_csv',
         file='/tmp/data/test.csv',
+        separator=',',
         searched_columns=['ln', 'fn'],
         first_matched_columns=['num'],
         format_columns={
@@ -403,6 +404,7 @@ def new_multiple_sources_config(Session):
         backend='csv',
         name='second_csv',
         file='/tmp/data/test.csv',
+        separator=',',
         searched_columns=['ln'],
         first_matched_columns=['num'],
         format_columns={
@@ -417,6 +419,7 @@ def new_multiple_sources_config(Session):
         name='third_csv',
         file='/tmp/data/other.csv',
         unique_column='clientno',
+        separator=',',
         searched_columns=[
             'firstname',
             'lastname',
