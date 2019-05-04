@@ -48,6 +48,52 @@ class BaseConferenceCRUDTestCase(BaseDirdIntegrationTest):
             self.client.conference_source.delete(source['uuid'])
 
 
+class TestDelete(BaseConferenceCRUDTestCase):
+
+    @fixtures.conference_source()
+    def test_delete(self, source):
+        self.client.conference_source.delete(source['uuid'])
+        assert_that(
+            calling(self.client.conference_source.get).with_args(source['uuid']),
+            raises(Exception).matching(HTTP_404)
+        )
+
+        assert_that(
+            calling(self.client.conference_source.delete).with_args(UNKNOWN_UUID),
+            raises(Exception).matching(HTTP_404),
+        )
+
+    @fixtures.conference_source(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.conference_source(token=VALID_TOKEN_SUB_TENANT)
+    def test_delete_multi_tenant(self, sub, main):
+        main_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        assert_that(
+            calling(sub_client.conference_source.delete).with_args(main['uuid']),
+            raises(Exception).matching(HTTP_404),
+        )
+
+        assert_that(
+            calling(sub_client.conference_source.delete).with_args(
+                main['uuid'], tenant_uuid=MAIN_TENANT,
+            ),
+            raises(Exception).matching(HTTP_401),
+        )
+
+        assert_that(
+            calling(main_client.conference_source.delete).with_args(
+                main['uuid'], tenant_uuid=SUB_TENANT,
+            ),
+            raises(Exception).matching(HTTP_404),
+        )
+
+        assert_that(
+            calling(main_client.conference_source.delete).with_args(sub['uuid']),
+            not_(raises(Exception)),
+        )
+
+
 class TestGet(BaseConferenceCRUDTestCase):
 
     @fixtures.conference_source()
