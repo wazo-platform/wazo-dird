@@ -33,7 +33,6 @@ class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
     asset = 'all_routes'
     valid_body = {
         'name': 'main',
-        'db_uri': 'db',
     }
 
     def assert_unknown_source_exception(self, source_uuid, exception):
@@ -235,7 +234,6 @@ class TestPost(BasePhonebookCRUDTestCase):
                 has_entries(
                     message=ANY,
                     error_id='invalid-data',
-                    details=has_entries('db_uri', ANY),
                 ),
             )
         else:
@@ -280,7 +278,6 @@ class TestPut(BasePhonebookCRUDTestCase):
         super().setUp()
         self.new_body = {
             'name': 'new',
-            'db_uri': 'other',
             'searched_columns': ['firstname'],
             'first_matched_columns': ['exten'],
             'format_columns': {
@@ -310,7 +307,6 @@ class TestPut(BasePhonebookCRUDTestCase):
                 has_entries(
                     message=ANY,
                     error_id='invalid-data',
-                    details=has_entries('db_uri', ANY),
                 ),
             )
         else:
@@ -328,7 +324,6 @@ class TestPut(BasePhonebookCRUDTestCase):
                 uuid=foobar['uuid'],
                 tenant_uuid=foobar['tenant_uuid'],
                 name='new',
-                db_uri='other',
                 searched_columns=['firstname'],
                 first_matched_columns=['exten'],
                 format_columns={'name': '{firstname} {lastname}'},

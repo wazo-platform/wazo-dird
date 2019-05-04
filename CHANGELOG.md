@@ -6,6 +6,8 @@ Changelog
 
 * The `personal` service and backend now uses the global `db_uri`. The `db_uri` field is no longer
   part of the body of a personal source
+* The `phonebook` service and backend now uses the global `db_uri`. The `db_uri` field is no longer
+  part of the body of a phonebook source
 
 
 19.06

@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -51,7 +51,7 @@ class Bus:
         logger.info('bus consumer stopping')
         if self._consumer:
             self._consumer.should_stop = True
-        if self._bus_thread.isAlive():
+        if self._bus_thread.is_alive():
             self._bus_thread.join(2.0)
         logger.info('bus consumer stopped')
 

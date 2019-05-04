@@ -3,13 +3,12 @@
 
 import logging
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
 from marshmallow import fields, Schema, validate, pre_load
 from unidecode import unidecode
 
 from wazo_dird import BaseServicePlugin
 from wazo_dird import database
+from wazo_dird.database.helpers import Session
 from wazo_dird.exception import (
     InvalidContactException,
     InvalidPhonebookException,
@@ -38,23 +37,11 @@ class PhonebookServicePlugin(BaseServicePlugin):
             )
             raise ValueError(msg)
 
-        self._db_uri = self._config.get('db_uri')
-        if not self._db_uri:
-            msg = '{} requires a "db_uri" in its configuration'.format(self.__class__.__name__)
-            raise ValueError(msg)
-
-        Session = self._new_db_session(self._db_uri)
         return _PhonebookService(
             database.PhonebookCRUD(Session),
             database.PhonebookContactCRUD(Session),
             database.TenantCRUD(Session),
         )
-
-    def _new_db_session(self, db_uri):
-        self._Session = scoped_session(sessionmaker())
-        engine = create_engine(db_uri)
-        self._Session.configure(bind=engine)
-        return self._Session
 
 
 class _PhonebookService:

@@ -45,7 +45,6 @@ paths:
                 - lastname
               format_columns:
                 displayname: '{firstname} {lastname}'
-              db_uri: "postgresql://foobar:secret@localhost/phonebook"
         '400':
           $ref: '#/responses/CreateError'
         '409':
@@ -114,13 +113,8 @@ definitions:
     title: PhonebookSource
     allOf:
       - $ref: '#/definitions/Source'
-      - properties:
-          db_uri:
-            type: string
-            description: The db to connect to
       - required:
         - name
-        - db_uri
   PhonebookSourceItems:
     title: PhonebookSourceItems
     allOf:

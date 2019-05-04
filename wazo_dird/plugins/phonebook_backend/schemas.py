@@ -8,13 +8,13 @@ from wazo_dird.schemas import BaseSourceSchema
 
 
 class SourceSchema(BaseSourceSchema):
-    db_uri = fields.String(validate=Length(min=1, max=256), required=True)
+    pass
 
 
 class ListSchema(_ListSchema):
 
-    searchable_columns = ['uuid', 'name', 'db_uri']
-    sort_columns = ['name', 'db_uri']
+    searchable_columns = ['uuid', 'name']
+    sort_columns = ['name']
     default_sort_column = 'name'
 
     recurse = fields.Boolean(missing=False)
