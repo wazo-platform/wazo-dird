@@ -14,6 +14,32 @@ def random_string(length=10):
     return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
 
 
+def conference_source(**source_args):
+    source_args.setdefault('name', random_string())
+    source_args.setdefault('auth', {'key_file': '/path/to/key/file'})
+    source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
+
+    def decorator(decorated):
+
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            client = self.get_client(source_args['token'])
+            source = client.conference_source.create(source_args)
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.client.conference_source.delete(source['uuid'])
+                except requests.HTTPError as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+        return wrapper
+    return decorator
+
+
 def csv_source(**source_args):
     def decorator(decorated):
 

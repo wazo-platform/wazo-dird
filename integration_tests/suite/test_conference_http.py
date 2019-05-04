@@ -19,9 +19,14 @@ from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
+    UNKNOWN_UUID,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
+from .helpers.fixtures import http as fixtures
+
+HTTP_401 = has_properties(response=has_properties(status_code=401))
+HTTP_404 = has_properties(response=has_properties(status_code=404))
 
 
 class BaseConferenceCRUDTestCase(BaseDirdIntegrationTest):
@@ -41,6 +46,47 @@ class BaseConferenceCRUDTestCase(BaseDirdIntegrationTest):
             yield source
         finally:
             self.client.conference_source.delete(source['uuid'])
+
+
+class TestGet(BaseConferenceCRUDTestCase):
+
+    @fixtures.conference_source()
+    def test_get(self, source):
+        response = self.client.conference_source.get(source['uuid'])
+        assert_that(response, equal_to(source))
+
+        assert_that(
+            calling(self.client.conference_source.get).with_args(UNKNOWN_UUID),
+            raises(Exception).matching(HTTP_404)
+        )
+
+    @fixtures.conference_source(token=VALID_TOKEN_MAIN_TENANT)
+    @fixtures.conference_source(token=VALID_TOKEN_SUB_TENANT)
+    def test_get_multi_tenant(self, sub, main):
+        main_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        sub_client = self.get_client(VALID_TOKEN_SUB_TENANT)
+
+        response = main_client.conference_source.get(sub['uuid'])
+        assert_that(response, equal_to(sub))
+
+        assert_that(
+            calling(main_client.conference_source.get).with_args(
+                main['uuid'], tenant_uuid=SUB_TENANT,
+            ),
+            raises(Exception).matching(HTTP_404),
+        )
+
+        assert_that(
+            calling(sub_client.conference_source.get).with_args(main['uuid']),
+            raises(Exception).matching(HTTP_404),
+        )
+
+        assert_that(
+            calling(sub_client.conference_source.get).with_args(
+                main['uuid'], tenant_uuid=MAIN_TENANT,
+            ),
+            raises(Exception).matching(HTTP_401),
+        )
 
 
 class TestPost(BaseConferenceCRUDTestCase):
