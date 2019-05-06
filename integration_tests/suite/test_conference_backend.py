@@ -11,7 +11,11 @@ from hamcrest import (
 from mock import Mock
 
 from .base_dird_integration_test import BackendWrapper
-from .helpers.base import DirdAssetRunningTestCase
+from .helpers.base import (
+    BaseDirdIntegrationTest,
+    DirdAssetRunningTestCase,
+)
+from .helpers.config import new_conference_config
 from .helpers.constants import MAIN_TENANT
 
 
@@ -127,3 +131,13 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
             has_entries(id=4, displayname='daily scrum'),
             has_entries(id=1, displayname='test'),
         ))
+
+
+class TestNoConfd(BaseDirdIntegrationTest):
+
+    asset = 'wazo_users_no_confd'
+    config_factory = new_conference_config
+
+    def test_given_no_confd_when_lookup_then_returns_no_results(self):
+        result = self.lookup('daily', 'default')
+        assert_that(result['results'], contains())
