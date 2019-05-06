@@ -11,8 +11,9 @@ from wazo_dird.helpers import (
     SourceList,
 )
 from wazo_dird.rest_api import AuthResource
+from wazo_dird.plugin_helpers.confd_client_registry import registry
 
-from .contact import ContactLister, registry
+from .contact import ContactLister
 from .schemas import (
     contact_list_param_schema,
     contact_list_schema,
