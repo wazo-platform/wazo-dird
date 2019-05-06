@@ -73,6 +73,7 @@ setup(
             'source = wazo_dird.plugins.source_service.plugin:SourceServicePlugin',
         ],
         'wazo_dird.backends': [
+            'conference = wazo_dird.plugins.conference_backend.plugin:ConferencePlugin',
             'csv = wazo_dird.plugins.csv_backend.plugin:CSVPlugin',
             'csv_ws = wazo_dird.plugins.csv_ws_backend.plugin:CSVWSPlugin',
             'phonebook = wazo_dird.plugins.phonebook_backend.plugin:PhonebookPlugin',
