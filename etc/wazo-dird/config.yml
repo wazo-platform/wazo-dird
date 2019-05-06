@@ -62,6 +62,7 @@ consul:
 
 enabled_plugins:
   backends:
+    conference: true
     csv: true
     csv_ws: true
     phonebook: true
