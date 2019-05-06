@@ -1,0 +1,144 @@
+{
+  "items": [
+    {
+      "id": 4,
+      "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+      "name": "daily scrum",
+      "preprocess_subroutine": null,
+      "max_users": 50,
+      "record": false,
+      "pin": null,
+      "admin_pin": null,
+      "quiet_join_leave": false,
+      "announce_join_leave": false,
+      "announce_user_count": false,
+      "announce_only_user": false,
+      "music_on_hold": null,
+      "links": [
+        {
+          "href": "https://confd:9486/1.1/conferences/4",
+          "rel": "conferences"
+        }
+      ],
+      "extensions": [
+        {
+          "id": 98,
+          "exten": "4002",
+          "context": "inside",
+          "links": [
+            {
+              "href": "https://confd:9486/1.1/extensions/98",
+              "rel": "extensions"
+            }
+          ]
+        }
+      ],
+      "incalls": []
+    },
+    {
+      "id": 3,
+      "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+      "name": "minimal",
+      "preprocess_subroutine": null,
+      "max_users": 50,
+      "record": false,
+      "pin": null,
+      "admin_pin": null,
+      "quiet_join_leave": false,
+      "announce_join_leave": false,
+      "announce_user_count": false,
+      "announce_only_user": true,
+      "music_on_hold": null,
+      "links": [
+        {
+          "href": "https://confd:9486/1.1/conferences/3",
+          "rel": "conferences"
+        }
+      ],
+      "extensions": [],
+      "incalls": [
+        {
+          "id": 14,
+          "extensions": [
+            {
+              "id": 77,
+              "exten": "4001",
+              "context": "from-extern",
+              "links": [
+                {
+                  "href": "https://confd:9486/1.1/extensions/77",
+                  "rel": "extensions"
+                }
+              ]
+            }
+          ],
+          "links": [
+            {
+              "href": "https://confd:9486/1.1/incalls/14",
+              "rel": "incalls"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+      "name": "test",
+      "preprocess_subroutine": null,
+      "max_users": 50,
+      "record": false,
+      "pin": null,
+      "admin_pin": null,
+      "quiet_join_leave": false,
+      "announce_join_leave": false,
+      "announce_user_count": false,
+      "announce_only_user": true,
+      "music_on_hold": null,
+      "links": [
+        {
+          "href": "https://confd:9486/1.1/conferences/1",
+          "rel": "conferences"
+        }
+      ],
+      "extensions": [
+        {
+          "id": 57,
+          "exten": "4001",
+          "context": "inside",
+          "links": [
+            {
+              "href": "https://confd:9486/1.1/extensions/57",
+              "rel": "extensions"
+            }
+          ]
+        }
+      ],
+      "incalls": [
+        {
+          "id": 13,
+          "extensions": [
+            {
+              "id": 76,
+              "exten": "1009",
+              "context": "from-extern",
+              "links": [
+                {
+                  "href": "https://confd:9486/1.1/extensions/76",
+                  "rel": "extensions"
+                }
+              ]
+            }
+          ],
+          "links": [
+            {
+              "href": "https://confd:9486/1.1/incalls/13",
+              "rel": "incalls"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "total": 3
+}

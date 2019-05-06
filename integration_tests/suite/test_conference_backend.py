@@ -4,6 +4,7 @@
 from hamcrest import (
     assert_that,
     contains,
+    empty,
     has_entries,
 )
 from mock import Mock
@@ -24,8 +25,8 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
             'type': 'conference',
             'tenant_uuid': MAIN_TENANT,
             'name': 'local conferences',
-            'searched_columns': ['name', 'extensions', 'dids'],
-            'first_matched_columns': ['extensions', 'dirds'],
+            'searched_columns': ['name', 'extensions', 'incalls'],
+            'first_matched_columns': ['extensions', 'incalls'],
             'auth': {
                 'host': 'localhost',
                 'port': self.service_port(9497, 'auth'),
@@ -53,12 +54,44 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
         self.backend.unload()
         super().tearDown()
 
-    def test_lookup(self):
+    def test_lookup_by_name(self):
         result = self.backend.search('daily')
-
         assert_that(result, contains(
             has_entries(
+                displayname='daily scrum',
+                extensions=contains('4002'),
+                id=4,
+                incalls=empty(),
+                name='daily scrum',
+                phone='4002',
+                reverse='daily scrum',
             ),
         ))
 
-        self.fail()
+    def test_lookup_by_extension(self):
+        result = self.backend.search('4002')
+        assert_that(result, contains(
+            has_entries(
+                displayname='daily scrum',
+                extensions=contains('4002'),
+                id=4,
+                incalls=empty(),
+                name='daily scrum',
+                phone='4002',
+                reverse='daily scrum',
+            ),
+        ))
+
+    def test_lookup_by_incall(self):
+        result = self.backend.search('1009')
+        assert_that(result, contains(
+            has_entries(
+                displayname='test',
+                extensions=contains('4001'),
+                id=1,
+                incalls=contains('1009'),
+                name='test',
+                phone='4001',
+                reverse='test',
+            ),
+        ))

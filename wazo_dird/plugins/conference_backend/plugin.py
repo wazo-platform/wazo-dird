@@ -1,9 +1,20 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from wazo_dird.helpers import BaseBackendView
+import logging
+
+from wazo_dird import (
+    BaseSourcePlugin,
+    make_result_class,
+)
+from wazo_dird.helpers import (
+    BaseBackendView,
+)
+from wazo_dird.plugin_helpers.confd_client_registry import registry
 
 from . import http
+
+logger = logging.getLogger(__name__)
 
 
 class ConferenceViewPlugin(BaseBackendView):
@@ -13,13 +24,66 @@ class ConferenceViewPlugin(BaseBackendView):
     item_resource = http.ConferenceItem
 
 
-class ConferencePlugin:
+class ConferencePlugin(BaseSourcePlugin):
+
+    def __init__(self):
+        self._client = None
+        self._uuid = None
 
     def load(self, dependencies):
-        pass
+        config = dependencies['config']
+        self._searched_columns = config.get(self.SEARCHED_COLUMNS, [])
+        self._first_matched_columns = config.get(self.FIRST_MATCHED_COLUMNS, [])
+        self.name = config['name']
+        self._client = registry.get(config)
+
+        self._SourceResult = make_result_class(
+            'conference',
+            self.name,
+            'id',
+            format_columns=config.get(self.FORMAT_COLUMNS),
+        )
+        logger.info('Wazo %s successfully loaded', config['name'])
 
     def unload(self):
-        pass
+        registry.unregister_all()
 
     def search(self, term, profile=None, args=None):
+        lowered_term = term.lower()
+        contacts = self._fetch_contacts()
+        matching_contacts = [c for c in contacts if self._search_filter(lowered_term, c)]
+        return [self._SourceResult(c) for c in matching_contacts]
+
+    def first_match(self, term, args=None):
         pass
+
+    def _search_filter(self, lowered_term, contact):
+        for column in self._searched_columns:
+            column_value = contact.get(column) or ''
+            if isinstance(column_value, str):
+                if lowered_term in column_value.lower():
+                    return True
+            elif isinstance(column_value, list):
+                for item in column_value:
+                    if lowered_term in item.lower():
+                        return True
+
+        return False
+
+    def _fetch_contacts(self):
+        response = self._client.conferences.list()
+        for conference in response['items']:
+            extensions = []
+            for extension in conference['extensions']:
+                extensions.append(extension['exten'])
+            incalls = []
+            for incall in conference['incalls']:
+                for extension in incall['extensions']:
+                    incalls.append(extension['exten'])
+
+            yield {
+                'id': conference['id'],
+                'name': conference['name'],
+                'extensions': extensions,
+                'incalls': incalls,
+            }
