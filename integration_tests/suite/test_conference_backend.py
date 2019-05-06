@@ -135,7 +135,7 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
 
 class TestNoConfd(BaseDirdIntegrationTest):
 
-    asset = 'wazo_users_no_confd'
+    asset = 'wazo_no_confd'
     config_factory = new_conference_config
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):
