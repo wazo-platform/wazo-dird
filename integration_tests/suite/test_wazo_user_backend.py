@@ -28,7 +28,7 @@ from .base_dird_integration_test import BackendWrapper
 
 class TestWazoUser(DirdAssetRunningTestCase):
 
-    asset = 'wazo_users'
+    asset = 'wazo_confd'
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
 
     def setUp(self):

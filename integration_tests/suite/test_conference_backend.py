@@ -17,7 +17,7 @@ from .helpers.constants import MAIN_TENANT
 
 class TestConferencePlugin(DirdAssetRunningTestCase):
 
-    asset = 'wazo_users'
+    asset = 'wazo_confd'
 
     def setUp(self):
         super().setUp()
