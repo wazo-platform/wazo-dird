@@ -95,3 +95,27 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
                 reverse='test',
             ),
         ))
+
+    def test_reverse_lookup_on_exten(self):
+        result = self.backend.first('4002')
+        assert_that(result, has_entries(
+            displayname='daily scrum',
+            extensions=contains('4002'),
+            id=4,
+            incalls=empty(),
+            name='daily scrum',
+            phone='4002',
+            reverse='daily scrum',
+        ))
+
+    def test_reverse_lookup_on_incall(self):
+        result = self.backend.first('1009')
+        assert_that(result, has_entries(
+            displayname='test',
+            extensions=contains('4001'),
+            id=1,
+            incalls=contains('1009'),
+            name='test',
+            phone='4001',
+            reverse='test',
+        ))

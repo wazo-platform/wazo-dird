@@ -51,11 +51,27 @@ class ConferencePlugin(BaseSourcePlugin):
     def search(self, term, profile=None, args=None):
         lowered_term = term.lower()
         contacts = self._fetch_contacts()
-        matching_contacts = [c for c in contacts if self._search_filter(lowered_term, c)]
+        matching_contacts = (c for c in contacts if self._search_filter(lowered_term, c))
         return [self._SourceResult(c) for c in matching_contacts]
 
     def first_match(self, term, args=None):
-        pass
+        lowered_term = term.lower()
+        for contact in self._fetch_contacts():
+            if self._first_match_filter(lowered_term, contact):
+                return self._SourceResult(contact)
+
+    def _first_match_filter(self, lowered_term, contact):
+        for column in self._first_matched_columns:
+            column_value = contact.get(column) or ''
+            if isinstance(column_value, str):
+                if lowered_term == column_value.lower():
+                    return True
+            elif isinstance(column_value, list):
+                for item in column_value:
+                    if lowered_term == item.lower():
+                        return True
+
+        return False
 
     def _search_filter(self, lowered_term, contact):
         for column in self._searched_columns:
