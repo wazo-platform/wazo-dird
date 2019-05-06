@@ -48,6 +48,11 @@ class ConferencePlugin(BaseSourcePlugin):
     def unload(self):
         registry.unregister_all()
 
+    def list(self, unique_ids, args=None):
+        contacts = self._fetch_contacts()
+        matching_contacts = (c for c in contacts if c['id'] in unique_ids)
+        return [self._SourceResult(c) for c in matching_contacts]
+
     def search(self, term, profile=None, args=None):
         lowered_term = term.lower()
         contacts = self._fetch_contacts()

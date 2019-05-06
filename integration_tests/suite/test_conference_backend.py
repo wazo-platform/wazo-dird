@@ -4,6 +4,7 @@
 from hamcrest import (
     assert_that,
     contains,
+    contains_inanyorder,
     empty,
     has_entries,
 )
@@ -118,4 +119,11 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
             name='test',
             phone='4001',
             reverse='test',
+        ))
+
+    def test_favorites(self):
+        result = self.backend.list([1, 4], None)
+        assert_that(result, contains_inanyorder(
+            has_entries(id=4, displayname='daily scrum'),
+            has_entries(id=1, displayname='test'),
         ))
