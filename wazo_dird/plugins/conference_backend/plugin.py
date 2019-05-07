@@ -3,6 +3,8 @@
 
 import logging
 
+from requests import HTTPError
+
 from wazo_dird import (
     BaseSourcePlugin,
     make_result_class,
@@ -92,7 +94,16 @@ class ConferencePlugin(BaseSourcePlugin):
         return False
 
     def _fetch_contacts(self):
-        response = self._client.conferences.list()
+        if not self._client:
+            logger.info('conference source not initialized properly %s', self.name)
+            return
+
+        try:
+            response = self._client.conferences.list()
+        except HTTPError as e:
+            logger.info('failed to fetch conferences %s', e)
+            return
+
         for conference in response['items']:
             extensions = []
             for extension in conference['extensions']:

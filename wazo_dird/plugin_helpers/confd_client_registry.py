@@ -43,6 +43,9 @@ class _Registry:
         if auth_config.get('key_file'):
             # File must be readable by wazo-dird
             key_file = parse_config_file(auth_config.pop('key_file'))
+            if not key_file:
+                logger.info('failed to load key file for source %s', source_config['name'])
+                return
             auth_config['username'] = key_file['service_id']
             auth_config['password'] = key_file['service_key']
         auth_client = AuthClient(**auth_config)
