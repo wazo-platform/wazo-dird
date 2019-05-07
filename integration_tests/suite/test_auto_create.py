@@ -89,6 +89,28 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
             )))
 
         until.assert_(check, tries=3)
+        for source in self.client.conference_source.list(tenant_uuid=self.tenant_uuid)['items']:
+            if source['name'] == 'auto_conference_mytenant':
+                conference_uuid = source['uuid']
+
+        self._publish_context_created_event()
+
+        def check():
+            response = self.client.profiles.list(
+                name=self.context_name,
+                tenant_uuid=self.tenant_uuid
+            )
+            assert_that(response, has_entries(items=has_item(
+                has_entries(
+                    services=has_entries(
+                        lookup=has_entries(
+                            sources=has_item(has_entries(uuid=conference_uuid)),
+                        ),
+                    ),
+                ),
+            )))
+
+        until.assert_(check, tries=3)
 
     def test_lookup(self):
         self._publish_tenant_created_event()
