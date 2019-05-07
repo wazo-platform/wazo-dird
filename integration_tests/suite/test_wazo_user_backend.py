@@ -28,7 +28,7 @@ from .base_dird_integration_test import BackendWrapper
 
 class TestWazoUser(DirdAssetRunningTestCase):
 
-    asset = 'wazo_users'
+    asset = 'wazo_confd'
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
 
     def setUp(self):
@@ -104,7 +104,7 @@ class TestWazoUser(DirdAssetRunningTestCase):
 
 class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 
-    asset = 'wazo_users_no_confd'
+    asset = 'wazo_no_confd'
     config_factory = new_wazo_users_config
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):

@@ -128,6 +128,32 @@ def new_auth_only_config(Session):
     return config
 
 
+def new_conference_config(Session):
+    config = Config(Session)
+    config.with_display(
+        name='default_display',
+        columns=[
+            {'title': 'Firstname', 'field': 'firstname'},
+            {'title': 'Lastname', 'field': 'lastname'},
+            {'title': 'Number', 'default': '', 'field': 'exten'},
+            {'title': 'Mobile', 'default': '', 'field': 'mobile_phone_number'},
+        ],
+    )
+    config.with_source(
+        backend='conference',
+        name='confs',
+        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        confd={'host': 'america', 'port': 9486, 'https': False},
+        searched_columns=['name'],
+    )
+    config.with_profile(
+        name='default',
+        display='default_display',
+        services={'lookup': {'sources': ['confs']}},
+    )
+    return config
+
+
 def new_csv_with_multiple_displays_config(Session):
     config = Config(Session)
     config.with_display(

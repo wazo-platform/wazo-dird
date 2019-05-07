@@ -10,9 +10,9 @@ from wazo_dird import (
     make_result_class,
 )
 from wazo_dird.helpers import BaseBackendView
+from wazo_dird.plugin_helpers.confd_client_registry import registry
 
 from . import http
-from .contact import registry
 
 logger = logging.getLogger(__name__)
 
