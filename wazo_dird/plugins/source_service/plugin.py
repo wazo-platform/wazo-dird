@@ -31,6 +31,27 @@ class _SourceService:
         routing_key='auth.tenants.*.created',
         exclusive=True,
     )
+    _conference_source_body = {
+        'auth': {
+            'host': 'localhost',
+            'port': 9497,
+            'verify_certificate': '/usr/share/xivo-certs/server.crt',
+            'key_file': '/var/lib/wazo-auth-keys/wazo-dird-conference-backend-key.yml',
+            'version': '0.1',
+        },
+        'confd': {
+            'host': 'localhost',
+            'port': 9486,
+            'https': True,
+            'verify_certificate': '/usr/share/xivo-certs/server.crt',
+            'version': '1.1',
+        },
+        'format_columns': {
+            'phone': '{extensions[0]}',
+        },
+        'searched_columns': ['name', 'extensions', 'incalls'],
+        'first_matched_columns': [],
+    }
     _personal_source_body = {
         'name': 'personal',
         'format_columns': {
@@ -117,6 +138,13 @@ class _SourceService:
         except Exception as e:
             logger.info('failed to create %s source %s', backend, e)
 
+    def _add_conference_source(self, tenant_uuid, name):
+        backend = 'conference'
+        body = dict(self._conference_source_body)
+        body['name'] = 'auto_{}_{}'.format(backend, name)
+        body['tenant_uuid'] = tenant_uuid
+        self._add_source(backend, body)
+
     def _add_personal_source(self, tenant_uuid, name):
         backend = 'personal'
         body = dict(self._personal_source_body)
@@ -139,6 +167,7 @@ class _SourceService:
 
     def _auto_create_sources(self, tenant_uuid, name):
         logger.info('creating sources for tenant "%s"', name)
+        self._add_conference_source(tenant_uuid, name)
         self._add_personal_source(tenant_uuid, name)
         self._add_wazo_user_source(tenant_uuid, name)
         self._add_office365_source(tenant_uuid, name)

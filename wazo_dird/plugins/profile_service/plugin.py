@@ -115,7 +115,7 @@ class _ProfileService:
             return []
 
         available_sources = source_service.list_(None, [tenant_uuid])
-        auto_generated_source_backends = ['wazo', 'personal', 'office365']
+        auto_generated_source_backends = ['conference', 'wazo', 'personal', 'office365']
 
         result = []
         for source in available_sources:

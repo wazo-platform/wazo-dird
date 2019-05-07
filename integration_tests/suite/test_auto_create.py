@@ -1,13 +1,17 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import time
+
 import kombu
 
 from hamcrest import (
     assert_that,
     contains,
     contains_inanyorder,
+    empty,
     has_entries,
+    has_item,
 )
 from xivo_bus import (
     Publisher,
@@ -16,6 +20,7 @@ from xivo_bus import (
 from xivo_bus.resources.auth.events import TenantCreatedEvent
 from xivo_bus.resources.context.event import CreateContextEvent
 from xivo_test_helpers import until
+from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from xivo_test_helpers.bus import BusClient
 from xivo_test_helpers.auth import (
     AuthClient as MockAuthClient,
@@ -23,6 +28,7 @@ from xivo_test_helpers.auth import (
 )
 
 from .helpers.base import BaseDirdIntegrationTest
+from .helpers.constants import SUB_TENANT
 
 
 class TestConfigAutoCreation(BaseDirdIntegrationTest):
@@ -30,7 +36,8 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
     asset = 'all_routes'
 
     def setUp(self):
-        self.tenant_uuid = '396f0350-028c-4eea-ac63-a80914631ab5'
+        super().setUp()
+        self.tenant_uuid = SUB_TENANT
         self.tenant_name = 'mytenant'
         self.context_name = 'here'
         bus_port = self.service_port(5672, 'rabbitmq')
@@ -48,12 +55,64 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         producer = kombu.Producer(connection, exchange=exchange, auto_declare=True)
         self.publisher = Publisher(producer, marshaler)
         self.mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
-
-    def test_lookup(self):
-        # TODO add a /status and remove the sleep
-        import time
+        # Allow dird to start and get connected to the bus
         time.sleep(6)
 
+    def test_conference_source(self):
+        self._publish_tenant_created_event()
+
+        def check():
+            response = self.client.conference_source.list(tenant_uuid=self.tenant_uuid)
+            assert_that(response, has_entries(items=has_item(
+                has_entries(
+                    uuid=uuid_(),
+                    tenant_uuid=self.tenant_uuid,
+                    name='auto_conference_mytenant',
+                    auth={
+                        'host': 'localhost',
+                        'port': 9497,
+                        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+                        'version': '0.1',
+                        'key_file': '/var/lib/wazo-auth-keys/wazo-dird-conference-backend-key.yml',
+                    },
+                    confd={
+                        'host': 'localhost',
+                        'port': 9486,
+                        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+                        'version': '1.1',
+                        'https': True,
+                    },
+                    first_matched_columns=empty(),
+                    searched_columns=contains_inanyorder('name', 'extensions', 'incalls'),
+                    format_columns={'phone': '{extensions[0]}'},
+                ),
+            )))
+
+        until.assert_(check, tries=3)
+        for source in self.client.conference_source.list(tenant_uuid=self.tenant_uuid)['items']:
+            if source['name'] == 'auto_conference_mytenant':
+                conference_uuid = source['uuid']
+
+        self._publish_context_created_event()
+
+        def check():
+            response = self.client.profiles.list(
+                name=self.context_name,
+                tenant_uuid=self.tenant_uuid
+            )
+            assert_that(response, has_entries(items=has_item(
+                has_entries(
+                    services=has_entries(
+                        lookup=has_entries(
+                            sources=has_item(has_entries(uuid=conference_uuid)),
+                        ),
+                    ),
+                ),
+            )))
+
+        until.assert_(check, tries=3)
+
+    def test_lookup(self):
         self._publish_tenant_created_event()
         self._publish_context_created_event()
         token = self._create_user()
