@@ -42,7 +42,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         self.context_name = 'here'
         bus_port = self.service_port(5672, 'rabbitmq')
         bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
-        until.true(bus.is_up, tries=5)
+        until.true(bus.is_up, timeout=5)
 
         bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(username='guest',
                                                                         password='guest',
@@ -88,7 +88,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                 ),
             )))
 
-        until.assert_(check, tries=3)
+        until.assert_(check, timeout=3)
         for source in self.client.conference_source.list(tenant_uuid=self.tenant_uuid)['items']:
             if source['name'] == 'auto_conference_mytenant':
                 conference_uuid = source['uuid']
@@ -110,7 +110,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                 ),
             )))
 
-        until.assert_(check, tries=3)
+        until.assert_(check, timeout=3)
 
     def test_lookup(self):
         self._publish_tenant_created_event()
@@ -149,7 +149,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
             ))
 
         with self.personal({'firstname': 'Alice', 'number': '1234'}, token=token):
-            until.assert_(check, tries=3)
+            until.assert_(check, timeout=3)
 
     def _create_user(self):
         self.mock_auth_client.set_tenants({
