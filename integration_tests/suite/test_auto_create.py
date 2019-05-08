@@ -1,8 +1,6 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import time
-
 import kombu
 
 from hamcrest import (
@@ -55,8 +53,12 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         producer = kombu.Producer(connection, exchange=exchange, auto_declare=True)
         self.publisher = Publisher(producer, marshaler)
         self.mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
-        # Allow dird to start and get connected to the bus
-        time.sleep(6)
+
+        def wait_for_dird_bus_connection():
+            response = self.client.status.get()
+            assert_that(response, has_entries(bus_consumer={'status': 'ok'}))
+
+        until.assert_(wait_for_dird_bus_connection, timeout=6)
 
     def test_conference_source(self):
         self._publish_tenant_created_event()
