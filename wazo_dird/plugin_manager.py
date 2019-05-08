@@ -46,13 +46,14 @@ def unload_views():
         views_extension_manager.map(unload_view)
 
 
-def load_views(config, enabled_views, services, auth_client):
+def load_views(config, enabled_views, services, auth_client, status_aggregator):
     global views_extension_manager
     dependencies = {
         'config': config,
         'services': services,
         'auth_client': auth_client,
         'api': rest_api.api,
+        'status_aggregator': status_aggregator,
     }
     views_extension_manager, views = _load_plugins('wazo_dird.views', enabled_views, dependencies)
     return views

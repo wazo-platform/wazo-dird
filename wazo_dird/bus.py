@@ -11,6 +11,8 @@ import kombu
 from kombu.mixins import ConsumerMixin
 from xivo_bus import Marshaler, Publisher
 
+from xivo.status import Status
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,6 +41,10 @@ class Bus:
         logger.debug('publishing: %s', event)
         if self._enabled:
             return self._get_publisher().publish(event, headers)
+
+    def provide_status(self, status):
+        is_running = self._consumer and self._consumer.is_running()
+        status['bus_consumer']['status'] = Status.ok if is_running else Status.fail
 
     @contextmanager
     def start(self):
@@ -76,7 +82,19 @@ class _Consumer(ConsumerMixin):
     def __init__(self, connection, queues_and_callbacks):
         self.connection = connection
         self._queues_and_callbacks = queues_and_callbacks
+        self._is_running = False
 
     def get_consumers(self, Consumer, channel):
         return [Consumer(queue, callbacks=[callback])
                 for (queue, callback) in self._queues_and_callbacks]
+
+    def is_running(self):
+        return self._is_running
+
+    def on_connection_error(self, exc, interval):
+        super().on_connection_error(exc, interval)
+        self._is_running = False
+
+    def on_connection_revived(self):
+        super().on_connection_revived()
+        self._is_running = True

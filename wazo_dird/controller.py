@@ -9,6 +9,7 @@ from functools import partial
 
 from xivo_auth_client import Client as AuthClient
 from xivo.consul_helpers import ServiceCatalogRegistration
+from xivo.status import StatusAggregator
 from xivo.token_renewer import TokenRenewer
 from . import auth
 from . import plugin_manager
@@ -36,6 +37,7 @@ class Controller:
         self.auth_client = AuthClient(**self.config['auth'])
         self.token_renewer = TokenRenewer(self.auth_client)
         self.token_renewer.subscribe_to_token_change(self.auth_client.set_token)
+        self.status_aggregator = StatusAggregator()
         self._service_registration_params = [
             'wazo-dird',
             self.config.get('uuid'),
@@ -64,8 +66,10 @@ class Controller:
             self.config['enabled_plugins']['views'],
             self.services,
             self.auth_client,
+            self.status_aggregator,
         )
         self._source_manager.set_source_service(self.services['source'])
+        self.status_aggregator.add_provider(self.bus.provide_status)
 
         signal.signal(signal.SIGTERM, _signal_handler)
         with self.token_renewer:
