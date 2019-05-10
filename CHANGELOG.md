@@ -8,6 +8,13 @@ Changelog
   part of the body of a personal source
 * The `phonebook` service and backend now uses the global `db_uri`. The `db_uri` field is no longer
   part of the body of a phonebook source
+* A new resource has been added to configure `conference` backends
+
+  * POST `/0.1/backends/conference/sources`
+  * GET `/0.1/backends/conference/sources`
+  * GET `/0.1/backends/conference/sources/<source_uuid>`
+  * DELETE `/0.1/backends/conference/sources/<source_uuid>`
+  * PUT `/0.1/backends/conference/sources/<source_uuid>`
 
 
 19.06
