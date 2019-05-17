@@ -15,12 +15,12 @@ from hamcrest import (
 )
 
 from xivo import url_helpers
-from xivo_auth_client import Client as AuthClient
 from xivo_test_helpers import until
 from xivo_test_helpers.auth import AuthClient as MockAuthClient
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from xivo_test_helpers.db import DBUserClient
 
+from wazo_auth_client import Client as AuthClient
 from wazo_dird_client import Client
 from wazo_dird import database
 

@@ -15,8 +15,8 @@ from flask_babel import Babel
 from flask_restful import Api
 from flask_restful import Resource
 from flask_cors import CORS
+from wazo_auth_client import Client as AuthClient
 from werkzeug.contrib.fixers import ProxyFix
-from xivo_auth_client import Client as AuthClient
 from xivo.auth_verifier import AuthVerifier
 from xivo import http_helpers
 from xivo import mallow_helpers

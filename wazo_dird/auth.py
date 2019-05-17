@@ -1,10 +1,10 @@
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
 from xivo import auth_verifier
-from xivo_auth_client import Client
+from wazo_auth_client import Client
 
 logger = logging.getLogger(__name__)
 

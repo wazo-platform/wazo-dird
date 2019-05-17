@@ -7,7 +7,7 @@ import signal
 
 from functools import partial
 
-from xivo_auth_client import Client as AuthClient
+from wazo_auth_client import Client as AuthClient
 from xivo.consul_helpers import ServiceCatalogRegistration
 from xivo.status import StatusAggregator
 from xivo.token_renewer import TokenRenewer
