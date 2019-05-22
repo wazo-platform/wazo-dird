@@ -146,6 +146,14 @@ def new_conference_config(Session):
         confd={'host': 'america', 'port': 9486, 'https': False},
         searched_columns=['name'],
     )
+    config.with_source(
+        tenant_uuid=SUB_TENANT,
+        backend='conference',
+        name='confs_sub',
+        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        confd={'host': 'america', 'port': 9486, 'https': False},
+        searched_columns=['name'],
+    )
     config.with_profile(
         name='default',
         display='default_display',

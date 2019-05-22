@@ -4,6 +4,7 @@
 from flask import request
 from xivo.tenant_flask_helpers import Tenant
 
+from wazo_dird import exception
 from wazo_dird.helpers import (
     SourceItem,
     SourceList,
@@ -66,7 +67,10 @@ class ConferenceContactList(AuthResource):
         source_config = self._source_service.get('conference', source_uuid, visible_tenants)
 
         confd = registry.get(source_config)
-        response = confd.conferences.list(**list_params)
+        try:
+            response = confd.conferences.list(**list_params)
+        except Exception as e:
+            raise exception.XiVOConfdError(confd, e)
 
         return {
             'total': response['total'],
