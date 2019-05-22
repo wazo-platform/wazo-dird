@@ -24,6 +24,21 @@ class ConferenceViewPlugin(BaseBackendView):
     backend = 'conference'
     list_resource = http.ConferenceList
     item_resource = http.ConferenceItem
+    contact_list_resource = http.ConferenceContactList
+
+    def load(self, dependencies):
+        super().load(dependencies)
+        api = dependencies['api']
+        source_service = dependencies['services']['source']
+
+        api.add_resource(
+            self.contact_list_resource,
+            "/backends/conference/sources/<source_uuid>/contacts",
+            resource_class_args=((source_service,)),
+        )
+
+    def unload(self):
+        registry.unregister_all()
 
 
 class ConferencePlugin(BaseSourcePlugin):

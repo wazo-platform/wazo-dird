@@ -6,6 +6,7 @@ paths:
       description: '**Required ACL:** dird.backends.conference.sources.read'
       tags:
         - configuration
+        - conference
       parameters:
         - $ref: '#/parameters/tenantuuid'
         - $ref: '#/parameters/recurse'
@@ -24,6 +25,7 @@ paths:
       description: '**Required ACL:** `dird.backends.conference.sources.create`'
       tags:
         - configuration
+        - conference
       parameters:
         - $ref: '#/parameters/tenantuuid'
         - name: body
@@ -60,6 +62,7 @@ paths:
       description: '**Required ACL:** `dird.backends.conference.sources.{source_uuid}.read`'
       tags:
         - configuration
+        - conference
       parameters:
         - $ref: '#/parameters/tenantuuid'
         - $ref: '#/parameters/sourceuuid'
@@ -76,6 +79,7 @@ paths:
       description: '**Required ACL:** `dird.backends.conference.sources.{source_uuid}.update`'
       tags:
         - configuration
+        - conference
       parameters:
         - $ref: '#/parameters/tenantuuid'
         - $ref: '#/parameters/sourceuuid'
@@ -102,6 +106,7 @@ paths:
       description: '**Required ACL:** `dird.backends.conference.sources.{source_uuid}.delete`'
       tags:
         - configuration
+        - conference
       parameters:
         - $ref: '#/parameters/tenantuuid'
         - $ref: '#/parameters/sourceuuid'
@@ -110,7 +115,79 @@ paths:
           $ref: '#/responses/ResourceDeleted'
         '404':
           $ref: '#/responses/NotFoundError'
+  /backends/conference/sources/{source_uuid}/contacts:
+    get:
+      description: '**Required ACL:** `dird.backends.conference.sources.{source_uuid}.contacts.read`'
+      operationId: list_contacts from source
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - in: path
+          name: source_uuid
+          required: true
+          description: Source uuid
+          type: string
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
+      summary: Retrieve all contacts from a conference source
+      tags:
+        - conference
+      responses:
+        '200':
+          description: Contacts as fetched from the Wazo engine.
+          schema:
+            $ref: '#/definitions/ConferenceContactList'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No such source
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          description: Another service is unavailable (e.g. wazo-auth, xivo-confd, ...)
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
+  ConferenceContact:
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the contact
+      name:
+        type: string
+        description: The lastname of the contact
+      extensions:
+        type: array
+        items:
+          type: string
+          description: The internal number of that contact
+      incalls:
+        type: array
+        items:
+          type: string
+          description: The external number of that contact
+  ConferenceContactList:
+    properties:
+      total:
+        type: integer
+        description: The number of contacts in this source
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of contacts in this source (filtered is not implemented)
+        readOnly: True
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/ConferenceContact'
+    required:
+      - items
+      - total
+      - filtered
   ConferenceSource:
     title: ConferenceSource
     allOf:
