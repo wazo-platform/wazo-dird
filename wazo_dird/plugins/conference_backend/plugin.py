@@ -34,7 +34,7 @@ class ConferenceViewPlugin(BaseBackendView):
         api.add_resource(
             self.contact_list_resource,
             "/backends/conference/sources/<source_uuid>/contacts",
-            resource_class_args=((source_service,)),
+            resource_class_args=(source_service,),
         )
 
     def unload(self):
