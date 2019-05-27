@@ -19,10 +19,10 @@ class TestContactSchema(TestCase):
     def test_dump(self):
         raw = [
             {
-                "id": 3,
-                "name": "minimal",
-                "extensions": [],
-                "incalls": [
+                'id': 3,
+                'name': 'minimal',
+                'extensions': [],
+                'incalls': [
                     {
                         'extensions': [
                             {
@@ -38,9 +38,9 @@ class TestContactSchema(TestCase):
                 ],
             },
             {
-                "id": 1,
-                "name": "test",
-                "extensions": [
+                'id': 1,
+                'name': 'test',
+                'extensions': [
                     {
                         'exten': '4001',
                         'context': 'inside',
@@ -48,7 +48,7 @@ class TestContactSchema(TestCase):
                         'links': [{'rel': 'extensions', 'href': '.../extensions/57'}],
                     },
                 ],
-                "incalls": [
+                'incalls': [
                     {
                         'extensions': [
                             {
