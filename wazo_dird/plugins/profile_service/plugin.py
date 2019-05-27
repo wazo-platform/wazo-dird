@@ -8,7 +8,7 @@ from operator import itemgetter
 import kombu
 from wazo_dird import BaseServicePlugin, database, exception
 from xivo_bus.marshaler import InvalidMessage, Marshaler
-from xivo_bus.resources.context.event import CreateContextEvent
+from xivo_bus.resources.auth.events import TenantCreatedEvent
 from wazo_dird.database.helpers import Session
 
 logger = logging.getLogger(__name__)
@@ -26,14 +26,14 @@ class _ProfileService:
 
     _QUEUE = kombu.Queue(
         exchange=kombu.Exchange('xivo', type='topic'),
-        routing_key='config.contexts.created',
+        routing_key='auth.tenants.*.created',
         exclusive=True,
     )
 
     def __init__(self, crud, bus, controller):
         self._profile_crud = crud
         self._controller = controller
-        bus.add_consumer(self._QUEUE, self._on_new_context)
+        bus.add_consumer(self._QUEUE, self._on_new_tenant)
 
     def count(self, visible_tenants, **list_params):
         return self._profile_crud.count(visible_tenants, **list_params)
@@ -86,11 +86,11 @@ class _ProfileService:
         return self._profile_crud.list_(visible_tenants, **list_params)
 
     def _auto_create_profile(self, tenant_uuid, name):
-        logger.info('creating a new profile for context "%s"', name)
+        logger.info('creating a new profile for tenant "%s"', name)
         sources = self._find_auto_generated_sources(tenant_uuid)
         display = self._find_auto_generated_display(tenant_uuid)
         body = {
-            'name': name,
+            'name': 'default',
             'tenant_uuid': tenant_uuid,
             'display': display,
             'services': {
@@ -140,15 +140,14 @@ class _ProfileService:
                 continue
             return display
 
-    def _on_new_context(self, body, message):
+    def _on_new_tenant(self, body, message):
+        # TODO allow enough time for the display and sources to be created
         try:
-            event = Marshaler.unmarshal_message(body, CreateContextEvent)
+            event = Marshaler.unmarshal_message(body, TenantCreatedEvent)
             body = event.marshal()
         except (InvalidMessage, KeyError):
             logger.info('Ignoring the following malformed bus message: %s', body)
         else:
-            if body['type'] != 'internal':
-                return
             self._auto_create_profile(body['tenant_uuid'], body['name'])
         finally:
             message.ack()
