@@ -1,6 +1,14 @@
 Changelog
 =========
 
+19.08
+-----
+
+* A new resource has been added to list contacts from the `conference` backend
+
+  * GET `/0.1/backends/conference/sources/<source_uuid>/contacts`
+
+
 19.07
 -----
 
