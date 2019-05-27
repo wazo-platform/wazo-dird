@@ -2,6 +2,7 @@ enabled_plugins:
   backends:
     wazo: true
   views:
+    conference_view: true
     default_json: true
     wazo_backend: true
     sources_view: true
