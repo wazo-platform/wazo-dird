@@ -16,7 +16,6 @@ from xivo_bus import (
     Marshaler,
 )
 from xivo_bus.resources.auth.events import TenantCreatedEvent
-from xivo_bus.resources.context.event import CreateContextEvent
 from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from xivo_test_helpers.bus import BusClient
@@ -37,7 +36,6 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         super().setUp()
         self.tenant_uuid = SUB_TENANT
         self.tenant_name = 'mytenant'
-        self.context_name = 'here'
         bus_port = self.service_port(5672, 'rabbitmq')
         bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
         until.true(bus.is_up, timeout=5)
@@ -95,13 +93,8 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
             if source['name'] == 'auto_conference_mytenant':
                 conference_uuid = source['uuid']
 
-        self._publish_context_created_event()
-
         def check():
-            response = self.client.profiles.list(
-                name=self.context_name,
-                tenant_uuid=self.tenant_uuid
-            )
+            response = self.client.profiles.list(name='default', tenant_uuid=self.tenant_uuid)
             assert_that(response, has_entries(items=has_item(
                 has_entries(
                     services=has_entries(
@@ -116,11 +109,10 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
 
     def test_lookup(self):
         self._publish_tenant_created_event()
-        self._publish_context_created_event()
         token = self._create_user()
 
         def check():
-            result = self.lookup('alice', self.context_name, token=token)
+            result = self.lookup('alice', 'default', token=token)
             assert_that(result, has_entries(
                 column_headers=contains(
                     'Nom',
@@ -165,13 +157,4 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
 
     def _publish_tenant_created_event(self):
         msg = TenantCreatedEvent(uuid=self.tenant_uuid, name=self.tenant_name)
-        self.publisher.publish(msg)
-
-    def _publish_context_created_event(self):
-        msg = CreateContextEvent(
-            id=42,
-            name=self.context_name,
-            type='internal',
-            tenant_uuid=self.tenant_uuid,
-        )
         self.publisher.publish(msg)
