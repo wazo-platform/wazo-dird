@@ -53,6 +53,7 @@ def load_views(config, enabled_views, services, auth_client, status_aggregator):
         'services': services,
         'auth_client': auth_client,
         'api': rest_api.api,
+        'api_1': rest_api.api_1,
         'status_aggregator': status_aggregator,
     }
     views_extension_manager, views = _load_plugins('wazo_dird.views', enabled_views, dependencies)

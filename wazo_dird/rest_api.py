@@ -1,5 +1,6 @@
 # Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import logging
 import os
 import time
@@ -29,6 +30,7 @@ TEMPLATE_FOLDER = 'plugins/templates'
 
 logger = logging.getLogger(__name__)
 api = Api(prefix='/{}'.format(VERSION))
+api_1 = Api(prefix='/{}'.format(1))
 auth_verifier = AuthVerifier()
 
 
@@ -53,6 +55,7 @@ class CoreRestApi:
         self.app.permanent_session_lifetime = timedelta(minutes=5)
         self.load_cors()
         self.api = api
+        self.api_1 = api_1
         auth_verifier.set_config(global_config['auth'])
 
     def load_cors(self):
@@ -63,6 +66,7 @@ class CoreRestApi:
 
     def run(self):
         self.api.init_app(self.app)
+        self.api_1.init_app(self.app)
 
         https_config = self.config['https']
 
