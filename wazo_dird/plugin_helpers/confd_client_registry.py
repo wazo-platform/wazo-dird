@@ -7,9 +7,9 @@ from collections import namedtuple
 from threading import Lock
 
 from wazo_auth_client import Client as AuthClient
+from wazo_confd_client import Client as ConfdClient
 from xivo.config_helper import parse_config_file
 from xivo.token_renewer import TokenRenewer
-from xivo_confd_client import Client as ConfdClient
 
 logger = logging.getLogger(__name__)
 
