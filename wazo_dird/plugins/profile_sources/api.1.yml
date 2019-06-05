@@ -1,0 +1,54 @@
+paths:
+  /directories/{profile}/sources:
+    get:
+      summary: List all sources configured for the given profile
+      description: '**Required ACL:** `dird.directories.{profile}.sources.read`'
+      tags:
+        - directories
+      parameters:
+        - $ref: '#/parameters/Profile'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
+      responses:
+        '200':
+          description: List of sources
+          schema:
+            $ref: '#/definitions/ProfileSourceItems'
+        '400':
+          $ref: '#/responses/InvalidParameters'
+        '404':
+          $ref: '#/responses/NotFoundError'
+definitions:
+  ProfileSource:
+    properties:
+      uuid:
+        type: string
+        description: "The source's UUID"
+        readOnly: true
+      backend:
+        type: string
+        description: "The name of the source's backend"
+      name:
+        type: string
+        description: "The source's name"
+      tenant_uuid:
+        type: string
+        description: "The UUID of the tenant of this source"
+  ProfileSourceItems:
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/ProfileSource'
+      total:
+        type: integer
+        description: The number of configured sources for this backend
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of configured sources matching the searched terms for this backend
+        readOnly: true

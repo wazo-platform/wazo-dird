@@ -1,0 +1,59 @@
+paths:
+  /sources:
+    get:
+      operationId: list_source
+      summary: List all configured sources
+      description: '**Required ACL:** `dird.sources.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
+      responses:
+        '200':
+          description: A list of configured sources
+          schema:
+            $ref: '#/definitions/SourceListItems'
+definitions:
+  SourceListItem:
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the source
+        readOnly: true
+      backend:
+        type: string
+        description: The backend of this source
+        readOnly: true
+      name:
+        type: string
+        description: The name of the source
+        readOnly: true
+    required:
+      - uuid
+      - backend
+      - name
+  SourceListItems:
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/SourceListItem'
+        readOnly: true
+      total:
+        type: integer
+        description: The number of sources
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of sources matching the search filters
+        readOnly: true
+    required:
+      - items
+      - total
+      - filtered

@@ -1,0 +1,179 @@
+paths:
+  /personal:
+    get:
+      summary: List personal contacts
+      operationId: list_personal
+      description: '**Required ACL:** `dird.personal.read`
+
+
+        CSV format is the same as `/import`, where headers of all contacts are mixed.
+        The charset of the response is always `utf-8`. Errors are always formatted
+        in JSON.'
+      tags:
+      - personal
+      produces:
+      - application/json
+      - text/csv; charset=utf-8
+      parameters:
+      - name: format
+        in: query
+        type: string
+        enum:
+        - application/json
+        - text/csv
+        default: application/json
+        required: false
+        description: Format of the response body
+      responses:
+        '200':
+          description: A list of personal contacts
+          schema:
+            properties:
+              items:
+                $ref: '#/definitions/PhonebookContactList'
+        '204':
+          description: No contacts are available (CSV format only).
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    post:
+      summary: Create new personal contact
+      description: '**Required ACL:** `dird.personal.create`'
+      operationId: add_personal
+      tags:
+      - personal
+      parameters:
+      - name: contact
+        in: body
+        description: The attributes of the contact
+        required: true
+        schema:
+          $ref: '#/definitions/ContactBodySample'
+      responses:
+        '201':
+          description: The new personal contact
+          schema:
+            $ref: '#/definitions/Contact'
+        '409':
+          $ref: '#/responses/DuplicateContact'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    delete:
+      summary: Purge personal contacts
+      description: '**Required ACL:** `dird.personal.delete`'
+      operationId: purge_personal
+      tags:
+      - personal
+      responses:
+        '204':
+          description: The personal contacts was purged.
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+  /personal/{contact_id}:
+    get:
+      summary: Get personal contact
+      description: '**Required ACL:** `dird.personal.{contact_id}.read`
+
+
+        Returns the details of the personal contact.'
+      operationId: get_personal
+      tags:
+      - personal
+      parameters:
+      - $ref: '#/parameters/PersonalContactID'
+      responses:
+        '200':
+          description: The personal contact attributes.
+          schema:
+            $ref: '#/definitions/Contact'
+        '404':
+          $ref: '#/responses/PersonalContactIDInvalid'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    put:
+      summary: Edit personal contact
+      description: '**Required ACL:** `dird.personal.{contact_id}.update`
+
+
+        Replace personal contact''s attributes. Omitted attributes will be removed.
+        Attribute `id` can not be changed.'
+      operationId: edit_personal
+      tags:
+      - personal
+      parameters:
+      - $ref: '#/parameters/PersonalContactID'
+      - name: contact
+        in: body
+        description: The new attributes of the contact
+        required: true
+        schema:
+          $ref: '#/definitions/ContactBodySample'
+      responses:
+        '200':
+          description: The personal contact was edited.
+          schema:
+            $ref: '#/definitions/Contact'
+        '404':
+          $ref: '#/responses/PersonalContactIDInvalid'
+        '409':
+          $ref: '#/responses/DuplicateContact'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+    delete:
+      summary: Remove personal contact
+      description: '**Required ACL:** `dird.personal.{contact_id}.delete`'
+      operationId: remove_personal
+      tags:
+      - personal
+      parameters:
+      - $ref: '#/parameters/PersonalContactID'
+      responses:
+        '204':
+          description: The personal contact was removed.
+        '404':
+          $ref: '#/responses/PersonalContactIDInvalid'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+  /personal/import:
+    post:
+      summary: Import multiple personal contacts at once
+      description: '**Required ACL:** `dird.personal.import.create`'
+      operationId: import_personal
+      tags:
+      - personal
+      consumes:
+      - text/csv; charset=utf-8
+      - text/csv; charset=iso8859-15
+      - text/csv; charset=cp1252
+      parameters:
+      - name: contacts
+        description: "The attributes of the contacts in CSV format.\r\n* The encoding\
+          \ must be set in the Content-Type header, via the `charset=` option.\r\n\
+          * Field delimiter: `,`.\r\n* Quoting character: `\"`.\r\n* Line delimiter:\
+          \ `\\r\\n`."
+        in: body
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: At least one contact has been created.
+          schema:
+            $ref: '#/definitions/ContactImportResponse'
+        '400':
+          description: Input could not be decoded, and no contacts were created.
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+responses:
+  PersonalContactIDInvalid:
+    description: The personal contact does not exist
+    schema:
+      $ref: '#/definitions/Error'
+parameters:
+  PersonalContactID:
+    name: contact_id
+    in: path
+    type: string
+    required: true
+    description: The ID of the personal contact.

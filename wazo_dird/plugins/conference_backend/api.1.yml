@@ -1,0 +1,217 @@
+paths:
+  /backends/conference/sources:
+    get:
+      operationId: list_conference_sources
+      summary: Get all `conference` source configurations
+      description: '**Required ACL:** dird.backends.conference.sources.read'
+      tags:
+        - configuration
+        - conference
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+      responses:
+        '200':
+          description: A list of configured `conference` sources
+          schema:
+            $ref: '#/definitions/ConferenceSourceItems'
+    post:
+      operationId: create_conference_source
+      summary: Configure a source for the `conference` backend
+      description: '**Required ACL:** `dird.backends.conference.sources.create`'
+      tags:
+        - configuration
+        - conference
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/ConferenceSource'
+      responses:
+        '201':
+          description: The created source
+          schema:
+            $ref: '#/definitions/ConferenceSource'
+          examples:
+            application/json:
+              name: conferences
+              searched_columns:
+                - number
+                - name
+              format_columns:
+                displayname: '{name}'
+              auth:
+                key_file: /usr/share/wazo-dird/my-auth-key.yml
+        '400':
+          $ref: '#/responses/CreateError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+  /backends/conference/sources/{source_uuid}:
+    get:
+      operationId: get_a_conference_source
+      summary: Get a `conference` source configuration
+      description: '**Required ACL:** `dird.backends.conference.sources.{source_uuid}.read`'
+      tags:
+        - configuration
+        - conference
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '200':
+          description: The `conference` source
+          schema:
+            $ref: '#/definitions/ConferenceSource'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_conference_source
+      summary: Update a `conference` source configuration
+      description: '**Required ACL:** `dird.backends.conference.sources.{source_uuid}.update`'
+      tags:
+        - configuration
+        - conference
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+        - name: body
+          in: body
+          description: The source configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/ConferenceSource'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: delete_conference_source
+      summary: Delete a `conference` source configuration
+      description: '**Required ACL:** `dird.backends.conference.sources.{source_uuid}.delete`'
+      tags:
+        - configuration
+        - conference
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+  /backends/conference/sources/{source_uuid}/contacts:
+    get:
+      description: '**Required ACL:** `dird.backends.conference.sources.{source_uuid}.contacts.read`'
+      operationId: list_contacts from source
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - in: path
+          name: source_uuid
+          required: true
+          description: Source uuid
+          type: string
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
+      summary: Retrieve all contacts from a conference source
+      tags:
+        - conference
+      responses:
+        '200':
+          description: Contacts as fetched from the Wazo engine.
+          schema:
+            $ref: '#/definitions/ConferenceContactList'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No such source
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          description: Another service is unavailable (e.g. wazo-auth, xivo-confd, ...)
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  ConferenceContact:
+    properties:
+      uuid:
+        type: string
+        description: The UUID of the contact
+      name:
+        type: string
+        description: The lastname of the contact
+      extensions:
+        type: array
+        items:
+          type: string
+          description: The internal number of that contact
+      incalls:
+        type: array
+        items:
+          type: string
+          description: The external number of that contact
+  ConferenceContactList:
+    properties:
+      total:
+        type: integer
+        description: The number of contacts in this source
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of contacts in this source (filtered is not implemented)
+        readOnly: True
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/ConferenceContact'
+    required:
+      - items
+      - total
+      - filtered
+  ConferenceSource:
+    title: ConferenceSource
+    allOf:
+      - $ref: '#/definitions/Source'
+      - properties:
+          auth:
+            $ref: '#/definitions/WazoAuthConfig'
+          confd:
+            $ref: '#/definitions/ConfdConfig'
+      - required:
+        - name
+        - auth
+        - confd
+  ConferenceSourceItems:
+    title: ConferenceSourceItems
+    allOf:
+      - $ref: '#/definitions/SourceItems'
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/ConferenceSource'
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered

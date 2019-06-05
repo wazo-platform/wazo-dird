@@ -1,0 +1,131 @@
+paths:
+  /backends/phonebook/sources:
+    get:
+      operationId: list_phonebook_source
+      summary: Get all `phonebook` source configurations
+      description: '**Required ACL:** `dird.backends.phonebook.sources.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+      responses:
+        '200':
+          description: A list of configured `phonebook` sources
+          schema:
+            $ref: '#/definitions/PhonebookSourceItems'
+    post:
+      operationId: create_phonebook_source
+      summary: Configure a source for the `phonebook` backend
+      description: '**Required ACL:** `dird.backends.phonebook.sources.create`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/PhonebookSource'
+      responses:
+        '201':
+          description: The created source
+          schema:
+            $ref: '#/definitions/PhonebookSource'
+          examples:
+            application/json:
+              name: shared
+              searched_columns:
+                - firstname
+                - lastname
+              format_columns:
+                displayname: '{firstname} {lastname}'
+        '400':
+          $ref: '#/responses/CreateError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+  /backends/phonebook/sources/{source_uuid}:
+    get:
+      operationId: get_a_phonebook_source
+      summary: Get a `phonebook` source configuration
+      description: '**Required ACL:** `dird.backends.phonebook.sources.{source_uuid}.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '200':
+          description: The `phonebook` source
+          schema:
+            $ref: '#/definitions/PhonebookSource'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_phonebook_source
+      summary: Update a `phonebook` source configuration
+      description: '**Required ACL:** `dird.backends.phonebook.sources.{source_uuid}.update`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+        - name: body
+          in: body
+          description: The source configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/PhonebookSource'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: delete_phonebook_source
+      summary: Delete a `phonebook` source configuration
+      description: '**Required ACL:** `dird.backends.phonebook.sources.{source_uuid}.delete`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+definitions:
+  PhonebookSource:
+    title: PhonebookSource
+    allOf:
+      - $ref: '#/definitions/Source'
+      - required:
+        - name
+  PhonebookSourceItems:
+    title: PhonebookSourceItems
+    allOf:
+      - $ref: '#/definitions/SourceItems'
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/PhonebookSource'
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered

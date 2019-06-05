@@ -1,0 +1,155 @@
+paths:
+  /backends/csv_ws/sources:
+    get:
+      operationId: list_csv_ws_source
+      summary: Get all `csv_ws` source configurations
+      description: '**Required ACL:** `dird.backends.csv_ws.sources.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+      responses:
+        '200':
+          description: A list of configured `csv_ws` sources
+          schema:
+            $ref: '#/definitions/CSVWSSourceItems'
+    post:
+      operationId: create_csv_ws_source
+      summary: Configure a source for the `csv_ws` backend
+      description: '**Required ACL:** `dird.backends.csv_ws.sources.create`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/CSVWSSource'
+      responses:
+        '201':
+          description: The created source
+          schema:
+            $ref: '#/definitions/CSVWSSource'
+          examples:
+            application/json:
+              name: ws
+              searched_columns:
+                - firstname
+                - lastname
+              format_columns:
+                displayname: '{firstname} {lastname}'
+              lookup_url: 'https://my-service/search'
+              list_url: 'https://my-service/all'
+              verify_certificate: false
+              delimiter: ':'
+              unique_column: 'uuid'
+        '400':
+          $ref: '#/responses/CreateError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+  /backends/csv_ws/sources/{source_uuid}:
+    get:
+      operationId: get_a_csv_ws_source
+      summary: Get a `csv_ws` source configuration
+      description: '**Required ACL:** `dird.backends.csv_ws.sources.{source_uuid}.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '200':
+          description: The `csv_ws` source
+          schema:
+            $ref: '#/definitions/CSVWSSource'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_csv_ws_source
+      summary: Update a `csv_ws` source configuration
+      description: '**Required ACL:** `dird.backends.csv_ws.sources.{source_uuid}.update`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+        - name: body
+          in: body
+          description: The source configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/CSVWSSource'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: delete_csv_ws_source
+      summary: Delete a `csv_ws` source configuration
+      description: '**Required ACL:** `dird.backends.csv_ws.sources.{source_uuid}.delete`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+definitions:
+  CSVWSSource:
+    title: CSVWSSource
+    allOf:
+      - $ref: '#/definitions/Source'
+      - properties:
+          lookup_url:
+            type: string
+            description: The URL used to search the remote CSV
+          list_url:
+            type: string
+            description: The URL used to list all values
+          delimiter:
+            type: string
+            description: The field separator in the CSV
+            default: ','
+          timeout:
+            type: number
+            description: The timeout on the remote HTTP queries
+            default: 10.0
+          unique_column:
+            type: string
+            description: The column to use for favorites
+      - required:
+        - name
+        - lookup_url
+  CSVWSSourceItems:
+    title: CSVWSSourceItems
+    allOf:
+      - $ref: '#/definitions/SourceItems'
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/CSVWSSource'
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered

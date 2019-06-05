@@ -1,0 +1,122 @@
+paths:
+  /config:
+    get:
+      summary: Returns the current service configuration
+      description: '**Required ACL:** `dird.config.read`'
+      operationId: configuration_get
+      tags:
+        - configuration
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: A JSON representation of the current configuration.
+  /services:
+    get:
+      operationId: list_services
+      summary: List all loaded services
+      description: '**Required ACL:** `dird.services.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        '200':
+          description: A list of configured services
+          schema:
+            $ref: '#/definitions/ServiceItems'
+parameters:
+  backendname:
+    required: true
+    type: string
+    name: backend_name
+    in: path
+    description: the backend's name
+  search:
+    required: false
+    name: search
+    in: query
+    type: string
+    description: Search term for filtering a list of items. Only items with a field
+      containing the search term will be returned.
+  sourceuuid:
+    name: source_uuid
+    type: string
+    in: path
+    description: "The source's UUID"
+    required: true
+  limit:
+    name: limit
+    in: query
+    type: integer
+    description: The limit defines the number of individual objects that are returned
+    required: false
+  offset:
+    name: offset
+    in: query
+    type: integer
+    description: The offset defines the offsets the start by the number specified
+    default: 0
+    required: false
+responses:
+  CreateError:
+    description: An error occurred when creating the resource
+    schema:
+      $ref: '#/definitions/APIError'
+  NotFoundError:
+    description: The resource requested was not found on the server
+    schema:
+      $ref: '#/definitions/Error'
+  ResourceUpdated:
+    description: Resource was updated successfully
+  ResourceDeleted:
+    description: Resource was deleted successfully
+  UpdateError:
+    description: An error occurred when updating the resource
+    schema:
+      $ref: '#/definitions/APIError'
+definitions:
+  APIError:
+    type: object
+    properties:
+      timestamp:
+        type: number
+      message:
+        type: string
+      resource:
+        type: string
+      details:
+        type: object
+  Service:
+    title: Service
+    allOf:
+      - properties:
+          name:
+            type: string
+            readOnly: true
+      - required:
+          - name
+  ServiceItems:
+    title: ServiceItems
+    allOf:
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/Service'
+            readOnly: true
+          total:
+            type: integer
+            description: The number of services
+            readOnly: true
+          filtered:
+            type: integer
+            description: The number of services matching the search filters
+            readOnly: true
+      - required:
+          - items
+          - total
+          - filtered

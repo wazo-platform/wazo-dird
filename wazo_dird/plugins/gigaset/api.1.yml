@@ -1,0 +1,87 @@
+paths:
+  /directories/lookup/{profile}/{xivo_user_uuid}/gigaset:
+    get:
+      summary: Search for contacts with Gigaset Phones
+      description: |
+        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
+
+        The `lookup` query will return a list of result matching the searched term
+        formated for Gigaset Phones. The result will be retrieved from all configured
+        directories for the given profile.
+
+        This route is provided by the `gigaset_view` plugin using the `lookup` plugin
+        and all configured sources for the given profile.
+      operationId: gigaset_lookup
+      tags:
+      - gigaset
+      - phone directories
+      produces:
+      - text/xml
+      responses:
+        '200':
+          description: A list of contacts
+          schema:
+            $ref: '#/definitions/list'
+        '400':
+          $ref: '#/responses/LimitOffsetInvalid'
+        '404':
+          $ref: '#/responses/ProfileInvalid'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+      parameters:
+      - $ref: '#/parameters/Profile'
+      - $ref: '#/parameters/XivoUserUUID'
+      - $ref: '#/parameters/Term'
+      - $ref: '#/parameters/Limit'
+      - $ref: '#/parameters/Offset'
+      - $ref: '#/parameters/ProxyUrl'
+      - $ref: '#/parameters/AcceptLanguage'
+definitions:
+  list:
+    properties:
+      response:
+        type: string
+        xml:
+          attribute: true
+        example:
+          - 'get_list'
+      type:
+        type: string
+        xml:
+          attribute: true
+        example:
+          - 'pr'
+      total:
+        type: integer
+        xml:
+          attribute: true
+        example:
+          - 1
+      first:
+        type: integer
+        xml:
+          attribute: true
+        example:
+          - 1
+      last:
+        type: integer
+        xml:
+          attribute: true
+        example:
+          - 1
+      entry:
+        type: array
+        items:
+          $ref: '#/definitions/entry'
+  entry:
+    properties:
+      id:
+        type: integer
+        xml:
+          attribute: true
+        example:
+          - 1001
+      fn:
+        type: string
+      hm:
+        type: string

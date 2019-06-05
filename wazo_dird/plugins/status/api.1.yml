@@ -1,0 +1,28 @@
+paths:
+  /status:
+    get:
+      summary: Print infos about internal status of wazo-dird`
+      description: '**Required ACL:** `dird.status.read`'
+      tags:
+        - status
+      responses:
+        '200':
+          description: The internal infos of wazo-dird
+          schema:
+            $ref: '#/definitions/StatusSummary'
+definitions:
+  StatusSummary:
+    type: object
+    properties:
+      bus_consumer:
+        $ref: '#/definitions/ComponentWithStatus'
+  ComponentWithStatus:
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/StatusValue'
+  StatusValue:
+    type: string
+    enum:
+      - fail
+      - ok
