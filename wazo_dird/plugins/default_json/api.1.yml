@@ -80,13 +80,13 @@ paths:
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
-  /directories/favorites/{directory}/{contact}:
+  /directories/favorites/{source_uuid}/{contact}:
     put:
       summary: Mark a contact as favorite
-      description: '**Required ACL:** `dird.directories.favorites.{directory}.{contact}.update`
+      description: '**Required ACL:** `dird.directories.favorites.{source_uuid}.{contact}.update`
 
 
-        Add the contact from {directory} to the list of favorite contacts.'
+        Add the contact from {source_uuid} to the list of favorite contacts.'
       operationId: add_favorite
       tags:
       - directories
@@ -94,15 +94,19 @@ paths:
       responses:
         '204':
           description: Favorite added.
+        '404':
+          $ref: '#/responses/NotFoundError'
         '409':
           $ref: '#/responses/DuplicateFavorite'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
-      - $ref: '#/parameters/Directory'
+      - $ref: '#/parameters/sourceuuid'
       - $ref: '#/parameters/FavoriteID'
     delete:
       summary: Unmark a contact as favorite
-      description: '**Required ACL:** `dird.directories.favorites.{directory}.{contact}.delete`
+      description: '**Required ACL:** `dird.directories.favorites.{source_uuid}.{contact}.delete`
 
 
         Remove the contact from {directory} from the list of favorite contacts.'
@@ -114,14 +118,12 @@ paths:
         '204':
           description: Favorite removed.
         '404':
-          description: Favorite does not exist
-          schema:
-            $ref: '#/definitions/Error'
+          $ref: '#/responses/NotFoundError'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
-      - $ref: '#/parameters/Directory'
+      - $ref: '#/parameters/sourceuuid'
       - $ref: '#/parameters/FavoriteID'
   /directories/personal/{profile}:
     get:
