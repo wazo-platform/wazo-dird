@@ -1,7 +1,7 @@
 https://github.com/wazo-pbx/wazo-auth-client/archive/master.zip
-https://github.com/wazo-pbx/xivo-lib-rest-client/archive/master.zip  # from xivo-{auth,confd}-client
+https://github.com/wazo-pbx/wazo-confd-client/archive/master.zip
+https://github.com/wazo-pbx/xivo-lib-rest-client/archive/master.zip  # from wazo-{auth,confd}-client
 https://github.com/wazo-pbx/xivo-bus/archive/master.zip
-https://github.com/wazo-pbx/xivo-confd-client/archive/master.zip
 https://github.com/wazo-pbx/xivo-lib-python/archive/master.zip
 alembic==0.8.8
 babel==2.3.4

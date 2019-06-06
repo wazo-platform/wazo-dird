@@ -175,16 +175,16 @@ class InvalidContactException(Exception):
 
 class XiVOConfdError(APIException):
 
-    def __init__(self, xivo_confd_client, error):
+    def __init__(self, confd_client, error):
         super().__init__(
             status_code=503,
             message='xivo-confd request error',
             error_id='xivo-confd-error',
             details={
                 'xivo_confd_config': {
-                    'host': xivo_confd_client.host,
-                    'port': xivo_confd_client.port,
-                    'timeout': xivo_confd_client.timeout,
+                    'host': confd_client.host,
+                    'port': confd_client.port,
+                    'timeout': confd_client.timeout,
                 },
                 'original_error': str(error),
             }
