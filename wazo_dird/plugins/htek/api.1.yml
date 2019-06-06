@@ -1,9 +1,9 @@
 paths:
-  /directories/lookup/{profile}/{xivo_user_uuid}/htek:
+  /directories/lookup/{xivo_user_uuid}/htek:
     get:
       summary: Search for contacts with Htek Phones
       description: |
-        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.directories.lookup.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Htek Phones. The result will be retrieved from all configured

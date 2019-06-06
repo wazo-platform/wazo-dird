@@ -1,8 +1,8 @@
 paths:
-  /directories/{profile}/sources:
+  /directories/sources:
     get:
       summary: List all sources configured for the given profile
-      description: '**Required ACL:** `dird.directories.{profile}.sources.read`'
+      description: '**Required ACL:** `dird.directories.sources.read`'
       tags:
         - directories
       parameters:

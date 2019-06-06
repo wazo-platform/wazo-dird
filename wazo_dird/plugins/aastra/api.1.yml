@@ -1,9 +1,9 @@
 paths:
-  /directories/input/{profile}/{xivo_user_uuid}/aastra:
+  /directories/input/{xivo_user_uuid}/aastra:
     get:
       summary: Given informations about how make request lookup for Aastra Phones
       description: |
-        **Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.directories.input.{xivo_user_uuid}.read`
 
         The `input` query will return a XML to give informations about how make request
         lookup for Aastra Phones.
@@ -24,11 +24,11 @@ paths:
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/XivoUserUUID'
       - $ref: '#/parameters/ProxyUrl'
-  /directories/lookup/{profile}/{xivo_user_uuid}/aastra:
+  /directories/lookup/{xivo_user_uuid}/aastra:
     get:
       summary: Search for contacts with Aastra Phones
       description: |
-        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.directories.lookup.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Aastra Phones. The result will be retrieved from all configured

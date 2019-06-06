@@ -1,8 +1,8 @@
 paths:
-  /directories/lookup/{profile}:
+  /directories/lookup/:
     get:
       summary: Search for contacts
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.read`
+      description: '**Required ACL:** `dird.directories.lookup.read`
 
 
         The `lookup` query will return a list of result matching the searched term.
@@ -29,10 +29,10 @@ paths:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/Term'
-  /directories/reverse/{profile}/{xivo_user_uuid}:
+  /directories/reverse/{xivo_user_uuid}:
     get:
       summary: Search for contact by number
-      description: '**Required ACL:** `dird.directories.reverse.{profile}.{xivo_user_uuid}.read`
+      description: '**Required ACL:** `dird.directories.reverse.{xivo_user_uuid}.read`
 
 
         The `reverse` query will return a contact matching the searched exten. The
@@ -57,10 +57,10 @@ paths:
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/XivoUserUUID'
       - $ref: '#/parameters/Exten'
-  /directories/favorites/{profile}:
+  /directories/favorites:
     get:
       summary: List favorite contacts
-      description: '**Required ACL:** `dird.directories.favorites.{profile}.read`
+      description: '**Required ACL:** `dird.directories.favorites.read`
 
 
         Get the list of favorite contacts for directories configured in the profile'
@@ -125,10 +125,10 @@ paths:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/sourceuuid'
       - $ref: '#/parameters/FavoriteID'
-  /directories/personal/{profile}:
+  /directories/personal:
     get:
       summary: List personal contacts with formatting
-      description: '**Required ACL:** `dird.directories.personal.{profile}.read`
+      description: '**Required ACL:** `dird.directories.personal.read`
 
 
         Get the list of personal contacts formatted for the profile'

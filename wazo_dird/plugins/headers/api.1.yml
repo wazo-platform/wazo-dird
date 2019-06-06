@@ -1,8 +1,8 @@
 paths:
-  /directories/lookup/{profile}/headers:
+  /directories/lookup/headers:
     get:
       summary: Lookup headers
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.headers.read`
+      description: '**Required ACL:** `dird.directories.lookup.headers.read`
 
 
         Column headers that can be used when displaying lookup results to the client'

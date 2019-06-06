@@ -136,14 +136,12 @@ parameters:
     type: string
     description: Name of the field to use for sorting the list of items returned.
   Profile:
-    name: profile
-    in: path
+    name: Wazo-Dird-Profile
+    in: header
     type: string
     description: The profile defines the list of directories to query and how the
-      results are displayed. The profile is the context name of the user who
-      started the contact lookup, e.g. `default`. More precisely, it is the name
-      of the "Direct directory" defined in the web interface.
-    required: true
+      results are displayed. `default` is used if no profile is specified
+    required: false
   recurse:
     name: recurse
     in: query
