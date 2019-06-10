@@ -55,7 +55,7 @@ CONFIG = {
         'service_discovery': {
             'template_path': None,
             'services': {
-                'xivo-confd': {
+                'wazo-confd': {
                     'template': None,
                     'lookup': {
                         'foobar': True,
@@ -145,7 +145,7 @@ class TestSourceConfigGenerator(unittest.TestCase):
         service_discovery_config = {
             'template_path': None,
             'services': {
-                'xivo-confd': {
+                'wazo-confd': {
                     'template': self.template_filename,
                 },
             },
@@ -160,7 +160,7 @@ class TestSourceConfigGenerator(unittest.TestCase):
 
         generator = SourceConfigGenerator(service_discovery_config)
 
-        config = generator.generate_from_new_service('xivo-confd',
+        config = generator.generate_from_new_service('wazo-confd',
                                                      'other-uuid',
                                                      s.host,
                                                      s.port)
@@ -172,7 +172,7 @@ class TestSourceConfigGenerator(unittest.TestCase):
         service_discovery_config = {
             'template_path': self.template_dir,
             'services': {
-                'xivo-confd': {
+                'wazo-confd': {
                     'template': self.template_filename,
                 },
             },
@@ -187,7 +187,7 @@ class TestSourceConfigGenerator(unittest.TestCase):
 
         generator = SourceConfigGenerator(service_discovery_config)
 
-        config = generator.generate_from_new_service('xivo-confd',
+        config = generator.generate_from_new_service('wazo-confd',
                                                      uuid,
                                                      'the-host-name',
                                                      4567)
@@ -226,7 +226,7 @@ class TestProfileConfigUpdater(unittest.TestCase):
     def test_that_on_service_added_modifies_the_config(self):
         updater = ProfileConfigUpdater(self.config)
 
-        updater.on_service_added(self.source_name, 'xivo-confd')
+        updater.on_service_added(self.source_name, 'wazo-confd')
 
         expected_lookup_service = {
             'foobar': {'sources': {'source_1': True, 'source_2': True, self.source_name: True}},
@@ -260,6 +260,6 @@ class TestProfileConfigUpdater(unittest.TestCase):
 
         updater = ProfileConfigUpdater(self.config)
 
-        updater.on_service_added(self.source_name, 'xivo-confd')
+        updater.on_service_added(self.source_name, 'wazo-confd')
 
         assert_that(self.config['services'], equal_to(original_services))

@@ -178,10 +178,10 @@ class XiVOConfdError(APIException):
     def __init__(self, confd_client, error):
         super().__init__(
             status_code=503,
-            message='xivo-confd request error',
-            error_id='xivo-confd-error',
+            message='wazo-confd request error',
+            error_id='wazo-confd-error',
             details={
-                'xivo_confd_config': {
+                'wazo_confd_config': {
                     'host': confd_client.host,
                     'port': confd_client.port,
                     'timeout': confd_client.timeout,

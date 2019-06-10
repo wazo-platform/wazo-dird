@@ -148,7 +148,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
         '503':
-          description: Another service is unavailable (e.g. wazo-auth, xivo-confd, ...)
+          description: Another service is unavailable (e.g. wazo-auth, wazo-confd, ...)
           schema:
             $ref: '#/definitions/Error'
 definitions:
