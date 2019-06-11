@@ -3,7 +3,7 @@ paths:
     get:
       operationId: list_conference_sources
       summary: Get all `conference` source configurations
-      description: '**Required ACL:** dird.backends.conference.sources.read'
+      description: '**Required ACL:** `dird.backends.conference.sources.read`'
       tags:
         - configuration
         - conference

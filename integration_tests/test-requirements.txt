@@ -5,6 +5,7 @@ https://github.com/wazo-pbx/xivo-lib-python/archive/master.zip
 babel
 flask-babel
 docker-compose
+openapi-spec-validator
 pyhamcrest
 # pytest 4.2.0 has a bug: https://github.com/pytest-dev/pytest/issues/4700
 pytest!=4.2.0
