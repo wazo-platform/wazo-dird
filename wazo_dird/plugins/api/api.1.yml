@@ -175,6 +175,12 @@ parameters:
     type: string
     description: A search term to look for
     required: true
+  UserUUID:
+    name: user_uuid
+    in: path
+    type: string
+    description: The user UUID on which the result is associated. use `me` when using the user of the token
+    required: true
   XivoUserUUID:
     name: xivo_user_uuid
     in: path

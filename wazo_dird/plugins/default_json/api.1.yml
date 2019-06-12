@@ -1,8 +1,8 @@
 paths:
-  /contacts/lookup/:
+  /users/{user_uuid}/contacts/lookup/:
     get:
       summary: Search for contacts
-      description: '**Required ACL:** `dird.contacts.lookup.read`
+      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.lookup.read`
 
 
         The `lookup` query will return a list of result matching the searched term.
@@ -15,7 +15,7 @@ paths:
         plugin and all configured sources for the given profile.'
       operationId: lookup
       tags:
-      - contacts
+        - contacts
       responses:
         '200':
           description: A list of contacts
@@ -26,13 +26,14 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
-      - $ref: '#/parameters/tenantuuid'
-      - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/Term'
-  /contacts/reverse/{xivo_user_uuid}:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/UserUUID'
+        - $ref: '#/parameters/Term'
+        - $ref: '#/parameters/Profile'
+  /users/{user_uuid}/contacts/reverse:
     get:
       summary: Search for contact by number
-      description: '**Required ACL:** `dird.contacts.reverse.{xivo_user_uuid}.read`
+      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.reverse.read`
 
 
         The `reverse` query will return a contact matching the searched exten. The
@@ -44,7 +45,7 @@ paths:
         plugin and all configured sources for the given profile.'
       operationId: reverse
       tags:
-      - contacts
+        - contacts
       responses:
         '200':
           description: A contact
@@ -53,21 +54,21 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
-      - $ref: '#/parameters/tenantuuid'
-      - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/XivoUserUUID'
-      - $ref: '#/parameters/Exten'
-  /contacts/favorites:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/UserUUID'
+        - $ref: '#/parameters/Exten'
+        - $ref: '#/parameters/Profile'
+  /users/{user_uuid}/contacts/favorites:
     get:
       summary: List favorite contacts
-      description: '**Required ACL:** `dird.contacts.favorites.read`
+      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.favorites.read`
 
 
         Get the list of favorite contacts for directories configured in the profile'
       operationId: list_favorites
       tags:
-      - contacts
-      - favorites
+        - contacts
+        - favorites
       responses:
         '200':
           description: A list of contacts
@@ -78,19 +79,19 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
-      - $ref: '#/parameters/tenantuuid'
-      - $ref: '#/parameters/Profile'
-  /contacts/favorites/{source_uuid}/{contact}:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/UserUUID'
+        - $ref: '#/parameters/Profile'
+  /favorites/{source_uuid}/{contact}:
     put:
       summary: Mark a contact as favorite
-      description: '**Required ACL:** `dird.contacts.favorites.{source_uuid}.{contact}.update`
+      description: '**Required ACL:** `dird.favorites.{source_uuid}.{contact}.update`
 
 
         Add the contact from {source_uuid} to the list of favorite contacts.'
       operationId: add_favorite
       tags:
-      - contacts
-      - favorites
+        - favorites
       responses:
         '204':
           description: Favorite added.
@@ -106,14 +107,13 @@ paths:
       - $ref: '#/parameters/FavoriteID'
     delete:
       summary: Unmark a contact as favorite
-      description: '**Required ACL:** `dird.contacts.favorites.{source_uuid}.{contact}.delete`
+      description: '**Required ACL:** `dird.favorites.{source_uuid}.{contact}.delete`
 
 
         Remove the contact from {directory} from the list of favorite contacts.'
       operationId: remove_favorite
       tags:
-      - contacts
-      - favorites
+        - favorites
       responses:
         '204':
           description: Favorite removed.
@@ -125,17 +125,17 @@ paths:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/sourceuuid'
       - $ref: '#/parameters/FavoriteID'
-  /contacts/personal:
+  /users/{user_uuid}/contacts/personal:
     get:
       summary: List personal contacts with formatting
-      description: '**Required ACL:** `dird.contacts.personal.read`
+      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.personal.read`
 
 
         Get the list of personal contacts formatted for the profile'
       operationId: list_personal_profile
       tags:
-      - contacts
-      - personal
+        - contacts
+        - personal
       responses:
         '200':
           description: A list of contacts
@@ -146,5 +146,6 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
-      - $ref: '#/parameters/tenantuuid'
-      - $ref: '#/parameters/Profile'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/UserUUID'
+        - $ref: '#/parameters/Profile'

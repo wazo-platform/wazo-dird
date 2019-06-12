@@ -1,8 +1,8 @@
 paths:
-  /contacts/lookup/headers:
+  /users/{user_uuid}/contacts/lookup/headers:
     get:
       summary: Lookup headers
-      description: '**Required ACL:** `dird.contacts.lookup.headers.read`
+      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.lookup.headers.read`
 
 
         Column headers that can be used when displaying lookup results to the client'
@@ -19,5 +19,5 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
-      - $ref: '#/parameters/tenantuuid'
-      - $ref: '#/parameters/Profile'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/UserUUID'
