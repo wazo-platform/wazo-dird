@@ -17,10 +17,10 @@ paths:
         Search strategies:
 
         * all: search through all configured sources and return results in the order they are received
-        * all_sequencial: same as `all` but results are in the same order as the source configuration
+        * ordered: same as `all` but results are in the same order as the source configuration
         * first: returns the first results from looking through all configured sources
 
-        The `all_sequencial` strategy must be used when doing pagination to get deterministic results
+        The `ordered` strategy must be used when doing pagination to get deterministic results
 
         Doing a reverse lookup would look like this:
 
@@ -120,5 +120,5 @@ parameters:
     default: all
     enum:
       - all
-      - all_sequencial
       - first
+      - ordered
