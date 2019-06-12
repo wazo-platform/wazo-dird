@@ -110,29 +110,6 @@ paths:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/sourceuuid'
       - $ref: '#/parameters/FavoriteID'
-  /users/{user_uuid}/contacts/personal:
-    get:
-      summary: List personal contacts with formatting
-      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.personal.read`
-
-
-        Get the list of personal contacts formatted for the profile'
-      operationId: list_personal_profile
-      tags:
-        - contacts
-        - personal
-      responses:
-        '200':
-          description: A list of contacts
-          schema:
-            $ref: '#/definitions/PhonebookContactList'
-        '404':
-          $ref: '#/responses/ProfileInvalid'
-        '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
-      parameters:
-        - $ref: '#/parameters/tenantuuid'
-        - $ref: '#/parameters/UserUUID'
 parameters:
   SearchStrategy:
     name: search_strategy
