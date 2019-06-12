@@ -45,11 +45,10 @@ paths:
         - $ref: '#/parameters/Term'
         - $ref: '#/parameters/SearchStrategy'
         - $ref: '#/parameters/Profile'
-  /users/{user_uuid}/contacts/favorites:
+  /users/{user_uuid}/favorites:
     get:
       summary: List favorite contacts
-      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.favorites.read`
-
+      description: '**Required ACL:** `dird.users.{user_uuid}.favorites.read`
 
         Get the list of favorite contacts for directories configured in the profile'
       operationId: list_favorites
@@ -73,7 +72,6 @@ paths:
     put:
       summary: Mark a contact as favorite
       description: '**Required ACL:** `dird.favorites.{source_uuid}.{contact}.update`
-
 
         Add the contact from {source_uuid} to the list of favorite contacts.'
       operationId: add_favorite
