@@ -1,10 +1,10 @@
 paths:
-  /directories/sources:
+  /contacts/sources:
     get:
       summary: List all sources configured for the given profile
-      description: '**Required ACL:** `dird.directories.sources.read`'
+      description: '**Required ACL:** `dird.contacts.sources.read`'
       tags:
-        - directories
+        - contacts
       parameters:
         - $ref: '#/parameters/Profile'
         - $ref: '#/parameters/tenantuuid'

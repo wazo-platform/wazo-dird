@@ -1,9 +1,9 @@
 paths:
-  /directories/input/{xivo_user_uuid}/polycom:
+  /contacts/input/{xivo_user_uuid}/polycom:
     get:
       summary: Given informations about how make request lookup for Polycom Phones
       description: |
-        **Required ACL:** `dird.directories.input.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.contacts.input.{xivo_user_uuid}.read`
 
         The `input` query will return a XML to give informations about how make request
         lookup for Polycom Phones.
@@ -33,11 +33,11 @@ paths:
       - $ref: '#/parameters/XivoUserUUID'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
-  /directories/lookup/{xivo_user_uuid}/polycom:
+  /contacts/lookup/{xivo_user_uuid}/polycom:
     get:
       summary: Search for contacts with Polycom Phones
       description: |
-        **Required ACL:** `dird.directories.lookup.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.contacts.lookup.{xivo_user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Polycom Phones. The result will be retrieved from all configured
@@ -58,9 +58,9 @@ paths:
             $ref: '#/definitions/PolycomIPPhoneDirectory'
           examples:
             text/html: <html> <head> <title>Wazo Search</title> </head> <body> <ol>
-              <li>[<a href='https://wazo-dird:9489/0.1/directories/lookup/default_phone/polycom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1'
+              <li>[<a href='https://wazo-dird:9489/0.1/contacts/lookup/default_phone/polycom?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=1'
               title='Previous'>Previous</a>]<br /></li> <li><a href='tel://5555555555'>Alice</a><br
-              /></li>  <li>[<a href='https://wazo-dird:9489/0.1/directories/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2'
+              /></li>  <li>[<a href='https://wazo-dird:9489/0.1/contacts/lookup/default_phone/cisco?xivo_user_uuid=000000-0000-0000-0000-000000000000&amp;term=Alice&amp;limit=1&amp;offset=2'
               title='Next'>Next</a>]<br /></li> </ol> </body> </html>
         '400':
           $ref: '#/responses/LimitOffsetInvalid'
