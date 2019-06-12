@@ -1,18 +1,32 @@
 paths:
-  /users/{user_uuid}/contacts/lookup/:
+  /users/{user_uuid}/contacts:
     get:
       summary: Search for contacts
-      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.lookup.read`
+      description: |
+        **Required ACL:** `dird.users.{user_uuid}.contacts.lookup.read`
 
-
-        The `lookup` query will return a list of result matching the searched term.
+        The `contacts` query will return a list of result matching the searched term.
         The result will be retrieved from all configured directories for the given
         profile.
 
-
+        The `search_strategy` can be used to modify the behavior of the search algorithm
 
         This route is provided by the `default_json_view` plugin using the `lookup`
-        plugin and all configured sources for the given profile.'
+        plugin and all configured sources for the given profile.
+
+        Search strategies:
+
+        * all: search through all configured sources and return results in the order they are received
+        * all_sequencial: same as `all` but results are in the same order as the source configuration
+        * first: returns the first results from looking through all configured sources
+
+        The `all_sequencial` strategy must be used when doing pagination to get deterministic results
+
+        Doing a reverse lookup would look like this:
+
+          ```
+          GET /users/me/contacts?search_strategy=first&term=5551234567
+          ```
       operationId: lookup
       tags:
         - contacts
@@ -29,34 +43,7 @@ paths:
         - $ref: '#/parameters/tenantuuid'
         - $ref: '#/parameters/UserUUID'
         - $ref: '#/parameters/Term'
-        - $ref: '#/parameters/Profile'
-  /users/{user_uuid}/contacts/reverse:
-    get:
-      summary: Search for contact by number
-      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.reverse.read`
-
-
-        The `reverse` query will return a contact matching the searched exten. The
-        result will be retrieved from all configured directories for the given profile.
-
-
-
-        This route is provided by the `default_json_view` plugin using the `reverse`
-        plugin and all configured sources for the given profile.'
-      operationId: reverse
-      tags:
-        - contacts
-      responses:
-        '200':
-          description: A contact
-          schema:
-            $ref: '#/definitions/Reverse'
-        '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
-      parameters:
-        - $ref: '#/parameters/tenantuuid'
-        - $ref: '#/parameters/UserUUID'
-        - $ref: '#/parameters/Exten'
+        - $ref: '#/parameters/SearchStrategy'
         - $ref: '#/parameters/Profile'
   /users/{user_uuid}/contacts/favorites:
     get:
@@ -148,4 +135,15 @@ paths:
       parameters:
         - $ref: '#/parameters/tenantuuid'
         - $ref: '#/parameters/UserUUID'
-        - $ref: '#/parameters/Profile'
+parameters:
+  SearchStrategy:
+    name: search_strategy
+    in: query
+    required: false
+    description: The search strategy to use for the current request
+    type: string
+    default: all
+    enum:
+      - all
+      - all_sequencial
+      - first
