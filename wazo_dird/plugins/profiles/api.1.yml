@@ -112,8 +112,6 @@ definitions:
           name:
             type: string
             description: The name of the profile
-          display:
-            $ref: '#/definitions/DisplayIdentifier'
           services:
             type: object
             properties:

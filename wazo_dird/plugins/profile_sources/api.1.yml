@@ -1,8 +1,8 @@
 paths:
-  /users/{user_uuid}/contacts/sources:
+  /users/{user_uuid}/sources:
     get:
-      summary: List all sources configured for the given profile
-      description: '**Required ACL:** `dird.users.{user_uuid}.contacts.sources.read`'
+      summary: List all sources configured that are configured for the user's profile
+      description: '**Required ACL:** `dird.users.{user_uuid}.sources.read`'
       tags:
         - contacts
       parameters:
