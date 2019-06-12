@@ -1,17 +1,17 @@
 paths:
-  /tenants/{tenant}/phonebooks:
+  /phonebooks:
     get:
-      summary: List all phonebooks for a given tenant
-      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.read`'
+      summary: List all phonebooks
+      description: '**Required ACL:** `dird.phonebooks.read`'
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/order'
-      - $ref: '#/parameters/direction'
-      - $ref: '#/parameters/Limit'
-      - $ref: '#/parameters/Offset'
-      - $ref: '#/parameters/search'
-      - $ref: '#/parameters/Tenant'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+        - $ref: '#/parameters/search'
       responses:
         '200':
           description: List of phonebooks
@@ -25,18 +25,18 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
     post:
       summary: Create a new phonebook
-      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.create`'
+      description: '**Required ACL:** `dird.phonebooks.create`'
       operationId: create_phonebook
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - name: phonebook
-        in: body
-        description: The attributes of the phonebook
-        required: true
-        schema:
-          $ref: '#/definitions/PhonebookBody'
+        - $ref: '#/parameters/tenantuuid'
+        - name: phonebook
+          in: body
+          description: The attributes of the phonebook
+          required: true
+          schema:
+            $ref: '#/definitions/PhonebookBody'
       responses:
         '201':
           description: The new phonebook
@@ -50,15 +50,15 @@ paths:
           $ref: '#/responses/DuplicatePhonebook'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
-  /tenants/{tenant}/phonebooks/{phonebook_id}:
+  /phonebooks/{phonebook_id}:
     get:
       summary: Get the attributes of a phonebook
-      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.read`'
+      description: '**Required ACL:** `dird.phonebooks.{phonebook_id}.read`'
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/PhonebookID'
       responses:
         '200':
           description: The phonebook attributes
@@ -74,18 +74,18 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
     put:
       summary: Modify an existing phonebook
-      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.edit`'
+      description: '**Required ACL:** `dird.phonebooks.{phonebook_id}.edit`'
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
-      - name: phonebook
-        in: body
-        description: The modified attributes of the phonebook
-        required: true
-        schema:
-          $ref: '#/definitions/PhonebookBody'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/PhonebookID'
+        - name: phonebook
+          in: body
+          description: The modified attributes of the phonebook
+          required: true
+          schema:
+            $ref: '#/definitions/PhonebookBody'
       responses:
         '204':
           description: Phonebook updated
@@ -101,12 +101,12 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
     delete:
       summary: Delete an existing phonebook
-      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete`'
+      description: '**Required ACL:** `dird.phonebooks.{phonebook_id}.delete`'
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/PhonebookID'
       responses:
         '204':
           description: Phonebook deleted
@@ -118,20 +118,20 @@ paths:
             $ref: '#/definitions/Error'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
-  /tenants/{tenant}/phonebooks/{phonebook_id}/contacts:
+  /phonebooks/{phonebook_id}/contacts:
     get:
       summary: List all contacts for a given phonebook
-      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read`'
+      description: '**Required ACL:** `dird.phonebooks.{phonebook_id}.contacts.read`'
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/order'
-      - $ref: '#/parameters/direction'
-      - $ref: '#/parameters/Limit'
-      - $ref: '#/parameters/Offset'
-      - $ref: '#/parameters/search'
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+        - $ref: '#/parameters/search'
+        - $ref: '#/parameters/PhonebookID'
       responses:
         '200':
           description: A list of contacts
@@ -143,19 +143,19 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
     post:
       summary: Create a new contact
-      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create`'
+      description: '**Required ACL:** `dird.phonebooks.{phonebook_id}.contacts.create`'
       operationId: create_phonebook
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
-      - name: contact
-        in: body
-        description: The attributes of the contact
-        required: true
-        schema:
-          $ref: '#/definitions/ContactBodySample'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/PhonebookID'
+        - name: contact
+          in: body
+          description: The attributes of the contact
+          required: true
+          schema:
+            $ref: '#/definitions/ContactBodySample'
       responses:
         '201':
           description: The new contact
@@ -167,29 +167,32 @@ paths:
           $ref: '#/responses/DuplicateContact'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
-  /tenants/{tenant}/phonebooks/{phonebook_id}/contacts/import:
+  /phonebooks/{phonebook_id}/contacts/import:
     post:
       summary: Import multiple contacts at once
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create`'
       operationId: import_phonebook
       tags:
-      - phonebook
+        - phonebook
       consumes:
-      - text/csv; charset=utf-8
-      - text/csv; charset=iso8859-15
-      - text/csv; charset=cp1252
+        - text/csv; charset=utf-8
+        - text/csv; charset=iso8859-15
+        - text/csv; charset=cp1252
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
-      - name: contacts
-        description: "The attributes of the contacts in CSV format.\r\n* The encoding\
-          \ must be set in the Content-Type header, via the `charset=` option.\r\n\
-          * Field delimiter: `,`.\r\n* Quoting character: `\"`.\r\n* Line delimiter:\
-          \ `\\r\\n`."
-        in: body
-        required: true
-        schema:
-          type: string
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/PhonebookID'
+        - name: contacts
+          description: |
+            The attributes of the contacts in CSV format.
+
+            * The encoding must be set in the Content-Type header, via the `charset=` option.
+            * Field delimiter: `,`.
+            * Quoting character: `\"`.
+            * Line delimiter: `\\r\\n`.
+          in: body
+          required: true
+          schema:
+            type: string
       responses:
         '201':
           description: At least one contact has been created.
@@ -201,16 +204,16 @@ paths:
             $ref: '#/definitions/Error'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
-  /tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_id}:
+  /phonebooks/{phonebook_id}/contacts/{contact_id}:
     get:
       summary: Get the attributes of a contact
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.read`'
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
-      - $ref: '#/parameters/ContactID'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/PhonebookID'
+        - $ref: '#/parameters/ContactID'
       responses:
         '200':
           description: The contact attributes
@@ -226,17 +229,17 @@ paths:
       summary: Modify an existing contact
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.update`'
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
-      - $ref: '#/parameters/ContactID'
-      - name: contact
-        in: body
-        description: The modified attributes of the contact
-        required: true
-        schema:
-          $ref: '#/definitions/ContactBodySample'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/PhonebookID'
+        - $ref: '#/parameters/ContactID'
+        - name: contact
+          in: body
+          description: The modified attributes of the contact
+          required: true
+          schema:
+            $ref: '#/definitions/ContactBodySample'
       responses:
         '204':
           description: Contact updated
@@ -254,11 +257,11 @@ paths:
       summary: Delete an existing contact
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.delete`'
       tags:
-      - phonebook
+        - phonebook
       parameters:
-      - $ref: '#/parameters/Tenant'
-      - $ref: '#/parameters/PhonebookID'
-      - $ref: '#/parameters/ContactID'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/PhonebookID'
+        - $ref: '#/parameters/ContactID'
       responses:
         '204':
           description: Contact deleted
