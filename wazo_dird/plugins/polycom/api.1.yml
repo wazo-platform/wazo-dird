@@ -1,18 +1,17 @@
 paths:
-  /contacts/input/{xivo_user_uuid}/polycom:
+  /phones/polycom/{user_uuid}/input:
     get:
       summary: Given informations about how make request lookup for Polycom Phones
       description: |
-        **Required ACL:** `dird.contacts.input.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.phones.{user_uuid}.input.read`
 
         The `input` query will return a XML to give informations about how make request
         lookup for Polycom Phones.
       operationId: polycom_input
       tags:
-      - polycom
-      - phone directories
+        - phone directories
       produces:
-      - text/html
+        - text/html
       responses:
         '200':
           description: HTML to make request lookup
@@ -29,17 +28,18 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
-      - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/XivoUserUUID'
-      - $ref: '#/parameters/ProxyUrl'
-      - $ref: '#/parameters/AcceptLanguage'
-  /contacts/lookup/{xivo_user_uuid}/polycom:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/UserUUID'
+        - $ref: '#/parameters/ProxyUrl'
+        - $ref: '#/parameters/AcceptLanguage'
+        - $ref: '#/parameters/Profile'
+  /phones/polycom/{user_uuid}/contacts:
     get:
       summary: Search for contacts with Polycom Phones
       description: |
-        **Required ACL:** `dird.contacts.lookup.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.phones.{user_uuid}.contacts.read`
 
-        The `lookup` query will return a list of result matching the searched term
+        The `contacts` query will return a list of result matching the searched term
         formated for Polycom Phones. The result will be retrieved from all configured
         directories for the given profile.
 
@@ -47,10 +47,9 @@ paths:
         and all configured sources for the given profile.
       operationId: polycom_lookup
       tags:
-      - polycom
-      - phone directories
+        - phone directories
       produces:
-      - text/html
+        - text/html
       responses:
         '200':
           description: A list of contacts
@@ -69,13 +68,14 @@ paths:
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
-      - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/XivoUserUUID'
-      - $ref: '#/parameters/Term'
-      - $ref: '#/parameters/Limit16'
-      - $ref: '#/parameters/Offset'
-      - $ref: '#/parameters/ProxyUrl'
-      - $ref: '#/parameters/AcceptLanguage'
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/UserUUID'
+        - $ref: '#/parameters/Term'
+        - $ref: '#/parameters/Limit16'
+        - $ref: '#/parameters/Offset'
+        - $ref: '#/parameters/ProxyUrl'
+        - $ref: '#/parameters/AcceptLanguage'
+        - $ref: '#/parameters/Profile'
 
 definitions:
   PolycomIPPhoneDirectory:
