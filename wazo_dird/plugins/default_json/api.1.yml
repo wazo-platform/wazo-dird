@@ -34,7 +34,7 @@ paths:
         '200':
           description: A list of contacts
           schema:
-            $ref: '#/definitions/Lookup'
+            $ref: '#/definitions/ContactList'
         '404':
           $ref: '#/responses/ProfileInvalid'
         '503':

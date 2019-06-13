@@ -219,67 +219,99 @@ definitions:
         description: Data types for the headers
         items:
           type: string
-  Lookup:
+  ContactItem:
     properties:
-      backend:
+      display_name:
         type: string
-        description: Backend type
-      column_headers:
-        type: array
-        description: Labels for the headers
-        items:
-          type: string
-      column_types:
-        type: array
-        description: Data types for the headers
-        items:
-          type: string
-      results:
-        items:
-          $ref: '#/definitions/Contact'
-        type: array
-        description: List of results
-      term:
+        description: The name that should be displayed when showing that contact
+      first_name:
         type: string
-        description: Search term used for these results
+        description: The given name of the contact
+      last_name:
+        type: string
+        description: The surname of the contact
+      middle_name:
+        type: string
+        description: The middle name of the contact
+      company_name:
+        type: string
+        description: The name of the contact's company
+      addresses:
+        type: array
+        description: A list of contact addresses
+        items:
+          $ref: '#/definitions/LabeledAddress'
+      emails:
+        type: array
+        description: A list of contact email addresses
+        items:
+          $ref: '#/definitions/LabeledEmails'
+      phones:
+        type: array
+        description: A list of contact phone numbers
+        items:
+          $ref: '#/definitions/LabeledPhoneNumbers'
     required:
-    - backend
-    - column_headers
-    - column_types
-    - results
-    - term
-    - links
+      - backend
+      - source_uuid
+  LabeledAddress:
+    properties:
+      label:
+        type: string
+        description: A description of the address
+      address:
+        type: string
+  LabeledEmails:
+    properties:
+      label:
+        type: string
+        description: A description of the email address
+      email:
+        type: string
+  LabeledPhoneNumbers:
+    properties:
+      label:
+        type: string
+        description: A description of the phone number
+      number:
+        type: string
   ContactList:
     properties:
-      results:
-        items:
-          $ref: '#/definitions/Contact'
+      items:
         type: array
-        description: List of results
-  Contact:
-    properties:
-      column_values:
         items:
-          type: string
-        type: array
-      relations:
-        $ref: '#/definitions/Relation'
-      source:
-        type: string
+          $ref: '#/definitions/ContactItem'
+      total:
+        type: number
+        description: The number of contacts matching thie searched term
   Relation:
     properties:
-      xivo_id:
+      wazo_uuid:
         type: string
+        description: The UUID of the Wazo instance of that contact
       user_id:
         type: string
+        description: The confd ID of the Wazo user if that contact is a Wazo user
       user_uuid:
         type: string
-      endpoint_id:
-        type: string
+        description: The auth UUID of the Wazo user if that contact is a Wazo user
+      line_ids:
+        type: array
+        items:
+          type: string
+        description: A list of line IDs owned by that contact
       agent_id:
         type: string
+        description: The agent ID if this contact is an agent
       source_entry_id:
         type: string
+        description: The ID of the contact in its source (used to mark a contact as favorite)
+      backend:
+        type: string
+        description: The type of the source which returned this contact
+      source_uuid:
+        type: string
+        description: The UUID of the source which returned this contact
   Source:
     properties:
       uuid:
