@@ -44,7 +44,3 @@ definitions:
             type: integer
             description: The number of backends matching the search filters
             readOnly: true
-      - required:
-          - items
-          - total
-          - filtered

@@ -184,10 +184,6 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/ConferenceContact'
-    required:
-      - items
-      - total
-      - filtered
   ConferenceSource:
     title: ConferenceSource
     allOf:
@@ -211,7 +207,3 @@ definitions:
             items:
               $ref: '#/definitions/ConferenceSource'
             readOnly: true
-      - required:
-          - items
-          - total
-          - filtered

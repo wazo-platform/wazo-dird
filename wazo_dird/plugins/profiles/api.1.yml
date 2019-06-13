@@ -136,10 +136,6 @@ definitions:
             type: integer
             description: The number of configured profiles matching the searched terms
             readOnly: true
-      - required:
-          - items
-          - total
-          - filtered
   ServiceConfiguration:
     title: Service
     properties:

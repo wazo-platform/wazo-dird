@@ -125,7 +125,3 @@ definitions:
             items:
               $ref: '#/definitions/PhonebookSource'
             readOnly: true
-      - required:
-          - items
-          - total
-          - filtered

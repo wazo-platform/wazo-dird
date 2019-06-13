@@ -139,7 +139,3 @@ definitions:
             items:
               $ref: '#/definitions/CSVSource'
             readOnly: true
-      - required:
-          - items
-          - total
-          - filtered

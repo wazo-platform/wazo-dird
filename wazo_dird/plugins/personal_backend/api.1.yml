@@ -125,7 +125,3 @@ definitions:
             items:
               $ref: '#/definitions/PersonalSource'
             readOnly: true
-      - required:
-          - items
-          - total
-          - filtered

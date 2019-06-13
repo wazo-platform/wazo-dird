@@ -149,7 +149,3 @@ definitions:
             items:
               $ref: '#/definitions/CSVWSSource'
             readOnly: true
-      - required:
-          - items
-          - total
-          - filtered
