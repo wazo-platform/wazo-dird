@@ -52,7 +52,7 @@ paths:
         '201':
           description: The new personal contact
           schema:
-            $ref: '#/definitions/Contact'
+            $ref: '#/definitions/ContactItem'
         '409':
           $ref: '#/responses/DuplicateContact'
         '503':
@@ -84,7 +84,7 @@ paths:
         '200':
           description: The personal contact attributes.
           schema:
-            $ref: '#/definitions/Contact'
+            $ref: '#/definitions/ContactItem'
         '404':
           $ref: '#/responses/PersonalContactIDInvalid'
         '503':
@@ -111,7 +111,7 @@ paths:
         '200':
           description: The personal contact was edited.
           schema:
-            $ref: '#/definitions/Contact'
+            $ref: '#/definitions/ContactItem'
         '404':
           $ref: '#/responses/PersonalContactIDInvalid'
         '409':

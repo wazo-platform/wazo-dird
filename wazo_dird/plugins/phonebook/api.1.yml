@@ -160,7 +160,7 @@ paths:
         '201':
           description: The new contact
           schema:
-            $ref: '#/definitions/Contact'
+            $ref: '#/definitions/ContactItem'
         '400':
           $ref: '#/responses/InvalidParameters'
         '409':
