@@ -41,27 +41,27 @@ responses:
   InvalidParameters:
     description: Invalid parameters
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/APIError'
   ProfileInvalid:
     description: The profile does not exist
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/APIError'
   AnotherServiceUnavailable:
     description: Another service is unavailable (e.g. wazo-auth, postgresql, ...)
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/APIError'
   LimitOffsetInvalid:
     description: The limit or offset should be positive
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/APIError'
   DuplicateFavorite:
     description: The contact has already been favorited
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/APIError'
   DuplicateContact:
     description: This contact already exists
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/APIError'
 parameters:
   AcceptLanguage:
     name: Accept-Language
@@ -189,36 +189,17 @@ parameters:
       search in personal contacts)
     required: true
 definitions:
-  Error:
-    title: Error
-    description: Error message for the client
+  APIError:
     properties:
       timestamp:
-        description: Time at which the error occured
-        type: array
-        items:
-          type: number
-          format: timestamp
-      reason:
+        type: number
+      message:
         description: Human readable explanation of the error
-        type: array
-        items:
-          type: string
-      status_code:
-        description: HTTP status code
-        type: integer
-  Header:
-    properties:
-      column_headers:
-        type: array
-        description: Labels for the headers
-        items:
-          type: string
-      column_types:
-        type: array
-        description: Data types for the headers
-        items:
-          type: string
+        type: string
+      resource:
+        type: string
+      details:
+        type: object
   ContactItem:
     properties:
       display_name:

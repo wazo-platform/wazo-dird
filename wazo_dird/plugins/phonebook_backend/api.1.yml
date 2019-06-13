@@ -50,7 +50,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
   /backends/phonebook/sources/{source_uuid}:
     get:
       operationId: get_a_phonebook_source
@@ -93,7 +93,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
     delete:
       operationId: delete_phonebook_source
       summary: Delete a `phonebook` source configuration

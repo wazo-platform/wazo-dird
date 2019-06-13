@@ -55,7 +55,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
   /backends/csv_ws/sources/{source_uuid}:
     get:
       operationId: get_a_csv_ws_source
@@ -98,7 +98,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
     delete:
       operationId: delete_csv_ws_source
       summary: Delete a `csv_ws` source configuration

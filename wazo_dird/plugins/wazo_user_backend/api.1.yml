@@ -52,7 +52,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
   /backends/wazo/sources/{source_uuid}:
     get:
       operationId: get_a_wazo_source
@@ -95,7 +95,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
     delete:
       operationId: delete_wazo_source
       summary: Delete a `wazo` source configuration
@@ -137,15 +137,15 @@ paths:
         '401':
           description: Unauthorized
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
         '404':
           description: No such source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
         '503':
           description: Another service is unavailable (e.g. wazo-auth, xivo-confd, ...)
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/APIError'
 definitions:
   WazoContact:
     properties:

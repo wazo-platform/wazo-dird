@@ -69,7 +69,7 @@ responses:
   NotFoundError:
     description: The resource requested was not found on the server
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/APIError'
   ResourceUpdated:
     description: Resource was updated successfully
   ResourceDeleted:
@@ -79,17 +79,6 @@ responses:
     schema:
       $ref: '#/definitions/APIError'
 definitions:
-  APIError:
-    type: object
-    properties:
-      timestamp:
-        type: number
-      message:
-        type: string
-      resource:
-        type: string
-      details:
-        type: object
   Service:
     title: Service
     allOf:
