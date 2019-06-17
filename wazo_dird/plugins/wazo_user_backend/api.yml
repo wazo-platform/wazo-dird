@@ -149,6 +149,9 @@ paths:
 definitions:
   WazoContact:
     properties:
+      id:
+        type: integer
+        description: The ID of the contact which is used to favorite that contact
       uuid:
         type: string
         description: The UUID of the contact

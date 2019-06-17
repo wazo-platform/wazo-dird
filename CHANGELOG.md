@@ -1,6 +1,12 @@
 Changelog
 =========
 
+19.09
+-----
+
+* The `id` column has been added to the `wazo` contact list
+
+
 19.08
 -----
 

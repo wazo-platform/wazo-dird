@@ -46,6 +46,7 @@ class TestWazoContactList(BaseDirdIntegrationTest):
             filtered=4,
             items=contains_inanyorder(
                 has_entries(
+                    id=1,
                     uuid=uuid_(),
                     firstname='John',
                     lastname='Doe',
@@ -61,6 +62,7 @@ class TestWazoContactList(BaseDirdIntegrationTest):
         ))
 
         assert_that(result['items'][0].keys(), contains_inanyorder(
+            'id',
             'uuid',
             'firstname',
             'lastname',

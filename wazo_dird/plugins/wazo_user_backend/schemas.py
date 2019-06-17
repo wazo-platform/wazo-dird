@@ -35,6 +35,7 @@ class ContactListSchema(_ListSchema):
 
 
 class ContactSchema(BaseSchema):
+    id = fields.Integer()
     uuid = fields.String()
     firstname = fields.String()
     lastname = fields.String()
