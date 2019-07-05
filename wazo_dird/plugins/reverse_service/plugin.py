@@ -51,7 +51,9 @@ class _ReverseService(helpers.BaseService):
         args = args or {}
         futures = []
         sources = self.source_from_profile(profile_config)
-        logger.debug('Reverse lookup for {} in sources {}'.format(exten, [source.name for source in sources]))
+        logger.debug(
+            'Reverse lookup for %s in sources %s', exten, [source.name for source in sources],
+        )
         for source in sources:
             args['token'] = token
             args['xivo_user_uuid'] = xivo_user_uuid

@@ -92,7 +92,9 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
         bodies = [{}, {'name': ''}, {'name': None}]
         for body in bodies:
             assert_that(
-                calling(self.service.edit_phonebook).with_args(s.tenant_uuid, s.phonebook_id, body),
+                calling(self.service.edit_phonebook).with_args(
+                    s.tenant_uuid, s.phonebook_id, body,
+                ),
                 raises(InvalidPhonebookException),
                 body,
             )
@@ -153,7 +155,9 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
         invalid_bodies = [{'': 'Foo'}, {}]
         for body in invalid_bodies:
             assert_that(
-                calling(self.service.create_contact).with_args(s.tenant_uuid, s.phonebook_id, body),
+                calling(self.service.create_contact).with_args(
+                    s.tenant_uuid, s.phonebook_id, body,
+                ),
                 raises(InvalidContactException),
                 body,
             )
@@ -211,19 +215,27 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
         result = self.service.get_contact(s.tenant_uuid, s.phonebook_id, s.contact_uuid)
 
         assert_that(result, equal_to(self.contact_crud.get.return_value))
-        self.contact_crud.get.assert_called_once_with(s.tenant_uuid, s.phonebook_id, s.contact_uuid)
+        self.contact_crud.get.assert_called_once_with(
+            s.tenant_uuid, s.phonebook_id, s.contact_uuid,
+        )
 
 
 class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 
     def setUp(self):
         super().setUp()
-        self._manolo = {'firstname': 'Manolo', 'lastname': 'Laporte-Carpentier', 'number': '5551111234'}
+        self._manolo = {
+            'firstname': 'Manolo',
+            'lastname': 'Laporte-Carpentier',
+            'number': '5551111234',
+        }
         self._annabelle = {'firstname': 'Ännabelle', 'lastname': 'Courval', 'number': '5552221234'}
         self._gary_bob = {'firstname': 'Gary-Bob', 'lastname': 'Derome'}
         self._antonin = {'firstname': 'Antonin', 'lastname': 'Mongeau', 'number': '5554441234'}
         self._simon = {'firstname': 'Simon', 'lastname': "L'Espérance"}
-        self._contacts = [self._manolo, self._annabelle, self._gary_bob, self._antonin, self._simon]
+        self._contacts = [
+            self._manolo, self._annabelle, self._gary_bob, self._antonin, self._simon,
+        ]
 
     def test_that_list_returns_the_db_result_when_no_pagination_or_sorting(self):
         self.contact_crud.list.return_value = self._contacts
@@ -252,7 +264,9 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_that_list_can_have_an_offset(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(s.tenant_uuid, s.phonebook_id, search=s.search, offset=3)
+        result = self.service.list_contact(
+            s.tenant_uuid, s.phonebook_id, search=s.search, offset=3,
+        )
 
         self.contact_crud.list.assert_called_once_with(
             s.tenant_uuid,

@@ -57,7 +57,9 @@ class _PersonalService:
     def create_contacts(self, contact_infos, token_infos):
         errors = []
         to_add = []
-        existing_contact_uuids = set([contact['id'] for contact in self._crud.list_personal_contacts()])
+        existing_contact_uuids = set(
+            [contact['id'] for contact in self._crud.list_personal_contacts()],
+        )
 
         for contact_info in contact_infos:
             try:
@@ -80,7 +82,9 @@ class _PersonalService:
 
     def edit_contact(self, contact_id, contact_infos, token_infos):
         self.validate_contact(contact_infos)
-        return self._crud.edit_personal_contact(token_infos['xivo_user_uuid'], contact_id, contact_infos)
+        return self._crud.edit_personal_contact(
+            token_infos['xivo_user_uuid'], contact_id, contact_infos,
+        )
 
     def remove_contact(self, contact_id, token_infos):
         self._crud.delete_personal_contact(token_infos['xivo_user_uuid'], contact_id)

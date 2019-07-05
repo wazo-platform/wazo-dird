@@ -50,7 +50,9 @@ class CSVWSPlugin(BaseSourcePlugin):
         params = {column: term for column in self._searched_columns}
 
         try:
-            response = requests.get(url, params=params, timeout=self._timeout, verify=self._verify_certificate)
+            response = requests.get(
+                url, params=params, timeout=self._timeout, verify=self._verify_certificate,
+            )
         except RequestException as e:
             logger.error('Error connecting to %s: %s', url, e)
             return []
@@ -69,7 +71,9 @@ class CSVWSPlugin(BaseSourcePlugin):
         params = {column: term for column in self._first_matched_columns}
 
         try:
-            response = requests.get(url, params=params, timeout=self._timeout, verify=self._verify_certificate)
+            response = requests.get(
+                url, params=params, timeout=self._timeout, verify=self._verify_certificate,
+            )
         except RequestException as e:
             logger.error('Error connecting to %s: %s', url, e)
             return None
@@ -90,7 +94,9 @@ class CSVWSPlugin(BaseSourcePlugin):
             return []
 
         try:
-            response = requests.get(self._list_url, timeout=self._timeout, verify=self._verify_certificate)
+            response = requests.get(
+                self._list_url, timeout=self._timeout, verify=self._verify_certificate,
+            )
         except RequestException as e:
             logger.error('Error connecting to %s: %s', self._list_url, e)
             return []

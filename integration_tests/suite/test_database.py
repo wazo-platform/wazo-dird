@@ -48,6 +48,7 @@ Session = None
 def new_uuid():
     return str(uuid4())
 
+
 TENANT_UUID = new_uuid()
 
 
@@ -950,7 +951,11 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     @with_user_uuid
-    def test_that_personal_contacts_can_be_duplicated_between_users(self, user_uuid_1, user_uuid_2):
+    def test_that_personal_contacts_can_be_duplicated_between_users(
+            self,
+            user_uuid_1,
+            user_uuid_2,
+    ):
         contact_1_uuid = self._crud.create_personal_contact(user_uuid_1, self.contact_1)['id']
         contact_2_uuid = self._crud.create_personal_contact(user_uuid_2, self.contact_1)['id']
 
@@ -1249,7 +1254,10 @@ class TestPersonalContactSearchEngine(_BaseTest):
         ids = self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
 
         result = engine.list_personal_contacts(xivo_user_uuid, ids)
-        assert_that(result, contains_inanyorder(expected(self.contact_1), expected(self.contact_2)))
+        assert_that(result, contains_inanyorder(
+            expected(self.contact_1),
+            expected(self.contact_2),
+        ))
 
         result = engine.list_personal_contacts(xivo_user_uuid, ids[:1])
         assert_that(result, contains(expected(self.contact_1)))
@@ -1266,10 +1274,14 @@ class TestPersonalContactSearchEngine(_BaseTest):
         ids_2 = self._insert_personal_contacts(uuid_2, self.contact_1, self.contact_3)
 
         result = engine.list_personal_contacts(uuid_1, ids_1)
-        assert_that(result, contains_inanyorder(expected(self.contact_1), expected(self.contact_2)))
+        assert_that(result, contains_inanyorder(
+            expected(self.contact_1), expected(self.contact_2)))
 
         result = engine.list_personal_contacts(uuid_2, ids_2)
-        assert_that(result, contains_inanyorder(expected(self.contact_1), expected(self.contact_3)))
+        assert_that(result, contains_inanyorder(
+            expected(self.contact_1),
+            expected(self.contact_3),
+        ))
 
         result = engine.list_personal_contacts(uuid_1, ids_2)
         assert_that(result, empty())

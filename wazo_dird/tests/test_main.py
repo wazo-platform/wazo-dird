@@ -55,7 +55,9 @@ class TestWazoDird(TestCase):
             s.log_level,
         )
 
-    def test_main_when_config_user_then_change_user(self, load_config, _, __, change_user, *___):
+    def test_main_when_config_user_then_change_user(
+        self, load_config, _, __, change_user, *___
+    ):
         load_config.return_value = {
             'debug': s.debug,
             'log_filename': s.log_filename,
@@ -69,7 +71,9 @@ class TestWazoDird(TestCase):
 
         change_user.assert_called_once_with(s.user)
 
-    def test_main_when_no_config_user_then_dont_change_user(self, load_config, _, __, change_user, *___):
+    def test_main_when_no_config_user_then_dont_change_user(
+        self, load_config, _, __, change_user, *___
+    ):
         load_config.return_value = {
             'debug': s.debug,
             'log_filename': s.log_filename,

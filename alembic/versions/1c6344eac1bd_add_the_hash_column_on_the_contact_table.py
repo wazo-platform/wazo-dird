@@ -5,12 +5,12 @@ Revises: 38485dfa4e41
 
 """
 
+from alembic import op
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '1c6344eac1bd'
 down_revision = '38485dfa4e41'
-
-from alembic import op
-import sqlalchemy as sa
 
 constraint_name = 'dird_contact_hash_user_uuid'
 table_name = 'dird_contact'

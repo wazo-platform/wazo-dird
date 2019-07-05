@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -254,11 +254,15 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         self.source.load({'config': config})
 
-        result = self.source._is_in_unique_ids(['12'], {'firstname': 'Alice', 'lastname': 'AAA', 'clientno': '12'})
+        result = self.source._is_in_unique_ids(
+            ['12'], {'firstname': 'Alice', 'lastname': 'AAA', 'clientno': '12'},
+        )
 
         assert_that(result, equal_to(True))
 
-        result = self.source._is_in_unique_ids(['12'], {'firstname': 'Bob', 'lastname': 'BBB', 'clientno': '55'})
+        result = self.source._is_in_unique_ids(
+            ['12'], {'firstname': 'Bob', 'lastname': 'BBB', 'clientno': '55'},
+        )
 
         assert_that(result, equal_to(False))
 

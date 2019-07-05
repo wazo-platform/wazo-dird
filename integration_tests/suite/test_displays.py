@@ -57,12 +57,16 @@ class TestDelete(BaseDisplayTestCase):
         )
 
         assert_that(
-            calling(main_tenant_client.displays.delete).with_args(main['uuid'], tenant_uuid=SUB_TENANT),
+            calling(main_tenant_client.displays.delete).with_args(
+                main['uuid'], tenant_uuid=SUB_TENANT
+            ),
             raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
         )
 
         assert_that(
-            calling(sub_tenant_client.displays.delete).with_args(main['uuid'], tenant_uuid=MAIN_TENANT),
+            calling(sub_tenant_client.displays.delete).with_args(
+                main['uuid'], tenant_uuid=MAIN_TENANT,
+            ),
             raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
         )
 
@@ -94,7 +98,9 @@ class TestGet(BaseDisplayTestCase):
         assert_that(response, equal_to(sub))
 
         assert_that(
-            calling(main_tenant_client.displays.get).with_args(main['uuid'], tenant_uuid=SUB_TENANT),
+            calling(main_tenant_client.displays.get).with_args(
+                main['uuid'], tenant_uuid=SUB_TENANT
+            ),
             raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
         )
 
@@ -104,7 +110,9 @@ class TestGet(BaseDisplayTestCase):
         )
 
         assert_that(
-            calling(sub_tenant_client.displays.get).with_args(main['uuid'], tenant_uuid=MAIN_TENANT),
+            calling(sub_tenant_client.displays.get).with_args(
+                main['uuid'], tenant_uuid=MAIN_TENANT,
+            ),
             raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
         )
 
@@ -346,12 +354,16 @@ class TestPut(BaseDisplayTestCase):
         )
 
         assert_that(
-            calling(sub_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body, tenant_uuid=MAIN_TENANT),
+            calling(sub_tenant_client.displays.edit).with_args(
+                main['uuid'], self.valid_body, tenant_uuid=MAIN_TENANT,
+            ),
             raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
         )
 
         assert_that(
-            calling(main_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body, tenant_uuid=SUB_TENANT),
+            calling(main_tenant_client.displays.edit).with_args(
+                main['uuid'], self.valid_body, tenant_uuid=SUB_TENANT,
+            ),
             raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
         )
 

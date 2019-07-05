@@ -34,7 +34,9 @@ class LDAPPlugin(BaseSourcePlugin):
 
     def load(self, args):
         self._ldap_config = self.ldap_factory.new_ldap_config(args['config'])
-        self._ldap_result_formatter = self.ldap_factory.new_ldap_result_formatter(self._ldap_config)
+        self._ldap_result_formatter = self.ldap_factory.new_ldap_result_formatter(
+            self._ldap_config,
+        )
         self._ldap_client = self.ldap_factory.new_ldap_client(self._ldap_config)
         self._ldap_client.set_up()
 
@@ -101,7 +103,10 @@ class _LDAPConfig:
     DEFAULT_LDAP_TIMEOUT = 1.0
 
     def __init__(self, config):
-        if not config.get('ldap_custom_filter') and not config.get(BaseSourcePlugin.SEARCHED_COLUMNS):
+        if (
+                not config.get('ldap_custom_filter')
+                and not config.get(BaseSourcePlugin.SEARCHED_COLUMNS)
+        ):
             raise LookupError("%s need a searched_columns OR"
                               "ldap_custom_filter in it's configuration" % config.get('name'))
 
@@ -166,7 +171,9 @@ class _LDAPConfig:
         if ldap_custom_filter and searched_columns:
             custom_filter = self._build_search_filter_from_custom_filter(term_escaped)
             generated_filter = self._build_search_filter_from_searched_columns(term_escaped)
-            return self._build_filter_from_custom_and_generated_filter(custom_filter, generated_filter)
+            return self._build_filter_from_custom_and_generated_filter(
+                custom_filter, generated_filter,
+            )
         elif ldap_custom_filter:
             return self._build_search_filter_from_custom_filter(term_escaped)
         elif searched_columns:
@@ -180,8 +187,12 @@ class _LDAPConfig:
 
         if ldap_custom_filter and first_matched_columns:
             custom_filter = self._build_search_filter_from_custom_filter(term_escaped)
-            generated_filter = self._build_exact_search_filter_from_first_matched_columns(term_escaped)
-            return self._build_filter_from_custom_and_generated_filter(custom_filter, generated_filter)
+            generated_filter = self._build_exact_search_filter_from_first_matched_columns(
+                term_escaped,
+            )
+            return self._build_filter_from_custom_and_generated_filter(
+                custom_filter, generated_filter,
+            )
         elif ldap_custom_filter:
             return self._build_search_filter_from_custom_filter(term_escaped)
         elif first_matched_columns:
@@ -195,12 +206,12 @@ class _LDAPConfig:
         return self._config['ldap_custom_filter'].replace('%Q', term_escaped)
 
     def _build_search_filter_from_searched_columns(self, term_escaped):
-        l = list('(%s=*%s*)' % (attr, term_escaped) for attr in self.searched_columns())
-        return self._build_filter_from_list(l)
+        list_ = list('(%s=*%s*)' % (attr, term_escaped) for attr in self.searched_columns())
+        return self._build_filter_from_list(list_)
 
     def _build_exact_search_filter_from_first_matched_columns(self, term_escaped):
-        l = list('(%s=%s)' % (attr, term_escaped) for attr in self.first_matched_columns())
-        return self._build_filter_from_list(l)
+        list_ = list('(%s=%s)' % (attr, term_escaped) for attr in self.first_matched_columns())
+        return self._build_filter_from_list(list_)
 
     def _build_filter_from_list(self, l):
         if len(l) == 1:
@@ -214,10 +225,10 @@ class _LDAPConfig:
 
         unique_column = self._config[BaseSourcePlugin.UNIQUE_COLUMN]
 
-        l = []
+        list_ = []
         for uid in self._convert_uids(uids):
-            l.append('(%s=%s)' % (unique_column, uid))
-        return self._build_filter_from_list(l)
+            list_.append('(%s=%s)' % (unique_column, uid))
+        return self._build_filter_from_list(list_)
 
     def _convert_uids(self, uids):
         if self.has_binary_uuid():
@@ -226,7 +237,9 @@ class _LDAPConfig:
 
     def _convert_binary_uid(self, uid):
         uid = uuid.UUID(uid).hex
-        return ''.join(character for byte in zip(itertools.repeat('\\'), uid[::2], uid[1::2]) for character in byte)
+        return ''.join(
+            c for byte in zip(itertools.repeat('\\'), uid[::2], uid[1::2]) for c in byte
+        )
 
 
 class _LDAPClient:
@@ -266,7 +279,10 @@ class _LDAPClient:
 
     def _bind(self):
         try:
-            self._ldap_obj.simple_bind_s(self._ldap_config.ldap_username(), self._ldap_config.ldap_password())
+            self._ldap_obj.simple_bind_s(
+                self._ldap_config.ldap_username(),
+                self._ldap_config.ldap_password(),
+            )
         except ldap.LDAPError as e:
             logger.error('LDAP "%s": bind error: %r', self._name, e)
             self._tear_down()
@@ -305,7 +321,10 @@ class _LDAPClient:
         except ldap.FILTER_ERROR:
             logger.warning('LDAP "%s": search error: invalid filter "%s"', self._name, filter_str)
         except ldap.NO_SUCH_OBJECT:
-            logger.warning('LDAP "%s": search error: no such object "%s"', self._name, self._ldap_config.ldap_base_dn())
+            logger.warning(
+                'LDAP "%s": search error: no such object "%s"',
+                self._name, self._ldap_config.ldap_base_dn(),
+            )
         except ldap.TIMEOUT:
             logger.warning('LDAP "%s": search error: timed out', self._name)
         except ldap.LDAPError as e:

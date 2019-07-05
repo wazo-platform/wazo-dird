@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -35,7 +35,9 @@ class TestCSVWSPlugin(unittest.TestCase):
 
         source.search(term)
 
-        mocked_requests.get.assert_called_once_with(lookup_url, params=expected_params, timeout=s.timeout, verify=True)
+        mocked_requests.get.assert_called_once_with(
+            lookup_url, params=expected_params, timeout=s.timeout, verify=True,
+        )
 
     @patch('wazo_dird.plugins.csv_ws_backend.plugin.requests')
     def test_that_first_match_queries_the_lookup_url(self, mocked_requests):
@@ -56,7 +58,9 @@ class TestCSVWSPlugin(unittest.TestCase):
 
         source.first_match(term)
 
-        mocked_requests.get.assert_called_once_with(lookup_url, params=expected_params, timeout=s.timeout, verify=True)
+        mocked_requests.get.assert_called_once_with(
+            lookup_url, params=expected_params, timeout=s.timeout, verify=True,
+        )
 
     def test_that_list_returns_an_empty_list_if_no_unique_column(self):
         config = {'config': {'lookup_url': 'the_lookup_url',

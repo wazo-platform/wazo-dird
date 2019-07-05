@@ -346,7 +346,11 @@ class TestEditPersonal(PersonalOnlyTestCase):
     def test_that_edit_cannot_duplicate_contacts(self):
         contact_1 = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
         self.post_personal({'firstname': 'Paul', 'lastname': 'Narvidon'})
-        put_result = self.put_personal_result(contact_1['id'], {'firstname': 'Paul', 'lastname': 'Narvidon'}, VALID_TOKEN_MAIN_TENANT)
+        put_result = self.put_personal_result(
+            contact_1['id'],
+            {'firstname': 'Paul', 'lastname': 'Narvidon'},
+            VALID_TOKEN_MAIN_TENANT,
+        )
         assert_that(put_result.status_code, equal_to(409))
 
         list_result = self.list_personal()
@@ -386,7 +390,9 @@ class TestGetPersonal(PersonalOnlyTestCase):
         }))
 
     def test_that_personal_api_is_symmetric(self):
-        contact_post = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon', 'special-key': ''})
+        contact_post = self.post_personal(
+            {'firstname': 'Noémie', 'lastname': 'Narvidon', 'special-key': ''},
+        )
         contact_put = self.put_personal(contact_post['id'], contact_post)
         contact_get = self.get_personal(contact_post['id'])
 

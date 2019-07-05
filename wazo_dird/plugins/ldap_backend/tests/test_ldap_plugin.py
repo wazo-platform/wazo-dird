@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import ldap
@@ -67,7 +67,10 @@ class TestLDAPPlugin(unittest.TestCase):
     def test_first_match(self):
         exten = '123456'
         self.ldap_config.build_first_match_filter.return_value = sentinel.filter
-        self.ldap_client.search.return_value = [(sentinel.result_1_dn, sentinel.result_1_attrs), sentinel.result_2]
+        self.ldap_client.search.return_value = [
+            (sentinel.result_1_dn, sentinel.result_1_attrs),
+            sentinel.result_2,
+        ]
         self.ldap_result_formatter.format_one_result.return_value = sentinel.format_result
 
         self.ldap_plugin.load(self.config)
@@ -75,7 +78,9 @@ class TestLDAPPlugin(unittest.TestCase):
 
         self.ldap_config.build_first_match_filter.assert_called_once_with(exten)
         self.ldap_client.search.assert_called_once_with(sentinel.filter, 1)
-        self.ldap_result_formatter.format_one_result.assert_called_once_with(sentinel.result_1_attrs)
+        self.ldap_result_formatter.format_one_result.assert_called_once_with(
+            sentinel.result_1_attrs,
+        )
         self.assertIs(result, sentinel.format_result)
 
     def test_first_match_return_none_when_no_match(self):
@@ -267,7 +272,9 @@ class TestLDAPConfig(unittest.TestCase):
     def test_ldap_network_timeout_when_absent(self):
         ldap_config = self.new_ldap_config({})
 
-        self.assertEqual(_LDAPConfig.DEFAULT_LDAP_NETWORK_TIMEOUT, ldap_config.ldap_network_timeout())
+        self.assertEqual(
+            _LDAPConfig.DEFAULT_LDAP_NETWORK_TIMEOUT, ldap_config.ldap_network_timeout(),
+        )
 
     def test_ldap_timeout(self):
         value = 42.0
@@ -353,7 +360,10 @@ class TestLDAPConfig(unittest.TestCase):
             'ldap_custom_filter': str('(cn=*%Q*)'),
         })
 
-        self.assertEqual('(&(cn=*Québec*)(sn=*Québec*))', ldap_config.build_search_filter('Québec'))
+        self.assertEqual(
+            '(&(cn=*Québec*)(sn=*Québec*))',
+            ldap_config.build_search_filter('Québec')
+        )
 
     def test_build_search_filter_searched_columns_escape_term(self):
         ldap_config = _LDAPConfig({
@@ -521,7 +531,9 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.ldap_config.name.return_value = self.name
         self.ldap_config.unique_column.return_value = self.unique_column
         self.ldap_config.format_columns.return_value = self.format_columns
-        self.SourceResult = make_result_class('ldap', self.name, self.unique_column, self.format_columns)
+        self.SourceResult = make_result_class(
+            'ldap', self.name, self.unique_column, self.format_columns,
+        )
 
     def test_format(self):
         formatter = self._new_formatter(has_binary_uuid=False)

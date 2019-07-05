@@ -7,7 +7,6 @@ from sqlalchemy import (
     distinct,
     func,
     or_,
-    exc,
 )
 
 from wazo_dird.exception import (

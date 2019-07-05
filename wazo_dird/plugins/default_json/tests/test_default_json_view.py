@@ -85,8 +85,12 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                                'api': self.api,
                                'services': {}})
 
-        assert_that(self.api.add_resource.call_args_list, not_(has_item(call(FavoritesRead, ANY))))
-        assert_that(self.api.add_resource.call_args_list, not_(has_item(call(FavoritesWrite, ANY))))
+        assert_that(self.api.add_resource.call_args_list, not_(has_item(
+            call(FavoritesRead, ANY),
+        )))
+        assert_that(self.api.add_resource.call_args_list, not_(has_item(
+            call(FavoritesWrite, ANY),
+        )))
 
     def test_that_load_adds_the_favorite_route(self):
         dependencies = {

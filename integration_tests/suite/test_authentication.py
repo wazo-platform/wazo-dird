@@ -49,7 +49,9 @@ class TestAuthenticationError(BaseDirdIntegrationTest):
         result = self.get_headers_result('default', token=VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(503))
-        assert_that(result.json()['reason'][0], contains_string('Authentication server unreachable'))
+        assert_that(result.json()['reason'][0], contains_string(
+            'Authentication server unreachable',
+        ))
 
 
 class TestAuthenticationCoverage(BaseDirdIntegrationTest):

@@ -74,9 +74,15 @@ class PhoneLookup(LegacyAuthResource):
         self.auth_client = auth_client
 
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('limit', type=natural, required=False, default=max_item_per_page, location='args')
-        self.parser.add_argument('offset', type=natural, required=False, default=0, location='args')
-        self.parser.add_argument('term', type=str, required=True, help='term is missing', location='args')
+        self.parser.add_argument(
+            'limit', type=natural, required=False, default=max_item_per_page, location='args',
+        )
+        self.parser.add_argument(
+            'offset', type=natural, required=False, default=0, location='args',
+        )
+        self.parser.add_argument(
+            'term', type=str, required=True, help='term is missing', location='args',
+        )
 
     @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}.read')
     def get(self, profile, xivo_user_uuid):
@@ -133,6 +139,7 @@ class PhoneLookup(LegacyAuthResource):
             if status_code == 404:
                 raise NoSuchUser(user_uuid)
             raise
+
 
 def _build_next_url(current):
     if current == 'menu':

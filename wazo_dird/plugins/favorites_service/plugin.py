@@ -153,7 +153,10 @@ class _FavoritesService(helpers.BaseService):
         self._crud.create(xivo_user_uuid, backend, source_name, contact_id)
         event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source_name, contact_id)
         try:
-            self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
+            self._bus.publish(
+                event,
+                headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True},
+            )
         except OSError as e:
             logger.error('failed to publish bus event %s', e)
             logger.info('%s', event)

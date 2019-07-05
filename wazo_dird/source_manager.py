@@ -4,13 +4,10 @@
 import logging
 import threading
 
-from collections import defaultdict
 
 import stevedore
-from stevedore import (
-    EnabledExtensionManager,
-    NamedExtensionManager,
-)
+from stevedore import NamedExtensionManager
+
 from xivo import plugin_helpers
 
 from wazo_dird import exception

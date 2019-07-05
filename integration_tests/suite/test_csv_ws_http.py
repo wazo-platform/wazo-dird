@@ -253,7 +253,9 @@ class TestPost(BaseCSVWSCRUDTestCase):
         with self.source(self.client, self.valid_body):
             assert_that(
                 calling(self.client.csv_ws_source.create).with_args(self.valid_body),
-                raises(Exception).matching(has_properties(response=has_properties(status_code=409)))
+                raises(Exception).matching(has_properties(
+                    response=has_properties(status_code=409),
+                ))
             )
 
     def test_multi_tenant(self):

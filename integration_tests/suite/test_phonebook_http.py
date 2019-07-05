@@ -242,7 +242,9 @@ class TestPost(BasePhonebookCRUDTestCase):
         with self.source(self.client, self.valid_body):
             assert_that(
                 calling(self.client.phonebook_source.create).with_args(self.valid_body),
-                raises(Exception).matching(has_properties(response=has_properties(status_code=409)))
+                raises(Exception).matching(has_properties(
+                    response=has_properties(status_code=409),
+                ))
             )
 
     def test_multi_tenant(self):
@@ -351,7 +353,9 @@ class TestPut(BasePhonebookCRUDTestCase):
             self.fail('Should have raised')
 
         assert_that(
-            calling(main_tenant_client.phonebook_source.edit).with_args(sub['uuid'], self.new_body),
+            calling(main_tenant_client.phonebook_source.edit).with_args(
+                sub['uuid'], self.new_body,
+            ),
             not_(raises(Exception)),
         )
 

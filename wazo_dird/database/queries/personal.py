@@ -94,6 +94,8 @@ class PersonalContactSearchEngine(BaseDAO):
 
     def _new_user_contacts_filter(self, xivo_user_uuid):
         return User.xivo_user_uuid == xivo_user_uuid
+
+
 class PersonalContactCRUD(BaseDAO):
 
     def list_personal_contacts(self, xivo_user_uuid=None):

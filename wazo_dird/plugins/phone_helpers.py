@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def new_phone_lookup_service_from_args(dependencies):
-    # dependencies is the same "dependencies" argument that is passed to the load method of view plugins
     lookup_service = dependencies['services']['lookup']
     display_service = dependencies['services']['display']
     profile_service = dependencies['services']['profile']
@@ -44,8 +43,13 @@ class _PhoneLookupService:
         formatted_results = formatter.format_results(lookup_results)
         formatted_results.sort(key=attrgetter('name', 'number'))
 
+        if limit is not None:
+            paginated_result = formatted_results[offset:offset + limit]
+        else:
+            paginated_result = formatted_results[offset:]
+
         return {
-            'results': formatted_results[offset:offset + limit] if limit is not None else formatted_results[offset:],
+            'results': paginated_result,
             'limit': limit,
             'offset': offset,
             'total': len(formatted_results),
@@ -127,7 +131,9 @@ class _PhoneResultFormatter:
     def _extract_number_from_pretty_number(self, pretty_number):
         number_with_parentheses = self._INVALID_CHARACTERS_REGEX.sub('', pretty_number)
         # Convert numbers +33(0)123456789 to 0033123456789
-        number_with_parentheses = self._SPECIAL_NUMBER_REGEX.sub(r'00\1\2', number_with_parentheses)
+        number_with_parentheses = self._SPECIAL_NUMBER_REGEX.sub(
+            r'00\1\2', number_with_parentheses,
+        )
         return self._PARENTHESES_REGEX.sub('', number_with_parentheses)
 
     @staticmethod

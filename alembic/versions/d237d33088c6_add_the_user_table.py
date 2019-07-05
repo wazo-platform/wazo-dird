@@ -5,13 +5,13 @@ Revises: b0df0bc0ce37
 
 """
 
-# revision identifiers, used by Alembic.
-revision = 'd237d33088c6'
-down_revision = 'b0df0bc0ce37'
-
 from alembic import op
 from sqlalchemy.schema import Column
 from sqlalchemy import String
+
+# revision identifiers, used by Alembic.
+revision = 'd237d33088c6'
+down_revision = 'b0df0bc0ce37'
 
 table_name = 'dird_user'
 

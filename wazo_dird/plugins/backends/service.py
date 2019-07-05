@@ -19,7 +19,9 @@ class BackendService:
         installed_backends = set(module.name for module in
                                  iter_entry_points(group=self._backend_entry_points))
 
-        self._backends = [{'name': backend} for backend in configured_backends & installed_backends]
+        self._backends = [
+            {'name': backend} for backend in configured_backends & installed_backends
+        ]
 
     def list_(self, **kwargs):
         matches = self._filter_matches(self._backends, **kwargs)

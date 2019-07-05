@@ -93,7 +93,9 @@ _DEFAULT_CONFIG = {
 def load(logger, argv):
     cli_config = _parse_cli_args(argv)
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
-    reinterpreted_config = _get_reinterpreted_raw_values(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
+    reinterpreted_config = _get_reinterpreted_raw_values(
+        ChainMap(cli_config, file_config, _DEFAULT_CONFIG),
+    )
     key_file = _load_key_file(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
 
     return ChainMap(

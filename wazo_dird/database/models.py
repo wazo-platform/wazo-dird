@@ -37,7 +37,9 @@ class ContactFields(Base):
     id = Column(Integer(), primary_key=True)
     name = Column(Text(), nullable=False, index=True)
     value = Column(Text(), index=True)
-    contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
+    contact_uuid = Column(
+        String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False,
+    )
 
 
 class Display(Base):
@@ -207,7 +209,11 @@ class Tenant(Base):
 
     __tablename__ = 'dird_tenant'
 
-    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'),  primary_key=True)
+    uuid = Column(
+        String(UUID_LENGTH),
+        server_default=text('uuid_generate_v4()'),
+        primary_key=True,
+    )
     # DEPRECATED uuids should match wazo-auth and names should not be used
     # the field will be removed after an upgrade that forces an upgrade above version 19.02
     name = Column(String(255))

@@ -4,10 +4,7 @@
 import logging
 
 from flask import request
-from xivo.tenant_flask_helpers import (
-    Tenant,
-    token,
-)
+from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import AuthResource

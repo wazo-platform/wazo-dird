@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -9,6 +9,8 @@ from hamcrest import equal_to
 from wazo_dird import make_result_class
 
 from ..plugin import SamplePlugin
+
+MSG = 'It works but this wazo-dird installation is still using the default configuration'
 
 
 class TestSampleBackend(unittest.TestCase):
@@ -26,7 +28,7 @@ class TestSampleBackend(unittest.TestCase):
             'firstname': 'John',
             'lastname': 'Doe',
             'number': '555',
-            'description': 'It works but this wazo-dird installation is still using the default configuration',
+            'description': MSG,
         })
 
         self.source.load({})
@@ -41,7 +43,7 @@ class TestSampleBackend(unittest.TestCase):
             'firstname': 'John',
             'lastname': 'Doe',
             'number': '555',
-            'description': 'It works but this wazo-dird installation is still using the default configuration',
+            'description': MSG,
         })
 
         self.source.load({})

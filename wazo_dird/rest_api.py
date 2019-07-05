@@ -73,7 +73,10 @@ class CoreRestApi:
                                  wsgi_app=wsgi_app)
         server.ssl_adapter = http_helpers.ssl_adapter(https_config['certificate'],
                                                       https_config['private_key'])
-        logger.debug('WSGIServer starting... uid: %s, listen: %s:%s', os.getuid(), bind_addr[0], bind_addr[1])
+        logger.debug(
+            'WSGIServer starting... uid: %s, listen: %s:%s',
+            os.getuid(), bind_addr[0], bind_addr[1],
+        )
         for route in http_helpers.list_routes(self.app):
             logger.debug(route)
 
@@ -104,7 +107,9 @@ class LegacyErrorCatchingResource(Resource):
 
 
 class LegacyAuthResource(LegacyErrorCatchingResource):
-    method_decorators = [auth_verifier.verify_token] + LegacyErrorCatchingResource.method_decorators
+    method_decorators = [
+        auth_verifier.verify_token,
+    ] + LegacyErrorCatchingResource.method_decorators
 
 
 class ErrorCatchingResource(Resource):

@@ -89,7 +89,9 @@ class TestList(BaseDirdIntegrationTest):
         ), total=1, filtered=1)
 
         assert_that(
-            calling(sub_tenant_client.sources.list).with_args(tenant_uuid=MAIN_TENANT, recurse=True),
+            calling(sub_tenant_client.sources.list).with_args(
+                tenant_uuid=MAIN_TENANT, recurse=True,
+            ),
             raises(Exception).matching(has_properties(response=has_properties(status_code=401)))
         )
 

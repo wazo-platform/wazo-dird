@@ -73,7 +73,9 @@ class TestConferenceContactList(BaseDirdIntegrationTest):
         try:
             assert_that(
                 calling(self.contacts).with_args(self.client, self.source_uuid),
-                raises(Exception).matching(has_properties(response=has_properties(status_code=503)))
+                raises(Exception).matching(has_properties(
+                    response=has_properties(status_code=503),
+                ))
             )
         finally:
             self.start_service('america')

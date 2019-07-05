@@ -28,7 +28,9 @@ class TestController(TestCase):
 
     def test_run_starts_rest_api(self):
         config = self._create_config(**{
-            'rest_api': {'https': {'listen': '127.0.0.1', 'port': '9489', 'certificate': 'my-certificate'}},
+            'rest_api': {
+                'https': {'listen': '127.0.0.1', 'port': '9489', 'certificate': 'my-certificate'},
+            },
             'debug': s.debug,
             'service_discovery': {'enabled': False},
         })

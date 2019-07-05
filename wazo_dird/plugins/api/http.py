@@ -35,10 +35,17 @@ class ApiResource(ErrorCatchingResource):
             except IndexError:
                 logger.debug('Could not find API spec from module "%s"', module.module_name)
             except NotImplementedError:
-                logger.debug('Are you sure you have an __init__ file in your module "%s"?', module.module_name)
+                logger.debug(
+                    'Are you sure you have an __init__ file in your module "%s"?',
+                    module.module_name
+                )
         api_spec = ChainMap(*specs)
 
         if not api_spec.get('info'):
             return {'error': "API spec does not exist"}, 404
 
-        return make_response(yaml.dump(dict(api_spec)), 200, {'Content-Type': 'application/x-yaml'})
+        return make_response(
+            yaml.dump(dict(api_spec)),
+            200,
+            {'Content-Type': 'application/x-yaml'},
+        )

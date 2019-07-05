@@ -15,7 +15,12 @@ logger = logging.getLogger(__name__)
 DEFAULT_DISPLAY_COLUMNS = [
     {'field': 'name', 'title': 'Nom', 'type': 'name'},
     {'field': 'phone', 'title': "Num\xE9ro", 'type': 'number', 'number_display': '{name}'},
-    {'field': 'phone_mobile', 'title': 'Mobile', 'type': 'number', 'number_display': '{name} (mobile)'},
+    {
+        'field': 'phone_mobile',
+        'title': 'Mobile',
+        'type': 'number',
+        'number_display': '{name} (mobile)',
+    },
     {'field': 'voicemail', 'title': "Bo\xEEte vocale", 'type': 'voicemail'},
     {'field': 'favorite', 'title': 'Favoris', 'type': 'favorite'},
     {'field': 'email', 'title': 'E-mail', 'type': 'email'},

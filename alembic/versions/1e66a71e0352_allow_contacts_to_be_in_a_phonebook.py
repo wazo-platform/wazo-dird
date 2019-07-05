@@ -5,12 +5,12 @@ Revises: 28e9ff92ed2
 
 """
 
+from alembic import op
+import sqlalchemy as sa
+
 # revision identifiers, used by Alembic.
 revision = '1e66a71e0352'
 down_revision = '28e9ff92ed2'
-
-from alembic import op
-import sqlalchemy as sa
 
 constraint_name = 'dird_contact_hash_phonebook_id'
 table_name = 'dird_contact'

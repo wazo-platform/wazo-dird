@@ -14,7 +14,7 @@ from wazo_dird import config
 @patch('wazo_dird.config.open', create=True)
 class TestConfig(TestCase):
 
-    def test_load_when_no_args_and_no_default_config_file_then_return_default_values(self, mock_open):
+    def test_load_when_no_args_and_no_default_config_file_then_default_values(self, mock_open):
         mock_open.side_effect = IOError('no such file')
         config._DEFAULT_CONFIG = {
             'config': 'default',

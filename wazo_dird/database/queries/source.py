@@ -87,7 +87,9 @@ class SourceCRUD(BaseDAO):
 
             return self._from_db_format(source)
 
-    def _list_filter(self, backend, visible_tenants, uuid=None, name=None, search=None, **list_params):
+    def _list_filter(
+            self, backend, visible_tenants, uuid=None, name=None, search=None, **list_params
+    ):
         filter_ = text('true')
         if visible_tenants is not None:
             filter_ = and_(filter_, Source.tenant_uuid.in_(visible_tenants))

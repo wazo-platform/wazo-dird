@@ -5,19 +5,21 @@ Revises: 2caf42314e25
 
 """
 
-# revision identifiers, used by Alembic.
-revision = '28e9ff92ed2'
-down_revision = '2caf42314e25'
-
 from alembic import op
 
 from sqlalchemy.schema import Column
-from sqlalchemy import (CheckConstraint,
-                        ForeignKey,
-                        Integer,
-                        String,
-                        Text,
-                        UniqueConstraint)
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
+
+# revision identifiers, used by Alembic.
+revision = '28e9ff92ed2'
+down_revision = '2caf42314e25'
 
 
 def upgrade():
