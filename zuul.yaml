@@ -1,3 +1,4 @@
 - project:
     templates:
       - wazo-tox-linters
+      - wazo-tox-py35
