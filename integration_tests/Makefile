@@ -1,10 +1,14 @@
-.PHONY: test-setup build-dird build-db-image egg-info test
+.PHONY: test-setup build-dird build-db-image egg-info test microsoft-mock
 
-test-setup: egg-info build-dird build-db-image
+microsoft-mock:
+	docker build --no-cache -t microsoft-mock -f assets/microsoft-mock/Dockerfile assets/microsoft-mock
+
+test-setup: egg-info build-dird build-db-image microsoft-mock
 	docker pull alpine
 	docker pull nickstenning/slapd
 	docker pull p0bailey/docker-flask
 	docker pull python:2.7.13-stretch
+	docker pull python:3.5.6-stretch
 	docker pull rabbitmq
 	docker pull wazopbx/wait
 	docker pull wazopbx/wazo-auth-mock

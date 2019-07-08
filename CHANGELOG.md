@@ -1,6 +1,18 @@
 Changelog
 =========
 
+19.10
+-----
+
+* A new resource has been added to configure `office365` backends
+
+  * POST `/0.1/backends/office365/sources`
+  * GET `/0.1/backends/office365/sources`
+  * GET `/0.1/backends/office365/sources/<source_uuid>`
+  * DELETE `/0.1/backends/office365/sources/<source_uuid>`
+  * PUT `/0.1/backends/office365/sources/<source_uuid>`
+
+
 19.09
 -----
 

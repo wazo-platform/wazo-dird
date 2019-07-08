@@ -34,14 +34,14 @@ class BackendWrapper:
     def unload(self):
         self._source.unload()
 
-    def search(self, term):
-        return [r.fields for r in self.search_raw(term)]
+    def search(self, term, *args, **kwargs):
+        return [r.fields for r in self.search_raw(term, *args, **kwargs)]
 
-    def search_raw(self, term):
-        return self._source.search(term)
+    def search_raw(self, term, *args, **kwargs):
+        return self._source.search(term, *args, **kwargs)
 
-    def first(self, term):
-        return self._source.first_match(term).fields
+    def first(self, term, *args, **kwargs):
+        return self._source.first_match(term, *args, **kwargs).fields
 
     def list(self, source_ids, *args, **kwargs):
         results = self._source.list(source_ids, *args, **kwargs)

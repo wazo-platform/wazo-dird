@@ -1,0 +1,256 @@
+paths:
+  /backends/office365/sources/{source_uuid}/contacts:
+    get:
+      description: '**Required ACL:** `dird.backends.office365.sources.{source_uuid}.contacts.read`'
+      operationId: list_contacts from source
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - in: path
+          name: source_uuid
+          required: true
+          description: Source uuid
+          type: string
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
+      summary: Retrieve all contacts from `office365`
+      tags:
+        - office365
+      responses:
+        '200':
+          description: |
+            Contacts as fetched from microsoft api.
+
+            To know more about microsoft contacts properties, see
+            https://docs.microsoft.com/en-us/graph/api/resources/contact?view=graph-rest-1.0#properties
+          schema:
+            $ref: '#/definitions/Office365ContactList'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No such source
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          description: Another service is unavailable (e.g. wazo-auth, office365, ...)
+          schema:
+            $ref: '#/definitions/Error'
+
+  /backends/office365/sources:
+    get:
+      operationId: list_microsoft_source
+      summary: Get microsoft configuration
+      description: '**Required ACL:** `dird.backends.microsoft.sources.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+      responses:
+        '200':
+          description: Configured microsoft source
+          schema:
+            $ref: '#/definitions/MicrosoftSourceItems'
+    post:
+      operationId: create_microsoft_source
+      summary: Configure a source for the microsoft backend
+      description: '**Required ACL:** `dird.backends.microsoft.sources.create`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - in: body
+          name: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/MicrosoftSource'
+      responses:
+        '201':
+          description: The created display
+          schema:
+            $ref: '#/definitions/MicrosoftSource'
+          examples:
+            application/json:
+              format_columns:
+                name: "{givenName} {surname}"
+                phone_mobile: "{mobilePhone}"
+                number: "{businessPhones[0]}"
+                reverse: "{givenName} {surname}"
+                email: "{email}"
+              name: office365
+              searched_columns: ["displayName", "mobilePhone"]
+              first_matched_columns: ["businessPhones", "mobilePhone"]
+        '400':
+          $ref: '#/responses/CreateError'
+        '409':
+          description: Source already exists
+          schema:
+            $ref: '#/definitions/Error'
+  /backends/office365/sources/{source_uuid}:
+    get:
+      operationId: get_a_microsoft_source
+      summary: Get a `microsoft` source configuration
+      description: '**Required ACL:** `dird.backends.microsoft.sources.{source_uuid}.read`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '200':
+          description: The `microsoft` source
+          schema:
+            $ref: '#/definitions/MicrosoftSource'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_microsoft_source
+      summary: Update a `microsoft` source configuration
+      description: '**Required ACL:** `dird.backends.microsoft.sources.{source_uuid}.update`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+        - name: body
+          in: body
+          description: The source configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/MicrosoftSource'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: delete_microsoft_source
+      summary: Delete a `microsoft` source configuration
+      description: '**Required ACL:** `dird.backends.microsoft.sources.{source_uuid}.delete`'
+      tags:
+        - configuration
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+definitions:
+  MicrosoftSource:
+    title: MicrosoftSource
+    allOf:
+      - $ref: '#/definitions/Source'
+      - properties:
+          auth:
+            $ref: '#/definitions/WazoAuthConfig'
+          confd:
+            $ref: '#/definitions/ConfdConfig'
+          endpoint:
+            description: Endpoint where to get the information from
+            example: "https://graph.microsoft.com/v1.0/me/contacts"
+            default: "https://graph.microsoft.com/v1.0/me/contacts"
+            type: string
+      - required:
+        - name
+        - auth
+        - confd
+  MicrosoftSourcePostFormatColumns:
+    title: format_columns
+    properties:
+      name:
+        example: "{firstname} {lastname}"
+        type: string
+      display_name:
+        example: "{firstname} {lastname}"
+        type: string
+      phone:
+        example: "{phone}"
+        type: string
+      phone_mobile:
+        example: "{mobile}"
+        type: string
+      reverse:
+        example: "{firstname} {lastname}"
+        type: string
+    required:
+      - name
+      - display_name
+      - phone_mobile
+      - reverse
+  Office365ContactList:
+    properties:
+      items:
+        type: array
+        items:
+          type: object
+        readOnly: true
+      total:
+        type: integer
+        description: The number of contacts
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of contacts matching the searched terms
+        readOnly: true
+  MicrosoftSourceItems:
+    title: MicrosoftSourceItems
+    allOf:
+      - $ref: '#/definitions/SourceItems'
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/MicrosoftSource'
+            readOnly: true
+      - required:
+        - items
+        - total
+        - filtered
+  WazoAuthConfig:
+    title: Auth
+    allOf:
+      - $ref: '#/definitions/ExternalServiceConfig'
+      - properties:
+          port:
+            type: integer
+            default: 9497
+          key_file:
+            type: string
+            description: The path the the file containing the credentials
+          username:
+            type: string
+            description: The username to use when not using a key_file
+          password:
+            type: string
+            description: The password to use when not using a key_file
+          version:
+            type: string
+            default: "0.1"
+  ExternalServiceConfig:
+    properties:
+      host:
+        type: string
+        default: localhost
+      verify_certificate:
+        type: string
+        description: If the HTTPs certificates should be verified and the path of the certificate if a custom certificate is used.
+        default: true
+      timeout:
+        type: number
