@@ -1,4 +1,4 @@
-# Backward compatiblity for jenkins
+mock
+pytest
+pyhamcrest
 
--r test-requirements-for-tox.txt
--e ..
