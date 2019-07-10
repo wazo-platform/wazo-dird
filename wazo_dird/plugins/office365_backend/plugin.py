@@ -137,13 +137,14 @@ class Office365Plugin(BaseSourcePlugin):
         for column in self._first_matched_columns:
             column_value = contact.get(column) or ''
 
-            if not isinstance(column_value, list):
-                if term == str(column_value).lower():
-                    return True
-            else:
+            if isinstance(column_value, list):
                 for item in column_value:
                     if term == item.lower():
                         return True
+            else:
+                if term == str(column_value).lower():
+                    return True
+
         return False
 
     def _get_microsoft_token(self, xivo_user_uuid, token=None, **ignored):
