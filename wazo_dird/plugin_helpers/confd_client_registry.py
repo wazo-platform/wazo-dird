@@ -17,7 +17,6 @@ RegisteredClient = namedtuple('RegisteredClient', ['client', 'token_renewer'])
 
 
 class _Registry:
-
     def __init__(self):
         self._clients = {}
         self._clients_lock = Lock()
@@ -44,7 +43,9 @@ class _Registry:
             # File must be readable by wazo-dird
             key_file = parse_config_file(auth_config.pop('key_file'))
             if not key_file:
-                logger.info('failed to load key file for source %s', source_config['name'])
+                logger.info(
+                    'failed to load key file for source %s', source_config['name']
+                )
                 return
             auth_config['username'] = key_file['service_id']
             auth_config['password'] = key_file['service_key']

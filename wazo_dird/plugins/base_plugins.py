@@ -24,7 +24,6 @@ class BaseServicePlugin(metaclass=abc.ABCMeta):
 
 
 class BaseViewPlugin(metaclass=abc.ABCMeta):
-
     @abc.abstractmethod
     def load(self, dependencies):
         '''

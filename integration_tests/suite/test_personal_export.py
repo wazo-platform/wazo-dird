@@ -1,12 +1,7 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    contains_inanyorder,
-    equal_to,
-    matches_regexp,
-)
+from hamcrest import assert_that, contains_inanyorder, equal_to, matches_regexp
 
 from .helpers.base import BaseDirdIntegrationTest
 
@@ -30,8 +25,13 @@ class TestPersonalExport(BaseDirdIntegrationTest):
 
         result = result.split('\r\n')
         assert_that(result[0], equal_to('firstname,id,lastname'))
-        assert_that(result[1:-1], contains_inanyorder(matches_regexp('Alice,[^,]*,Aldertion'),
-                                                      matches_regexp('Bob,[^,]*,Bodkartan')))
+        assert_that(
+            result[1:-1],
+            contains_inanyorder(
+                matches_regexp('Alice,[^,]*,Aldertion'),
+                matches_regexp('Bob,[^,]*,Bodkartan'),
+            ),
+        )
         assert_that(result[-1], equal_to(''))
 
     def test_that_export_with_empty_values_returns_empty_strings(self):
@@ -52,8 +52,12 @@ class TestPersonalExport(BaseDirdIntegrationTest):
 
         result = result.split('\r\n')
         assert_that(result[0], equal_to('firstname,id,lastname'))
-        assert_that(result[1:-1], contains_inanyorder(matches_regexp('Alice,[^,]*,'),
-                                                      matches_regexp(',[^,]*,Bodkartan')))
+        assert_that(
+            result[1:-1],
+            contains_inanyorder(
+                matches_regexp('Alice,[^,]*,'), matches_regexp(',[^,]*,Bodkartan')
+            ),
+        )
         assert_that(result[-1], equal_to(''))
 
     def test_that_export_with_non_ascii_is_ok(self):
@@ -73,6 +77,10 @@ class TestPersonalExport(BaseDirdIntegrationTest):
 
         result = result.split('\r\n')
         assert_that(result[0], equal_to('firstname,id,lastname,special-key'))
-        assert_that(result[1:-1], contains_inanyorder(matches_regexp('john,[^,]*,doe,'),
-                                                      matches_regexp('bob,[^,]*,martin,')))
+        assert_that(
+            result[1:-1],
+            contains_inanyorder(
+                matches_regexp('john,[^,]*,doe,'), matches_regexp('bob,[^,]*,martin,')
+            ),
+        )
         assert_that(result[-1], equal_to(''))

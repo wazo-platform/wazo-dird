@@ -23,12 +23,7 @@ def upgrade():
             server_default=sa.text('uuid_generate_v4()'),
             primary_key=True,
         ),
-        sa.Column(
-            'name',
-            sa.Text(),
-            nullable=False,
-            unique=True,
-        )
+        sa.Column('name', sa.Text(), nullable=False, unique=True),
     )
 
     op.create_table(
@@ -45,16 +40,12 @@ def upgrade():
             sa.ForeignKey('dird_tenant.uuid', ondelete='CASCADE'),
             nullable=False,
         ),
-        sa.Column(
-            'name',
-            sa.Text(),
-            nullable=False,
-        ),
+        sa.Column('name', sa.Text(), nullable=False),
         sa.Column(
             'display_uuid',
             sa.String(36),
             sa.ForeignKey('dird_display.uuid', ondelete='SET NULL'),
-        )
+        ),
     )
 
     op.create_table(
@@ -77,10 +68,7 @@ def upgrade():
             sa.ForeignKey('dird_service.uuid', ondelete='CASCADE'),
             nullable=False,
         ),
-        sa.Column(
-            'config',
-            JSON,
-        ),
+        sa.Column('config', JSON),
     )
 
     op.create_table(

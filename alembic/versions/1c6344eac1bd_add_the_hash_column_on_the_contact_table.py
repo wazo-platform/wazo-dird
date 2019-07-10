@@ -18,9 +18,7 @@ column_name = 'hash'
 
 
 def upgrade():
-    op.add_column(table_name, sa.Column(column_name,
-                                        sa.String(40),
-                                        nullable=False))
+    op.add_column(table_name, sa.Column(column_name, sa.String(40), nullable=False))
     op.create_unique_constraint(constraint_name, table_name, [column_name, 'user_uuid'])
 
 

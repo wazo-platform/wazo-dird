@@ -19,13 +19,13 @@ class install_lib(_install_lib):
 
 
 class BabelWrapper(object):
-
     def compile_catalog(self, *args, **kwargs):
         return self.babel.compile_catalog(*args, **kwargs)
 
     @property
     def babel(self):
         from babel.messages import frontend as babel
+
         return babel
 
 
@@ -33,32 +33,23 @@ babel_wrapper = BabelWrapper()
 setup(
     name='wazo-dird',
     version='1.2',
-
     description='Wazo Directory Daemon',
-
     author='Wazo Authors',
     author_email='dev@wazo.community',
-
     url='http://wazo.community',
-
     packages=find_packages(),
-
     include_package_data=True,
     setup_requires=['babel'],
     install_requires=['babel'],
     zip_safe=False,
-    package_data={
-        'wazo_dird.plugins': ['*/api.yml']
+    package_data={'wazo_dird.plugins': ['*/api.yml']},
+    cmdclass={
+        'build': build,
+        'install_lib': install_lib,
+        'compile_catalog': babel_wrapper.compile_catalog,
     },
-
-    cmdclass={'build': build,
-              'install_lib': install_lib,
-              'compile_catalog': babel_wrapper.compile_catalog},
-
     entry_points={
-        'console_scripts': [
-            'wazo-dird=wazo_dird.main:main',
-        ],
+        'console_scripts': ['wazo-dird=wazo_dird.main:main'],
         'wazo_dird.services': [
             'cleanup = wazo_dird.plugins.cleanup_service.plugin:StorageCleanupServicePlugin',
             'config = wazo_dird.plugins.config_service.plugin:ConfigServicePlugin',
@@ -113,5 +104,5 @@ setup(
             'wazo_backend = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserView',
             'profile_sources_view = wazo_dird.plugins.profile_sources.plugin:SourceViewPlugin',
         ],
-    }
+    },
 )

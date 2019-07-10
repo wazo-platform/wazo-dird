@@ -12,11 +12,13 @@ from sqlalchemy import sql
 revision = '1e0397088fa7'
 down_revision = '1e66a71e0352'
 
-contact_field_table = sql.table('dird_contact_fields',
-                                sql.column('id'),
-                                sql.column('name'),
-                                sql.column('value'),
-                                sql.column('contact_uuid'))
+contact_field_table = sql.table(
+    'dird_contact_fields',
+    sql.column('id'),
+    sql.column('name'),
+    sql.column('value'),
+    sql.column('contact_uuid'),
+)
 
 
 def upgrade():
@@ -33,19 +35,24 @@ def upgrade():
 
 
 def purge_divergent_id_contact_fields():
-    query = contact_field_table.delete().where(sql.and_(
-        contact_field_table.c.name == 'id',
-        contact_field_table.c.value != contact_field_table.c.contact_uuid,
-    ))
+    query = contact_field_table.delete().where(
+        sql.and_(
+            contact_field_table.c.name == 'id',
+            contact_field_table.c.value != contact_field_table.c.contact_uuid,
+        )
+    )
     op.get_bind().execute(query)
 
 
 def get_id_contact_field_rows():
-    id_contact_fields = (sql.select([contact_field_table.c.id, contact_field_table.c.contact_uuid])
-                         .where(sql.and_(
-                             contact_field_table.c.name == 'id',
-                             contact_field_table.c.value == contact_field_table.c.contact_uuid,
-                         )))
+    id_contact_fields = sql.select(
+        [contact_field_table.c.id, contact_field_table.c.contact_uuid]
+    ).where(
+        sql.and_(
+            contact_field_table.c.name == 'id',
+            contact_field_table.c.value == contact_field_table.c.contact_uuid,
+        )
+    )
     return op.get_bind().execute(id_contact_fields)
 
 

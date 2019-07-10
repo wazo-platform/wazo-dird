@@ -8,7 +8,6 @@ from wazo_dird.rest_api import AuthResource
 
 
 class PhonebookMover(AuthResource):
-
     def __init__(self, service):
         self._service = service
 

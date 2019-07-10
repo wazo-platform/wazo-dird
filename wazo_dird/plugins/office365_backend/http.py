@@ -32,15 +32,16 @@ class MicrosoftContactList(AuthResource):
         tenant = Tenant.autodetect()
 
         source = self.source_service.get(self.BACKEND, source_uuid, [tenant.uuid])
-        microsoft_token = get_microsoft_access_token(user_uuid, token_from_request, **source['auth'])
+        microsoft_token = get_microsoft_access_token(
+            user_uuid, token_from_request, **source['auth']
+        )
 
         contacts = self.office365.get_contacts(microsoft_token, source['endpoint'])
 
-        return {
-            'filtered': len(contacts),
-            'items': contacts,
-            'total': len(contacts),
-        }, 200
+        return (
+            {'filtered': len(contacts), 'items': contacts, 'total': len(contacts)},
+            200,
+        )
 
 
 class MicrosoftList(SourceList):

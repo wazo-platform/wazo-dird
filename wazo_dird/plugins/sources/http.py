@@ -7,14 +7,10 @@ from xivo.tenant_flask_helpers import Tenant
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import AuthResource
 
-from .schemas import (
-    source_list_schema,
-    list_schema,
-)
+from .schemas import source_list_schema, list_schema
 
 
 class Sources(AuthResource):
-
     def __init__(self, source_service):
         self._source_service = source_service
 
@@ -33,8 +29,4 @@ class Sources(AuthResource):
         filtered = self._source_service.count(backend, visible_tenants, **list_params)
         total = self._source_service.count(None, visible_tenants)
 
-        return {
-            'total': total,
-            'filtered': filtered,
-            'items': items,
-        }
+        return {'total': total, 'filtered': filtered, 'items': items}

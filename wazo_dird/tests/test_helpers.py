@@ -18,7 +18,6 @@ def _throwing():
 
 
 class TestNoThrowExecute(unittest.TestCase):
-
     def test_that_the_result_is_returned(self):
         result = RaiseStopper(return_on_raise=None).execute(_ok, 1, 2)
 

@@ -24,7 +24,7 @@ def upgrade():
             sa.String(38),
             sa.ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'),
             nullable=False,
-        )
+        ),
     )
 
 

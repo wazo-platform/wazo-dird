@@ -22,13 +22,14 @@ _PhoneFormattedResult = namedtuple('_PhoneFormattedResult', ['name', 'number'])
 
 
 class _PhoneLookupService:
-
     def __init__(self, lookup_service, display_service, profile_service):
         self._lookup_service = lookup_service
         self._display_service = display_service
         self.profile_service = profile_service
 
-    def lookup(self, profile_config, term, tenant_uuid, user_uuid, token, limit=None, offset=0):
+    def lookup(
+        self, profile_config, term, tenant_uuid, user_uuid, token, limit=None, offset=0
+    ):
         display = profile_config['display']
         formatter = _PhoneResultFormatter(display)
 
@@ -44,7 +45,7 @@ class _PhoneLookupService:
         formatted_results.sort(key=attrgetter('name', 'number'))
 
         if limit is not None:
-            paginated_result = formatted_results[offset:offset + limit]
+            paginated_result = formatted_results[offset : offset + limit]
         else:
             paginated_result = formatted_results[offset:]
 
@@ -54,7 +55,7 @@ class _PhoneLookupService:
             'offset': offset,
             'total': len(formatted_results),
             'next_offset': self._next_offset(offset, limit, len(formatted_results)),
-            'previous_offset': self._previous_offset(offset, limit)
+            'previous_offset': self._previous_offset(offset, limit),
         }
 
     def _next_offset(self, offset, limit, results_count):
@@ -122,7 +123,8 @@ class _PhoneResultFormatter:
             except KeyError:
                 logger.info(
                     'phone lookup found a result be could not format a name %s %s',
-                    number_display, fields,
+                    number_display,
+                    fields,
                 )
                 continue
 
@@ -132,7 +134,7 @@ class _PhoneResultFormatter:
         number_with_parentheses = self._INVALID_CHARACTERS_REGEX.sub('', pretty_number)
         # Convert numbers +33(0)123456789 to 0033123456789
         number_with_parentheses = self._SPECIAL_NUMBER_REGEX.sub(
-            r'00\1\2', number_with_parentheses,
+            r'00\1\2', number_with_parentheses
         )
         return self._PARENTHESES_REGEX.sub('', number_with_parentheses)
 
@@ -142,6 +144,7 @@ class _PhoneResultFormatter:
             return []
 
         return [
-            field for field in display['columns']
+            field
+            for field in display['columns']
             if field.get('type') == 'number' and field.get('field')
         ]

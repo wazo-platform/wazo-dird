@@ -48,7 +48,7 @@ class CSVPlugin(BaseSourcePlugin):
             backend,
             self._name,
             self._config.get(self.UNIQUE_COLUMN, None),
-            self._config.get(self.FORMAT_COLUMNS, {})
+            self._config.get(self.FORMAT_COLUMNS, {}),
         )
 
     def name(self):
@@ -58,7 +58,11 @@ class CSVPlugin(BaseSourcePlugin):
         if self.SEARCHED_COLUMNS not in self._config:
             return []
 
-        fn = partial(self._low_case_match_entry, term.lower(), self._config[self.SEARCHED_COLUMNS])
+        fn = partial(
+            self._low_case_match_entry,
+            term.lower(),
+            self._config[self.SEARCHED_COLUMNS],
+        )
         return self._list_from_predicate(fn)
 
     def first_match(self, term, args=None):
@@ -66,7 +70,9 @@ class CSVPlugin(BaseSourcePlugin):
             return None
 
         for entry in self._content:
-            if self._exact_match_entry(term, self._config[self.FIRST_MATCHED_COLUMNS], entry):
+            if self._exact_match_entry(
+                term, self._config[self.FIRST_MATCHED_COLUMNS], entry
+            ):
                 return self._SourceResult(entry)
         return None
 

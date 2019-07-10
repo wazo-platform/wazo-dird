@@ -26,7 +26,13 @@ def upgrade():
     op.create_table(
         'dird_tenant',
         Column('id', Integer(), primary_key=True),
-        Column('name', String(255), CheckConstraint("name != ''"), unique=True, nullable=False),
+        Column(
+            'name',
+            String(255),
+            CheckConstraint("name != ''"),
+            unique=True,
+            nullable=False,
+        ),
     )
     op.create_table(
         'dird_phonebook',

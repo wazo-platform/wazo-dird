@@ -12,24 +12,17 @@ from time import time
 from requests.exceptions import HTTPError
 
 from wazo_dird.auth import required_acl
-from wazo_dird.exception import (
-    OldAPIException,
-    ProfileNotFoundError,
-    NoSuchUser,
-)
+from wazo_dird.exception import OldAPIException, ProfileNotFoundError, NoSuchUser
 from wazo_dird.rest_api import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 
 
 def _error(code, msg):
-    return {'reason': [msg],
-            'timestamp': [time()],
-            'status_code': code}, code
+    return {'reason': [msg], 'timestamp': [time()], 'status_code': code}, code
 
 
 class PhoneMenu(LegacyAuthResource):
-
     def __init__(self, template, content_type):
         self.template = template
         self.content_type = content_type
@@ -38,15 +31,14 @@ class PhoneMenu(LegacyAuthResource):
     def get(self, profile, xivo_user_uuid):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('menu'))
 
-        response_xml = render_template(self.template,
-                                       xivo_proxy_url=proxy_url,
-                                       xivo_user_uuid=xivo_user_uuid)
+        response_xml = render_template(
+            self.template, xivo_proxy_url=proxy_url, xivo_user_uuid=xivo_user_uuid
+        )
 
         return Response(response_xml, content_type=self.content_type, status=200)
 
 
 class PhoneInput(LegacyAuthResource):
-
     def __init__(self, template, content_type):
         self.template = template
         self.content_type = content_type
@@ -55,18 +47,21 @@ class PhoneInput(LegacyAuthResource):
     def get(self, profile, xivo_user_uuid):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('input'))
 
-        response_xml = render_template(self.template,
-                                       xivo_proxy_url=proxy_url,
-                                       xivo_user_uuid=xivo_user_uuid)
+        response_xml = render_template(
+            self.template, xivo_proxy_url=proxy_url, xivo_user_uuid=xivo_user_uuid
+        )
 
         return Response(response_xml, content_type=self.content_type, status=200)
 
 
 class PhoneLookup(LegacyAuthResource):
-
     def __init__(
-            self, template, content_type, phone_lookup_service, auth_client,
-            max_item_per_page=None,
+        self,
+        template,
+        content_type,
+        phone_lookup_service,
+        auth_client,
+        max_item_per_page=None,
     ):
         self.template = template
         self.content_type = content_type
@@ -75,13 +70,17 @@ class PhoneLookup(LegacyAuthResource):
 
         self.parser = reqparse.RequestParser()
         self.parser.add_argument(
-            'limit', type=natural, required=False, default=max_item_per_page, location='args',
+            'limit',
+            type=natural,
+            required=False,
+            default=max_item_per_page,
+            location='args',
         )
         self.parser.add_argument(
-            'offset', type=natural, required=False, default=0, location='args',
+            'offset', type=natural, required=False, default=0, location='args'
         )
         self.parser.add_argument(
-            'term', type=str, required=True, help='term is missing', location='args',
+            'term', type=str, required=True, help='term is missing', location='args'
         )
 
     @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}.read')
@@ -96,8 +95,7 @@ class PhoneLookup(LegacyAuthResource):
         try:
             tenant_uuid = self._get_user_tenant_uuid(xivo_user_uuid)
             profile_config = self.phone_lookup_service.profile_service.get_by_name(
-                tenant_uuid,
-                profile,
+                tenant_uuid, profile
             )
         except OldAPIException as e:
             logger.warning('%s', e.body['reason'][0])
@@ -115,18 +113,22 @@ class PhoneLookup(LegacyAuthResource):
             )
         except ProfileNotFoundError:
             logger.warning('phone lookup failed: unknown profile %r', profile)
-            return _error(404, 'The profile `{profile}` does not exist'.format(profile=profile))
+            return _error(
+                404, 'The profile `{profile}` does not exist'.format(profile=profile)
+            )
 
-        response_xml = render_template(self.template,
-                                       results=results['results'],
-                                       xivo_proxy_url=proxy_url,
-                                       xivo_user_uuid=xivo_user_uuid,
-                                       term=term,
-                                       limit=limit,
-                                       total=results['total'],
-                                       offset=results['offset'],
-                                       offset_next=results['next_offset'],
-                                       offset_previous=results['previous_offset'])
+        response_xml = render_template(
+            self.template,
+            results=results['results'],
+            xivo_proxy_url=proxy_url,
+            xivo_user_uuid=xivo_user_uuid,
+            term=term,
+            limit=limit,
+            total=results['total'],
+            offset=results['offset'],
+            offset_next=results['next_offset'],
+            offset_previous=results['previous_offset'],
+        )
 
         return Response(response_xml, content_type=self.content_type, status=200)
 

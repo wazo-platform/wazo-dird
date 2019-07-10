@@ -5,23 +5,18 @@ import logging
 
 from wazo_dird.database.helpers import Session
 
-from wazo_dird import (
-    BaseServicePlugin,
-    database,
-)
+from wazo_dird import BaseServicePlugin, database
 
 logger = logging.getLogger(__name__)
 
 
 class SourceServicePlugin(BaseServicePlugin):
-
     def load(self, dependencies):
         source_manager = dependencies['source_manager']
         return _SourceService(database.SourceCRUD(Session), source_manager)
 
 
 class _SourceService:
-
     def __init__(self, crud, source_manager):
         self._source_crud = crud
         self._source_manager = source_manager

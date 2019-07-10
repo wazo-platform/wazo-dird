@@ -5,13 +5,7 @@ import logging
 
 from wazo_dird import BaseViewPlugin
 
-from .http import (
-    FavoritesRead,
-    FavoritesWrite,
-    Lookup,
-    Personal,
-    Reverse,
-)
+from .http import FavoritesRead, FavoritesWrite, Lookup, Personal, Reverse
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +45,7 @@ class JsonViewPlugin(BaseViewPlugin):
             api.add_resource(
                 Reverse,
                 self.reverse_url,
-                resource_class_args=(
-                    reverse_service,
-                    profile_service,
-                ),
+                resource_class_args=(reverse_service, profile_service),
             )
         else:
             logger.error('%s disabled: no service plugin `reverse`', self.reverse_url)
@@ -75,8 +66,12 @@ class JsonViewPlugin(BaseViewPlugin):
                 resource_class_args=(favorite_service,),
             )
         else:
-            logger.error('%s disabled: no service plugin `favorites`', self.favorites_read_url)
-            logger.error('%s disabled: no service plugin `favorites`', self.favorites_write_url)
+            logger.error(
+                '%s disabled: no service plugin `favorites`', self.favorites_read_url
+            )
+            logger.error(
+                '%s disabled: no service plugin `favorites`', self.favorites_write_url
+            )
 
         if personal_service:
             api.add_resource(

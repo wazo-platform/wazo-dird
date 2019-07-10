@@ -32,12 +32,7 @@ from .helpers.constants import (
 class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
-    valid_body = {
-        'name': 'internal',
-        'auth': {
-            'key_file': '/path/to/the/key/file',
-        }
-    }
+    valid_body = {'name': 'internal', 'auth': {'key_file': '/path/to/the/key/file'}}
 
     @classmethod
     def setUpClass(cls):
@@ -57,7 +52,7 @@ class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
                 error_id='unknown-source',
                 resource='sources',
                 details=has_entries(uuid=source_uuid),
-            )
+            ),
         )
 
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
@@ -73,7 +68,6 @@ class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
 
 
 class TestDelete(BaseWazoCRUDTestCase):
-
     @fixtures.wazo_source(name='foobar')
     def test_delete(self, foobar):
         assert_that(
@@ -83,7 +77,9 @@ class TestDelete(BaseWazoCRUDTestCase):
 
         assert_that(
             calling(self.client.wazo_source.get).with_args(foobar['uuid']),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         try:
@@ -113,46 +109,28 @@ class TestDelete(BaseWazoCRUDTestCase):
 
 
 class TestList(BaseWazoCRUDTestCase):
-
     @fixtures.wazo_source(name='abc')
     @fixtures.wazo_source(name='bcd')
     @fixtures.wazo_source(name='cde')
     def test_searches(self, c, b, a):
         assert_that(
             self.client.wazo_source.list(),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.wazo_source.list(name='abc'),
-            has_entries(
-                items=contains(a),
-                total=3,
-                filtered=1,
-            )
+            has_entries(items=contains(a), total=3, filtered=1),
         )
 
         assert_that(
             self.client.wazo_source.list(uuid=c['uuid']),
-            has_entries(
-                items=contains(c),
-                total=3,
-                filtered=1,
-            )
+            has_entries(items=contains(c), total=3, filtered=1),
         )
 
         result = self.client.wazo_source.list(search='b')
         assert_that(
-            result,
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=3,
-                filtered=2,
-            )
+            result, has_entries(items=contains_inanyorder(a, b), total=3, filtered=2)
         )
 
     @fixtures.wazo_source(name='abc')
@@ -161,38 +139,22 @@ class TestList(BaseWazoCRUDTestCase):
     def test_pagination(self, c, b, a):
         assert_that(
             self.client.wazo_source.list(order='name'),
-            has_entries(
-                items=contains(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.wazo_source.list(order='name', direction='desc'),
-            has_entries(
-                items=contains(c, b, a),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(c, b, a), total=3, filtered=3),
         )
 
         assert_that(
             self.client.wazo_source.list(order='name', limit=2),
-            has_entries(
-                items=contains(a, b),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(a, b), total=3, filtered=3),
         )
 
         assert_that(
             self.client.wazo_source.list(order='name', offset=2),
-            has_entries(
-                items=contains(c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(c), total=3, filtered=3),
         )
 
     @fixtures.wazo_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
@@ -204,43 +166,26 @@ class TestList(BaseWazoCRUDTestCase):
 
         assert_that(
             main_tenant_client.wazo_source.list(),
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=2,
-                filtered=2,
-            )
+            has_entries(items=contains_inanyorder(a, b), total=2, filtered=2),
         )
 
         assert_that(
             main_tenant_client.wazo_source.list(recurse=True),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             sub_tenant_client.wazo_source.list(),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
         assert_that(
             sub_tenant_client.wazo_source.list(recurse=True),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
 
 class TestPost(BaseWazoCRUDTestCase):
-
     def test_post(self):
         try:
             self.client.wazo_source.create({})
@@ -261,8 +206,8 @@ class TestPost(BaseWazoCRUDTestCase):
             assert_that(
                 calling(self.client.wazo_source.create).with_args(self.valid_body),
                 raises(Exception).matching(
-                    has_properties(response=has_properties(status_code=409)),
-                )
+                    has_properties(response=has_properties(status_code=409))
+                ),
             )
 
     def test_multi_tenant(self):
@@ -272,28 +217,33 @@ class TestPost(BaseWazoCRUDTestCase):
         with self.source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        with self.source(main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT) as result:
+        with self.source(
+            main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT
+        ) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         with self.source(sub_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         assert_that(
-            calling(
-                sub_tenant_client.wazo_source.create
-            ).with_args(self.valid_body, tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            calling(sub_tenant_client.wazo_source.create).with_args(
+                self.valid_body, tenant_uuid=MAIN_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         with self.source(main_tenant_client, self.valid_body):
             assert_that(
-                calling(sub_tenant_client.wazo_source.create).with_args(self.valid_body),
+                calling(sub_tenant_client.wazo_source.create).with_args(
+                    self.valid_body
+                ),
                 not_(raises(Exception)),
             )
 
 
 class TestPut(BaseWazoCRUDTestCase):
-
     def setUp(self):
         super().setUp()
         self.new_body = {
@@ -301,9 +251,7 @@ class TestPut(BaseWazoCRUDTestCase):
             'auth': {'username': 'foo', 'password': 'secret'},
             'searched_columns': ['firstname'],
             'first_matched_columns': ['exten'],
-            'format_columns': {
-                'name': '{firstname} {lastname}',
-            }
+            'format_columns': {'name': '{firstname} {lastname}'},
         }
 
     @fixtures.wazo_source(name='foobar')
@@ -311,12 +259,18 @@ class TestPut(BaseWazoCRUDTestCase):
     def test_put(self, foobar, other):
         assert_that(
             calling(self.client.wazo_source.edit).with_args(foobar['uuid'], other),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=409)))
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=409))
+            ),
         )
 
         assert_that(
-            calling(self.client.wazo_source.edit).with_args(UNKNOWN_UUID, self.new_body),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+            calling(self.client.wazo_source.edit).with_args(
+                UNKNOWN_UUID, self.new_body
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         try:
@@ -335,7 +289,9 @@ class TestPut(BaseWazoCRUDTestCase):
             self.fail('Should have raised')
 
         assert_that(
-            calling(self.client.wazo_source.edit).with_args(foobar['uuid'], self.new_body),
+            calling(self.client.wazo_source.edit).with_args(
+                foobar['uuid'], self.new_body
+            ),
             not_(raises(Exception)),
         )
 
@@ -350,7 +306,7 @@ class TestPut(BaseWazoCRUDTestCase):
                 searched_columns=['firstname'],
                 first_matched_columns=['exten'],
                 format_columns={'name': '{firstname} {lastname}'},
-            )
+            ),
         )
 
     @fixtures.wazo_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
@@ -361,9 +317,11 @@ class TestPut(BaseWazoCRUDTestCase):
 
         assert_that(
             calling(sub_tenant_client.wazo_source.edit).with_args(main['uuid'], sub),
-            not_(raises(Exception).matching(
-                has_properties(response=has_properties(status_code=409)))
-            )
+            not_(
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409))
+                )
+            ),
         )
 
         try:
@@ -374,13 +332,14 @@ class TestPut(BaseWazoCRUDTestCase):
             self.fail('Should have raised')
 
         assert_that(
-            calling(main_tenant_client.wazo_source.edit).with_args(sub['uuid'], self.new_body),
+            calling(main_tenant_client.wazo_source.edit).with_args(
+                sub['uuid'], self.new_body
+            ),
             not_(raises(Exception)),
         )
 
 
 class TestGet(BaseWazoCRUDTestCase):
-
     @fixtures.wazo_source(name='foobar')
     def test_get(self, wazo):
         response = self.client.wazo_source.get(wazo['uuid'])

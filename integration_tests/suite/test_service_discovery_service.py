@@ -3,11 +3,7 @@
 
 from unittest import skip
 
-from hamcrest import (
-    assert_that,
-    contains,
-    has_entry,
-)
+from hamcrest import assert_that, contains, has_entry
 
 from xivo_test_helpers import until
 
@@ -22,34 +18,22 @@ class TestDiscoveredWazoUser(BaseDirdIntegrationTest):
         {
             'name': 'default_display',
             'columns': [
-                {
-                    'title': 'Firstname',
-                    'field': 'firstname',
-                },
-                {
-                    'title': 'Lastname',
-                    'field': 'lastname',
-                },
-                {
-                    'title': 'Number',
-                    'default': '',
-                    'field': 'number',
-                },
-                {
-                    'title': 'Mobile',
-                    'default': '',
-                    'field': 'mobile_phone_number',
-                },
+                {'title': 'Firstname', 'field': 'firstname'},
+                {'title': 'Lastname', 'field': 'lastname'},
+                {'title': 'Number', 'default': '', 'field': 'number'},
+                {'title': 'Mobile', 'default': '', 'field': 'mobile_phone_number'},
             ],
-        },
+        }
     ]
 
     def test_that_the_source_is_loaded(self):
-
         def test():
             result = self.lookup('dyl', 'default')
-            assert_that(result['results'],
-                        contains(has_entry('column_values',
-                                           contains('Bob', 'Dylan', '1000', ''))))
+            assert_that(
+                result['results'],
+                contains(
+                    has_entry('column_values', contains('Bob', 'Dylan', '1000', ''))
+                ),
+            )
 
         until.assert_(test, tries=3)

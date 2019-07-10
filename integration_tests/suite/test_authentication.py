@@ -1,18 +1,11 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    contains_string,
-    equal_to,
-)
+from hamcrest import assert_that, contains_string, equal_to
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_auth_only_config
-from .helpers.constants import (
-    VALID_TOKEN_MAIN_TENANT,
-    VALID_TOKEN_NO_ACL,
-)
+from .helpers.constants import VALID_TOKEN_MAIN_TENANT, VALID_TOKEN_NO_ACL
 
 
 class TestAuthentication(BaseDirdIntegrationTest):
@@ -49,9 +42,10 @@ class TestAuthenticationError(BaseDirdIntegrationTest):
         result = self.get_headers_result('default', token=VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(503))
-        assert_that(result.json()['reason'][0], contains_string(
-            'Authentication server unreachable',
-        ))
+        assert_that(
+            result.json()['reason'][0],
+            contains_string('Authentication server unreachable'),
+        )
 
 
 class TestAuthenticationCoverage(BaseDirdIntegrationTest):
@@ -74,7 +68,9 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
 
     def test_auth_on_reverse(self):
         result_1 = self.get_reverse_result('exten', 'default', 'uuid')
-        result_2 = self.get_reverse_result('exten', 'default', 'uuid', VALID_TOKEN_NO_ACL)
+        result_2 = self.get_reverse_result(
+            'exten', 'default', 'uuid', VALID_TOKEN_NO_ACL
+        )
 
         assert_that(result_1.status_code, equal_to(401))
         assert_that(result_2.status_code, equal_to(401))
@@ -158,21 +154,27 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
 
     def test_auth_on_menu_cisco(self):
         result_1 = self.get_menu_cisco_result('default', 'uuid')
-        result_2 = self.get_menu_cisco_result('default', 'uuid', token=VALID_TOKEN_NO_ACL)
+        result_2 = self.get_menu_cisco_result(
+            'default', 'uuid', token=VALID_TOKEN_NO_ACL
+        )
 
         assert_that(result_1.status_code, equal_to(401))
         assert_that(result_2.status_code, equal_to(401))
 
     def test_auth_on_input_cisco(self):
         result_1 = self.get_input_cisco_result('default', 'uuid')
-        result_2 = self.get_input_cisco_result('default', 'uuid', token=VALID_TOKEN_NO_ACL)
+        result_2 = self.get_input_cisco_result(
+            'default', 'uuid', token=VALID_TOKEN_NO_ACL
+        )
 
         assert_that(result_1.status_code, equal_to(401))
         assert_that(result_2.status_code, equal_to(401))
 
     def test_auth_on_lookup_cisco(self):
         result_1 = self.get_lookup_cisco_result('default', 'uuid')
-        result_2 = self.get_lookup_cisco_result('default', 'uuid', token=VALID_TOKEN_NO_ACL)
+        result_2 = self.get_lookup_cisco_result(
+            'default', 'uuid', token=VALID_TOKEN_NO_ACL
+        )
 
         assert_that(result_1.status_code, equal_to(401))
         assert_that(result_2.status_code, equal_to(401))

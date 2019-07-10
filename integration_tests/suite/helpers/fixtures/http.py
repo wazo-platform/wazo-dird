@@ -20,7 +20,6 @@ def conference_source(**source_args):
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             client = self.get_client(source_args['token'])
@@ -36,13 +35,14 @@ def conference_source(**source_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator
 
 
 def csv_source(**source_args):
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             source_args.setdefault('name', random_string())
@@ -62,7 +62,9 @@ def csv_source(**source_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -71,7 +73,6 @@ def csv_ws_source(**source_args):
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             client = self.get_client(source_args['token'])
@@ -87,7 +88,9 @@ def csv_ws_source(**source_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -97,7 +100,6 @@ def display(**display_args):
     display_args.setdefault('columns', [{'field': 'fn'}])
 
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             client = self.get_client(display_args['token'])
@@ -113,7 +115,9 @@ def display(**display_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -123,7 +127,6 @@ def ldap_source(**source_args):
     source_args.setdefault('ldap_base_dn', 'ou=people,dc=example,dc=org')
 
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             client = self.get_client(source_args['token'])
@@ -139,7 +142,9 @@ def ldap_source(**source_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -147,7 +152,6 @@ def personal_source(**source_args):
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             client = self.get_client(source_args['token'])
@@ -163,7 +167,9 @@ def personal_source(**source_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -171,7 +177,6 @@ def phonebook_source(**source_args):
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             client = self.get_client(source_args['token'])
@@ -187,7 +192,9 @@ def phonebook_source(**source_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -196,7 +203,6 @@ def wazo_source(**source_args):
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             client = self.get_client(source_args['token'])
@@ -212,5 +218,7 @@ def wazo_source(**source_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator

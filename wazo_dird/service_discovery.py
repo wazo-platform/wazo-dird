@@ -8,7 +8,9 @@ import requests
 def self_check(port):
     url = 'https://localhost:{}/0.1/directories/lookup/foobar/headers'.format(port)
     try:
-        response = requests.get(url, headers={'accept': 'application/json'}, verify=False)
+        response = requests.get(
+            url, headers={'accept': 'application/json'}, verify=False
+        )
         return response.status_code == 401
     except Exception:
         return False

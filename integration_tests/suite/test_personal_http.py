@@ -32,9 +32,7 @@ from .helpers.constants import (
 class BasePersonalCRUDTestCase(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
-    valid_body = {
-        'name': 'main',
-    }
+    valid_body = {'name': 'main'}
 
     @classmethod
     def setUpClass(cls):
@@ -54,7 +52,7 @@ class BasePersonalCRUDTestCase(BaseDirdIntegrationTest):
                 error_id='unknown-source',
                 resource='sources',
                 details=has_entries(uuid=source_uuid),
-            )
+            ),
         )
 
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
@@ -70,7 +68,6 @@ class BasePersonalCRUDTestCase(BaseDirdIntegrationTest):
 
 
 class TestDelete(BasePersonalCRUDTestCase):
-
     @fixtures.personal_source(name='foobar')
     def test_delete(self, foobar):
         assert_that(
@@ -80,7 +77,9 @@ class TestDelete(BasePersonalCRUDTestCase):
 
         assert_that(
             calling(self.client.personal_source.get).with_args(foobar['uuid']),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         try:
@@ -110,46 +109,28 @@ class TestDelete(BasePersonalCRUDTestCase):
 
 
 class TestList(BasePersonalCRUDTestCase):
-
     @fixtures.personal_source(name='abc')
     @fixtures.personal_source(name='bcd')
     @fixtures.personal_source(name='cde')
     def test_searches(self, c, b, a):
         assert_that(
             self.client.personal_source.list(),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.personal_source.list(name='abc'),
-            has_entries(
-                items=contains(a),
-                total=3,
-                filtered=1,
-            )
+            has_entries(items=contains(a), total=3, filtered=1),
         )
 
         assert_that(
             self.client.personal_source.list(uuid=c['uuid']),
-            has_entries(
-                items=contains(c),
-                total=3,
-                filtered=1,
-            )
+            has_entries(items=contains(c), total=3, filtered=1),
         )
 
         result = self.client.personal_source.list(search='b')
         assert_that(
-            result,
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=3,
-                filtered=2,
-            )
+            result, has_entries(items=contains_inanyorder(a, b), total=3, filtered=2)
         )
 
     @fixtures.personal_source(name='abc')
@@ -158,38 +139,22 @@ class TestList(BasePersonalCRUDTestCase):
     def test_pagination(self, c, b, a):
         assert_that(
             self.client.personal_source.list(order='name'),
-            has_entries(
-                items=contains(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.personal_source.list(order='name', direction='desc'),
-            has_entries(
-                items=contains(c, b, a),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(c, b, a), total=3, filtered=3),
         )
 
         assert_that(
             self.client.personal_source.list(order='name', limit=2),
-            has_entries(
-                items=contains(a, b),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(a, b), total=3, filtered=3),
         )
 
         assert_that(
             self.client.personal_source.list(order='name', offset=2),
-            has_entries(
-                items=contains(c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(c), total=3, filtered=3),
         )
 
     @fixtures.personal_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
@@ -201,54 +166,33 @@ class TestList(BasePersonalCRUDTestCase):
 
         assert_that(
             main_tenant_client.personal_source.list(),
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=2,
-                filtered=2,
-            )
+            has_entries(items=contains_inanyorder(a, b), total=2, filtered=2),
         )
 
         assert_that(
             main_tenant_client.personal_source.list(recurse=True),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             sub_tenant_client.personal_source.list(),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
         assert_that(
             sub_tenant_client.personal_source.list(recurse=True),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
 
 class TestPost(BasePersonalCRUDTestCase):
-
     def test_post(self):
         try:
             self.client.personal_source.create({})
         except Exception as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
-                e.response.json(),
-                has_entries(
-                    message=ANY,
-                    error_id='invalid-data',
-                ),
+                e.response.json(), has_entries(message=ANY, error_id='invalid-data')
             )
         else:
             self.fail('Should have raised')
@@ -256,9 +200,9 @@ class TestPost(BasePersonalCRUDTestCase):
         with self.source(self.client, self.valid_body):
             assert_that(
                 calling(self.client.personal_source.create).with_args(self.valid_body),
-                raises(Exception).matching(has_properties(
-                    response=has_properties(status_code=409),
-                ))
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409))
+                ),
             )
 
     def test_multi_tenant(self):
@@ -268,37 +212,40 @@ class TestPost(BasePersonalCRUDTestCase):
         with self.source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        with self.source(main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT) as result:
+        with self.source(
+            main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT
+        ) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         with self.source(sub_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         assert_that(
-            calling(
-                sub_tenant_client.personal_source.create
-            ).with_args(self.valid_body, tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            calling(sub_tenant_client.personal_source.create).with_args(
+                self.valid_body, tenant_uuid=MAIN_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         with self.source(main_tenant_client, self.valid_body):
             assert_that(
-                calling(sub_tenant_client.personal_source.create).with_args(self.valid_body),
+                calling(sub_tenant_client.personal_source.create).with_args(
+                    self.valid_body
+                ),
                 not_(raises(Exception)),
             )
 
 
 class TestPut(BasePersonalCRUDTestCase):
-
     def setUp(self):
         super().setUp()
         self.new_body = {
             'name': 'new',
             'searched_columns': ['firstname'],
             'first_matched_columns': ['exten'],
-            'format_columns': {
-                'name': '{firstname} {lastname}',
-            }
+            'format_columns': {'name': '{firstname} {lastname}'},
         }
 
     @fixtures.personal_source(name='foobar')
@@ -306,12 +253,18 @@ class TestPut(BasePersonalCRUDTestCase):
     def test_put(self, foobar, other):
         assert_that(
             calling(self.client.personal_source.edit).with_args(foobar['uuid'], other),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=409)))
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=409))
+            ),
         )
 
         assert_that(
-            calling(self.client.personal_source.edit).with_args(UNKNOWN_UUID, self.new_body),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+            calling(self.client.personal_source.edit).with_args(
+                UNKNOWN_UUID, self.new_body
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         try:
@@ -319,17 +272,15 @@ class TestPut(BasePersonalCRUDTestCase):
         except Exception as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
-                e.response.json(),
-                has_entries(
-                    message=ANY,
-                    error_id='invalid-data',
-                ),
+                e.response.json(), has_entries(message=ANY, error_id='invalid-data')
             )
         else:
             self.fail('Should have raised')
 
         assert_that(
-            calling(self.client.personal_source.edit).with_args(foobar['uuid'], self.new_body),
+            calling(self.client.personal_source.edit).with_args(
+                foobar['uuid'], self.new_body
+            ),
             not_(raises(Exception)),
         )
 
@@ -343,7 +294,7 @@ class TestPut(BasePersonalCRUDTestCase):
                 searched_columns=['firstname'],
                 first_matched_columns=['exten'],
                 format_columns={'name': '{firstname} {lastname}'},
-            )
+            ),
         )
 
     @fixtures.personal_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
@@ -353,10 +304,14 @@ class TestPut(BasePersonalCRUDTestCase):
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
         assert_that(
-            calling(sub_tenant_client.personal_source.edit).with_args(main['uuid'], sub),
-            not_(raises(Exception).matching(
-                has_properties(response=has_properties(status_code=409)))
-            )
+            calling(sub_tenant_client.personal_source.edit).with_args(
+                main['uuid'], sub
+            ),
+            not_(
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409))
+                )
+            ),
         )
 
         try:
@@ -367,13 +322,14 @@ class TestPut(BasePersonalCRUDTestCase):
             self.fail('Should have raised')
 
         assert_that(
-            calling(main_tenant_client.personal_source.edit).with_args(sub['uuid'], self.new_body),
+            calling(main_tenant_client.personal_source.edit).with_args(
+                sub['uuid'], self.new_body
+            ),
             not_(raises(Exception)),
         )
 
 
 class TestGet(BasePersonalCRUDTestCase):
-
     @fixtures.personal_source(name='foobar')
     def test_get(self, wazo):
         response = self.client.personal_source.get(wazo['uuid'])

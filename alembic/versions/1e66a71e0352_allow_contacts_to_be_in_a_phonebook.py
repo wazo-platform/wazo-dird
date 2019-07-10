@@ -18,10 +18,14 @@ table_name = 'dird_contact'
 
 def upgrade():
     op.alter_column(table_name, 'user_uuid', nullable=True)
-    op.add_column(table_name,
-                  sa.Column('phonebook_id',
-                            sa.Integer(),
-                            sa.ForeignKey('dird_phonebook.id', ondelete='CASCADE')))
+    op.add_column(
+        table_name,
+        sa.Column(
+            'phonebook_id',
+            sa.Integer(),
+            sa.ForeignKey('dird_phonebook.id', ondelete='CASCADE'),
+        ),
+    )
     op.create_unique_constraint(constraint_name, table_name, ['hash', 'phonebook_id'])
 
 

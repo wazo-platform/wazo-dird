@@ -8,14 +8,15 @@ logger = logging.getLogger(__name__)
 
 
 class _NoErrorFormatter(string.Formatter):
-
     def format(self, format_string, *args, **kwargs):
         try:
             return super().format(format_string, *args, **kwargs).strip()
         except Exception as e:
             logger.debug(
                 'skipping string formatting %s %s: %s',
-                format_string, e.__class__.__name__, e,
+                format_string,
+                e.__class__.__name__,
+                e,
             )
             return None
 
@@ -37,18 +38,25 @@ class _SourceResult:
     _format_columns = {}
 
     def __init__(
-            self, fields, xivo_id=None, agent_id=None,
-            user_id=None, user_uuid=None, endpoint_id=None,
+        self,
+        fields,
+        xivo_id=None,
+        agent_id=None,
+        user_id=None,
+        user_uuid=None,
+        endpoint_id=None,
     ):
         self._formatter = _NoErrorFormatter()
         self.fields = dict(fields)
         source_entry_id = self.get_unique() if self._unique_column else None
-        self.relations = {'xivo_id': xivo_id,
-                          'agent_id': agent_id,
-                          'user_id': user_id,
-                          'user_uuid': user_uuid,
-                          'endpoint_id': endpoint_id,
-                          'source_entry_id': source_entry_id}
+        self.relations = {
+            'xivo_id': xivo_id,
+            'agent_id': agent_id,
+            'user_id': user_id,
+            'user_uuid': user_uuid,
+            'endpoint_id': endpoint_id,
+            'source_entry_id': source_entry_id,
+        }
 
         self._add_formatted_columns()
 
@@ -71,26 +79,34 @@ class _SourceResult:
             self.fields[column] = value
 
     def __eq__(self, other):
-        return (self.source == other.source and
-                self.fields == other.fields and
-                self.relations == other.relations)
+        return (
+            self.source == other.source
+            and self.fields == other.fields
+            and self.relations == other.relations
+        )
 
     def __ne__(self, other):
         return not self == other
 
     def __repr__(self):
-        return '%s(%s, %s, %s, %s, %s, %s)' % (self.__class__.__name__,
-                                               self.fields,
-                                               self.relations['xivo_id'],
-                                               self.relations['agent_id'],
-                                               self.relations['user_id'],
-                                               self.relations['user_uuid'],
-                                               self.relations['endpoint_id'])
+        return '%s(%s, %s, %s, %s, %s, %s)' % (
+            self.__class__.__name__,
+            self.fields,
+            self.relations['xivo_id'],
+            self.relations['agent_id'],
+            self.relations['user_id'],
+            self.relations['user_uuid'],
+            self.relations['endpoint_id'],
+        )
 
 
 def make_result_class(
-        source_backend, source_name,
-        unique_column=None, format_columns=None, is_deletable=False, is_personal=False,
+    source_backend,
+    source_name,
+    unique_column=None,
+    format_columns=None,
+    is_deletable=False,
+    is_personal=False,
 ):
     if not unique_column:
         unique_column = _SourceResult._unique_column

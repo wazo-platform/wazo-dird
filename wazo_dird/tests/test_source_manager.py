@@ -9,7 +9,6 @@ from wazo_dird.source_manager import SourceManager
 
 
 class TestSourceManager(unittest.TestCase):
-
     def test_unload_sources(self):
         source_1 = Mock()
         source_2 = Mock()

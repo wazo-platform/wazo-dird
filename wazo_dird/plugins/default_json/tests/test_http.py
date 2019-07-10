@@ -3,10 +3,7 @@
 
 import unittest
 
-from hamcrest import (
-    assert_that,
-    equal_to,
-)
+from hamcrest import assert_that, equal_to
 
 from wazo_dird.helpers import DisplayColumn, DisplayAwareResource
 
@@ -14,7 +11,6 @@ make_display = DisplayAwareResource._make_display
 
 
 class TestMakeDisplays(unittest.TestCase):
-
     def test_that_make_displays_with_no_config_returns_empty_dict(self):
         result = make_display({})
 
@@ -56,12 +52,7 @@ class TestMakeDisplays(unittest.TestCase):
                     'default': 'N/A',
                     'field': 'firstname',
                 },
-                {
-                    'title': 'ln',
-                    'type': None,
-                    'default': 'N/A',
-                    'field': 'LAST',
-                },
+                {'title': 'ln', 'type': None, 'default': 'N/A', 'field': 'LAST'},
             ],
         }
 

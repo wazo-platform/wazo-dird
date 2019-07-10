@@ -16,7 +16,6 @@ TokenRenewer = Mock(return_value=token_renewer)
 @patch('wazo_dird.controller.TokenRenewer', TokenRenewer)
 @patch('wazo_dird.controller.init_db', Mock())
 class TestController(TestCase):
-
     def setUp(self):
         self.rest_api = patch('wazo_dird.controller.CoreRestApi').start().return_value
         self.load_services = patch('wazo_dird.plugin_manager.load_services').start()
@@ -27,25 +26,31 @@ class TestController(TestCase):
         patch.stopall()
 
     def test_run_starts_rest_api(self):
-        config = self._create_config(**{
-            'rest_api': {
-                'https': {'listen': '127.0.0.1', 'port': '9489', 'certificate': 'my-certificate'},
-            },
-            'debug': s.debug,
-            'service_discovery': {'enabled': False},
-        })
+        config = self._create_config(
+            **{
+                'rest_api': {
+                    'https': {
+                        'listen': '127.0.0.1',
+                        'port': '9489',
+                        'certificate': 'my-certificate',
+                    }
+                },
+                'debug': s.debug,
+                'service_discovery': {'enabled': False},
+            }
+        )
         Controller(config).run()
 
         self.rest_api.run.assert_called_once_with()
 
     def test_run_loads_and_unloads_services(self):
-        config = self._create_config(**{
-            'enabled_plugins': {
-                'services': s.enabled,
-            },
-            'services': s.config,
-            'service_discovery': {'enabled': False},
-        })
+        config = self._create_config(
+            **{
+                'enabled_plugins': {'services': s.enabled},
+                'services': s.config,
+                'service_discovery': {'enabled': False},
+            }
+        )
 
         Controller(config).run()
 
@@ -53,23 +58,19 @@ class TestController(TestCase):
         self.unload_services.assert_called_once_with()
 
     def test_run_loads_views(self):
-        config = self._create_config(**{
-            'enabled_plugins': {
-                'views': s.enabled,
-            },
-            'views': s.config,
-            'service_discovery': {'enabled': False},
-        })
+        config = self._create_config(
+            **{
+                'enabled_plugins': {'views': s.enabled},
+                'views': s.config,
+                'service_discovery': {'enabled': False},
+            }
+        )
 
         controller = Controller(config)
         controller.run()
 
         self.load_views.assert_called_once_with(
-            config,
-            s.enabled,
-            ANY,
-            controller.auth_client,
-            controller.status_aggregator,
+            config, s.enabled, ANY, controller.auth_client, controller.status_aggregator
         )
 
     def _create_config(self, **kwargs):
@@ -81,7 +82,9 @@ class TestController(TestCase):
         config['enabled_plugins'].setdefault('services', {})
         config['enabled_plugins'].setdefault('views', {})
         config.setdefault('sources', {})
-        config.setdefault('rest_api', {'https': {'port': Mock(), 'certificate': 'my-certificate'}})
+        config.setdefault(
+            'rest_api', {'https': {'port': Mock(), 'certificate': 'my-certificate'}}
+        )
         config.setdefault('services', Mock())
         config.setdefault('source_config_dir', Mock())
         config.setdefault('views', Mock())

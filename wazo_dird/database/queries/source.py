@@ -1,17 +1,10 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import (
-    and_,
-    exc,
-    text,
-)
-from wazo_dird.exception import (
-    DuplicatedSourceException,
-    NoSuchSource,
-)
+from sqlalchemy import and_, exc, text
+from wazo_dird.exception import DuplicatedSourceException, NoSuchSource
 from .base import BaseDAO
-from ..import Source
+from .. import Source
 
 
 class SourceCRUD(BaseDAO):
@@ -47,7 +40,9 @@ class SourceCRUD(BaseDAO):
     def delete(self, backend, source_uuid, visible_tenants):
         filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
-            nb_deleted = s.query(Source).filter(filter_).delete(synchronize_session=False)
+            nb_deleted = (
+                s.query(Source).filter(filter_).delete(synchronize_session=False)
+            )
 
         if not nb_deleted:
             raise NoSuchSource(source_uuid)
@@ -88,7 +83,7 @@ class SourceCRUD(BaseDAO):
             return self._from_db_format(source)
 
     def _list_filter(
-            self, backend, visible_tenants, uuid=None, name=None, search=None, **list_params
+        self, backend, visible_tenants, uuid=None, name=None, search=None, **list_params
     ):
         filter_ = text('true')
         if visible_tenants is not None:
@@ -106,17 +101,16 @@ class SourceCRUD(BaseDAO):
         return filter_
 
     def _multi_tenant_filter(self, backend, source_uuid, visible_tenants):
-        filter_ = and_(
-            Source.backend == backend,
-            Source.uuid == source_uuid,
-        )
+        filter_ = and_(Source.backend == backend, Source.uuid == source_uuid)
 
         if visible_tenants is None:
             return filter_
 
         return and_(filter_, Source.tenant_uuid.in_(visible_tenants))
 
-    def _paginate(self, query, limit=None, offset=None, order=None, direction=None, **ignored):
+    def _paginate(
+        self, query, limit=None, offset=None, order=None, direction=None, **ignored
+    ):
         if order and direction:
             field = None
             if order == 'name':
@@ -142,12 +136,12 @@ class SourceCRUD(BaseDAO):
 
     @staticmethod
     def _update_to_db_format(
-            source,
-            name,
-            searched_columns,
-            first_matched_columns,
-            format_columns,
-            **extra_fields
+        source,
+        name,
+        searched_columns,
+        first_matched_columns,
+        format_columns,
+        **extra_fields
     ):
         source.name = name
         source.searched_columns = searched_columns

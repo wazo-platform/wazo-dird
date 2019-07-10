@@ -25,7 +25,9 @@ class DisplaySchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
-    columns = fields.Nested(DisplayColumnSchema, many=True, required=True, validate=Length(min=1))
+    columns = fields.Nested(
+        DisplayColumnSchema, many=True, required=True, validate=Length(min=1)
+    )
 
 
 class SourceSchema(BaseSchema):
@@ -40,7 +42,6 @@ class ServiceSchema(BaseSchema):
 
 
 class ServiceDictSchema(fields.Nested):
-
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None

@@ -31,9 +31,7 @@ from .helpers.constants import (
 class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
-    valid_body = {
-        'name': 'main',
-    }
+    valid_body = {'name': 'main'}
 
     def assert_unknown_source_exception(self, source_uuid, exception):
         assert_that(exception.response.status_code, equal_to(404))
@@ -43,7 +41,7 @@ class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
                 error_id='unknown-source',
                 resource='sources',
                 details=has_entries(uuid=source_uuid),
-            )
+            ),
         )
 
     @contextmanager
@@ -56,7 +54,6 @@ class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
 
 
 class TestDelete(BasePhonebookCRUDTestCase):
-
     @fixtures.phonebook_source(name='foobar')
     def test_delete(self, foobar):
         assert_that(
@@ -66,7 +63,9 @@ class TestDelete(BasePhonebookCRUDTestCase):
 
         assert_that(
             calling(self.client.phonebook_source.get).with_args(foobar['uuid']),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         try:
@@ -96,46 +95,28 @@ class TestDelete(BasePhonebookCRUDTestCase):
 
 
 class TestList(BasePhonebookCRUDTestCase):
-
     @fixtures.phonebook_source(name='abc')
     @fixtures.phonebook_source(name='bcd')
     @fixtures.phonebook_source(name='cde')
     def test_searches(self, c, b, a):
         assert_that(
             self.client.phonebook_source.list(),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(name='abc'),
-            has_entries(
-                items=contains(a),
-                total=3,
-                filtered=1,
-            )
+            has_entries(items=contains(a), total=3, filtered=1),
         )
 
         assert_that(
             self.client.phonebook_source.list(uuid=c['uuid']),
-            has_entries(
-                items=contains(c),
-                total=3,
-                filtered=1,
-            )
+            has_entries(items=contains(c), total=3, filtered=1),
         )
 
         result = self.client.phonebook_source.list(search='b')
         assert_that(
-            result,
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=3,
-                filtered=2,
-            )
+            result, has_entries(items=contains_inanyorder(a, b), total=3, filtered=2)
         )
 
     @fixtures.phonebook_source(name='abc')
@@ -144,38 +125,22 @@ class TestList(BasePhonebookCRUDTestCase):
     def test_pagination(self, c, b, a):
         assert_that(
             self.client.phonebook_source.list(order='name'),
-            has_entries(
-                items=contains(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', direction='desc'),
-            has_entries(
-                items=contains(c, b, a),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(c, b, a), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', limit=2),
-            has_entries(
-                items=contains(a, b),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(a, b), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', offset=2),
-            has_entries(
-                items=contains(c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(c), total=3, filtered=3),
         )
 
     @fixtures.phonebook_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
@@ -187,54 +152,33 @@ class TestList(BasePhonebookCRUDTestCase):
 
         assert_that(
             main_tenant_client.phonebook_source.list(),
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=2,
-                filtered=2,
-            )
+            has_entries(items=contains_inanyorder(a, b), total=2, filtered=2),
         )
 
         assert_that(
             main_tenant_client.phonebook_source.list(recurse=True),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             sub_tenant_client.phonebook_source.list(),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
         assert_that(
             sub_tenant_client.phonebook_source.list(recurse=True),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
 
 class TestPost(BasePhonebookCRUDTestCase):
-
     def test_post(self):
         try:
             self.client.phonebook_source.create({})
         except Exception as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
-                e.response.json(),
-                has_entries(
-                    message=ANY,
-                    error_id='invalid-data',
-                ),
+                e.response.json(), has_entries(message=ANY, error_id='invalid-data')
             )
         else:
             self.fail('Should have raised')
@@ -242,9 +186,9 @@ class TestPost(BasePhonebookCRUDTestCase):
         with self.source(self.client, self.valid_body):
             assert_that(
                 calling(self.client.phonebook_source.create).with_args(self.valid_body),
-                raises(Exception).matching(has_properties(
-                    response=has_properties(status_code=409),
-                ))
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409))
+                ),
             )
 
     def test_multi_tenant(self):
@@ -254,37 +198,40 @@ class TestPost(BasePhonebookCRUDTestCase):
         with self.source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        with self.source(main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT) as result:
+        with self.source(
+            main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT
+        ) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         with self.source(sub_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         assert_that(
-            calling(
-                sub_tenant_client.phonebook_source.create
-            ).with_args(self.valid_body, tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            calling(sub_tenant_client.phonebook_source.create).with_args(
+                self.valid_body, tenant_uuid=MAIN_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         with self.source(main_tenant_client, self.valid_body):
             assert_that(
-                calling(sub_tenant_client.phonebook_source.create).with_args(self.valid_body),
+                calling(sub_tenant_client.phonebook_source.create).with_args(
+                    self.valid_body
+                ),
                 not_(raises(Exception)),
             )
 
 
 class TestPut(BasePhonebookCRUDTestCase):
-
     def setUp(self):
         super().setUp()
         self.new_body = {
             'name': 'new',
             'searched_columns': ['firstname'],
             'first_matched_columns': ['exten'],
-            'format_columns': {
-                'name': '{firstname} {lastname}',
-            }
+            'format_columns': {'name': '{firstname} {lastname}'},
         }
 
     @fixtures.phonebook_source(name='foobar')
@@ -292,12 +239,18 @@ class TestPut(BasePhonebookCRUDTestCase):
     def test_put(self, foobar, other):
         assert_that(
             calling(self.client.phonebook_source.edit).with_args(foobar['uuid'], other),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=409)))
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=409))
+            ),
         )
 
         assert_that(
-            calling(self.client.phonebook_source.edit).with_args(UNKNOWN_UUID, self.new_body),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+            calling(self.client.phonebook_source.edit).with_args(
+                UNKNOWN_UUID, self.new_body
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         try:
@@ -305,17 +258,15 @@ class TestPut(BasePhonebookCRUDTestCase):
         except Exception as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
-                e.response.json(),
-                has_entries(
-                    message=ANY,
-                    error_id='invalid-data',
-                ),
+                e.response.json(), has_entries(message=ANY, error_id='invalid-data')
             )
         else:
             self.fail('Should have raised')
 
         assert_that(
-            calling(self.client.phonebook_source.edit).with_args(foobar['uuid'], self.new_body),
+            calling(self.client.phonebook_source.edit).with_args(
+                foobar['uuid'], self.new_body
+            ),
             not_(raises(Exception)),
         )
 
@@ -329,7 +280,7 @@ class TestPut(BasePhonebookCRUDTestCase):
                 searched_columns=['firstname'],
                 first_matched_columns=['exten'],
                 format_columns={'name': '{firstname} {lastname}'},
-            )
+            ),
         )
 
     @fixtures.phonebook_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
@@ -339,10 +290,14 @@ class TestPut(BasePhonebookCRUDTestCase):
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
         assert_that(
-            calling(sub_tenant_client.phonebook_source.edit).with_args(main['uuid'], sub),
-            not_(raises(Exception).matching(
-                has_properties(response=has_properties(status_code=409)))
-            )
+            calling(sub_tenant_client.phonebook_source.edit).with_args(
+                main['uuid'], sub
+            ),
+            not_(
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409))
+                )
+            ),
         )
 
         try:
@@ -354,14 +309,13 @@ class TestPut(BasePhonebookCRUDTestCase):
 
         assert_that(
             calling(main_tenant_client.phonebook_source.edit).with_args(
-                sub['uuid'], self.new_body,
+                sub['uuid'], self.new_body
             ),
             not_(raises(Exception)),
         )
 
 
 class TestGet(BasePhonebookCRUDTestCase):
-
     @fixtures.phonebook_source(name='foobar')
     def test_get(self, wazo):
         response = self.client.phonebook_source.get(wazo['uuid'])

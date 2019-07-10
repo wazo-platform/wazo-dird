@@ -14,6 +14,9 @@ class TestConfigView(BaseDirdIntegrationTest):
     def test_get_config(self):
         result = self.get_config(token=VALID_TOKEN_MAIN_TENANT)
 
-        assert_that(result, has_entries({'foo': {'bar': 'main',
-                                                 'baz': 'conf.d',
-                                                 'other': 'overwritten'}}))
+        assert_that(
+            result,
+            has_entries(
+                {'foo': {'bar': 'main', 'baz': 'conf.d', 'other': 'overwritten'}}
+            ),
+        )

@@ -11,7 +11,10 @@ from flask import Flask, request, Response
 
 app = Flask(__name__)
 
-context = ('/usr/local/share/ssl/dird/server.crt', '/usr/local/share/ssl/dird/server.key')
+context = (
+    '/usr/local/share/ssl/dird/server.crt',
+    '/usr/local/share/ssl/dird/server.key',
+)
 
 headers = ['id', 'firstname', 'lastname', 'number']
 entries = [

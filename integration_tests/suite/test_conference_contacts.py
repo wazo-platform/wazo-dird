@@ -1,11 +1,7 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    calling,
-    has_properties,
-)
+from hamcrest import assert_that, calling, has_properties
 
 from xivo_test_helpers.hamcrest.raises import raises
 
@@ -29,7 +25,9 @@ class TestConferenceContactList(BaseDirdIntegrationTest):
 
     def setUp(self):
         super().setUp()
-        for source in self.client.sources.list(backend='conference', recurse=True)['items']:
+        for source in self.client.sources.list(backend='conference', recurse=True)[
+            'items'
+        ]:
             if source['name'] == 'confs':
                 self.source_uuid = source['uuid']
             elif source['name'] == 'confs_sub':
@@ -38,7 +36,9 @@ class TestConferenceContactList(BaseDirdIntegrationTest):
     def test_with_an_unknown_source(self):
         assert_that(
             calling(self.contacts).with_args(self.client, UNKNOWN_UUID),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
     def test_multi_tenant(self):
@@ -47,25 +47,27 @@ class TestConferenceContactList(BaseDirdIntegrationTest):
 
         assert_that(
             calling(self.contacts).with_args(sub_tenant_client, self.source_uuid),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         assert_that(
             calling(self.contacts).with_args(
-                sub_tenant_client,
-                self.source_uuid,
-                tenant_uuid=MAIN_TENANT
+                sub_tenant_client, self.source_uuid, tenant_uuid=MAIN_TENANT
             ),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         assert_that(
             calling(self.contacts).with_args(
-                main_tenant_client,
-                self.source_uuid,
-                tenant_uuid=SUB_TENANT,
+                main_tenant_client, self.source_uuid, tenant_uuid=SUB_TENANT
             ),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
     def test_with_no_confd(self):
@@ -73,17 +75,14 @@ class TestConferenceContactList(BaseDirdIntegrationTest):
         try:
             assert_that(
                 calling(self.contacts).with_args(self.client, self.source_uuid),
-                raises(Exception).matching(has_properties(
-                    response=has_properties(status_code=503),
-                ))
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=503))
+                ),
             )
         finally:
             self.start_service('america')
 
     def contacts(self, client, uuid, *args, **kwargs):
         return client.backends.list_contacts_from_source(
-            backend=BACKEND,
-            source_uuid=uuid,
-            *args,
-            **kwargs
+            backend=BACKEND, source_uuid=uuid, *args, **kwargs
         )

@@ -3,15 +3,8 @@
 
 from unittest import TestCase
 
-from hamcrest import (
-    assert_that,
-    equal_to,
-)
-from mock import (
-    ANY,
-    patch,
-    sentinel as s,
-)
+from hamcrest import assert_that, equal_to
+from mock import ANY, patch, sentinel as s
 
 from ..main import main
 
@@ -23,7 +16,6 @@ from ..main import main
 @patch('wazo_dird.main.Controller')
 @patch('wazo_dird.main.load_config')
 class TestWazoDird(TestCase):
-
     def test_main_injects_argv_into_config_loading(self, load_config, *_):
         main(s.argv)
 
@@ -49,10 +41,7 @@ class TestWazoDird(TestCase):
         main(s.argv)
 
         xivo_logging.setup_logging.assert_called_once_with(
-            s.log_filename,
-            s.foreground,
-            s.debug,
-            s.log_level,
+            s.log_filename, s.foreground, s.debug, s.log_level
         )
 
     def test_main_when_config_user_then_change_user(

@@ -1,18 +1,11 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import (
-    and_,
-    func,
-    text,
-)
+from sqlalchemy import and_, func, text
 from wazo_dird.database import schemas
 from wazo_dird.exception import NoSuchDisplay
 from .base import BaseDAO
-from ..import (
-    Display,
-    DisplayColumn,
-)
+from .. import Display, DisplayColumn
 
 
 class DisplayCRUD(BaseDAO):
@@ -28,7 +21,9 @@ class DisplayCRUD(BaseDAO):
     def create(self, tenant_uuid, name, columns, uuid=None):
         with self.new_session() as s:
             self._create_tenant(s, tenant_uuid)
-            display = self._add_display(s, tenant_uuid=tenant_uuid, name=name, uuid=uuid)
+            display = self._add_display(
+                s, tenant_uuid=tenant_uuid, name=name, uuid=uuid
+            )
             for column in columns:
                 self._add_column(s, display_uuid=display.uuid, **column)
             s.flush()
@@ -37,7 +32,9 @@ class DisplayCRUD(BaseDAO):
     def delete(self, visible_tenants, display_uuid):
         filter_ = self._build_filter(visible_tenants, display_uuid)
         with self.new_session() as s:
-            nb_deleted = s.query(Display).filter(filter_).delete(synchronize_session=False)
+            nb_deleted = (
+                s.query(Display).filter(filter_).delete(synchronize_session=False)
+            )
 
         if not nb_deleted:
             raise NoSuchDisplay(display_uuid)
@@ -50,7 +47,7 @@ class DisplayCRUD(BaseDAO):
                 raise NoSuchDisplay(display_uuid)
 
             s.query(DisplayColumn).filter(
-                DisplayColumn.display_uuid == display_uuid,
+                DisplayColumn.display_uuid == display_uuid
             ).delete(synchronize_session=False)
 
             display.name = name
@@ -83,7 +80,9 @@ class DisplayCRUD(BaseDAO):
 
         return filter_
 
-    def _list_filter(self, visible_tenants, uuid=None, name=None, search=None, **list_params):
+    def _list_filter(
+        self, visible_tenants, uuid=None, name=None, search=None, **list_params
+    ):
         filter_ = text('true')
         if visible_tenants is not None:
             filter_ = and_(filter_, Display.tenant_uuid.in_(visible_tenants))
@@ -96,7 +95,9 @@ class DisplayCRUD(BaseDAO):
             filter_ = and_(filter_, Display.name.ilike(pattern))
         return filter_
 
-    def _paginate(self, query, limit=None, offset=None, order=None, direction=None, **ignored):
+    def _paginate(
+        self, query, limit=None, offset=None, order=None, direction=None, **ignored
+    ):
         if order and direction:
             field = None
             if order == 'name':

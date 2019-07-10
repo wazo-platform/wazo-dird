@@ -56,7 +56,7 @@ class BaseLDAPCRUDTestCase(BaseDirdIntegrationTest):
                 error_id='unknown-source',
                 resource='sources',
                 details=has_entries(uuid=source_uuid),
-            )
+            ),
         )
 
     def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
@@ -72,7 +72,6 @@ class BaseLDAPCRUDTestCase(BaseDirdIntegrationTest):
 
 
 class TestDelete(BaseLDAPCRUDTestCase):
-
     @fixtures.ldap_source(name='foobar')
     def test_delete(self, foobar):
         assert_that(
@@ -82,7 +81,9 @@ class TestDelete(BaseLDAPCRUDTestCase):
 
         assert_that(
             calling(self.client.ldap_source.get).with_args(foobar['uuid']),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         try:
@@ -112,46 +113,28 @@ class TestDelete(BaseLDAPCRUDTestCase):
 
 
 class TestList(BaseLDAPCRUDTestCase):
-
     @fixtures.ldap_source(name='abc')
     @fixtures.ldap_source(name='bcd')
     @fixtures.ldap_source(name='cde')
     def test_searches(self, c, b, a):
         assert_that(
             self.client.ldap_source.list(),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.ldap_source.list(name='abc'),
-            has_entries(
-                items=contains(a),
-                total=3,
-                filtered=1,
-            )
+            has_entries(items=contains(a), total=3, filtered=1),
         )
 
         assert_that(
             self.client.ldap_source.list(uuid=c['uuid']),
-            has_entries(
-                items=contains(c),
-                total=3,
-                filtered=1,
-            )
+            has_entries(items=contains(c), total=3, filtered=1),
         )
 
         result = self.client.ldap_source.list(search='b')
         assert_that(
-            result,
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=3,
-                filtered=2,
-            )
+            result, has_entries(items=contains_inanyorder(a, b), total=3, filtered=2)
         )
 
     @fixtures.ldap_source(name='abc')
@@ -160,38 +143,22 @@ class TestList(BaseLDAPCRUDTestCase):
     def test_pagination(self, c, b, a):
         assert_that(
             self.client.ldap_source.list(order='name'),
-            has_entries(
-                items=contains(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.ldap_source.list(order='name', direction='desc'),
-            has_entries(
-                items=contains(c, b, a),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(c, b, a), total=3, filtered=3),
         )
 
         assert_that(
             self.client.ldap_source.list(order='name', limit=2),
-            has_entries(
-                items=contains(a, b),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(a, b), total=3, filtered=3),
         )
 
         assert_that(
             self.client.ldap_source.list(order='name', offset=2),
-            has_entries(
-                items=contains(c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains(c), total=3, filtered=3),
         )
 
     @fixtures.ldap_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
@@ -203,43 +170,26 @@ class TestList(BaseLDAPCRUDTestCase):
 
         assert_that(
             main_tenant_client.ldap_source.list(),
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=2,
-                filtered=2,
-            )
+            has_entries(items=contains_inanyorder(a, b), total=2, filtered=2),
         )
 
         assert_that(
             main_tenant_client.ldap_source.list(recurse=True),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             sub_tenant_client.ldap_source.list(),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
         assert_that(
             sub_tenant_client.ldap_source.list(recurse=True),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
 
 class TestPost(BaseLDAPCRUDTestCase):
-
     def test_post(self):
         try:
             self.client.ldap_source.create({})
@@ -259,9 +209,9 @@ class TestPost(BaseLDAPCRUDTestCase):
         with self.source(self.client, self.valid_body):
             assert_that(
                 calling(self.client.ldap_source.create).with_args(self.valid_body),
-                raises(Exception).matching(has_properties(
-                    response=has_properties(status_code=409),
-                ))
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409))
+                ),
             )
 
     def test_multi_tenant(self):
@@ -271,28 +221,33 @@ class TestPost(BaseLDAPCRUDTestCase):
         with self.source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        with self.source(main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT) as result:
+        with self.source(
+            main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT
+        ) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         with self.source(sub_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         assert_that(
-            calling(
-                sub_tenant_client.ldap_source.create
-            ).with_args(self.valid_body, tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            calling(sub_tenant_client.ldap_source.create).with_args(
+                self.valid_body, tenant_uuid=MAIN_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         with self.source(main_tenant_client, self.valid_body):
             assert_that(
-                calling(sub_tenant_client.ldap_source.create).with_args(self.valid_body),
+                calling(sub_tenant_client.ldap_source.create).with_args(
+                    self.valid_body
+                ),
                 not_(raises(Exception)),
             )
 
 
 class TestPut(BaseLDAPCRUDTestCase):
-
     def setUp(self):
         super().setUp()
         self.new_body = {
@@ -301,9 +256,7 @@ class TestPut(BaseLDAPCRUDTestCase):
             'ldap_base_dn': 'ou=other,dc=wazo,dc=io',
             'searched_columns': ['firstname'],
             'first_matched_columns': ['exten'],
-            'format_columns': {
-                'name': '{firstname} {lastname}',
-            }
+            'format_columns': {'name': '{firstname} {lastname}'},
         }
 
     @fixtures.ldap_source(name='foobar')
@@ -311,12 +264,18 @@ class TestPut(BaseLDAPCRUDTestCase):
     def test_put(self, foobar, other):
         assert_that(
             calling(self.client.ldap_source.edit).with_args(foobar['uuid'], other),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=409)))
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=409))
+            ),
         )
 
         assert_that(
-            calling(self.client.ldap_source.edit).with_args(UNKNOWN_UUID, self.new_body),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404)))
+            calling(self.client.ldap_source.edit).with_args(
+                UNKNOWN_UUID, self.new_body
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         try:
@@ -335,7 +294,9 @@ class TestPut(BaseLDAPCRUDTestCase):
             self.fail('Should have raised')
 
         assert_that(
-            calling(self.client.ldap_source.edit).with_args(foobar['uuid'], self.new_body),
+            calling(self.client.ldap_source.edit).with_args(
+                foobar['uuid'], self.new_body
+            ),
             not_(raises(Exception)),
         )
 
@@ -351,7 +312,7 @@ class TestPut(BaseLDAPCRUDTestCase):
                 searched_columns=['firstname'],
                 first_matched_columns=['exten'],
                 format_columns={'name': '{firstname} {lastname}'},
-            )
+            ),
         )
 
     @fixtures.ldap_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
@@ -362,9 +323,11 @@ class TestPut(BaseLDAPCRUDTestCase):
 
         assert_that(
             calling(sub_tenant_client.ldap_source.edit).with_args(main['uuid'], sub),
-            not_(raises(Exception).matching(
-                has_properties(response=has_properties(status_code=409)))
-            )
+            not_(
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=409))
+                )
+            ),
         )
 
         try:
@@ -375,13 +338,14 @@ class TestPut(BaseLDAPCRUDTestCase):
             self.fail('Should have raised')
 
         assert_that(
-            calling(main_tenant_client.ldap_source.edit).with_args(sub['uuid'], self.new_body),
+            calling(main_tenant_client.ldap_source.edit).with_args(
+                sub['uuid'], self.new_body
+            ),
             not_(raises(Exception)),
         )
 
 
 class TestGet(BaseLDAPCRUDTestCase):
-
     @fixtures.ldap_source(name='foobar')
     def test_get(self, wazo):
         response = self.client.ldap_source.get(wazo['uuid'])

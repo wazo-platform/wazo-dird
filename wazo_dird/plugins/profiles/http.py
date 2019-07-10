@@ -9,23 +9,17 @@ from xivo.tenant_flask_helpers import Tenant
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import AuthResource
 
-from .schemas import (
-    list_schema,
-    profile_list_schema,
-    profile_schema,
-)
+from .schemas import list_schema, profile_list_schema, profile_schema
 
 logger = logging.getLogger(__name__)
 
 
 class _BaseResource(AuthResource):
-
     def __init__(self, profile_service):
         self._profile_service = profile_service
 
 
 class Profiles(_BaseResource):
-
     @required_acl('dird.profiles.read')
     def get(self):
         list_params, errors = list_schema.load(request.args)
@@ -40,11 +34,7 @@ class Profiles(_BaseResource):
         filtered = self._profile_service.count(visible_tenants, **list_params)
         total = self._profile_service.count(visible_tenants)
 
-        return {
-            'total': total,
-            'filtered': filtered,
-            'items': items,
-        }
+        return {'total': total, 'filtered': filtered, 'items': items}
 
     @required_acl('dird.profiles.create')
     def post(self):
@@ -55,7 +45,6 @@ class Profiles(_BaseResource):
 
 
 class Profile(_BaseResource):
-
     @required_acl('dird.profiles.{profile_uuid}.delete')
     def delete(self, profile_uuid):
         tenant_uuid = Tenant.autodetect().uuid
@@ -75,5 +64,7 @@ class Profile(_BaseResource):
         tenant_uuid = Tenant.autodetect().uuid
         visible_tenants = self.get_visible_tenants(tenant_uuid)
         args = profile_schema.load(request.get_json()).data
-        self._profile_service.edit(profile_uuid, visible_tenants=visible_tenants, **args)
+        self._profile_service.edit(
+            profile_uuid, visible_tenants=visible_tenants, **args
+        )
         return '', 204

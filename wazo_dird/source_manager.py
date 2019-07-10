@@ -90,6 +90,7 @@ class SourceManager:
             source.load(dependencies)
             self._sources[source.name] = source
         except Exception:
-            logger.exception('Failed to load back-end `%s` with config `%s`',
-                             extension.name, name)
+            logger.exception(
+                'Failed to load back-end `%s` with config `%s`', extension.name, name
+            )
         return source

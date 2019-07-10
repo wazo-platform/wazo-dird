@@ -15,4 +15,6 @@ class StatusViewPlugin(BaseViewPlugin):
 
         status_aggregator = dependencies['status_aggregator']
 
-        api.add_resource(StatusResource, '/status', resource_class_args=[status_aggregator])
+        api.add_resource(
+            StatusResource, '/status', resource_class_args=[status_aggregator]
+        )

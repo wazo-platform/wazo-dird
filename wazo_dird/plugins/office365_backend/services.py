@@ -20,9 +20,7 @@ class Office365Service:
 
     def get_contacts_with_term(self, microsoft_token, term, url):
         headers = self.headers(microsoft_token)
-        query_params = {
-            "search": term
-        }
+        query_params = {"search": term}
         try:
             response = requests.get(url, headers=headers, params=query_params)
             if response.status_code == 200:
@@ -31,7 +29,9 @@ class Office365Service:
             else:
                 return []
         except requests.RequestException as e:
-            logger.error('Unable to get contacts from this endpoint: %s, error : %s', url, e)
+            logger.error(
+                'Unable to get contacts from this endpoint: %s, error : %s', url, e
+            )
             return []
 
     def get_contacts(self, microsoft_token, url):
@@ -42,8 +42,12 @@ class Office365Service:
                 logger.debug('Successfully fetched contacts from microsoft.')
                 return response.json().get('value', [])
             else:
-                logger.error('An error occured while fetching information from microsoft endpoint')
-                raise UnexpectedEndpointException(endpoint=url, error_code=response.status_code)
+                logger.error(
+                    'An error occured while fetching information from microsoft endpoint'
+                )
+                raise UnexpectedEndpointException(
+                    endpoint=url, error_code=response.status_code
+                )
         except requests.RequestException:
             raise UnexpectedEndpointException(endpoint=url)
 
@@ -53,7 +57,7 @@ class Office365Service:
             'Authorization': 'Bearer {0}'.format(microsoft_token),
             'Accept': 'application/json',
             'client-request-id': str(uuid.uuid4),
-            'return-client-request-id': 'true'
+            'return-client-request-id': 'true',
         }
 
 
@@ -65,11 +69,17 @@ def get_microsoft_access_token(user_uuid, wazo_token, **auth_config):
         logger.error('Microsoft token could not be fetched from wazo-auth, error %s', e)
         raise MicrosoftTokenNotFoundException(user_uuid)
     except requests.exceptions.ConnectionError as e:
-        logger.error('Unable to connect auth-client for the given parameters: %s, error :%s.', auth_config, e)
+        logger.error(
+            'Unable to connect auth-client for the given parameters: %s, error :%s.',
+            auth_config,
+            e,
+        )
         raise MicrosoftTokenNotFoundException(user_uuid)
     except requests.RequestException as e:
         logger.error('Error occured while connecting to wazo-auth, error :%s', e)
 
 
 def get_first_email(contact_information):
-    return next(iter(contact_information.get('emailAddresses') or []), {}).get('address')
+    return next(iter(contact_information.get('emailAddresses') or []), {}).get(
+        'address'
+    )

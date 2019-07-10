@@ -3,23 +3,13 @@
 
 from wazo_dird import BaseViewPlugin
 
-from .http import (
-    ContactAll,
-    ContactImport,
-    ContactOne,
-    PhonebookAll,
-    PhonebookOne,
-)
+from .http import ContactAll, ContactImport, ContactOne, PhonebookAll, PhonebookOne
 
 
 class PhonebookViewPlugin(BaseViewPlugin):
-
     def load(self, dependencies=None):
         api = dependencies['api']
-        args = (
-            dependencies['services'].get('phonebook'),
-            dependencies['auth_client'],
-        )
+        args = (dependencies['services'].get('phonebook'), dependencies['auth_client'])
 
         api.add_resource(
             ContactAll,

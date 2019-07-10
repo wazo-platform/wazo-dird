@@ -20,7 +20,8 @@ class ConfigViewPlugin(BaseViewPlugin):
         config_service = dependencies['services'].get('config')
         if not config_service:
             logger.info(
-                'failed to load the %s config service is disabled', self.__class__.__name__,
+                'failed to load the %s config service is disabled',
+                self.__class__.__name__,
             )
             return
 

@@ -6,11 +6,7 @@ import string
 
 from wazo_dird import database
 
-from .constants import (
-    MAIN_TENANT,
-    SUB_TENANT,
-    TENANT_UUID_2,
-)
+from .constants import MAIN_TENANT, SUB_TENANT, TENANT_UUID_2
 
 
 def _random_string(n):
@@ -29,7 +25,6 @@ DEFAULT_DISPLAY = {
 
 
 class Config:
-
     def __init__(self, Session):
         self.display_crud = database.DisplayCRUD(Session)
         self.profile_crud = database.ProfileCRUD(Session)
@@ -142,7 +137,12 @@ def new_conference_config(Session):
     config.with_source(
         backend='conference',
         name='confs',
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'america', 'port': 9486, 'https': False},
         searched_columns=['name'],
     )
@@ -150,7 +150,12 @@ def new_conference_config(Session):
         tenant_uuid=SUB_TENANT,
         backend='conference',
         name='confs_sub',
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'america', 'port': 9486, 'https': False},
         searched_columns=['name'],
     )
@@ -176,7 +181,12 @@ def new_csv_with_multiple_displays_config(Session):
     config.with_display(
         name='second_display',
         columns=[
-            {'title': 'fn', 'default': 'Unknown', 'field': 'firstname', 'type': 'firstname'},
+            {
+                'title': 'fn',
+                'default': 'Unknown',
+                'field': 'firstname',
+                'type': 'firstname',
+            },
             {'title': 'ln', 'default': 'Unknown', 'field': 'lastname'},
             {'title': 'Empty', 'field': 'not_there'},
             {'type': 'status'},
@@ -195,7 +205,7 @@ def new_csv_with_multiple_displays_config(Session):
             'lastname': "{ln}",
             'firstname': "{fn}",
             'number': "{num}",
-            'reverse': '{fn} {ln}'
+            'reverse': '{fn} {ln}',
         },
     )
     config.with_source(
@@ -211,8 +221,8 @@ def new_csv_with_multiple_displays_config(Session):
             'lastname': "{ln}",
             'firstname': "{fn}",
             'number': "{num}",
-            'reverse': '{fn} {ln}'
-        }
+            'reverse': '{fn} {ln}',
+        },
     )
     config.with_profile(
         name='default',
@@ -243,11 +253,7 @@ def new_csv_with_pipes_config(Session):
         file='/tmp/data/test.csv',
         separator="|",
         searched_columns=['fn', 'ln'],
-        format_columns={
-            'lastname': "{ln}",
-            'firstname': "{fn}",
-            'number': "{num}",
-        },
+        format_columns={'lastname': "{ln}", 'firstname': "{fn}", 'number': "{num}"},
     )
     config.with_profile(
         name='default',
@@ -275,11 +281,7 @@ def new_half_broken_config(Session):
         separator="|",
         unique_column='id',
         searched_columns=['fn', 'ln'],
-        format_columns={
-            'lastname': "{ln}",
-            'firstname': "{fn}",
-            'number': "{num}",
-        },
+        format_columns={'lastname': "{ln}", 'firstname': "{fn}", 'number': "{num}"},
     )
     config.with_source(
         backend='csv',
@@ -287,16 +289,9 @@ def new_half_broken_config(Session):
         file='/tmp/data/test.csv',
         separator="|",
         searched_columns=['fn', 'ln'],
-        format_columns={
-            'lastname': "{ln}",
-            'firstname': "{fn}",
-            'number': "{num}",
-        }
+        format_columns={'lastname': "{ln}", 'firstname': "{fn}", 'number': "{num}"},
     )
-    config.with_source(
-        backend='broken',
-        name='broken',
-    )
+    config.with_source(backend='broken', name='broken')
     return config
 
 
@@ -318,7 +313,7 @@ def new_ldap_config(Session):
             'lastname': "{sn}",
             'number': "{telephoneNumber}",
             'reverse': "{cn}",
-        }
+        },
     )
     config.with_profile(
         name='default',
@@ -351,7 +346,7 @@ def new_ldap_city_config(Session):
             'lastname': "{sn}",
             'number': "{telephoneNumber}",
             'reverse': "{cn}",
-        }
+        },
     )
     config.with_profile(
         name='default',
@@ -379,7 +374,7 @@ def new_ldap_service_down_config(Session):
             'lastname': "{sn}",
             'number': "{telephoneNumber}",
             'reverse': "{cn}",
-        }
+        },
     )
     config.with_profile(
         name='default',
@@ -407,7 +402,7 @@ def new_ldap_service_innactive_config(Session):
             'lastname': "{sn}",
             'number': "{telephoneNumber}",
             'reverse': "{cn}",
-        }
+        },
     )
     config.with_profile(
         name='default',
@@ -454,18 +449,9 @@ def new_multiple_sources_config(Session):
         file='/tmp/data/other.csv',
         unique_column='clientno',
         separator=',',
-        searched_columns=[
-            'firstname',
-            'lastname',
-            'number',
-        ],
-        first_matched_columns=[
-            'number',
-            'mobile',
-        ],
-        format_columns={
-            'reverse': "{firstname} {lastname}",
-        },
+        searched_columns=['firstname', 'lastname', 'number'],
+        first_matched_columns=['number', 'mobile'],
+        format_columns={'reverse': "{firstname} {lastname}"},
     )
     config.with_profile(
         name='default',
@@ -490,7 +476,11 @@ def new_personal_only_config(Session):
         columns=[
             {'title': 'Firstname', 'field': 'firstname'},
             {'title': 'Lastname', 'field': 'lastname'},
-            {'title': 'Number', 'field': 'number', 'number_display': '{firstname} {lastname}'},
+            {
+                'title': 'Number',
+                'field': 'number',
+                'number_display': '{firstname} {lastname}',
+            },
             {'title': 'Favorite', 'type': 'favorite'},
         ],
     )
@@ -519,7 +509,9 @@ def new_phone_config(Session):
     config = Config(Session)
     config.with_display(
         name='default',
-        columns=[{'field': 'phone', 'type': 'number', 'number_display': '{display_name}'}],
+        columns=[
+            {'field': 'phone', 'type': 'number', 'number_display': '{display_name}'}
+        ],
     )
     config.with_display(
         name='test_fallback',
@@ -564,7 +556,9 @@ def new_phone_view_config(Session):
     config = Config(Session)
     config.with_display(
         name='default',
-        columns=[{'field': 'phone', 'type': 'number', 'number_display': '{display_name}'}],
+        columns=[
+            {'field': 'phone', 'type': 'number', 'number_display': '{display_name}'}
+        ],
     )
     config.with_source(
         backend='csv',
@@ -581,7 +575,7 @@ def new_phone_view_config(Session):
     config.with_profile(
         name='default',
         display='default',
-        services={'lookup': {'sources': ['test_csv']}}
+        services={'lookup': {'sources': ['test_csv']}},
     )
     return config
 
@@ -600,7 +594,12 @@ def new_wazo_users_config(Session):
     config.with_source(
         backend='wazo',
         name='wazo_america',
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'america', 'port': 9486, 'https': False},
         searched_columns=['firstname', 'lastname'],
     )
@@ -625,21 +624,36 @@ def new_wazo_users_multiple_wazo_config(Session):
     config.with_source(
         backend='wazo',
         name='wazo_asia',
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'asia', 'port': 9486, 'https': False},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_source(
         backend='wazo',
         name='wazo_america',
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'america', 'port': 9486, 'https': False},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_source(
         backend='wazo',
         name='wazo_europe',
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'europe', 'port': 9486, 'https': False},
         searched_columns=['firstname', 'lastname'],
     )
@@ -647,7 +661,12 @@ def new_wazo_users_multiple_wazo_config(Session):
         tenant_uuid=SUB_TENANT,
         backend='wazo',
         name='wazo_america_sub',
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'america', 'port': 9486, 'https': False},
         searched_columns=['firstname', 'lastname'],
     )
@@ -675,16 +694,10 @@ def new_multi_source_profile(Session):
         columns=[{'title': 'Firstname', 'field': 'firstname'}],
     )
     config.with_source(
-        backend='csv',
-        tenant_uuid=MAIN_TENANT,
-        name='csv_main',
-        file='/tmp/test.csv',
+        backend='csv', tenant_uuid=MAIN_TENANT, name='csv_main', file='/tmp/test.csv'
     )
     config.with_source(
-        backend='csv',
-        tenant_uuid=SUB_TENANT,
-        name='csv_sub',
-        file='/tmp/test.csv',
+        backend='csv', tenant_uuid=SUB_TENANT, name='csv_sub', file='/tmp/test.csv'
     )
     config.with_source(
         backend='personal',
@@ -693,16 +706,18 @@ def new_multi_source_profile(Session):
         db_uri='db_uri',
     )
     config.with_source(
-        backend='personal',
-        tenant_uuid=SUB_TENANT,
-        name='personal_sub',
-        db_uri='db_uri',
+        backend='personal', tenant_uuid=SUB_TENANT, name='personal_sub', db_uri='db_uri'
     )
     config.with_source(
         backend='wazo',
         name='a_wazo_main',
         tenant_uuid=MAIN_TENANT,
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'asia', 'port': 9486, 'https': False},
         searched_columns=['firstname', 'lastname'],
     )
@@ -710,7 +725,12 @@ def new_multi_source_profile(Session):
         backend='wazo',
         tenant_uuid=SUB_TENANT,
         name='wazo_sub',
-        auth={'host': 'auth', 'username': 'foo', 'password': 'bar', 'verify_certificate': False},
+        auth={
+            'host': 'auth',
+            'username': 'foo',
+            'password': 'bar',
+            'verify_certificate': False,
+        },
         confd={'host': 'america', 'port': 9486, 'https': False},
         searched_columns=['firstname', 'lastname'],
     )

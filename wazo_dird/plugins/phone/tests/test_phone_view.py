@@ -11,7 +11,6 @@ from .. import http
 
 @patch('wazo_dird.plugins.phone.http.request')
 class TestPhoneView(TestCase):
-
     def test_that_build_next_url_return_input_url_when_is_menu(self, MockedRequest):
         url = 'http://127.0.0.1:9489/0.1/directories/{}/profile/vendor'
         expected_result = url.format('input')
@@ -21,7 +20,7 @@ class TestPhoneView(TestCase):
         assert_that(result, equal_to(expected_result))
 
     def test_that_build_next_url_return_input_url_when_is_menu_with_profile_menu(
-            self, MockedRequest,
+        self, MockedRequest
     ):
         url = 'http://127.0.0.1:9489/0.1/directories/{}/menu/vendor'
         expected_result = url.format('input')
@@ -39,7 +38,7 @@ class TestPhoneView(TestCase):
         assert_that(result, equal_to(expected_result))
 
     def test_that_build_next_url_return_lookup_url_when_is_input_with_profile_input(
-            self, MockedRequest,
+        self, MockedRequest
     ):
         url = 'http://127.0.0.1:9489/0.1/directories/{}/input/vendor'
         expected_result = url.format('lookup')

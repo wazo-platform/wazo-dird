@@ -72,21 +72,24 @@ class Bus:
         if not self._publisher:
             bus_connection = kombu.Connection(self._bus_url)
             bus_exchange = kombu.Exchange(self._exchange_name, type=self._exchange_type)
-            producer = kombu.Producer(bus_connection, exchange=bus_exchange, auto_declare=True)
+            producer = kombu.Producer(
+                bus_connection, exchange=bus_exchange, auto_declare=True
+            )
             self._publisher = Publisher(producer, self._marshaler)
         return self._publisher
 
 
 class _Consumer(ConsumerMixin):
-
     def __init__(self, connection, queues_and_callbacks):
         self.connection = connection
         self._queues_and_callbacks = queues_and_callbacks
         self._is_running = False
 
     def get_consumers(self, Consumer, channel):
-        return [Consumer(queue, callbacks=[callback])
-                for (queue, callback) in self._queues_and_callbacks]
+        return [
+            Consumer(queue, callbacks=[callback])
+            for (queue, callback) in self._queues_and_callbacks
+        ]
 
     def is_running(self):
         return self._is_running

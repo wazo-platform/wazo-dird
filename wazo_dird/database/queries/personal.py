@@ -2,26 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unidecode import unidecode
-from sqlalchemy import (
-    and_,
-    distinct,
-    text,
-)
+from sqlalchemy import and_, distinct, text
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
-from wazo_dird.exception import (
-    DuplicatedContactException,
-    NoSuchContact,
-)
-from .base import (
-    BaseDAO,
-    compute_contact_hash,
-    list_contacts_by_uuid,
-)
-from .. import (
-    Contact,
-    ContactFields,
-    User,
-)
+from wazo_dird.exception import DuplicatedContactException, NoSuchContact
+from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
+from .. import Contact, ContactFields, User
 
 
 class unaccent(ReturnTypeFromArgs):
@@ -29,14 +14,15 @@ class unaccent(ReturnTypeFromArgs):
 
 
 class PersonalContactSearchEngine(BaseDAO):
-
     def __init__(self, Session, searched_columns=None, first_match_columns=None):
         super().__init__(Session)
         self._searched_columns = searched_columns or []
         self._first_match_columns = first_match_columns or []
 
     def find_first_personal_contact(self, xivo_user_uuid, term):
-        filter_ = self._new_strict_filter(xivo_user_uuid, term, self._first_match_columns)
+        filter_ = self._new_strict_filter(
+            xivo_user_uuid, term, self._first_match_columns
+        )
         return self._find_personal_contacts_with_filter(filter_, limit=1)
 
     def find_personal_contacts(self, xivo_user_uuid, term):
@@ -55,10 +41,12 @@ class PersonalContactSearchEngine(BaseDAO):
             return []
 
         with self.new_session() as s:
-            base_query = (s.query(distinct(ContactFields.contact_uuid))
-                          .join(Contact)
-                          .join(User)
-                          .filter(filter_))
+            base_query = (
+                s.query(distinct(ContactFields.contact_uuid))
+                .join(Contact)
+                .join(User)
+                .filter(filter_)
+            )
             if limit:
                 query = base_query.limit(limit)
             else:
@@ -72,32 +60,36 @@ class PersonalContactSearchEngine(BaseDAO):
         if not uuids:
             return False
 
-        return and_(User.xivo_user_uuid == xivo_user_uuid,
-                    ContactFields.contact_uuid.in_(uuids))
+        return and_(
+            User.xivo_user_uuid == xivo_user_uuid, ContactFields.contact_uuid.in_(uuids)
+        )
 
     def _new_search_filter(self, xivo_user_uuid, term, columns):
         if not columns:
             return False
 
         pattern = '%{}%'.format(unidecode(term))
-        return and_(User.xivo_user_uuid == xivo_user_uuid,
-                    unaccent(ContactFields.value).ilike(pattern),
-                    ContactFields.name.in_(columns))
+        return and_(
+            User.xivo_user_uuid == xivo_user_uuid,
+            unaccent(ContactFields.value).ilike(pattern),
+            ContactFields.name.in_(columns),
+        )
 
     def _new_strict_filter(self, xivo_user_uuid, term, columns):
         if not columns:
             return False
 
-        return and_(User.xivo_user_uuid == xivo_user_uuid,
-                    unaccent(ContactFields.value) == unidecode(term),
-                    ContactFields.name.in_(columns))
+        return and_(
+            User.xivo_user_uuid == xivo_user_uuid,
+            unaccent(ContactFields.value) == unidecode(term),
+            ContactFields.name.in_(columns),
+        )
 
     def _new_user_contacts_filter(self, xivo_user_uuid):
         return User.xivo_user_uuid == xivo_user_uuid
 
 
 class PersonalContactCRUD(BaseDAO):
-
     def list_personal_contacts(self, xivo_user_uuid=None):
         filter_ = text('true')
         if xivo_user_uuid:
@@ -111,7 +103,7 @@ class PersonalContactCRUD(BaseDAO):
     def create_personal_contact(self, xivo_user_uuid, contact_info):
         with self.new_session() as s:
             for contact in self._create_personal_contacts(
-                    s, xivo_user_uuid, [contact_info], fail_on_duplicate=True,
+                s, xivo_user_uuid, [contact_info], fail_on_duplicate=True
             ):
                 return contact
 
@@ -120,7 +112,7 @@ class PersonalContactCRUD(BaseDAO):
             return self._create_personal_contacts(s, xivo_user_uuid, contact_infos)
 
     def _create_personal_contacts(
-            self, session, xivo_user_uuid, contact_infos, fail_on_duplicate=False,
+        self, session, xivo_user_uuid, contact_infos, fail_on_duplicate=False
     ):
         hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
         user = self._get_dird_user(session, xivo_user_uuid)
@@ -135,8 +127,7 @@ class PersonalContactCRUD(BaseDAO):
 
         for hash_ in to_add:
             contact_info = hash_and_contact[hash_]
-            contact_args = {'user_uuid': user.xivo_user_uuid,
-                            'hash': hash_}
+            contact_args = {'user_uuid': user.xivo_user_uuid, 'hash': hash_}
             contact_uuid = contact_info.get('id')
             if contact_uuid:
                 contact_args['uuid'] = contact_uuid
@@ -146,7 +137,9 @@ class PersonalContactCRUD(BaseDAO):
 
             contact_info['id'] = contact.uuid
             for name, value in contact_info.items():
-                session.add(ContactFields(name=name, value=value, contact_uuid=contact.uuid))
+                session.add(
+                    ContactFields(name=name, value=value, contact_uuid=contact.uuid)
+                )
 
         for hash_ in existing:
             contact_info = hash_and_contact[hash_]
@@ -158,8 +151,7 @@ class PersonalContactCRUD(BaseDAO):
         if not hashes:
             return {}
 
-        filter_ = and_(Contact.user_uuid == xivo_user_uuid,
-                       Contact.hash.in_(hashes))
+        filter_ = and_(Contact.user_uuid == xivo_user_uuid, Contact.hash.in_(hashes))
         pairs = session.query(Contact.hash, Contact.uuid).filter(filter_)
         return {p.hash: p.uuid for p in pairs.all()}
 
@@ -171,17 +163,23 @@ class PersonalContactCRUD(BaseDAO):
                 s.rollback()
                 raise DuplicatedContactException()
             contact_info['id'] = contact_id
-            for contact in self._create_personal_contacts(s, xivo_user_uuid, [contact_info]):
+            for contact in self._create_personal_contacts(
+                s, xivo_user_uuid, [contact_info]
+            ):
                 return contact
 
     def get_personal_contact(self, xivo_user_uuid, contact_uuid):
         with self.new_session() as s:
-            filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
-                           ContactFields.contact_uuid == contact_uuid)
-            contact_uuids = (s.query(distinct(ContactFields.contact_uuid))
-                             .join(Contact)
-                             .join(User)
-                             .filter(filter_))
+            filter_ = and_(
+                User.xivo_user_uuid == xivo_user_uuid,
+                ContactFields.contact_uuid == contact_uuid,
+            )
+            contact_uuids = (
+                s.query(distinct(ContactFields.contact_uuid))
+                .join(Contact)
+                .join(User)
+                .filter(filter_)
+            )
 
             for contact in list_contacts_by_uuid(s, contact_uuids):
                 return contact
@@ -198,14 +196,18 @@ class PersonalContactCRUD(BaseDAO):
             self._delete_personal_contact(s, xivo_user_uuid, contact_uuid)
 
     def _delete_personal_contact(self, session, xivo_user_uuid, contact_uuid):
-        filter_ = and_(User.xivo_user_uuid == xivo_user_uuid,
-                       ContactFields.contact_uuid == contact_uuid)
+        filter_ = and_(
+            User.xivo_user_uuid == xivo_user_uuid,
+            ContactFields.contact_uuid == contact_uuid,
+        )
         nb_deleted = self._delete_personal_contacts_with_filter(session, filter_)
         if nb_deleted == 0:
             raise NoSuchContact(contact_uuid)
 
     def _delete_personal_contacts_with_filter(self, session, filter_):
-        contacts = session.query(Contact).join(ContactFields).join(User).filter(filter_).all()
+        contacts = (
+            session.query(Contact).join(ContactFields).join(User).filter(filter_).all()
+        )
         deleted = 0
         for contact in contacts:
             session.delete(contact)

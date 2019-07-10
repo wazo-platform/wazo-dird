@@ -15,14 +15,15 @@ from ..plugin import LookupServicePlugin
 
 
 class TestLookupServicePlugin(unittest.TestCase):
-
     def setUp(self):
         self._source_manager = Mock()
 
     def test_load_no_config(self):
         plugin = LookupServicePlugin()
 
-        self.assertRaises(ValueError, plugin.load, {'source_manager': self._source_manager})
+        self.assertRaises(
+            ValueError, plugin.load, {'source_manager': self._source_manager}
+        )
 
     def test_load_no_sources(self):
         plugin = LookupServicePlugin()

@@ -41,11 +41,7 @@ class PersonalAll(LegacyAuthResource):
             contact = self.personal_service.create_contact(contact, token_infos)
             return contact, 201
         except self.personal_service.InvalidPersonalContact as e:
-            error = {
-                'reason': e.errors,
-                'timestamp': [time()],
-                'status_code': 400,
-            }
+            error = {'reason': e.errors, 'timestamp': [time()], 'status_code': 400}
             return error, 400
         except self.personal_service.DuplicatedContactException:
             error = {
@@ -80,10 +76,7 @@ class PersonalAll(LegacyAuthResource):
 
     @classmethod
     def contacts_formatter(cls, mimetype):
-        formatters = {
-            'text/csv': cls.format_csv,
-            'application/json': cls.format_json
-        }
+        formatters = {'text/csv': cls.format_csv, 'application/json': cls.format_json}
         return formatters.get(mimetype, cls.format_json)
 
     @staticmethod
@@ -91,7 +84,9 @@ class PersonalAll(LegacyAuthResource):
         if not contacts:
             return '', 204
         csv_text = io.StringIO()
-        fieldnames = sorted(list(set(attribute for contact in contacts for attribute in contact)))
+        fieldnames = sorted(
+            list(set(attribute for contact in contacts for attribute in contact))
+        )
         for contact in contacts:
             for attribute in contact:
                 if contact[attribute] is None:
@@ -99,9 +94,11 @@ class PersonalAll(LegacyAuthResource):
         csv_writer = csv.DictWriter(csv_text, fieldnames)
         csv_writer.writeheader()
         csv_writer.writerows(contacts)
-        return Response(response=csv_text.getvalue(),
-                        status=200,
-                        content_type='text/csv; charset=utf-8')
+        return Response(
+            response=csv_text.getvalue(),
+            status=200,
+            content_type='text/csv; charset=utf-8',
+        )
 
     @staticmethod
     def format_json(contacts):
@@ -124,11 +121,7 @@ class PersonalOne(LegacyAuthResource):
             contact = self.personal_service.get_contact(contact_id, token_infos)
             return contact, 200
         except self.personal_service.NoSuchContact as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
+            error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 404}
             return error, 404
 
     @required_acl('dird.personal.{contact_id}.update')
@@ -137,21 +130,15 @@ class PersonalOne(LegacyAuthResource):
         token_infos = auth.client().token.get(token)
         new_contact = request.json
         try:
-            contact = self.personal_service.edit_contact(contact_id, new_contact, token_infos)
+            contact = self.personal_service.edit_contact(
+                contact_id, new_contact, token_infos
+            )
             return contact, 200
         except self.personal_service.NoSuchContact as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
+            error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 404}
             return error, 404
         except self.personal_service.InvalidPersonalContact as e:
-            error = {
-                'reason': e.errors,
-                'timestamp': [time()],
-                'status_code': 400,
-            }
+            error = {'reason': e.errors, 'timestamp': [time()], 'status_code': 400}
             return error, 400
         except self.personal_service.DuplicatedContactException:
             error = {
@@ -169,11 +156,7 @@ class PersonalOne(LegacyAuthResource):
             self.personal_service.remove_contact(contact_id, token_infos)
             return '', 204
         except self.personal_service.NoSuchContact as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 404,
-            }
+            error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 404}
             return error, 404
 
 
@@ -194,11 +177,7 @@ class PersonalImport(LegacyAuthResource):
         try:
             csv_document = request.data.decode(charset)
         except UnicodeDecodeError as e:
-            error = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 400,
-            }
+            error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 400}
             return error, 400
 
         created, errors = self._mass_import(csv_document, token_infos)
@@ -211,10 +190,7 @@ class PersonalImport(LegacyAuthResource):
             }
             return error, 400
 
-        result = {
-            'created': created,
-            'failed': errors,
-        }
+        result = {'created': created, 'failed': errors}
         return result, 201
 
     def _mass_import(self, csv_document, token_infos):

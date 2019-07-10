@@ -19,7 +19,12 @@ table_name = 'dird_contact'
 def upgrade():
     op.create_table(
         table_name,
-        Column('uuid', String(38), server_default=text('uuid_generate_v4()'), primary_key=True),
+        Column(
+            'uuid',
+            String(38),
+            server_default=text('uuid_generate_v4()'),
+            primary_key=True,
+        ),
     )
 
 

@@ -32,8 +32,7 @@ def run_migrations_offline():
 
     """
     url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url,
-                      version_table='alembic_version_dird')
+    context.configure(url=url, version_table='alembic_version_dird')
 
     with context.begin_transaction():
         context.run_migrations()
@@ -47,13 +46,13 @@ def run_migrations_online():
 
     """
     engine = engine_from_config(
-                config.get_section(config.config_ini_section),
-                prefix='sqlalchemy.',
-                poolclass=pool.NullPool)
+        config.get_section(config.config_ini_section),
+        prefix='sqlalchemy.',
+        poolclass=pool.NullPool,
+    )
 
     connection = engine.connect()
-    context.configure(connection=connection,
-                      version_table='alembic_version_dird')
+    context.configure(connection=connection, version_table='alembic_version_dird')
 
     try:
         with context.begin_transaction():

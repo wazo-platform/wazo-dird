@@ -5,7 +5,9 @@ from wazo_dird import BaseSourcePlugin
 from wazo_dird import make_result_class
 
 
-DESC = 'It works but this wazo-dird installation is still using the default configuration'
+DESC = (
+    'It works but this wazo-dird installation is still using the default configuration'
+)
 SAMPLE_RESULT = {
     'id': 1,
     'firstname': 'John',
@@ -16,14 +18,15 @@ SAMPLE_RESULT = {
 
 
 class SamplePlugin(BaseSourcePlugin):
-
     def load(self, args):
         self._config = args.get('config', {})
         self._name = self._config.get('name', 'sample_directory')
         self._format_columns = self._config.get(self.FORMAT_COLUMNS, {})
 
         backend = self._config.get('backend', '')
-        SourceResult = make_result_class(backend, self._name, 'id', self._format_columns)
+        SourceResult = make_result_class(
+            backend, self._name, 'id', self._format_columns
+        )
         self._result = SourceResult(SAMPLE_RESULT)
 
     def search(self, term, args=None):

@@ -16,8 +16,10 @@ class BackendService:
                 continue
             configured_backends.add(backend_name)
 
-        installed_backends = set(module.name for module in
-                                 iter_entry_points(group=self._backend_entry_points))
+        installed_backends = set(
+            module.name
+            for module in iter_entry_points(group=self._backend_entry_points)
+        )
 
         self._backends = [
             {'name': backend} for backend in configured_backends & installed_backends
@@ -64,7 +66,7 @@ class BackendService:
         offset = 0 or offset
 
         if limit is not None:
-            return backends[offset:limit+offset]
+            return backends[offset : limit + offset]
 
         return backends[offset:]
 

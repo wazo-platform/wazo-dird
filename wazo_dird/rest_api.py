@@ -33,7 +33,6 @@ auth_verifier = AuthVerifier()
 
 
 class CoreRestApi:
-
     def __init__(self, global_config):
         self.config = global_config['rest_api']
         self.app = Flask('wazo_dird', template_folder=TEMPLATE_FOLDER)
@@ -44,7 +43,9 @@ class CoreRestApi:
 
         @self.babel.localeselector
         def get_locale():
-            translations = [str(translation) for translation in self.babel.list_translations()]
+            translations = [
+                str(translation) for translation in self.babel.list_translations()
+            ]
             return request.accept_languages.best_match(translations)
 
         http_helpers.add_logger(self.app, logger)
@@ -68,14 +69,18 @@ class CoreRestApi:
 
         bind_addr = (https_config['listen'], https_config['port'])
 
-        wsgi_app = ReverseProxied(ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': self.app})))
-        server = wsgi.WSGIServer(bind_addr=bind_addr,
-                                 wsgi_app=wsgi_app)
-        server.ssl_adapter = http_helpers.ssl_adapter(https_config['certificate'],
-                                                      https_config['private_key'])
+        wsgi_app = ReverseProxied(
+            ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': self.app}))
+        )
+        server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
+        server.ssl_adapter = http_helpers.ssl_adapter(
+            https_config['certificate'], https_config['private_key']
+        )
         logger.debug(
             'WSGIServer starting... uid: %s, listen: %s:%s',
-            os.getuid(), bind_addr[0], bind_addr[1],
+            os.getuid(),
+            bind_addr[0],
+            bind_addr[1],
         )
         for route in http_helpers.list_routes(self.app):
             logger.debug(route)
@@ -99,6 +104,7 @@ def handle_api_exception(func):
             }
             logger.error('%s: %s', error.message, error.details)
             return response, error.status_code
+
     return wrapper
 
 
@@ -108,7 +114,7 @@ class LegacyErrorCatchingResource(Resource):
 
 class LegacyAuthResource(LegacyErrorCatchingResource):
     method_decorators = [
-        auth_verifier.verify_token,
+        auth_verifier.verify_token
     ] + LegacyErrorCatchingResource.method_decorators
 
 
@@ -121,7 +127,9 @@ class ErrorCatchingResource(Resource):
 
 class AuthResource(ErrorCatchingResource):
 
-    method_decorators = [auth_verifier.verify_token] + ErrorCatchingResource.method_decorators
+    method_decorators = [
+        auth_verifier.verify_token
+    ] + ErrorCatchingResource.method_decorators
 
     def get_visible_tenants(self, tenant):
         token = request.headers['X-Auth-Token']
@@ -134,7 +142,9 @@ class AuthResource(ErrorCatchingResource):
             response = getattr(e, 'response', None)
             status_code = getattr(response, 'status_code', None)
             if status_code == 401:
-                logger.warning('a user is doing multi-tenant queries without the tenant list ACL')
+                logger.warning(
+                    'a user is doing multi-tenant queries without the tenant list ACL'
+                )
                 return [tenant]
             raise
 

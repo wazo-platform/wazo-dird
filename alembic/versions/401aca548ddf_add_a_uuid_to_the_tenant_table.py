@@ -28,46 +28,35 @@ def upgrade():
             sa.String(UUID_LENGTH),
             nullable=False,
             server_default=sa.text('uuid_generate_v4()'),
-        )
+        ),
     )
     op.add_column(
-        phonebook_table_name,
-        sa.Column(
-            'tenant_uuid',
-            sa.String(UUID_LENGTH),
-        )
+        phonebook_table_name, sa.Column('tenant_uuid', sa.String(UUID_LENGTH))
     )
 
     tenant_table = sa.sql.table(
-        tenant_table_name,
-        sa.sql.column('id'),
-        sa.sql.column('uuid'),
+        tenant_table_name, sa.sql.column('id'), sa.sql.column('uuid')
     )
     id_uuid_query = sa.sql.select([tenant_table.c.id, tenant_table.c.uuid])
     id_uuid_rows = op.get_bind().execute(id_uuid_query).fetchall()
 
     phonebook_table = sa.sql.table(
-        phonebook_table_name,
-        sa.sql.column('tenant_id'),
-        sa.sql.column('tenant_uuid'),
+        phonebook_table_name, sa.sql.column('tenant_id'), sa.sql.column('tenant_uuid')
     )
 
     for id_, uuid in id_uuid_rows:
         op.execute(
-            phonebook_table
-            .update()
+            phonebook_table.update()
             .where(phonebook_table.c.tenant_id == id_)
             .values(tenant_uuid=uuid)
         )
 
     op.alter_column(phonebook_table_name, 'tenant_uuid', nullable=False)
-    op.execute('ALTER TABLE dird_phonebook DROP CONSTRAINT dird_phonebook_tenant_id_fkey CASCADE')
-    op.execute('ALTER TABLE dird_tenant DROP CONSTRAINT dird_tenant_pkey CASCADE')
-    op.create_primary_key(
-        'dird_tenant_pkey',
-        tenant_table_name,
-        ['uuid'],
+    op.execute(
+        'ALTER TABLE dird_phonebook DROP CONSTRAINT dird_phonebook_tenant_id_fkey CASCADE'
     )
+    op.execute('ALTER TABLE dird_tenant DROP CONSTRAINT dird_tenant_pkey CASCADE')
+    op.create_primary_key('dird_tenant_pkey', tenant_table_name, ['uuid'])
     op.create_foreign_key(
         'dird_phonebook_tenant_uuid_fkey',
         phonebook_table_name,
@@ -77,9 +66,7 @@ def upgrade():
         ondelete='CASCADE',
     )
     op.create_unique_constraint(
-        'dird_phonebook_name_tenant_uuid',
-        phonebook_table_name,
-        ['name', 'tenant_uuid'],
+        'dird_phonebook_name_tenant_uuid', phonebook_table_name, ['name', 'tenant_uuid']
     )
     op.drop_column(tenant_table_name, 'id')
     op.drop_column(phonebook_table_name, 'tenant_id')

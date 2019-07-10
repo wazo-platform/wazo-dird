@@ -23,14 +23,15 @@ class CSVWSView(BaseBackendView):
 
 
 class CSVWSPlugin(BaseSourcePlugin):
-
     def load(self, config):
         logger.debug('Loading with %s', config)
 
         self._name = config['config']['name']
         self._list_url = config['config'].get('list_url')
         self._lookup_url = config['config']['lookup_url']
-        self._first_matched_columns = config['config'].get(self.FIRST_MATCHED_COLUMNS, [])
+        self._first_matched_columns = config['config'].get(
+            self.FIRST_MATCHED_COLUMNS, []
+        )
         self._searched_columns = config['config'].get(self.SEARCHED_COLUMNS, [])
         self._unique_column = config['config'].get(self.UNIQUE_COLUMN)
         backend = config['config'].get('backend', '')
@@ -38,7 +39,8 @@ class CSVWSPlugin(BaseSourcePlugin):
             backend,
             config['config']['name'],
             self._unique_column,
-            config['config'].get(self.FORMAT_COLUMNS, {}))
+            config['config'].get(self.FORMAT_COLUMNS, {}),
+        )
         self._timeout = config['config'].get('timeout', 10)
         self._delimiter = config['config'].get('delimiter', ',')
         self._verify_certificate = config['config'].get('verify_certificate', True)
@@ -51,7 +53,10 @@ class CSVWSPlugin(BaseSourcePlugin):
 
         try:
             response = requests.get(
-                url, params=params, timeout=self._timeout, verify=self._verify_certificate,
+                url,
+                params=params,
+                timeout=self._timeout,
+                verify=self._verify_certificate,
             )
         except RequestException as e:
             logger.error('Error connecting to %s: %s', url, e)
@@ -61,9 +66,11 @@ class CSVWSPlugin(BaseSourcePlugin):
             logger.debug('GET %s %s', url, response.status_code)
             return []
 
-        return [self._SourceResult(result)
-                for result in self._reader.from_text(response.text)
-                if result]
+        return [
+            self._SourceResult(result)
+            for result in self._reader.from_text(response.text)
+            if result
+        ]
 
     def first_match(self, term, args=None):
         logger.debug('First matching CSV WS `%s` with `%s`', self._name, term)
@@ -72,7 +79,10 @@ class CSVWSPlugin(BaseSourcePlugin):
 
         try:
             response = requests.get(
-                url, params=params, timeout=self._timeout, verify=self._verify_certificate,
+                url,
+                params=params,
+                timeout=self._timeout,
+                verify=self._verify_certificate,
             )
         except RequestException as e:
             logger.error('Error connecting to %s: %s', url, e)
@@ -89,13 +99,15 @@ class CSVWSPlugin(BaseSourcePlugin):
         return None
 
     def list(self, source_entry_ids, args=None):
-        logger.debug('Listing contacts %s from CSV WS `%s`', source_entry_ids, self._name)
+        logger.debug(
+            'Listing contacts %s from CSV WS `%s`', source_entry_ids, self._name
+        )
         if not (self._unique_column and self._list_url):
             return []
 
         try:
             response = requests.get(
-                self._list_url, timeout=self._timeout, verify=self._verify_certificate,
+                self._list_url, timeout=self._timeout, verify=self._verify_certificate
             )
         except RequestException as e:
             logger.error('Error connecting to %s: %s', self._list_url, e)
@@ -104,13 +116,14 @@ class CSVWSPlugin(BaseSourcePlugin):
         if response.status_code != 200:
             return []
 
-        return [self._SourceResult(result)
-                for result in self._reader.from_text(response.text)
-                if result.get(self._unique_column) in source_entry_ids]
+        return [
+            self._SourceResult(result)
+            for result in self._reader.from_text(response.text)
+            if result.get(self._unique_column) in source_entry_ids
+        ]
 
 
 class _CSVReader:
-
     def __init__(self, delimiter):
         self._delimiter = delimiter
 

@@ -6,11 +6,7 @@ import re
 
 from wazo_dird import BaseViewPlugin
 
-from .http import (
-    PersonalAll,
-    PersonalImport,
-    PersonalOne,
-)
+from .http import PersonalAll, PersonalImport, PersonalOne
 
 logger = logging.getLogger(__name__)
 

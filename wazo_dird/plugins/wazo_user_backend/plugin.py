@@ -5,10 +5,7 @@ import logging
 
 from requests.exceptions import ConnectionError
 
-from wazo_dird import (
-    BaseSourcePlugin,
-    make_result_class,
-)
+from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 
@@ -41,8 +38,17 @@ class WazoUserView(BaseBackendView):
 
 class WazoUserPlugin(BaseSourcePlugin):
 
-    _valid_keys = ['id', 'exten', 'firstname', 'lastname', 'userfield', 'email',
-                   'description', 'mobile_phone_number', 'voicemail_number']
+    _valid_keys = [
+        'id',
+        'exten',
+        'firstname',
+        'lastname',
+        'userfield',
+        'email',
+        'description',
+        'mobile_phone_number',
+        'voicemail_number',
+    ]
 
     def __init__(self):
         self._client = None
@@ -57,10 +63,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._client = registry.get(config)
 
         self._SourceResult = make_result_class(
-            'wazo',
-            self.name,
-            'id',
-            format_columns=config.get(self.FORMAT_COLUMNS),
+            'wazo', self.name, 'id', format_columns=config.get(self.FORMAT_COLUMNS)
         )
         self._search_params.update(config.get('extra_search_params', {}))
         logger.info('Wazo %s successfully loaded', config['name'])
@@ -139,8 +142,7 @@ class WazoUserPlugin(BaseSourcePlugin):
             )
             return []
 
-        return (self._source_result_from_entry(entry, uuid)
-                for entry in entries)
+        return (self._source_result_from_entry(entry, uuid) for entry in entries)
 
     def _get_uuid(self):
         if self._uuid:
@@ -158,9 +160,11 @@ class WazoUserPlugin(BaseSourcePlugin):
         return (user for user in users['items'])
 
     def _source_result_from_entry(self, entry, uuid):
-        return self._SourceResult({key: entry.get(key) for key in self._valid_keys},
-                                  xivo_id=uuid,
-                                  agent_id=entry['agent_id'],
-                                  user_id=entry['id'],
-                                  user_uuid=entry['uuid'],
-                                  endpoint_id=entry['line_id'])
+        return self._SourceResult(
+            {key: entry.get(key) for key in self._valid_keys},
+            xivo_id=uuid,
+            agent_id=entry['agent_id'],
+            user_id=entry['id'],
+            user_uuid=entry['uuid'],
+            endpoint_id=entry['line_id'],
+        )

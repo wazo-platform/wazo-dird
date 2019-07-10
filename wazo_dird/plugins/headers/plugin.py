@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class HeadersViewPlugin(BaseViewPlugin):
-
     def load(self, dependencies):
         api = dependencies['api']
         display_service = dependencies['services'].get('display')

@@ -10,11 +10,12 @@ from wazo_dird import make_result_class
 
 from ..plugin import SamplePlugin
 
-MSG = 'It works but this wazo-dird installation is still using the default configuration'
+MSG = (
+    'It works but this wazo-dird installation is still using the default configuration'
+)
 
 
 class TestSampleBackend(unittest.TestCase):
-
     def setUp(self):
         self.source = SamplePlugin()
 
@@ -23,13 +24,15 @@ class TestSampleBackend(unittest.TestCase):
 
     def test_search(self):
         SourceResult = make_result_class('sample_backend', 'sample_directory', 'id')
-        only_result = SourceResult({
-            'id': 1,
-            'firstname': 'John',
-            'lastname': 'Doe',
-            'number': '555',
-            'description': MSG,
-        })
+        only_result = SourceResult(
+            {
+                'id': 1,
+                'firstname': 'John',
+                'lastname': 'Doe',
+                'number': '555',
+                'description': MSG,
+            }
+        )
 
         self.source.load({})
         results = self.source.search('anything')
@@ -38,13 +41,15 @@ class TestSampleBackend(unittest.TestCase):
 
     def test_first_match(self):
         SourceResult = make_result_class('sample_backend', 'sample_directory', 'id')
-        only_result = SourceResult({
-            'id': 1,
-            'firstname': 'John',
-            'lastname': 'Doe',
-            'number': '555',
-            'description': MSG,
-        })
+        only_result = SourceResult(
+            {
+                'id': 1,
+                'firstname': 'John',
+                'lastname': 'Doe',
+                'number': '555',
+                'description': MSG,
+            }
+        )
 
         self.source.load({})
         result = self.source.first_match('555')

@@ -35,7 +35,9 @@ def display(**display_args):
                 except exception.NoSuchDisplay:
                     pass
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -57,7 +59,9 @@ def profile(**profile_args):
                 except exception.NoSuchProfileAPIException:
                     pass
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -78,9 +82,13 @@ def source(**source_args):
                 result = decorated(self, source, *args, **kwargs)
             finally:
                 try:
-                    self.source_crud.delete(backend, source['uuid'], visible_tenants=None)
+                    self.source_crud.delete(
+                        backend, source['uuid'], visible_tenants=None
+                    )
                 except exception.NoSuchSource:
                     pass
             return result
+
         return wrapper
+
     return decorator

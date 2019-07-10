@@ -12,7 +12,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class MicrosoftMock(Resource):
-
     def get(self):
         term = request.args.get('search')
         print('Looking for term: {}.'.format(term), file=sys.stderr)
@@ -27,12 +26,10 @@ class MicrosoftMock(Resource):
                     "mobilePhone": "",
                     "businessPhones": ['5555555555'],
                     "emailAddresses": [
-                        {
-                            "address": "wbros@wazoquebec.onmicrosoft.com"
-                        },
+                        {"address": "wbros@wazoquebec.onmicrosoft.com"},
                         {},
-                        {}
-                    ]
+                        {},
+                    ],
                 }
             ]
         }
@@ -41,7 +38,6 @@ class MicrosoftMock(Resource):
 
 
 class MicrosoftErrorMock(Resource):
-
     def get(self):
         print('Microsoft is sending an error response.', file=sys.stderr)
         return '', 404

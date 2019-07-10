@@ -7,7 +7,6 @@ from hamcrest import is_in
 
 
 class BaseHTTPViewTestCase(unittest.TestCase):
-
     def is_route_of_app(self, http_app):
         return is_in(self._list_routes(http_app))
 

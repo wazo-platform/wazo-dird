@@ -2,15 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.mallow import fields
-from xivo.mallow.validate import (
-    Length,
-    Range,
-)
+from xivo.mallow.validate import Length, Range
 from xivo.mallow_helpers import ListSchema as _ListSchema
-from wazo_dird.schemas import (
-    BaseSourceSchema,
-    VerifyCertificateField,
-)
+from wazo_dird.schemas import BaseSourceSchema, VerifyCertificateField
 
 
 class SourceSchema(BaseSourceSchema):

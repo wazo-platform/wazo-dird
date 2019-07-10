@@ -3,10 +3,7 @@
 
 import time
 
-from hamcrest import (
-    assert_that,
-    contains_string,
-)
+from hamcrest import assert_that, contains_string
 
 from .helpers.base import DirdAssetRunningTestCase
 
@@ -25,7 +22,10 @@ class TestHTTPSMissingCertificate(DirdAssetRunningTestCase):
             self.fail('wazo-dird did not stop while missing SSL certificate')
 
         log = self.service_logs()
-        assert_that(log, contains_string("No such file or directory: '/tmp/ssl/dird/server.crt'"))
+        assert_that(
+            log,
+            contains_string("No such file or directory: '/tmp/ssl/dird/server.crt'"),
+        )
 
 
 class TestHTTPSMissingPrivateKey(DirdAssetRunningTestCase):
@@ -42,4 +42,7 @@ class TestHTTPSMissingPrivateKey(DirdAssetRunningTestCase):
             self.fail('wazo-dird did not stop while missing SSL private key')
 
         log = self.service_logs()
-        assert_that(log, contains_string("No such file or directory: '/tmp/ssl/dird/server.key'"))
+        assert_that(
+            log,
+            contains_string("No such file or directory: '/tmp/ssl/dird/server.key'"),
+        )

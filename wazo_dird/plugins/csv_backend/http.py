@@ -3,16 +3,9 @@
 
 
 from wazo_dird.auth import required_acl
-from wazo_dird.helpers import (
-    SourceItem,
-    SourceList,
-)
+from wazo_dird.helpers import SourceItem, SourceList
 
-from .schemas import (
-    list_schema,
-    source_schema,
-    source_list_schema,
-)
+from .schemas import list_schema, source_schema, source_list_schema
 
 
 class CSVList(SourceList):
