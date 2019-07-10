@@ -30,7 +30,7 @@ class Office365Service:
                 return response.json().get('value', [])
             else:
                 return []
-        except requests.exceptions.RequestException as e:
+        except requests.RequestException as e:
             logger.error('Unable to get contacts from this endpoint: %s, error : %s', url, e)
             return []
 
@@ -44,7 +44,7 @@ class Office365Service:
             else:
                 logger.error('An error occured while fetching information from microsoft endpoint')
                 raise UnexpectedEndpointException(endpoint=url, error_code=response.status_code)
-        except requests.exceptions.RequestException:
+        except requests.RequestException:
             raise UnexpectedEndpointException(endpoint=url)
 
     def headers(self, microsoft_token):
@@ -67,7 +67,7 @@ def get_microsoft_access_token(user_uuid, wazo_token, **auth_config):
     except requests.exceptions.ConnectionError as e:
         logger.error('Unable to connect auth-client for the given parameters: %s, error :%s.', auth_config, e)
         raise MicrosoftTokenNotFoundException(user_uuid)
-    except requests.exceptions.RequestException as e:
+    except requests.RequestException as e:
         logger.error('Error occured while connecting to wazo-auth, error :%s', e)
 
 
