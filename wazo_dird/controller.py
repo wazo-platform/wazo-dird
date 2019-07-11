@@ -36,7 +36,9 @@ class Controller:
         auth.set_auth_config(self.config['auth'])
         self.auth_client = AuthClient(**self.config['auth'])
         self.token_renewer = TokenRenewer(self.auth_client)
-        self.token_renewer.subscribe_to_token_change(self.auth_client.set_token)
+        self.token_renewer.subscribe_to_token_change(
+            lambda token: self.auth_client.set_token(token['token'])
+        )
         self.status_aggregator = StatusAggregator()
         self._service_registration_params = [
             'wazo-dird',

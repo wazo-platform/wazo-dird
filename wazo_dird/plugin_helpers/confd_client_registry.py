@@ -56,7 +56,9 @@ class _Registry:
         client = ConfdClient(**confd_config)
         client.set_tenant(source_config['tenant_uuid'])
 
-        token_renewer.subscribe_to_token_change(client.set_token)
+        token_renewer.subscribe_to_token_change(
+            lambda token: client.set_token(token['token'])
+        )
         token_renewer.start()
 
         self._clients[source_config['uuid']] = RegisteredClient(client, token_renewer)
