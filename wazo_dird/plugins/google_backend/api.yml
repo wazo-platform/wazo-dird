@@ -1,0 +1,216 @@
+paths:
+  /backends/google/sources/{source_uuid}/contacts:
+    get:
+      description: '**Required ACL:** `dird.backends.google.sources.{source_uuid}.contacts.read`'
+      operationId: list_contacts from source
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - in: path
+          name: source_uuid
+          required: true
+          description: Source uuid
+          type: string
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/search'
+      summary: Retrieve all contacts from `google`
+      tags:
+        - google
+      responses:
+        '200':
+          description: |
+            Contacts as fetched from Google API and transformed to match the dird internals
+
+            Note that the total in the result is always the total matching for the current query.
+            Which is the same as the filtered value, this is a limitation of the Google API.
+          schema:
+            $ref: '#/definitions/GoogleContactList'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: No such source
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          description: Another service is unavailable (e.g. wazo-auth, google, ...)
+          schema:
+            $ref: '#/definitions/Error'
+
+  /backends/google/sources:
+    get:
+      operationId: list_google_source
+      summary: Get google configuration
+      description: '**Required ACL:** `dird.backends.google.sources.read`'
+      tags:
+        - configuration
+        - google
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/Limit'
+        - $ref: '#/parameters/Offset'
+      responses:
+        '200':
+          description: Configured google source
+          schema:
+            $ref: '#/definitions/GoogleSourceItems'
+    post:
+      operationId: create_google_source
+      summary: Configure a source for the google backend
+      description: |
+        **Required ACL:** `dird.backends.google.sources.create`
+
+        This resource configures a Google source for wazo-dird. Columns that are available from this source
+        are:
+
+        * name: the contact name
+        * numbers: a list of phone numbers
+        * numbers_by_label: a map of type to numbers {'mobile': <number>, 'home': <number>}
+        * emails: a list of email addresses
+      tags:
+        - configuration
+        - google
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - in: body
+          name: body
+          description: The display configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/GoogleSource'
+      responses:
+        '201':
+          description: The created display
+          schema:
+            $ref: '#/definitions/GoogleSource'
+          examples:
+            application/json:
+              auth:
+                host: localhost
+                port: 9497
+                verify_certificate: /usr/share/xivo-certs/server.crt
+                version: 0.1
+              format_columns:
+                phone: "{numbers[0]}"
+                phone_mobile: "{numbers_by_label[mobile]}"
+                reverse: "{name}"
+                email: "{emails[0]}"
+              name: google
+              first_matched_columns:
+                - numbers
+              searched_columns:
+                - numbers
+                - emails
+                - name
+        '400':
+          $ref: '#/responses/CreateError'
+        '409':
+          description: Source already exists
+          schema:
+            $ref: '#/definitions/Error'
+  /backends/google/sources/{source_uuid}:
+    get:
+      operationId: get_a_google_source
+      summary: Get a `google` source configuration
+      description: '**Required ACL:** `dird.backends.google.sources.{source_uuid}.read`'
+      tags:
+        - configuration
+        - google
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '200':
+          description: The `google` source
+          schema:
+            $ref: '#/definitions/GoogleSource'
+        '404':
+          $ref: '#/responses/NotFoundError'
+    put:
+      operationId: update_google_source
+      summary: Update a `google` source configuration
+      description: '**Required ACL:** `dird.backends.google.sources.{source_uuid}.update`'
+      tags:
+        - configuration
+        - google
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+        - name: body
+          in: body
+          description: The source configuration body
+          required: true
+          schema:
+            $ref: '#/definitions/GoogleSource'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceUpdated'
+        '400':
+          $ref: '#/responses/UpdateError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+        '409':
+          description: Duplicate Source
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: delete_google_source
+      summary: Delete a `google` source configuration
+      description: '**Required ACL:** `dird.backends.google.sources.{source_uuid}.delete`'
+      tags:
+        - configuration
+        - google
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/sourceuuid'
+      responses:
+        '204':
+          $ref: '#/responses/ResourceDeleted'
+        '404':
+          $ref: '#/responses/NotFoundError'
+definitions:
+  GoogleSource:
+    title: GoogleSource
+    allOf:
+      - $ref: '#/definitions/Source'
+      - properties:
+          auth:
+            $ref: '#/definitions/WazoAuthConfigNoAuth'
+      - required:
+        - name
+        - auth
+  GoogleContactList:
+    properties:
+      items:
+        type: array
+        items:
+          type: object
+        readOnly: true
+      total:
+        type: integer
+        description: The number of contacts matching the searched terms
+        readOnly: true
+      filtered:
+        type: integer
+        description: The number of contacts matching the searched terms
+        readOnly: true
+  GoogleSourceItems:
+    title: GoogleSourceItems
+    allOf:
+      - $ref: '#/definitions/SourceItems'
+      - properties:
+          items:
+            type: array
+            items:
+              $ref: '#/definitions/GoogleSource'
+            readOnly: true
+      - required:
+        - items
+        - total
+        - filtered

@@ -41,3 +41,10 @@ services:
     image: rabbitmq
     ports:
       - "5672"
+
+  google.com:
+    image: jamesdbloom/mockserver:mockserver-5.2.3
+    ports:
+      - "443"
+    command:
+      "/opt/mockserver/run_mockserver.sh -serverPort 443"

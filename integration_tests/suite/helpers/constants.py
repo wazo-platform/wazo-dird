@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
+from hamcrest import has_properties
 
 ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
 CA_CERT = os.path.join(ASSET_ROOT, 'ssl', 'dird', 'server.crt')
@@ -30,3 +31,8 @@ DEFAULT_DISPLAYS = [
 ]
 TENANT_UUID_2 = '4c3c6c6f-7dda-4561-9cc0-a2d757c725dd'
 UNKNOWN_UUID = '00000000-0000-0000-0000-000000000000'
+
+HTTP_400 = has_properties(response=has_properties(status_code=400))
+HTTP_401 = has_properties(response=has_properties(status_code=401))
+HTTP_404 = has_properties(response=has_properties(status_code=404))
+HTTP_409 = has_properties(response=has_properties(status_code=409))

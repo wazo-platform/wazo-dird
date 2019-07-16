@@ -110,8 +110,9 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         except Exception:
             pass
 
-    def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
-        return Client(self.host, self.port, token=token, verify_certificate=False)
+    @classmethod
+    def get_client(cls, token=VALID_TOKEN_MAIN_TENANT):
+        return Client(cls.host, cls.port, token=token, verify_certificate=False)
 
     @property
     def client(self):
