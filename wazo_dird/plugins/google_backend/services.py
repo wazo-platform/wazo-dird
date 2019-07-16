@@ -94,7 +94,7 @@ def get_google_access_token(user_uuid, wazo_token, **auth_config):
             auth_config, e,
         )
         raise GoogleTokenNotFoundException(user_uuid)
-    except requests.exceptions.RequestException as e:
+    except requests.RequestException as e:
         logger.error('Error occured while connecting to wazo-auth, error: %s', e)
 
 
