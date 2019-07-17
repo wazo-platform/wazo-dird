@@ -29,3 +29,15 @@ services:
     image: wazopbx/wazo-dird-db
     ports:
       - "5432"
+
+  microsoft-mock:
+    environment:
+      FLASK_ENV: development
+    image: microsoft-mock
+    ports:
+      - "80"
+
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - "5672"

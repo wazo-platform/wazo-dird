@@ -66,6 +66,7 @@ enabled_plugins:
     csv: true
     csv_ws: true
     phonebook: true
+    office365: true
     ldap: true
     personal: true
     wazo: true
@@ -84,6 +85,7 @@ enabled_plugins:
     headers_view: true
     htek_view: true
     ldap_backend: true
+    office365_backend: true
     personal_backend: true
     personal_view: true
     phonebook_backend: true
