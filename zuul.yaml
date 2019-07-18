@@ -2,4 +2,9 @@
     templates:
       - wazo-tox-linters
       - wazo-tox-py35
-      - wazo-tox-integration
+
+- job:
+    name: dird-tox-integration
+    description: Run dird integration tests
+    parent: wazo-tox-integration
+    timeout: 10800
