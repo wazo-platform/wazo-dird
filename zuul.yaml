@@ -16,3 +16,5 @@
     description: Run dird integration tests
     parent: wazo-tox-integration
     timeout: 10800
+    vars:
+      integration_test_timeout: 60
