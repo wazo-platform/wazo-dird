@@ -1,15 +1,11 @@
 # Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import (Column, ForeignKey, Integer, schema, String, text, Text)
+from sqlalchemy import Column, ForeignKey, Integer, schema, String, text, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import (
-    ARRAY,
-    HSTORE,
-    JSON,
-)
+from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON
 
 Base = declarative_base()
 
@@ -24,9 +20,15 @@ class Contact(Base):
         schema.UniqueConstraint('phonebook_id', 'hash'),
     )
 
-    uuid = Column(String(38), server_default=text('uuid_generate_v4()'), primary_key=True)
-    user_uuid = Column(String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'))
-    phonebook_id = Column(Integer(), ForeignKey('dird_phonebook.id', ondelete='CASCADE'))
+    uuid = Column(
+        String(38), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
+    user_uuid = Column(
+        String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE')
+    )
+    phonebook_id = Column(
+        Integer(), ForeignKey('dird_phonebook.id', ondelete='CASCADE')
+    )
     hash = Column(String(40), nullable=False)
 
 
@@ -37,18 +39,22 @@ class ContactFields(Base):
     id = Column(Integer(), primary_key=True)
     name = Column(Text(), nullable=False, index=True)
     value = Column(Text(), index=True)
-    contact_uuid = Column(String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False)
+    contact_uuid = Column(
+        String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False
+    )
 
 
 class Display(Base):
 
     __tablename__ = 'dird_display'
-    __table_args__ = (
-        schema.UniqueConstraint('uuid', 'tenant_uuid'),
-    )
+    __table_args__ = (schema.UniqueConstraint('uuid', 'tenant_uuid'),)
 
-    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
-    tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE'))
+    uuid = Column(
+        String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
+    tenant_uuid = Column(
+        String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE')
+    )
     name = Column(Text(), nullable=False)
 
     columns = relationship('DisplayColumn', viewonly=True)
@@ -58,8 +64,12 @@ class DisplayColumn(Base):
 
     __tablename__ = 'dird_display_column'
 
-    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
-    display_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_display.uuid', ondelete='CASCADE'))
+    uuid = Column(
+        String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
+    display_uuid = Column(
+        String(UUID_LENGTH), ForeignKey('dird_display.uuid', ondelete='CASCADE')
+    )
     field = Column(Text())
     title = Column(Text())
     type = Column(Text())
@@ -79,9 +89,11 @@ class Favorite(Base):
         primary_key=True,
     )
     contact_id = Column(Text(), primary_key=True)
-    user_uuid = Column(String(38),
-                       ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'),
-                       primary_key=True)
+    user_uuid = Column(
+        String(38),
+        ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'),
+        primary_key=True,
+    )
 
 
 class Phonebook(Base):
@@ -113,8 +125,12 @@ class Profile(Base):
         schema.CheckConstraint('tenant_uuid = display_tenant_uuid'),
     )
 
-    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
-    tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE'))
+    uuid = Column(
+        String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
+    tenant_uuid = Column(
+        String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE')
+    )
     name = Column(Text(), nullable=False)
     display_tenant_uuid = Column(String(UUID_LENGTH))
     display_uuid = Column(String(UUID_LENGTH))
@@ -163,12 +179,13 @@ class ProfileService(Base):
         ),
     )
 
-    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
+    uuid = Column(
+        String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
     profile_uuid = Column(String(UUID_LENGTH))
     profile_tenant_uuid = Column(String(UUID_LENGTH))
     service_uuid = Column(
-        String(UUID_LENGTH),
-        ForeignKey('dird_service.uuid', ondelete='CASCADE'),
+        String(UUID_LENGTH), ForeignKey('dird_service.uuid', ondelete='CASCADE')
     )
     config = Column(JSON)
 
@@ -181,7 +198,9 @@ class Service(Base):
 
     __tablename__ = 'dird_service'
 
-    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
+    uuid = Column(
+        String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
     name = Column(Text(), unique=True, nullable=False)
 
 
@@ -193,7 +212,9 @@ class Source(Base):
         schema.UniqueConstraint('name', 'tenant_uuid'),
     )
 
-    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True)
+    uuid = Column(
+        String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
     name = Column(Text(), nullable=False)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
     searched_columns = Column(ARRAY(Text))
@@ -207,7 +228,9 @@ class Tenant(Base):
 
     __tablename__ = 'dird_tenant'
 
-    uuid = Column(String(UUID_LENGTH), server_default=text('uuid_generate_v4()'),  primary_key=True)
+    uuid = Column(
+        String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
     # DEPRECATED uuids should match wazo-auth and names should not be used
     # the field will be removed after an upgrade that forces an upgrade above version 19.02
     name = Column(String(255))

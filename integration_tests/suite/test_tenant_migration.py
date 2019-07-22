@@ -3,12 +3,7 @@
 
 from uuid import uuid4
 from contextlib import closing
-from hamcrest import (
-    assert_that,
-    contains,
-    empty,
-    has_entries,
-)
+from hamcrest import assert_that, contains, empty, has_entries
 from .helpers.base import BasePhonebookTestCase
 from .helpers.constants import DIRD_TOKEN_TENANT
 
@@ -20,7 +15,6 @@ def new_uuid():
 
 
 class TestTenantMigration(BasePhonebookTestCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -31,7 +25,11 @@ class TestTenantMigration(BasePhonebookTestCase):
             {'name': 'foo', 'old_uuid': new_uuid(), 'new_uuid': new_uuid()},
             {'name': 'bar', 'old_uuid': new_uuid(), 'new_uuid': new_uuid()},
             # This tenant does not exist in wazo-auth
-            {'name': 'unknown', 'old_uuid': unknown_tenant_uuid, 'new_uuid': unknown_tenant_uuid},
+            {
+                'name': 'unknown',
+                'old_uuid': unknown_tenant_uuid,
+                'new_uuid': unknown_tenant_uuid,
+            },
         ]
 
         # insert the old tenants in the dird DB
@@ -61,7 +59,8 @@ class TestTenantMigration(BasePhonebookTestCase):
         # Generate the POST body with the names and new UUIDS
         body = [
             {'uuid': t['new_uuid'], 'name': t['name']}
-            for t in tenants if t['name'] != 'unknown'  # unknown does not exist in auth
+            for t in tenants
+            if t['name'] != 'unknown'  # unknown does not exist in auth
         ]
         # Add an extra tenant that is not in wazo-dird
         body.append({'uuid': new_uuid(), 'name': 'ignored'})
@@ -82,48 +81,58 @@ class TestTenantMigration(BasePhonebookTestCase):
         assert_that(
             self.list_phonebooks(tenants[0]['name']).json(),
             has_entries(
-                items=contains(has_entries(
-                    id=phonebook_0['id'],
-                    tenant_uuid=tenants[0]['new_uuid'],
-                    name=phonebook_0['name'],
-                    description=phonebook_0['description'],
-                )),
+                items=contains(
+                    has_entries(
+                        id=phonebook_0['id'],
+                        tenant_uuid=tenants[0]['new_uuid'],
+                        name=phonebook_0['name'],
+                        description=phonebook_0['description'],
+                    )
+                ),
                 total=1,
-            )
+            ),
         )
 
         self.set_tenants(tenants[1]['name'])
         assert_that(
             self.list_phonebooks(tenants[1]['name']).json(),
             has_entries(
-                items=contains(has_entries(
-                    id=phonebook_1['id'],
-                    tenant_uuid=tenants[1]['new_uuid'],
-                    name=phonebook_1['name'],
-                    description=phonebook_1['description'],
-                )),
+                items=contains(
+                    has_entries(
+                        id=phonebook_1['id'],
+                        tenant_uuid=tenants[1]['new_uuid'],
+                        name=phonebook_1['name'],
+                        description=phonebook_1['description'],
+                    )
+                ),
                 total=1,
-            )
+            ),
         )
 
         self.set_tenants(tenants[2]['name'])
         assert_that(
             self.list_phonebooks(tenants[2]['name']).json(),
             has_entries(
-                items=contains(has_entries(
-                    id=phonebook_2['id'],
-                    tenant_uuid=tenants[2]['new_uuid'],
-                    name=phonebook_2['name'],
-                    description=phonebook_2['description'],
-                )),
+                items=contains(
+                    has_entries(
+                        id=phonebook_2['id'],
+                        tenant_uuid=tenants[2]['new_uuid'],
+                        name=phonebook_2['name'],
+                        description=phonebook_2['description'],
+                    )
+                ),
                 total=1,
-            )
+            ),
         )
 
         # check that migrated tenants are deleted
         with closing(self.Session()) as s:
-            migrated_tenants = [t['old_uuid'] for t in tenants if t['name'] != 'unknown']
-            matching_tenants = s.query(
-                database.Tenant,
-            ).filter(database.Tenant.uuid.in_(migrated_tenants)).all()
+            migrated_tenants = [
+                t['old_uuid'] for t in tenants if t['name'] != 'unknown'
+            ]
+            matching_tenants = (
+                s.query(database.Tenant)
+                .filter(database.Tenant.uuid.in_(migrated_tenants))
+                .all()
+            )
             assert_that(matching_tenants, empty())

@@ -17,17 +17,10 @@ from .models import (
     Tenant,
     User,
 )
-from .queries.base import (
-    delete_user,
-)
+from .queries.base import delete_user
 from .queries.display import DisplayCRUD
-from .queries.favorite import (
-    FavoriteCRUD,
-)
-from .queries.personal import (
-    PersonalContactCRUD,
-    PersonalContactSearchEngine,
-)
+from .queries.favorite import FavoriteCRUD
+from .queries.personal import PersonalContactCRUD, PersonalContactSearchEngine
 from .queries.phonebook import (
     PhonebookCRUD,
     PhonebookContactCRUD,

@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from .base import BaseDAO
-from ..import Tenant
+from .. import Tenant
 
 
 class TenantCRUD(BaseDAO):
-
     def delete(self, uuid):
         with self.new_session() as s:
             s.query(Tenant).filter(Tenant.uuid == uuid).delete()

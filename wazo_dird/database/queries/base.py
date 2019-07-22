@@ -8,10 +8,7 @@ from contextlib import contextmanager
 from sqlalchemy import exc
 from xivo import sqlalchemy_helper
 from wazo_dird.exception import DatabaseServiceUnavailable
-from wazo_dird.database import (
-    Tenant,
-    User,
-)
+from wazo_dird.database import Tenant, User
 
 from .. import ContactFields
 
@@ -34,7 +31,9 @@ def list_contacts_by_uuid(session, uuids):
     if not uuids:
         return []
 
-    contact_fields = session.query(ContactFields).filter(ContactFields.contact_uuid.in_(uuids))
+    contact_fields = session.query(ContactFields).filter(
+        ContactFields.contact_uuid.in_(uuids)
+    )
     result = {}
     for contact_field in contact_fields.all():
         uuid = contact_field.contact_uuid
@@ -52,7 +51,6 @@ def compute_contact_hash(contact_info):
 
 
 class BaseDAO:
-
     def __init__(self, Session):
         self._Session = Session
 

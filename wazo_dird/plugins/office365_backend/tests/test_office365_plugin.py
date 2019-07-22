@@ -3,13 +3,7 @@
 
 from unittest import TestCase
 
-from hamcrest import (
-    assert_that,
-    calling,
-    equal_to,
-    not_,
-    raises,
-)
+from hamcrest import assert_that, calling, equal_to, not_, raises
 
 from ..plugin import Office365Plugin
 
@@ -18,9 +12,7 @@ class TestOffice365Plugin(TestCase):
 
     DEPENDENCIES = {
         'config': {
-            'auth': {
-                'host': '9497',
-            },
+            'auth': {'host': '9497'},
             'endpoint': 'www.bros.com',
             'name': 'office365',
             'user_agent': 'luigi',
@@ -31,7 +23,7 @@ class TestOffice365Plugin(TestCase):
                 'reverse': "{firstname} {lastname}",
                 'phone_mobile': "{mobile}",
             },
-        },
+        }
     }
 
     def setUp(self):
@@ -40,7 +32,7 @@ class TestOffice365Plugin(TestCase):
     def test_load(self):
         assert_that(
             calling(self.source.load).with_args(self.DEPENDENCIES),
-            not_(raises(Exception))
+            not_(raises(Exception)),
         )
 
     def test_first_match_predicate(self):
@@ -48,11 +40,7 @@ class TestOffice365Plugin(TestCase):
 
         term = '5555551234'
 
-        mario = {
-            'name': 'Mario Bros',
-            'mobilePhone': None,
-            'businessPhones': [],
-        }
+        mario = {'name': 'Mario Bros', 'mobilePhone': None, 'businessPhones': []}
         luigi = {
             'name': 'Luigi Bros',
             'mobilePhone': None,
@@ -67,4 +55,6 @@ class TestOffice365Plugin(TestCase):
         assert_that(self.source._first_match_predicate(term, mario), equal_to(False))
         assert_that(self.source._first_match_predicate(term, luigi), equal_to(True))
         assert_that(self.source._first_match_predicate(term, peach), equal_to(True))
-        assert_that(self.source._first_match_predicate(term[:-1], peach), equal_to(False))
+        assert_that(
+            self.source._first_match_predicate(term[:-1], peach), equal_to(False)
+        )

@@ -28,11 +28,7 @@ def upgrade():
             sa.ForeignKey('dird_tenant.uuid', ondelete='CASCADE'),
             nullable=False,
         ),
-        sa.Column(
-            'name',
-            sa.Text(),
-            nullable=False,
-        )
+        sa.Column('name', sa.Text(), nullable=False),
     )
 
     op.create_table(
@@ -49,26 +45,11 @@ def upgrade():
             sa.ForeignKey('dird_display.uuid', ondelete='CASCADE'),
             nullable=False,
         ),
-        sa.Column(
-            'field',
-            sa.Text(),
-        ),
-        sa.Column(
-            'default',
-            sa.Text(),
-        ),
-        sa.Column(
-            'type',
-            sa.Text(),
-        ),
-        sa.Column(
-            'title',
-            sa.Text(),
-        ),
-        sa.Column(
-            'number_display',
-            sa.Text(),
-        ),
+        sa.Column('field', sa.Text()),
+        sa.Column('default', sa.Text()),
+        sa.Column('type', sa.Text()),
+        sa.Column('title', sa.Text()),
+        sa.Column('number_display', sa.Text()),
     )
 
 

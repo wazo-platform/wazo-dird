@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import ldap
@@ -23,7 +23,6 @@ from ..plugin import (
 
 
 class TestLDAPPlugin(unittest.TestCase):
-
     def setUp(self):
         self.config = {'config': sentinel}
         self.ldap_config = Mock(_LDAPConfig)
@@ -31,7 +30,9 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_client = Mock(_LDAPClient)
         self.ldap_factory = Mock(_LDAPFactory)
         self.ldap_factory.new_ldap_config.return_value = self.ldap_config
-        self.ldap_factory.new_ldap_result_formatter.return_value = self.ldap_result_formatter
+        self.ldap_factory.new_ldap_result_formatter.return_value = (
+            self.ldap_result_formatter
+        )
         self.ldap_factory.new_ldap_client.return_value = self.ldap_client
         self.ldap_plugin = LDAPPlugin()
         self.ldap_plugin.ldap_factory = self.ldap_factory
@@ -40,7 +41,9 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_plugin.load(self.config)
 
         self.ldap_factory.new_ldap_config.assert_called_once_with(self.config['config'])
-        self.ldap_factory.new_ldap_result_formatter.assert_called_once_with(self.ldap_config)
+        self.ldap_factory.new_ldap_result_formatter.assert_called_once_with(
+            self.ldap_config
+        )
         self.ldap_factory.new_ldap_client.assert_called_once_with(self.ldap_config)
         self.ldap_client.set_up.assert_called_once_with()
 
@@ -61,21 +64,30 @@ class TestLDAPPlugin(unittest.TestCase):
 
         self.ldap_config.build_search_filter.assert_called_once_with(term)
         self.ldap_client.search.assert_called_once_with(sentinel.filter)
-        self.ldap_result_formatter.format.assert_called_once_with(sentinel.search_result)
+        self.ldap_result_formatter.format.assert_called_once_with(
+            sentinel.search_result
+        )
         self.assertIs(result, sentinel.format_result)
 
     def test_first_match(self):
         exten = '123456'
         self.ldap_config.build_first_match_filter.return_value = sentinel.filter
-        self.ldap_client.search.return_value = [(sentinel.result_1_dn, sentinel.result_1_attrs), sentinel.result_2]
-        self.ldap_result_formatter.format_one_result.return_value = sentinel.format_result
+        self.ldap_client.search.return_value = [
+            (sentinel.result_1_dn, sentinel.result_1_attrs),
+            sentinel.result_2,
+        ]
+        self.ldap_result_formatter.format_one_result.return_value = (
+            sentinel.format_result
+        )
 
         self.ldap_plugin.load(self.config)
         result = self.ldap_plugin.first_match(exten)
 
         self.ldap_config.build_first_match_filter.assert_called_once_with(exten)
         self.ldap_client.search.assert_called_once_with(sentinel.filter, 1)
-        self.ldap_result_formatter.format_one_result.assert_called_once_with(sentinel.result_1_attrs)
+        self.ldap_result_formatter.format_one_result.assert_called_once_with(
+            sentinel.result_1_attrs
+        )
         self.assertIs(result, sentinel.format_result)
 
     def test_first_match_return_none_when_no_match(self):
@@ -112,7 +124,9 @@ class TestLDAPPlugin(unittest.TestCase):
 
         self.ldap_config.build_list_filter.assert_called_once_with(uids)
         self.ldap_client.search.assert_called_once_with(sentinel.filter)
-        self.ldap_result_formatter.format.assert_called_once_with(sentinel.search_result)
+        self.ldap_result_formatter.format.assert_called_once_with(
+            sentinel.search_result
+        )
         self.assertIs(result, sentinel.format_result)
 
     def test_list_no_unique_column(self):
@@ -127,7 +141,6 @@ class TestLDAPPlugin(unittest.TestCase):
 
 
 class TestLDAPFactory(unittest.TestCase):
-
     def setUp(self):
         self.ldap_factory = _LDAPFactory()
 
@@ -151,7 +164,6 @@ class TestLDAPFactory(unittest.TestCase):
 
 
 class TestLDAPConfig(unittest.TestCase):
-
     def new_ldap_config(self, config):
         config.update({BaseSourcePlugin.SEARCHED_COLUMNS: ['cn']})
         return _LDAPConfig(config)
@@ -184,9 +196,7 @@ class TestLDAPConfig(unittest.TestCase):
     def test_unique_column(self):
         value = 'entryUUID'
 
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.UNIQUE_COLUMN: value,
-        })
+        ldap_config = self.new_ldap_config({BaseSourcePlugin.UNIQUE_COLUMN: value})
 
         self.assertEqual(value, ldap_config.unique_column())
 
@@ -198,9 +208,7 @@ class TestLDAPConfig(unittest.TestCase):
     def test_format_columns(self):
         value = {'firstname': '{givenName}'}
 
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.FORMAT_COLUMNS: value,
-        })
+        ldap_config = self.new_ldap_config({BaseSourcePlugin.FORMAT_COLUMNS: value})
 
         self.assertEqual(value, ldap_config.format_columns())
 
@@ -267,7 +275,9 @@ class TestLDAPConfig(unittest.TestCase):
     def test_ldap_network_timeout_when_absent(self):
         ldap_config = self.new_ldap_config({})
 
-        self.assertEqual(_LDAPConfig.DEFAULT_LDAP_NETWORK_TIMEOUT, ldap_config.ldap_network_timeout())
+        self.assertEqual(
+            _LDAPConfig.DEFAULT_LDAP_NETWORK_TIMEOUT, ldap_config.ldap_network_timeout()
+        )
 
     def test_ldap_timeout(self):
         value = 42.0
@@ -287,98 +297,112 @@ class TestLDAPConfig(unittest.TestCase):
         self.assertEqual(None, ldap_config.attributes())
 
     def test_attributes_with_unique_column_only_returns_none(self):
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
-        })
+        ldap_config = self.new_ldap_config(
+            {BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID'}
+        )
 
         self.assertEqual(None, ldap_config.attributes())
 
     def test_attributes_with_format_columns(self):
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.FORMAT_COLUMNS: {
-                'firstname': '{givenName}',
-                'lastname': '{sn}',
-            },
-        })
+        ldap_config = self.new_ldap_config(
+            {
+                BaseSourcePlugin.FORMAT_COLUMNS: {
+                    'firstname': '{givenName}',
+                    'lastname': '{sn}',
+                }
+            }
+        )
 
         assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn'))
 
     def test_attributes_with_unique_column_and_format_columns(self):
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.FORMAT_COLUMNS: {
-                'firstname': '{givenName}',
-                'lastname': '{sn}',
-            },
-            BaseSourcePlugin.UNIQUE_COLUMN: 'uid'
-        })
+        ldap_config = self.new_ldap_config(
+            {
+                BaseSourcePlugin.FORMAT_COLUMNS: {
+                    'firstname': '{givenName}',
+                    'lastname': '{sn}',
+                },
+                BaseSourcePlugin.UNIQUE_COLUMN: 'uid',
+            }
+        )
 
-        assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn', 'uid'))
+        assert_that(
+            ldap_config.attributes(), contains_inanyorder('givenName', 'sn', 'uid')
+        )
 
     def test_attributes_with_unique_column_in_format_columns(self):
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.FORMAT_COLUMNS: {
-                'firstname': '{givenName}',
-                'lastname': '{sn}',
-            },
-            BaseSourcePlugin.UNIQUE_COLUMN: 'sn'
-        })
+        ldap_config = self.new_ldap_config(
+            {
+                BaseSourcePlugin.FORMAT_COLUMNS: {
+                    'firstname': '{givenName}',
+                    'lastname': '{sn}',
+                },
+                BaseSourcePlugin.UNIQUE_COLUMN: 'sn',
+            }
+        )
 
         assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn'))
 
     def test_build_search_filter_with_searched_columns_and_without_custom_filter(self):
-        ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SEARCHED_COLUMNS: ['cn'],
-        })
+        ldap_config = _LDAPConfig({BaseSourcePlugin.SEARCHED_COLUMNS: ['cn']})
 
         self.assertEqual('(cn=*foo*)', ldap_config.build_search_filter('foo'))
 
     def test_build_search_filter_without_searched_columns_and_with_custom_filter(self):
-        ldap_config = _LDAPConfig({
-            'ldap_custom_filter': '(cn=*%Q*)',
-        })
+        ldap_config = _LDAPConfig({'ldap_custom_filter': '(cn=*%Q*)'})
 
         self.assertEqual('(cn=*foo*)', ldap_config.build_search_filter('foo'))
 
     def test_build_search_filter_with_searched_columns_and_custom_filter(self):
-        ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
-            'ldap_custom_filter': '(cn=*%Q*)',
-        })
+        ldap_config = _LDAPConfig(
+            {
+                BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
+                'ldap_custom_filter': '(cn=*%Q*)',
+            }
+        )
 
-        self.assertEqual('(&(cn=*foo*)(sn=*foo*))', ldap_config.build_search_filter('foo'))
+        self.assertEqual(
+            '(&(cn=*foo*)(sn=*foo*))', ldap_config.build_search_filter('foo')
+        )
 
-    def test_build_search_filter_with_searched_columns_and_custom_filter_unicode_term(self):
-        ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
-            'ldap_custom_filter': str('(cn=*%Q*)'),
-        })
+    def test_build_search_filter_with_searched_columns_and_custom_filter_unicode_term(
+        self
+    ):
+        ldap_config = _LDAPConfig(
+            {
+                BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
+                'ldap_custom_filter': str('(cn=*%Q*)'),
+            }
+        )
 
-        self.assertEqual('(&(cn=*Québec*)(sn=*Québec*))', ldap_config.build_search_filter('Québec'))
+        self.assertEqual(
+            '(&(cn=*Québec*)(sn=*Québec*))', ldap_config.build_search_filter('Québec')
+        )
 
     def test_build_search_filter_searched_columns_escape_term(self):
-        ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SEARCHED_COLUMNS: ['cn'],
-        })
+        ldap_config = _LDAPConfig({BaseSourcePlugin.SEARCHED_COLUMNS: ['cn']})
 
         term = 'f)f'
         escaped_term = 'f\\29f'
 
-        self.assertEqual('(cn=*%s*)' % escaped_term, ldap_config.build_search_filter(term))
+        self.assertEqual(
+            '(cn=*%s*)' % escaped_term, ldap_config.build_search_filter(term)
+        )
 
     def test_build_search_filter_custom_filter_escape_term(self):
-        ldap_config = _LDAPConfig({
-            'ldap_custom_filter': '(cn=*%Q*)',
-        })
+        ldap_config = _LDAPConfig({'ldap_custom_filter': '(cn=*%Q*)'})
 
         term = 'f)f'
         escaped_term = 'f\\29f'
 
-        self.assertEqual('(cn=*%s*)' % escaped_term, ldap_config.build_search_filter(term))
+        self.assertEqual(
+            '(cn=*%s*)' % escaped_term, ldap_config.build_search_filter(term)
+        )
 
     def test_build_search_filter_multiple_columns(self):
-        ldap_config = _LDAPConfig({
-            BaseSourcePlugin.SEARCHED_COLUMNS: ['givenName', 'sn'],
-        })
+        ldap_config = _LDAPConfig(
+            {BaseSourcePlugin.SEARCHED_COLUMNS: ['givenName', 'sn']}
+        )
 
         term = 'foo'
         expected = '(|(givenName=*{term}*)(sn=*{term}*))'.format(term=term)
@@ -386,17 +410,17 @@ class TestLDAPConfig(unittest.TestCase):
         self.assertEqual(expected, ldap_config.build_search_filter(term))
 
     def test_build_list_filter_no_item(self):
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
-        })
+        ldap_config = self.new_ldap_config(
+            {BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID'}
+        )
         uids = []
 
         self.assertFalse(ldap_config.build_list_filter(uids))
 
     def test_build_list_filter_one_item(self):
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
-        })
+        ldap_config = self.new_ldap_config(
+            {BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID'}
+        )
         uids = ['foo']
 
         self.assertEqual('(entryUUID=foo)', ldap_config.build_list_filter(uids))
@@ -404,25 +428,30 @@ class TestLDAPConfig(unittest.TestCase):
     def test_build_list_filter_binary(self):
         uuid = 'f3bc2a27-7f38-4e30-adf5-873fe5ac484f'
         binary_uuid = '\\f3\\bc\\2a\\27\\7f\\38\\4e\\30\\ad\\f5\\87\\3f\\e5\\ac\\48\\4f'
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.UNIQUE_COLUMN: 'objectGUID',
-            'unique_column_format': 'binary_uuid',
-        })
+        ldap_config = self.new_ldap_config(
+            {
+                BaseSourcePlugin.UNIQUE_COLUMN: 'objectGUID',
+                'unique_column_format': 'binary_uuid',
+            }
+        )
         uids = [uuid]
 
-        self.assertEqual('(objectGUID=%s)' % binary_uuid, ldap_config.build_list_filter(uids))
+        self.assertEqual(
+            '(objectGUID=%s)' % binary_uuid, ldap_config.build_list_filter(uids)
+        )
 
     def test_build_list_filter_two_items(self):
-        ldap_config = self.new_ldap_config({
-            BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID',
-        })
+        ldap_config = self.new_ldap_config(
+            {BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID'}
+        )
         uids = ['foo', 'bar']
 
-        self.assertEqual('(|(entryUUID=foo)(entryUUID=bar))', ldap_config.build_list_filter(uids))
+        self.assertEqual(
+            '(|(entryUUID=foo)(entryUUID=bar))', ldap_config.build_list_filter(uids)
+        )
 
 
 class TestLDAPClient(unittest.TestCase):
-
     def setUp(self):
         self.uri = 'ldap://example.org'
         self.base_dn = 'ou=people,dc=foobar'
@@ -444,7 +473,9 @@ class TestLDAPClient(unittest.TestCase):
         self.ldap_client.set_up()
 
         self.ldap_obj_factory.assert_called_once_with(self.uri)
-        self.ldap_obj.simple_bind_s.assert_called_once_with(self.username, self.password)
+        self.ldap_obj.simple_bind_s.assert_called_once_with(
+            self.username, self.password
+        )
 
     def test_set_up_when_already_set_up(self):
         self.ldap_client.set_up()
@@ -473,11 +504,7 @@ class TestLDAPClient(unittest.TestCase):
         result = self.ldap_client.search('foo')
 
         self.ldap_obj.search_ext_s.assert_called_once_with(
-            self.base_dn,
-            ANY,
-            'foo',
-            self.attributes,
-            sizelimit=-1,
+            self.base_dn, ANY, 'foo', self.attributes, sizelimit=-1
         )
         self.assertEqual(1, self.ldap_obj_factory.call_count)
         self.assertIs(result, sentinel)
@@ -512,7 +539,6 @@ class TestLDAPClient(unittest.TestCase):
 
 
 class TestLDAPResultFormatter(unittest.TestCase):
-
     def setUp(self):
         self.name = 'foo'
         self.unique_column = 'entryUUID'
@@ -521,13 +547,15 @@ class TestLDAPResultFormatter(unittest.TestCase):
         self.ldap_config.name.return_value = self.name
         self.ldap_config.unique_column.return_value = self.unique_column
         self.ldap_config.format_columns.return_value = self.format_columns
-        self.SourceResult = make_result_class('ldap', self.name, self.unique_column, self.format_columns)
+        self.SourceResult = make_result_class(
+            'ldap', self.name, self.unique_column, self.format_columns
+        )
 
     def test_format(self):
         formatter = self._new_formatter(has_binary_uuid=False)
 
         raw_results = [
-            ('dn', {'entryUUID': [b'0123'], 'givenName': [b'Gr\xc3\xa9goire']}),
+            ('dn', {'entryUUID': [b'0123'], 'givenName': [b'Gr\xc3\xa9goire']})
         ]
         expected_results = [
             self.SourceResult({'entryUUID': '0123', 'givenName': 'Grégoire'})
@@ -543,9 +571,7 @@ class TestLDAPResultFormatter(unittest.TestCase):
         binary_uuid = os.urandom(16)
         encoded_uid = str(uuid.UUID(bytes=binary_uuid))
 
-        raw_results = [
-            ('dn', {'entryUUID': [binary_uuid], 'givenName': [b'John']}),
-        ]
+        raw_results = [('dn', {'entryUUID': [binary_uuid], 'givenName': [b'John']})]
         expected_results = [
             self.SourceResult({'entryUUID': encoded_uid, 'givenName': 'John'})
         ]
@@ -559,7 +585,10 @@ class TestLDAPResultFormatter(unittest.TestCase):
 
         raw_results = [
             ('dn', {'entryUUID': [b'0123'], 'givenName': [b'John']}),
-            (None, ['ldap://b.example.com/cn=test,dc=lan-quebec,dc=avencall,dc=com??sub']),
+            (
+                None,
+                ['ldap://b.example.com/cn=test,dc=lan-quebec,dc=avencall,dc=com??sub'],
+            ),
         ]
         expected_results = [
             self.SourceResult({'entryUUID': '0123', 'givenName': 'John'})
@@ -573,7 +602,9 @@ class TestLDAPResultFormatter(unittest.TestCase):
         formatter = self._new_formatter(has_binary_uuid=False)
 
         raw_result = ('dn', {'entryUUID': [b'0123'], 'givenName': [b'Gr\xc3\xa9goire']})
-        expected_result = self.SourceResult({'entryUUID': '0123', 'givenName': 'Grégoire'})
+        expected_result = self.SourceResult(
+            {'entryUUID': '0123', 'givenName': 'Grégoire'}
+        )
 
         dn, attrs = raw_result
         result = formatter.format_one_result(attrs)

@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class ReverseServicePlugin(BaseServicePlugin):
-
     def __init__(self):
         self._service = None
 
@@ -26,8 +25,10 @@ class ReverseServicePlugin(BaseServicePlugin):
             )
             return self._service
         except KeyError:
-            msg = ('%s should be loaded with "config" and "source_manager" but received: %s'
-                   % (self.__class__.__name__, ','.join(dependencies.keys())))
+            msg = (
+                '%s should be loaded with "config" and "source_manager" but received: %s'
+                % (self.__class__.__name__, ','.join(dependencies.keys()))
+            )
             raise ValueError(msg)
 
     def unload(self):
@@ -47,11 +48,17 @@ class _ReverseService(helpers.BaseService):
     def stop(self):
         self._executor.shutdown()
 
-    def reverse(self, profile_config, exten, profile, args=None, xivo_user_uuid=None, token=None):
+    def reverse(
+        self, profile_config, exten, profile, args=None, xivo_user_uuid=None, token=None
+    ):
         args = args or {}
         futures = []
         sources = self.source_from_profile(profile_config)
-        logger.debug('Reverse lookup for {} in sources {}'.format(exten, [source.name for source in sources]))
+        logger.debug(
+            'Reverse lookup for %s in sources %s',
+            exten,
+            [source.name for source in sources],
+        )
         for source in sources:
             args['token'] = token
             args['xivo_user_uuid'] = xivo_user_uuid
@@ -74,6 +81,8 @@ class _ReverseService(helpers.BaseService):
 
     def _async_reverse(self, source, exten, args):
         raise_stopper = helpers.RaiseStopper(return_on_raise=[])
-        future = self._executor.submit(raise_stopper.execute, source.first_match, exten, args)
+        future = self._executor.submit(
+            raise_stopper.execute, source.first_match, exten, args
+        )
         future.name = source.name
         return future

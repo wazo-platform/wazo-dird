@@ -13,7 +13,7 @@ class SourceSchema(BaseSourceSchema):
 
     auth = fields.Dict(
         keys=fields.String(validate=Length(min=1, max=64)),
-        values=fields.String(validate=Length(min=1, max=64))
+        values=fields.String(validate=Length(min=1, max=64)),
     )
     endpoint = fields.String(
         missing='https://graph.microsoft.com/v1.0/me/contacts',

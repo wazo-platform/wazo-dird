@@ -2,11 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.mallow import fields
-from xivo.mallow.validate import (
-    Length,
-    Range,
-    OneOf,
-)
+from xivo.mallow.validate import Length, Range, OneOf
 from xivo.mallow_helpers import ListSchema as _ListSchema
 from wazo_dird.schemas import BaseSourceSchema
 
@@ -20,7 +16,9 @@ class SourceSchema(BaseSourceSchema):
     ldap_network_timeout = fields.Float(validate=Range(min=0), default=0.3)
     ldap_timeout = fields.Float(validate=Range(min=0), default=1.0)
     unique_column = fields.String(Length(min=1, max=128), allownone=True, missing=None)
-    unique_column_format = fields.String(validate=OneOf(['string', 'binary_uuid']), missing='string')
+    unique_column_format = fields.String(
+        validate=OneOf(['string', 'binary_uuid']), missing='string'
+    )
 
 
 class ListSchema(_ListSchema):

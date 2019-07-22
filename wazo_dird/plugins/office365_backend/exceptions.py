@@ -20,7 +20,5 @@ class MicrosoftTokenNotFoundException(APIException):
 
     def __init__(self, user_uuid):
         message = 'No microsoft token found.'
-        details = {
-            'user_uuid': user_uuid,
-        }
+        details = {'user_uuid': user_uuid}
         super().__init__(self.code, message, 'no-token-found', details)

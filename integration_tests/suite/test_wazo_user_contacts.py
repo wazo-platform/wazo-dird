@@ -41,40 +41,48 @@ class TestWazoContactList(BaseDirdIntegrationTest):
 
     def test_list(self):
         result = self.contacts(self.client, self.source_uuid)
-        assert_that(result, has_entries(
-            total=4,
-            filtered=4,
-            items=contains_inanyorder(
-                has_entries(
-                    id=1,
-                    uuid=uuid_(),
-                    firstname='John',
-                    lastname='Doe',
-                    exten='1234',
-                    voicemail_number=None,
-                    mobile_phone_number='+14184765458',
-                    email='john@doe.com',
+        assert_that(
+            result,
+            has_entries(
+                total=4,
+                filtered=4,
+                items=contains_inanyorder(
+                    has_entries(
+                        id=1,
+                        uuid=uuid_(),
+                        firstname='John',
+                        lastname='Doe',
+                        exten='1234',
+                        voicemail_number=None,
+                        mobile_phone_number='+14184765458',
+                        email='john@doe.com',
+                    ),
+                    has_entries(firstname='Mary'),
+                    has_entries(firstname='Bob'),
+                    has_entries(firstname='Charles'),
                 ),
-                has_entries(firstname='Mary'),
-                has_entries(firstname='Bob'),
-                has_entries(firstname='Charles'),
             ),
-        ))
+        )
 
-        assert_that(result['items'][0].keys(), contains_inanyorder(
-            'id',
-            'uuid',
-            'firstname',
-            'lastname',
-            'exten',
-            'voicemail_number',
-            'mobile_phone_number',
-            'email',
-        ))
+        assert_that(
+            result['items'][0].keys(),
+            contains_inanyorder(
+                'id',
+                'uuid',
+                'firstname',
+                'lastname',
+                'exten',
+                'voicemail_number',
+                'mobile_phone_number',
+                'email',
+            ),
+        )
 
         assert_that(
             calling(self.contacts).with_args(self.client, UNKNOWN_UUID),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
     def test_multi_tenant(self):
@@ -83,16 +91,18 @@ class TestWazoContactList(BaseDirdIntegrationTest):
 
         assert_that(
             calling(self.contacts).with_args(sub_tenant_client, self.source_uuid),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         assert_that(
             calling(self.contacts).with_args(
-                sub_tenant_client,
-                self.source_uuid,
-                tenant_uuid=MAIN_TENANT
+                sub_tenant_client, self.source_uuid, tenant_uuid=MAIN_TENANT
             ),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         assert_that(
@@ -102,11 +112,11 @@ class TestWazoContactList(BaseDirdIntegrationTest):
 
         assert_that(
             calling(self.contacts).with_args(
-                main_tenant_client,
-                self.source_uuid,
-                tenant_uuid=SUB_TENANT,
+                main_tenant_client, self.source_uuid, tenant_uuid=SUB_TENANT
             ),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
     def test_with_no_confd(self):
@@ -114,15 +124,14 @@ class TestWazoContactList(BaseDirdIntegrationTest):
         try:
             assert_that(
                 calling(self.contacts).with_args(self.client, self.source_uuid),
-                raises(Exception).matching(has_properties(response=has_properties(status_code=503)))
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=503))
+                ),
             )
         finally:
             self.start_service('america')
 
     def contacts(self, client, uuid, *args, **kwargs):
         return client.backends.list_contacts_from_source(
-            backend=BACKEND,
-            source_uuid=uuid,
-            *args,
-            **kwargs
+            backend=BACKEND, source_uuid=uuid, *args, **kwargs
         )

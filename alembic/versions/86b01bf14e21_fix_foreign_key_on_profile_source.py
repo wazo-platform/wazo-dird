@@ -19,22 +19,17 @@ def upgrade():
     # dird_profile_service_source.profile_tenant_uuid
     # dird_profile_service_source.source_tenant_uuid
     op.add_column(
-        'dird_profile_service',
-        sa.Column('profile_tenant_uuid', sa.String(36)),
+        'dird_profile_service', sa.Column('profile_tenant_uuid', sa.String(36))
     )
     op.add_column(
-        'dird_profile_service_source',
-        sa.Column('profile_tenant_uuid', sa.String(36)),
+        'dird_profile_service_source', sa.Column('profile_tenant_uuid', sa.String(36))
     )
     op.add_column(
-        'dird_profile_service_source',
-        sa.Column('source_tenant_uuid', sa.String(36)),
+        'dird_profile_service_source', sa.Column('source_tenant_uuid', sa.String(36))
     )
 
     profile_table = sa.sql.table(
-        'dird_profile',
-        sa.sql.column('uuid'),
-        sa.sql.column('tenant_uuid')
+        'dird_profile', sa.sql.column('uuid'), sa.sql.column('tenant_uuid')
     )
     profile_service_table = sa.sql.table(
         'dird_profile_service',
@@ -50,18 +45,17 @@ def upgrade():
         sa.sql.column('source_tenant_uuid'),
     )
     source_table = sa.sql.table(
-        'dird_source',
-        sa.sql.column('uuid'),
-        sa.sql.column('tenant_uuid')
+        'dird_source', sa.sql.column('uuid'), sa.sql.column('tenant_uuid')
     )
 
-    profile_to_tenant_query = sa.sql.select([profile_table.c.uuid, profile_table.c.tenant_uuid])
+    profile_to_tenant_query = sa.sql.select(
+        [profile_table.c.uuid, profile_table.c.tenant_uuid]
+    )
     rows = op.get_bind().execute(profile_to_tenant_query).fetchall()
     profile_to_tenant = {row.uuid: row.tenant_uuid for row in rows}
     for uuid, tenant_uuid in profile_to_tenant.items():
         op.execute(
-            profile_service_table
-            .update()
+            profile_service_table.update()
             .where(profile_service_table.c.profile_uuid == uuid)
             .values(profile_tenant_uuid=tenant_uuid)
         )
@@ -73,28 +67,26 @@ def upgrade():
     profile_service_to_tenant = {row.uuid: row.profile_tenant_uuid for row in rows}
     for uuid, tenant_uuid in profile_service_to_tenant.items():
         op.execute(
-            profile_service_source_table
-            .update()
+            profile_service_source_table.update()
             .where(profile_service_source_table.c.profile_service_uuid == uuid)
             .values(profile_tenant_uuid=tenant_uuid)
         )
 
-    source_to_tenant_query = sa.sql.select([source_table.c.uuid, source_table.c.tenant_uuid])
+    source_to_tenant_query = sa.sql.select(
+        [source_table.c.uuid, source_table.c.tenant_uuid]
+    )
     rows = op.get_bind().execute(source_to_tenant_query).fetchall()
     source_to_tenant = {row.uuid: row.tenant_uuid for row in rows}
     for uuid, tenant_uuid in source_to_tenant.items():
         op.execute(
-            profile_service_source_table
-            .update()
+            profile_service_source_table.update()
             .where(profile_service_source_table.c.source_uuid == uuid)
             .values(source_tenant_uuid=tenant_uuid)
         )
 
     # Make the tenant/uuid pair unique
     op.create_unique_constraint(
-        'dird_profile_uuid_tenant',
-        'dird_profile',
-        ['uuid', 'tenant_uuid'],
+        'dird_profile_uuid_tenant', 'dird_profile', ['uuid', 'tenant_uuid']
     )
     op.create_unique_constraint(
         'dird_profile_service_uuid_tenant',
@@ -102,9 +94,7 @@ def upgrade():
         ['uuid', 'profile_tenant_uuid'],
     )
     op.create_unique_constraint(
-        'dird_source_uuid_tenant',
-        'dird_source',
-        ['uuid', 'tenant_uuid'],
+        'dird_source_uuid_tenant', 'dird_source', ['uuid', 'tenant_uuid']
     )
 
     # Create new foreign keys using the foreign tenant_uuid keys
@@ -134,17 +124,13 @@ def upgrade():
     )
 
     # Drop the old foreign keys
-    op.drop_constraint(
-        'dird_profile_service_profile_uuid_fkey',
-        'dird_profile_service',
-    )
+    op.drop_constraint('dird_profile_service_profile_uuid_fkey', 'dird_profile_service')
     op.drop_constraint(
         'dird_profile_service_source_profile_service_uuid_fkey',
         'dird_profile_service_source',
     )
     op.drop_constraint(
-        'dird_profile_service_source_source_uuid_fkey',
-        'dird_profile_service_source',
+        'dird_profile_service_source_source_uuid_fkey', 'dird_profile_service_source'
     )
 
 
@@ -177,8 +163,7 @@ def downgrade():
 
     # Remove the new FK
     op.drop_constraint(
-        'dird_profile_service_profile_uuid_tenant_fkey',
-        'dird_profile_service',
+        'dird_profile_service_profile_uuid_tenant_fkey', 'dird_profile_service'
     )
     op.drop_constraint(
         'dird_profile_service_source_profile_service_uuid_tenant_fkey',

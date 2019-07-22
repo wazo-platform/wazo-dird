@@ -3,15 +3,8 @@
 
 from unittest import TestCase
 
-from hamcrest import (
-    assert_that,
-    equal_to,
-)
-from mock import (
-    ANY,
-    patch,
-    sentinel as s,
-)
+from hamcrest import assert_that, equal_to
+from mock import ANY, patch, sentinel as s
 
 from ..main import main
 
@@ -23,7 +16,6 @@ from ..main import main
 @patch('wazo_dird.main.Controller')
 @patch('wazo_dird.main.load_config')
 class TestWazoDird(TestCase):
-
     def test_main_injects_argv_into_config_loading(self, load_config, *_):
         main(s.argv)
 
@@ -49,13 +41,12 @@ class TestWazoDird(TestCase):
         main(s.argv)
 
         xivo_logging.setup_logging.assert_called_once_with(
-            s.log_filename,
-            s.foreground,
-            s.debug,
-            s.log_level,
+            s.log_filename, s.foreground, s.debug, s.log_level
         )
 
-    def test_main_when_config_user_then_change_user(self, load_config, _, __, change_user, *___):
+    def test_main_when_config_user_then_change_user(
+        self, load_config, _, __, change_user, *___
+    ):
         load_config.return_value = {
             'debug': s.debug,
             'log_filename': s.log_filename,
@@ -69,7 +60,9 @@ class TestWazoDird(TestCase):
 
         change_user.assert_called_once_with(s.user)
 
-    def test_main_when_no_config_user_then_dont_change_user(self, load_config, _, __, change_user, *___):
+    def test_main_when_no_config_user_then_dont_change_user(
+        self, load_config, _, __, change_user, *___
+    ):
         load_config.return_value = {
             'debug': s.debug,
             'log_filename': s.log_filename,

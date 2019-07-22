@@ -2,18 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from mock import ANY
-from hamcrest import (
-    assert_that,
-    contains,
-    contains_inanyorder,
-    equal_to,
-    has_entries,
-)
+from hamcrest import assert_that, contains, contains_inanyorder, equal_to, has_entries
 from .helpers.base import BasePhonebookTestCase
 
 
 class TestList(BasePhonebookTestCase):
-
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
@@ -31,12 +24,7 @@ class TestList(BasePhonebookTestCase):
         result = self.list_phonebooks('valid')
         assert_that(
             result.json(),
-            has_entries(
-                items=contains_inanyorder(
-                    has_entries(**phonebook_1),
-                ),
-                total=1,
-            )
+            has_entries(items=contains_inanyorder(has_entries(**phonebook_1)), total=1),
         )
 
     def test_pagination(self):
@@ -57,7 +45,7 @@ class TestList(BasePhonebookTestCase):
                         *[has_entries(**phonebook) for phonebook in phonebooks]
                     ),
                     total=3,
-                )
+                ),
             )
 
         result = self.list_phonebooks('pagination', order='name', direction='asc')
@@ -98,7 +86,6 @@ class TestList(BasePhonebookTestCase):
 
 
 class TestPost(BasePhonebookTestCase):
-
     def test_unknown_tenant(self):
         self.set_tenants()
         valid_body = {'name': 'foobar'}
@@ -110,14 +97,7 @@ class TestPost(BasePhonebookTestCase):
         valid_body = {'name': 'foobar'}
         result = self.post_phonebook('valid', valid_body)
         assert_that(result.status_code, equal_to(201))
-        assert_that(
-            result.json(),
-            has_entries(
-                id=ANY,
-                name='foobar',
-                description=None,
-            )
-        )
+        assert_that(result.json(), has_entries(id=ANY, name='foobar', description=None))
 
         result = self.post_phonebook('valid', valid_body)
         assert_that(result.status_code, equal_to(409))
@@ -143,7 +123,6 @@ class TestPost(BasePhonebookTestCase):
 
 
 class TestGet(BasePhonebookTestCase):
-
     def test_unknown_tenant(self):
         self.set_tenants('valid')
         valid_body = {'name': 'foobar'}
@@ -178,7 +157,6 @@ class TestGet(BasePhonebookTestCase):
 
 
 class TestDelete(BasePhonebookTestCase):
-
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
@@ -213,7 +191,6 @@ class TestDelete(BasePhonebookTestCase):
 
 
 class TestPut(BasePhonebookTestCase):
-
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
@@ -273,12 +250,13 @@ class TestPut(BasePhonebookTestCase):
         valid_body = {'name': 'duplicate me NOT'}
         phonebook = self.post_phonebook('invalid', valid_body).json()
 
-        result = self.put_phonebook('invalid', phonebook['id'], {'name': 'duplicate me'})
+        result = self.put_phonebook(
+            'invalid', phonebook['id'], {'name': 'duplicate me'}
+        )
         assert_that(result.status_code, equal_to(409))
 
 
 class _BasePhonebookContactTestCase(BasePhonebookTestCase):
-
     def setUp(self):
         super().setUp()
         self.tenant_1 = 'valid'
@@ -299,14 +277,11 @@ class _BasePhonebookContactTestCase(BasePhonebookTestCase):
 
 
 class TestContactDelete(_BasePhonebookContactTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_tenants(self.tenant_1)
         self.contact = self.post_phonebook_contact(
-            self.tenant_1,
-            self.phonebook_1['id'],
-            {'firstname': 'Alice'},
+            self.tenant_1, self.phonebook_1['id'], {'firstname': 'Alice'}
         ).json()
         self.contact_id = self.contact['id']
 
@@ -336,14 +311,11 @@ class TestContactDelete(_BasePhonebookContactTestCase):
 
 
 class TestContactGet(_BasePhonebookContactTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_tenants(self.tenant_1)
         self.contact = self.post_phonebook_contact(
-            self.tenant_1,
-            self.phonebook_1['id'],
-            {'firstname': 'Alice'},
+            self.tenant_1, self.phonebook_1['id'], {'firstname': 'Alice'}
         ).json()
         self.contact_id = self.contact['id']
 
@@ -359,7 +331,9 @@ class TestContactGet(_BasePhonebookContactTestCase):
         res = self._get(self.tenant_1, self.phonebook_2['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown phonebook')
 
-        self.delete_phonebook_contact(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        self.delete_phonebook_contact(
+            self.tenant_1, self.phonebook_1['id'], self.contact_id
+        )
         res = self._get(self.tenant_1, self.phonebook_1['id'], self.contact_id)
         assert_that(res.status_code, equal_to(404), 'unknown contact')
 
@@ -373,7 +347,6 @@ class TestContactGet(_BasePhonebookContactTestCase):
 
 
 class TestContactList(_BasePhonebookContactTestCase):
-
     def test_unknown_tenant_or_phonebook(self):
         self.set_tenants(self.tenant_2)
         result = self.list_phonebook_contacts(self.tenant_2, self.phonebook_1['id'])
@@ -397,17 +370,17 @@ class TestContactList(_BasePhonebookContactTestCase):
             assert_that(
                 result.json(),
                 has_entries(
-                    items=contains(
-                        *[has_entries(**contact) for contact in contacts]
-                    ),
+                    items=contains(*[has_entries(**contact) for contact in contacts]),
                     total=3,
-                )
+                ),
             )
 
         result = self.list_phonebook_contacts(*args, order='firstname', direction='asc')
         assert_matches(result, contact_1, contact_2, contact_3)
 
-        result = self.list_phonebook_contacts(*args, order='firstname', direction='desc')
+        result = self.list_phonebook_contacts(
+            *args, order='firstname', direction='desc'
+        )
         assert_matches(result, contact_3, contact_2, contact_1)
 
         result = self.list_phonebook_contacts(*args, order='lastname')
@@ -419,7 +392,9 @@ class TestContactList(_BasePhonebookContactTestCase):
         result = self.list_phonebook_contacts(*args, order='firstname', offset=1)
         assert_matches(result, contact_2, contact_3)
 
-        result = self.list_phonebook_contacts(*args, order='firstname', limit=1, offset=1)
+        result = self.list_phonebook_contacts(
+            *args, order='firstname', limit=1, offset=1
+        )
         assert_matches(result, contact_2)
 
         invalid_limit_offset = [-1, True, False, 'foobar', 3.14]
@@ -437,15 +412,18 @@ class TestContactList(_BasePhonebookContactTestCase):
 
 
 class TestContactPost(_BasePhonebookContactTestCase):
-
     def test_unknown_tenant_or_phonebook(self):
         body = {'firstname': 'Alice'}
 
         self.set_tenants(self.tenant_2)
-        result = self.post_phonebook_contact(self.tenant_2, self.phonebook_1['id'], body)
+        result = self.post_phonebook_contact(
+            self.tenant_2, self.phonebook_1['id'], body
+        )
         assert_that(result.status_code, equal_to(404))
 
-        result = self.post_phonebook_contact(self.tenant_1, self.phonebook_1['id'], body)
+        result = self.post_phonebook_contact(
+            self.tenant_1, self.phonebook_1['id'], body
+        )
         assert_that(result.status_code, equal_to(404))
 
     def test_duplicates(self):
@@ -453,23 +431,24 @@ class TestContactPost(_BasePhonebookContactTestCase):
 
         self.set_tenants(self.tenant_1)
         self.post_phonebook_contact(self.tenant_1, self.phonebook_1['id'], body)
-        result = self.post_phonebook_contact(self.tenant_1, self.phonebook_1['id'], body)
+        result = self.post_phonebook_contact(
+            self.tenant_1, self.phonebook_1['id'], body
+        )
         assert_that(result.status_code, equal_to(409))
 
         self.set_tenants(self.tenant_2)
-        result = self.post_phonebook_contact(self.tenant_2, self.phonebook_2['id'], body)
+        result = self.post_phonebook_contact(
+            self.tenant_2, self.phonebook_2['id'], body
+        )
         assert_that(result.status_code, equal_to(201))
 
 
 class TestContactPut(_BasePhonebookContactTestCase):
-
     def setUp(self):
         super().setUp()
         self.set_tenants(self.tenant_1)
         self.contact = self.post_phonebook_contact(
-            self.tenant_1,
-            self.phonebook_1['id'],
-            {'firstname': 'Alice'},
+            self.tenant_1, self.phonebook_1['id'], {'firstname': 'Alice'}
         ).json()
         self.contact_id = self.contact['id']
 
@@ -487,7 +466,9 @@ class TestContactPut(_BasePhonebookContactTestCase):
         res = self._put(self.tenant_1, self.phonebook_2['id'], self.contact_id, body)
         assert_that(res.status_code, equal_to(404), 'unknown phonebook')
 
-        self.delete_phonebook_contact(self.tenant_1, self.phonebook_1['id'], self.contact_id)
+        self.delete_phonebook_contact(
+            self.tenant_1, self.phonebook_1['id'], self.contact_id
+        )
         res = self._put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
         assert_that(res.status_code, equal_to(404), 'unknown contact')
 
@@ -503,7 +484,6 @@ class TestContactPut(_BasePhonebookContactTestCase):
 
 
 class TestContactImport(_BasePhonebookContactTestCase):
-
     def setUp(self):
         super().setUp()
         self.body = '''\
@@ -532,7 +512,7 @@ Bob,B
                     has_entries(firstname='Bob', lastname='B'),
                 ),
                 total=2,
-            )
+            ),
         )
 
     def import_(self, tenant, phonebook_id, body):

@@ -22,7 +22,6 @@ class PersonalView(BaseBackendView):
 
 
 class PersonalBackend(BaseSourcePlugin):
-
     def load(self, config, search_engine=None):
         logger.debug('Loading personal source')
 
@@ -36,9 +35,11 @@ class PersonalBackend(BaseSourcePlugin):
             unique_column,
             format_columns,
             is_personal=True,
-            is_deletable=True
+            is_deletable=True,
         )
-        self._SourceResult = lambda contact: result_class(self._remove_empty_values(contact))
+        self._SourceResult = lambda contact: result_class(
+            self._remove_empty_values(contact)
+        )
         self._search_engine = search_engine or self._new_search_engine(
             config['config'].get(self.SEARCHED_COLUMNS),
             config['config'].get(self.FIRST_MATCHED_COLUMNS),
@@ -53,14 +54,18 @@ class PersonalBackend(BaseSourcePlugin):
     def first_match(self, term, args=None):
         logger.debug('First matching personal contacts with %s', term)
         user_uuid = args['xivo_user_uuid']
-        matching_contacts = self._search_engine.find_first_personal_contact(user_uuid, term)
+        matching_contacts = self._search_engine.find_first_personal_contact(
+            user_uuid, term
+        )
         for contact in self.format_contacts(matching_contacts):
             return contact
 
     def list(self, source_entry_ids, args):
         logger.debug('Listing personal contacts: %s', source_entry_ids)
         user_uuid = args['token_infos']['xivo_user_uuid']
-        matching_contacts = self._search_engine.list_personal_contacts(user_uuid, source_entry_ids)
+        matching_contacts = self._search_engine.list_personal_contacts(
+            user_uuid, source_entry_ids
+        )
         return self.format_contacts(matching_contacts)
 
     def format_contacts(self, contacts):
@@ -68,9 +73,7 @@ class PersonalBackend(BaseSourcePlugin):
 
     def _new_search_engine(self, searched_columns, first_match_columns):
         return database.PersonalContactSearchEngine(
-            Session,
-            searched_columns,
-            first_match_columns,
+            Session, searched_columns, first_match_columns
         )
 
     @staticmethod

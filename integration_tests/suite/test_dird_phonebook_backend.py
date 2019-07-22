@@ -36,9 +36,7 @@ def teardown_module():
 
 def _new_contact(firstname, lastname):
     random_number = ''.join(random.choice(string.digits) for _ in range(10))
-    return {'firstname': firstname,
-            'lastname': lastname,
-            'number': random_number}
+    return {'firstname': firstname, 'lastname': lastname, 'number': random_number}
 
 
 contact_bodies = [
@@ -54,20 +52,25 @@ contacts = []
 
 
 class TestPhonebookBackend(unittest.TestCase):
-
     def setUp(self):
         global contacts
         self.tenant_uuid = str(uuid4())
         self.tenant = 'rowling'
         self.auth_client = Mock()
-        self.auth_client.tenants.list.return_value = {'items': [{'uuid': self.tenant_uuid}]}
+        self.auth_client.tenants.list.return_value = {
+            'items': [{'uuid': self.tenant_uuid}]
+        }
         self.token_renewer = Mock()
         self.phonebook_crud = database.PhonebookCRUD(Session)
         self.phonebook_contact_crud = database.PhonebookContactCRUD(Session)
 
-        self.phonebook = self.phonebook_crud.create(self.tenant_uuid, {'name': 'hogwarts'})
+        self.phonebook = self.phonebook_crud.create(
+            self.tenant_uuid, {'name': 'hogwarts'}
+        )
         contacts = [
-            self.phonebook_contact_crud.create(self.tenant_uuid, self.phonebook['id'], c)
+            self.phonebook_contact_crud.create(
+                self.tenant_uuid, self.phonebook['id'], c
+            )
             for c in contact_bodies
         ]
         (
@@ -110,6 +113,8 @@ class TestPhonebookBackend(unittest.TestCase):
         assert_that(result, equal_to(self.draco))
 
     def test_that_list_returns_the_contacts(self):
-        result = self.backend.list([self.hermione['id'], self.harry['id'], self.ron['id']])
+        result = self.backend.list(
+            [self.hermione['id'], self.harry['id'], self.ron['id']]
+        )
 
         assert_that(result, contains_inanyorder(self.hermione, self.harry, self.ron))

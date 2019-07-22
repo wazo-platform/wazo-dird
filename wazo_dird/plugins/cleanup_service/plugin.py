@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class StorageCleanupServicePlugin(BaseServicePlugin):
-
     def __init__(self):
         self._service = None
 
@@ -32,9 +31,9 @@ class _StorageCleanupService:
     _routing_key = 'config.user.deleted'
 
     def __init__(self, bus):
-        queue = kombu.Queue(exchange=self._exchange,
-                            routing_key=self._routing_key,
-                            exclusive=True)
+        queue = kombu.Queue(
+            exchange=self._exchange, routing_key=self._routing_key, exclusive=True
+        )
         bus.add_consumer(queue, self._on_user_deleted_event)
 
     # executed in the consumer thread

@@ -13,14 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class ProfileServicePlugin(BaseServicePlugin):
-
     def load(self, dependencies):
         controller = dependencies['controller']
         return _ProfileService(database.ProfileCRUD(Session), controller)
 
 
 class _ProfileService:
-
     def __init__(self, crud, controller):
         self._profile_crud = crud
         self._controller = controller
@@ -75,7 +73,9 @@ class _ProfileService:
     def list_(self, visible_tenants, **list_params):
         return self._profile_crud.list_(visible_tenants, **list_params)
 
-    def _paginate(self, sources, limit=None, offset=0, order='name', direction='asc', **ignored):
+    def _paginate(
+        self, sources, limit=None, offset=0, order='name', direction='asc', **ignored
+    ):
         selected_sources = []
 
         reverse = direction != 'asc'
@@ -88,7 +88,9 @@ class _ProfileService:
         if limit is None:
             return list(islice(selected_sources, offset, None))
 
-    def _filter_sources(self, sources, name=None, backend=None, uuid=None, search=None, **ignored):
+    def _filter_sources(
+        self, sources, name=None, backend=None, uuid=None, search=None, **ignored
+    ):
         filtered_sources = []
         for source in sources:
             if name and source['name'] != name:
@@ -110,10 +112,14 @@ class _ProfileService:
             filtered_sources.append(source)
         return filtered_sources
 
-    def _count(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
+    def _count(
+        self, sources, limit=None, offset=0, order=None, direction=None, **ignored
+    ):
         return len(sources)
 
-    def _filtered(self, sources, limit=None, offset=0, order=None, direction=None, **ignored):
+    def _filtered(
+        self, sources, limit=None, offset=0, order=None, direction=None, **ignored
+    ):
         if limit:
             return limit
         else:

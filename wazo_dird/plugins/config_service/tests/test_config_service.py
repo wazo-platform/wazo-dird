@@ -3,20 +3,13 @@
 
 import unittest
 
-from hamcrest import (
-    assert_that,
-    equal_to,
-)
-from mock import (
-    Mock,
-    sentinel as s,
-)
+from hamcrest import assert_that, equal_to
+from mock import Mock, sentinel as s
 
 from ..plugin import Service
 
 
 class TestConfigService(unittest.TestCase):
-
     def test_that_get_current_config_returns_the_config(self):
         service = Service(s.original_config, Mock(), s.controller)
 

@@ -10,7 +10,7 @@ from flask import request
 from functools import wraps
 from xivo.tenant_flask_helpers import Tenant
 
-from wazo_dird import auth
+from wazo_dird.auth import required_acl
 from wazo_dird.exception import (
     DatabaseServiceUnavailable,
     DuplicatedContactException,
@@ -28,15 +28,13 @@ logger = logging.getLogger(__name__)
 
 
 def _make_error(reason, status_code):
-    return {
-        'reason': [reason],
-        'timestamp': [time.time()],
-        'status_code': status_code,
-    }, status_code
+    return (
+        {'reason': [reason], 'timestamp': [time.time()], 'status_code': status_code},
+        status_code,
+    )
 
 
 class _Resource(LegacyAuthResource):
-
     def __init__(self, phonebook_service, auth_client):
         self.phonebook_service = phonebook_service
         self._auth_client = auth_client
@@ -49,10 +47,11 @@ class _Resource(LegacyAuthResource):
 
 
 class _ArgParser:
-
     def __init__(self, args, valid_columns=None):
         self._search = args.get('search')
-        self._direction = self._get_string_from_valid_values(args, 'direction', ['asc', 'desc', None])
+        self._direction = self._get_string_from_valid_values(
+            args, 'direction', ['asc', 'desc', None]
+        )
         self._limit = self._get_positive_int(args, 'limit')
         self._offset = self._get_positive_int(args, 'offset')
         self._order = self._get_string_from_valid_values(args, 'order', valid_columns)
@@ -102,7 +101,6 @@ class _ArgParser:
 
 
 def _default_error_route(f):
-
     @wraps(f)
     def decorator(self_, *args, **kwargs):
         try:
@@ -112,6 +110,7 @@ def _default_error_route(f):
             logger.debug('%s', traceback.format_exc())
             code = self_.error_code_map.get(e.__class__)
             return _make_error(str(e), code)
+
     return decorator
 
 
@@ -126,38 +125,32 @@ class ContactAll(_Resource):
         NoSuchTenant: 404,
     }
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
+    @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
     def post(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.create_contact(
-            matching_tenant['uuid'],
-            phonebook_id,
-            request.json,
-        ), 201
+        return (
+            self.phonebook_service.create_contact(
+                matching_tenant['uuid'], phonebook_id, request.json
+            ),
+            201,
+        )
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
+    @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
     @_default_error_route
     def get(self, tenant, phonebook_id):
         parser = _ArgParser(request.args)
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         count = self.phonebook_service.count_contact(
-            matching_tenant['uuid'],
-            phonebook_id,
-            **parser.count_params()
+            matching_tenant['uuid'], phonebook_id, **parser.count_params()
         )
         contacts = self.phonebook_service.list_contact(
-            matching_tenant['uuid'],
-            phonebook_id,
-            **parser.list_params()
+            matching_tenant['uuid'], phonebook_id, **parser.list_params()
         )
 
-        return {
-            'items': contacts,
-            'total': count,
-        }, 200
+        return {'items': contacts, 'total': count}, 200
 
 
 class PhonebookAll(_Resource):
@@ -170,7 +163,7 @@ class PhonebookAll(_Resource):
         NoSuchTenant: 404,
     }
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.read')
+    @required_acl('dird.tenants.{tenant}.phonebooks.read')
     @_default_error_route
     def get(self, tenant):
         scoping_tenant = Tenant.autodetect()
@@ -178,38 +171,32 @@ class PhonebookAll(_Resource):
         parser = _ArgParser(request.args, valid_columns=['name', 'description'])
 
         count = self.phonebook_service.count_phonebook(
-            matching_tenant['uuid'],
-            **parser.count_params()
+            matching_tenant['uuid'], **parser.count_params()
         )
         phonebooks = self.phonebook_service.list_phonebook(
-            matching_tenant['uuid'],
-            **parser.list_params()
+            matching_tenant['uuid'], **parser.list_params()
         )
 
-        return {
-            'items': phonebooks,
-            'total': count,
-        }
+        return {'items': phonebooks, 'total': count}
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.create')
+    @required_acl('dird.tenants.{tenant}.phonebooks.create')
     @_default_error_route
     def post(self, tenant):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.create_phonebook(
-            matching_tenant['uuid'],
-            request.json,
-        ), 201
+        return (
+            self.phonebook_service.create_phonebook(
+                matching_tenant['uuid'], request.json
+            ),
+            201,
+        )
 
 
 class ContactImport(_Resource):
 
-    error_code_map = {
-        NoSuchTenant: 404,
-        NoSuchPhonebook: 404,
-    }
+    error_code_map = {NoSuchTenant: 404, NoSuchPhonebook: 404}
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
+    @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
     def post(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
@@ -231,9 +218,7 @@ class ContactImport(_Resource):
 
         to_add = [c for c in csv.DictReader(data)]
         created, failed = self.phonebook_service.import_contacts(
-            matching_tenant['uuid'],
-            phonebook_id,
-            to_add,
+            matching_tenant['uuid'], phonebook_id, to_add
         )
 
         return {'created': created, 'failed': failed}
@@ -250,40 +235,45 @@ class ContactOne(_Resource):
         NoSuchTenant: 404,
     }
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read')
+    @required_acl(
+        'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read'
+    )
     @_default_error_route
     def get(self, tenant, phonebook_id, contact_uuid):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.get_contact(
-            matching_tenant['uuid'],
-            phonebook_id,
-            contact_uuid,
-        ), 200
+        return (
+            self.phonebook_service.get_contact(
+                matching_tenant['uuid'], phonebook_id, contact_uuid
+            ),
+            200,
+        )
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.delete')
+    @required_acl(
+        'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.delete'
+    )
     @_default_error_route
     def delete(self, tenant, phonebook_id, contact_uuid):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         self.phonebook_service.delete_contact(
-            matching_tenant['uuid'],
-            phonebook_id,
-            contact_uuid,
+            matching_tenant['uuid'], phonebook_id, contact_uuid
         )
         return '', 204
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.update')
+    @required_acl(
+        'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.update'
+    )
     @_default_error_route
     def put(self, tenant, phonebook_id, contact_uuid):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.edit_contact(
-            matching_tenant['uuid'],
-            phonebook_id,
-            contact_uuid,
-            request.json,
-        ), 200
+        return (
+            self.phonebook_service.edit_contact(
+                matching_tenant['uuid'], phonebook_id, contact_uuid, request.json
+            ),
+            200,
+        )
 
 
 class PhonebookOne(_Resource):
@@ -296,7 +286,7 @@ class PhonebookOne(_Resource):
         NoSuchTenant: 404,
     }
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
+    @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
     @_default_error_route
     def delete(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
@@ -304,20 +294,24 @@ class PhonebookOne(_Resource):
         self.phonebook_service.delete_phonebook(matching_tenant['uuid'], phonebook_id)
         return '', 204
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
+    @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
     @_default_error_route
     def get(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.get_phonebook(matching_tenant['uuid'], phonebook_id), 200
+        return (
+            self.phonebook_service.get_phonebook(matching_tenant['uuid'], phonebook_id),
+            200,
+        )
 
-    @auth.required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
+    @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
     @_default_error_route
     def put(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        return self.phonebook_service.edit_phonebook(
-            matching_tenant['uuid'],
-            phonebook_id,
-            request.json,
-        ), 200
+        return (
+            self.phonebook_service.edit_phonebook(
+                matching_tenant['uuid'], phonebook_id, request.json
+            ),
+            200,
+        )

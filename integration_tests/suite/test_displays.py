@@ -32,7 +32,6 @@ class BaseDisplayTestCase(BaseDirdIntegrationTest):
 
 
 class TestDelete(BaseDisplayTestCase):
-
     @fixtures.display()
     def test_delete(self, display):
         assert_that(
@@ -42,7 +41,9 @@ class TestDelete(BaseDisplayTestCase):
 
         assert_that(
             calling(self.client.displays.delete).with_args(display['uuid']),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
     @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
@@ -53,17 +54,27 @@ class TestDelete(BaseDisplayTestCase):
 
         assert_that(
             calling(sub_tenant_client.displays.delete).with_args(main['uuid']),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         assert_that(
-            calling(main_tenant_client.displays.delete).with_args(main['uuid'], tenant_uuid=SUB_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            calling(main_tenant_client.displays.delete).with_args(
+                main['uuid'], tenant_uuid=SUB_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         assert_that(
-            calling(sub_tenant_client.displays.delete).with_args(main['uuid'], tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            calling(sub_tenant_client.displays.delete).with_args(
+                main['uuid'], tenant_uuid=MAIN_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         assert_that(
@@ -73,7 +84,6 @@ class TestDelete(BaseDisplayTestCase):
 
 
 class TestGet(BaseDisplayTestCase):
-
     @fixtures.display()
     def test_get(self, display):
         response = self.client.displays.get(display['uuid'])
@@ -81,7 +91,9 @@ class TestGet(BaseDisplayTestCase):
 
         assert_that(
             calling(self.client.displays.delete).with_args(UNKNOWN_UUID),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
     @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
@@ -94,29 +106,40 @@ class TestGet(BaseDisplayTestCase):
         assert_that(response, equal_to(sub))
 
         assert_that(
-            calling(main_tenant_client.displays.get).with_args(main['uuid'], tenant_uuid=SUB_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            calling(main_tenant_client.displays.get).with_args(
+                main['uuid'], tenant_uuid=SUB_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         assert_that(
             calling(sub_tenant_client.displays.get).with_args(main['uuid']),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         assert_that(
-            calling(sub_tenant_client.displays.get).with_args(main['uuid'], tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            calling(sub_tenant_client.displays.get).with_args(
+                main['uuid'], tenant_uuid=MAIN_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
 
 class TestList(BaseDisplayTestCase):
-
     @fixtures.display(name='abc')
     @fixtures.display(name='bcd')
     @fixtures.display(name='cde')
     def test_search(self, c, b, a):
         result = self.client.displays.list()
-        self.assert_list_result(result, contains_inanyorder(a, b, c), total=3, filtered=3)
+        self.assert_list_result(
+            result, contains_inanyorder(a, b, c), total=3, filtered=3
+        )
 
         result = self.client.displays.list(name='abc')
         self.assert_list_result(result, contains(a), total=3, filtered=1)
@@ -138,7 +161,9 @@ class TestList(BaseDisplayTestCase):
         self.assert_list_result(result, contains_inanyorder(a, b), total=2, filtered=2)
 
         result = main_tenant_client.displays.list(recurse=True)
-        self.assert_list_result(result, contains_inanyorder(a, b, c), total=3, filtered=3)
+        self.assert_list_result(
+            result, contains_inanyorder(a, b, c), total=3, filtered=3
+        )
 
         result = main_tenant_client.displays.list(tenant_uuid=SUB_TENANT, recurse=True)
         self.assert_list_result(result, contains_inanyorder(c), total=1, filtered=1)
@@ -151,7 +176,9 @@ class TestList(BaseDisplayTestCase):
 
         assert_that(
             calling(sub_tenant_client.displays.list).with_args(tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
     @fixtures.display(name='abc')
@@ -172,7 +199,6 @@ class TestList(BaseDisplayTestCase):
 
 
 class TestPost(BaseDisplayTestCase):
-
     def test_invalid_bodies(self):
         invalid_bodies = [
             {},
@@ -189,11 +215,7 @@ class TestPost(BaseDisplayTestCase):
         body = {
             'name': 'display',
             'columns': [
-                {
-                    'field': 'fn',
-                    'title': 'Firstname',
-                    'default': '',
-                },
+                {'field': 'fn', 'title': 'Firstname', 'default': ''},
                 {
                     'field': 'mobile',
                     'title': 'Mobile',
@@ -205,26 +227,29 @@ class TestPost(BaseDisplayTestCase):
         }
 
         with self.create(self.client, body) as display:
-            assert_that(display, has_entries(
-                uuid=uuid_(),
-                tenant_uuid=MAIN_TENANT,
-                columns=contains(
-                    has_entries(
-                        field='fn',
-                        title='Firstname',
-                        default='',
-                        type=None,
-                        number_display=None,
-                    ),
-                    has_entries(
-                        field='mobile',
-                        title='Mobile',
-                        type='number',
-                        number_display='{firstname} (Mobile)',
-                        default=None,
+            assert_that(
+                display,
+                has_entries(
+                    uuid=uuid_(),
+                    tenant_uuid=MAIN_TENANT,
+                    columns=contains(
+                        has_entries(
+                            field='fn',
+                            title='Firstname',
+                            default='',
+                            type=None,
+                            number_display=None,
+                        ),
+                        has_entries(
+                            field='mobile',
+                            title='Mobile',
+                            type='number',
+                            number_display='{firstname} (Mobile)',
+                            default=None,
+                        ),
                     ),
                 ),
-            ))
+            )
 
     def test_multi_tenant(self):
         body = {'name': 'foo', 'columns': [{'field': 'fn'}]}
@@ -233,8 +258,12 @@ class TestPost(BaseDisplayTestCase):
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
         assert_that(
-            calling(sub_tenant_client.displays.create).with_args(body, tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401)))
+            calling(sub_tenant_client.displays.create).with_args(
+                body, tenant_uuid=MAIN_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         with self.create(main_tenant_client, body, tenant_uuid=SUB_TENANT) as display:
@@ -265,17 +294,12 @@ class TestPost(BaseDisplayTestCase):
 
 
 class TestPut(BaseDisplayTestCase):
-
     def setUp(self):
         super().setUp()
         self.valid_body = {
             'name': 'display',
             'columns': [
-                {
-                    'field': 'fn',
-                    'title': 'Firstname',
-                    'default': '',
-                },
+                {'field': 'fn', 'title': 'Firstname', 'default': ''},
                 {
                     'field': 'mobile',
                     'title': 'Mobile',
@@ -291,19 +315,24 @@ class TestPut(BaseDisplayTestCase):
         self.client.displays.edit(display['uuid'], self.valid_body)
 
         result = self.client.displays.get(display['uuid'])
-        assert_that(result, has_entries(
-            uuid=display['uuid'],
-            tenant_uuid=display['tenant_uuid'],
-            name=self.valid_body['name'],
-            columns=contains(
-                has_entries(self.valid_body['columns'][0]),
-                has_entries(self.valid_body['columns'][1]),
+        assert_that(
+            result,
+            has_entries(
+                uuid=display['uuid'],
+                tenant_uuid=display['tenant_uuid'],
+                name=self.valid_body['name'],
+                columns=contains(
+                    has_entries(self.valid_body['columns'][0]),
+                    has_entries(self.valid_body['columns'][1]),
+                ),
             ),
-        ))
+        )
 
         assert_that(
             calling(self.client.displays.edit).with_args(UNKNOWN_UUID, self.valid_body),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
     @fixtures.display()
@@ -341,21 +370,35 @@ class TestPut(BaseDisplayTestCase):
         )
 
         assert_that(
-            calling(sub_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            calling(sub_tenant_client.displays.edit).with_args(
+                main['uuid'], self.valid_body
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         assert_that(
-            calling(sub_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body, tenant_uuid=MAIN_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=401))),
+            calling(sub_tenant_client.displays.edit).with_args(
+                main['uuid'], self.valid_body, tenant_uuid=MAIN_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=401))
+            ),
         )
 
         assert_that(
-            calling(main_tenant_client.displays.edit).with_args(main['uuid'], self.valid_body, tenant_uuid=SUB_TENANT),
-            raises(Exception).matching(has_properties(response=has_properties(status_code=404))),
+            calling(main_tenant_client.displays.edit).with_args(
+                main['uuid'], self.valid_body, tenant_uuid=SUB_TENANT
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
         )
 
         assert_that(
-            calling(main_tenant_client.displays.edit).with_args(sub['uuid'], self.valid_body),
+            calling(main_tenant_client.displays.edit).with_args(
+                sub['uuid'], self.valid_body
+            ),
             not_(raises(Exception)),
         )

@@ -1,4 +1,4 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -19,7 +19,10 @@ class ConfigViewPlugin(BaseViewPlugin):
         api = dependencies['api']
         config_service = dependencies['services'].get('config')
         if not config_service:
-            logger.info('failed to load the %s config service is disabled', self.__class__.__name__)
+            logger.info(
+                'failed to load the %s config service is disabled',
+                self.__class__.__name__,
+            )
             return
 
         Config.configure(config_service)

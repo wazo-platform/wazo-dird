@@ -16,7 +16,6 @@ DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'
 
 
 class DisplayAwareResource:
-
     def build_display(self, profile_config):
         display = profile_config.get('display', {})
         return self._make_display(display)
@@ -33,12 +32,12 @@ class DisplayAwareResource:
                 column.get('type'),
                 column.get('default'),
                 column.get('field'),
-            ) for column in columns
+            )
+            for column in columns
         ]
 
 
 class RaiseStopper:
-
     def __init__(self, return_on_raise):
         self.return_on_raise = return_on_raise
 
@@ -51,7 +50,6 @@ class RaiseStopper:
 
 
 class BaseService:
-
     def __init__(self, config, source_manager, controller, *args, **kwargs):
         self._config = config
         self._source_manager = source_manager
@@ -72,7 +70,8 @@ class BaseService:
         if not result:
             logger.warning(
                 'Cannot find "%s" sources for profile %s',
-                self._service_name, profile_config['name'],
+                self._service_name,
+                profile_config['name'],
             )
 
         return result
@@ -82,7 +81,6 @@ class BaseService:
 
 
 class _BaseSourceResource(AuthResource):
-
     def __init__(self, backend, service, auth_config):
         self._service = service
         self._auth_config = auth_config
@@ -90,7 +88,6 @@ class _BaseSourceResource(AuthResource):
 
 
 class SourceList(_BaseSourceResource):
-
     def get(self):
         list_params, errors = self.list_schema.load(request.args)
         tenant = Tenant.autodetect()
@@ -104,11 +101,7 @@ class SourceList(_BaseSourceResource):
         filtered = self._service.count(self._backend, visible_tenants, **list_params)
         total = self._service.count(self._backend, visible_tenants)
 
-        return {
-            'total': total,
-            'filtered': filtered,
-            'items': items,
-        }
+        return {'total': total, 'filtered': filtered, 'items': items}
 
     def post(self):
         tenant = Tenant.autodetect()
@@ -118,7 +111,6 @@ class SourceList(_BaseSourceResource):
 
 
 class SourceItem(_BaseSourceResource):
-
     def delete(self, source_uuid):
         tenant = Tenant.autodetect()
         visible_tenants = self.get_visible_tenants(tenant.uuid)
@@ -141,18 +133,13 @@ class SourceItem(_BaseSourceResource):
 
 class BaseBackendView(BaseViewPlugin):
 
-    _required_members = [
-        'backend',
-        'list_resource',
-        'item_resource',
-    ]
+    _required_members = ['backend', 'list_resource', 'item_resource']
 
     def __init__(self, *args, **kwargs):
         members = [getattr(self, name, None) for name in self._required_members]
         if None in members:
             msg = '{} should have the following members: {}'.format(
-                self.__class__.__name__,
-                self._required_members,
+                self.__class__.__name__, self._required_members
             )
             raise Exception(msg)
 

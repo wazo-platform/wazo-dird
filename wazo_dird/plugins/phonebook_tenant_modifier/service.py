@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class PhonebookMoverService:
-
     def __init__(self):
         self._tenant_crud = database.TenantCRUD(Session)
         self._phonebook_crud = database.PhonebookCRUD(Session)
@@ -24,7 +23,9 @@ class PhonebookMoverService:
             phonebooks = self._phonebook_crud.list(old_uuid)
             logger.info('updating %s phonebooks', len(phonebooks))
             for phonebook in phonebooks:
-                self._phonebook_crud.update_tenant(old_uuid, phonebook['id'], tenant_uuid)
+                self._phonebook_crud.update_tenant(
+                    old_uuid, phonebook['id'], tenant_uuid
+                )
             logger.info('deleting tenant: %s', old_uuid)
             self._tenant_crud.delete(old_uuid)
         logger.info('done')

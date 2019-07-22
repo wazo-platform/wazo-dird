@@ -3,18 +3,8 @@
 
 import unittest
 
-from hamcrest import (
-    assert_that,
-    contains,
-    equal_to,
-    empty,
-    is_,
-    none,
-)
-from mock import (
-    Mock,
-    patch,
-)
+from hamcrest import assert_that, contains, equal_to, empty, is_, none
+from mock import Mock, patch
 
 from wazo_dird import make_result_class
 from ..plugin import WazoUserPlugin
@@ -26,11 +16,7 @@ AUTH_CONFIG = {
     'username': 'foo',
     'password': 'bar',
 }
-CONFD_CONFIG = {
-    'host': 'xivo.example.com',
-    'port': 9486,
-    'version': '1.1',
-}
+CONFD_CONFIG = {'host': 'xivo.example.com', 'port': 9486, 'version': '1.1'}
 DEFAULT_ARGS = {
     'config': {
         'uuid': 'ae086548-2d36-4367-8914-8dfcd8645ca7',
@@ -40,15 +26,18 @@ DEFAULT_ARGS = {
         'auth': AUTH_CONFIG,
         'name': 'my_test_xivo',
         'searched_columns': ['firstname', 'lastname'],
-    },
+    }
 }
 UUID = 'my-xivo-uuid'
 
 UUID_1 = '55abf77c-5744-44a0-9c36-34da29f647cb'
 UUID_2 = '22f51ae2-296d-4340-a7d5-3567ae66df73'
 
-SourceResult = make_result_class(DEFAULT_ARGS['config']['backend'], DEFAULT_ARGS['config']['name'],
-                                 unique_column='id')
+SourceResult = make_result_class(
+    DEFAULT_ARGS['config']['backend'],
+    DEFAULT_ARGS['config']['name'],
+    unique_column='id',
+)
 
 CONFD_USER_1 = {
     "agent_id": 42,
@@ -61,15 +50,8 @@ CONFD_USER_1 = {
     'userfield': None,
     'description': None,
     "links": [
-        {
-            "href": "http://localhost:9487/1.1/users/226",
-            "rel": "users"
-        },
-        {
-            "href": "http://localhost:9487/1.1/lines/123",
-            "rel": "lines"
-        }
-
+        {"href": "http://localhost:9487/1.1/users/226", "rel": "users"},
+        {"href": "http://localhost:9487/1.1/lines/123", "rel": "lines"},
     ],
     "email": "louis-jean@aucun.com",
     "mobile_phone_number": "5555551234",
@@ -77,15 +59,17 @@ CONFD_USER_1 = {
 }
 
 SOURCE_1 = SourceResult(
-    {'id': 226,
-     'exten': '666',
-     'firstname': 'Louis-Jean',
-     'lastname': '',
-     'userfield': None,
-     'description': None,
-     'email': 'louis-jean@aucun.com',
-     'mobile_phone_number': '5555551234',
-     'voicemail_number': '1234'},
+    {
+        'id': 226,
+        'exten': '666',
+        'firstname': 'Louis-Jean',
+        'lastname': '',
+        'userfield': None,
+        'description': None,
+        'email': 'louis-jean@aucun.com',
+        'mobile_phone_number': '5555551234',
+        'voicemail_number': '1234',
+    },
     xivo_id=UUID,
     agent_id=42,
     user_id=226,
@@ -104,14 +88,8 @@ CONFD_USER_2 = {
     'userfield': '555',
     'description': 'here',
     "links": [
-        {
-            "href": "http://localhost:9487/1.1/users/227",
-            "rel": "users"
-        },
-        {
-            "href": "http://localhost:9487/1.1/lines/320",
-            "rel": "lines"
-        },
+        {"href": "http://localhost:9487/1.1/users/227", "rel": "users"},
+        {"href": "http://localhost:9487/1.1/lines/320", "rel": "lines"},
     ],
     'email': '',
     "mobile_phone_number": "",
@@ -119,15 +97,17 @@ CONFD_USER_2 = {
 }
 
 SOURCE_2 = SourceResult(
-    {'id': 227,
-     'exten': '1234',
-     'firstname': 'Paul',
-     'lastname': '',
-     'email': '',
-     'mobile_phone_number': '',
-     'userfield': '555',
-     'description': 'here',
-     'voicemail_number': None},
+    {
+        'id': 227,
+        'exten': '1234',
+        'firstname': 'Paul',
+        'lastname': '',
+        'email': '',
+        'mobile_phone_number': '',
+        'userfield': '555',
+        'description': 'here',
+        'voicemail_number': None,
+    },
     xivo_id=UUID,
     user_id=227,
     user_uuid=UUID_2,
@@ -136,7 +116,6 @@ SOURCE_2 = SourceResult(
 
 
 class _BaseTest(unittest.TestCase):
-
     def setUp(self):
         self._source = WazoUserPlugin()
         self._confd_client = Mock()
@@ -144,7 +123,6 @@ class _BaseTest(unittest.TestCase):
 
 
 class TestWazoUserBackendSearch(_BaseTest):
-
     def setUp(self):
         super().setUp()
         response = {'items': [CONFD_USER_1, CONFD_USER_2]}
@@ -159,7 +137,8 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source.search(term='paul')
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='paul')
+            recurse=True, view='directory', search='paul'
+        )
 
         assert_that(result, empty())
 
@@ -169,7 +148,8 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source.search(term='paul')
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='paul')
+            recurse=True, view='directory', search='paul'
+        )
 
         assert_that(result, contains(SOURCE_2))
 
@@ -184,10 +164,7 @@ class TestWazoUserBackendSearch(_BaseTest):
 
             client = registry.get.return_value
             client.users.list.assert_called_once_with(
-                recurse=True,
-                view='directory',
-                search='paul',
-                context='inside',
+                recurse=True, view='directory', search='paul', context='inside'
             )
 
     def test_first_match(self):
@@ -196,7 +173,8 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source.first_match('1234')
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='1234')
+            recurse=True, view='directory', search='1234'
+        )
 
         assert_that(result, equal_to(SOURCE_2))
 
@@ -206,7 +184,8 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source.first_match('12')
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='12')
+            recurse=True, view='directory', search='12'
+        )
 
         assert_that(result, is_(none()))
 
@@ -214,7 +193,8 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source.list(unique_ids=['42'])
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory')
+            recurse=True, view='directory'
+        )
 
         assert_that(result, empty())
 
@@ -222,7 +202,8 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source.list(unique_ids=['226'])
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory')
+            recurse=True, view='directory'
+        )
 
         assert_that(result, contains(SOURCE_1))
 
@@ -230,7 +211,8 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source.list(unique_ids=[])
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory')
+            recurse=True, view='directory'
+        )
 
         assert_that(result, contains())
 

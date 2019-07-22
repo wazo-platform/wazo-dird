@@ -1,9 +1,11 @@
-.PHONY: test-setup build-dird build-db-image egg-info test microsoft-mock
+.PHONY: test-setup build-dird build-db-image egg-info test microsoft-mock pull-images
 
 microsoft-mock:
 	docker build --no-cache -t microsoft-mock -f assets/microsoft-mock/Dockerfile assets/microsoft-mock
 
-test-setup: egg-info build-dird build-db-image microsoft-mock
+test-setup: egg-info pull-images build-dird build-db-image microsoft-mock
+
+pull-images:
 	docker pull alpine
 	docker pull nickstenning/slapd
 	docker pull p0bailey/docker-flask
@@ -12,6 +14,7 @@ test-setup: egg-info build-dird build-db-image microsoft-mock
 	docker pull rabbitmq
 	docker pull wazopbx/wait
 	docker pull wazopbx/wazo-auth-mock
+
 
 build-dird:
 	docker build -t wazopbx/wazo-dird ..

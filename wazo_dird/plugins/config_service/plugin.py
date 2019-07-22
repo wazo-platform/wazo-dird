@@ -14,8 +14,18 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_DISPLAY_COLUMNS = [
     {'field': 'name', 'title': 'Nom', 'type': 'name'},
-    {'field': 'phone', 'title': "Num\xE9ro", 'type': 'number', 'number_display': '{name}'},
-    {'field': 'phone_mobile', 'title': 'Mobile', 'type': 'number', 'number_display': '{name} (mobile)'},
+    {
+        'field': 'phone',
+        'title': "Num\xE9ro",
+        'type': 'number',
+        'number_display': '{name}',
+    },
+    {
+        'field': 'phone_mobile',
+        'title': 'Mobile',
+        'type': 'number',
+        'number_display': '{name} (mobile)',
+    },
     {'field': 'voicemail', 'title': "Bo\xEEte vocale", 'type': 'voicemail'},
     {'field': 'favorite', 'title': 'Favoris', 'type': 'favorite'},
     {'field': 'email', 'title': 'E-mail', 'type': 'email'},
@@ -35,9 +45,7 @@ CONFERENCE_SOURCE_BODY = {
         'verify_certificate': '/usr/share/xivo-certs/server.crt',
         'version': '1.1',
     },
-    'format_columns': {
-        'phone': '{extensions[0]}',
-    },
+    'format_columns': {'phone': '{extensions[0]}'},
     'searched_columns': ['name', 'extensions', 'incalls'],
     'first_matched_columns': [],
 }
@@ -67,10 +75,7 @@ WAZO_SOURCE_BODY = {
         'verify_certificate': '/usr/share/xivo-certs/server.crt',
         'version': '1.1',
     },
-    'format_columns': {
-        'phone': '{exten}',
-        'name': '{firstname} {lastname}',
-    },
+    'format_columns': {'phone': '{exten}', 'name': '{firstname} {lastname}'},
     'searched_columns': ['firstname', 'lastname', 'exten'],
     'first_matched_columns': [],
 }
@@ -95,7 +100,6 @@ OFFICE_365_SOURCE_BODY = {
 
 
 class ConfigServicePlugin(BaseServicePlugin):
-
     def __init__(self):
         self._service = None
 
@@ -195,7 +199,8 @@ class Service:
             )
             logger.info(
                 'display %s auto created for tenant %s',
-                display['uuid'], display['tenant_uuid'],
+                display['uuid'],
+                display['tenant_uuid'],
             )
             return display
         except Exception as e:
@@ -210,10 +215,7 @@ class Service:
             'services': {
                 'lookup': {'sources': sources},
                 'favorites': {'sources': sources},
-                'reverse': {
-                    'sources': sources,
-                    'timeout': 0.5,
-                },
+                'reverse': {'sources': sources, 'timeout': 0.5},
             },
         }
 

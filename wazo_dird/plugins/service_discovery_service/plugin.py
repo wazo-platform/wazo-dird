@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceDiscoveryServicePlugin(BaseServicePlugin):
-
     def __init__(self):
         self._service = None
 
@@ -34,9 +33,11 @@ class ServiceDiscoveryServicePlugin(BaseServicePlugin):
 
 class _Service:
 
-    QUEUE = kombu.Queue(exchange=kombu.Exchange('xivo', type='topic'),
-                        routing_key='service.registered.*',
-                        exclusive=True)
+    QUEUE = kombu.Queue(
+        exchange=kombu.Exchange('xivo', type='topic'),
+        routing_key='service.registered.*',
+        exclusive=True,
+    )
 
     def __init__(self, config, bus, source_manager, controller):
         self._controller = controller
@@ -51,8 +52,9 @@ class _Service:
         bus.add_consumer(self.QUEUE, self._on_service_registered)
         finder = ServiceFinder(config['consul'])
 
-        fetcher_thread = threading.Thread(target=self._add_remote_services,
-                                          args=(finder, service_disco_config))
+        fetcher_thread = threading.Thread(
+            target=self._add_remote_services, args=(finder, service_disco_config)
+        )
         fetcher_thread.daemon = True
         fetcher_thread.start()
 
@@ -77,7 +79,8 @@ class _Service:
     def _on_service_added(self, service_name, host, port, uuid):
         logger.debug('%s registered %s:%s with uuid %s', service_name, host, port, uuid)
         config = self._source_config_generator.generate_from_new_service(
-            service_name, uuid, host, port)
+            service_name, uuid, host, port
+        )
         if not config:
             return
 
@@ -106,10 +109,12 @@ class _Service:
         else:
             uuid = _find_first_uuid(event.tags)
             if uuid:
-                self._on_service_added(event.service_name,
-                                       event.advertise_address,
-                                       event.advertise_port,
-                                       uuid)
+                self._on_service_added(
+                    event.service_name,
+                    event.advertise_address,
+                    event.advertise_port,
+                    uuid,
+                )
             message.ack()
 
 
@@ -122,7 +127,6 @@ def _find_first_uuid(tags):
 
 
 class ProfileConfigUpdater:
-
     def __init__(self, config):
         self._config = config
         self._watched_services = {}
@@ -167,7 +171,9 @@ class SourceConfigGenerator:
         logger.debug('Starting with %s', service_discovery_config)
         template_path = service_discovery_config.get('template_path')
         if not template_path:
-            logger.info('service discovery service error: no "template_path" configured')
+            logger.info(
+                'service discovery service error: no "template_path" configured'
+            )
             return
 
         loader = FileSystemLoader(template_path)
@@ -175,8 +181,7 @@ class SourceConfigGenerator:
         self._host_configs = service_discovery_config['hosts']
         self._template_files = {
             service: config['template']
-            for service, config
-            in service_discovery_config['services'].items()
+            for service, config in service_discovery_config['services'].items()
         }
         self.enabled = True
 

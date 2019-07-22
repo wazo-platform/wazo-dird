@@ -7,7 +7,6 @@ from . import http
 
 
 class ApiViewPlugin(BaseViewPlugin):
-
     def load(self, dependencies):
         api = dependencies['api']
         api.add_resource(http.ApiResource, '/api/api.yml')

@@ -22,7 +22,6 @@ class PhonebookView(BaseBackendView):
 
 
 class PhonebookPlugin(BaseSourcePlugin):
-
     def __init__(self, *args, **kwargs):
         self._crud = None
         self._source_name = None
@@ -47,10 +46,7 @@ class PhonebookPlugin(BaseSourcePlugin):
         )
 
         self._SourceResult = make_result_class(
-            'phonebook',
-            self._source_name,
-            unique_column,
-            format_columns
+            'phonebook', self._source_name, unique_column, format_columns
         )
 
         logger.info('%s loaded', self._source_name)
@@ -94,5 +90,7 @@ class PhonebookPlugin(BaseSourcePlugin):
             if phonebook['name'] == phonebook_name:
                 return phonebook['id']
 
-        raise InvalidConfigError('sources/{}/phonebook_name'.format(self._source_name),
-                                 'unknown phonebook {}'.format(phonebook_name))
+        raise InvalidConfigError(
+            'sources/{}/phonebook_name'.format(self._source_name),
+            'unknown phonebook {}'.format(phonebook_name),
+        )

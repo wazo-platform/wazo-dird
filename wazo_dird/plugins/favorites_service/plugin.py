@@ -35,7 +35,6 @@ class _NoSuchSourceException(ValueError):
 
 
 class FavoritesServicePlugin(BaseServicePlugin):
-
     def __init__(self):
         self._service = None
 
@@ -46,8 +45,10 @@ class FavoritesServicePlugin(BaseServicePlugin):
             bus = args['bus']
             controller = args['controller']
         except KeyError:
-            msg = ('%s should be loaded with "config", "source_manager" and "bus" but received: %s'
-                   % (self.__class__.__name__, ','.join(args.keys())))
+            msg = (
+                '%s should be loaded with "config", "source_manager" and "bus" but received: %s'
+                % (self.__class__.__name__, ','.join(args.keys()))
+            )
             raise ValueError(msg)
 
         crud = database.FavoriteCRUD(Session)
@@ -90,7 +91,9 @@ class _FavoritesService(helpers.BaseService):
 
     def _async_list(self, source, contact_ids, args):
         raise_stopper = helpers.RaiseStopper(return_on_raise=[])
-        future = self._executor.submit(raise_stopper.execute, source.list, contact_ids, args)
+        future = self._executor.submit(
+            raise_stopper.execute, source.list, contact_ids, args
+        )
         future.name = source.name
         return future
 
@@ -124,7 +127,9 @@ class _FavoritesService(helpers.BaseService):
     def favorite_ids(self, profile_config, xivo_user_uuid):
         favorites = self._crud.get(xivo_user_uuid)
         favorite_config = profile_config.get('services', {}).get('favorites', {})
-        enabled_sources = {source['name']: source for source in favorite_config.get('sources', [])}
+        enabled_sources = {
+            source['name']: source for source in favorite_config.get('sources', [])
+        }
 
         by_uuid = defaultdict(list)
         by_name = defaultdict(list)
@@ -151,9 +156,13 @@ class _FavoritesService(helpers.BaseService):
 
         backend = source['backend']
         self._crud.create(xivo_user_uuid, backend, source_name, contact_id)
-        event = FavoriteAddedEvent(self._xivo_uuid, xivo_user_uuid, source_name, contact_id)
+        event = FavoriteAddedEvent(
+            self._xivo_uuid, xivo_user_uuid, source_name, contact_id
+        )
         try:
-            self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
+            self._bus.publish(
+                event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True}
+            )
         except OSError as e:
             logger.error('failed to publish bus event %s', e)
             logger.info('%s', event)
@@ -170,5 +179,9 @@ class _FavoritesService(helpers.BaseService):
             raise self.NoSuchSourceException(source_name)
 
         self._crud.delete(xivo_user_uuid, source_name, contact_id)
-        event = FavoriteDeletedEvent(self._xivo_uuid, xivo_user_uuid, source, contact_id)
-        self._bus.publish(event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True})
+        event = FavoriteDeletedEvent(
+            self._xivo_uuid, xivo_user_uuid, source, contact_id
+        )
+        self._bus.publish(
+            event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True}
+        )

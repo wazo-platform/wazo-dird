@@ -5,10 +5,7 @@ from flask import request
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import exception
-from wazo_dird.helpers import (
-    SourceItem,
-    SourceList,
-)
+from wazo_dird.helpers import SourceItem, SourceList
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import AuthResource
 from wazo_dird.plugin_helpers.confd_client_registry import registry
@@ -55,7 +52,6 @@ class ConferenceItem(SourceItem):
 
 
 class ConferenceContactList(AuthResource):
-
     def __init__(self, source_service):
         self._source_service = source_service
 
@@ -64,7 +60,9 @@ class ConferenceContactList(AuthResource):
         tenant_uuid = Tenant.autodetect().uuid
         visible_tenants = self.get_visible_tenants(tenant_uuid)
         list_params = contact_list_param_schema.load(request.args).data
-        source_config = self._source_service.get('conference', source_uuid, visible_tenants)
+        source_config = self._source_service.get(
+            'conference', source_uuid, visible_tenants
+        )
 
         confd = registry.get(source_config)
         try:

@@ -6,7 +6,6 @@ from wazo_dird.rest_api import AuthResource
 
 
 class StatusResource(AuthResource):
-
     def __init__(self, status_aggregator):
         self.status_aggregator = status_aggregator
 

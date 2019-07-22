@@ -1,14 +1,13 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (assert_that, contains, empty, has_entries)
+from hamcrest import assert_that, contains, empty, has_entries
 
 from .helpers.base import DirdAssetRunningTestCase
 from .base_dird_integration_test import BackendWrapper
 
 
 class _BaseCSVWSBackend(DirdAssetRunningTestCase):
-
     def setUp(self):
         self.backend = BackendWrapper('csv_ws', {'config': self.backend_config()})
 
@@ -19,29 +18,35 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
 
     def setUp(self):
         super().setUp()
-        self._andree_anne = {'id': '1',
-                             'firstname': 'Andrée-Anne',
-                             'lastname': 'Smith',
-                             'number': '5551231111'}
-        self._benoit = {'id': '42',
-                        'firstname': 'Benoît',
-                        'lastname': 'Malone',
-                        'number': '5551232222'}
+        self._andree_anne = {
+            'id': '1',
+            'firstname': 'Andrée-Anne',
+            'lastname': 'Smith',
+            'number': '5551231111',
+        }
+        self._benoit = {
+            'id': '42',
+            'firstname': 'Benoît',
+            'lastname': 'Malone',
+            'number': '5551232222',
+        }
 
     def backend_config(self):
         return {
             'type': 'csv_ws',
             'name': 'my_csv',
-            'list_url': 'https://localhost:{port}/ws'.format(port=self.service_port(9485, 'ws')),
-            'lookup_url': 'https://localhost:{port}/ws'.format(port=self.service_port(9485, 'ws')),
+            'list_url': 'https://localhost:{port}/ws'.format(
+                port=self.service_port(9485, 'ws')
+            ),
+            'lookup_url': 'https://localhost:{port}/ws'.format(
+                port=self.service_port(9485, 'ws')
+            ),
             'verify_certificate': False,
             'delimiter': "|",
             'unique_column': 'id',
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['number'],
-            'format_columns': {
-                'reverse': '{firstname} {lastname}'
-            },
+            'format_columns': {'reverse': '{firstname} {lastname}'},
         }
 
     def test_that_verify_certificate_false(self):
@@ -78,21 +83,29 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
 
     def setUp(self):
         super().setUp()
-        self._andree_anne = {'id': '1',
-                             'firstname': 'Andrée-Anne',
-                             'lastname': 'Smith',
-                             'number': '5551231111'}
-        self._benoit = {'id': '42',
-                        'firstname': 'Benoît',
-                        'lastname': 'Malone',
-                        'number': '5551232222'}
+        self._andree_anne = {
+            'id': '1',
+            'firstname': 'Andrée-Anne',
+            'lastname': 'Smith',
+            'number': '5551231111',
+        }
+        self._benoit = {
+            'id': '42',
+            'firstname': 'Benoît',
+            'lastname': 'Malone',
+            'number': '5551232222',
+        }
 
     def backend_config(self):
         return {
             'type': 'csv_ws',
             'name': 'my_csv',
-            'list_url': 'http://localhost:{port}/ws'.format(port=self.service_port(9485, 'ws')),
-            'lookup_url': 'http://localhost:{port}/ws'.format(port=self.service_port(9485, 'ws')),
+            'list_url': 'http://localhost:{port}/ws'.format(
+                port=self.service_port(9485, 'ws')
+            ),
+            'lookup_url': 'http://localhost:{port}/ws'.format(
+                port=self.service_port(9485, 'ws')
+            ),
             'delimiter': ',',
             'unique_column': 'id',
             'searched_columns': ['firstname', 'lastname'],

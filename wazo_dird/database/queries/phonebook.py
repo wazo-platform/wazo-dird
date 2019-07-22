@@ -2,13 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from collections import defaultdict
-from sqlalchemy import (
-    and_,
-    distinct,
-    func,
-    or_,
-    exc,
-)
+from sqlalchemy import and_, distinct, func, or_
 
 from wazo_dird.exception import (
     DuplicatedContactException,
@@ -17,28 +11,18 @@ from wazo_dird.exception import (
     NoSuchPhonebook,
 )
 
-from .base import (
-    BaseDAO,
-    compute_contact_hash,
-    list_contacts_by_uuid,
-)
-from ..import (
-    Contact,
-    ContactFields,
-    Phonebook,
-    Tenant,
-)
+from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
+from .. import Contact, ContactFields, Phonebook, Tenant
 
 
 class PhonebookContactSearchEngine(BaseDAO):
-
     def __init__(
-            self,
-            Session,
-            tenant_uuid,
-            phonebook_id,
-            searched_columns=None,
-            first_match_columns=None,
+        self,
+        Session,
+        tenant_uuid,
+        phonebook_id,
+        searched_columns=None,
+        first_match_columns=None,
     ):
         super().__init__(Session)
         self._searched_columns = searched_columns
@@ -94,14 +78,10 @@ class PhonebookContactSearchEngine(BaseDAO):
         if not columns:
             return False
 
-        return and_(
-            ContactFields.value.ilike(pattern),
-            ContactFields.name.in_(columns),
-        )
+        return and_(ContactFields.value.ilike(pattern), ContactFields.name.in_(columns))
 
 
 class PhonebookContactCRUD(BaseDAO):
-
     def count(self, tenant_uuid, phonebook_id, search=None):
         with self.new_session() as s:
             phonebook = self._get_phonebook(s, tenant_uuid, phonebook_id)
@@ -147,7 +127,9 @@ class PhonebookContactCRUD(BaseDAO):
             contact = self._get_contact(s, tenant_uuid, phonebook.id, contact_uuid)
             contact.hash = hash_
             self.flush_or_raise(s, DuplicatedContactException)
-            s.query(ContactFields).filter(ContactFields.contact_uuid == contact_uuid).delete()
+            s.query(ContactFields).filter(
+                ContactFields.contact_uuid == contact_uuid
+            ).delete()
             self._add_field_to_contact(s, contact.uuid, contact_body)
 
         return contact_body
@@ -170,9 +152,11 @@ class PhonebookContactCRUD(BaseDAO):
             if not matching_uuids:
                 return []
 
-            fields = s.query(
-                ContactFields,
-            ).filter(ContactFields.contact_uuid.in_(matching_uuids)).all()
+            fields = (
+                s.query(ContactFields)
+                .filter(ContactFields.contact_uuid.in_(matching_uuids))
+                .all()
+            )
             result = defaultdict(dict)
             for field in fields:
                 result[field.contact_uuid][field.name] = field.value
@@ -192,7 +176,9 @@ class PhonebookContactCRUD(BaseDAO):
         return contact
 
     def _get_phonebook(self, s, tenant_uuid, phonebook_id):
-        filter_ = and_(Phonebook.id == phonebook_id, Phonebook.tenant_uuid == tenant_uuid)
+        filter_ = and_(
+            Phonebook.id == phonebook_id, Phonebook.tenant_uuid == tenant_uuid
+        )
         phonebook = s.query(Phonebook).filter(filter_).first()
         if not phonebook:
             raise NoSuchPhonebook(phonebook_id)
@@ -241,8 +227,11 @@ class PhonebookCRUD(BaseDAO):
             phonebook = self._get_by_tenant_and_id(s, tenant_uuid, phonebook_id)
             for attribute_name, value in phonebook_body.items():
                 if not hasattr(phonebook, attribute_name):
-                    raise TypeError('{} has no attribute {}'.format(phonebook.__class__.__name__,
-                                                                    attribute_name))
+                    raise TypeError(
+                        '{} has no attribute {}'.format(
+                            phonebook.__class__.__name__, attribute_name
+                        )
+                    )
                 setattr(phonebook, attribute_name, value)
             self.flush_or_raise(s, DuplicatedPhonebookException)
             return self._phonebook_to_dict(phonebook)
@@ -252,23 +241,27 @@ class PhonebookCRUD(BaseDAO):
             phonebook = self._get_by_tenant_and_id(s, tenant_uuid, phonebook_id)
             return self._phonebook_to_dict(phonebook)
 
-    def list(self, tenant_uuid, order=None, direction=None, limit=None, offset=None, search=None):
+    def list(
+        self,
+        tenant_uuid,
+        order=None,
+        direction=None,
+        limit=None,
+        offset=None,
+        search=None,
+    ):
         with self.new_session() as s:
             phonebooks = self._get_by_tenant(
-                s,
-                tenant_uuid,
-                order,
-                direction,
-                limit,
-                offset,
-                search,
+                s, tenant_uuid, order, direction, limit, offset, search
             )
             return [self._phonebook_to_dict(phonebook) for phonebook in phonebooks]
 
     def update_tenant(self, old_uuid, phonebook_id, new_uuid):
         with self.new_session() as s:
             self._create_tenant(s, new_uuid)
-            filter_ = and_(Phonebook.id == Phonebook.id, Phonebook.tenant_uuid == old_uuid)
+            filter_ = and_(
+                Phonebook.id == Phonebook.id, Phonebook.tenant_uuid == old_uuid
+            )
             phonebook = s.query(Phonebook).filter(filter_).first()
             phonebook.tenant_uuid = new_uuid
             s.flush()
@@ -282,13 +275,22 @@ class PhonebookCRUD(BaseDAO):
         try:
             order_by_column = getattr(Phonebook, order_by_column_name)
         except AttributeError:
-            raise TypeError('{} has no attribute {}'.format(Phonebook.__class__.__name__,
-                                                            order_by_column_name))
+            raise TypeError(
+                '{} has no attribute {}'.format(
+                    Phonebook.__class__.__name__, order_by_column_name
+                )
+            )
         direction = direction or self._default_sort_direction
         order_by_column_and_direction = getattr(order_by_column, direction)()
         filter_ = self._new_tenant_filter(s, tenant_uuid, search)
-        return s.query(Phonebook).filter(filter_).order_by(
-            order_by_column_and_direction).limit(limit).offset(offset).all()
+        return (
+            s.query(Phonebook)
+            .filter(filter_)
+            .order_by(order_by_column_and_direction)
+            .limit(limit)
+            .offset(offset)
+            .all()
+        )
 
     def _get_by_tenant_and_id(self, s, tenant_uuid, phonebook_id):
         filter_ = self._new_filter_by_tenant_and_id(s, tenant_uuid, phonebook_id)
@@ -305,7 +307,9 @@ class PhonebookCRUD(BaseDAO):
             pattern = '%{}%'.format(search)
             return and_(
                 Phonebook.tenant_uuid == tenant_uuid,
-                or_(Phonebook.name.ilike(pattern), Phonebook.description.ilike(pattern)),
+                or_(
+                    Phonebook.name.ilike(pattern), Phonebook.description.ilike(pattern)
+                ),
             )
 
     def _new_filter_by_tenant_and_id(self, s, tenant_uuid, phonebook_id):

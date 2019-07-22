@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class LookupServicePlugin(BaseServicePlugin):
-
     def __init__(self):
         self._service = None
 
@@ -26,8 +25,10 @@ class LookupServicePlugin(BaseServicePlugin):
             )
             return self._service
         except KeyError:
-            msg = ('%s should be loaded with "config" and "source_manager" but received: %s'
-                   % (self.__class__.__name__, ','.join(dependencies.keys())))
+            msg = (
+                '%s should be loaded with "config" and "source_manager" but received: %s'
+                % (self.__class__.__name__, ','.join(dependencies.keys()))
+            )
             raise ValueError(msg)
 
     def unload(self):
@@ -53,7 +54,9 @@ class _LookupService(helpers.BaseService):
         future.name = source.name
         return future
 
-    def lookup(self, profile_config, tenant_uuid, term, xivo_user_uuid, args=None, token=None):
+    def lookup(
+        self, profile_config, tenant_uuid, term, xivo_user_uuid, args=None, token=None
+    ):
         args = args or {}
         futures = []
         sources = self.source_from_profile(profile_config)

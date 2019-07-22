@@ -6,45 +6,37 @@ from xivo.rest_api_helpers import APIException
 
 
 class OldAPIException(Exception):
-
     def __init__(self, status_code, body):
         self.status_code = status_code
         self.body = body
 
 
 class DatabaseServiceUnavailable(Exception):
-
     def __init__(self):
         super().__init__('Postgresql is unavailable')
 
 
 class NoSuchDisplay(APIException):
-
     def __init__(self, uuid):
         display_uuid = str(uuid)
         msg = 'No such display: "{}"'.format(display_uuid)
-        details = {
-            'uuid': display_uuid,
-        }
+        details = {'uuid': display_uuid}
         super().__init__(404, msg, 'unknown-display', details, 'displays')
 
 
 class NoSuchFavorite(ValueError):
-
     def __init__(self, contact_id):
         message = "No such favorite: {}".format(contact_id)
         super().__init__(message)
 
 
 class NoSuchPhonebook(ValueError):
-
     def __init__(self, phonebook_id):
         message = 'No such phonebook: {}'.format(phonebook_id)
         super().__init__(message)
 
 
 class NoSuchProfile(OldAPIException):
-
     def __init__(self, profile):
         self.profile = profile
         status_code = 404
@@ -57,18 +49,14 @@ class NoSuchProfile(OldAPIException):
 
 
 class NoSuchProfileAPIException(APIException):
-
     def __init__(self, uuid):
         profile_uuid = str(uuid)
         msg = 'No such profile: "{}"'.format(profile_uuid)
-        details = {
-            'uuid': profile_uuid,
-        }
+        details = {'uuid': profile_uuid}
         super().__init__(404, msg, 'unknown-profile', details, 'profiles')
 
 
 class NoSuchUser(OldAPIException):
-
     def __init__(self, user_uuid):
         status_code = 404
         body = {
@@ -80,25 +68,20 @@ class NoSuchUser(OldAPIException):
 
 
 class NoSuchContact(ValueError):
-
     def __init__(self, contact_id):
         message = "No such contact: {}".format(contact_id)
         super().__init__(message)
 
 
 class NoSuchSource(APIException):
-
     def __init__(self, uuid):
         source_uuid = str(uuid)
         msg = 'No such source: "{}"'.format(source_uuid)
-        details = {
-            'uuid': source_uuid,
-        }
+        details = {'uuid': source_uuid}
         super().__init__(404, msg, 'unknown-source', details, 'sources')
 
 
 class NoSuchTenant(ValueError):
-
     def __init__(self, tenant_name):
         message = 'No such tenant: {}'.format(tenant_name)
         super().__init__(message)
@@ -126,7 +109,6 @@ class DuplicatedPhonebookException(Exception):
 
 
 class DuplicatedProfileException(APIException):
-
     def __init__(self, name):
         msg = 'The name "{}" is already used'.format(name)
         details = {'name': {'constraint_id': 'unique', 'message': msg}}
@@ -134,7 +116,6 @@ class DuplicatedProfileException(APIException):
 
 
 class DuplicatedSourceException(APIException):
-
     def __init__(self, name):
         msg = 'The name "{}" is already used'.format(name)
         details = {'name': {'constraint_id': 'unique', 'message': msg}}
@@ -152,7 +133,6 @@ class InvalidArgumentError(Exception):
 
 
 class InvalidConfigError(Exception):
-
     def __init__(self, location_path, msg):
         super().__init__(location_path, msg)
         self.location_path = location_path
@@ -160,7 +140,6 @@ class InvalidConfigError(Exception):
 
 
 class InvalidPhonebookException(Exception):
-
     def __init__(self, errors):
         self.errors = errors
 
@@ -174,7 +153,6 @@ class InvalidContactException(Exception):
 
 
 class XiVOConfdError(APIException):
-
     def __init__(self, confd_client, error):
         super().__init__(
             status_code=503,
@@ -187,5 +165,5 @@ class XiVOConfdError(APIException):
                     'timeout': confd_client.timeout,
                 },
                 'original_error': str(error),
-            }
+            },
         )

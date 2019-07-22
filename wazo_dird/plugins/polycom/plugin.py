@@ -26,7 +26,8 @@ class PolycomViewPlugin(BaseViewPlugin):
             PhoneInput,
             self.polycom_input,
             endpoint='PolycomPhoneInput',
-            resource_class_args=(TEMPLATE_POLYCOM_INPUT, CONTENT_TYPE))
+            resource_class_args=(TEMPLATE_POLYCOM_INPUT, CONTENT_TYPE),
+        )
         api.add_resource(
             PhoneLookup,
             self.polycom_lookup,

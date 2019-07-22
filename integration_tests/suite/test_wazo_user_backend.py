@@ -14,14 +14,8 @@ from hamcrest import (
 
 from xivo_test_helpers import until
 
-from .helpers.base import (
-    BaseDirdIntegrationTest,
-    DirdAssetRunningTestCase,
-)
-from .helpers.config import (
-    new_wazo_users_config,
-    new_wazo_users_multiple_wazo_config,
-)
+from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
+from .helpers.config import new_wazo_users_config, new_wazo_users_multiple_wazo_config
 from .helpers.constants import MAIN_TENANT
 from .base_dird_integration_test import BackendWrapper
 
@@ -34,17 +28,15 @@ class TestWazoUser(DirdAssetRunningTestCase):
     def setUp(self):
         super().setUp()
         self.backend = BackendWrapper(
-            'wazo',
-            {
-                'config': self.backend_config(),
-                'api': Mock(),
-            }
+            'wazo', {'config': self.backend_config(), 'api': Mock()}
         )
-        self._dylan = {'id': 42,
-                       'firstname': 'Bob',
-                       'lastname': 'Dylan',
-                       'exten': '1000',
-                       'voicemail_number': '1234'}
+        self._dylan = {
+            'id': 42,
+            'firstname': 'Bob',
+            'lastname': 'Dylan',
+            'exten': '1000',
+            'voicemail_number': '1234',
+        }
 
     def tearDown(self):
         self.backend.unload()
@@ -89,12 +81,19 @@ class TestWazoUser(DirdAssetRunningTestCase):
         results = self.backend.search_raw('john')
 
         relations = results[0].relations
-        assert_that(relations, equal_to({'xivo_id': self.uuid,
-                                         'agent_id': 3,
-                                         'endpoint_id': 2,
-                                         'user_id': 1,
-                                         'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
-                                         'source_entry_id': '1'}))
+        assert_that(
+            relations,
+            equal_to(
+                {
+                    'xivo_id': self.uuid,
+                    'agent_id': 3,
+                    'endpoint_id': 2,
+                    'user_id': 1,
+                    'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
+                    'source_entry_id': '1',
+                }
+            ),
+        )
 
     def test_no_result(self):
         results = self.backend.search('frack')
@@ -124,9 +123,12 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
         def test():
             result = self.lookup('dyl', 'default')
-            assert_that(result['results'],
-                        contains(has_entry('column_values',
-                                           contains('Bob', 'Dylan', '1000', ''))))
+            assert_that(
+                result['results'],
+                contains(
+                    has_entry('column_values', contains('Bob', 'Dylan', '1000', ''))
+                ),
+            )
 
         until.assert_(test, tries=10)
 
@@ -142,37 +144,43 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
         expected_result = [
             {
                 'column_values': ['Charles', 'European', '9012'],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
-                              'agent_id': None,
-                              'endpoint_id': 42,
-                              'user_id': 100,
-                              'user_uuid': 'ce36bbb4-ae97-4f7d-8a36-d82b96120418',
-                              'source_entry_id': '100'},
+                'relations': {
+                    'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77e1europe',
+                    'agent_id': None,
+                    'endpoint_id': 42,
+                    'user_id': 100,
+                    'user_uuid': 'ce36bbb4-ae97-4f7d-8a36-d82b96120418',
+                    'source_entry_id': '100',
+                },
                 'source': 'wazo_europe',
                 'backend': 'wazo',
             },
             {
                 'column_values': ['Mary', 'Sue', '1465'],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': 2,
-                              'user_id': 2,
-                              'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
-                              'source_entry_id': '2'},
+                'relations': {
+                    'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                    'agent_id': None,
+                    'endpoint_id': 2,
+                    'user_id': 2,
+                    'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
+                    'source_entry_id': '2',
+                },
                 'source': 'wazo_america',
                 'backend': 'wazo',
             },
             {
                 'column_values': ['Charles', 'Kenedy', ''],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': None,
-                              'user_id': 100,
-                              'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
-                              'source_entry_id': '100'},
+                'relations': {
+                    'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                    'agent_id': None,
+                    'endpoint_id': None,
+                    'user_id': 100,
+                    'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
+                    'source_entry_id': '100',
+                },
                 'source': 'wazo_america',
                 'backend': 'wazo',
-            }
+            },
         ]
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
@@ -183,16 +191,17 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
         result = self.favorites('default')
 
-        assert_that(result['results'], contains_inanyorder(
-            has_entries(
-                source='wazo_asia',
-                column_values=contains('Alice', None, '6543'),
+        assert_that(
+            result['results'],
+            contains_inanyorder(
+                has_entries(
+                    source='wazo_asia', column_values=contains('Alice', None, '6543')
+                ),
+                has_entries(
+                    source='wazo_america', column_values=contains('John', 'Doe', '1234')
+                ),
             ),
-            has_entries(
-                source='wazo_america',
-                column_values=contains('John', 'Doe', '1234'),
-            ),
-        ))
+        )
 
 
 class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
@@ -206,15 +215,17 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
         expected_result = [
             {
                 'column_values': ['John', 'Doe', '1234'],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': 3,
-                              'endpoint_id': 2,
-                              'user_id': 1,
-                              'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
-                              'source_entry_id': '1'},
+                'relations': {
+                    'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                    'agent_id': 3,
+                    'endpoint_id': 2,
+                    'user_id': 1,
+                    'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
+                    'source_entry_id': '1',
+                },
                 'source': 'wazo_america',
-                'backend': 'wazo'
-            },
+                'backend': 'wazo',
+            }
         ]
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
@@ -231,26 +242,30 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
         expected_result = [
             {
                 'column_values': ['Mary', 'Sue', '1465'],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': 2,
-                              'user_id': 2,
-                              'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
-                              'source_entry_id': '2'},
+                'relations': {
+                    'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                    'agent_id': None,
+                    'endpoint_id': 2,
+                    'user_id': 2,
+                    'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
+                    'source_entry_id': '2',
+                },
                 'source': 'wazo_america',
-                'backend': 'wazo'
+                'backend': 'wazo',
             },
             {
                 'column_values': ['Charles', 'Kenedy', ''],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': None,
-                              'user_id': 100,
-                              'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
-                              'source_entry_id': '100'},
+                'relations': {
+                    'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                    'agent_id': None,
+                    'endpoint_id': None,
+                    'user_id': 100,
+                    'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
+                    'source_entry_id': '100',
+                },
                 'source': 'wazo_america',
-                'backend': 'wazo'
-            }
+                'backend': 'wazo',
+            },
         ]
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
@@ -267,26 +282,30 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
         expected_result = [
             {
                 'column_values': ['Mary', 'Sue', '1465'],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': 2,
-                              'user_id': 2,
-                              'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
-                              'source_entry_id': '2'},
+                'relations': {
+                    'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                    'agent_id': None,
+                    'endpoint_id': 2,
+                    'user_id': 2,
+                    'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
+                    'source_entry_id': '2',
+                },
                 'source': 'wazo_america',
-                'backend': 'wazo'
+                'backend': 'wazo',
             },
             {
                 'column_values': ['Charles', 'Kenedy', ''],
-                'relations': {'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
-                              'agent_id': None,
-                              'endpoint_id': None,
-                              'user_id': 100,
-                              'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
-                              'source_entry_id': '100'},
+                'relations': {
+                    'xivo_id': '6fa459ea-ee8a-3ca4-894e-db77eamerica',
+                    'agent_id': None,
+                    'endpoint_id': None,
+                    'user_id': 100,
+                    'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
+                    'source_entry_id': '100',
+                },
                 'source': 'wazo_america',
-                'backend': 'wazo'
-            }
+                'backend': 'wazo',
+            },
         ]
 
         assert_that(result['results'], contains_inanyorder(*expected_result))

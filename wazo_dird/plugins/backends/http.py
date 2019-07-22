@@ -10,7 +10,6 @@ from .schemas import ListSchema
 
 
 class Backends(LegacyAuthResource):
-
     def __init__(self, service):
         self._service = service
 
@@ -22,8 +21,4 @@ class Backends(LegacyAuthResource):
         filtered = self._service.count(**list_params)
         total = self._service.count()
 
-        return {
-            'total': total,
-            'filtered': filtered,
-            'items': backends,
-        }
+        return {'total': total, 'filtered': filtered, 'items': backends}

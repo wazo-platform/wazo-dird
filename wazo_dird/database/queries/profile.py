@@ -1,26 +1,13 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import (
-    and_,
-    exc,
-    func,
-    text,
-)
+from sqlalchemy import and_, exc, func, text
 
 from wazo_dird.database import schemas
 from wazo_dird import exception
 
-from .base import (
-    BaseDAO,
-    extract_constraint_name,
-)
-from ..import (
-    Profile,
-    ProfileService,
-    ProfileServiceSource,
-    Service,
-)
+from .base import BaseDAO, extract_constraint_name
+from .. import Profile, ProfileService, ProfileServiceSource, Service
 
 
 class ProfileCRUD(BaseDAO):
@@ -44,7 +31,9 @@ class ProfileCRUD(BaseDAO):
     def delete(self, visible_tenants, profile_uuid):
         filter_ = self._build_filter(visible_tenants, profile_uuid)
         with self.new_session() as s:
-            nb_deleted = s.query(Profile).filter(filter_).delete(synchronize_session=False)
+            nb_deleted = (
+                s.query(Profile).filter(filter_).delete(synchronize_session=False)
+            )
 
         if not nb_deleted:
             raise exception.NoSuchProfileAPIException(profile_uuid)
@@ -71,7 +60,9 @@ class ProfileCRUD(BaseDAO):
                     raise exception.DuplicatedProfileException(body['name'])
                 raise
 
-            self._associate_all_services(s, profile.tenant_uuid, profile_uuid, body['services'])
+            self._associate_all_services(
+                s, profile.tenant_uuid, profile_uuid, body['services']
+            )
 
     def get(self, visible_tenants, profile_uuid):
         filter_ = self._build_filter(visible_tenants, profile_uuid)
@@ -101,20 +92,22 @@ class ProfileCRUD(BaseDAO):
         for service_name, config in services.items():
             service_uuid = self._create_service(session, service_name)
             profile_service_uuid = self._create_profile_service(
-                session, tenant_uuid, profile_uuid, service_uuid, config,
+                session, tenant_uuid, profile_uuid, service_uuid, config
             )
             for source in config['sources']:
                 source_uuid = str(source.get('uuid'))
                 self._create_profile_service_source(
-                    session, tenant_uuid, profile_service_uuid, source_uuid,
+                    session, tenant_uuid, profile_service_uuid, source_uuid
                 )
 
     def _dissociate_all_services(self, session, profile_uuid):
         session.query(ProfileService).filter(
-            ProfileService.profile_uuid == profile_uuid,
+            ProfileService.profile_uuid == profile_uuid
         ).delete(synchronize_session=False)
 
-    def _list_filter(self, visible_tenants, uuid=None, name=None, search=None, **list_params):
+    def _list_filter(
+        self, visible_tenants, uuid=None, name=None, search=None, **list_params
+    ):
         filter_ = text('true')
         if visible_tenants is not None:
             if not visible_tenants:
@@ -130,7 +123,9 @@ class ProfileCRUD(BaseDAO):
         return filter_
 
     @staticmethod
-    def _paginate(query, limit=None, offset=None, order=None, direction=None, **ignored):
+    def _paginate(
+        query, limit=None, offset=None, order=None, direction=None, **ignored
+    ):
         if order and direction:
             field = None
             if order == 'name':
@@ -171,7 +166,9 @@ class ProfileCRUD(BaseDAO):
         return profile.uuid
 
     @staticmethod
-    def _create_profile_service(session, tenant_uuid, profile_uuid, service_uuid, config):
+    def _create_profile_service(
+        session, tenant_uuid, profile_uuid, service_uuid, config
+    ):
         config = dict(config)
         config.pop('sources', None)
         profile_service = ProfileService(
@@ -185,7 +182,9 @@ class ProfileCRUD(BaseDAO):
         return profile_service.uuid
 
     @staticmethod
-    def _create_profile_service_source(session, tenant_uuid, profile_service_uuid, source_uuid):
+    def _create_profile_service_source(
+        session, tenant_uuid, profile_service_uuid, source_uuid
+    ):
         if source_uuid is None:
             raise exception.NoSuchSource(source_uuid)
 
@@ -199,7 +198,10 @@ class ProfileCRUD(BaseDAO):
         try:
             session.flush()
         except exc.IntegrityError as e:
-            if extract_constraint_name(e) == 'dird_profile_service_source_source_uuid_tenant_fkey':
+            if (
+                extract_constraint_name(e)
+                == 'dird_profile_service_source_source_uuid_tenant_fkey'
+            ):
                 raise exception.NoSuchSource(source_uuid)
             raise
 

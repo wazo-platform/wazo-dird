@@ -10,7 +10,6 @@ from .schemas import ListSchema
 
 
 class SourceResource(AuthResource):
-
     def __init__(self, profile_service):
         self._profile_service = profile_service
 
@@ -20,13 +19,7 @@ class SourceResource(AuthResource):
         tenant_uuid = Tenant.autodetect().uuid
 
         count, filtered, sources = self._profile_service.get_sources_from_profile_name(
-            tenant_uuid=tenant_uuid,
-            profile_name=profile,
-            **args
+            tenant_uuid=tenant_uuid, profile_name=profile, **args
         )
 
-        return {
-            'total': count,
-            'filtered': filtered,
-            'items': sources,
-        }
+        return {'total': count, 'filtered': filtered, 'items': sources}

@@ -4,13 +4,10 @@
 import logging
 import threading
 
-from collections import defaultdict
 
 import stevedore
-from stevedore import (
-    EnabledExtensionManager,
-    NamedExtensionManager,
-)
+from stevedore import NamedExtensionManager
+
 from xivo import plugin_helpers
 
 from wazo_dird import exception
@@ -93,6 +90,7 @@ class SourceManager:
             source.load(dependencies)
             self._sources[source.name] = source
         except Exception:
-            logger.exception('Failed to load back-end `%s` with config `%s`',
-                             extension.name, name)
+            logger.exception(
+                'Failed to load back-end `%s` with config `%s`', extension.name, name
+            )
         return source

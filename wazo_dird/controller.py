@@ -27,7 +27,6 @@ def _signal_handler(signum, frame):
 
 
 class Controller:
-
     def __init__(self, config):
         self.config = config
         init_db(config['db_uri'])

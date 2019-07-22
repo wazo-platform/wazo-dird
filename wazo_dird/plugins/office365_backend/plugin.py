@@ -37,7 +37,6 @@ class Office365View(BaseBackendView):
 
 
 class Office365Plugin(BaseSourcePlugin):
-
     def load(self, dependencies):
         config = dependencies['config']
         self.auth = config['auth']
@@ -50,15 +49,12 @@ class Office365Plugin(BaseSourcePlugin):
         if 'reverse' not in format_columns:
             logger.info(
                 'no "reverse" column has been configured on %s will use "givenName"',
-                self.name
+                self.name,
             )
             format_columns['reverse'] = '{givenName}'
 
         self._SourceResult = make_result_class(
-            'office365',
-            self.name,
-            self.unique_column,
-            format_columns,
+            'office365', self.name, self.unique_column, format_columns
         )
 
         self._searched_columns = config.get(self.SEARCHED_COLUMNS, [])
@@ -82,7 +78,9 @@ class Office365Plugin(BaseSourcePlugin):
         except MicrosoftTokenNotFoundException:
             return []
 
-        contacts = self.office365.get_contacts_with_term(microsoft_token, term, self.endpoint)
+        contacts = self.office365.get_contacts_with_term(
+            microsoft_token, term, self.endpoint
+        )
         updated_contacts = self._update_contact_fields(contacts)
 
         lowered_term = term.lower()
@@ -107,7 +105,9 @@ class Office365Plugin(BaseSourcePlugin):
 
         contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
         updated_contacts = self._update_contact_fields(contacts)
-        filtered_contacts = [c for c in updated_contacts if c[self.unique_column] in unique_ids]
+        filtered_contacts = [
+            c for c in updated_contacts if c[self.unique_column] in unique_ids
+        ]
 
         return [self._SourceResult(contact) for contact in filtered_contacts]
 
@@ -122,7 +122,9 @@ class Office365Plugin(BaseSourcePlugin):
         try:
             microsoft_token = self._get_microsoft_token(**args)
         except MicrosoftTokenNotFoundException:
-            logger.debug('could not find a matching microsoft token, aborting first_match')
+            logger.debug(
+                'could not find a matching microsoft token, aborting first_match'
+            )
             return None
 
         contacts = self.office365.get_contacts(microsoft_token, self.endpoint)

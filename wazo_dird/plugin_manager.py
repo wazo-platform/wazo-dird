@@ -24,9 +24,7 @@ def load_services(config, enabled_services, source_manager, bus, controller):
     }
 
     services_extension_manager, services = _load_plugins(
-        'wazo_dird.services',
-        enabled_services,
-        dependencies,
+        'wazo_dird.services', enabled_services, dependencies
     )
     return services
 
@@ -55,7 +53,9 @@ def load_views(config, enabled_views, services, auth_client, status_aggregator):
         'api': rest_api.api,
         'status_aggregator': status_aggregator,
     }
-    views_extension_manager, views = _load_plugins('wazo_dird.views', enabled_views, dependencies)
+    views_extension_manager, views = _load_plugins(
+        'wazo_dird.views', enabled_views, dependencies
+    )
     return views
 
 
@@ -72,7 +72,7 @@ def _load_plugins(namespace, names, dependencies):
         name_order=True,
         on_load_failure_callback=plugin_helpers.on_load_failure,
         on_missing_entrypoints_callback=plugin_helpers.on_missing_entrypoints,
-        invoke_on_load=True
+        invoke_on_load=True,
     )
 
     def _load_plugin(ext, *args, **kwargs):

@@ -5,13 +5,8 @@ import logging
 
 from requests import HTTPError
 
-from wazo_dird import (
-    BaseSourcePlugin,
-    make_result_class,
-)
-from wazo_dird.helpers import (
-    BaseBackendView,
-)
+from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.helpers import BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 
 from . import http
@@ -42,7 +37,6 @@ class ConferenceViewPlugin(BaseBackendView):
 
 
 class ConferencePlugin(BaseSourcePlugin):
-
     def __init__(self):
         self._client = None
         self._uuid = None
@@ -73,7 +67,9 @@ class ConferencePlugin(BaseSourcePlugin):
     def search(self, term, profile=None, args=None):
         lowered_term = term.lower()
         contacts = self._fetch_contacts()
-        matching_contacts = (c for c in contacts if self._search_filter(lowered_term, c))
+        matching_contacts = (
+            c for c in contacts if self._search_filter(lowered_term, c)
+        )
         return [self._SourceResult(c) for c in matching_contacts]
 
     def first_match(self, term, args=None):

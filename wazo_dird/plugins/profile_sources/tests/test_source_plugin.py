@@ -11,10 +11,7 @@ from ..plugin import SourceViewPlugin
 
 class TestSourcePlugin(TestCase):
 
-    DEPENDENCIES = {
-        'api': Mock(),
-        'services': {'profile': Mock()},
-    }
+    DEPENDENCIES = {'api': Mock(), 'services': {'profile': Mock()}}
 
     def setUp(self):
         self.source = SourceViewPlugin()
@@ -23,5 +20,5 @@ class TestSourcePlugin(TestCase):
         self.source.load(self.DEPENDENCIES)
         assert_that(
             calling(self.source.load).with_args(self.DEPENDENCIES),
-            not_(raises(Exception))
+            not_(raises(Exception)),
         )

@@ -1,24 +1,12 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import (
-    exceptions,
-    Schema,
-    compat,
-    pre_load,
-    utils,
-    validates_schema,
-)
+from marshmallow import exceptions, Schema, compat, pre_load, utils, validates_schema
 from xivo.mallow import fields
-from xivo.mallow.validate import (
-    Length,
-    Range,
-    validate_string_dict,
-)
+from xivo.mallow.validate import Length, Range, validate_string_dict
 
 
 class BaseSchema(Schema):
-
     class Meta:
         ordered = True
         strict = True
@@ -29,7 +17,6 @@ class BaseSchema(Schema):
 
 
 class VerifyCertificateField(fields.Field):
-
     def _deserialize(self, value, attr, data):
         if value in (True, 'true', 'True'):
             return True
@@ -50,8 +37,12 @@ class BaseSourceSchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
-    first_matched_columns = fields.List(fields.String(validate=Length(min=1, max=128)), missing=[])
-    searched_columns = fields.List(fields.String(validate=Length(min=1, max=128)), missing=[])
+    first_matched_columns = fields.List(
+        fields.String(validate=Length(min=1, max=128)), missing=[]
+    )
+    searched_columns = fields.List(
+        fields.String(validate=Length(min=1, max=128)), missing=[]
+    )
     format_columns = fields.Dict(validate=validate_string_dict, missing={})
 
 
@@ -81,12 +72,12 @@ class AuthConfigSchema(BaseSchema):
 
         if key_file and username:
             raise exceptions.ValidationError(
-                'a "key_file" or a "username" and "password" must be specified',
+                'a "key_file" or a "username" and "password" must be specified'
             )
 
         if key_file or username:
             return
 
         raise exceptions.ValidationError(
-            'a "key_file" or a "username" and "password" must be specified',
+            'a "key_file" or a "username" and "password" must be specified'
         )

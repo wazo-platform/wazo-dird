@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class _PreConfigLogger:
-
     class FlushableBuffer:
-
         def __init__(self):
             self._msg = []
 
@@ -56,9 +54,15 @@ def main(argv=None):
 
         config = load_config(logger, argv)
 
-        xivo_logging.setup_logging(config['log_filename'], config['foreground'],
-                                   config['debug'], config['log_level'])
-    xivo_logging.silence_loggers(['Flask-Cors', 'urllib3', 'stevedore.extension'], logging.WARNING)
+        xivo_logging.setup_logging(
+            config['log_filename'],
+            config['foreground'],
+            config['debug'],
+            config['log_level'],
+        )
+    xivo_logging.silence_loggers(
+        ['Flask-Cors', 'urllib3', 'stevedore.extension'], logging.WARNING
+    )
 
     if config['user']:
         change_user(config['user'])

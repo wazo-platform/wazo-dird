@@ -10,7 +10,6 @@ from ..http import format_headers
 
 
 class TestFormatHeaders(unittest.TestCase):
-
     def test_that_format_headers_adds_columns_headers(self):
         display = [
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),

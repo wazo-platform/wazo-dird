@@ -7,11 +7,7 @@ Revises: 9a38ab587987
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import (
-    ARRAY,
-    HSTORE,
-    JSON,
-)
+from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON
 
 # revision identifiers, used by Alembic.
 revision = '25e9a6782cac'
@@ -29,7 +25,9 @@ def upgrade():
     op.add_column(table_name, sa.Column('first_matched_columns', ARRAY(sa.Text)))
     op.add_column(table_name, sa.Column('format_columns', HSTORE))
     op.add_column(table_name, sa.Column('extra_fields', JSON))
-    op.create_unique_constraint('dird_source_tenant_name', table_name, ['tenant_uuid', 'name'])
+    op.create_unique_constraint(
+        'dird_source_tenant_name', table_name, ['tenant_uuid', 'name']
+    )
     op.drop_constraint('dird_source_name_key', table_name)
 
 

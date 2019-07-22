@@ -24,7 +24,6 @@ class BaseServicePlugin(metaclass=abc.ABCMeta):
 
 
 class BaseViewPlugin(metaclass=abc.ABCMeta):
-
     @abc.abstractmethod
     def load(self, dependencies):
         '''
@@ -41,7 +40,8 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
 
     # These string are expected in the configuration
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in
-    FIRST_MATCHED_COLUMNS = 'first_matched_columns'  # These columns are the ones we search for reverse lookup
+    # These columns are the ones we search for reverse lookup
+    FIRST_MATCHED_COLUMNS = 'first_matched_columns'
     FORMAT_COLUMNS = 'format_columns'
     UNIQUE_COLUMN = 'unique_column'  # This is the column that make an entry unique
 

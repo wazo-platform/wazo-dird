@@ -17,7 +17,6 @@ class ServiceConfigSchema(BaseSchema):
 
 
 class ServiceDictSchema(fields.Nested):
-
     def _serialize(self, nested_obj, attr, obj, **_):
         if nested_obj is None:
             return None

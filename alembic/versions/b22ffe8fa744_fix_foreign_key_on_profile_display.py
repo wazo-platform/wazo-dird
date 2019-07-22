@@ -14,23 +14,18 @@ down_revision = '5092a1dde55a'
 
 
 def upgrade():
-    op.add_column(
-        'dird_profile',
-        sa.Column('display_tenant_uuid', sa.String(36)),
-    )
+    op.add_column('dird_profile', sa.Column('display_tenant_uuid', sa.String(36)))
     profile_table = sa.sql.table(
         'dird_profile',
         sa.sql.column('tenant_uuid'),
         sa.sql.column('display_tenant_uuid'),
     )
-    op.execute(profile_table.update().values(
-        display_tenant_uuid=profile_table.c.tenant_uuid
-    ))
+    op.execute(
+        profile_table.update().values(display_tenant_uuid=profile_table.c.tenant_uuid)
+    )
 
     op.create_unique_constraint(
-        'dird_display_uuid_tenant',
-        'dird_display',
-        ['uuid', 'tenant_uuid'],
+        'dird_display_uuid_tenant', 'dird_display', ['uuid', 'tenant_uuid']
     )
     op.create_foreign_key(
         'dird_profile_display_uuid_tenant_fkey',

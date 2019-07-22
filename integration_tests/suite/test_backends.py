@@ -1,12 +1,7 @@
 # Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    contains,
-    contains_inanyorder,
-    has_entries,
-)
+from hamcrest import assert_that, contains, contains_inanyorder, has_entries
 
 from .helpers.base import BaseDirdIntegrationTest
 
@@ -19,11 +14,13 @@ class TestBackends(BaseDirdIntegrationTest):
         result = self.client.backends.list()
         # not sample which is disabled
         # not unknown which is not installed
-        expected = ['csv', 'csv_ws', 'ldap', 'personal', 'phonebook',  'wazo']
+        expected = ['csv', 'csv_ws', 'ldap', 'personal', 'phonebook', 'wazo']
         self._assert_matches(result, 6, 6, contains_inanyorder, *expected)
 
         result = self.client.backends.list(search='a')
-        self._assert_matches(result, 6, 3, contains_inanyorder, 'ldap', 'personal', 'wazo')
+        self._assert_matches(
+            result, 6, 3, contains_inanyorder, 'ldap', 'personal', 'wazo'
+        )
 
         result = self.client.backends.list(name='csv')
         self._assert_matches(result, 6, 1, contains, 'csv')
@@ -52,8 +49,6 @@ class TestBackends(BaseDirdIntegrationTest):
             has_entries(
                 total=total,
                 filtered=filtered,
-                items=matcher(
-                    *[has_entries(name=name) for name in names]
-                )
-            )
+                items=matcher(*[has_entries(name=name) for name in names]),
+            ),
         )

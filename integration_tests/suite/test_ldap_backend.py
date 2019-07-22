@@ -40,27 +40,30 @@ class LDAPHelper:
         self._ldap_obj.simple_bind_s(self.ADMIN_DN, self.ADMIN_PASSWORD)
 
     def add_ou_quebec(self):
-        modlist = addModlist({
-            'objectClass': [b'organizationalUnit'],
-            'ou': [b'quebec'],
-        })
+        modlist = addModlist(
+            {'objectClass': [b'organizationalUnit'], 'ou': [b'quebec']}
+        )
 
         self._ldap_obj.add_s(self.QUEBEC_DN, modlist)
 
     def add_contact(self, contact):
         cn = '{} {}'.format(contact.firstname, contact.lastname)
         dn = 'cn={},{}'.format(cn, self.QUEBEC_DN)
-        modlist = addModlist({
-            'objectClass': [b'inetOrgPerson'],
-            'cn': [cn.encode('utf-8')],
-            'givenName': [contact.firstname.encode('utf-8')],
-            'sn': [contact.lastname.encode('utf-8')],
-            'telephoneNumber': [contact.number.encode('utf-8')],
-            'l': [contact.city.encode('utf-8')],
-        })
+        modlist = addModlist(
+            {
+                'objectClass': [b'inetOrgPerson'],
+                'cn': [cn.encode('utf-8')],
+                'givenName': [contact.firstname.encode('utf-8')],
+                'sn': [contact.lastname.encode('utf-8')],
+                'telephoneNumber': [contact.number.encode('utf-8')],
+                'l': [contact.city.encode('utf-8')],
+            }
+        )
 
         self._ldap_obj.add_s(dn, modlist)
-        search_dn, result = self._ldap_obj.search_s(dn, ldap.SCOPE_BASE, attrlist=['entryUUID'])[0]
+        search_dn, result = self._ldap_obj.search_s(
+            dn, ldap.SCOPE_BASE, attrlist=['entryUUID']
+        )[0]
         return result['entryUUID'][0].decode('utf-8')
 
 
@@ -110,20 +113,26 @@ class TestLDAP(BaseDirdIntegrationTest):
     def test_lookup_on_cn(self):
         result = self.lookup('Ali', 'default')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains('Alice', 'Wonderland', '1001'))
+        assert_that(
+            result['results'][0]['column_values'],
+            contains('Alice', 'Wonderland', '1001'),
+        )
 
     def test_lookup_on_telephone_number(self):
         result = self.lookup('1001', 'default')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains('Alice', 'Wonderland', '1001'))
+        assert_that(
+            result['results'][0]['column_values'],
+            contains('Alice', 'Wonderland', '1001'),
+        )
 
     def test_lookup_with_non_ascii_characters(self):
         result = self.lookup('ç', 'default')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains('François', 'Hollande', '1004'))
+        assert_that(
+            result['results'][0]['column_values'],
+            contains('François', 'Hollande', '1004'),
+        )
 
     def test_reverse_lookup(self):
         result = self.reverse('1001', 'default', VALID_UUID)
@@ -141,9 +150,13 @@ class TestLDAP(BaseDirdIntegrationTest):
 
         result = self.favorites('default')
 
-        assert_that(result['results'], contains_inanyorder(
-            has_entry('column_values', contains('Alice', 'Wonderland', '1001')),
-            has_entry('column_values', contains('Connor', 'Manson', '1003'))))
+        assert_that(
+            result['results'],
+            contains_inanyorder(
+                has_entry('column_values', contains('Alice', 'Wonderland', '1001')),
+                has_entry('column_values', contains('Connor', 'Manson', '1003')),
+            ),
+        )
 
 
 class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
@@ -172,8 +185,9 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
     def test_lookup_on_cn(self):
         result = self.lookup('charlé', 'default')
 
-        assert_that(result['results'][0]['column_values'],
-                    contains('Charlé', 'Doe', '1003'))
+        assert_that(
+            result['results'][0]['column_values'], contains('Charlé', 'Doe', '1003')
+        )
 
     def test_no_result_because_of_the_custom_filter(self):
         result = self.lookup('alice', 'default')

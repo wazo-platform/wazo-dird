@@ -7,13 +7,10 @@ from . import http
 
 
 class SourcesViewPlugin(BaseViewPlugin):
-
     def load(self, dependencies):
         api = dependencies['api']
         source_service = dependencies['services']['source']
 
         api.add_resource(
-            http.Sources,
-            '/sources',
-            resource_class_args=(source_service,),
+            http.Sources, '/sources', resource_class_args=(source_service,)
         )

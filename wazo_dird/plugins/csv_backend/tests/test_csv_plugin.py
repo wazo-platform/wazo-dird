@@ -1,4 +1,4 @@
-# Copyright 2014-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -26,15 +26,16 @@ pipe_separated_content = comma_separated_content.replace(',', '|')
 
 SourceResult = make_result_class('test-csv', 'my_directory', unique_column='clientno')
 
-alice = {'clientno': '1',
-         'firstname': 'Alice',
-         'lastname': 'AAA',
-         'number': '5555555555',
-         'age': '20'}
+alice = {
+    'clientno': '1',
+    'firstname': 'Alice',
+    'lastname': 'AAA',
+    'number': '5555555555',
+    'age': '20',
+}
 
 
 class BaseCSVTestDirectory(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.fd, cls.fname = tempfile.mkstemp()
@@ -75,16 +76,20 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
     def setUp(self):
         self.name = 'my_directory'
-        self.bob = {'clientno': '2',
-                    'firstname': 'Bob',
-                    'lastname': 'BBB',
-                    'number': '5555551234',
-                    'age': '21'}
-        self.charles = {'clientno': '3',
-                        'firstname': 'Charles',
-                        'lastname': 'CCC',
-                        'number': '5555556666',
-                        'age': '22'}
+        self.bob = {
+            'clientno': '2',
+            'firstname': 'Bob',
+            'lastname': 'BBB',
+            'number': '5555551234',
+            'age': '21',
+        }
+        self.charles = {
+            'clientno': '3',
+            'firstname': 'Charles',
+            'lastname': 'CCC',
+            'number': '5555556666',
+            'age': '22',
+        }
         self.source = CSVPlugin()
         self.alice_result = SourceResult(alice)
         self.charles_result = SourceResult(self.charles)
@@ -109,14 +114,13 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         assert_that(result, contains())
 
     def test_load_file(self):
-        config = {
-            'file': self.fname,
-            'name': self.name,
-        }
+        config = {'file': self.fname, 'name': self.name}
 
         self.source.load({'config': config})
 
-        assert_that(self.source._content, contains_inanyorder(alice, self.bob, self.charles))
+        assert_that(
+            self.source._content, contains_inanyorder(alice, self.bob, self.charles)
+        )
 
     def test_search(self):
         config = {
@@ -146,10 +150,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         assert_that(results, contains())
 
     def test_search_no_search_column(self):
-        config = {
-            'file': self.fname,
-            'name': 'my_dir',
-        }
+        config = {'file': self.fname, 'name': 'my_dir'}
 
         self.source.load({'config': config})
 
@@ -200,10 +201,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         assert_that(results, equal_to(None))
 
     def test_list_no_unique(self):
-        config = {
-            'file': self.fname,
-            'name': 'my_dir',
-        }
+        config = {'file': self.fname, 'name': 'my_dir'}
 
         self.source.load({'config': config})
 
@@ -212,11 +210,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         assert_that(results, contains())
 
     def test_list_with_unique_column_but_empty_uids(self):
-        config = {
-            'file': self.fname,
-            'unique_column': 'clientno',
-            'name': self.name,
-        }
+        config = {'file': self.fname, 'unique_column': 'clientno', 'name': self.name}
 
         self.source.load({'config': config})
 
@@ -225,11 +219,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         assert_that(results, contains())
 
     def test_list_with_unique_column(self):
-        config = {
-            'file': self.fname,
-            'unique_column': 'clientno',
-            'name': self.name,
-        }
+        config = {'file': self.fname, 'unique_column': 'clientno', 'name': self.name}
 
         self.source.load({'config': config})
 
@@ -246,28 +236,24 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         assert_that(result, equal_to({'one': 1, 'two': 2, 'three': 3}))
 
     def test_is_in_unique_ids(self):
-        config = {
-            'file': self.fname,
-            'unique_column': 'clientno',
-            'name': 'my_dir',
-        }
+        config = {'file': self.fname, 'unique_column': 'clientno', 'name': 'my_dir'}
 
         self.source.load({'config': config})
 
-        result = self.source._is_in_unique_ids(['12'], {'firstname': 'Alice', 'lastname': 'AAA', 'clientno': '12'})
+        result = self.source._is_in_unique_ids(
+            ['12'], {'firstname': 'Alice', 'lastname': 'AAA', 'clientno': '12'}
+        )
 
         assert_that(result, equal_to(True))
 
-        result = self.source._is_in_unique_ids(['12'], {'firstname': 'Bob', 'lastname': 'BBB', 'clientno': '55'})
+        result = self.source._is_in_unique_ids(
+            ['12'], {'firstname': 'Bob', 'lastname': 'BBB', 'clientno': '55'}
+        )
 
         assert_that(result, equal_to(False))
 
     def test_low_case_match_entry(self):
-        config = {
-            'file': self.fname,
-            'unique_column': 'clientno',
-            'name': 'my_dir',
-        }
+        config = {'file': self.fname, 'unique_column': 'clientno', 'name': 'my_dir'}
 
         term = 'ice'
         columns = ['firstname', 'lastname']
@@ -279,11 +265,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         assert_that(result, equal_to(True))
 
     def test_low_case_match_entry_broken_config(self):
-        config = {
-            'file': self.fname,
-            'unique_column': 'clientno',
-            'name': 'my_dir',
-        }
+        config = {'file': self.fname, 'unique_column': 'clientno', 'name': 'my_dir'}
 
         term = 'ice'
         columns = [None, 'firstname', 'lastname']

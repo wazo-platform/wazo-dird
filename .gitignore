@@ -11,3 +11,4 @@ cover/
 coverage.xml
 pylint.txt
 unit-tests.xml
+pycodestyle.txt

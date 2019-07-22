@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class Headers(LegacyAuthResource, DisplayAwareResource):
-
     def __init__(self, display_service, profile_service):
         self.display_service = display_service
         self.profile_service = profile_service

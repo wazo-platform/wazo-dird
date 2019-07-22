@@ -7,15 +7,12 @@ from . import http
 
 
 class DisplaysViewPlugin(BaseViewPlugin):
-
     def load(self, dependencies):
         api = dependencies['api']
         display_service = dependencies['services']['display']
 
         api.add_resource(
-            http.Displays,
-            '/displays',
-            resource_class_args=(display_service,),
+            http.Displays, '/displays', resource_class_args=(display_service,)
         )
 
         api.add_resource(

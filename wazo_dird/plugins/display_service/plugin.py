@@ -5,22 +5,17 @@ import logging
 
 from wazo_dird.database.helpers import Session
 
-from wazo_dird import (
-    BaseServicePlugin,
-    database,
-)
+from wazo_dird import BaseServicePlugin, database
 
 logger = logging.getLogger(__name__)
 
 
 class DisplayServicePlugin(BaseServicePlugin):
-
     def load(self, dependencies):
         return _DisplayService(database.DisplayCRUD(Session))
 
 
 class _DisplayService:
-
     def __init__(self, crud):
         self._display_crud = crud
 

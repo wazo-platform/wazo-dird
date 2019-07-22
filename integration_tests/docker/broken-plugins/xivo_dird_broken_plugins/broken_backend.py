@@ -3,13 +3,11 @@
 
 
 class BrokenPlugin:
-
     def __init__(self):
         raise RuntimeError('BROKEN')
 
 
 class BrokenLookup:
-
     def load(self, config):
         return
 

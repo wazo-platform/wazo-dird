@@ -9,10 +9,7 @@ from unidecode import unidecode
 from wazo_dird import BaseServicePlugin
 from wazo_dird import database
 from wazo_dird.database.helpers import Session
-from wazo_dird.exception import (
-    InvalidContactException,
-    InvalidPhonebookException,
-)
+from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
 
 logger = logging.getLogger(__name__)
 
@@ -27,13 +24,11 @@ class _PhonebookSchema(Schema):
 
 
 class PhonebookServicePlugin(BaseServicePlugin):
-
     def load(self, args):
         self._config = args.get('config')
         if not self._config:
             msg = '{} should be loaded with "config" but received: {}'.format(
-                self.__class__.__name__,
-                ','.join(args.keys()),
+                self.__class__.__name__, ','.join(args.keys())
             )
             raise ValueError(msg)
 
@@ -45,18 +40,27 @@ class PhonebookServicePlugin(BaseServicePlugin):
 
 
 class _PhonebookService:
-
     def __init__(self, phonebook_crud, contact_crud, tenant_crud):
         self._phonebook_crud = phonebook_crud
         self._contact_crud = contact_crud
         self._tenant_crud = tenant_crud
 
-    def list_contact(self, tenant_uuid, phonebook_id, limit=None, offset=None,
-                     order=None, direction=None, **params):
+    def list_contact(
+        self,
+        tenant_uuid,
+        phonebook_id,
+        limit=None,
+        offset=None,
+        order=None,
+        direction=None,
+        **params
+    ):
         results = self._contact_crud.list(tenant_uuid, phonebook_id, **params)
         if order:
             reverse = direction == 'desc'
-            results = sorted(results, key=lambda x: unidecode(x.get(order, '')), reverse=reverse)
+            results = sorted(
+                results, key=lambda x: unidecode(x.get(order, '')), reverse=reverse
+            )
         if offset:
             results = results[offset:]
         if limit:
@@ -116,7 +120,9 @@ class _PhonebookService:
             except InvalidContactException:
                 errors.append(contact)
 
-        created, failed = self._contact_crud.create_many(tenant_uuid, phonebook_id, to_add)
+        created, failed = self._contact_crud.create_many(
+            tenant_uuid, phonebook_id, to_add
+        )
 
         return created, failed + errors
 

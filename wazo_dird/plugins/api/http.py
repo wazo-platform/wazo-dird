@@ -23,7 +23,9 @@ class ApiResource(ErrorCatchingResource):
         for module in iter_entry_points(group=self.api_entry_point):
             try:
                 plugin_package = module.module_name.rsplit('.', 1)[0]
-                spec = yaml.safe_load(resource_string(plugin_package, self.api_filename))
+                spec = yaml.safe_load(
+                    resource_string(plugin_package, self.api_filename)
+                )
                 if not spec:
                     logger.debug('plugin has no API spec: %s', plugin_package)
                 else:
@@ -31,14 +33,23 @@ class ApiResource(ErrorCatchingResource):
             except ImportError:
                 logger.debug('failed to import %s', plugin_package)
             except IOError:
-                logger.debug('API spec for module "%s" does not exist', module.module_name)
+                logger.debug(
+                    'API spec for module "%s" does not exist', module.module_name
+                )
             except IndexError:
-                logger.debug('Could not find API spec from module "%s"', module.module_name)
+                logger.debug(
+                    'Could not find API spec from module "%s"', module.module_name
+                )
             except NotImplementedError:
-                logger.debug('Are you sure you have an __init__ file in your module "%s"?', module.module_name)
+                logger.debug(
+                    'Are you sure you have an __init__ file in your module "%s"?',
+                    module.module_name,
+                )
         api_spec = ChainMap(*specs)
 
         if not api_spec.get('info'):
             return {'error': "API spec does not exist"}, 404
 
-        return make_response(yaml.dump(dict(api_spec)), 200, {'Content-Type': 'application/x-yaml'})
+        return make_response(
+            yaml.dump(dict(api_spec)), 200, {'Content-Type': 'application/x-yaml'}
+        )
