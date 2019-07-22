@@ -2,19 +2,7 @@
     templates:
       - wazo-tox-linters
       - wazo-tox-py35
-    check:
-      jobs:
-        - dird-tox-integration:
-            nodeset: debian9-vm
-    gate:
-      jobs:
-        - dird-tox-integration:
-            nodeset: debian9-vm
-
-- job:
-    name: dird-tox-integration
-    description: Run dird integration tests
-    parent: wazo-tox-integration
-    timeout: 10800
-    vars:
-      integration_test_timeout: 60
+      - tox-integration:
+          timeout: 10800
+          vars:
+            integration_test_timeout: 60
