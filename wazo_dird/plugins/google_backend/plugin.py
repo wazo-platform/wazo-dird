@@ -8,11 +8,7 @@ from wazo_dird.helpers import BaseBackendView
 
 from .exceptions import GoogleTokenNotFoundException
 from . import services
-from .http import (
-    GoogleContactList,
-    GoogleItem,
-    GoogleList,
-)
+from .http import GoogleContactList, GoogleItem, GoogleList
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +36,6 @@ class GoogleViewPlugin(BaseBackendView):
 
 
 class GooglePlugin(BaseSourcePlugin):
-
     def load(self, dependencies):
         config = dependencies['config']
         self.auth = config['auth']
@@ -52,15 +47,12 @@ class GooglePlugin(BaseSourcePlugin):
         if 'reverse' not in format_columns:
             logger.info(
                 'no "reverse" column has been configured on %s will use "name"',
-                self.name
+                self.name,
             )
             format_columns['reverse'] = '{name}'
 
         self._SourceResult = make_result_class(
-            'google',
-            self.name,
-            self.unique_column,
-            format_columns,
+            'google', self.name, self.unique_column, format_columns
         )
 
         self._searched_columns = config.get(self.SEARCHED_COLUMNS, [])
@@ -86,7 +78,9 @@ class GooglePlugin(BaseSourcePlugin):
 
         contacts = self.google.get_contacts_with_term(google_token, term)
         lowered_term = term.lower()
-        filtered_contacts = [c for c in contacts if self._search_match_predicate(c, lowered_term)]
+        filtered_contacts = [
+            c for c in contacts if self._search_match_predicate(c, lowered_term)
+        ]
 
         return [self._SourceResult(c) for c in filtered_contacts]
 

@@ -37,22 +37,27 @@ class BaseGoogleCRUDTestCase(BaseDirdIntegrationTest):
 
 
 class TestDelete(BaseGoogleCRUDTestCase):
-
     @fixtures.google_source()
     def test_delete(self, source):
         assert_that(
-            calling(self.client.backends.delete_source).with_args('google', source['uuid']),
+            calling(self.client.backends.delete_source).with_args(
+                'google', source['uuid']
+            ),
             not_(raises(Exception)),
         )
         assert_that(
-            calling(self.client.backends.get_source).with_args('google', source['uuid']),
-            raises(Exception).matching(HTTP_404)
+            calling(self.client.backends.get_source).with_args(
+                'google', source['uuid']
+            ),
+            raises(Exception).matching(HTTP_404),
         )
 
     def test_delete_unknown(self):
         assert_that(
-            calling(self.client.backends.delete_source).with_args('google', UNKNOWN_UUID),
-            raises(Exception).matching(HTTP_404)
+            calling(self.client.backends.delete_source).with_args(
+                'google', UNKNOWN_UUID
+            ),
+            raises(Exception).matching(HTTP_404),
         )
 
     @fixtures.google_source(token=VALID_TOKEN_MAIN_TENANT)
@@ -62,25 +67,28 @@ class TestDelete(BaseGoogleCRUDTestCase):
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
         assert_that(
-            calling(sub_tenant_client.backends.delete_source).with_args('google', main['uuid']),
-            raises(Exception).matching(HTTP_404)
+            calling(sub_tenant_client.backends.delete_source).with_args(
+                'google', main['uuid']
+            ),
+            raises(Exception).matching(HTTP_404),
         )
 
         assert_that(
             calling(main_tenant_client.backends.delete_source).with_args(
-                'google', main['uuid'], tenant_uuid=SUB_TENANT,
+                'google', main['uuid'], tenant_uuid=SUB_TENANT
             ),
-            raises(Exception).matching(HTTP_404)
+            raises(Exception).matching(HTTP_404),
         )
 
         assert_that(
-            calling(main_tenant_client.backends.delete_source).with_args('google', sub['uuid']),
+            calling(main_tenant_client.backends.delete_source).with_args(
+                'google', sub['uuid']
+            ),
             not_(raises(Exception)),
         )
 
 
 class TestGet(BaseGoogleCRUDTestCase):
-
     @fixtures.google_source()
     def test_get(self, source):
         assert_that(self.get(self.client, source['uuid']), equal_to(source))
@@ -104,7 +112,9 @@ class TestGet(BaseGoogleCRUDTestCase):
         )
 
         assert_that(
-            calling(self.get).with_args(main_client, main['uuid'], tenant_uuid=SUB_TENANT),
+            calling(self.get).with_args(
+                main_client, main['uuid'], tenant_uuid=SUB_TENANT
+            ),
             raises(Exception).matching(HTTP_404),
         )
 
@@ -113,7 +123,6 @@ class TestGet(BaseGoogleCRUDTestCase):
 
 
 class TestList(BaseGoogleCRUDTestCase):
-
     def list_(self, *args, **kwargs):
         return self.client.backends.list_sources('google', *args, **kwargs)
 
@@ -121,57 +130,48 @@ class TestList(BaseGoogleCRUDTestCase):
     @fixtures.google_source(name='bcd')
     @fixtures.google_source(name='cde')
     def test_searches(self, c, b, a):
-        assert_that(self.list_(), has_entries(
-            items=contains_inanyorder(a, b, c),
-            total=3,
-            filtered=3,
-        ))
+        assert_that(
+            self.list_(),
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
+        )
 
-        assert_that(self.list_(name='abc'), has_entries(
-            items=contains(a),
-            total=3,
-            filtered=1,
-        ))
+        assert_that(
+            self.list_(name='abc'), has_entries(items=contains(a), total=3, filtered=1)
+        )
 
-        assert_that(self.list_(uuid=c['uuid']), has_entries(
-            items=contains(c),
-            total=3,
-            filtered=1,
-        ))
+        assert_that(
+            self.list_(uuid=c['uuid']),
+            has_entries(items=contains(c), total=3, filtered=1),
+        )
 
-        assert_that(self.list_(search='b'), has_entries(
-            items=contains_inanyorder(a, b),
-            total=3,
-            filtered=2,
-        ))
+        assert_that(
+            self.list_(search='b'),
+            has_entries(items=contains_inanyorder(a, b), total=3, filtered=2),
+        )
 
     @fixtures.google_source(name='abc')
     @fixtures.google_source(name='bcd')
     @fixtures.google_source(name='cde')
     def test_pagination(self, c, b, a):
-        assert_that(self.list_(order='name'), has_entries(
-            items=contains(a, b, c),
-            total=3,
-            filtered=3,
-        ))
+        assert_that(
+            self.list_(order='name'),
+            has_entries(items=contains(a, b, c), total=3, filtered=3),
+        )
 
-        assert_that(self.list_(order='name', direction='desc'), has_entries(
-            items=contains(c, b, a),
-            total=3,
-            filtered=3,
-        ))
+        assert_that(
+            self.list_(order='name', direction='desc'),
+            has_entries(items=contains(c, b, a), total=3, filtered=3),
+        )
 
-        assert_that(self.list_(order='name', limit=2), has_entries(
-            items=contains(a, b),
-            total=3,
-            filtered=3,
-        ))
+        assert_that(
+            self.list_(order='name', limit=2),
+            has_entries(items=contains(a, b), total=3, filtered=3),
+        )
 
-        assert_that(self.list_(order='name', offset=2), has_entries(
-            items=contains(c),
-            total=3,
-            filtered=3,
-        ))
+        assert_that(
+            self.list_(order='name', offset=2),
+            has_entries(items=contains(c), total=3, filtered=3),
+        )
 
     @fixtures.google_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.google_source(name='bcd', token=VALID_TOKEN_MAIN_TENANT)
@@ -182,47 +182,27 @@ class TestList(BaseGoogleCRUDTestCase):
 
         assert_that(
             main_tenant_client.backends.list_sources('google'),
-            has_entries(
-                items=contains_inanyorder(a, b),
-                total=2,
-                filtered=2,
-            )
+            has_entries(items=contains_inanyorder(a, b), total=2, filtered=2),
         )
 
         assert_that(
             main_tenant_client.backends.list_sources('google', recurse=True),
-            has_entries(
-                items=contains_inanyorder(a, b, c),
-                total=3,
-                filtered=3,
-            )
+            has_entries(items=contains_inanyorder(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             main_tenant_client.backends.list_sources('google', tenant_uuid=SUB_TENANT),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
         assert_that(
             sub_tenant_client.backends.list_sources('google'),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
         assert_that(
             sub_tenant_client.backends.list_sources('google', recurse=True),
-            has_entries(
-                items=contains_inanyorder(c),
-                total=1,
-                filtered=1,
-            )
+            has_entries(items=contains_inanyorder(c), total=1, filtered=1),
         )
 
 
@@ -235,30 +215,34 @@ class TestPost(BaseGoogleCRUDTestCase):
             self.client.backends.create_source('google', {})
         except Exception as e:
             assert_that(e.response.status_code, equal_to(400))
-            assert_that(e.response.json(), has_entries(
-                message=ANY,
-                error_id='invalid-data',
-                details=has_entries(name=ANY),
-            ))
+            assert_that(
+                e.response.json(),
+                has_entries(
+                    message=ANY, error_id='invalid-data', details=has_entries(name=ANY)
+                ),
+            )
         else:
             self.fail('Should have raised')
 
     def test_minimal_body(self):
         with self.source(self.client, self.valid_body) as source:
-            assert_that(source, has_entries(
-                uuid=uuid_(),
-                name='google',
-                auth=has_entries(
-                    host='localhost',
-                    port=9497,
-                    verify_certificate=True,
+            assert_that(
+                source,
+                has_entries(
+                    uuid=uuid_(),
+                    name='google',
+                    auth=has_entries(
+                        host='localhost', port=9497, verify_certificate=True
+                    ),
                 ),
-            ))
+            )
 
     def test_duplicate(self):
         with self.source(self.client, self.valid_body):
             assert_that(
-                calling(self.client.backends.create_source).with_args('google', self.valid_body),
+                calling(self.client.backends.create_source).with_args(
+                    'google', self.valid_body
+                ),
                 raises(Exception).matching(HTTP_409),
             )
 
@@ -269,7 +253,9 @@ class TestPost(BaseGoogleCRUDTestCase):
         with self.source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        with self.source(main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT) as result:
+        with self.source(
+            main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT
+        ) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
         with self.source(sub_tenant_client, self.valid_body) as result:
@@ -277,7 +263,7 @@ class TestPost(BaseGoogleCRUDTestCase):
 
         assert_that(
             calling(sub_tenant_client.backends.create_source).with_args(
-                'google', self.valid_body, tenant_uuid=MAIN_TENANT,
+                'google', self.valid_body, tenant_uuid=MAIN_TENANT
             ),
             raises(Exception).matching(HTTP_401),
         )
@@ -285,7 +271,7 @@ class TestPost(BaseGoogleCRUDTestCase):
         with self.source(main_tenant_client, self.valid_body):
             assert_that(
                 calling(sub_tenant_client.backends.create_source).with_args(
-                    'google', self.valid_body,
+                    'google', self.valid_body
                 ),
                 not_(raises(Exception)),
             )
@@ -316,7 +302,7 @@ class TestPut(BaseGoogleCRUDTestCase):
             'phone': '{numbers[0]}',
             'phone_mobile': '{numbers[mobile]}',
             'email': '{emails[0]}',
-        }
+        },
     }
 
     @fixtures.google_source(name='foobar')
@@ -341,10 +327,8 @@ class TestPut(BaseGoogleCRUDTestCase):
         assert_that(
             self.client.backends.get_source('google', foobar['uuid']),
             has_entries(
-                uuid=foobar['uuid'],
-                tenant_uuid=foobar['tenant_uuid'],
-                name='new',
-            )
+                uuid=foobar['uuid'], tenant_uuid=foobar['tenant_uuid'], name='new'
+            ),
         )
 
     @fixtures.google_source(token=VALID_TOKEN_MAIN_TENANT)
@@ -365,7 +349,7 @@ class TestPut(BaseGoogleCRUDTestCase):
 
         assert_that(
             calling(self.edit).with_args(
-                main_client, main['uuid'], self.new_body, tenant_uuid=SUB_TENANT,
+                main_client, main['uuid'], self.new_body, tenant_uuid=SUB_TENANT
             ),
             raises(Exception).matching(HTTP_404),
         )

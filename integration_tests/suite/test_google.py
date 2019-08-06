@@ -3,12 +3,7 @@
 
 import requests
 
-from hamcrest import (
-    assert_that,
-    contains,
-    has_entries,
-    has_item,
-)
+from hamcrest import assert_that, contains, has_entries, has_item
 
 from xivo_test_helpers.auth import AuthClient as AuthMock
 
@@ -24,30 +19,60 @@ GOOGLE_CONTACT_LIST = {
         "openSearch$itemsPerPage": {"$t": "10000"},
         "entry": [
             {
-                "id": {"$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/20aec7728b4f316b"},
+                "id": {
+                    "$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/20aec7728b4f316b"
+                },
                 "title": {"$t": "Mario Bros", "type": "text"},
-                "gd$email":[
-                    {"address": "mario@bros.example.com", "rel": "http://schemas.google.com/g/2005#other"},
+                "gd$email": [
+                    {
+                        "address": "mario@bros.example.com",
+                        "rel": "http://schemas.google.com/g/2005#other",
+                    }
                 ],
                 "gd$phoneNumber": [
-                    {"rel": "http://schemas.google.com/g/2005#mobile", "uri": "tel:+1-555-555-1234", "$t": "+1 555-555-1234"},
-                    {"rel": "http://schemas.google.com/g/2005#home", "uri": "tel:+1-555-555-1111", "$t": "+1 5555551111"},
+                    {
+                        "rel": "http://schemas.google.com/g/2005#mobile",
+                        "uri": "tel:+1-555-555-1234",
+                        "$t": "+1 555-555-1234",
+                    },
+                    {
+                        "rel": "http://schemas.google.com/g/2005#home",
+                        "uri": "tel:+1-555-555-1111",
+                        "$t": "+1 5555551111",
+                    },
                 ],
             },
             {
-                "id": {"$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/72b6b4840bf772e6"},
+                "id": {
+                    "$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/72b6b4840bf772e6"
+                },
                 "title": {"$t": "Luigi Bros", "type": "text"},
                 "gd$email": [
-                    {"address": "Luigi@bros.example.com", "rel": "http://schemas.google.com/g/2005#home"},
+                    {
+                        "address": "Luigi@bros.example.com",
+                        "rel": "http://schemas.google.com/g/2005#home",
+                    },
                     {"address": "luigi_bros@caramail.com", "label": "Old school"},
                 ],
                 "gd$phoneNumber": [
-                    {"rel": "http://schemas.google.com/g/2005#mobile", "uri": "tel:+1-555-555-4567", "$t": "+1 555-555-4567"},
-                    {"rel": "http://schemas.google.com/g/2005#home", "uri": "tel:+1-555-555-1111", "$t": "+1 5555551111"},
-                    {"label": "Mushroom land land-line", "uri": "tel:+1-555-555-2222", "$t": "(555) 555-2222"},
+                    {
+                        "rel": "http://schemas.google.com/g/2005#mobile",
+                        "uri": "tel:+1-555-555-4567",
+                        "$t": "+1 555-555-4567",
+                    },
+                    {
+                        "rel": "http://schemas.google.com/g/2005#home",
+                        "uri": "tel:+1-555-555-1111",
+                        "$t": "+1 5555551111",
+                    },
+                    {
+                        "label": "Mushroom land land-line",
+                        "uri": "tel:+1-555-555-2222",
+                        "$t": "(555) 555-2222",
+                    },
                 ],
-            }
-        ]
+            },
+        ],
     }
 }
 
@@ -58,7 +83,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
     GOOGLE_EXTERNAL_AUTH = {
         "access_token": "an-access-token",
         "scope": "a-scope",
-        "token_expiration": 42
+        "token_expiration": 42,
     }
 
     @classmethod
@@ -66,11 +91,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
         super().setUpClass()
         client = cls.get_client()
         source_body = {
-            'auth': {
-                'host': 'auth',
-                'port': 9497,
-                'verify_certificate': False,
-            },
+            'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
             'first_matched_columns': ['numbers'],
             'format_columns': {
                 'phone_mobile': '{numbers_by_label[mobile]}',
@@ -79,11 +100,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
                 'reverse': '{name}',
             },
             'name': 'google',
-            'searched_columns': [
-                "name",
-                "emails",
-                "numbers",
-            ],
+            'searched_columns': ["name", "emails", "numbers"],
         }
         display_body = {
             'name': 'default',
@@ -112,7 +129,9 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
         cls.display_uuid = display['uuid']
         cls.profile_uuid = profile['uuid']
 
-        cls.auth_client_mock = AuthMock(host='0.0.0.0', port=cls.service_port(9497, 'auth'))
+        cls.auth_client_mock = AuthMock(
+            host='0.0.0.0', port=cls.service_port(9497, 'auth')
+        )
         cls.auth_client_mock.set_external_auth(cls.GOOGLE_EXTERNAL_AUTH)
 
     @classmethod
@@ -128,20 +147,23 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
     def test_plugin_lookup(self, google_api):
         result = self.client.directories.lookup(term='mario', profile='default')
 
-        assert_that(result, has_entries(
-            results=contains(
-                has_entries(
-                    backend='google',
-                    source='google',
-                    column_values=contains(
-                        'Mario Bros',
-                        'mario@bros.example.com',
-                        '+15555551111',
-                        '+15555551234',
-                    ),
-                ),
+        assert_that(
+            result,
+            has_entries(
+                results=contains(
+                    has_entries(
+                        backend='google',
+                        source='google',
+                        column_values=contains(
+                            'Mario Bros',
+                            'mario@bros.example.com',
+                            '+15555551111',
+                            '+15555551234',
+                        ),
+                    )
+                )
             ),
-        ))
+        )
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST)
     def test_plugin_favorites(self, google_api):
@@ -153,18 +175,17 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
         self.client.directories.new_favorite(source, id_)
 
         result = self.client.directories.favorites(profile='default')
-        assert_that(result, has_entries(
-            results=contains(
-                has_entries(column_values=has_item('Luigi Bros')),
+        assert_that(
+            result,
+            has_entries(
+                results=contains(has_entries(column_values=has_item('Luigi Bros')))
             ),
-        ))
+        )
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST)
     def test_plugin_reverse(self, google_api):
         response = self.client.directories.reverse(
-            exten='+15555551234',
-            profile='default',
-            xivo_user_uuid='uuid-tenant-master',
+            exten='+15555551234', profile='default', xivo_user_uuid='uuid-tenant-master'
         )
 
         assert_that(response, has_entries(display='Mario Bros'))

@@ -1,13 +1,7 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    calling,
-    contains,
-    contains_inanyorder,
-    has_entries,
-)
+from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
 
 from xivo_test_helpers.auth import AuthClient as AuthMock
 from xivo_test_helpers.hamcrest.raises import raises
@@ -29,30 +23,60 @@ GOOGLE_CONTACT_LIST = {
         "openSearch$itemsPerPage": {"$t": "10000"},
         "entry": [
             {
-                "id": {"$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/20aec7728b4f316b"},
+                "id": {
+                    "$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/20aec7728b4f316b"
+                },
                 "title": {"$t": "Mario Bros", "type": "text"},
-                "gd$email":[
-                    {"address": "mario@bros.example.com", "rel": "http://schemas.google.com/g/2005#other"},
+                "gd$email": [
+                    {
+                        "address": "mario@bros.example.com",
+                        "rel": "http://schemas.google.com/g/2005#other",
+                    }
                 ],
                 "gd$phoneNumber": [
-                    {"rel": "http://schemas.google.com/g/2005#mobile", "uri": "tel:+1-555-555-1234", "$t": "+1 555-555-1234"},
-                    {"rel": "http://schemas.google.com/g/2005#home", "uri": "tel:+1-555-555-1111", "$t": "+1 5555551111"},
+                    {
+                        "rel": "http://schemas.google.com/g/2005#mobile",
+                        "uri": "tel:+1-555-555-1234",
+                        "$t": "+1 555-555-1234",
+                    },
+                    {
+                        "rel": "http://schemas.google.com/g/2005#home",
+                        "uri": "tel:+1-555-555-1111",
+                        "$t": "+1 5555551111",
+                    },
                 ],
             },
             {
-                "id": {"$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/72b6b4840bf772e6"},
+                "id": {
+                    "$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/72b6b4840bf772e6"
+                },
                 "title": {"$t": "Luigi Bros", "type": "text"},
                 "gd$email": [
-                    {"address": "Luigi@bros.example.com", "rel": "http://schemas.google.com/g/2005#home"},
+                    {
+                        "address": "Luigi@bros.example.com",
+                        "rel": "http://schemas.google.com/g/2005#home",
+                    },
                     {"address": "luigi_bros@caramail.com", "label": "Old school"},
                 ],
                 "gd$phoneNumber": [
-                    {"rel": "http://schemas.google.com/g/2005#mobile", "uri": "tel:+1-555-555-4567", "$t": "+1 555-555-4567"},
-                    {"rel": "http://schemas.google.com/g/2005#home", "uri": "tel:+1-555-555-1111", "$t": "+1 5555551111"},
-                    {"label": "Mushroom land land-line", "uri": "tel:+1-555-555-2222", "$t": "(555) 555-2222"},
+                    {
+                        "rel": "http://schemas.google.com/g/2005#mobile",
+                        "uri": "tel:+1-555-555-4567",
+                        "$t": "+1 555-555-4567",
+                    },
+                    {
+                        "rel": "http://schemas.google.com/g/2005#home",
+                        "uri": "tel:+1-555-555-1111",
+                        "$t": "+1 5555551111",
+                    },
+                    {
+                        "label": "Mushroom land land-line",
+                        "uri": "tel:+1-555-555-2222",
+                        "$t": "(555) 555-2222",
+                    },
                 ],
-            }
-        ]
+            },
+        ],
     }
 }
 
@@ -62,7 +86,7 @@ class BaseGoogleAssetTestCase(BaseDirdIntegrationTest):
     GOOGLE_EXTERNAL_AUTH = {
         "access_token": "an-access-token",
         "scope": "a-scope",
-        "token_expiration": 42
+        "token_expiration": 42,
     }
 
 
@@ -107,50 +131,49 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
         )
 
         assert_that(
-            calling(self.list_).with_args(main_client, main['uuid'], tenant_uuid=SUB_TENANT),
+            calling(self.list_).with_args(
+                main_client, main['uuid'], tenant_uuid=SUB_TENANT
+            ),
             raises(Exception).matching(HTTP_404),
         )
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST)
     def test_list(self, google_api):
         result = self.list_(self.client, self.source_uuid)
-        assert_that(result, has_entries(
-            items=contains_inanyorder(
-                has_entries(
-                    name='Mario Bros',
-                    emails=contains_inanyorder(
-                        'mario@bros.example.com',
+        assert_that(
+            result,
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(
+                        name='Mario Bros',
+                        emails=contains_inanyorder('mario@bros.example.com'),
+                        numbers=contains_inanyorder('+15555551111', '+15555551234'),
+                        numbers_by_label=has_entries(
+                            home='+15555551111', mobile='+15555551234'
+                        ),
                     ),
-                    numbers=contains_inanyorder(
-                        '+15555551111',
-                        '+15555551234',
-                    ),
-                    numbers_by_label=has_entries(
-                        home='+15555551111',
-                        mobile='+15555551234',
-                    ),
-                ),
-                has_entries(
-                    name='Luigi Bros',
-                    emails=contains_inanyorder(
-                        'Luigi@bros.example.com',
-                        'luigi_bros@caramail.com',
-                    ),
-                    numbers=contains_inanyorder(
-                        '5555552222',
-                        '+15555551111',
-                        '+15555554567',
-                    ),
-                    numbers_by_label=has_entries(
-                        'Mushroom land land-line', '5555552222',
-                        'home', '+15555551111',
-                        'mobile', '+15555554567',
+                    has_entries(
+                        name='Luigi Bros',
+                        emails=contains_inanyorder(
+                            'Luigi@bros.example.com', 'luigi_bros@caramail.com'
+                        ),
+                        numbers=contains_inanyorder(
+                            '5555552222', '+15555551111', '+15555554567'
+                        ),
+                        numbers_by_label=has_entries(
+                            'Mushroom land land-line',
+                            '5555552222',
+                            'home',
+                            '+15555551111',
+                            'mobile',
+                            '+15555554567',
+                        ),
                     ),
                 ),
+                total=2,
+                filtered=2,
             ),
-            total=2,
-            filtered=2,
-        ))
+        )
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST)
     def test_pagination(self, google_api):
@@ -184,12 +207,8 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             {
                 'method': 'GET',
                 'path': '/m8/feeds/contacts/default/full',
-                'headers': {
-                    'Authorization': ['Bearer an-access-token'],
-                },
-                'queryStringParameters': {
-                    'q': ['mario'],
-                },
+                'headers': {'Authorization': ['Bearer an-access-token']},
+                'queryStringParameters': {'q': ['mario']},
             }
         )
 

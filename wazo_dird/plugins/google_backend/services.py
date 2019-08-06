@@ -36,15 +36,14 @@ class GoogleService:
 
     def _fetch(self, google_token, term=None):
         headers = self.headers(google_token)
-        query_params = {
-            'alt': 'json',
-            'max-results': 1000,
-        }
+        query_params = {'alt': 'json', 'max-results': 1000}
         if term:
             query_params['q'] = term
 
         # TODO find a way to remove this verify = False
-        response = requests.get(self.url, headers=headers, params=query_params, verify=False)
+        response = requests.get(
+            self.url, headers=headers, params=query_params, verify=False
+        )
         if response.status_code != 200:
             return []
 
@@ -91,7 +90,8 @@ def get_google_access_token(user_uuid, wazo_token, **auth_config):
     except requests.exceptions.ConnectionError as e:
         logger.error(
             'Unable to connect auth-client for the given parameters: %s, error: %s.',
-            auth_config, e,
+            auth_config,
+            e,
         )
         raise GoogleTokenNotFoundException(user_uuid)
     except requests.RequestException as e:

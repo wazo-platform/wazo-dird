@@ -9,12 +9,7 @@ from wazo_dird.helpers import SourceItem, SourceList
 from wazo_dird.rest_api import AuthResource
 from xivo.tenant_flask_helpers import Tenant, token
 
-from .schemas import (
-    contact_list_schema,
-    list_schema,
-    source_list_schema,
-    source_schema,
-)
+from .schemas import contact_list_schema, list_schema, source_list_schema, source_schema
 from .services import GoogleService, get_google_access_token
 
 logger = logging.getLogger(__name__)
@@ -38,15 +33,13 @@ class GoogleContactList(AuthResource):
         list_params, errors = contact_list_schema.load(request.args)
 
         source = self.source_service.get(self.BACKEND, source_uuid, [tenant.uuid])
-        google_token = get_google_access_token(user_uuid, token_from_request, **source['auth'])
+        google_token = get_google_access_token(
+            user_uuid, token_from_request, **source['auth']
+        )
 
         contacts, total = self.google.get_contacts(google_token, **list_params)
 
-        return {
-            'filtered': total,
-            'items': contacts,
-            'total': total,
-        }, 200
+        return {'filtered': total, 'items': contacts, 'total': total}, 200
 
 
 class GoogleList(SourceList):

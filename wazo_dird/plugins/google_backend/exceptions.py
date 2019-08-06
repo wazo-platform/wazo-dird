@@ -10,7 +10,5 @@ class GoogleTokenNotFoundException(APIException):
 
     def __init__(self, user_uuid):
         message = 'No google token found.'
-        details = {
-            'user_uuid': user_uuid,
-        }
+        details = {'user_uuid': user_uuid}
         super().__init__(self.code, message, 'no-token-found', details)

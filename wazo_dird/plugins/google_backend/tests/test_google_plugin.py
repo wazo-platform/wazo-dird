@@ -3,13 +3,7 @@
 
 from unittest import TestCase
 
-from hamcrest import (
-    assert_that,
-    calling,
-    equal_to,
-    not_,
-    raises,
-)
+from hamcrest import assert_that, calling, equal_to, not_, raises
 
 from ..plugin import GooglePlugin
 
@@ -18,9 +12,7 @@ class TestGooglePlugin(TestCase):
 
     DEPENDENCIES = {
         'config': {
-            'auth': {
-                'host': '9497',
-            },
+            'auth': {'host': '9497'},
             'name': 'google',
             'user_agent': 'luigi',
             'first_matched_columns': ['numbers'],
@@ -30,7 +22,7 @@ class TestGooglePlugin(TestCase):
                 'phone_mobile': "{numbers_by_label[mobile]}",
                 'phone': '{numbers[0]}',
             },
-        },
+        }
     }
 
     def setUp(self):
@@ -39,7 +31,7 @@ class TestGooglePlugin(TestCase):
     def test_load(self):
         assert_that(
             calling(self.source.load).with_args(self.DEPENDENCIES),
-            not_(raises(Exception))
+            not_(raises(Exception)),
         )
 
     def test_first_match_predicate(self):
@@ -47,10 +39,7 @@ class TestGooglePlugin(TestCase):
 
         term = '5555551234'
 
-        mario = {
-            'name': 'Mario Bros',
-            'numbers': {},
-        }
+        mario = {'name': 'Mario Bros', 'numbers': {}}
         luigi = {
             'name': 'Luigi Bros',
             'numbers_by_label': {'mobile': '5555551234'},
@@ -58,17 +47,13 @@ class TestGooglePlugin(TestCase):
         }
         peach = {
             'name': 'Peach',
-            'numbers_by_label': {
-                'mobile': '5555551234',
-                'business': '4185553212',
-            },
-            'numbers': [
-                '5555551234',
-                '4185553212',
-            ],
+            'numbers_by_label': {'mobile': '5555551234', 'business': '4185553212'},
+            'numbers': ['5555551234', '4185553212'],
         }
 
         assert_that(self.source._first_match_predicate(term, mario), equal_to(False))
         assert_that(self.source._first_match_predicate(term, luigi), equal_to(True))
         assert_that(self.source._first_match_predicate(term, peach), equal_to(True))
-        assert_that(self.source._first_match_predicate(term[:-1], peach), equal_to(False))
+        assert_that(
+            self.source._first_match_predicate(term[:-1], peach), equal_to(False)
+        )

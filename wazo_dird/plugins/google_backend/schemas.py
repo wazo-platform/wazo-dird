@@ -3,11 +3,7 @@
 
 from xivo.mallow_helpers import ListSchema as _ListSchema
 from xivo.mallow.validate import Range
-from wazo_dird.schemas import (
-    BaseSchema,
-    BaseSourceSchema,
-    VerifyCertificateField,
-)
+from wazo_dird.schemas import BaseSchema, BaseSourceSchema, VerifyCertificateField
 from xivo.mallow import fields
 
 from xivo.mallow.validate import Length

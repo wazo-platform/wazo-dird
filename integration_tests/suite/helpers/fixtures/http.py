@@ -12,13 +12,8 @@ from ..constants import VALID_TOKEN_MAIN_TENANT
 
 
 class UnVerifiedMockServerClient(BaseMockServerClient):
-
     def _put(self, endpoint, json=None):
-        response = requests.put(
-            self.url + endpoint,
-            json=json,
-            verify=False,
-        )
+        response = requests.put(self.url + endpoint, json=json, verify=False)
         return response
 
 
@@ -138,11 +133,11 @@ def google_result(contact_list):
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             google_port = self.service_port(443, 'google.com')
-            mock_server = UnVerifiedMockServerClient('https://localhost:{}'.format(google_port))
+            mock_server = UnVerifiedMockServerClient(
+                'https://localhost:{}'.format(google_port)
+            )
             expectation = mock_server.create_expectation(
-                '/m8/feeds/contacts/default/full',
-                contact_list,
-                200,
+                '/m8/feeds/contacts/default/full', contact_list, 200
             )
             expectation['times']['unlimited'] = True
             mock_server.mock_any_response(expectation)
@@ -151,27 +146,24 @@ def google_result(contact_list):
             finally:
                 mock_server.reset()
             return result
+
         return wrapper
+
     return decorator
 
 
 def google_source(**source_args):
     def decorator(decorated):
-
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             source_args.setdefault('name', random_string())
             source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
             source_args.setdefault(
-                'auth',
-                {'host': 'auth', 'port': 9497, 'verify_certificate': False},
+                'auth', {'host': 'auth', 'port': 9497, 'verify_certificate': False}
             )
 
             client = self.get_client(source_args['token'])
-            source = client.backends.create_source(
-                backend='google',
-                body=source_args,
-            )
+            source = client.backends.create_source(backend='google', body=source_args)
 
             try:
                 result = decorated(self, source, *args, **kwargs)
@@ -184,7 +176,9 @@ def google_source(**source_args):
                     if status_code != 404:
                         raise
             return result
+
         return wrapper
+
     return decorator
 
 
