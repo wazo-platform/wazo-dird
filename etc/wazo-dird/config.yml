@@ -65,6 +65,7 @@ enabled_plugins:
     conference: true
     csv: true
     csv_ws: true
+    google: true
     phonebook: true
     office365: true
     ldap: true
@@ -82,6 +83,7 @@ enabled_plugins:
     default_json: true
     displays_view: true
     gigaset_view: true
+    google_view: true
     headers_view: true
     htek_view: true
     ldap_backend: true
