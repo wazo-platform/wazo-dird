@@ -89,7 +89,7 @@ class _BaseSourceResource(AuthResource):
 
 class SourceList(_BaseSourceResource):
     def get(self):
-        list_params, errors = self.list_schema.load(request.args)
+        list_params = self.list_schema.load(request.args)
         tenant = Tenant.autodetect()
         if list_params['recurse']:
             visible_tenants = self.get_visible_tenants(tenant.uuid)
@@ -97,7 +97,7 @@ class SourceList(_BaseSourceResource):
             visible_tenants = [tenant.uuid]
 
         sources = self._service.list_(self._backend, visible_tenants, **list_params)
-        items, errors = self.source_list_schema.dump(sources)
+        items = self.source_list_schema.dump(sources)
         filtered = self._service.count(self._backend, visible_tenants, **list_params)
         total = self._service.count(self._backend, visible_tenants)
 
@@ -105,7 +105,7 @@ class SourceList(_BaseSourceResource):
 
     def post(self):
         tenant = Tenant.autodetect()
-        args = self.source_schema.load(request.get_json()).data
+        args = self.source_schema.load(request.get_json())
         body = self._service.create(self._backend, tenant_uuid=tenant.uuid, **args)
         return self.source_schema.dump(body)
 
@@ -126,7 +126,7 @@ class SourceItem(_BaseSourceResource):
     def put(self, source_uuid):
         tenant = Tenant.autodetect()
         visible_tenants = self.get_visible_tenants(tenant.uuid)
-        args = self.source_schema.load(request.get_json()).data
+        args = self.source_schema.load(request.get_json())
         self._service.edit(self._backend, source_uuid, visible_tenants, args)
         return '', 204
 

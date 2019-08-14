@@ -62,7 +62,7 @@ class TestContactSchema(TestCase):
             },
         ]
 
-        result = contact_list_schema.dump(raw).data
+        result = contact_list_schema.dump(raw)
 
         assert_that(
             result,

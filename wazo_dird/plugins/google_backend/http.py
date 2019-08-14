@@ -30,7 +30,7 @@ class GoogleContactList(AuthResource):
         user_uuid = token.user_uuid
         token_from_request = request.headers.get('X-Auth-Token')
         tenant = Tenant.autodetect()
-        list_params, errors = contact_list_schema.load(request.args)
+        list_params = contact_list_schema.load(request.args)
 
         source = self.source_service.get(self.BACKEND, source_uuid, [tenant.uuid])
         google_token = get_google_access_token(

@@ -15,7 +15,7 @@ class SourceResource(AuthResource):
 
     @required_acl('dird.directories.{profile}.sources.read')
     def get(self, profile):
-        args, errors = ListSchema().load(request.args)
+        args = ListSchema().load(request.args)
         tenant_uuid = Tenant.autodetect().uuid
 
         count, filtered, sources = self._profile_service.get_sources_from_profile_name(
