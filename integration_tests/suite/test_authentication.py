@@ -5,7 +5,7 @@ from hamcrest import assert_that, contains_string, equal_to
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_auth_only_config
-from .helpers.constants import VALID_TOKEN_MAIN_TENANT, VALID_TOKEN_NO_ACL
+from .helpers.constants import VALID_TOKEN_MAIN_TENANT, VALID_TOKEN_NO_ACL, VALID_UUID
 
 
 class TestAuthentication(BaseDirdIntegrationTest):
@@ -62,6 +62,17 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
     def test_auth_on_lookup(self):
         result_1 = self.get_lookup_result('something', 'default')
         result_2 = self.get_lookup_result('something', 'default', VALID_TOKEN_NO_ACL)
+
+        assert_that(result_1.status_code, equal_to(401))
+        assert_that(result_2.status_code, equal_to(401))
+
+    def test_auth_on_lookup_user(self):
+        result_1 = self.get_lookup_user_result(
+            'something', 'default', VALID_UUID
+        )
+        result_2 = self.get_lookup_user_result(
+            'something', 'default', VALID_UUID, VALID_TOKEN_NO_ACL
+        )
 
         assert_that(result_1.status_code, equal_to(401))
         assert_that(result_2.status_code, equal_to(401))
