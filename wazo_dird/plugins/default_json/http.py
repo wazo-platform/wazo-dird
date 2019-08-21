@@ -14,7 +14,7 @@ from wazo_dird import auth
 from wazo_dird.exception import OldAPIException, NoSuchUser
 from wazo_dird.helpers import DisplayAwareResource
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import LegacyAuthResource
+from wazo_dird.rest_api import LegacyAuthResource, AuthResource
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
         return response
 
 
-class LookupByUUID(LegacyAuthResource, DisplayAwareResource):
+class LookupByUUID(AuthResource, DisplayAwareResource):
     def __init__(
         self, lookup_service, favorite_service, display_service, profile_service, auth_client
     ):
@@ -95,9 +95,8 @@ class LookupByUUID(LegacyAuthResource, DisplayAwareResource):
 
         logger.info('Lookup %s for user %s with profile %s', term, xivo_user_uuid, profile)
 
+        tenant_uuid = Tenant.autodetect().uuid
         try:
-            tenant_uuid = self._get_user_tenant_uuid(xivo_user_uuid)
-            logger.debug('Got tenant_uuid %s for user %s, profile %s', tenant_uuid, xivo_user_uuid, profile)
             profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
             display = self.build_display(profile_config)
         except OldAPIException as e:
