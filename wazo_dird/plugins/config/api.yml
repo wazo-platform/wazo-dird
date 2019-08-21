@@ -69,7 +69,7 @@ responses:
   NotFoundError:
     description: The resource requested was not found on the server
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/APIError'
   ResourceUpdated:
     description: Resource was updated successfully
   ResourceDeleted:
