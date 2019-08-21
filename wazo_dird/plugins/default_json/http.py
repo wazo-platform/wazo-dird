@@ -11,7 +11,7 @@ from requests.exceptions import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
-from wazo_dird.exception import OldAPIException, NoSuchUser
+from wazo_dird.exception import OldAPIException, NoSuchUser, NoSuchProfile, NoSuchProfileAPIException
 from wazo_dird.helpers import DisplayAwareResource
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import LegacyAuthResource, AuthResource
@@ -99,8 +99,8 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
         try:
             profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
             display = self.build_display(profile_config)
-        except OldAPIException as e:
-            return e.body, e.status_code
+        except NoSuchProfile as e:
+            raise NoSuchProfileAPIException(e.profile)
 
         token = request.headers['X-Auth-Token']
 
