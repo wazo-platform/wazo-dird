@@ -290,6 +290,10 @@ class TestLookupPersonal(PersonalOnlyTestCase):
             token=VALID_TOKEN_1,
         )
 
+    def tearDown(self):
+        self.purge_personal(token=VALID_TOKEN_1)
+        super().tearDown()
+
     def test_that_lookup_includes_personal_contacts(self):
         result = self.lookup('ali', 'default')
 
