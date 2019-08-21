@@ -45,15 +45,19 @@ class DirdAssetRunningTestCase(AssetLaunchingTestCase):
 
 class DBRunningTestCase(DirdAssetRunningTestCase):
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setup_db_session(cls):
         db_port = cls.service_port(5432, 'db')
         cls.db_uri = DB_URI_FMT.format(port=db_port)
         cls.engine = create_engine(cls.db_uri)
+        cls.Session = scoped_session(sessionmaker(bind=cls.engine))
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.setup_db_session()
         database.Base.metadata.bind = cls.engine
         database.Base.metadata.reflect()
         database.Base.metadata.create_all()
-        cls.Session = scoped_session(sessionmaker())
 
     @classmethod
     def tearDownClass(cls):
@@ -61,18 +65,16 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
             database.Base.metadata.drop_all()
         except Exception:
             pass
+        database.Base.metadata.bind = None
+        cls.engine.dispose()
         super().tearDownClass()
-
-    @classmethod
-    def new_db_client(cls):
-        db_port = cls.service_port(5432, 'db')
-        cls.db_uri = DB_URI_FMT.format(port=db_port)
-        return DBUserClient(cls.db_uri)
 
     @classmethod
     def restart_postgres(cls):
         cls.restart_service('db', signal='SIGINT')  # fast shutdown
-        database = cls.new_db_client()
+        cls.engine.dispose()
+        cls.setup_db_session()
+        database = DBUserClient(cls.db_uri)
         until.true(database.is_up, timeout=5, message='Postgres did not come back up')
 
 
