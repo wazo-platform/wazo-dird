@@ -43,7 +43,7 @@ paths:
 
         This route is provided by the `default_json_view` plugin using the `lookup`
         plugin and all configured sources for the given profile.'
-      operationId: lookup
+      operationId: lookup_user
       tags:
       - directories
       responses:
