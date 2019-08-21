@@ -148,7 +148,9 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def lookup_user(cls, term, profile, xivo_user_uuid, token=VALID_TOKEN_MAIN_TENANT):
-        response = cls.get_lookup_user_result(term, profile, xivo_user_uuid, token=token)
+        response = cls.get_lookup_user_result(
+            term, profile, xivo_user_uuid, token=token
+        )
         assert_that(response.status_code, equal_to(200))
         return response.json()
 

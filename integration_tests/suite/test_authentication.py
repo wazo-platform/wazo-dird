@@ -67,9 +67,7 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
         assert_that(result_2.status_code, equal_to(401))
 
     def test_auth_on_lookup_user(self):
-        result_1 = self.get_lookup_user_result(
-            'something', 'default', VALID_UUID
-        )
+        result_1 = self.get_lookup_user_result('something', 'default', VALID_UUID)
         result_2 = self.get_lookup_user_result(
             'something', 'default', VALID_UUID, VALID_TOKEN_NO_ACL
         )

@@ -49,7 +49,7 @@ class JsonViewPlugin(BaseViewPlugin):
                     display_service,
                     profile_service,
                     auth_client,
-                )
+                ),
             )
         else:
             logger.error('%s disabled: no service plugin `lookup`', self.lookup_url)

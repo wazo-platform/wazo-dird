@@ -268,8 +268,9 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         except Exception:
             pass
         valid_token_1 = MockUserToken(
-            token=VALID_TOKEN_1, user_uuid=VALID_UUID_1,
-            metadata={'uuid': VALID_UUID_1, 'tenant_uuid': tenant_uuid}
+            token=VALID_TOKEN_1,
+            user_uuid=VALID_UUID_1,
+            metadata={'uuid': VALID_UUID_1, 'tenant_uuid': tenant_uuid},
         )
         mock_auth_client.set_token(valid_token_1)
 
@@ -285,7 +286,8 @@ class TestLookupPersonal(PersonalOnlyTestCase):
             {'firstname': 'Elice', 'lastname': 'Wowo', 'number': '123456'}
         )
         self.post_personal(
-            {'firstname': 'William', 'lastname': 'Gates', 'number': '222222'}, token=VALID_TOKEN_1,
+            {'firstname': 'William', 'lastname': 'Gates', 'number': '222222'},
+            token=VALID_TOKEN_1,
         )
 
     def test_that_lookup_includes_personal_contacts(self):
@@ -364,7 +366,9 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('William', 'Gates', '222222', False))
+                has_entry(
+                    'column_values', contains('William', 'Gates', '222222', False)
+                )
             ),
         )
         result = self.lookup_user('Will', 'default', VALID_UUID)
@@ -372,9 +376,11 @@ class TestLookupPersonal(PersonalOnlyTestCase):
             result['results'],
             not_(
                 contains_inanyorder(
-                    has_entry('column_values', contains('William', 'Gates', '222222', False))
+                    has_entry(
+                        'column_values', contains('William', 'Gates', '222222', False)
+                    )
                 )
-            )
+            ),
         )
 
 

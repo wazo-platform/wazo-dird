@@ -11,7 +11,12 @@ from requests.exceptions import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
-from wazo_dird.exception import OldAPIException, NoSuchUser, NoSuchProfile, NoSuchProfileAPIException
+from wazo_dird.exception import (
+    OldAPIException,
+    NoSuchUser,
+    NoSuchProfile,
+    NoSuchProfileAPIException,
+)
 from wazo_dird.helpers import DisplayAwareResource
 from wazo_dird.auth import required_acl
 from wazo_dird.rest_api import LegacyAuthResource, AuthResource
@@ -80,7 +85,12 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
 
 class LookupByUUID(AuthResource, DisplayAwareResource):
     def __init__(
-        self, lookup_service, favorite_service, display_service, profile_service, auth_client
+        self,
+        lookup_service,
+        favorite_service,
+        display_service,
+        profile_service,
+        auth_client,
     ):
         self.lookup_service = lookup_service
         self.favorite_service = favorite_service
@@ -93,7 +103,9 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
         args = parser.parse_args()
         term = args['term']
 
-        logger.info('Lookup %s for user %s with profile %s', term, xivo_user_uuid, profile)
+        logger.info(
+            'Lookup %s for user %s with profile %s', term, xivo_user_uuid, profile
+        )
 
         tenant_uuid = Tenant.autodetect().uuid
         try:
