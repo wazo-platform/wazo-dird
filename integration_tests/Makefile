@@ -14,7 +14,9 @@ pull-images:
 	docker pull rabbitmq
 	docker pull wazopbx/wait
 	docker pull wazopbx/wazo-auth-mock
-	docker pull jamesdbloom/mockserver:mockserver-5.2.3
+	# TODO(sileht:) wait for https://github.com/jamesdbloom/mockserver/pull/662 to be released
+	#docker pull jamesdbloom/mockserver:mockserver-5.2.3
+	docker pull sileht/mockserver
 
 
 build-dird:
