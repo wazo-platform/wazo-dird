@@ -5,7 +5,7 @@ import logging
 
 from wazo_dird import BaseViewPlugin
 
-from .http import FavoritesRead, FavoritesWrite, Lookup, Personal, Reverse
+from .http import FavoritesRead, FavoritesWrite, Lookup, LookupByUUID, Personal, Reverse
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class JsonViewPlugin(BaseViewPlugin):
 
     lookup_url = '/directories/lookup/<profile>'
+    uuid_lookup_url = '/directories/lookup/<profile>/<xivo_user_uuid>'
     reverse_url = '/directories/reverse/<profile>/<xivo_user_uuid>'
     favorites_read_url = '/directories/favorites/<profile>'
     favorites_write_url = '/directories/favorites/<directory>/<contact>'
@@ -26,6 +27,7 @@ class JsonViewPlugin(BaseViewPlugin):
         personal_service = dependencies['services'].get('personal')
         profile_service = dependencies['services'].get('profile')
         display_service = dependencies['services'].get('display')
+        auth_client = dependencies['auth_client']
 
         if lookup_service:
             api.add_resource(
@@ -36,6 +38,17 @@ class JsonViewPlugin(BaseViewPlugin):
                     favorite_service,
                     display_service,
                     profile_service,
+                ),
+            )
+            api.add_resource(
+                LookupByUUID,
+                self.uuid_lookup_url,
+                resource_class_args=(
+                    lookup_service,
+                    favorite_service,
+                    display_service,
+                    profile_service,
+                    auth_client,
                 ),
             )
         else:

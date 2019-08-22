@@ -29,6 +29,37 @@ paths:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/Term'
+  /directories/lookup/{profile}/{xivo_user_uuid}:
+    get:
+      summary: Search for contacts for a particular user
+      description: '**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
+
+
+        The `lookup` query will return a list of result matching the searched term.
+        The result will be retrieved from all configured directories for the given
+        profile and user.
+
+
+
+        This route is provided by the `default_json_view` plugin using the `lookup`
+        plugin and all configured sources for the given profile.'
+      operationId: lookup_user
+      tags:
+      - directories
+      responses:
+        '200':
+          description: A list of contacts
+          schema:
+            $ref: '#/definitions/Lookup'
+        '404':
+          $ref: '#/responses/ProfileInvalid'
+        '503':
+          $ref: '#/responses/AnotherServiceUnavailable'
+      parameters:
+      - $ref: '#/parameters/tenantuuid'
+      - $ref: '#/parameters/Profile'
+      - $ref: '#/parameters/XivoUserUUID'
+      - $ref: '#/parameters/Term'
   /directories/reverse/{profile}/{xivo_user_uuid}:
     get:
       summary: Search for contact by number

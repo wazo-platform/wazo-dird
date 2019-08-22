@@ -7,13 +7,19 @@ from time import time
 
 from flask import request
 from flask_restful import reqparse
+from requests.exceptions import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
-from wazo_dird.exception import OldAPIException
+from wazo_dird.exception import (
+    OldAPIException,
+    NoSuchUser,
+    NoSuchProfile,
+    NoSuchProfileAPIException,
+)
 from wazo_dird.helpers import DisplayAwareResource
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import LegacyAuthResource
+from wazo_dird.rest_api import LegacyAuthResource, AuthResource
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +81,63 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
         response.update({'term': term})
 
         return response
+
+
+class LookupByUUID(AuthResource, DisplayAwareResource):
+    def __init__(
+        self,
+        lookup_service,
+        favorite_service,
+        display_service,
+        profile_service,
+        auth_client,
+    ):
+        self.lookup_service = lookup_service
+        self.favorite_service = favorite_service
+        self.display_service = display_service
+        self.profile_service = profile_service
+        self.auth_client = auth_client
+
+    @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}.read')
+    def get(self, profile, xivo_user_uuid):
+        args = parser.parse_args()
+        term = args['term']
+
+        logger.info(
+            'Lookup %s for user %s with profile %s', term, xivo_user_uuid, profile
+        )
+
+        tenant_uuid = Tenant.autodetect().uuid
+        try:
+            profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
+            display = self.build_display(profile_config)
+        except NoSuchProfile as e:
+            raise NoSuchProfileAPIException(e.profile)
+
+        token = request.headers['X-Auth-Token']
+
+        raw_results = self.lookup_service.lookup(
+            profile_config, tenant_uuid, term, xivo_user_uuid, token=token
+        )
+        favorites = self.favorite_service.favorite_ids(
+            profile_config, xivo_user_uuid
+        ).by_name
+        formatter = _ResultFormatter(display)
+        response = formatter.format_results(raw_results, favorites)
+
+        response.update({'term': term})
+
+        return response
+
+    def _get_user_tenant_uuid(self, user_uuid):
+        try:
+            return self.auth_client.users.get(user_uuid)['tenant_uuid']
+        except HTTPError as e:
+            response = getattr(e, 'response', None)
+            status_code = getattr(response, 'status_code', None)
+            if status_code == 404:
+                raise NoSuchUser(user_uuid)
+            raise
 
 
 class Reverse(LegacyAuthResource):

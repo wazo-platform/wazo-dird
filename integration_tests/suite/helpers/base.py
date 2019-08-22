@@ -141,6 +141,20 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return response.json()
 
     @classmethod
+    def get_lookup_user_result(cls, term, profile, xivo_user_uuid, token=None):
+        params = {'term': term}
+        url = cls.url('directories', 'lookup', profile, xivo_user_uuid)
+        return cls.get(url, params=params, token=token)
+
+    @classmethod
+    def lookup_user(cls, term, profile, xivo_user_uuid, token=VALID_TOKEN_MAIN_TENANT):
+        response = cls.get_lookup_user_result(
+            term, profile, xivo_user_uuid, token=token
+        )
+        assert_that(response.status_code, equal_to(200))
+        return response.json()
+
+    @classmethod
     def get_headers_result(cls, profile, token=None):
         url = cls.url('directories', 'lookup', profile, 'headers')
         return cls.get(url, token=token)

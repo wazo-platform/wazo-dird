@@ -18,7 +18,14 @@ from wazo_dird import make_result_class
 from wazo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
 from ..plugin import JsonViewPlugin
-from ..http import FavoritesRead, FavoritesWrite, Lookup, Personal, _ResultFormatter
+from ..http import (
+    FavoritesRead,
+    FavoritesWrite,
+    Lookup,
+    LookupByUUID,
+    Personal,
+    _ResultFormatter,
+)
 
 UUID1 = str(uuid4())
 UUID2 = str(uuid4())
@@ -31,7 +38,13 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_with_no_lookup_service_does_not_add_route(self):
         self.plugin.load(
-            {'config': {}, 'http_namespace': Mock(), 'api': self.api, 'services': {}}
+            {
+                'config': {},
+                'http_namespace': Mock(),
+                'api': self.api,
+                'services': {},
+                'auth_client': None,
+            }
         )
 
         assert_that(
@@ -48,6 +61,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                 'favorites': s.favorites_service,
                 'profile': s.profile_service,
             },
+            'auth_client': s.auth_client,
         }
 
         self.plugin.load(dependencies)
@@ -63,9 +77,27 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
             ),
         )
 
+        self.api.add_resource.assert_any_call(
+            LookupByUUID,
+            JsonViewPlugin.uuid_lookup_url,
+            resource_class_args=(
+                s.lookup_service,
+                s.favorites_service,
+                s.display_service,
+                s.profile_service,
+                s.auth_client,
+            ),
+        )
+
     def test_that_load_with_no_favorites_service_does_not_add_route(self):
         JsonViewPlugin().load(
-            {'config': {}, 'http_namespace': Mock(), 'api': self.api, 'services': {}}
+            {
+                'config': {},
+                'http_namespace': Mock(),
+                'api': self.api,
+                'services': {},
+                'auth_client': None,
+            }
         )
 
         assert_that(
@@ -86,6 +118,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                 'display': s.display_service,
                 'profile': s.profile_service,
             },
+            'auth_client': None,
         }
 
         JsonViewPlugin().load(dependencies)
@@ -107,7 +140,13 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_with_no_personal_service_does_not_add_route(self):
         JsonViewPlugin().load(
-            {'config': {}, 'http_namespace': Mock(), 'api': self.api, 'services': {}}
+            {
+                'config': {},
+                'http_namespace': Mock(),
+                'api': self.api,
+                'services': {},
+                'auth_client': None,
+            }
         )
 
         assert_that(
@@ -124,6 +163,7 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                 'display': s.display_service,
                 'profile': s.profile_service,
             },
+            'auth_client': None,
         }
 
         JsonViewPlugin().load(dependencies)
