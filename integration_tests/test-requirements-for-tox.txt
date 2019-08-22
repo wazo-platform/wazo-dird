@@ -1,4 +1,4 @@
-https://github.com/wazo-pbx/mockserver-client-python/archive/default-exact.zip
+https://github.com/wazo-pbx/mockserver-client-python/archive/5.6.X.zip
 https://github.com/wazo-pbx/xivo-bus/archive/buster.zip
 https://github.com/wazo-pbx/xivo-test-helpers/archive/buster.zip
 https://github.com/wazo-pbx/xivo-lib-python/archive/buster.zip
