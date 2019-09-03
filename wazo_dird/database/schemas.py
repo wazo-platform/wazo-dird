@@ -26,7 +26,8 @@ class DisplaySchema(BaseSchema):
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
     columns = fields.Nested(
-        DisplayColumnSchema, many=True, required=True, validate=Length(min=1)
+        DisplayColumnSchema, many=True, required=True, validate=Length(min=1),
+        unknown=marshmallow.EXCLUDE,
     )
 
 
@@ -38,7 +39,7 @@ class SourceSchema(BaseSchema):
 
 
 class ServiceSchema(BaseSchema):
-    sources = fields.Nested(SourceSchema, many=True)
+    sources = fields.Nested(SourceSchema, many=True, unknown=marshmallow.EXCLUDE)
 
 
 class ServiceDictSchema(fields.Nested):
@@ -50,7 +51,7 @@ class ServiceDictSchema(fields.Nested):
         for profile_service in value:
             service_name = profile_service.service.name
             result[service_name] = profile_service.config
-            sources = SourceSchema().dump(profile_service.sources, many=True).data
+            sources = SourceSchema().dump(profile_service.sources, many=True)
             result[service_name]['sources'] = sources
         return result
 
@@ -60,4 +61,5 @@ class ProfileSchema(BaseSchema):
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String()
     display = fields.Nested(DisplaySchema)
-    services = ServiceDictSchema(BaseSchema, required=True)
+    services = ServiceDictSchema(BaseSchema, required=True,
+                                 unknown=marshmallow.EXCLUDE)

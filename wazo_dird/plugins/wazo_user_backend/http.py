@@ -60,7 +60,7 @@ class WazoContactList(AuthResource):
     def get(self, source_uuid):
         tenant_uuid = Tenant.autodetect().uuid
         visible_tenants = self.get_visible_tenants(tenant_uuid)
-        list_params = contact_list_param_schema.load(request.args).data
+        list_params = contact_list_param_schema.load(request.args)
         source_config = self._source_service.get('wazo', source_uuid, visible_tenants)
 
         lister = ContactLister(registry.get(source_config))
@@ -69,5 +69,5 @@ class WazoContactList(AuthResource):
         return {
             'total': response['total'],
             'filtered': response['total'],
-            'items': contact_list_schema.dump(response['items']).data,
+            'items': contact_list_schema.dump(response['items']),
         }

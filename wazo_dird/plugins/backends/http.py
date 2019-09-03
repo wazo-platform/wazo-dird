@@ -15,7 +15,7 @@ class Backends(LegacyAuthResource):
 
     @required_acl('dird.backends.read')
     def get(self):
-        list_params, errors = ListSchema().load(request.args)
+        list_params = ListSchema().load(request.args)
 
         backends = self._service.list_(**list_params)
         filtered = self._service.count(**list_params)

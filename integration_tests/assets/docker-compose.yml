@@ -43,8 +43,9 @@ services:
       - "5672"
 
   google.com:
-    image: jamesdbloom/mockserver:mockserver-5.2.3
+    #image: jamesdbloom/mockserver:mockserver-5.2.3
+    image: sileht/mockserver
+    user: root
     ports:
       - "443"
-    command:
-      "/opt/mockserver/run_mockserver.sh -serverPort 443"
+    command: ["-serverPort", "443"]

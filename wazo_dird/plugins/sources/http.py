@@ -16,7 +16,7 @@ class Sources(AuthResource):
 
     @required_acl('dird.sources.read')
     def get(self):
-        list_params, errors = list_schema.load(request.args)
+        list_params = list_schema.load(request.args)
         tenant_uuid = Tenant.autodetect().uuid
         if list_params['recurse']:
             visible_tenants = self.get_visible_tenants(tenant_uuid)
@@ -25,7 +25,7 @@ class Sources(AuthResource):
 
         backend = list_params.pop('backend', None)
         sources = self._source_service.list_(backend, visible_tenants, **list_params)
-        items, errors = source_list_schema.dump(sources)
+        items = source_list_schema.dump(sources)
         filtered = self._source_service.count(backend, visible_tenants, **list_params)
         total = self._source_service.count(None, visible_tenants)
 

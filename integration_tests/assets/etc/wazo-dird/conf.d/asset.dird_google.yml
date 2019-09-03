@@ -3,3 +3,10 @@ enabled_plugins:
     google: true
   views:
     google_backend: true
+
+bus:
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest
+  enabled: true

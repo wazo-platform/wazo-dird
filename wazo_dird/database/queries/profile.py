@@ -71,14 +71,14 @@ class ProfileCRUD(BaseDAO):
             if not profile:
                 raise exception.NoSuchProfileAPIException(profile_uuid)
 
-            return self._profile_schema.dump(profile).data
+            return self._profile_schema.dump(profile)
 
     def list_(self, visible_tenants, **list_params):
         filter_ = self._list_filter(visible_tenants, **list_params)
         with self.new_session() as s:
             query = s.query(Profile).filter(filter_)
             query = self._paginate(query, **list_params)
-            return self._profile_schema.dump(query.all(), many=True).data
+            return self._profile_schema.dump(query.all(), many=True)
 
     def _build_filter(self, visible_tenants, profile_uuid):
         filter_ = Profile.uuid == profile_uuid
