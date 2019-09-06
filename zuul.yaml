@@ -1,15 +1,15 @@
 - project:
     templates:
       - wazo-tox-linters
-      - wazo-tox-py35
+      - wazo-tox-py37
     check:
       jobs:
         - dird-tox-integration:
-            nodeset: debian9-vm
+            nodeset: debian10-vm
     gate:
       jobs:
         - dird-tox-integration:
-            nodeset: debian9-vm
+            nodeset: debian10-vm
 
 - job:
     name: dird-tox-integration
