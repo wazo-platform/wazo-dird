@@ -3,10 +3,7 @@
 
 
 from xivo.mallow_helpers import ListSchema as _ListSchema
-from wazo_dird.schemas import (
-    BaseAuthConfigSchema,
-    BaseSourceSchema,
-)
+from wazo_dird.schemas import BaseAuthConfigSchema, BaseSourceSchema
 from xivo.mallow import fields
 
 from xivo.mallow.validate import Length
@@ -15,8 +12,7 @@ from xivo.mallow.validate import Length
 class SourceSchema(BaseSourceSchema):
 
     auth = fields.Nested(
-        BaseAuthConfigSchema,
-        missing=lambda: BaseAuthConfigSchema().load({})
+        BaseAuthConfigSchema, missing=lambda: BaseAuthConfigSchema().load({})
     )
     endpoint = fields.String(
         missing='https://graph.microsoft.com/v1.0/me/contacts',

@@ -8,7 +8,7 @@ from marshmallow import (
     compat,
     pre_load,
     utils,
-    validates_schema
+    validates_schema,
 )
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range, validate_string_dict
