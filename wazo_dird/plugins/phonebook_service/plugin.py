@@ -3,13 +3,7 @@
 
 import logging
 
-from marshmallow import (
-    ValidationError,
-    fields,
-    Schema,
-    validate,
-    pre_load
-)
+from marshmallow import ValidationError, fields, Schema, validate, pre_load
 from unidecode import unidecode
 
 from wazo_dird import BaseServicePlugin

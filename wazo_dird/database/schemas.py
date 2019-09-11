@@ -26,7 +26,10 @@ class DisplaySchema(BaseSchema):
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
     columns = fields.Nested(
-        DisplayColumnSchema, many=True, required=True, validate=Length(min=1),
+        DisplayColumnSchema,
+        many=True,
+        required=True,
+        validate=Length(min=1),
         unknown=marshmallow.EXCLUDE,
     )
 
@@ -61,5 +64,4 @@ class ProfileSchema(BaseSchema):
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String()
     display = fields.Nested(DisplaySchema)
-    services = ServiceDictSchema(BaseSchema, required=True,
-                                 unknown=marshmallow.EXCLUDE)
+    services = ServiceDictSchema(BaseSchema, required=True, unknown=marshmallow.EXCLUDE)

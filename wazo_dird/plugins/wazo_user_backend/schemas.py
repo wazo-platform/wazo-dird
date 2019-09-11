@@ -14,14 +14,10 @@ from wazo_dird.schemas import (
 
 class SourceSchema(BaseSourceSchema):
     auth = fields.Nested(
-        AuthConfigSchema,
-        missing=lambda: AuthConfigSchema().load({}),
-        unknown=EXCLUDE
+        AuthConfigSchema, missing=lambda: AuthConfigSchema().load({}), unknown=EXCLUDE
     )
     confd = fields.Nested(
-        ConfdConfigSchema,
-        missing=lambda: ConfdConfigSchema().load({}),
-        unknown=EXCLUDE
+        ConfdConfigSchema, missing=lambda: ConfdConfigSchema().load({}), unknown=EXCLUDE
     )
 
 

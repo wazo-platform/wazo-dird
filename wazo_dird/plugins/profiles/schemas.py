@@ -13,12 +13,7 @@ class ResourceSchema(BaseSchema):
 
 
 class ServiceConfigSchema(BaseSchema):
-    sources = fields.Nested(
-        ResourceSchema,
-        many=True,
-        missing=[],
-        unknown=EXCLUDE
-    )
+    sources = fields.Nested(ResourceSchema, many=True, missing=[], unknown=EXCLUDE)
     options = fields.Dict(missing={})
 
 

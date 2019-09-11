@@ -14,7 +14,7 @@ services:
     volumes:
       - "./etc/wazo-dird/conf.d/asset.wazo_users_late_confd.yml:/etc/wazo-dird/config.yml"
   america:
-    image: python:2.7.13-stretch
+    image: python:2.7.16-buster
     volumes:
       - "./confd_data/asset.wazo_users_late_confd:/tmp"
     command: /tmp/run_confd

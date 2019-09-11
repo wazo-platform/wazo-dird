@@ -9,8 +9,8 @@ pull-images:
 	docker pull alpine
 	docker pull nickstenning/slapd
 	docker pull p0bailey/docker-flask
-	docker pull python:2.7.13-stretch
-	docker pull python:3.5.6-stretch
+	docker pull python:2.7.16-buster
+	docker pull python:3.7-buster
 	docker pull rabbitmq
 	docker pull wazopbx/wait
 	docker pull wazopbx/wazo-auth-mock

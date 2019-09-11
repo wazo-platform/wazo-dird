@@ -9,8 +9,7 @@ from xivo.mallow import fields
 class SourceSchema(BaseSourceSchema):
 
     auth = fields.Nested(
-        BaseAuthConfigSchema,
-        missing=lambda: BaseAuthConfigSchema().load({})
+        BaseAuthConfigSchema, missing=lambda: BaseAuthConfigSchema().load({})
     )
 
 

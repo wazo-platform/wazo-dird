@@ -60,13 +60,9 @@ class ListSchema(_ListSchema):
 
 
 class SourceSchema(BaseSourceSchema):
-    auth = fields.Nested(
-        AuthConfigSchema,
-        missing=lambda: AuthConfigSchema().load({})
-    )
+    auth = fields.Nested(AuthConfigSchema, missing=lambda: AuthConfigSchema().load({}))
     confd = fields.Nested(
-        ConfdConfigSchema,
-        missing=lambda: ConfdConfigSchema().load({})
+        ConfdConfigSchema, missing=lambda: ConfdConfigSchema().load({})
     )
 
 
