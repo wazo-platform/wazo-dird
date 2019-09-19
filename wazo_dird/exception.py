@@ -152,7 +152,7 @@ class InvalidContactException(Exception):
     pass
 
 
-class XiVOConfdError(APIException):
+class WazoConfdError(APIException):
     def __init__(self, confd_client, error):
         super().__init__(
             status_code=503,

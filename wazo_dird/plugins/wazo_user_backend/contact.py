@@ -12,4 +12,4 @@ class ContactLister:
         try:
             return self._client.users.list(*args, view='directory', **kwargs)
         except Exception as e:
-            raise exception.XiVOConfdError(self._client, e)
+            raise exception.WazoConfdError(self._client, e)

@@ -68,7 +68,7 @@ class ConferenceContactList(AuthResource):
         try:
             response = confd.conferences.list(**list_params)
         except Exception as e:
-            raise exception.XiVOConfdError(confd, e)
+            raise exception.WazoConfdError(confd, e)
 
         return {
             'total': response['total'],
