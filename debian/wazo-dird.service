@@ -1,6 +1,6 @@
 [Unit]
 Description=wazo-dird server
-After=network.target postgresql.service xivo-confgend.service
+After=network.target postgresql.service
 Before=monit.service
 
 [Service]
