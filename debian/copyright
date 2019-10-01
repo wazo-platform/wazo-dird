@@ -1,6 +1,6 @@
 Format: http://dep.debian.net/deps/dep5
 Upstream-Name: wazo-dird
-Source: https://github.com/wazo-pbx/wazo-dird.git
+Source: https://github.com/wazo-platform/wazo-dird.git
 
 Files: *
 Copyright: 2012-2018 The Wazo Authors

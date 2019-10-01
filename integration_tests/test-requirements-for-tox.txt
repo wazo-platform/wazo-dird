@@ -1,7 +1,7 @@
-https://github.com/wazo-pbx/mockserver-client-python/archive/5.6.X.zip
-https://github.com/wazo-pbx/xivo-bus/archive/master.zip
-https://github.com/wazo-pbx/xivo-test-helpers/archive/master.zip
-https://github.com/wazo-pbx/xivo-lib-python/archive/master.zip
+https://github.com/wazo-platform/mockserver-client-python/archive/5.6.X.zip
+https://github.com/wazo-platform/xivo-bus/archive/master.zip
+https://github.com/wazo-platform/xivo-test-helpers/archive/master.zip
+https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 
 babel
 flask-babel
@@ -24,7 +24,7 @@ stevedore
 flask-restful==0.3.7
 flask-cors==3.0.7
 marshmallow==3.0.0b14
-https://github.com/wazo-pbx/wazo-auth-client/archive/master.zip
-https://github.com/wazo-pbx/wazo-confd-client/archive/master.zip
-https://github.com/wazo-pbx/xivo-lib-rest-client/archive/master.zip
-https://github.com/wazo-pbx/wazo-dird-client/archive/master.zip
+https://github.com/wazo-platform/wazo-auth-client/archive/master.zip
+https://github.com/wazo-platform/wazo-confd-client/archive/master.zip
+https://github.com/wazo-platform/xivo-lib-rest-client/archive/master.zip
+https://github.com/wazo-platform/wazo-dird-client/archive/master.zip
