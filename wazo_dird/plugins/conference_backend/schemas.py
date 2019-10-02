@@ -1,7 +1,7 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import pre_dump
+from marshmallow import EXCLUDE, pre_dump
 
 from xivo.mallow import fields
 from xivo.mallow_helpers import ListSchema as _ListSchema
@@ -21,8 +21,8 @@ class ExtensionSchema(BaseSchema):
 class ContactSchema(BaseSchema):
     id = fields.Integer()
     name = fields.String()
-    extensions = fields.Nested(ExtensionSchema, many=True)
-    incalls = fields.Nested(ExtensionSchema, many=True)
+    extensions = fields.Nested(ExtensionSchema, many=True, unknown=EXCLUDE)
+    incalls = fields.Nested(ExtensionSchema, many=True, unknown=EXCLUDE)
 
     @pre_dump(pass_many=True)
     def unpack_extensions(self, data, many):
@@ -60,9 +60,11 @@ class ListSchema(_ListSchema):
 
 
 class SourceSchema(BaseSourceSchema):
-    auth = fields.Nested(AuthConfigSchema, missing=lambda: AuthConfigSchema().load({}))
+    auth = fields.Nested(
+        AuthConfigSchema, missing=lambda: AuthConfigSchema().load({}), unknown=EXCLUDE
+    )
     confd = fields.Nested(
-        ConfdConfigSchema, missing=lambda: ConfdConfigSchema().load({})
+        ConfdConfigSchema, missing=lambda: ConfdConfigSchema().load({}), unknown=EXCLUDE
     )
 
 

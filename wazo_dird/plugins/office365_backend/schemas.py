@@ -1,6 +1,7 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from marshmallow import EXCLUDE
 
 from xivo.mallow_helpers import ListSchema as _ListSchema
 from wazo_dird.schemas import BaseAuthConfigSchema, BaseSourceSchema
@@ -12,7 +13,9 @@ from xivo.mallow.validate import Length
 class SourceSchema(BaseSourceSchema):
 
     auth = fields.Nested(
-        BaseAuthConfigSchema, missing=lambda: BaseAuthConfigSchema().load({})
+        BaseAuthConfigSchema,
+        missing=lambda: BaseAuthConfigSchema().load({}),
+        unknown=EXCLUDE,
     )
     endpoint = fields.String(
         missing='https://graph.microsoft.com/v1.0/me/contacts',
