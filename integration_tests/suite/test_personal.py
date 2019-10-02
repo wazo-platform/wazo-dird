@@ -25,9 +25,12 @@ from xivo_bus import Publisher, Marshaler
 from xivo_test_helpers import until
 from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
+from wazo_auth_client import Client as AuthClient
+
 from .helpers.constants import (
     MAIN_TENANT,
     VALID_UUID,
+    VALID_UUID_1,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_1,
     VALID_TOKEN_2,
@@ -251,6 +254,26 @@ class TestPersonalListWithProfile(PersonalOnlyTestCase):
 
 
 class TestLookupPersonal(PersonalOnlyTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        tenant_uuid = MAIN_TENANT
+        try:
+            auth_port = cls.service_port(9497, 'auth')
+            auth_client = AuthClient('localhost', auth_port, verify_certificate=False)
+            auth_client.users.new(
+                uuid=VALID_UUID_1, tenant_uuid=MAIN_TENANT, username='foobar2'
+            )
+        except Exception:
+            pass
+        valid_token_1 = MockUserToken(
+            token=VALID_TOKEN_1,
+            user_uuid=VALID_UUID_1,
+            metadata={'uuid': VALID_UUID_1, 'tenant_uuid': tenant_uuid},
+        )
+        mock_auth_client.set_token(valid_token_1)
+
     def setUp(self):
         super().setUp()
         self.post_personal({'firstname': 'Alice'})
@@ -262,6 +285,14 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         self.post_personal(
             {'firstname': 'Elice', 'lastname': 'Wowo', 'number': '123456'}
         )
+        self.post_personal(
+            {'firstname': 'William', 'lastname': 'Gates', 'number': '222222'},
+            token=VALID_TOKEN_1,
+        )
+
+    def tearDown(self):
+        self.purge_personal(token=VALID_TOKEN_1)
+        super().tearDown()
 
     def test_that_lookup_includes_personal_contacts(self):
         result = self.lookup('ali', 'default')
@@ -332,6 +363,29 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         result = self.reverse('123456', 'default', 'invalid_uuid')
 
         assert_that(result['display'], is_(none()))
+
+    def test_lookup_user_only_uuid_visible(self):
+        result = self.lookup_user('Wil', 'default', VALID_UUID_1)
+
+        assert_that(
+            result['results'],
+            contains_inanyorder(
+                has_entry(
+                    'column_values', contains('William', 'Gates', '222222', False)
+                )
+            ),
+        )
+        result = self.lookup_user('Will', 'default', VALID_UUID)
+        assert_that(
+            result['results'],
+            not_(
+                contains_inanyorder(
+                    has_entry(
+                        'column_values', contains('William', 'Gates', '222222', False)
+                    )
+                )
+            ),
+        )
 
 
 class TestEditPersonal(PersonalOnlyTestCase):

@@ -22,7 +22,7 @@ class _BaseResource(AuthResource):
 class Displays(_BaseResource):
     @required_acl('dird.displays.read')
     def get(self):
-        list_params, errors = list_schema.load(request.args)
+        list_params = list_schema.load(request.args)
         tenant_uuid = Tenant.autodetect().uuid
         if list_params['recurse']:
             visible_tenants = self.get_visible_tenants(tenant_uuid)
@@ -30,7 +30,7 @@ class Displays(_BaseResource):
             visible_tenants = [tenant_uuid]
 
         displays = self._display_service.list_(visible_tenants, **list_params)
-        items, errors = display_list_schema.dump(displays)
+        items = display_list_schema.dump(displays)
         filtered = self._display_service.count(visible_tenants, **list_params)
         total = self._display_service.count(visible_tenants)
 
@@ -39,9 +39,9 @@ class Displays(_BaseResource):
     @required_acl('dird.displays.create')
     def post(self):
         tenant = Tenant.autodetect()
-        args = display_schema.load(request.get_json()).data
+        args = display_schema.load(request.get_json())
         body = self._display_service.create(tenant_uuid=tenant.uuid, **args)
-        return display_schema.dump(body).data, 201
+        return display_schema.dump(body), 201
 
 
 class Display(_BaseResource):
@@ -57,13 +57,13 @@ class Display(_BaseResource):
         tenant_uuid = Tenant.autodetect().uuid
         visible_tenants = self.get_visible_tenants(tenant_uuid)
         display = self._display_service.get(display_uuid, visible_tenants)
-        return display_schema.dump(display).data
+        return display_schema.dump(display)
 
     @required_acl('dird.displays.{display_uuid}.update')
     def put(self, display_uuid):
         tenant_uuid = Tenant.autodetect().uuid
         visible_tenants = self.get_visible_tenants(tenant_uuid)
-        args = display_schema.load(request.get_json()).data
+        args = display_schema.load(request.get_json())
         self._display_service.edit(
             display_uuid, visible_tenants=visible_tenants, **args
         )

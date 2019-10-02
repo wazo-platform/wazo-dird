@@ -1,6 +1,14 @@
 Changelog
 =========
 
+19.12
+-----
+
+* Added a new endpoint to do lookups by the `user_uuid`
+
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>`
+
+
 19.10
 -----
 

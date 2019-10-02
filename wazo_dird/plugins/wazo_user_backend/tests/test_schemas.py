@@ -27,7 +27,7 @@ class TestSourceSchema(TestCase):
     def test_post_minimal_body(self):
         body = dict(auth={'username': 'foo', 'password': 'bar'}, **self._body)
 
-        parsed = source_schema.load(body).data
+        parsed = source_schema.load(body)
         assert_that(
             parsed,
             has_entries(
@@ -92,7 +92,7 @@ class TestSourceSchema(TestCase):
         }
 
         body = dict(auth=verify_true, confd=verify_true, **self._body)
-        parsed = source_schema.load(body).data
+        parsed = source_schema.load(body)
         assert_that(
             parsed,
             has_entries(
@@ -102,7 +102,7 @@ class TestSourceSchema(TestCase):
         )
 
         body = dict(auth=verify_false, confd=verify_false, **self._body)
-        parsed = source_schema.load(body).data
+        parsed = source_schema.load(body)
         assert_that(
             parsed,
             has_entries(
@@ -112,7 +112,7 @@ class TestSourceSchema(TestCase):
         )
 
         body = dict(auth=verify_file, confd=verify_file, **self._body)
-        parsed = source_schema.load(body).data
+        parsed = source_schema.load(body)
         assert_that(
             parsed,
             has_entries(

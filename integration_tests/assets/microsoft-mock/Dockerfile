@@ -1,4 +1,4 @@
-FROM python:3.5.6-stretch
+FROM python:3.7-buster
 
 COPY . /usr/src/microsoft-mock
 WORKDIR /usr/src/microsoft-mock

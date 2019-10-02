@@ -1,7 +1,15 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import exceptions, Schema, compat, pre_load, utils, validates_schema
+from marshmallow import (
+    EXCLUDE,
+    exceptions,
+    Schema,
+    compat,
+    pre_load,
+    utils,
+    validates_schema,
+)
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range, validate_string_dict
 
@@ -9,7 +17,7 @@ from xivo.mallow.validate import Length, Range, validate_string_dict
 class BaseSchema(Schema):
     class Meta:
         ordered = True
-        strict = True
+        unknown = EXCLUDE
 
     @pre_load
     def ensude_dict(self, data):
@@ -55,15 +63,18 @@ class ConfdConfigSchema(BaseSchema):
     version = fields.String(validate=Length(min=1, max=16), missing='1.1')
 
 
-class AuthConfigSchema(BaseSchema):
+class BaseAuthConfigSchema(BaseSchema):
     host = fields.String(validate=Length(min=1, max=1024), missing='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), missing=9497)
-    key_file = fields.String(validate=Length(min=1, max=1024), allow_none=True)
-    username = fields.String(validate=Length(min=1, max=512), allow_none=True)
-    password = fields.String(validate=Length(min=1, max=512), allow_none=True)
     verify_certificate = VerifyCertificateField(missing=True)
     timeout = fields.Float(validate=Range(min=0, max=3660))
     version = fields.String(validate=Length(min=1, max=16), missing='0.1')
+
+
+class AuthConfigSchema(BaseAuthConfigSchema):
+    key_file = fields.String(validate=Length(min=1, max=1024), allow_none=True)
+    username = fields.String(validate=Length(min=1, max=512), allow_none=True)
+    password = fields.String(validate=Length(min=1, max=512), allow_none=True)
 
     @validates_schema
     def validate_auth_info(self, data):

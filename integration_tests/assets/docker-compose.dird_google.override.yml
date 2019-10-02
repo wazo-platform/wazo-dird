@@ -9,3 +9,7 @@ services:
       - rabbitmq
     environment:
       TARGETS: "auth:9497 dird:9489 google.com:443 db:5432 rabbitmq:5672"
+
+  dird:
+    volumes:
+      - "./etc/wazo-dird/conf.d/asset.dird_google.yml:/etc/wazo-dird/conf.d/asset.dird_google.yml"

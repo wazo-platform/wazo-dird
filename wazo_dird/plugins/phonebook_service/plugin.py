@@ -3,7 +3,7 @@
 
 import logging
 
-from marshmallow import fields, Schema, validate, pre_load
+from marshmallow import ValidationError, fields, Schema, validate, pre_load
 from unidecode import unidecode
 
 from wazo_dird import BaseServicePlugin
@@ -81,9 +81,10 @@ class _PhonebookService:
         return self._contact_crud.create(tenant_uuid, phonebook_id, validated_contact)
 
     def create_phonebook(self, tenant_uuid, phonebook_info):
-        body, errors = _PhonebookSchema().load(phonebook_info)
-        if errors:
-            raise InvalidPhonebookException(errors)
+        try:
+            body = _PhonebookSchema().load(phonebook_info)
+        except ValidationError as e:
+            raise InvalidPhonebookException(e.messages)
         return self._phonebook_crud.create(tenant_uuid, body)
 
     def edit_contact(self, tenant_uuid, phonebook_id, contact_uuid, contact_info):
@@ -95,9 +96,10 @@ class _PhonebookService:
         )
 
     def edit_phonebook(self, tenant_uuid, phonebook_id, phonebook_info):
-        body, errors = _PhonebookSchema().load(phonebook_info)
-        if errors:
-            raise InvalidPhonebookException(errors)
+        try:
+            body = _PhonebookSchema().load(phonebook_info)
+        except ValidationError as e:
+            raise InvalidPhonebookException(e.messages)
         return self._phonebook_crud.edit(tenant_uuid, phonebook_id, body)
 
     def delete_contact(self, tenant_uuid, phonebook_id, contact_uuid):

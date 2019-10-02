@@ -9,7 +9,7 @@ setup(
     description='Wazo Directory Daemon broken plugins',
     author='The Wazo Authors',
     author_email='dev+pkg@wazo.community',
-    url='https://github.com/wazo-pbx/wazo-dird',
+    url='https://github.com/wazo-platform/wazo-dird',
     packages=find_packages(),
     entry_points={
         'wazo_dird.backends': [

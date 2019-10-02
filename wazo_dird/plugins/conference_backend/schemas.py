@@ -30,10 +30,10 @@ class ContactSchema(BaseSchema):
         for contact in data:
             incalls = []
 
-            extensions = extension_schema.dump(contact['extensions']).data
+            extensions = extension_schema.dump(contact['extensions'])
 
             for incall in contact['incalls']:
-                incalls += extension_schema.dump(incall['extensions']).data
+                incalls += extension_schema.dump(incall['extensions'])
 
             contact['extensions'] = extensions
             contact['incalls'] = incalls
@@ -60,8 +60,10 @@ class ListSchema(_ListSchema):
 
 
 class SourceSchema(BaseSourceSchema):
-    auth = fields.Nested(AuthConfigSchema, missing={})
-    confd = fields.Nested(ConfdConfigSchema, missing={})
+    auth = fields.Nested(AuthConfigSchema, missing=lambda: AuthConfigSchema().load({}))
+    confd = fields.Nested(
+        ConfdConfigSchema, missing=lambda: ConfdConfigSchema().load({})
+    )
 
 
 contact_list_schema = ContactSchema(many=True)

@@ -10,14 +10,14 @@ services:
     environment:
       TARGETS: "auth:9497 confd:9486 consul:8000 dird:9489 db:5432"
   confd:
-    image: python:2.7.13-stretch
+    image: python:2.7.16-buster
     volumes:
       - "./confd_data/asset.wazo_users_disco:/tmp"
     expose:
       - "9486"
     command: /tmp/run_confd
   consul:
-    image: python:2.7.13-stretch
+    image: python:2.7.16-buster
     volumes:
       - "./consul_data:/tmp"
     expose:

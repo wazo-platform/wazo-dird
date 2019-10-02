@@ -45,7 +45,9 @@ paths:
         '400':
           $ref: '#/responses/InvalidParameters'
         '404':
-          $ref: '#/responses/NotFoundError'
+          description: Tenant does not exist
+          schema:
+            $ref: '#/definitions/Error'
         '409':
           $ref: '#/responses/DuplicatePhonebook'
         '503':
