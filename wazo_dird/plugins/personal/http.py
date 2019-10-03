@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -10,6 +10,8 @@ from flask import request
 from flask import Response
 from flask_restful import reqparse
 from time import time
+
+from xivo.rest_api_helpers import APIException
 
 from wazo_dird import auth
 from wazo_dird.auth import required_acl
@@ -24,6 +26,16 @@ parser = reqparse.RequestParser()
 parser.add_argument('format', type=str, required=False, location='args')
 
 
+def _get_calling_user_uuid():
+    token = request.headers['X-Auth-Token']
+    token_infos = auth.client().token.get(token)
+    user_uuid = token_infos.get('metadata').get('uuid')
+    if not user_uuid:
+        raise APIException(401, 'This token has no user UUID', 'invalid-token')
+
+    return user_uuid
+
+
 class PersonalAll(LegacyAuthResource):
 
     personal_service = None
@@ -34,11 +46,10 @@ class PersonalAll(LegacyAuthResource):
 
     @required_acl('dird.personal.create')
     def post(self):
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        user_uuid = _get_calling_user_uuid()
         contact = request.json
         try:
-            contact = self.personal_service.create_contact(contact, token_infos)
+            contact = self.personal_service.create_contact(contact, user_uuid)
             return contact, 201
         except self.personal_service.InvalidPersonalContact as e:
             error = {'reason': e.errors, 'timestamp': [time()], 'status_code': 400}
@@ -53,10 +64,9 @@ class PersonalAll(LegacyAuthResource):
 
     @required_acl('dird.personal.read')
     def get(self):
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        user_uuid = _get_calling_user_uuid()
 
-        contacts = self.personal_service.list_contacts_raw(token_infos)
+        contacts = self.personal_service.list_contacts_raw(user_uuid)
 
         mimetype = request.mimetype
         if not mimetype:
@@ -67,10 +77,9 @@ class PersonalAll(LegacyAuthResource):
 
     @required_acl('dird.personal.delete')
     def delete(self):
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        user_uuid = _get_calling_user_uuid()
 
-        self.personal_service.purge_contacts(token_infos)
+        self.personal_service.purge_contacts(user_uuid)
 
         return '', 204
 
@@ -115,10 +124,9 @@ class PersonalOne(LegacyAuthResource):
 
     @required_acl('dird.personal.{contact_id}.read')
     def get(self, contact_id):
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        user_uuid = _get_calling_user_uuid()
         try:
-            contact = self.personal_service.get_contact(contact_id, token_infos)
+            contact = self.personal_service.get_contact(contact_id, user_uuid)
             return contact, 200
         except self.personal_service.NoSuchContact as e:
             error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 404}
@@ -126,12 +134,11 @@ class PersonalOne(LegacyAuthResource):
 
     @required_acl('dird.personal.{contact_id}.update')
     def put(self, contact_id):
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        user_uuid = _get_calling_user_uuid()
         new_contact = request.json
         try:
             contact = self.personal_service.edit_contact(
-                contact_id, new_contact, token_infos
+                contact_id, new_contact, user_uuid
             )
             return contact, 200
         except self.personal_service.NoSuchContact as e:
@@ -150,10 +157,9 @@ class PersonalOne(LegacyAuthResource):
 
     @required_acl('dird.personal.{contact_id}.delete')
     def delete(self, contact_id):
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        user_uuid = _get_calling_user_uuid()
         try:
-            self.personal_service.remove_contact(contact_id, token_infos)
+            self.personal_service.remove_contact(contact_id, user_uuid)
             return '', 204
         except self.personal_service.NoSuchContact as e:
             error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 404}
@@ -170,8 +176,7 @@ class PersonalImport(LegacyAuthResource):
 
     @required_acl('dird.personal.import.create')
     def post(self):
-        token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        user_uuid = _get_calling_user_uuid()
 
         charset = request.mimetype_params.get('charset', 'utf-8')
         try:
@@ -180,7 +185,7 @@ class PersonalImport(LegacyAuthResource):
             error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 400}
             return error, 400
 
-        created, errors = self._mass_import(csv_document, token_infos)
+        created, errors = self._mass_import(csv_document, user_uuid)
 
         if not created:
             error = {
@@ -193,6 +198,6 @@ class PersonalImport(LegacyAuthResource):
         result = {'created': created, 'failed': errors}
         return result, 201
 
-    def _mass_import(self, csv_document, token_infos):
+    def _mass_import(self, csv_document, user_uuid):
         reader = csv.DictReader(csv_document.split('\n'))
-        return self.personal_service.create_contacts(reader, token_infos)
+        return self.personal_service.create_contacts(reader, user_uuid)

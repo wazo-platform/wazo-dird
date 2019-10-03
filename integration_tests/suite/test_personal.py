@@ -3,6 +3,8 @@
 
 import unittest
 import kombu
+import uuid
+
 from hamcrest import (
     all_of,
     assert_that,
@@ -15,6 +17,7 @@ from hamcrest import (
     has_item,
     has_items,
     has_key,
+    has_properties,
     is_,
     none,
     not_,
@@ -86,6 +89,21 @@ class TestDeletedUser(BaseDirdIntegrationTest):
 
 
 class TestAddPersonal(PersonalOnlyTestCase):
+    def test_that_a_token_with_no_user_uuid_returns_401(self):
+        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        tenant_uuid = MAIN_TENANT
+        invalid_token_uuid = str(uuid.uuid4())
+        invalid_token = MockUserToken.some_token(
+            token=invalid_token_uuid,
+            metadata={'uuid': None, 'tenant_uuid': tenant_uuid},
+        )
+        mock_auth_client.set_token(invalid_token)
+
+        result = self.post_personal_result(
+            {'firstname': 'Alice'}, token=invalid_token_uuid
+        )
+        assert_that(result, has_properties(status_code=401))
+
     def test_that_created_personal_has_an_id(self):
         alice = self.post_personal({'firstname': 'Alice'})
         bob = self.post_personal({'firstname': 'Bob'})
@@ -140,6 +158,19 @@ class TestAddPersonal(PersonalOnlyTestCase):
 
 
 class TestRemovePersonal(PersonalOnlyTestCase):
+    def test_that_a_token_with_no_user_uuid_returns_401(self):
+        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        tenant_uuid = MAIN_TENANT
+        invalid_token_uuid = str(uuid.uuid4())
+        invalid_token = MockUserToken.some_token(
+            token=invalid_token_uuid,
+            metadata={'uuid': None, 'tenant_uuid': tenant_uuid},
+        )
+        mock_auth_client.set_token(invalid_token)
+
+        result = self.delete_personal_result('unknown-id', token=invalid_token_uuid)
+        assert_that(result, has_properties(status_code=401))
+
     def test_that_removing_unknown_personal_returns_404(self):
         result = self.delete_personal_result('unknown-id', VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(404))
@@ -161,6 +192,19 @@ class TestRemovePersonal(PersonalOnlyTestCase):
 
 
 class TestPurgePersonal(PersonalOnlyTestCase):
+    def test_that_a_token_with_no_user_uuid_returns_401(self):
+        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        tenant_uuid = MAIN_TENANT
+        invalid_token_uuid = str(uuid.uuid4())
+        invalid_token = MockUserToken.some_token(
+            token=invalid_token_uuid,
+            metadata={'uuid': None, 'tenant_uuid': tenant_uuid},
+        )
+        mock_auth_client.set_token(invalid_token)
+
+        result = self.purge_personal_result(token=invalid_token_uuid)
+        assert_that(result, has_properties(status_code=401))
+
     def test_that_purged_personal_are_empty(self):
         self.post_personal({'firstname': 'Alice'})
         self.post_personal({'firstname': 'Bob'})
@@ -389,6 +433,21 @@ class TestLookupPersonal(PersonalOnlyTestCase):
 
 
 class TestEditPersonal(PersonalOnlyTestCase):
+    def test_that_a_token_with_no_user_uuid_returns_401(self):
+        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        tenant_uuid = MAIN_TENANT
+        invalid_token_uuid = str(uuid.uuid4())
+        invalid_token = MockUserToken.some_token(
+            token=invalid_token_uuid,
+            metadata={'uuid': None, 'tenant_uuid': tenant_uuid},
+        )
+        mock_auth_client.set_token(invalid_token)
+
+        result = self.put_personal_result(
+            'unknown-id', {'firstname': 'new'}, token=invalid_token_uuid
+        )
+        assert_that(result, has_properties(status_code=401))
+
     def test_that_edit_inexisting_personal_contact_returns_404(self):
         body = {'firstname': 'John', 'lastname': 'Doe'}
         result = self.put_personal_result('unknown-id', body, VALID_TOKEN_MAIN_TENANT)
@@ -451,6 +510,19 @@ class TestEditInvalidPersonal(PersonalOnlyTestCase):
 
 
 class TestGetPersonal(PersonalOnlyTestCase):
+    def test_that_a_token_with_no_user_uuid_returns_401(self):
+        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        tenant_uuid = MAIN_TENANT
+        invalid_token_uuid = str(uuid.uuid4())
+        invalid_token = MockUserToken.some_token(
+            token=invalid_token_uuid,
+            metadata={'uuid': None, 'tenant_uuid': tenant_uuid},
+        )
+        mock_auth_client.set_token(invalid_token)
+
+        result = self.get_personal_result('unknown-id', token=invalid_token_uuid)
+        assert_that(result, has_properties(status_code=401))
+
     def test_that_get_inexisting_personal_contact_returns_404(self):
         result = self.get_personal_result('unknown-id', VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(404))

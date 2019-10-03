@@ -51,13 +51,11 @@ class _PersonalService:
         self._source_manager = source_manager
         self._controller = controller
 
-    def create_contact(self, contact_infos, token_infos):
+    def create_contact(self, contact_infos, user_uuid):
         self.validate_contact(contact_infos)
-        return self._crud.create_personal_contact(
-            token_infos['xivo_user_uuid'], contact_infos
-        )
+        return self._crud.create_personal_contact(user_uuid, contact_infos)
 
-    def create_contacts(self, contact_infos, token_infos):
+    def create_contacts(self, contact_infos, user_uuid):
         errors = []
         to_add = []
         existing_contact_uuids = set(
@@ -78,27 +76,20 @@ class _PersonalService:
             except PersonalImportError as e:
                 errors.append({'errors': [str(e)], 'line': contact_infos.line_num})
 
-        return (
-            self._crud.create_personal_contacts(token_infos['xivo_user_uuid'], to_add),
-            errors,
-        )
+        return (self._crud.create_personal_contacts(user_uuid, to_add), errors)
 
-    def get_contact(self, contact_id, token_infos):
-        return self._crud.get_personal_contact(
-            token_infos['xivo_user_uuid'], contact_id
-        )
+    def get_contact(self, contact_id, user_uuid):
+        return self._crud.get_personal_contact(user_uuid, contact_id)
 
-    def edit_contact(self, contact_id, contact_infos, token_infos):
+    def edit_contact(self, contact_id, contact_infos, user_uuid):
         self.validate_contact(contact_infos)
-        return self._crud.edit_personal_contact(
-            token_infos['xivo_user_uuid'], contact_id, contact_infos
-        )
+        return self._crud.edit_personal_contact(user_uuid, contact_id, contact_infos)
 
-    def remove_contact(self, contact_id, token_infos):
-        self._crud.delete_personal_contact(token_infos['xivo_user_uuid'], contact_id)
+    def remove_contact(self, contact_id, user_uuid):
+        self._crud.delete_personal_contact(user_uuid, contact_id)
 
-    def purge_contacts(self, token_infos):
-        self._crud.delete_all_personal_contacts(token_infos['xivo_user_uuid'])
+    def purge_contacts(self, user_uuid):
+        self._crud.delete_all_personal_contacts(user_uuid)
 
     def list_contacts(self, tenant_uuid, user_uuid):
         personal_source = self._find_personal_source(tenant_uuid)
@@ -111,8 +102,8 @@ class _PersonalService:
         formatted_contacts = source.format_contacts(contacts)
         return formatted_contacts
 
-    def list_contacts_raw(self, token_infos):
-        return self._crud.list_personal_contacts(token_infos['xivo_user_uuid'])
+    def list_contacts_raw(self, user_uuid):
+        return self._crud.list_personal_contacts(user_uuid)
 
     def _find_personal_source(self, tenant_uuid):
         source_service = self._controller.services['source']
@@ -142,5 +133,5 @@ class _PersonalService:
 
 
 class DisabledPersonalSource:
-    def list(self, _source_entry_ids, _token_infos):
+    def list(self, *args, **kwargs):
         return []
