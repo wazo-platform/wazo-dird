@@ -67,13 +67,13 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid']
+        user_uuid = token_infos['metadata']['uuid']
 
         raw_results = self.lookup_service.lookup(
-            profile_config, tenant.uuid, term, xivo_user_uuid, token=token
+            profile_config, tenant.uuid, term, user_uuid, token=token
         )
         favorites = self.favorite_service.favorite_ids(
-            profile_config, xivo_user_uuid
+            profile_config, user_uuid
         ).by_name
         formatter = _ResultFormatter(display)
         response = formatter.format_results(raw_results, favorites)
@@ -194,7 +194,7 @@ class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
 
         try:
             raw_results = self.favorites_service.favorites(
-                profile_config, token_infos['xivo_user_uuid'], token
+                profile_config, token_infos['metadata']['uuid'], token
             )
         except self.favorites_service.NoSuchProfileException as e:
             return _error(404, str(e))
@@ -215,7 +215,7 @@ class FavoritesWrite(LegacyAuthResource):
         tenant = Tenant.autodetect()
         try:
             self.favorites_service.new_favorite(
-                tenant.uuid, directory, contact, token_infos['xivo_user_uuid']
+                tenant.uuid, directory, contact, token_infos['metadata']['uuid']
             )
         except self.favorites_service.DuplicatedFavoriteException:
             return _error(409, 'Adding this favorite would create a duplicate')
@@ -231,7 +231,7 @@ class FavoritesWrite(LegacyAuthResource):
         tenant = Tenant.autodetect()
         try:
             self.favorites_service.remove_favorite(
-                tenant.uuid, directory, contact, token_infos['xivo_user_uuid']
+                tenant.uuid, directory, contact, token_infos['metadata']['uuid']
             )
             return '', 204
         except (
@@ -264,12 +264,12 @@ class Personal(LegacyAuthResource, DisplayAwareResource):
             return e.body, e.status_code
 
         raw_results = self.personal_service.list_contacts(
-            tenant.uuid, token_infos['xivo_user_uuid']
+            tenant.uuid, token_infos['metadata']['uuid']
         )
 
         try:
             favorites = self.favorite_service.favorite_ids(
-                profile_config, token_infos['xivo_user_uuid']
+                profile_config, token_infos['metadata']['uuid']
             ).by_name
         except self.favorite_service.NoSuchProfileException as e:
             return _error(404, str(e))
