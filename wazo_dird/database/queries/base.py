@@ -17,7 +17,7 @@ sqlalchemy_helper.handle_db_restart()
 
 
 def delete_user(session, user_uuid):
-    session.query(User).filter(User.xivo_user_uuid == user_uuid).delete()
+    session.query(User).filter(User.user_uuid == user_uuid).delete()
 
 
 def extract_constraint_name(error):
@@ -84,9 +84,9 @@ class BaseDAO:
             s.rollback()
 
     def _get_dird_user(self, session, user_uuid):
-        user = session.query(User).filter(User.xivo_user_uuid == user_uuid).first()
+        user = session.query(User).filter(User.user_uuid == user_uuid).first()
         if not user:
-            user = User(xivo_user_uuid=user_uuid)
+            user = User(user_uuid=user_uuid)
             session.add(user)
             session.flush()
 

@@ -15,7 +15,7 @@ class FavoriteCRUD(BaseDAO):
             user = self._get_dird_user(s, user_uuid)
             source = self._get_source(s, backend, source_name)
             favorite = Favorite(
-                source_uuid=source.uuid, contact_id=contact_id, user_uuid=user.xivo_user_uuid
+                source_uuid=source.uuid, contact_id=contact_id, user_uuid=user.user_uuid
             )
             s.add(favorite)
             self.flush_or_raise(s, DuplicatedFavoriteException)

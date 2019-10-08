@@ -58,9 +58,7 @@ class PersonalContactSearchEngine(BaseDAO):
         if not uuids:
             return False
 
-        return and_(
-            User.xivo_user_uuid == user_uuid, ContactFields.contact_uuid.in_(uuids)
-        )
+        return and_(User.user_uuid == user_uuid, ContactFields.contact_uuid.in_(uuids))
 
     def _new_search_filter(self, user_uuid, term, columns):
         if not columns:
@@ -68,7 +66,7 @@ class PersonalContactSearchEngine(BaseDAO):
 
         pattern = '%{}%'.format(unidecode(term))
         return and_(
-            User.xivo_user_uuid == user_uuid,
+            User.user_uuid == user_uuid,
             unaccent(ContactFields.value).ilike(pattern),
             ContactFields.name.in_(columns),
         )
@@ -78,13 +76,13 @@ class PersonalContactSearchEngine(BaseDAO):
             return False
 
         return and_(
-            User.xivo_user_uuid == user_uuid,
+            User.user_uuid == user_uuid,
             unaccent(ContactFields.value) == unidecode(term),
             ContactFields.name.in_(columns),
         )
 
     def _new_user_contacts_filter(self, user_uuid):
-        return User.xivo_user_uuid == user_uuid
+        return User.user_uuid == user_uuid
 
 
 class PersonalContactCRUD(BaseDAO):
@@ -125,7 +123,7 @@ class PersonalContactCRUD(BaseDAO):
 
         for hash_ in to_add:
             contact_info = hash_and_contact[hash_]
-            contact_args = {'user_uuid': user.xivo_user_uuid, 'hash': hash_}
+            contact_args = {'user_uuid': user.user_uuid, 'hash': hash_}
             contact_uuid = contact_info.get('id')
             if contact_uuid:
                 contact_args['uuid'] = contact_uuid
@@ -167,8 +165,7 @@ class PersonalContactCRUD(BaseDAO):
     def get_personal_contact(self, user_uuid, contact_uuid):
         with self.new_session() as s:
             filter_ = and_(
-                User.xivo_user_uuid == user_uuid,
-                ContactFields.contact_uuid == contact_uuid,
+                User.user_uuid == user_uuid, ContactFields.contact_uuid == contact_uuid
             )
             contact_uuids = (
                 s.query(distinct(ContactFields.contact_uuid))
@@ -184,7 +181,7 @@ class PersonalContactCRUD(BaseDAO):
 
     def delete_all_personal_contacts(self, user_uuid):
         with self.new_session() as s:
-            filter_ = User.xivo_user_uuid == user_uuid
+            filter_ = User.user_uuid == user_uuid
             return self._delete_personal_contacts_with_filter(s, filter_)
 
     def delete_personal_contact(self, user_uuid, contact_uuid):
@@ -193,7 +190,7 @@ class PersonalContactCRUD(BaseDAO):
 
     def _delete_personal_contact(self, session, user_uuid, contact_uuid):
         filter_ = and_(
-            User.xivo_user_uuid == user_uuid, ContactFields.contact_uuid == contact_uuid
+            User.user_uuid == user_uuid, ContactFields.contact_uuid == contact_uuid
         )
         nb_deleted = self._delete_personal_contacts_with_filter(session, filter_)
         if nb_deleted == 0:

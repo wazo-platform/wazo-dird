@@ -52,13 +52,13 @@ def with_user_uuid(f):
     @functools.wraps(f)
     def wrapped(self, *args, **kwargs):
         user_uuid = new_uuid()
-        user = database.User(xivo_user_uuid=user_uuid)
+        user = database.User(user_uuid=user_uuid)
         with closing(Session()) as session:
             session.add(user)
             session.commit()
             result = f(self, user_uuid, *args, **kwargs)
             session.query(database.User).filter(
-                database.User.xivo_user_uuid == user_uuid
+                database.User.user_uuid == user_uuid
             ).delete()
             session.commit()
         return result
@@ -1124,8 +1124,8 @@ class TestFavoriteCrud(_BaseTest):
     def _user_exists(self, user_uuid):
         with closing(Session()) as session:
             user_uuid = (
-                session.query(database.User.xivo_user_uuid)
-                .filter(database.User.xivo_user_uuid == user_uuid)
+                session.query(database.User.user_uuid)
+                .filter(database.User.user_uuid == user_uuid)
                 .scalar()
             )
 
@@ -1139,7 +1139,7 @@ class TestFavoriteCrud(_BaseTest):
                 .join(database.User)
                 .filter(
                     and_(
-                        database.User.xivo_user_uuid == user_uuid,
+                        database.User.user_uuid == user_uuid,
                         database.Source.name == source_name,
                         database.Favorite.contact_id == contact_id,
                     )
