@@ -16,8 +16,8 @@ from .. import ContactFields
 sqlalchemy_helper.handle_db_restart()
 
 
-def delete_user(session, xivo_user_uuid):
-    session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).delete()
+def delete_user(session, user_uuid):
+    session.query(User).filter(User.xivo_user_uuid == user_uuid).delete()
 
 
 def extract_constraint_name(error):
@@ -83,10 +83,10 @@ class BaseDAO:
         except exc.IntegrityError:
             s.rollback()
 
-    def _get_dird_user(self, session, xivo_user_uuid):
-        user = session.query(User).filter(User.xivo_user_uuid == xivo_user_uuid).first()
+    def _get_dird_user(self, session, user_uuid):
+        user = session.query(User).filter(User.xivo_user_uuid == user_uuid).first()
         if not user:
-            user = User(xivo_user_uuid=xivo_user_uuid)
+            user = User(xivo_user_uuid=user_uuid)
             session.add(user)
             session.flush()
 

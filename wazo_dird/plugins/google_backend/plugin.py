@@ -129,12 +129,12 @@ class GooglePlugin(BaseSourcePlugin):
 
         return False
 
-    def _get_google_token(self, xivo_user_uuid, token=None, **ignored):
+    def _get_google_token(self, user_uuid, token=None, **ignored):
         if not token:
             logger.debug('Unable to search through Google without a token.')
             raise GoogleTokenNotFoundException()
 
-        return services.get_google_access_token(xivo_user_uuid, token, **self.auth)
+        return services.get_google_access_token(user_uuid, token, **self.auth)
 
     def _search_match_predicate(self, contact, term):
         for field in self._searched_columns:

@@ -29,10 +29,11 @@ class PhoneMenu(LegacyAuthResource):
 
     @required_acl('dird.directories.menu.{profile}.{xivo_user_uuid}.read')
     def get(self, profile, xivo_user_uuid):
+        user_uuid = xivo_user_uuid
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('menu'))
 
         response_xml = render_template(
-            self.template, xivo_proxy_url=proxy_url, xivo_user_uuid=xivo_user_uuid
+            self.template, xivo_proxy_url=proxy_url, xivo_user_uuid=user_uuid
         )
 
         return Response(response_xml, content_type=self.content_type, status=200)
@@ -45,10 +46,11 @@ class PhoneInput(LegacyAuthResource):
 
     @required_acl('dird.directories.input.{profile}.{xivo_user_uuid}.read')
     def get(self, profile, xivo_user_uuid):
+        user_uuid = xivo_user_uuid
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('input'))
 
         response_xml = render_template(
-            self.template, xivo_proxy_url=proxy_url, xivo_user_uuid=xivo_user_uuid
+            self.template, xivo_proxy_url=proxy_url, xivo_user_uuid=user_uuid
         )
 
         return Response(response_xml, content_type=self.content_type, status=200)
@@ -85,6 +87,7 @@ class PhoneLookup(LegacyAuthResource):
 
     @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}.read')
     def get(self, profile, xivo_user_uuid):
+        user_uuid = xivo_user_uuid
         args = self.parser.parse_args()
         term = args['term']
         offset = args['offset']
@@ -93,7 +96,7 @@ class PhoneLookup(LegacyAuthResource):
         token = request.headers['X-Auth-Token']
 
         try:
-            tenant_uuid = self._get_user_tenant_uuid(xivo_user_uuid)
+            tenant_uuid = self._get_user_tenant_uuid(user_uuid)
             profile_config = self.phone_lookup_service.profile_service.get_by_name(
                 tenant_uuid, profile
             )
@@ -106,7 +109,7 @@ class PhoneLookup(LegacyAuthResource):
                 profile_config,
                 term,
                 tenant_uuid,
-                user_uuid=xivo_user_uuid,
+                user_uuid=user_uuid,
                 token=token,
                 limit=limit,
                 offset=offset,
@@ -121,7 +124,7 @@ class PhoneLookup(LegacyAuthResource):
             self.template,
             results=results['results'],
             xivo_proxy_url=proxy_url,
-            xivo_user_uuid=xivo_user_uuid,
+            xivo_user_uuid=user_uuid,
             term=term,
             limit=limit,
             total=results['total'],

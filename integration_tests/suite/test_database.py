@@ -117,12 +117,12 @@ class _BaseTest(unittest.TestCase):
     def contact_3(self):
         return dict(self._contact_3)
 
-    def _insert_personal_contacts(self, xivo_user_uuid, *contacts):
+    def _insert_personal_contacts(self, user_uuid, *contacts):
         ids = []
         with closing(Session()) as session:
             for contact in contacts:
                 hash_ = base.compute_contact_hash(contact)
-                dird_contact = database.Contact(user_uuid=xivo_user_uuid, hash=hash_)
+                dird_contact = database.Contact(user_uuid=user_uuid, hash=hash_)
                 session.add(dird_contact)
                 session.flush()
                 ids.append(dird_contact.uuid)
@@ -890,39 +890,37 @@ class TestContactCRUD(_BaseTest):
         assert_that(contact_list, contains(expected(self.contact_1)))
 
     @with_user_uuid
-    def test_that_create_personal_contact_creates_with_existing_owner(
-        self, xivo_user_uuid
-    ):
-        result = self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)
+    def test_that_create_personal_contact_creates_with_existing_owner(self, user_uuid):
+        result = self._crud.create_personal_contact(user_uuid, self.contact_1)
         assert_that(result, equal_to(expected(self.contact_1)))
 
-        contact_list = self._crud.list_personal_contacts(xivo_user_uuid)
+        contact_list = self._crud.list_personal_contacts(user_uuid)
         assert_that(contact_list, contains(expected(self.contact_1)))
 
     @with_user_uuid
-    def test_that_personal_contacts_are_unique(self, xivo_user_uuid):
-        self._crud.create_personal_contact(xivo_user_uuid, self.contact_1)
+    def test_that_personal_contacts_are_unique(self, user_uuid):
+        self._crud.create_personal_contact(user_uuid, self.contact_1)
         assert_that(
             calling(self._crud.create_personal_contact).with_args(
-                xivo_user_uuid, self.contact_1
+                user_uuid, self.contact_1
             ),
             raises(exception.DuplicatedContactException),
         )
 
     @with_user_uuid
-    def test_that_personal_contacts_remain_unique(self, xivo_user_uuid):
-        contact_1_uuid = self._crud.create_personal_contact(
-            xivo_user_uuid, self.contact_1
-        )['id']
-        self._crud.create_personal_contact(xivo_user_uuid, self.contact_2)['id']
+    def test_that_personal_contacts_remain_unique(self, user_uuid):
+        contact_1_uuid = self._crud.create_personal_contact(user_uuid, self.contact_1)[
+            'id'
+        ]
+        self._crud.create_personal_contact(user_uuid, self.contact_2)['id']
 
         assert_that(
             calling(self._crud.edit_personal_contact).with_args(
-                xivo_user_uuid, contact_1_uuid, self.contact_2
+                user_uuid, contact_1_uuid, self.contact_2
             ),
             raises(exception.DuplicatedContactException),
         )
-        contact_list = self._crud.list_personal_contacts(xivo_user_uuid)
+        contact_list = self._crud.list_personal_contacts(user_uuid)
         assert_that(
             contact_list,
             contains_inanyorder(expected(self.contact_1), expected(self.contact_2)),
@@ -943,12 +941,12 @@ class TestContactCRUD(_BaseTest):
         assert_that(contact_1_uuid, not_(equal_to(contact_2_uuid)))
 
     @with_user_uuid
-    def test_get_personal_contact(self, xivo_user_uuid):
+    def test_get_personal_contact(self, user_uuid):
         contact_uuid, _, __ = self._insert_personal_contacts(
-            xivo_user_uuid, self.contact_1, self.contact_2, self.contact_3
+            user_uuid, self.contact_1, self.contact_2, self.contact_3
         )
 
-        result = self._crud.get_personal_contact(xivo_user_uuid, contact_uuid)
+        result = self._crud.get_personal_contact(user_uuid, contact_uuid)
 
         assert_that(result, equal_to(expected(self.contact_1)))
 
@@ -967,15 +965,13 @@ class TestContactCRUD(_BaseTest):
         )
 
     @with_user_uuid
-    def test_delete_personal_contact(self, xivo_user_uuid):
-        contact_uuid, = self._insert_personal_contacts(xivo_user_uuid, self.contact_1)
+    def test_delete_personal_contact(self, user_uuid):
+        contact_uuid, = self._insert_personal_contacts(user_uuid, self.contact_1)
 
-        self._crud.delete_personal_contact(xivo_user_uuid, contact_uuid)
+        self._crud.delete_personal_contact(user_uuid, contact_uuid)
 
         assert_that(
-            calling(self._crud.get_personal_contact).with_args(
-                xivo_user_uuid, contact_uuid
-            ),
+            calling(self._crud.get_personal_contact).with_args(user_uuid, contact_uuid),
             raises(exception.NoSuchContact),
         )
 
@@ -1030,18 +1026,18 @@ class TestFavoriteCrud(_BaseTest):
 
     @fixtures.source(backend='backend', name='foobar')
     def test_that_create_creates_a_favorite(self, source):
-        xivo_user_uuid = new_uuid()
+        user_uuid = new_uuid()
         source_name = 'foobar'
         contact_id = 'the-contact-id'
         backend = 'backend'
 
-        favorite = self._crud.create(xivo_user_uuid, backend, source_name, contact_id)
+        favorite = self._crud.create(user_uuid, backend, source_name, contact_id)
 
-        assert_that(favorite.user_uuid, equal_to(xivo_user_uuid))
+        assert_that(favorite.user_uuid, equal_to(user_uuid))
         assert_that(favorite.contact_id, equal_to(contact_id))
 
-        assert_that(self._user_exists(xivo_user_uuid))
-        assert_that(self._favorite_exists(xivo_user_uuid, source_name, contact_id))
+        assert_that(self._user_exists(user_uuid))
+        assert_that(self._favorite_exists(user_uuid, source_name, contact_id))
 
     @with_user_uuid
     @fixtures.source(backend='backend', name='source')
@@ -1077,14 +1073,14 @@ class TestFavoriteCrud(_BaseTest):
 
     @fixtures.source(backend='backend', name='source')
     @with_user_uuid
-    def test_that_delete_removes_a_favorite(self, xivo_user_uuid, source):
+    def test_that_delete_removes_a_favorite(self, user_uuid, source):
         backend = 'backend'
-        self._crud.create(xivo_user_uuid, backend, 'source', 'the-contact-id')
+        self._crud.create(user_uuid, backend, 'source', 'the-contact-id')
 
-        self._crud.delete(xivo_user_uuid, 'source', 'the-contact-id')
+        self._crud.delete(user_uuid, 'source', 'the-contact-id')
 
         assert_that(
-            self._favorite_exists(xivo_user_uuid, 'source', 'the-contact-id'),
+            self._favorite_exists(user_uuid, 'source', 'the-contact-id'),
             equal_to(False),
         )
 
@@ -1106,38 +1102,36 @@ class TestFavoriteCrud(_BaseTest):
 
     @fixtures.source(backend='backend', name='source')
     @with_user_uuid
-    def test_that_delete_raises_if_not_found(self, xivo_user_uuid, source):
+    def test_that_delete_raises_if_not_found(self, user_uuid, source):
         assert_that(
-            calling(self._crud.delete).with_args(
-                xivo_user_uuid, 'source', 'the-contact-id'
-            ),
+            calling(self._crud.delete).with_args(user_uuid, 'source', 'the-contact-id'),
             raises(exception.NoSuchFavorite),
         )
 
     @fixtures.source(backend='backend', name='source')
     @with_user_uuid
-    def test_that_delete_from_an_unknown_source_raises(self, xivo_user_uuid, source):
+    def test_that_delete_from_an_unknown_source_raises(self, user_uuid, source):
         backend = 'backend'
-        self._crud.create(xivo_user_uuid, backend, 'source', 'the-contact-id')
+        self._crud.create(user_uuid, backend, 'source', 'the-contact-id')
 
         assert_that(
             calling(self._crud.delete).with_args(
-                xivo_user_uuid, 'not-source', 'the-contact-id'
+                user_uuid, 'not-source', 'the-contact-id'
             ),
             raises(exception.NoSuchFavorite),
         )
 
-    def _user_exists(self, xivo_user_uuid):
+    def _user_exists(self, user_uuid):
         with closing(Session()) as session:
             user_uuid = (
                 session.query(database.User.xivo_user_uuid)
-                .filter(database.User.xivo_user_uuid == xivo_user_uuid)
+                .filter(database.User.xivo_user_uuid == user_uuid)
                 .scalar()
             )
 
         return user_uuid is not None
 
-    def _favorite_exists(self, xivo_user_uuid, source_name, contact_id):
+    def _favorite_exists(self, user_uuid, source_name, contact_id):
         with closing(Session()) as session:
             favorite = (
                 session.query(database.Favorite)
@@ -1145,7 +1139,7 @@ class TestFavoriteCrud(_BaseTest):
                 .join(database.User)
                 .filter(
                     and_(
-                        database.User.xivo_user_uuid == xivo_user_uuid,
+                        database.User.xivo_user_uuid == user_uuid,
                         database.Source.name == source_name,
                         database.Favorite.contact_id == contact_id,
                     )
@@ -1244,16 +1238,16 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
 class TestPersonalContactSearchEngine(_BaseTest):
     @with_user_uuid
-    def test_that_find_first_returns_a_contact(self, xivo_user_uuid):
+    def test_that_find_first_returns_a_contact(self, user_uuid):
         engine = database.PersonalContactSearchEngine(
             Session, first_match_columns=['number']
         )
 
         self._insert_personal_contacts(
-            xivo_user_uuid, self.contact_1, self.contact_2, self.contact_3
+            user_uuid, self.contact_1, self.contact_2, self.contact_3
         )
 
-        result = engine.find_first_personal_contact(xivo_user_uuid, '5555550001')
+        result = engine.find_first_personal_contact(user_uuid, '5555550001')
 
         assert_that(
             result, contains(any_of(expected(self.contact_2), expected(self.contact_3)))
@@ -1261,26 +1255,24 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
     @with_user_uuid
     def test_that_listing_personal_contacts_returns_the_searched_contacts(
-        self, xivo_user_uuid
+        self, user_uuid
     ):
         engine = database.PersonalContactSearchEngine(
             Session, searched_columns=['firstname']
         )
 
-        ids = self._insert_personal_contacts(
-            xivo_user_uuid, self.contact_1, self.contact_2
-        )
+        ids = self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.list_personal_contacts(xivo_user_uuid, ids)
+        result = engine.list_personal_contacts(user_uuid, ids)
         assert_that(
             result,
             contains_inanyorder(expected(self.contact_1), expected(self.contact_2)),
         )
 
-        result = engine.list_personal_contacts(xivo_user_uuid, ids[:1])
+        result = engine.list_personal_contacts(user_uuid, ids[:1])
         assert_that(result, contains(expected(self.contact_1)))
 
-        result = engine.list_personal_contacts(xivo_user_uuid, ids[1:])
+        result = engine.list_personal_contacts(user_uuid, ids[1:])
         assert_that(result, contains(expected(self.contact_2)))
 
     @with_user_uuid
@@ -1314,38 +1306,38 @@ class TestPersonalContactSearchEngine(_BaseTest):
         assert_that(result, empty())
 
     @with_user_uuid
-    def test_that_searching_for_a_contact_returns_its_fields(self, xivo_user_uuid):
+    def test_that_searching_for_a_contact_returns_its_fields(self, user_uuid):
         engine = database.PersonalContactSearchEngine(
             Session, searched_columns=['firstname']
         )
 
-        self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
+        self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
+        result = engine.find_personal_contacts(user_uuid, 'ced')
         assert_that(result, contains(expected(self.contact_2)))
 
-        result = engine.find_personal_contacts(xivo_user_uuid, 'céd')
+        result = engine.find_personal_contacts(user_uuid, 'céd')
         assert_that(result, contains(expected(self.contact_2)))
 
     @with_user_uuid
-    def test_that_find_searches_only_in_searched_columns(self, xivo_user_uuid):
+    def test_that_find_searches_only_in_searched_columns(self, user_uuid):
         engine = database.PersonalContactSearchEngine(
             Session, searched_columns=['lastname']
         )
 
-        self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
+        self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
+        result = engine.find_personal_contacts(user_uuid, 'ced')
 
         assert_that(result, empty())
 
     @with_user_uuid
-    def test_that_no_searched_columns_does_not_search(self, xivo_user_uuid):
+    def test_that_no_searched_columns_does_not_search(self, user_uuid):
         engine = database.PersonalContactSearchEngine(Session, searched_columns=[])
 
-        self._insert_personal_contacts(xivo_user_uuid, self.contact_1, self.contact_2)
+        self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
 
-        result = engine.find_personal_contacts(xivo_user_uuid, 'ced')
+        result = engine.find_personal_contacts(user_uuid, 'ced')
 
         assert_that(result, empty())
 

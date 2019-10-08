@@ -185,7 +185,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
     @fixtures.google_result(GOOGLE_CONTACT_LIST)
     def test_plugin_reverse(self, google_api):
         response = self.client.directories.reverse(
-            exten='+15555551234', profile='default', xivo_user_uuid='uuid-tenant-master'
+            exten='+15555551234', profile='default', user_uuid='uuid-tenant-master'
         )
 
         assert_that(response, has_entries(display='Mario Bros'))
