@@ -177,10 +177,3 @@ paths:
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
-parameters:
-  UserUUID:
-    name: user_uuid
-    in: path
-    type: string
-    description: The user UUID of the user doing that query
-    required: true

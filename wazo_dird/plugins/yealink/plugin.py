@@ -12,7 +12,7 @@ CONTENT_TYPE = 'text/xml'
 
 class YealinkViewPlugin(BaseViewPlugin):
 
-    yealink_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/yealink'
+    yealink_lookup = '/directories/lookup/<profile>/<user_uuid>/yealink'
 
     def load(self, dependencies):
         api = dependencies['api']

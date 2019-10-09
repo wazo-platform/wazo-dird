@@ -1,9 +1,9 @@
 paths:
-  /directories/menu/{profile}/{xivo_user_uuid}/cisco:
+  /directories/menu/{profile}/{user_uuid}/cisco:
     get:
       summary: Extends the directories menu for Cisco Unified IP Phones
       description: |
-        **Required ACL:** `dird.directories.menu.{profile}.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.directories.menu.{profile}.{user_uuid}.read`
 
         The `menu` query will return a XML to extend the directories menu for Cisco
         Unified IP Phones.
@@ -22,15 +22,15 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
       - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/XivoUserUUID'
+      - $ref: '#/parameters/UserUUID'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
-  /directories/input/{profile}/{xivo_user_uuid}/cisco:
+  /directories/input/{profile}/{user_uuid}/cisco:
     get:
       summary: Given informations about how make request lookup for Cisco Unified
         IP Phones
       description: |
-        **Required ACL:** `dird.directories.input.{profile}.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.directories.input.{profile}.{user_uuid}.read`
 
         The `input` query will return a XML to give informations about how make request
         lookup for Cisco Unified IP Phones.
@@ -49,14 +49,14 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
       - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/XivoUserUUID'
+      - $ref: '#/parameters/UserUUID'
       - $ref: '#/parameters/ProxyUrl'
       - $ref: '#/parameters/AcceptLanguage'
-  /directories/lookup/{profile}/{xivo_user_uuid}/cisco:
+  /directories/lookup/{profile}/{user_uuid}/cisco:
     get:
       summary: Search for contacts with Cisco Unified IP Phones
       description: |
-        **Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
+        **Required ACL:** `dird.directories.lookup.{profile}.{user_uuid}.read`
 
         The `lookup` query will return a list of result matching the searched term
         formated for Cisco Unified IP Phones. The result will be retrieved from all
@@ -83,7 +83,7 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:
       - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/XivoUserUUID'
+      - $ref: '#/parameters/UserUUID'
       - $ref: '#/parameters/Term'
       - $ref: '#/parameters/Limit16'
       - $ref: '#/parameters/Offset'

@@ -27,9 +27,8 @@ class PhoneMenu(LegacyAuthResource):
         self.template = template
         self.content_type = content_type
 
-    @required_acl('dird.directories.menu.{profile}.{xivo_user_uuid}.read')
-    def get(self, profile, xivo_user_uuid):
-        user_uuid = xivo_user_uuid
+    @required_acl('dird.directories.menu.{profile}.{user_uuid}.read')
+    def get(self, profile, user_uuid):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('menu'))
 
         response_xml = render_template(
@@ -44,9 +43,8 @@ class PhoneInput(LegacyAuthResource):
         self.template = template
         self.content_type = content_type
 
-    @required_acl('dird.directories.input.{profile}.{xivo_user_uuid}.read')
-    def get(self, profile, xivo_user_uuid):
-        user_uuid = xivo_user_uuid
+    @required_acl('dird.directories.input.{profile}.{user_uuid}.read')
+    def get(self, profile, user_uuid):
         proxy_url = request.headers.get('Proxy-URL', _build_next_url('input'))
 
         response_xml = render_template(
@@ -85,9 +83,8 @@ class PhoneLookup(LegacyAuthResource):
             'term', type=str, required=True, help='term is missing', location='args'
         )
 
-    @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}.read')
-    def get(self, profile, xivo_user_uuid):
-        user_uuid = xivo_user_uuid
+    @required_acl('dird.directories.lookup.{profile}.{user_uuid}.read')
+    def get(self, profile, user_uuid):
         args = self.parser.parse_args()
         term = args['term']
         offset = args['offset']

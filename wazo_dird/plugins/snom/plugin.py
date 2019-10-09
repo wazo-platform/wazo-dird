@@ -14,8 +14,8 @@ MAX_ITEM_PER_PAGE = 16
 
 class SnomViewPlugin(BaseViewPlugin):
 
-    snom_input = '/directories/input/<profile>/<xivo_user_uuid>/snom'
-    snom_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/snom'
+    snom_input = '/directories/input/<profile>/<user_uuid>/snom'
+    snom_lookup = '/directories/lookup/<profile>/<user_uuid>/snom'
 
     def load(self, dependencies):
         api = dependencies['api']
