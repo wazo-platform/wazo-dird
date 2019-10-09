@@ -22,8 +22,8 @@ services:
       - "./etc/wazo-dird/conf.d/disable_service_discovery.yml:/etc/wazo-dird/conf.d/disable_service_discovery.yml"
       - "./etc/wazo-dird/conf.d/db_uri.yml:/etc/wazo-dird/conf.d/db_uri.yml"
       - "./etc/wazo-dird/conf.d/auth.yml:/etc/wazo-dird/conf.d/auth.yml"
-      # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.5/site-packages/xivo"
-      # - "${LOCAL_GIT_REPOS}/xivo-bus/xivo_bus:/usr/local/lib/python3.5/site-packages/xivo_bus"
+      # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.7/site-packages/xivo"
+      # - "${LOCAL_GIT_REPOS}/xivo-bus/xivo_bus:/usr/local/lib/python3.7/site-packages/xivo_bus"
 
   db:
     image: wazopbx/wazo-dird-db
