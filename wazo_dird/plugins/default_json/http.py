@@ -98,9 +98,8 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
         self.profile_service = profile_service
         self.auth_client = auth_client
 
-    @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}.read')
-    def get(self, profile, xivo_user_uuid):
-        user_uuid = xivo_user_uuid
+    @required_acl('dird.directories.lookup.{profile}.{user_uuid}.read')
+    def get(self, profile, user_uuid):
         args = parser.parse_args()
         term = args['term']
 
@@ -144,9 +143,8 @@ class Reverse(LegacyAuthResource):
         self.reverse_service = reverse_service
         self.profile_service = profile_service
 
-    @required_acl('dird.directories.reverse.{profile}.{xivo_user_uuid}.read')
-    def get(self, profile, xivo_user_uuid):
-        user_uuid = xivo_user_uuid
+    @required_acl('dird.directories.reverse.{profile}.{user_uuid}.read')
+    def get(self, profile, user_uuid):
         token = request.headers['X-Auth-Token']
         args = parser_reverse.parse_args()
         exten = args['exten']
