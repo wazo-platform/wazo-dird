@@ -47,13 +47,13 @@ class PersonalBackend(BaseSourcePlugin):
 
     def search(self, term, args=None):
         logger.debug('Searching personal contacts with %s', term)
-        user_uuid = args['xivo_user_uuid']
+        user_uuid = args['user_uuid']
         matching_contacts = self._search_engine.find_personal_contacts(user_uuid, term)
         return self.format_contacts(matching_contacts)
 
     def first_match(self, term, args=None):
         logger.debug('First matching personal contacts with %s', term)
-        user_uuid = args['xivo_user_uuid']
+        user_uuid = args['user_uuid']
         matching_contacts = self._search_engine.find_first_personal_contact(
             user_uuid, term
         )
@@ -62,7 +62,7 @@ class PersonalBackend(BaseSourcePlugin):
 
     def list(self, source_entry_ids, args):
         logger.debug('Listing personal contacts: %s', source_entry_ids)
-        user_uuid = args['token_infos']['xivo_user_uuid']
+        user_uuid = args['user_uuid']
         matching_contacts = self._search_engine.list_personal_contacts(
             user_uuid, source_entry_ids
         )

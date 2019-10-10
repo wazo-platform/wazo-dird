@@ -398,12 +398,12 @@ class TestLookupPersonal(PersonalOnlyTestCase):
             ),
         )
 
-    def test_reverse_lookup_with_xivo_user_uuid(self):
+    def test_reverse_lookup_with_user_uuid(self):
         result = self.reverse('123456', 'default', VALID_UUID)
 
         assert_that(result['display'], equal_to('Elice Wowo'))
 
-    def test_reverse_lookup_with_invalid_xivo_user_uuid(self):
+    def test_reverse_lookup_with_invalid_user_uuid(self):
         result = self.reverse('123456', 'default', 'invalid_uuid')
 
         assert_that(result['display'], is_(none()))

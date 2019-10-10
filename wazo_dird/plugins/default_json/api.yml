@@ -29,10 +29,10 @@ paths:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
       - $ref: '#/parameters/Term'
-  /directories/lookup/{profile}/{xivo_user_uuid}:
+  /directories/lookup/{profile}/{user_uuid}:
     get:
       summary: Search for contacts for a particular user
-      description: '**Required ACL:** `dird.directories.lookup.{profile}.{xivo_user_uuid}.read`
+      description: '**Required ACL:** `dird.directories.lookup.{profile}.{user_uuid}.read`
 
 
         The `lookup` query will return a list of result matching the searched term.
@@ -58,12 +58,12 @@ paths:
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/XivoUserUUID'
+      - $ref: '#/parameters/UserUUID'
       - $ref: '#/parameters/Term'
-  /directories/reverse/{profile}/{xivo_user_uuid}:
+  /directories/reverse/{profile}/{user_uuid}:
     get:
       summary: Search for contact by number
-      description: '**Required ACL:** `dird.directories.reverse.{profile}.{xivo_user_uuid}.read`
+      description: '**Required ACL:** `dird.directories.reverse.{profile}.{user_uuid}.read`
 
 
         The `reverse` query will return a contact matching the searched exten. The
@@ -86,7 +86,7 @@ paths:
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
-      - $ref: '#/parameters/XivoUserUUID'
+      - $ref: '#/parameters/UserUUID'
       - $ref: '#/parameters/Exten'
   /directories/favorites/{profile}:
     get:

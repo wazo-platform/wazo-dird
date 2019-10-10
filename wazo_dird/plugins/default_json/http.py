@@ -38,7 +38,7 @@ def _error(code, msg):
 
 
 class DisabledFavoriteService:
-    def favorite_ids(self, profile, xivo_user_uuid):
+    def favorite_ids(self, profile, user_uuid):
         return []
 
 
@@ -67,13 +67,13 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
 
         token = request.headers['X-Auth-Token']
         token_infos = auth.client().token.get(token)
-        xivo_user_uuid = token_infos['xivo_user_uuid']
+        user_uuid = token_infos['metadata']['uuid']
 
         raw_results = self.lookup_service.lookup(
-            profile_config, tenant.uuid, term, xivo_user_uuid, token=token
+            profile_config, tenant.uuid, term, user_uuid, token=token
         )
         favorites = self.favorite_service.favorite_ids(
-            profile_config, xivo_user_uuid
+            profile_config, user_uuid
         ).by_name
         formatter = _ResultFormatter(display)
         response = formatter.format_results(raw_results, favorites)
@@ -98,14 +98,12 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
         self.profile_service = profile_service
         self.auth_client = auth_client
 
-    @required_acl('dird.directories.lookup.{profile}.{xivo_user_uuid}.read')
-    def get(self, profile, xivo_user_uuid):
+    @required_acl('dird.directories.lookup.{profile}.{user_uuid}.read')
+    def get(self, profile, user_uuid):
         args = parser.parse_args()
         term = args['term']
 
-        logger.info(
-            'Lookup %s for user %s with profile %s', term, xivo_user_uuid, profile
-        )
+        logger.info('Lookup %s for user %s with profile %s', term, user_uuid, profile)
 
         tenant_uuid = Tenant.autodetect().uuid
         try:
@@ -117,10 +115,10 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
         token = request.headers['X-Auth-Token']
 
         raw_results = self.lookup_service.lookup(
-            profile_config, tenant_uuid, term, xivo_user_uuid, token=token
+            profile_config, tenant_uuid, term, user_uuid, token=token
         )
         favorites = self.favorite_service.favorite_ids(
-            profile_config, xivo_user_uuid
+            profile_config, user_uuid
         ).by_name
         formatter = _ResultFormatter(display)
         response = formatter.format_results(raw_results, favorites)
@@ -145,8 +143,8 @@ class Reverse(LegacyAuthResource):
         self.reverse_service = reverse_service
         self.profile_service = profile_service
 
-    @required_acl('dird.directories.reverse.{profile}.{xivo_user_uuid}.read')
-    def get(self, profile, xivo_user_uuid):
+    @required_acl('dird.directories.reverse.{profile}.{user_uuid}.read')
+    def get(self, profile, user_uuid):
         token = request.headers['X-Auth-Token']
         args = parser_reverse.parse_args()
         exten = args['exten']
@@ -160,7 +158,7 @@ class Reverse(LegacyAuthResource):
         logger.info('Reverse for %s with profile %s', exten, profile)
 
         raw_result = self.reverse_service.reverse(
-            profile_config, exten, profile, xivo_user_uuid=xivo_user_uuid, token=token
+            profile_config, exten, profile, user_uuid=user_uuid, token=token
         )
 
         response = {'display': None, 'exten': exten, 'fields': {}, 'source': None}
@@ -194,7 +192,7 @@ class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
 
         try:
             raw_results = self.favorites_service.favorites(
-                profile_config, token_infos['xivo_user_uuid'], token
+                profile_config, token_infos['metadata']['uuid'], token
             )
         except self.favorites_service.NoSuchProfileException as e:
             return _error(404, str(e))
@@ -215,7 +213,7 @@ class FavoritesWrite(LegacyAuthResource):
         tenant = Tenant.autodetect()
         try:
             self.favorites_service.new_favorite(
-                tenant.uuid, directory, contact, token_infos['xivo_user_uuid']
+                tenant.uuid, directory, contact, token_infos['metadata']['uuid']
             )
         except self.favorites_service.DuplicatedFavoriteException:
             return _error(409, 'Adding this favorite would create a duplicate')
@@ -231,7 +229,7 @@ class FavoritesWrite(LegacyAuthResource):
         tenant = Tenant.autodetect()
         try:
             self.favorites_service.remove_favorite(
-                tenant.uuid, directory, contact, token_infos['xivo_user_uuid']
+                tenant.uuid, directory, contact, token_infos['metadata']['uuid']
             )
             return '', 204
         except (
@@ -264,12 +262,12 @@ class Personal(LegacyAuthResource, DisplayAwareResource):
             return e.body, e.status_code
 
         raw_results = self.personal_service.list_contacts(
-            tenant.uuid, token_infos['xivo_user_uuid']
+            tenant.uuid, token_infos['metadata']['uuid']
         )
 
         try:
             favorites = self.favorite_service.favorite_ids(
-                profile_config, token_infos['xivo_user_uuid']
+                profile_config, token_infos['metadata']['uuid']
             ).by_name
         except self.favorite_service.NoSuchProfileException as e:
             return _error(404, str(e))

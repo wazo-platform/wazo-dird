@@ -149,12 +149,12 @@ class Office365Plugin(BaseSourcePlugin):
 
         return False
 
-    def _get_microsoft_token(self, xivo_user_uuid, token=None, **ignored):
+    def _get_microsoft_token(self, user_uuid, token=None, **ignored):
         if not token:
             logger.debug('Unable to search through Office365 without a token.')
             raise MicrosoftTokenNotFoundException()
 
-        return services.get_microsoft_access_token(xivo_user_uuid, token, **self.auth)
+        return services.get_microsoft_access_token(user_uuid, token, **self.auth)
 
     @staticmethod
     def _update_contact_fields(contacts):

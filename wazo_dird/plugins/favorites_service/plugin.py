@@ -97,18 +97,21 @@ class _FavoritesService(helpers.BaseService):
         future.name = source.name
         return future
 
-    def favorites(self, profile_config, xivo_user_uuid, token=None):
+    def favorites(self, profile_config, user_uuid, token=None):
         favorites_config = profile_config.get('services', {}).get('favorites', {})
         if not favorites_config:
             raise self.NoSuchProfileException(profile_config['name'])
 
         args = {
-            'token_infos': {'xivo_user_uuid': xivo_user_uuid},
+            'token_infos': {
+                'xivo_user_uuid': user_uuid
+            },  # To avoid breaking old plugins
             'token': token,
-            'xivo_user_uuid': xivo_user_uuid,
+            'xivo_user_uuid': user_uuid,  # To avoid breaking old plugins
+            'user_uuid': user_uuid,
         }
         futures = []
-        favorite_map = self.favorite_ids(profile_config, xivo_user_uuid).by_uuid
+        favorite_map = self.favorite_ids(profile_config, user_uuid).by_uuid
         for source_uuid, ids in favorite_map.items():
             source = self._source_manager.get(source_uuid)
             futures.append(self._async_list(source, ids, args))
@@ -124,8 +127,8 @@ class _FavoritesService(helpers.BaseService):
                 results.append(result)
         return results
 
-    def favorite_ids(self, profile_config, xivo_user_uuid):
-        favorites = self._crud.get(xivo_user_uuid)
+    def favorite_ids(self, profile_config, user_uuid):
+        favorites = self._crud.get(user_uuid)
         favorite_config = profile_config.get('services', {}).get('favorites', {})
         enabled_sources = {
             source['name']: source for source in favorite_config.get('sources', [])
@@ -143,7 +146,7 @@ class _FavoritesService(helpers.BaseService):
         FavoriteList = namedtuple('FavoriteList', ['by_uuid', 'by_name'])
         return FavoriteList(by_uuid, by_name)
 
-    def new_favorite(self, tenant_uuid, source_name, contact_id, xivo_user_uuid):
+    def new_favorite(self, tenant_uuid, source_name, contact_id, user_uuid):
         sources = self._available_sources(tenant_uuid)
         matching_source = None
         for source in sources:
@@ -155,19 +158,17 @@ class _FavoritesService(helpers.BaseService):
             raise self.NoSuchSourceException(source_name)
 
         backend = source['backend']
-        self._crud.create(xivo_user_uuid, backend, source_name, contact_id)
-        event = FavoriteAddedEvent(
-            self._xivo_uuid, xivo_user_uuid, source_name, contact_id
-        )
+        self._crud.create(user_uuid, backend, source_name, contact_id)
+        event = FavoriteAddedEvent(self._xivo_uuid, user_uuid, source_name, contact_id)
         try:
             self._bus.publish(
-                event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True}
+                event, headers={'user_uuid:{uuid}'.format(uuid=user_uuid): True}
             )
         except OSError as e:
             logger.error('failed to publish bus event %s', e)
             logger.info('%s', event)
 
-    def remove_favorite(self, tenant_uuid, source_name, contact_id, xivo_user_uuid):
+    def remove_favorite(self, tenant_uuid, source_name, contact_id, user_uuid):
         sources = self._available_sources(tenant_uuid)
         matching_source = None
         for source in sources:
@@ -178,10 +179,8 @@ class _FavoritesService(helpers.BaseService):
         if not matching_source:
             raise self.NoSuchSourceException(source_name)
 
-        self._crud.delete(xivo_user_uuid, source_name, contact_id)
-        event = FavoriteDeletedEvent(
-            self._xivo_uuid, xivo_user_uuid, source, contact_id
-        )
+        self._crud.delete(user_uuid, source_name, contact_id)
+        event = FavoriteDeletedEvent(self._xivo_uuid, user_uuid, source, contact_id)
         self._bus.publish(
-            event, headers={'user_uuid:{uuid}'.format(uuid=xivo_user_uuid): True}
+            event, headers={'user_uuid:{uuid}'.format(uuid=user_uuid): True}
         )

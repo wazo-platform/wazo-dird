@@ -15,9 +15,9 @@ MAX_ITEM_PER_PAGE = 16
 
 class CiscoViewPlugin(BaseViewPlugin):
 
-    cisco_menu = '/directories/menu/<profile>/<xivo_user_uuid>/cisco'
-    cisco_input = '/directories/input/<profile>/<xivo_user_uuid>/cisco'
-    cisco_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/cisco'
+    cisco_menu = '/directories/menu/<profile>/<user_uuid>/cisco'
+    cisco_input = '/directories/input/<profile>/<user_uuid>/cisco'
+    cisco_lookup = '/directories/lookup/<profile>/<user_uuid>/cisco'
 
     def load(self, dependencies):
         api = dependencies['api']

@@ -24,7 +24,7 @@ class Contact(Base):
         String(38), server_default=text('uuid_generate_v4()'), primary_key=True
     )
     user_uuid = Column(
-        String(38), ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE')
+        String(UUID_LENGTH), ForeignKey('dird_user.user_uuid', ondelete='CASCADE')
     )
     phonebook_id = Column(
         Integer(), ForeignKey('dird_phonebook.id', ondelete='CASCADE')
@@ -90,8 +90,8 @@ class Favorite(Base):
     )
     contact_id = Column(Text(), primary_key=True)
     user_uuid = Column(
-        String(38),
-        ForeignKey('dird_user.xivo_user_uuid', ondelete='CASCADE'),
+        String(UUID_LENGTH),
+        ForeignKey('dird_user.user_uuid', ondelete='CASCADE'),
         primary_key=True,
     )
 
@@ -240,4 +240,4 @@ class User(Base):
 
     __tablename__ = 'dird_user'
 
-    xivo_user_uuid = Column(String(38), primary_key=True)
+    user_uuid = Column(String(UUID_LENGTH), primary_key=True)

@@ -55,14 +55,15 @@ class _LookupService(helpers.BaseService):
         return future
 
     def lookup(
-        self, profile_config, tenant_uuid, term, xivo_user_uuid, args=None, token=None
+        self, profile_config, tenant_uuid, term, user_uuid, args=None, token=None
     ):
         args = args or {}
         futures = []
         sources = self.source_from_profile(profile_config)
         for source in sources:
             args['token'] = token
-            args['xivo_user_uuid'] = xivo_user_uuid
+            args['user_uuid'] = user_uuid
+            args['xivo_user_uuid'] = user_uuid
             futures.append(self._async_search(source, term, args))
 
         params = {'return_when': ALL_COMPLETED}

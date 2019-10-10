@@ -143,7 +143,7 @@ class TestReverse(BaseMultipleSourceLauncher):
 
         assert_that(result, equal_to(expected))
 
-    def test_reverse_with_xivo_user_uuid(self):
+    def test_reverse_with_user_uuid(self):
         result = self.get_reverse_result(
             '1111', 'default', VALID_UUID, VALID_TOKEN_MAIN_TENANT
         )

@@ -34,12 +34,7 @@ class _PhoneLookupService:
         formatter = _PhoneResultFormatter(display)
 
         lookup_results = self._lookup_service.lookup(
-            profile_config,
-            tenant_uuid,
-            term,
-            xivo_user_uuid=user_uuid,
-            args={},
-            token=token,
+            profile_config, tenant_uuid, term, user_uuid=user_uuid, args={}, token=token
         )
         formatted_results = formatter.format_results(lookup_results)
         formatted_results.sort(key=attrgetter('name', 'number'))

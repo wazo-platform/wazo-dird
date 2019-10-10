@@ -12,7 +12,7 @@ CONTENT_TYPE = 'text/xml'
 
 class HtekViewPlugin(BaseViewPlugin):
 
-    htek_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/htek'
+    htek_lookup = '/directories/lookup/<profile>/<user_uuid>/htek'
 
     def load(self, dependencies):
         api = dependencies['api']

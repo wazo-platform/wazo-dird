@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 class JsonViewPlugin(BaseViewPlugin):
 
     lookup_url = '/directories/lookup/<profile>'
-    uuid_lookup_url = '/directories/lookup/<profile>/<xivo_user_uuid>'
-    reverse_url = '/directories/reverse/<profile>/<xivo_user_uuid>'
+    uuid_lookup_url = '/directories/lookup/<profile>/<user_uuid>'
+    reverse_url = '/directories/reverse/<profile>/<user_uuid>'
     favorites_read_url = '/directories/favorites/<profile>'
     favorites_write_url = '/directories/favorites/<directory>/<contact>'
     personal_url = '/directories/personal/<profile>'

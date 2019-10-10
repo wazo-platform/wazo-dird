@@ -13,7 +13,7 @@ MAX_ITEM_PER_PAGE = 8
 
 class ThomsonViewPlugin(BaseViewPlugin):
 
-    thomson_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/thomson'
+    thomson_lookup = '/directories/lookup/<profile>/<user_uuid>/thomson'
 
     def load(self, dependencies):
         api = dependencies['api']

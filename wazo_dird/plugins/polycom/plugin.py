@@ -14,8 +14,8 @@ MAX_ITEM_PER_PAGE = 16
 
 class PolycomViewPlugin(BaseViewPlugin):
 
-    polycom_input = '/directories/input/<profile>/<xivo_user_uuid>/polycom'
-    polycom_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/polycom'
+    polycom_input = '/directories/input/<profile>/<user_uuid>/polycom'
+    polycom_lookup = '/directories/lookup/<profile>/<user_uuid>/polycom'
 
     def load(self, dependencies):
         api = dependencies['api']

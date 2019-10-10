@@ -14,8 +14,8 @@ MAX_ITEM_PER_PAGE = 16
 
 class AastraViewPlugin(BaseViewPlugin):
 
-    aastra_input = '/directories/input/<profile>/<xivo_user_uuid>/aastra'
-    aastra_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/aastra'
+    aastra_input = '/directories/input/<profile>/<user_uuid>/aastra'
+    aastra_lookup = '/directories/lookup/<profile>/<user_uuid>/aastra'
 
     def load(self, dependencies):
         api = dependencies['api']

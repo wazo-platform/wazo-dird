@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that
@@ -31,7 +31,7 @@ class TestPersonalBackend(TestCase):
         self._search_engine.list_personal_contacts.return_value = [CONTACT_1, CONTACT_2]
 
         self._source.list(
-            ids, {'token_infos': {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID}}
+            ids, {'user_uuid': SOME_UUID, 'token_infos': {'token': 'valid-token'}}
         )
 
         self._search_engine.list_personal_contacts.assert_called_once_with(
@@ -42,8 +42,7 @@ class TestPersonalBackend(TestCase):
         self._search_engine.list_personal_contacts.return_value = [CONTACT_1]
 
         result = self._source.list(
-            ['1'],
-            {'token_infos': {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID}},
+            ['1'], {'user_uuid': SOME_UUID, 'token_infos': {'token': 'valid-token'}}
         )
 
         assert_that(result, has_item(has_property('is_personal', True)))
@@ -52,9 +51,7 @@ class TestPersonalBackend(TestCase):
     def test_that_search_calls_find_personal_contacts(self):
         self._search_engine.find_personal_contacts.return_value = [CONTACT_1]
 
-        self._source.search(
-            'alice', {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID}
-        )
+        self._source.search('alice', {'token': 'valid-token', 'user_uuid': SOME_UUID})
 
         self._search_engine.find_personal_contacts.assert_called_once_with(
             SOME_UUID, 'alice'
@@ -64,7 +61,7 @@ class TestPersonalBackend(TestCase):
         self._search_engine.find_first_personal_contact.return_value = [CONTACT_1]
 
         result = self._source.first_match(
-            '555', {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID}
+            '555', {'token': 'valid-token', 'user_uuid': SOME_UUID}
         )
 
         self._search_engine.find_first_personal_contact.assert_called_once_with(
@@ -76,7 +73,7 @@ class TestPersonalBackend(TestCase):
         self._search_engine.find_first_personal_contact.return_value = []
 
         result = self._source.first_match(
-            '555', {'token': 'valid-token', 'xivo_user_uuid': SOME_UUID}
+            '555', {'token': 'valid-token', 'user_uuid': SOME_UUID}
         )
 
         self._search_engine.find_first_personal_contact.assert_called_once_with(

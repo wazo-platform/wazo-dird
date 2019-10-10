@@ -49,7 +49,7 @@ class _ReverseService(helpers.BaseService):
         self._executor.shutdown()
 
     def reverse(
-        self, profile_config, exten, profile, args=None, xivo_user_uuid=None, token=None
+        self, profile_config, exten, profile, args=None, user_uuid=None, token=None
     ):
         args = args or {}
         futures = []
@@ -61,7 +61,9 @@ class _ReverseService(helpers.BaseService):
         )
         for source in sources:
             args['token'] = token
-            args['xivo_user_uuid'] = xivo_user_uuid
+            args['user_uuid'] = user_uuid
+            # To avoid breaking plugins which used the xivo_user_uuid
+            args['xivo_user_uuid'] = user_uuid
             futures.append(self._async_reverse(source, exten, args))
 
         params = {}

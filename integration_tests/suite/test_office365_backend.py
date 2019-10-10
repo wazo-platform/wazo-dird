@@ -38,8 +38,8 @@ class BaseOffice365TestCase(DirdAssetRunningTestCase):
         "token_expiration": 42,
     }
 
-    LOOKUP_ARGS = {'xivo_user_uuid': 'a-xivo-uuid', 'token': 'a-token'}
-    FAVORITE_ARGS = {'xivo_user_uuid': 'a-xivo-uuid', 'token': 'a-token'}
+    LOOKUP_ARGS = {'user_uuid': 'a-xivo-uuid', 'token': 'a-token'}
+    FAVORITE_ARGS = {'user_uuid': 'a-xivo-uuid', 'token': 'a-token'}
 
     WARIO = {'givenName': 'Wario', 'surname': 'Bros', 'mobilePhone': ''}
 

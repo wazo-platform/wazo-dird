@@ -12,7 +12,7 @@ CONTENT_TYPE = 'text/xml'
 
 class GigasetViewPlugin(BaseViewPlugin):
 
-    gigaset_lookup = '/directories/lookup/<profile>/<xivo_user_uuid>/gigaset'
+    gigaset_lookup = '/directories/lookup/<profile>/<user_uuid>/gigaset'
 
     def load(self, dependencies):
         api = dependencies['api']
