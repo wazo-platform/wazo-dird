@@ -57,7 +57,7 @@ case "$1" in
 
 		# Remove the old PID file directory
 		if dpkg --compare-versions "$2" lt '18.05~'; then
-			rm -rf /var/run/xivo-dird
+			rm -rf /run/xivo-dird
 		fi
 
 		# Remove old configuration files
