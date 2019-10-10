@@ -9,8 +9,8 @@ RUN apt-get -yq update \
    && apt-get -yqq install libldap2-dev libsasl2-dev \
    && mkdir -p /etc/wazo-dird/conf.d \
    && mkdir -p /etc/wazo-dird/templates.d \
-   && mkdir -p /var/run/wazo-dird \
-   && chmod a+w /var/run/wazo-dird \
+   && mkdir -p /run/wazo-dird \
+   && chmod a+w /run/wazo-dird \
    && touch /var/log/wazo-dird.log \
    && chown www-data: /var/log/wazo-dird.log \
    && pip install -r requirements.txt \

@@ -44,7 +44,7 @@ _DEFAULT_CONFIG = {
     'log_level': 'info',
     'log_filename': '/var/log/wazo-dird.log',
     'foreground': False,
-    'pid_filename': '/var/run/wazo-dird/wazo-dird.pid',
+    'pid_filename': '/run/wazo-dird/wazo-dird.pid',
     'rest_api': {
         'https': {
             'listen': '0.0.0.0',
