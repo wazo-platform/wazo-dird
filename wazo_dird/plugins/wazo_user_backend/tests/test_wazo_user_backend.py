@@ -83,7 +83,7 @@ CONFD_USER_2 = {
     "firstname": "Paul",
     "id": 227,
     'uuid': UUID_2,
-    "lastname": "",
+    "lastname": "àccent",
     "line_id": 320,
     'userfield': '555',
     'description': 'here',
@@ -101,7 +101,7 @@ SOURCE_2 = SourceResult(
         'id': 227,
         'exten': '1234',
         'firstname': 'Paul',
-        'lastname': '',
+        'lastname': 'àccent',
         'email': '',
         'mobile_phone_number': '',
         'userfield': '555',
@@ -166,6 +166,28 @@ class TestWazoUserBackendSearch(_BaseTest):
             client.users.list.assert_called_once_with(
                 recurse=True, view='directory', search='paul', context='inside'
             )
+
+    def test_search_with_no_accent(self):
+        self._source._searched_columns = ['firstname', 'lastname']
+
+        result = self._source.search(term='accent')
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='accent'
+        )
+
+        assert_that(result, contains(SOURCE_2))
+
+    def test_search_with_wrong_accent(self):
+        self._source._searched_columns = ['firstname', 'lastname']
+
+        result = self._source.search(term='accént')
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='accént'
+        )
+
+        assert_that(result, contains(SOURCE_2))
 
     def test_first_match(self):
         self._source._first_matched_columns = ['exten']
