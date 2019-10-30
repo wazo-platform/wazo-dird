@@ -47,6 +47,10 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
         self.backend.unload()
         super().tearDown()
 
+    def test_lookup_with_accent(self):
+        result = self.backend.search('accent')
+        assert_that(result, contains(has_entries(displayname='accént')))
+
     def test_lookup_by_name(self):
         result = self.backend.search('daily')
         assert_that(

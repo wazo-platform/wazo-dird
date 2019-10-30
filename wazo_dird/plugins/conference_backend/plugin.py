@@ -3,6 +3,7 @@
 
 import logging
 
+from unidecode import unidecode
 from requests import HTTPError
 
 from wazo_dird import BaseSourcePlugin, make_result_class
@@ -65,10 +66,10 @@ class ConferencePlugin(BaseSourcePlugin):
         return [self._SourceResult(c) for c in matching_contacts]
 
     def search(self, term, profile=None, args=None):
-        lowered_term = term.lower()
+        clean_term = unidecode(term.lower())
         contacts = self._fetch_contacts()
         matching_contacts = (
-            c for c in contacts if self._search_filter(lowered_term, c)
+            c for c in contacts if self._search_filter(clean_term, c)
         )
         return [self._SourceResult(c) for c in matching_contacts]
 
@@ -91,15 +92,17 @@ class ConferencePlugin(BaseSourcePlugin):
 
         return False
 
-    def _search_filter(self, lowered_term, contact):
+    def _search_filter(self, clean_term, contact):
         for column in self._searched_columns:
             column_value = contact.get(column) or ''
             if isinstance(column_value, str):
-                if lowered_term in column_value.lower():
+                clean_column_value = unidecode(column_value.lower())
+                if clean_term in clean_column_value:
                     return True
             elif isinstance(column_value, list):
                 for item in column_value:
-                    if lowered_term in item.lower():
+                    clean_item = unidecode(item.lower())
+                    if clean_term in clean_item:
                         return True
 
         return False
