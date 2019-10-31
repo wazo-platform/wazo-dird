@@ -3,6 +3,7 @@
 
 import logging
 
+from unidecode import unidecode
 from requests.exceptions import ConnectionError
 
 from wazo_dird import BaseSourcePlugin, make_result_class
@@ -75,13 +76,14 @@ class WazoUserPlugin(BaseSourcePlugin):
         return self.name
 
     def search(self, term, profile=None, args=None):
-        lowered_term = term.lower()
+        clean_term = unidecode(term.lower())
         entries = self._fetch_entries(term)
 
         def match_fn(entry):
             for column in self._searched_columns:
                 column_value = entry.fields.get(column) or ''
-                if lowered_term in str(column_value).lower():
+                clean_column_value = unidecode(str(column_value).lower())
+                if clean_term in clean_column_value:
                     return True
             return False
 
