@@ -68,9 +68,7 @@ class ConferencePlugin(BaseSourcePlugin):
     def search(self, term, profile=None, args=None):
         clean_term = unidecode(term.lower())
         contacts = self._fetch_contacts()
-        matching_contacts = (
-            c for c in contacts if self._search_filter(clean_term, c)
-        )
+        matching_contacts = (c for c in contacts if self._search_filter(clean_term, c))
         return [self._SourceResult(c) for c in matching_contacts]
 
     def first_match(self, term, args=None):

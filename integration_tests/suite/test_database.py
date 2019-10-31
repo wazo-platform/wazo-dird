@@ -966,7 +966,7 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     def test_delete_personal_contact(self, user_uuid):
-        contact_uuid, = self._insert_personal_contacts(user_uuid, self.contact_1)
+        (contact_uuid,) = self._insert_personal_contacts(user_uuid, self.contact_1)
 
         self._crud.delete_personal_contact(user_uuid, contact_uuid)
 
@@ -978,7 +978,7 @@ class TestContactCRUD(_BaseTest):
     @with_user_uuid
     @with_user_uuid
     def test_delete_personal_contact_from_another_user(self, user_1_uuid, user_2_uuid):
-        contact_uuid, = self._insert_personal_contacts(user_1_uuid, self.contact_1)
+        (contact_uuid,) = self._insert_personal_contacts(user_1_uuid, self.contact_1)
 
         assert_that(
             calling(self._crud.delete_personal_contact).with_args(
@@ -992,7 +992,7 @@ class TestContactCRUD(_BaseTest):
     def test_delete_all_personal_contact_from_another_user(
         self, user_1_uuid, user_2_uuid
     ):
-        contact_uuid_1, = self._insert_personal_contacts(user_1_uuid, self.contact_1)
+        (contact_uuid_1,) = self._insert_personal_contacts(user_1_uuid, self.contact_1)
         contact_uuid_2, contact_uuid_3 = self._insert_personal_contacts(
             user_2_uuid, self.contact_2, self.contact_3
         )

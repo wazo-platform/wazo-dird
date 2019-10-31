@@ -366,7 +366,7 @@ class TestLDAPConfig(unittest.TestCase):
         )
 
     def test_build_search_filter_with_searched_columns_and_custom_filter_unicode_term(
-        self
+        self,
     ):
         ldap_config = _LDAPConfig(
             {

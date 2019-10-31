@@ -20,7 +20,7 @@ class TestPluginManagerServices(TestCase):
         )
 
     def test_that_unload_services_does_nothing_when_load_services_has_not_been_run(
-        self
+        self,
     ):
         with patch('wazo_dird.plugin_manager.services_extension_manager', None):
             assert_that(

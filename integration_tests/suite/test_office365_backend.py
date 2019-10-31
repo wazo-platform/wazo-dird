@@ -278,7 +278,7 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
         )
 
     def test_given_non_existing_microsoft_source_when_get_all_contacts_then_not_found(
-        self
+        self,
     ):
         self.auth_client_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
@@ -292,7 +292,7 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
         )
 
     def test_given_source_and_non_existing_tenant_when_get_all_contacts_then_not_found(
-        self
+        self,
     ):
         self.auth_client_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
