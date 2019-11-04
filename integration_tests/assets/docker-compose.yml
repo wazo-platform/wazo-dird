@@ -43,8 +43,7 @@ services:
       - "5672"
 
   google.com:
-    #image: jamesdbloom/mockserver:mockserver-5.2.3
-    image: sileht/mockserver
+    image: jamesdbloom/mockserver:mockserver-5.7.0
     user: root
     ports:
       - "443"
