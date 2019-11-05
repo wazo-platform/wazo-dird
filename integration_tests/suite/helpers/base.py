@@ -270,10 +270,6 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         assert_that(response.status_code, equal_to(201))
         return response.json()
 
-    @classmethod
-    def post_tenant_migration(cls, tenants, token=VALID_TOKEN_MAIN_TENANT):
-        return cls.post(cls.url('phonebook_move_tenant'), json=tenants, token=token)
-
     @contextmanager
     def personal(self, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
         response = self.post_personal(personal_infos, token)

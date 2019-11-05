@@ -91,7 +91,6 @@ setup(
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
             'phonebook_backend = wazo_dird.plugins.phonebook_backend.plugin:PhonebookView',
             'status_view = wazo_dird.plugins.status.plugin:StatusViewPlugin',
-            'tenant_migration = wazo_dird.plugins.phonebook_tenant_modifier.plugin:PhonebookTenantMoverPlugin',  # noqa
             'aastra_view = wazo_dird.plugins.aastra.plugin:AastraViewPlugin',
             'cisco_view = wazo_dird.plugins.cisco.plugin:CiscoViewPlugin',
             'gigaset_view = wazo_dird.plugins.gigaset.plugin:GigasetViewPlugin',
