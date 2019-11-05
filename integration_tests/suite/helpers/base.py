@@ -122,7 +122,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def url(cls, *parts):
         return 'https://localhost:{port}/0.1/{parts}'.format(
-            port=cls.port, parts="/".join(parts)
+            port=cls.port, parts="/".join(map(str, parts))
         )
 
     @classmethod
