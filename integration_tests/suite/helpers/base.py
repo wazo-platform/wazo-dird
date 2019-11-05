@@ -10,7 +10,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from hamcrest import assert_that, equal_to, has_entries
 
-from xivo import url_helpers
 from xivo_test_helpers import until
 from xivo_test_helpers.auth import AuthClient as MockAuthClient
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
@@ -122,8 +121,9 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def url(cls, *parts):
-        base = 'https://localhost:{port}/0.1/'.format(port=cls.port)
-        return url_helpers.base_join(base, *parts)
+        return 'https://localhost:{port}/0.1/{parts}'.format(
+            port=cls.port, parts="/".join(parts)
+        )
 
     @classmethod
     def get_config(cls, token):
