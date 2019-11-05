@@ -47,7 +47,7 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
     def setup_db_session(cls):
         db_port = cls.service_port(5432, 'db')
         cls.db_uri = DB_URI_FMT.format(port=db_port)
-        cls.engine = create_engine(cls.db_uri)
+        cls.engine = create_engine(cls.db_uri, pool_pre_ping=True)
         cls.Session = scoped_session(sessionmaker(bind=cls.engine))
 
     @classmethod
