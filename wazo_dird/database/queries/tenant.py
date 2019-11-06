@@ -12,12 +12,4 @@ class TenantCRUD(BaseDAO):
 
     def list_(self, name=None):
         with self.new_session() as s:
-            if name is not None:
-                filter_ = Tenant.name == name
-            else:
-                filter_ = True
-
-            result = []
-            for tenant in s.query(Tenant).filter(filter_).all():
-                result.append({'uuid': tenant.uuid, 'name': tenant.name})
-            return result
+            return [{'uuid': tenant.uuid} for tenant in s.query(Tenant).all()]

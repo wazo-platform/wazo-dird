@@ -425,24 +425,27 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
             )
 
     def test_that_tenants_are_not_created_on_delete(self):
-        tenant_a = 'real'
-        tenant_b = 'unknown'
+        tenant_uuid_1 = new_uuid()
+        tenant_uuid_2 = new_uuid()
+        with closing(Session()) as session:
+            total_tenant_before = (
+                session.query(func.count(database.Tenant.uuid))
+                .scalar()
+            )
 
-        with self._new_phonebook(tenant_a, 'a') as phonebook:
+        with self._new_phonebook(tenant_uuid_1, 'a') as phonebook:
             try:
-                self._crud.delete(tenant_b, phonebook['id'])
+                self._crud.delete(tenant_uuid_2, phonebook['id'])
             except exception.NoSuchPhonebook:
                 pass  # as expected
 
         with closing(Session()) as session:
-            tenant_created = (
+            total_tenant_after = (
                 session.query(func.count(database.Tenant.uuid))
-                .filter(database.Tenant.name == tenant_b)
                 .scalar()
-                > 0
             )
 
-        assert_that(tenant_created, equal_to(False))
+        assert_that(total_tenant_before + 1, equal_to(total_tenant_after))
 
 
 class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
