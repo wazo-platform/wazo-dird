@@ -6,14 +6,10 @@ import json
 
 from contextlib import contextmanager
 from sqlalchemy import exc
-from xivo import sqlalchemy_helper
 from wazo_dird.exception import DatabaseServiceUnavailable
 from wazo_dird.database import Tenant, User
 
 from .. import ContactFields
-
-
-sqlalchemy_helper.handle_db_restart()
 
 
 def delete_user(session, user_uuid):
