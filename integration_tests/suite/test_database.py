@@ -345,7 +345,9 @@ class TestPhonebookCRUDCreate(_BasePhonebookCRUDTest):
         assert_that(
             calling(self._crud.create).with_args(tenant_uuid, None), raises(Exception)
         )
-        assert_that(calling(self._crud.create).with_args(tenant_uuid, {}), raises(Exception))
+        assert_that(
+            calling(self._crud.create).with_args(tenant_uuid, {}), raises(Exception)
+        )
         assert_that(
             calling(self._crud.create).with_args(tenant_uuid, {'name': ''}),
             raises(Exception),
@@ -429,10 +431,9 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         tenant_uuid_1 = new_uuid()
         tenant_uuid_2 = new_uuid()
         with closing(Session()) as session:
-            total_tenant_before = (
-                session.query(func.count(database.Tenant.uuid))
-                .scalar()
-            )
+            total_tenant_before = session.query(
+                func.count(database.Tenant.uuid)
+            ).scalar()
 
         with self._new_phonebook(tenant_uuid_1, 'a') as phonebook:
             try:
@@ -441,10 +442,9 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
                 pass  # as expected
 
         with closing(Session()) as session:
-            total_tenant_after = (
-                session.query(func.count(database.Tenant.uuid))
-                .scalar()
-            )
+            total_tenant_after = session.query(
+                func.count(database.Tenant.uuid)
+            ).scalar()
 
         assert_that(total_tenant_before + 1, equal_to(total_tenant_after))
 
@@ -466,7 +466,9 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
             new_body = {'foo': 'bar'}
 
             assert_that(
-                calling(self._crud.edit).with_args(tenant_uuid, phonebook['id'], new_body),
+                calling(self._crud.edit).with_args(
+                    tenant_uuid, phonebook['id'], new_body
+                ),
                 raises(TypeError),
             )
 
@@ -481,9 +483,9 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
     def test_that_editing_a_phonebook_from_another_tenant_raises(self):
         tenant_uuid_1 = new_uuid()
         tenant_uuid_2 = new_uuid()
-        with self._new_phonebook(tenant_uuid_1, 'a') as phonebook_a, self._new_phonebook(
-            tenant_uuid_2, 'b'
-        ):
+        with self._new_phonebook(
+            tenant_uuid_1, 'a'
+        ) as phonebook_a, self._new_phonebook(tenant_uuid_2, 'b'):
             assert_that(
                 calling(self._crud.edit).with_args(
                     tenant_uuid_2, phonebook_a['id'], {'name': 'foo'}
@@ -554,9 +556,11 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
 
     def test_that_phonebooks_order_with_invalid_field_raises(self):
         tenant_uuid = new_uuid()
-        with self._new_phonebook(tenant_uuid, 'a', description='z'), self._new_phonebook(
-            tenant_uuid, 'b', description='b'
-        ), self._new_phonebook(tenant_uuid, 'c'):
+        with self._new_phonebook(
+            tenant_uuid, 'a', description='z'
+        ), self._new_phonebook(tenant_uuid, 'b', description='b'), self._new_phonebook(
+            tenant_uuid, 'c'
+        ):
             assert_that(
                 calling(self._crud.list).with_args(tenant_uuid, order='foo'),
                 raises(TypeError),
@@ -661,7 +665,9 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
         contact_3 = self._new_contact('Bob', 'BBB', '5555553333')
         body = [contact_1, contact_2, contact_3]
 
-        created, errors = self._crud.create_many(self._tenant_uuid, self._phonebook_id, body)
+        created, errors = self._crud.create_many(
+            self._tenant_uuid, self._phonebook_id, body
+        )
 
         assert_that(
             created,
@@ -679,7 +685,9 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
         contact_3 = self._new_contact('Bob', 'BBB', '5555553333')
         body = [contact_1, contact_2, contact_3]
 
-        created, errors = self._crud.create_many(self._tenant_uuid, self._phonebook_id, body)
+        created, errors = self._crud.create_many(
+            self._tenant_uuid, self._phonebook_id, body
+        )
 
         assert_that(
             created,
@@ -732,7 +740,9 @@ class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
         assert_that(result, equal_to(contact))
 
     def test_that_get_wont_work_with_the_wrong_phonebook_id(self):
-        other_phonebook = self._phonebook_crud.create(self._tenant_uuid, {'name': 'other'})
+        other_phonebook = self._phonebook_crud.create(
+            self._tenant_uuid, {'name': 'other'}
+        )
         contact = self._crud.create(self._tenant_uuid, self._phonebook_id, self._body)
 
         assert_that(
@@ -785,7 +795,9 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
 
     def test_that_duplicates_cannot_be_created(self):
         self._crud.create(self._tenant_uuid, self._phonebook_id, {'name': 'Foo'})
-        contact_2 = self._crud.create(self._tenant_uuid, self._phonebook_id, {'name': 'Bar'})
+        contact_2 = self._crud.create(
+            self._tenant_uuid, self._phonebook_id, {'name': 'Bar'}
+        )
 
         assert_that(
             calling(self._crud.edit).with_args(

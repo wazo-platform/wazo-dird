@@ -33,8 +33,7 @@ class PhonebookServicePlugin(BaseServicePlugin):
             raise ValueError(msg)
 
         return _PhonebookService(
-            database.PhonebookCRUD(Session),
-            database.PhonebookContactCRUD(Session),
+            database.PhonebookCRUD(Session), database.PhonebookContactCRUD(Session),
         )
 
 
