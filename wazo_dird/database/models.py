@@ -231,9 +231,6 @@ class Tenant(Base):
     uuid = Column(
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
     )
-    # DEPRECATED uuids should match wazo-auth and names should not be used
-    # the field will be removed after an upgrade that forces an upgrade above version 19.02
-    name = Column(String(255))
 
 
 class User(Base):

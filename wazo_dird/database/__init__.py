@@ -27,7 +27,6 @@ from .queries.phonebook import (
     PhonebookContactSearchEngine,
 )
 from .queries.profile import ProfileCRUD
-from .queries.tenant import TenantCRUD
 from .queries.source import SourceCRUD
 
 
@@ -55,6 +54,5 @@ __all__ = [
     'Source',
     'SourceCRUD',
     'Tenant',
-    'TenantCRUD',
     'User',
 ]

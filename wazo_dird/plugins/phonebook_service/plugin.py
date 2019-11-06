@@ -33,17 +33,14 @@ class PhonebookServicePlugin(BaseServicePlugin):
             raise ValueError(msg)
 
         return _PhonebookService(
-            database.PhonebookCRUD(Session),
-            database.PhonebookContactCRUD(Session),
-            database.TenantCRUD(Session),
+            database.PhonebookCRUD(Session), database.PhonebookContactCRUD(Session),
         )
 
 
 class _PhonebookService:
-    def __init__(self, phonebook_crud, contact_crud, tenant_crud):
+    def __init__(self, phonebook_crud, contact_crud):
         self._phonebook_crud = phonebook_crud
         self._contact_crud = contact_crud
-        self._tenant_crud = tenant_crud
 
     def list_contact(
         self,
