@@ -34,8 +34,7 @@ class _BasePhonebookServiceTest(unittest.TestCase):
     def setUp(self):
         self.phonebook_crud = Mock(database.PhonebookCRUD)
         self.contact_crud = Mock(database.PhonebookContactCRUD)
-        self.tenant_crud = Mock(database.TenantCRUD)
-        self.service = Service(self.phonebook_crud, self.contact_crud, self.tenant_crud)
+        self.service = Service(self.phonebook_crud, self.contact_crud)
 
 
 class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
