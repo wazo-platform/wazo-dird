@@ -72,7 +72,6 @@ enabled_plugins:
     personal: true
     wazo: true
   views:
-    aastra_view: true
     api_view: true
     backends_view: true
     cisco_view: true
