@@ -19,6 +19,7 @@ class GoogleService:
 
     USER_AGENT = 'wazo_ua/1.0'
     url = 'https://google.com/m8/feeds/contacts/default/full'
+    groups_url = 'https://google.com/m8/feeds/groups/default/full'
 
     def __init__(self):
         self.formatter = ContactFormatter()
@@ -36,9 +37,12 @@ class GoogleService:
 
     def _fetch(self, google_token, term=None):
         headers = self.headers(google_token)
+        group_id = self._get_my_contacts_group_id(headers)
         query_params = {'alt': 'json', 'max-results': 1000}
         if term:
             query_params['q'] = term
+        if group_id:
+            query_params['group'] = group_id
 
         # TODO find a way to remove this verify = False
         response = requests.get(
@@ -48,8 +52,24 @@ class GoogleService:
             return []
 
         logger.debug('Sucessfully fetched contacts from google')
+        logger.debug('Raw data: %s', response.text)
         for contact in response.json().get('feed', {}).get('entry', []):
             yield self.formatter.format(contact)
+
+    def _get_my_contacts_group_id(self, headers):
+        query_params = {'alt': 'json'}
+        response = requests.get(
+            self.groups_url, headers=headers, params=query_params, verify=False
+        )
+        if response.status_code != 200:
+            return
+
+        logger.debug('Fetched groups from Google')
+        logger.debug('Raw data: %s', response.text)
+        groups = response.json().get('feed', {}).get('entry', [])
+        for group in groups:
+            if group.get('gContact$systemGroup', {}).get('id') == 'Contacts':
+                return group.get('id', {}).get('$t')
 
     def _paginate(self, contacts, limit=None, offset=None, **_):
         if limit is None and offset is None:
@@ -77,6 +97,7 @@ class GoogleService:
             'User-Agent': self.USER_AGENT,
             'Authorization': 'Bearer {}'.format(google_token),
             'Accept': 'application/json',
+            'GData-Version': '3.0',
         }
 
 
