@@ -3,12 +3,16 @@
 # This file is distributed under the same license as the wazo-dird project.
 # Wazo Authors <dev@wazo.community>, 2017.
 # 
+# Translators:
+# isoriaa <isoria@fttn.es>, 2019
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: wazo-dird 1.2\n"
 "Report-Msgid-Bugs-To: dev@wazo.community\n"
 "POT-Creation-Date: 2015-10-06 09:46-0400\n"
 "PO-Revision-Date: 2016-11-28 21:35+0000\n"
+"Last-Translator: isoriaa <isoria@fttn.es>, 2019\n"
 "Language-Team: Spanish (Spain) (https://www.transifex.com/wazo/teams/69545/es_ES/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,18 +27,18 @@ msgstr ""
 #: wazo_dird/plugins/templates/polycom_results.jinja:4
 #: wazo_dird/plugins/templates/snom_input.jinja:3
 msgid "Wazo Search"
-msgstr ""
+msgstr "Búsqueda Wazo"
 
 #: wazo_dird/plugins/templates/aastra_input.jinja:4
 #: wazo_dird/plugins/templates/polycom_input.jinja:9
 #: wazo_dird/plugins/templates/snom_input.jinja:4
 msgid "Name or number:"
-msgstr ""
+msgstr "Nombre o número:"
 
 #: wazo_dird/plugins/templates/aastra_results.jinja:5
 #: wazo_dird/plugins/templates/polycom_results.jinja:9
 msgid "Previous Page"
-msgstr ""
+msgstr "Página Anterior"
 
 #: wazo_dird/plugins/templates/aastra_results.jinja:17
 #: wazo_dird/plugins/templates/cisco_results.jinja:10
@@ -43,41 +47,41 @@ msgstr ""
 #: wazo_dird/plugins/templates/thomson_results.jinja:10
 #: wazo_dird/plugins/templates/yealink_results.jinja:10
 msgid "No entries"
-msgstr ""
+msgstr "No hay registros"
 
 #: wazo_dird/plugins/templates/aastra_results.jinja:24
 #: wazo_dird/plugins/templates/polycom_results.jinja:19
 msgid "Next Page"
-msgstr ""
+msgstr "Página Siguiente"
 
 #: wazo_dird/plugins/templates/cisco_input.jinja:4
 #: wazo_dird/plugins/templates/cisco_input.jinja:7
 #: wazo_dird/plugins/templates/snom_input.jinja:7
 msgid "Name or number"
-msgstr ""
+msgstr "Nombre o número"
 
 #: wazo_dird/plugins/templates/cisco_menu.jinja:4
 msgid "Wazo Directory"
-msgstr ""
+msgstr "Agenda Wazo"
 
 #: wazo_dird/plugins/templates/cisco_results.jinja:17
 msgid "Dial"
-msgstr ""
+msgstr "Marcar"
 
 #: wazo_dird/plugins/templates/cisco_results.jinja:24
 #: wazo_dird/plugins/templates/snom_results.jinja:17
 msgid "PrevPage"
-msgstr ""
+msgstr "Página Anterior"
 
 #: wazo_dird/plugins/templates/cisco_results.jinja:31
 msgid "Exit"
-msgstr ""
+msgstr "Salir"
 
 #: wazo_dird/plugins/templates/cisco_results.jinja:38
 #: wazo_dird/plugins/templates/snom_results.jinja:25
 msgid "NextPage"
-msgstr ""
+msgstr "Página Siguiente"
 
 #: wazo_dird/plugins/templates/polycom_input.jinja:13
 msgid "Search"
-msgstr ""
+msgstr "Búsqueda"
