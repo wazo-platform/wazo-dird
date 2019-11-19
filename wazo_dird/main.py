@@ -61,7 +61,7 @@ def main(argv=None):
             config['log_level'],
         )
     xivo_logging.silence_loggers(
-        ['Flask-Cors', 'urllib3', 'stevedore.extension'], logging.WARNING
+        ['Flask-Cors', 'amqp', 'urllib3', 'stevedore.extension'], logging.WARNING
     )
 
     if config['user']:
