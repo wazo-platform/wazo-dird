@@ -1,7 +1,7 @@
 Changelog
 =========
 
-19.16
+19.17
 -----
 
 * Removed the following endpoints and migrated them to ``wazo-phoned``:
