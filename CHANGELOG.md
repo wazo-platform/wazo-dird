@@ -1,6 +1,15 @@
 Changelog
 =========
 
+19.17
+-----
+
+* Removed the following endpoints and migrated them to ``wazo-phoned``:
+
+  * GET `/0.1/directories/input/<profile>/aastra`
+  * GET `/0.1/directories/lookup/<profile>/aastra`
+
+
 19.12
 -----
 

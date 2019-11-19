@@ -470,28 +470,6 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return response.text
 
     @classmethod
-    def get_input_aastra_result(cls, profile, user_uuid, proxy=None, token=None):
-        url = cls.url('directories', 'input', profile, user_uuid, 'aastra')
-        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
-
-    @classmethod
-    def get_lookup_aastra_result(
-        cls,
-        profile,
-        user_uuid,
-        proxy=None,
-        term=None,
-        token=None,
-        limit=None,
-        offset=None,
-    ):
-        url = cls.url('directories', 'lookup', profile, user_uuid, 'aastra')
-        params = {'term': term, 'limit': limit, 'offset': offset}
-        return cls.get(
-            url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy}
-        )
-
-    @classmethod
     def get_input_polycom_result(cls, profile, user_uuid, proxy=None, token=None):
         url = cls.url('directories', 'input', profile, user_uuid, 'polycom')
         return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})

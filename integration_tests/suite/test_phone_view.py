@@ -111,18 +111,6 @@ class TestPhoneView(BaseDirdIntegrationTest):
 
         assert_that(result.status_code, equal_to(404))
 
-    def test_aastra_input_route(self):
-        result = self.get_input_aastra_result(
-            self.profile, VALID_UUID, token=VALID_TOKEN_MAIN_TENANT
-        )
-        assert_that(result.status_code, equal_to((200)))
-
-    def test_aastra_lookup_route(self):
-        result = self.get_lookup_aastra_result(
-            self.profile, VALID_UUID, term='Alice', token=VALID_TOKEN_MAIN_TENANT
-        )
-        assert_that(result.status_code, equal_to((200)))
-
     def test_cisco_input_route(self):
         result = self.get_input_cisco_result(
             self.profile, VALID_UUID, token=VALID_TOKEN_MAIN_TENANT
