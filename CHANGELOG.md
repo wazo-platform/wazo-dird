@@ -8,6 +8,7 @@ Changelog
 
   * GET `/0.1/directories/input/<profile>/aastra`
   * GET `/0.1/directories/lookup/<profile>/aastra`
+  * GET `/0.1/directories/lookup/<profile>/yealink`
 
 
 19.12

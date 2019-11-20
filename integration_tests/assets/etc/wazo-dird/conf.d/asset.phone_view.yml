@@ -7,7 +7,6 @@ enabled_plugins:
     polycom_view: true
     snom_view: true
     thomson_view: true
-    yealink_view: true
     gigaset_view: true
     htek_view: true
     csv_backend: true

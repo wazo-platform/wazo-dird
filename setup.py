@@ -100,7 +100,6 @@ setup(
             'snom_view = wazo_dird.plugins.snom.plugin:SnomViewPlugin',
             'sources_view = wazo_dird.plugins.sources.plugin:SourcesViewPlugin',
             'thomson_view = wazo_dird.plugins.thomson.plugin:ThomsonViewPlugin',
-            'yealink_view = wazo_dird.plugins.yealink.plugin:YealinkViewPlugin',
             'wazo_backend = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserView',
             'profile_sources_view = wazo_dird.plugins.profile_sources.plugin:SourceViewPlugin',
         ],

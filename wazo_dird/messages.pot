@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-11-07 15:13-0500\n"
+"POT-Creation-Date: 2019-11-20 15:36-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,7 +38,6 @@ msgstr ""
 #: wazo_dird/plugins/templates/polycom_results.jinja:15
 #: wazo_dird/plugins/templates/snom_results.jinja:10
 #: wazo_dird/plugins/templates/thomson_results.jinja:10
-#: wazo_dird/plugins/templates/yealink_results.jinja:10
 msgid "No entries"
 msgstr ""
 
@@ -76,3 +75,4 @@ msgstr ""
 #: wazo_dird/plugins/templates/polycom_results.jinja:19
 msgid "Next Page"
 msgstr ""
+

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wazo-dird 1.2\n"
 "Report-Msgid-Bugs-To: dev@wazo.community\n"
-"POT-Creation-Date: 2019-11-07 15:13-0500\n"
+"POT-Creation-Date: 2019-11-20 15:36-0500\n"
 "PO-Revision-Date: 2016-11-28 21:35+0000\n"
 "Last-Translator: Rafał Perczyński, 2017\n"
 "Language: pl\n"
@@ -45,7 +45,6 @@ msgstr "Katalog Wazo"
 #: wazo_dird/plugins/templates/polycom_results.jinja:15
 #: wazo_dird/plugins/templates/snom_results.jinja:10
 #: wazo_dird/plugins/templates/thomson_results.jinja:10
-#: wazo_dird/plugins/templates/yealink_results.jinja:10
 msgid "No entries"
 msgstr "Brak wpisów"
 
