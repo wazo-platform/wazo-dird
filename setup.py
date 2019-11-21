@@ -97,7 +97,6 @@ setup(
             'personal_backend = wazo_dird.plugins.personal_backend.plugin:PersonalView',
             'polycom_view = wazo_dird.plugins.polycom.plugin:PolycomViewPlugin',
             'profiles_view = wazo_dird.plugins.profiles.plugin:ProfilesViewPlugin',
-            'snom_view = wazo_dird.plugins.snom.plugin:SnomViewPlugin',
             'sources_view = wazo_dird.plugins.sources.plugin:SourcesViewPlugin',
             'thomson_view = wazo_dird.plugins.thomson.plugin:ThomsonViewPlugin',
             'wazo_backend = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserView',

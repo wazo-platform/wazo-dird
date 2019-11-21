@@ -141,18 +141,6 @@ class TestPhoneView(BaseDirdIntegrationTest):
         )
         assert_that(result.status_code, equal_to((200)))
 
-    def test_snom_input_route(self):
-        result = self.get_input_snom_result(
-            self.profile, VALID_UUID, token=VALID_TOKEN_MAIN_TENANT
-        )
-        assert_that(result.status_code, equal_to((200)))
-
-    def test_snom_lookup_route(self):
-        result = self.get_lookup_snom_result(
-            self.profile, VALID_UUID, term='Alice', token=VALID_TOKEN_MAIN_TENANT
-        )
-        assert_that(result.status_code, equal_to((200)))
-
     def test_thomson_lookup_route(self):
         result = self.get_lookup_thomson_result(
             self.profile, VALID_UUID, term='Alice', token=VALID_TOKEN_MAIN_TENANT

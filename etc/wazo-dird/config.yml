@@ -93,7 +93,6 @@ enabled_plugins:
     phonebook_view: true
     profiles_view: true
     polycom_view: true
-    snom_view: true
     sources: true
     thomson_view: true
     wazo_backend: true

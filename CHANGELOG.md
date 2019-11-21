@@ -9,6 +9,8 @@ Changelog
   * GET `/0.1/directories/input/<profile>/aastra`
   * GET `/0.1/directories/lookup/<profile>/aastra`
   * GET `/0.1/directories/lookup/<profile>/yealink`
+  * GET `/0.1/directories/input/<profile>/snom`
+  * GET `/0.1/directories/lookup/<profile>/snom`
 
 
 19.12

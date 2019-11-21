@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wazo-dird 1.2\n"
 "Report-Msgid-Bugs-To: dev@wazo.community\n"
-"POT-Creation-Date: 2019-11-20 15:36-0500\n"
+"POT-Creation-Date: 2019-11-21 15:16-0500\n"
 "PO-Revision-Date: 2016-11-28 21:35+0000\n"
 "Last-Translator: Rafał Perczyński, 2017\n"
 "Language: pl\n"
@@ -26,13 +26,11 @@ msgstr ""
 #: wazo_dird/plugins/templates/cisco_input.jinja:3
 #: wazo_dird/plugins/templates/polycom_input.jinja:4
 #: wazo_dird/plugins/templates/polycom_results.jinja:4
-#: wazo_dird/plugins/templates/snom_input.jinja:3
 msgid "Wazo Search"
 msgstr "Wyszukiwarka Wazo"
 
 #: wazo_dird/plugins/templates/cisco_input.jinja:4
 #: wazo_dird/plugins/templates/cisco_input.jinja:7
-#: wazo_dird/plugins/templates/snom_input.jinja:7
 msgid "Name or number"
 msgstr "Nazwa lub numer"
 
@@ -43,7 +41,6 @@ msgstr "Katalog Wazo"
 #: wazo_dird/plugins/templates/cisco_results.jinja:10
 #: wazo_dird/plugins/templates/htek_results.jinja:10
 #: wazo_dird/plugins/templates/polycom_results.jinja:15
-#: wazo_dird/plugins/templates/snom_results.jinja:10
 #: wazo_dird/plugins/templates/thomson_results.jinja:10
 msgid "No entries"
 msgstr "Brak wpisów"
@@ -53,7 +50,6 @@ msgid "Dial"
 msgstr "Dzwoń"
 
 #: wazo_dird/plugins/templates/cisco_results.jinja:24
-#: wazo_dird/plugins/templates/snom_results.jinja:17
 msgid "PrevPage"
 msgstr "Poprzednia strona"
 
@@ -62,12 +58,10 @@ msgid "Exit"
 msgstr "Wyjście"
 
 #: wazo_dird/plugins/templates/cisco_results.jinja:38
-#: wazo_dird/plugins/templates/snom_results.jinja:25
 msgid "NextPage"
 msgstr "Następna strona"
 
 #: wazo_dird/plugins/templates/polycom_input.jinja:9
-#: wazo_dird/plugins/templates/snom_input.jinja:4
 msgid "Name or number:"
 msgstr "Nazwa lub numer:"
 

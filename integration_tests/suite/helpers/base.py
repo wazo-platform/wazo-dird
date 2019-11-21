@@ -492,28 +492,6 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         )
 
     @classmethod
-    def get_input_snom_result(cls, profile, user_uuid, proxy=None, token=None):
-        url = cls.url('directories', 'input', profile, user_uuid, 'snom')
-        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
-
-    @classmethod
-    def get_lookup_snom_result(
-        cls,
-        profile,
-        user_uuid,
-        proxy=None,
-        term=None,
-        token=None,
-        limit=None,
-        offset=None,
-    ):
-        url = cls.url('directories', 'lookup', profile, user_uuid, 'snom')
-        params = {'term': term, 'limit': limit, 'offset': offset}
-        return cls.get(
-            url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy}
-        )
-
-    @classmethod
     def get_lookup_thomson_result(
         cls,
         profile,
