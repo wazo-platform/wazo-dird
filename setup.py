@@ -91,7 +91,6 @@ setup(
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
             'phonebook_backend = wazo_dird.plugins.phonebook_backend.plugin:PhonebookView',
             'status_view = wazo_dird.plugins.status.plugin:StatusViewPlugin',
-            'cisco_view = wazo_dird.plugins.cisco.plugin:CiscoViewPlugin',
             'personal_backend = wazo_dird.plugins.personal_backend.plugin:PersonalView',
             'profiles_view = wazo_dird.plugins.profiles.plugin:ProfilesViewPlugin',
             'sources_view = wazo_dird.plugins.sources.plugin:SourcesViewPlugin',

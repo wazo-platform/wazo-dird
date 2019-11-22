@@ -2,7 +2,6 @@ enabled_plugins:
   backends:
     csv: true
   views:
-    cisco_view: true
     csv_backend: true
 
 rest_api:

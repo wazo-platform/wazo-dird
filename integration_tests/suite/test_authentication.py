@@ -160,30 +160,3 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
 
         assert_that(result_1.status_code, equal_to(401))
         assert_that(result_2.status_code, equal_to(401))
-
-    def test_auth_on_menu_cisco(self):
-        result_1 = self.get_menu_cisco_result('default', 'uuid')
-        result_2 = self.get_menu_cisco_result(
-            'default', 'uuid', token=VALID_TOKEN_NO_ACL
-        )
-
-        assert_that(result_1.status_code, equal_to(401))
-        assert_that(result_2.status_code, equal_to(401))
-
-    def test_auth_on_input_cisco(self):
-        result_1 = self.get_input_cisco_result('default', 'uuid')
-        result_2 = self.get_input_cisco_result(
-            'default', 'uuid', token=VALID_TOKEN_NO_ACL
-        )
-
-        assert_that(result_1.status_code, equal_to(401))
-        assert_that(result_2.status_code, equal_to(401))
-
-    def test_auth_on_lookup_cisco(self):
-        result_1 = self.get_lookup_cisco_result('default', 'uuid')
-        result_2 = self.get_lookup_cisco_result(
-            'default', 'uuid', token=VALID_TOKEN_NO_ACL
-        )
-
-        assert_that(result_1.status_code, equal_to(401))
-        assert_that(result_2.status_code, equal_to(401))

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-11-22 11:50-0500\n"
+"POT-Creation-Date: 2019-11-22 14:39-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,37 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-#: wazo_dird/plugins/templates/cisco_input.jinja:3
-msgid "Wazo Search"
-msgstr ""
-
-#: wazo_dird/plugins/templates/cisco_input.jinja:4
-#: wazo_dird/plugins/templates/cisco_input.jinja:7
-msgid "Name or number"
-msgstr ""
-
-#: wazo_dird/plugins/templates/cisco_menu.jinja:4
-msgid "Wazo Directory"
-msgstr ""
-
-#: wazo_dird/plugins/templates/cisco_results.jinja:10
 #: wazo_dird/plugins/templates/thomson_results.jinja:10
 msgid "No entries"
-msgstr ""
-
-#: wazo_dird/plugins/templates/cisco_results.jinja:17
-msgid "Dial"
-msgstr ""
-
-#: wazo_dird/plugins/templates/cisco_results.jinja:24
-msgid "PrevPage"
-msgstr ""
-
-#: wazo_dird/plugins/templates/cisco_results.jinja:31
-msgid "Exit"
-msgstr ""
-
-#: wazo_dird/plugins/templates/cisco_results.jinja:38
-msgid "NextPage"
 msgstr ""
 

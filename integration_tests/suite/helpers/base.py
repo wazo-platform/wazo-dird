@@ -410,66 +410,6 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return response.json()
 
     @classmethod
-    def get_menu_cisco_result(cls, profile, user_uuid, proxy=None, token=None):
-        url = cls.url('directories', 'menu', profile, user_uuid, 'cisco')
-        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
-
-    @classmethod
-    def get_menu_cisco(
-        cls, profile, user_uuid, proxy=None, token=VALID_TOKEN_MAIN_TENANT
-    ):
-        response = cls.get_menu_cisco_result(profile, user_uuid, proxy, token)
-        assert_that(response.status_code, equal_to(200))
-        return response.text
-
-    @classmethod
-    def get_input_cisco_result(cls, profile, user_uuid, proxy=None, token=None):
-        url = cls.url('directories', 'input', profile, user_uuid, 'cisco')
-        return cls.get(url, headers={'X-Auth-Token': token, 'Proxy-URL': proxy})
-
-    @classmethod
-    def get_input_cisco(
-        cls, profile, user_uuid, proxy=None, token=VALID_TOKEN_MAIN_TENANT
-    ):
-        response = cls.get_input_cisco_result(profile, user_uuid, proxy, token)
-        assert_that(response.status_code, equal_to(200))
-        return response.text
-
-    @classmethod
-    def get_lookup_cisco_result(
-        cls,
-        profile,
-        user_uuid,
-        proxy=None,
-        term=None,
-        token=None,
-        limit=None,
-        offset=None,
-    ):
-        url = cls.url('directories', 'lookup', profile, user_uuid, 'cisco')
-        params = {'term': term, 'limit': limit, 'offset': offset}
-        return cls.get(
-            url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy}
-        )
-
-    @classmethod
-    def get_lookup_cisco(
-        cls,
-        profile,
-        user_uuid,
-        term,
-        proxy=None,
-        token=VALID_TOKEN_MAIN_TENANT,
-        limit=None,
-        offset=None,
-    ):
-        response = cls.get_lookup_cisco_result(
-            profile, user_uuid, proxy, term, token, limit, offset
-        )
-        assert_that(response.status_code, equal_to(200))
-        return response.text
-
-    @classmethod
     def get_lookup_thomson_result(
         cls,
         profile,

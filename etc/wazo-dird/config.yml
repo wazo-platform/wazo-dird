@@ -74,7 +74,6 @@ enabled_plugins:
   views:
     api_view: true
     backends_view: true
-    cisco_view: true
     config_view: true
     conference_view: true
     csv_backend: true

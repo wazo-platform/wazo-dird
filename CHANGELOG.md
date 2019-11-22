@@ -15,6 +15,9 @@ Changelog
   * GET `/0.1/directories/lookup/<profile>/<user_uuid>/polycom`
   * GET `/0.1/directories/lookup/<profile>/<user_uuid>/gigaset`
   * GET `/0.1/directories/lookup/<profile>/<user_uuid>/htek`
+  * GET `/0.1/directories/input/<profile>/<user_uuid>/cisco`
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>/cisco`
+  * GET `/0.1/directories/menu/<profile>/<user_uuid>/cisco`
 
 
 19.12

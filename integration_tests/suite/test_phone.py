@@ -14,33 +14,6 @@ class TestPhone(BaseDirdIntegrationTest):
     asset = 'phone'
     config_factory = new_phone_config
 
-    def test_no_fallback_no_multiple_results(self):
-        xml_content = self.get_lookup_cisco(
-            'test_fallback', VALID_UUID, term='Ali', token=VALID_TOKEN_MAIN_TENANT
-        )
-
-        results = self._get_directory_entries(xml_content)
-
-        assert_that(results, equal_to([('Alice', '101')]))
-
-    def test_no_results(self):
-        xml_content = self.get_lookup_cisco(
-            'test_fallback', VALID_UUID, term='Dia', token=VALID_TOKEN_MAIN_TENANT
-        )
-
-        results = self._get_directory_entries(xml_content)
-
-        assert_that(results, equal_to([('No entries', '')]))
-
-    def test_results_are_sorted(self):
-        xml_content = self.get_lookup_cisco(
-            'test_sorted', VALID_UUID, term='A', token=VALID_TOKEN_MAIN_TENANT
-        )
-
-        results = self._get_directory_entries(xml_content)
-
-        assert_that(results, equal_to([('A1', '1'), ('A2', '2'), ('A3', '3')]))
-
     def _get_directory_entries(self, xml_string):
         document = parse_xml(xml_string)
         results = []
