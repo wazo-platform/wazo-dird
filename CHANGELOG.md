@@ -6,13 +6,13 @@ Changelog
 
 * Removed the following endpoints and migrated them to ``wazo-phoned``:
 
-  * GET `/0.1/directories/input/<profile>/aastra`
-  * GET `/0.1/directories/lookup/<profile>/aastra`
-  * GET `/0.1/directories/lookup/<profile>/yealink`
-  * GET `/0.1/directories/input/<profile>/snom`
-  * GET `/0.1/directories/lookup/<profile>/snom`
-  * GET `/0.1/directories/input/<profile>/polycom`
-  * GET `/0.1/directories/lookup/<profile>/polycom`
+  * GET `/0.1/directories/input/<profile>/<user_uuid>/aastra`
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>/aastra`
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>/yealink`
+  * GET `/0.1/directories/input/<profile>/<user_uuid>/snom`
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>/snom`
+  * GET `/0.1/directories/input/<profile>/<user_uuid>/polycom`
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>/polycom`
   * GET `/0.1/directories/lookup/<profile>/<user_uuid>/gigaset`
 
 
