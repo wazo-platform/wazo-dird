@@ -13,6 +13,7 @@ Changelog
   * GET `/0.1/directories/lookup/<profile>/snom`
   * GET `/0.1/directories/input/<profile>/polycom`
   * GET `/0.1/directories/lookup/<profile>/polycom`
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>/gigaset`
 
 
 19.12

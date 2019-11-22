@@ -487,23 +487,6 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         )
 
     @classmethod
-    def get_lookup_gigaset_result(
-        cls,
-        profile,
-        user_uuid,
-        proxy=None,
-        term=None,
-        token=None,
-        limit=None,
-        offset=None,
-    ):
-        url = cls.url('directories', 'lookup', profile, user_uuid, 'gigaset')
-        params = {'term': term, 'limit': limit, 'offset': offset}
-        return cls.get(
-            url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy}
-        )
-
-    @classmethod
     def get_lookup_htek_result(
         cls,
         profile,
