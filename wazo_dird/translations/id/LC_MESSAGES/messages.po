@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wazo-dird 1.2\n"
 "Report-Msgid-Bugs-To: dev@wazo.community\n"
-"POT-Creation-Date: 2019-11-21 15:16-0500\n"
+"POT-Creation-Date: 2019-11-22 08:23-0500\n"
 "PO-Revision-Date: 2016-11-28 21:35+0000\n"
 "Last-Translator: Yusril Herlian Syah <yusril@unquez.com>, 2018\n"
 "Language: id\n"
@@ -22,8 +22,6 @@ msgstr ""
 "Generated-By: Babel 2.6.0\n"
 
 #: wazo_dird/plugins/templates/cisco_input.jinja:3
-#: wazo_dird/plugins/templates/polycom_input.jinja:4
-#: wazo_dird/plugins/templates/polycom_results.jinja:4
 msgid "Wazo Search"
 msgstr "Cari Wazo"
 
@@ -38,7 +36,6 @@ msgstr "Direktori Wazo"
 
 #: wazo_dird/plugins/templates/cisco_results.jinja:10
 #: wazo_dird/plugins/templates/htek_results.jinja:10
-#: wazo_dird/plugins/templates/polycom_results.jinja:15
 #: wazo_dird/plugins/templates/thomson_results.jinja:10
 msgid "No entries"
 msgstr "Tidak ada entri"
@@ -59,19 +56,15 @@ msgstr "Keluar"
 msgid "NextPage"
 msgstr "NextPage"
 
-#: wazo_dird/plugins/templates/polycom_input.jinja:9
-msgid "Name or number:"
-msgstr "Nama atau nomor:"
+#~ msgid "Name or number:"
+#~ msgstr "Nama atau nomor:"
 
-#: wazo_dird/plugins/templates/polycom_input.jinja:13
-msgid "Search"
-msgstr "Cari"
+#~ msgid "Search"
+#~ msgstr "Cari"
 
-#: wazo_dird/plugins/templates/polycom_results.jinja:9
-msgid "Previous Page"
-msgstr "Halaman Sebelumnya"
+#~ msgid "Previous Page"
+#~ msgstr "Halaman Sebelumnya"
 
-#: wazo_dird/plugins/templates/polycom_results.jinja:19
-msgid "Next Page"
-msgstr "Halaman Berikutnya"
+#~ msgid "Next Page"
+#~ msgstr "Halaman Berikutnya"
 

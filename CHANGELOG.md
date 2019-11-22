@@ -11,6 +11,8 @@ Changelog
   * GET `/0.1/directories/lookup/<profile>/yealink`
   * GET `/0.1/directories/input/<profile>/snom`
   * GET `/0.1/directories/lookup/<profile>/snom`
+  * GET `/0.1/directories/input/<profile>/polycom`
+  * GET `/0.1/directories/lookup/<profile>/polycom`
 
 
 19.12

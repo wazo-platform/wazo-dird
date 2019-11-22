@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wazo-dird 1.2\n"
 "Report-Msgid-Bugs-To: dev@wazo.community\n"
-"POT-Creation-Date: 2019-11-21 15:16-0500\n"
+"POT-Creation-Date: 2019-11-22 08:23-0500\n"
 "PO-Revision-Date: 2016-11-28 21:35+0000\n"
 "Last-Translator: Pascal Cadotte Michaud, 2016\n"
 "Language: fr\n"
@@ -21,8 +21,6 @@ msgstr ""
 "Generated-By: Babel 2.6.0\n"
 
 #: wazo_dird/plugins/templates/cisco_input.jinja:3
-#: wazo_dird/plugins/templates/polycom_input.jinja:4
-#: wazo_dird/plugins/templates/polycom_results.jinja:4
 msgid "Wazo Search"
 msgstr "Recherche Wazo"
 
@@ -37,7 +35,6 @@ msgstr "Répertoire Wazo"
 
 #: wazo_dird/plugins/templates/cisco_results.jinja:10
 #: wazo_dird/plugins/templates/htek_results.jinja:10
-#: wazo_dird/plugins/templates/polycom_results.jinja:15
 #: wazo_dird/plugins/templates/thomson_results.jinja:10
 msgid "No entries"
 msgstr "Aucune entrée"
@@ -58,19 +55,15 @@ msgstr "Quitter"
 msgid "NextPage"
 msgstr "PageSuiv"
 
-#: wazo_dird/plugins/templates/polycom_input.jinja:9
-msgid "Name or number:"
-msgstr "Nom ou numéro:"
+#~ msgid "Name or number:"
+#~ msgstr "Nom ou numéro:"
 
-#: wazo_dird/plugins/templates/polycom_input.jinja:13
-msgid "Search"
-msgstr "Rechercher"
+#~ msgid "Search"
+#~ msgstr "Rechercher"
 
-#: wazo_dird/plugins/templates/polycom_results.jinja:9
-msgid "Previous Page"
-msgstr "Page Précédente"
+#~ msgid "Previous Page"
+#~ msgstr "Page Précédente"
 
-#: wazo_dird/plugins/templates/polycom_results.jinja:19
-msgid "Next Page"
-msgstr "Page Suivante"
+#~ msgid "Next Page"
+#~ msgstr "Page Suivante"
 
