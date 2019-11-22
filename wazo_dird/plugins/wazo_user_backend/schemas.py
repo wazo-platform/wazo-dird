@@ -37,6 +37,7 @@ class ContactListSchema(_ListSchema):
     default_sort_column = 'firstname'
 
     recurse = fields.Boolean(missing=False)
+    uuid = fields.String()
 
 
 class ContactSchema(BaseSchema):
