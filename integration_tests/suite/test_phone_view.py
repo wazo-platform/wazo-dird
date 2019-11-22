@@ -134,9 +134,3 @@ class TestPhoneView(BaseDirdIntegrationTest):
             self.profile, VALID_UUID, term='Alice', token=VALID_TOKEN_MAIN_TENANT
         )
         assert_that(result.status_code, equal_to((200)))
-
-    def test_htek_lookup_route(self):
-        result = self.get_lookup_htek_result(
-            self.profile, VALID_UUID, term='Alice', token=VALID_TOKEN_MAIN_TENANT
-        )
-        assert_that(result.status_code, equal_to((200)))

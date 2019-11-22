@@ -83,7 +83,6 @@ enabled_plugins:
     displays_view: true
     google_view: true
     headers_view: true
-    htek_view: true
     ldap_backend: true
     office365_backend: true
     personal_backend: true

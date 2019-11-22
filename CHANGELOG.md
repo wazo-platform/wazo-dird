@@ -14,6 +14,7 @@ Changelog
   * GET `/0.1/directories/input/<profile>/<user_uuid>/polycom`
   * GET `/0.1/directories/lookup/<profile>/<user_uuid>/polycom`
   * GET `/0.1/directories/lookup/<profile>/<user_uuid>/gigaset`
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>/htek`
 
 
 19.12
