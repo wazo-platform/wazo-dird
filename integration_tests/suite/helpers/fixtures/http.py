@@ -128,7 +128,7 @@ def display(**display_args):
     return decorator
 
 
-def google_result(contact_list):
+def google_result(contact_list, group_list=None):
     def decorator(decorated):
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
@@ -141,6 +141,14 @@ def google_result(contact_list):
             )
             expectation['times']['unlimited'] = True
             mock_server.mock_any_response(expectation)
+
+            if group_list:
+                groups_expected = mock_server.create_expectation(
+                    '/m8/feeds/groups/default/full', group_list, 200
+                )
+                groups_expected['times']['unlimited'] = True
+                mock_server.mock_any_response(groups_expected)
+
             try:
                 result = decorated(self, mock_server, *args, **kwargs)
             finally:

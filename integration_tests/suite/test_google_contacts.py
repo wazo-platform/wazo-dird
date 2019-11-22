@@ -81,6 +81,20 @@ GOOGLE_CONTACT_LIST = {
 }
 
 
+GOOGLE_GROUP_LIST = {
+    "feed": {
+        "entry": [
+            {
+                "id": {
+                    "$t": "http://www.google.com/m8/feeds/groups/peach%40bros.example.com/base/6"
+                },
+                "gContact$systemGroup": {"id": "Contacts"},
+            },
+        ],
+    }
+}
+
+
 class BaseGoogleAssetTestCase(BaseDirdIntegrationTest):
 
     GOOGLE_EXTERNAL_AUTH = {
@@ -200,15 +214,27 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             has_entries(items=contains(mario)),
         )
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_GROUP_LIST)
     def test_search(self, google_api):
         self.list_(self.client, self.source_uuid, search='mario'),
         google_api.verify(
             {
                 'method': 'GET',
+                'path': '/m8/feeds/groups/default/full',
+                'headers': {'Authorization': ['Bearer an-access-token']},
+            }
+        )
+        google_api.verify(
+            {
+                'method': 'GET',
                 'path': '/m8/feeds/contacts/default/full',
                 'headers': {'Authorization': ['Bearer an-access-token']},
-                'queryStringParameters': {'q': ['mario']},
+                'queryStringParameters': {
+                    'q': ['mario'],
+                    'group': [
+                        'http://www.google.com/m8/feeds/groups/peach%40bros.example.com/base/6',
+                    ],
+                },
             }
         )
 
