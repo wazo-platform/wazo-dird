@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-11-22 14:39-0500\n"
+"POT-Creation-Date: 2019-11-22 15:01-0500\n"
 "PO-Revision-Date: 2016-11-28 21:35+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: uk\n"
@@ -21,10 +21,6 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
-
-#: wazo_dird/plugins/templates/thomson_results.jinja:10
-msgid "No entries"
-msgstr ""
 
 #~ msgid "Wazo Search"
 #~ msgstr ""
@@ -45,5 +41,8 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "NextPage"
+#~ msgstr ""
+
+#~ msgid "No entries"
 #~ msgstr ""
 

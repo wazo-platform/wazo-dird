@@ -94,7 +94,6 @@ setup(
             'personal_backend = wazo_dird.plugins.personal_backend.plugin:PersonalView',
             'profiles_view = wazo_dird.plugins.profiles.plugin:ProfilesViewPlugin',
             'sources_view = wazo_dird.plugins.sources.plugin:SourcesViewPlugin',
-            'thomson_view = wazo_dird.plugins.thomson.plugin:ThomsonViewPlugin',
             'wazo_backend = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserView',
             'profile_sources_view = wazo_dird.plugins.profile_sources.plugin:SourceViewPlugin',
         ],

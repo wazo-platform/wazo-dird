@@ -409,23 +409,6 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
-    @classmethod
-    def get_lookup_thomson_result(
-        cls,
-        profile,
-        user_uuid,
-        proxy=None,
-        term=None,
-        token=None,
-        limit=None,
-        offset=None,
-    ):
-        url = cls.url('directories', 'lookup', profile, user_uuid, 'thomson')
-        params = {'term': term, 'limit': limit, 'offset': offset}
-        return cls.get(
-            url, params=params, headers={'X-Auth-Token': token, 'Proxy-URL': proxy}
-        )
-
     @staticmethod
     def delete(*args, **kwargs):
         token = kwargs.pop('token', None)

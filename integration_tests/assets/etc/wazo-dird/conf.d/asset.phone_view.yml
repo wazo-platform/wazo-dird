@@ -3,7 +3,6 @@ enabled_plugins:
     csv: true
   views:
     default_json: true
-    thomson_view: true
     csv_backend: true
 
 rest_api:

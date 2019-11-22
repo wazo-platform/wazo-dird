@@ -18,6 +18,7 @@ Changelog
   * GET `/0.1/directories/input/<profile>/<user_uuid>/cisco`
   * GET `/0.1/directories/lookup/<profile>/<user_uuid>/cisco`
   * GET `/0.1/directories/menu/<profile>/<user_uuid>/cisco`
+  * GET `/0.1/directories/lookup/<profile>/<user_uuid>/thomson`
 
 
 19.12
