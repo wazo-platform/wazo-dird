@@ -126,7 +126,7 @@ paths:
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/search'
-        - $ref: '#/parameters/backend_wazo_uuid'
+        - $ref: '#/parameters/wazo_backend_uuid'
       summary: Retrieve all contacts from `wazo`
       tags:
         - wazo
@@ -149,7 +149,7 @@ paths:
             $ref: '#/definitions/Error'
 
 parameters:
-  backend_wazo_uuid:
+  wazo_backend_uuid:
     required: false
     name: uuid
     in: query
