@@ -126,6 +126,7 @@ paths:
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
         - $ref: '#/parameters/search'
+        - $ref: '#/parameters/wazo_backend_uuid'
       summary: Retrieve all contacts from `wazo`
       tags:
         - wazo
@@ -146,6 +147,17 @@ paths:
           description: Another service is unavailable (e.g. wazo-auth, wazo-confd, ...)
           schema:
             $ref: '#/definitions/Error'
+
+parameters:
+  wazo_backend_uuid:
+    required: false
+    name: uuid
+    in: query
+    type: array
+    items:
+      type: string
+    description: Filter by contact uuid. Many uuid can be specified. Each uuid MUST be separated by a comma (,). Many uuid will perform a logical OR.
+
 definitions:
   WazoContact:
     properties:
