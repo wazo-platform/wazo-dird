@@ -19,7 +19,6 @@ enabled_plugins:
     headers_view: true
     ldap_backend: true
     personal_view: true
-    cisco_view: true
     wazo_backend: true
     personal_backend: true
     phonebook_backend: true

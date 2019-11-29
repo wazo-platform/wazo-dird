@@ -5,26 +5,6 @@ wazo-dird is a service to query many directory sources simultaneously using a
 simple REST API.
 
 
-## Translations
-
-To extract new translations:
-
-    % pybabel extract --mapping-file=wazo_dird/babel.cfg --output-file=wazo_dird/messages.pot wazo_dird
-
-To create new translation catalog:
-
-    % pybabel init -l <locale> --input-file=wazo_dird/messages.pot --output-dir=wazo_dird/translations
-
-To update existing translations catalog:
-
-    % pybabel update --input-file=wazo_dird/messages.pot --output-dir=wazo_dird/translations
-
-Edit file `wazo_dird/translations/<locale>/LC_MESSAGES/messages.po` and compile
-using:
-
-    % pybabel compile --directory=wazo_dird/translations
-
-
 ## Docker
 
 The wazopbx/wazo-dird image can be built using the following command:

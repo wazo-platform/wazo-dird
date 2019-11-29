@@ -74,17 +74,14 @@ enabled_plugins:
   views:
     api_view: true
     backends_view: true
-    cisco_view: true
     config_view: true
     conference_view: true
     csv_backend: true
     csv_ws_backend: true
     default_json: true
     displays_view: true
-    gigaset_view: true
     google_view: true
     headers_view: true
-    htek_view: true
     ldap_backend: true
     office365_backend: true
     personal_backend: true
@@ -92,12 +89,8 @@ enabled_plugins:
     phonebook_backend: true
     phonebook_view: true
     profiles_view: true
-    polycom_view: true
-    snom_view: true
     sources: true
-    thomson_view: true
     wazo_backend: true
-    yealink_view: true
     sources_view: true
     profile_sources_view: true
     status_view: true

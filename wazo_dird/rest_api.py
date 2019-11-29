@@ -11,7 +11,6 @@ from requests import HTTPError
 from cheroot import wsgi
 from flask import Flask
 from flask import request
-from flask_babel import Babel
 from flask_restful import Api
 from flask_restful import Resource
 from flask_cors import CORS
@@ -36,17 +35,8 @@ class CoreRestApi:
     def __init__(self, global_config):
         self.config = global_config['rest_api']
         self.app = Flask('wazo_dird', template_folder=TEMPLATE_FOLDER)
-        self.babel = Babel(self.app)
-        self.app.config['BABEL_DEFAULT_LOCALE'] = 'en'
         self.app.config['auth'] = global_config['auth']
         AuthResource.auth_config = global_config['auth']
-
-        @self.babel.localeselector
-        def get_locale():
-            translations = [
-                str(translation) for translation in self.babel.list_translations()
-            ]
-            return request.accept_languages.best_match(translations)
 
         http_helpers.add_logger(self.app, logger)
         self.app.after_request(http_helpers.log_request)

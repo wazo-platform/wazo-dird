@@ -4,32 +4,8 @@
 
 from setuptools import setup
 from setuptools import find_packages
-from setuptools.command.install_lib import install_lib as _install_lib
-from distutils.command.build import build as _build
 
 
-class build(_build):
-    sub_commands = [('compile_catalog', None)] + _build.sub_commands
-
-
-class install_lib(_install_lib):
-    def run(self):
-        self.run_command('compile_catalog')
-        _install_lib.run(self)
-
-
-class BabelWrapper(object):
-    def compile_catalog(self, *args, **kwargs):
-        return self.babel.compile_catalog(*args, **kwargs)
-
-    @property
-    def babel(self):
-        from babel.messages import frontend as babel
-
-        return babel
-
-
-babel_wrapper = BabelWrapper()
 setup(
     name='wazo-dird',
     version='1.2',
@@ -39,15 +15,8 @@ setup(
     url='http://wazo.community',
     packages=find_packages(),
     include_package_data=True,
-    setup_requires=['babel'],
-    install_requires=['babel'],
     zip_safe=False,
     package_data={'wazo_dird.plugins': ['*/api.yml']},
-    cmdclass={
-        'build': build,
-        'install_lib': install_lib,
-        'compile_catalog': babel_wrapper.compile_catalog,
-    },
     entry_points={
         'console_scripts': ['wazo-dird=wazo_dird.main:main'],
         'wazo_dird.services': [
@@ -91,16 +60,9 @@ setup(
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
             'phonebook_backend = wazo_dird.plugins.phonebook_backend.plugin:PhonebookView',
             'status_view = wazo_dird.plugins.status.plugin:StatusViewPlugin',
-            'cisco_view = wazo_dird.plugins.cisco.plugin:CiscoViewPlugin',
-            'gigaset_view = wazo_dird.plugins.gigaset.plugin:GigasetViewPlugin',
-            'htek_view = wazo_dird.plugins.htek.plugin:HtekViewPlugin',
             'personal_backend = wazo_dird.plugins.personal_backend.plugin:PersonalView',
-            'polycom_view = wazo_dird.plugins.polycom.plugin:PolycomViewPlugin',
             'profiles_view = wazo_dird.plugins.profiles.plugin:ProfilesViewPlugin',
-            'snom_view = wazo_dird.plugins.snom.plugin:SnomViewPlugin',
             'sources_view = wazo_dird.plugins.sources.plugin:SourcesViewPlugin',
-            'thomson_view = wazo_dird.plugins.thomson.plugin:ThomsonViewPlugin',
-            'yealink_view = wazo_dird.plugins.yealink.plugin:YealinkViewPlugin',
             'wazo_backend = wazo_dird.plugins.wazo_user_backend.plugin:WazoUserView',
             'profile_sources_view = wazo_dird.plugins.profile_sources.plugin:SourceViewPlugin',
         ],
