@@ -60,12 +60,6 @@ responses:
     schema:
       $ref: '#/definitions/Error'
 parameters:
-  AcceptLanguage:
-    name: Accept-Language
-    in: header
-    type: string
-    required: false
-    description: The language to translate the query results in
   ContactID:
     name: contact_id
     in: path
