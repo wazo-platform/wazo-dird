@@ -20,6 +20,8 @@ Changelog
   * GET `/0.1/directories/menu/<profile>/<user_uuid>/cisco`
   * GET `/0.1/directories/lookup/<profile>/<user_uuid>/thomson`
 
+* Endpoint `/0.1/backends/wazo/sources/<source_uuid>/contacts` accepts a new `uuid` query string argument.
+
 
 19.12
 -----
