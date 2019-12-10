@@ -1,9 +1,0 @@
-[main]
-host = https://www.transifex.com
-
-[wazo.wazo-dird]
-file_filter = wazo_dird/translations/<lang>/LC_MESSAGES/messages.po
-source_file = wazo_dird/messages.pot
-source_lang = en
-type = PO
-

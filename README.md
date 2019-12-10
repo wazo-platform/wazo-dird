@@ -47,11 +47,6 @@ For developers, when adding/removing a plugin:
     % make egg-info
 
 
-### Generate .tx/config
-
-    % tx set --auto-local -r xivo.wazo-dird 'wazo_dird/translations/<lang>/LC_MESSAGES/messages.po' --source-lang en --type PO --source-file wazo_dird/messages.pot --execute
-
-
 Adding a new database migration
 -------------------------------
 
