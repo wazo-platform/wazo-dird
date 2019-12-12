@@ -17,7 +17,7 @@ _DEFAULT_CONFIG = {
     },
     'config_file': '/etc/wazo-dird/config.yml',
     'consul': {
-        'scheme': 'https',
+        'scheme': 'http',
         'host': 'localhost',
         'port': 8500,
         'verify': '/usr/share/xivo-certs/server.crt',
