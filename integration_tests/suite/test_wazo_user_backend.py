@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from mock import Mock
@@ -121,6 +121,8 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
         result = self.lookup('dyl', 'default')
         assert_that(result['results'], contains())
 
+        self.docker_exec(['touch', '/var/local/start-confd'], service_name='america')
+
         def test():
             result = self.lookup('dyl', 'default')
             assert_that(
@@ -130,7 +132,7 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
                 ),
             )
 
-        until.assert_(test, tries=10)
+        until.assert_(test, timeout=10)
 
 
 class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
