@@ -1,5 +1,8 @@
 #!/bin/sh
 
-sleep 10
+while [ ! -e /var/local/start-confd ] ; do
+    echo "Waiting for file /var/local/start-confd"
+    sleep 1
+done
 cd /tmp
 python -m SimpleHTTPServer 9486
