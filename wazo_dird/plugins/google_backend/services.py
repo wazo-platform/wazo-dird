@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class GoogleService:
 
     USER_AGENT = 'wazo_ua/1.0'
-    url = 'https://google.com/m8/feeds/contacts/default/full'
+    contacts_url = 'https://google.com/m8/feeds/contacts/default/full'
     groups_url = 'https://google.com/m8/feeds/groups/default/full'
 
     def __init__(self):
@@ -46,7 +46,7 @@ class GoogleService:
 
         # TODO find a way to remove this verify = False
         response = requests.get(
-            self.url, headers=headers, params=query_params, verify=False
+            self.contacts_url, headers=headers, params=query_params, verify=False
         )
         if response.status_code != 200:
             return []
