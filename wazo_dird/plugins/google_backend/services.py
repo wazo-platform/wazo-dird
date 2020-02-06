@@ -193,9 +193,12 @@ class ContactFormatter:
 
         return numbers
 
-    @staticmethod
-    def _extract_name(contact):
-        return contact.get('title', {}).get('$t', '')
+    @classmethod
+    def _extract_name(cls, contact):
+        name = contact.get('gd$name', {}).get('gd$fullName', {}).get('$t', '')
+        if not name:
+            name = contact.get('title', {}).get('$t', '')
+        return name
 
     @classmethod
     def _extract_first_name(cls, contact):

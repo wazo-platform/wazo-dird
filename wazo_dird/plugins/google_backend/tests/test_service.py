@@ -30,6 +30,15 @@ class TestGoogleContactFormatter(unittest.TestCase):
 
         assert_that(formatted_contact, has_entries(name='Joe Blow'))
 
+    def test_format_name_when_fullname(self):
+        google_contact = {
+            'title': {'$t': 'Test User1', 'type': 'text'},
+            'gd$name': {'gd$fullName': {'$t': 'Test FullName'}},
+        }
+
+        formatted_contact = self.formatter.format(google_contact)
+        assert_that(formatted_contact, has_entries(name='Test FullName'))
+
     def test_format_first_name(self):
         google_contact = {'gd$name': {'gd$givenName': {'$t': 'Test'}}}
 
