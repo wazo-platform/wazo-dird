@@ -134,6 +134,7 @@ class ContactFormatter:
             'emails': self._extract_emails(contact),
             'organizations': self._extract_organizations(contact),
             'addresses': self._extract_addresses(contact),
+            'note': self._extract_note(contact),
         }
 
     @classmethod
@@ -233,3 +234,7 @@ class ContactFormatter:
             addresses.append({'address': formatted_address, 'label': label_or_type})
 
         return addresses
+
+    @classmethod
+    def _extract_note(cls, contact):
+        return contact.get('content', {}).get('$t', '')

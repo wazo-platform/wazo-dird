@@ -97,6 +97,7 @@ GOOGLE_CONTACT_LIST = {
                         "$t": "(555) 555-2222",
                     },
                 ],
+                "content": {"$t": "Second character"},
             },
         ],
     }
@@ -213,6 +214,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                             'mobile',
                             '+15555554567',
                         ),
+                        note='Second character',
                     ),
                 ),
                 total=2,

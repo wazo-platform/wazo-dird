@@ -143,3 +143,12 @@ class TestGoogleContactFormatter(unittest.TestCase):
                 ),
             ),
         )
+
+    def test_note(self):
+        google_contact = {'content': {'$t': 'Notey'}}
+
+        formatted_contact = self.formatter.format(google_contact)
+
+        assert_that(
+            formatted_contact, has_entries(note='Notey'),
+        )
