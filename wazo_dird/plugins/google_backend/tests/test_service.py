@@ -85,6 +85,7 @@ class TestGoogleContactFormatter(unittest.TestCase):
                     'rel': 'http://schemas.google.com/g/2005#home',
                 },
                 {'address': 'other@example.com', 'label': 'custom'},
+                {'address': 'other2@example.com'},
             ]
         }
 
@@ -92,7 +93,13 @@ class TestGoogleContactFormatter(unittest.TestCase):
 
         assert_that(
             formatted_contact,
-            has_entries(emails=contains('home@example.com', 'other@example.com')),
+            has_entries(
+                emails=contains(
+                    has_entries(address='home@example.com', label='home'),
+                    has_entries(address='other@example.com', label='custom'),
+                    has_entries(address='other2@example.com', label=''),
+                ),
+            ),
         )
 
     def test_organization(self):

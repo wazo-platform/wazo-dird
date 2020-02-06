@@ -144,7 +144,8 @@ class ContactFormatter:
             address = email.get('address')
             if not address:
                 continue
-            emails.append(address)
+            label_or_type = cls._extract_type(email) or ''
+            emails.append({'address': address, 'label': label_or_type})
         return emails
 
     @classmethod
