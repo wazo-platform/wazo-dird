@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -29,6 +29,12 @@ class TestGoogleContactFormatter(unittest.TestCase):
         formatted_contact = self.formatter.format(google_contact)
 
         assert_that(formatted_contact, has_entries(name='Joe Blow'))
+
+    def test_format_first_name(self):
+        google_contact = {'gd$name': {'gd$givenName': {'$t': 'Test'}}}
+
+        formatted_contact = self.formatter.format(google_contact)
+        assert_that(formatted_contact, has_entries(firstname='Test'))
 
     def test_multiple_numbers(self):
         google_contact = {

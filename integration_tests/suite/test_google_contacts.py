@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
@@ -26,7 +26,12 @@ GOOGLE_CONTACT_LIST = {
                 "id": {
                     "$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/20aec7728b4f316b"
                 },
-                "title": {"$t": "Mario Bros", "type": "text"},
+                "title": {"$t": "Mario Brös", "type": "text"},
+                "gd$name": {
+                    "gd$fullName": {"$t": "Mario Bros"},
+                    "gd$givenName": {"$t": "Mario"},
+                    "gd$familyName": {"$t": "Bros"},
+                },
                 "gd$email": [
                     {
                         "address": "mario@bros.example.com",
@@ -161,6 +166,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                     has_entries(
                         name='Mario Bros',
                         emails=contains_inanyorder('mario@bros.example.com'),
+                        firstname='Mario',
                         numbers=contains_inanyorder('+15555551111', '+15555551234'),
                         numbers_by_label=has_entries(
                             home='+15555551111', mobile='+15555551234'

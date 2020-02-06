@@ -127,6 +127,7 @@ class ContactFormatter:
         return {
             'id': self._extract_id(contact),
             'name': self._extract_name(contact),
+            'firstname': self._extract_first_name(contact),
             'numbers_by_label': self._extract_numbers_by_label(contact),
             'numbers': self._extract_numbers(contact),
             'emails': self._extract_emails(contact),
@@ -190,6 +191,10 @@ class ContactFormatter:
     @staticmethod
     def _extract_name(contact):
         return contact.get('title', {}).get('$t', '')
+
+    @classmethod
+    def _extract_first_name(cls, contact):
+        return contact.get('gd$name', {}).get('gd$givenName', {}).get('$t', '')
 
     @staticmethod
     def _extract_type(entry):
