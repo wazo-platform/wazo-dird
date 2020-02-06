@@ -186,7 +186,9 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                         firstname='Mario',
                         lastname='Bros',
                         emails=contains_inanyorder(
-                            has_entries(address='mario@bros.example.com', label='other'),
+                            has_entries(
+                                address='mario@bros.example.com', label='other'
+                            ),
                         ),
                         numbers=contains_inanyorder('+15555551111', '+15555551234'),
                         numbers_by_label=has_entries(
@@ -197,14 +199,18 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                         ),
                         addresses=contains_inanyorder(
                             has_entries(address='Main Land', label='home'),
-                            has_entries(address='Alternative Land', label='Second address'),
+                            has_entries(
+                                address='Alternative Land', label='Second address'
+                            ),
                         ),
                     ),
                     has_entries(
                         name='Luigi Bros',
                         emails=contains_inanyorder(
                             has_entries(address='Luigi@bros.example.com', label='home'),
-                            has_entries(address='luigi_bros@caramail.com', label='Old school'),
+                            has_entries(
+                                address='luigi_bros@caramail.com', label='Old school'
+                            ),
                         ),
                         numbers=contains_inanyorder(
                             '5555552222', '+15555551111', '+15555554567'

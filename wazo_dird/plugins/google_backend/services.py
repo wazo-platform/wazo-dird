@@ -224,7 +224,9 @@ class ContactFormatter:
         for organization in organizations_from_contact:
             organization_name = organization.get('gd$orgName', {}).get('$t', '')
             organization_title = organization.get('gd$orgTitle', {}).get('$t', '')
-            organizations.append({'name': organization_name, 'title': organization_title})
+            organizations.append(
+                {'name': organization_name, 'title': organization_title}
+            )
 
         return organizations
 
