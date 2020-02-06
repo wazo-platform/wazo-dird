@@ -133,6 +133,7 @@ class ContactFormatter:
             'numbers': self._extract_numbers(contact),
             'emails': self._extract_emails(contact),
             'organizations': self._extract_organizations(contact),
+            'addresses': self._extract_addresses(contact),
         }
 
     @classmethod
@@ -221,3 +222,14 @@ class ContactFormatter:
             organizations.append({'name': organization_name, 'title': organization_title})
 
         return organizations
+
+    @classmethod
+    def _extract_addresses(cls, contact):
+        addresses = []
+        addresses_from_contact = contact.get('gd$structuredPostalAddress', [])
+        for address in addresses_from_contact:
+            formatted_address = address.get('gd$formattedAddress', {}).get('$t', '')
+            label_or_type = cls._extract_type(address) or ''
+            addresses.append({'address': formatted_address, 'label': label_or_type})
+
+        return addresses

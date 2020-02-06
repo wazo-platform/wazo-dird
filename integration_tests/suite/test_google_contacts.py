@@ -57,6 +57,16 @@ GOOGLE_CONTACT_LIST = {
                         "$t": "+1 5555551111",
                     },
                 ],
+                "gd$structuredPostalAddress": [
+                    {
+                        "rel": "http://schemas.google.com/g/2005#home",
+                        "gd$formattedAddress": {"$t": "Main Land"},
+                    },
+                    {
+                        "label": "Second address",
+                        "gd$formattedAddress": {"$t": "Alternative Land"},
+                    },
+                ],
             },
             {
                 "id": {
@@ -181,6 +191,10 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                         ),
                         organizations=contains_inanyorder(
                             has_entries(name='MarioLand', title='Artist'),
+                        ),
+                        addresses=contains_inanyorder(
+                            has_entries(address='Main Land', label='home'),
+                            has_entries(address='Alternative Land', label='Second address'),
                         ),
                     ),
                     has_entries(

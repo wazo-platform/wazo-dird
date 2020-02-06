@@ -117,3 +117,29 @@ class TestGoogleContactFormatter(unittest.TestCase):
                 ),
             ),
         )
+
+    def test_addresses(self):
+        google_contact = {
+            'gd$structuredPostalAddress': [
+                {
+                    'rel': 'http://schemas.google.com/g/2005#home',
+                    'gd$formattedAddress': {'$t': 'First address'},
+                },
+                {
+                    'label': 'Test address',
+                    'gd$formattedAddress': {'$t': 'Second address'},
+                },
+            ],
+        }
+
+        formatted_contact = self.formatter.format(google_contact)
+
+        assert_that(
+            formatted_contact,
+            has_entries(
+                addresses=contains(
+                    has_entries(address='First address', label='home'),
+                    has_entries(address='Second address', label='Test address'),
+                ),
+            ),
+        )
