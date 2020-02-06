@@ -167,6 +167,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                         name='Mario Bros',
                         emails=contains_inanyorder('mario@bros.example.com'),
                         firstname='Mario',
+                        lastname='Bros',
                         numbers=contains_inanyorder('+15555551111', '+15555551234'),
                         numbers_by_label=has_entries(
                             home='+15555551111', mobile='+15555551234'

@@ -36,6 +36,12 @@ class TestGoogleContactFormatter(unittest.TestCase):
         formatted_contact = self.formatter.format(google_contact)
         assert_that(formatted_contact, has_entries(firstname='Test'))
 
+    def test_format_last_name(self):
+        google_contact = {'gd$name': {'gd$familyName': {'$t': 'Family'}}}
+
+        formatted_contact = self.formatter.format(google_contact)
+        assert_that(formatted_contact, has_entries(lastname='Family'))
+
     def test_multiple_numbers(self):
         google_contact = {
             'gd$phoneNumber': [
