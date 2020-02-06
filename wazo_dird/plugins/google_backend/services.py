@@ -132,6 +132,7 @@ class ContactFormatter:
             'numbers_by_label': self._extract_numbers_by_label(contact),
             'numbers': self._extract_numbers(contact),
             'emails': self._extract_emails(contact),
+            'organizations': self._extract_organizations(contact),
         }
 
     @classmethod
@@ -201,11 +202,22 @@ class ContactFormatter:
     def _extract_last_name(cls, contact):
         return contact.get('gd$name', {}).get('gd$familyName', {}).get('$t', '')
 
-    @staticmethod
-    def _extract_type(entry):
+    @classmethod
+    def _extract_type(cls, entry):
         rel = entry.get('rel')
         if rel:
             _, type_ = rel.rsplit('#', 1)
         else:
             type_ = entry.get('label')
         return type_
+
+    @classmethod
+    def _extract_organizations(cls, contact):
+        organizations = []
+        organizations_from_contact = contact.get('gd$organization', [])
+        for organization in organizations_from_contact:
+            organization_name = organization.get('gd$orgName', {}).get('$t', '')
+            organization_title = organization.get('gd$orgTitle', {}).get('$t', '')
+            organizations.append({'name': organization_name, 'title': organization_title})
+
+        return organizations

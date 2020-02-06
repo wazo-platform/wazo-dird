@@ -32,6 +32,13 @@ GOOGLE_CONTACT_LIST = {
                     "gd$givenName": {"$t": "Mario"},
                     "gd$familyName": {"$t": "Bros"},
                 },
+                "gd$organization": [
+                    {
+                        "rel": "http://schemas.google.com/g/2005#other",
+                        "gd$orgTitle": {"$t": "Artist"},
+                        "gd$orgName": {"$t": "MarioLand"},
+                    }
+                ],
                 "gd$email": [
                     {
                         "address": "mario@bros.example.com",
@@ -171,6 +178,9 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                         numbers=contains_inanyorder('+15555551111', '+15555551234'),
                         numbers_by_label=has_entries(
                             home='+15555551111', mobile='+15555551234'
+                        ),
+                        organizations=contains_inanyorder(
+                            has_entries(name='MarioLand', title='Artist'),
                         ),
                     ),
                     has_entries(

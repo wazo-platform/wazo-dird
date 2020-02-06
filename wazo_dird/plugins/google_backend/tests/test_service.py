@@ -94,3 +94,26 @@ class TestGoogleContactFormatter(unittest.TestCase):
             formatted_contact,
             has_entries(emails=contains('home@example.com', 'other@example.com')),
         )
+
+    def test_organization(self):
+        google_contact = {
+            'gd$organization': [
+                {
+                    'gd$orgTitle': {'$t': 'Tester'},
+                    'gd$orgName': {'$t': 'Test Company'},
+                },
+                {'gd$orgTitle': {'$t': 'President'}, 'gd$orgName': {'$t': 'Acme'}},
+            ],
+        }
+
+        formatted_contact = self.formatter.format(google_contact)
+
+        assert_that(
+            formatted_contact,
+            has_entries(
+                organizations=contains(
+                    has_entries(name='Test Company', title='Tester'),
+                    has_entries(name='Acme', title='President'),
+                ),
+            ),
+        )
