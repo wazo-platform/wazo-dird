@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -96,7 +96,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
             'format_columns': {
                 'phone_mobile': '{numbers_by_label[mobile]}',
                 'phone': '{numbers[0]}',
-                'email': '{emails[0]}',
+                'email': '{emails[0][address]}',
                 'reverse': '{name}',
             },
             'name': 'google',

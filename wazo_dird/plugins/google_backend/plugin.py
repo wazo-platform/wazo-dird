@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -121,8 +121,13 @@ class GooglePlugin(BaseSourcePlugin):
             column_value = contact.get(column) or ''
             if isinstance(column_value, (dict, list)):
                 for value in column_value:
-                    if term == value.lower():
-                        return True
+                    if isinstance(value, dict):
+                        for sub_value in value.values():
+                            if term == sub_value.lower():
+                                return True
+                    else:
+                        if term == value.lower():
+                            return True
             else:
                 if term == str(column_value).lower():
                     return True
@@ -141,8 +146,13 @@ class GooglePlugin(BaseSourcePlugin):
             column_value = contact.get(field) or ''
             if isinstance(column_value, (dict, list)):
                 for value in column_value:
-                    if term in value.lower():
-                        return True
+                    if isinstance(value, dict):
+                        for sub_value in value.values():
+                            if term in sub_value.lower():
+                                return True
+                    else:
+                        if term in value.lower():
+                            return True
             else:
                 if term in column_value.lower():
                     return True
