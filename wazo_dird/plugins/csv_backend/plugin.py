@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -109,18 +109,31 @@ class CSVPlugin(BaseSourcePlugin):
 
     def _low_case_match_entry(self, term, columns, entry):
         logger.debug('Looking for %r in %s %s', term, entry, columns)
-        values = (entry[col].lower() for col in columns if col)
-        for value in values:
+        lowered_values = [value.lower() for value in self._entry_values(columns, entry)]
+        for value in lowered_values:
             if term in value:
                 return True
         return False
 
     def _exact_match_entry(self, term, columns, entry):
-        values = (entry[col] for col in columns if col)
-        for value in values:
+        for value in self._entry_values(columns, entry):
             if term == value:
                 return True
         return False
+
+    @staticmethod
+    def _entry_values(column_names, entry):
+        values = []
+        for column_name in column_names:
+            if not column_name:
+                continue
+            try:
+                values.append(entry[column_name])
+            except KeyError:
+                logger.info(
+                    'plugin misconfigured "%s" is not in the CSV file', column_name,
+                )
+        return values
 
     @staticmethod
     def _row_to_dict(keys, values):

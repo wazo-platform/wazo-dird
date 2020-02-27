@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -7,10 +7,16 @@ import random
 import string
 import tempfile
 
-from hamcrest import assert_that
-from hamcrest import contains_inanyorder
-from hamcrest import contains
-from hamcrest import equal_to
+from hamcrest import (
+    assert_that,
+    contains_inanyorder,
+    contains,
+    empty,
+    equal_to,
+    has_properties,
+    none,
+)
+
 from wazo_dird import make_result_class
 
 from ..plugin import CSVPlugin
@@ -53,7 +59,7 @@ class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
 
     content = pipe_separated_content
 
-    def test_search_with_diferent_separator(self):
+    def test_search_with_different_separator(self):
         self.source = CSVPlugin()
         config = {
             'file': self.fname,
@@ -149,6 +155,19 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         assert_that(results, contains())
 
+    def test_search_missing_column(self):
+        config = {
+            'file': self.fname,
+            'searched_columns': ['not-a-column'],
+            'name': 'my_dir',
+        }
+
+        self.source.load({'config': config})
+
+        results = self.source.search('ice')
+
+        assert_that(results, empty())
+
     def test_search_no_search_column(self):
         config = {'file': self.fname, 'name': 'my_dir'}
 
@@ -172,6 +191,20 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         assert_that(results, contains(self.alice_result))
 
+    def test_search_with_unique_missing(self):
+        config = {
+            'file': self.fname,
+            'unique_column': 'not-a-column',
+            'searched_columns': ['firstname'],
+            'name': self.name,
+        }
+
+        self.source.load({'config': config})
+
+        results = self.source.search('ice')
+
+        assert_that(results, contains(has_properties(fields=alice)))
+
     def test_first_match(self):
         config = {
             'file': self.fname,
@@ -185,6 +218,20 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         result = self.source.first_match('5555556666')
 
         assert_that(result, equal_to(self.charles_result))
+
+    def test_first_match_missing_column(self):
+        config = {
+            'file': self.fname,
+            'unique_column': 'clientno',
+            'first_matched_columns': ['numéro'],
+            'name': self.name,
+        }
+
+        self.source.load({'config': config})
+
+        result = self.source.first_match('5555556666')
+
+        assert_that(result, none())
 
     def test_first_match_when_no_match(self):
         config = {

@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -64,9 +64,10 @@ class _SourceResult:
         try:
             return str(self.fields[self._unique_column])
         except KeyError:
-            logger.exception(
-                '%s is not properly configured, the unique column is not part of the result',
+            logger.error(
+                '"%s" is not properly configured, the unique column "%s" is not part of the result',
                 self.source,
+                self._unique_column,
             )
         return None
 
