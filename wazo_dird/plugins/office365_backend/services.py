@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -17,22 +17,6 @@ logger = logging.getLogger(__name__)
 class Office365Service:
 
     USER_AGENT = 'wazo_ua/1.0'
-
-    def get_contacts_with_term(self, microsoft_token, term, url):
-        headers = self.headers(microsoft_token)
-        query_params = {"search": term}
-        try:
-            response = requests.get(url, headers=headers, params=query_params)
-            if response.status_code == 200:
-                logger.debug('Sucessfully fetched contacts from microsoft.')
-                return response.json().get('value', [])
-            else:
-                return []
-        except requests.RequestException as e:
-            logger.error(
-                'Unable to get contacts from this endpoint: %s, error : %s', url, e
-            )
-            return []
 
     def get_contacts(self, microsoft_token, url):
         headers = self.headers(microsoft_token)

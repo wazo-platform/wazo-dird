@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -78,9 +78,7 @@ class Office365Plugin(BaseSourcePlugin):
         except MicrosoftTokenNotFoundException:
             return []
 
-        contacts = self.office365.get_contacts_with_term(
-            microsoft_token, term, self.endpoint
-        )
+        contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
         updated_contacts = self._update_contact_fields(contacts)
 
         lowered_term = term.lower()
