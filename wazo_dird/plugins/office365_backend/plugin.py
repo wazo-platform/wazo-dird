@@ -159,4 +159,5 @@ class Office365Plugin(BaseSourcePlugin):
         for contact in contacts:
             contact.setdefault('givenName', '')
             contact['email'] = services.get_first_email(contact)
+            contact['numbers'] = services.aggregate_numbers(contact)
         return contacts

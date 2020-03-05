@@ -13,6 +13,8 @@ from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointExcep
 
 logger = logging.getLogger(__name__)
 
+NUMBER_FIELDS = ('businessPhones', 'homePhones', 'mobilePhone')
+
 
 class Office365Service:
 
@@ -67,3 +69,15 @@ def get_first_email(contact_information):
     return next(iter(contact_information.get('emailAddresses') or []), {}).get(
         'address'
     )
+
+
+def aggregate_numbers(contact):
+    all_numbers = []
+    for field in NUMBER_FIELDS:
+        field_value = contact.get(field)
+        if field_value:
+            if isinstance(field_value, list):
+                all_numbers.extend(field_value)
+            else:
+                all_numbers.append(field_value)
+    return all_numbers
