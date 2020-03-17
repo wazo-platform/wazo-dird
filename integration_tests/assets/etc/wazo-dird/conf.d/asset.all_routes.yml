@@ -8,6 +8,9 @@ enabled_plugins:
     personal: true
     phonebook: true
     unknown: true
+    google: true
+    office365: true
+
   views:
     backends_view: true
     config_view: true
@@ -26,6 +29,8 @@ enabled_plugins:
     sources_view: true
     status_view: true
     profile_sources_view: true
+    google_view: true
+    office365_backend: true
 
 foo:
     bar: main

@@ -103,6 +103,22 @@ OFFICE_365_SOURCE_BODY = {
     ],
     'first_matched_columns': ['businessPhones', 'mobilePhone', 'homePhones'],
 }
+GOOGLE_SOURCE_BODY = {
+    'auth': {
+        'host': 'localhost',
+        'port': 9497,
+        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'key_file': '/var/lib/wazo-auth-keys/wazo-dird-wazo-backend-key.yml',
+        'version': '0.1',
+    },
+    'format_columns': {
+        'phone_mobile': '{numbers_by_label[mobile]}',
+        'reverse': '{name}',
+        'phone': '{numbers[0]}',
+    },
+    'searched_columns': ['name', 'numbers', 'familyName', 'givenName'],
+    'first_matched_columns': ['numbers'],
+}
 
 
 class ConfigServicePlugin(BaseServicePlugin):
@@ -185,6 +201,13 @@ class Service:
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
+    def _add_google_source(self, tenant_uuid, name):
+        backend = 'google'
+        body = dict(GOOGLE_SOURCE_BODY)
+        body['name'] = 'auto_{}_{}'.format(backend, name)
+        body['tenant_uuid'] = tenant_uuid
+        return self._add_source(backend, body)
+
     def _auto_create_sources(self, tenant_uuid, name):
         logger.info('creating sources for tenant "%s"', name)
         sources = [
@@ -192,6 +215,7 @@ class Service:
             self._add_personal_source(tenant_uuid, name),
             self._add_wazo_user_source(tenant_uuid, name),
             self._add_office365_source(tenant_uuid, name),
+            self._add_google_source(tenant_uuid, name),
         ]
         return [s for s in sources if s is not None]
 

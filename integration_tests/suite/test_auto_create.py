@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import kombu
@@ -110,6 +110,71 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                             services=has_entries(
                                 lookup=has_entries(
                                     sources=has_item(has_entries(uuid=conference_uuid))
+                                )
+                            )
+                        )
+                    )
+                ),
+            )
+
+        until.assert_(check, timeout=3)
+
+    def test_google_source(self):
+        self._publish_tenant_created_event()
+
+        def check():
+            response = self.client.backends.list_sources(
+                'google', tenant_uuid=self.tenant_uuid
+            )
+            assert_that(
+                response,
+                has_entries(
+                    items=has_item(
+                        has_entries(
+                            uuid=uuid_(),
+                            tenant_uuid=self.tenant_uuid,
+                            name='auto_google_mytenant',
+                            auth={
+                                'host': 'localhost',
+                                'port': 9497,
+                                'verify_certificate': '/usr/share/xivo-certs/server.crt',
+                                'version': '0.1',
+                            },
+                            first_matched_columns=has_item('numbers'),
+                            searched_columns=contains_inanyorder(
+                                'name', 'numbers', 'familyName', 'givenName'
+                            ),
+                            format_columns=has_entries(
+                                phone_mobile='{numbers_by_label[mobile]}',
+                                reverse='{name}',
+                                phone='{numbers[0]}',
+                            ),
+                        )
+                    )
+                ),
+            )
+
+        until.assert_(check, timeout=3)
+        for source in self.client.backends.list_sources(
+            'google', tenant_uuid=self.tenant_uuid
+        )['items']:
+            if source['name'] == 'auto_google_mytenant':
+                google_source_uuid = source['uuid']
+
+        def check():
+            response = self.client.profiles.list(
+                name='default', tenant_uuid=self.tenant_uuid
+            )
+            assert_that(
+                response,
+                has_entries(
+                    items=has_item(
+                        has_entries(
+                            services=has_entries(
+                                lookup=has_entries(
+                                    sources=has_item(
+                                        has_entries(uuid=google_source_uuid)
+                                    )
                                 )
                             )
                         )
