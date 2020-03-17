@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -13,26 +13,12 @@ from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointExcep
 
 logger = logging.getLogger(__name__)
 
+NUMBER_FIELDS = ('businessPhones', 'homePhones', 'mobilePhone')
+
 
 class Office365Service:
 
     USER_AGENT = 'wazo_ua/1.0'
-
-    def get_contacts_with_term(self, microsoft_token, term, url):
-        headers = self.headers(microsoft_token)
-        query_params = {"search": term}
-        try:
-            response = requests.get(url, headers=headers, params=query_params)
-            if response.status_code == 200:
-                logger.debug('Sucessfully fetched contacts from microsoft.')
-                return response.json().get('value', [])
-            else:
-                return []
-        except requests.RequestException as e:
-            logger.error(
-                'Unable to get contacts from this endpoint: %s, error : %s', url, e
-            )
-            return []
 
     def get_contacts(self, microsoft_token, url):
         headers = self.headers(microsoft_token)
@@ -83,3 +69,15 @@ def get_first_email(contact_information):
     return next(iter(contact_information.get('emailAddresses') or []), {}).get(
         'address'
     )
+
+
+def aggregate_numbers(contact):
+    all_numbers = []
+    for field in NUMBER_FIELDS:
+        field_value = contact.get(field)
+        if field_value:
+            if isinstance(field_value, list):
+                all_numbers.extend(field_value)
+            else:
+                all_numbers.append(field_value)
+    return all_numbers

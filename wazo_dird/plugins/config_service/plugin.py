@@ -1,4 +1,4 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -92,10 +92,16 @@ OFFICE_365_SOURCE_BODY = {
         'name': '{givenName} {surname}',
         'phone_mobile': '{mobilePhone}',
         'reverse': '{givenName} {surname}',
-        'phone': '{businessPhones[0]}',
+        'phone': '{numbers[0]}',
     },
-    'searched_columns': ['givenName', 'surname', 'businessPhones'],
-    'first_matched_columns': ['mobilePhone', 'businessPhones'],
+    'searched_columns': [
+        'givenName',
+        'surname',
+        'businessPhones',
+        'homePhones',
+        'mobilePhone',
+    ],
+    'first_matched_columns': ['businessPhones', 'mobilePhone', 'homePhones'],
 }
 
 

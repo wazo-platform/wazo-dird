@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -8,7 +8,7 @@ from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
 
 from .http import MicrosoftItem, MicrosoftList, MicrosoftContactList
-from .exceptions import MicrosoftTokenNotFoundException
+from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
 from . import services
 
 logger = logging.getLogger(__name__)
@@ -77,10 +77,11 @@ class Office365Plugin(BaseSourcePlugin):
             microsoft_token = self._get_microsoft_token(**args)
         except MicrosoftTokenNotFoundException:
             return []
+        try:
+            contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
+        except UnexpectedEndpointException:
+            return []
 
-        contacts = self.office365.get_contacts_with_term(
-            microsoft_token, term, self.endpoint
-        )
         updated_contacts = self._update_contact_fields(contacts)
 
         lowered_term = term.lower()
@@ -103,7 +104,11 @@ class Office365Plugin(BaseSourcePlugin):
         except MicrosoftTokenNotFoundException:
             return []
 
-        contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
+        try:
+            contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
+        except UnexpectedEndpointException:
+            return []
+
         updated_contacts = self._update_contact_fields(contacts)
         filtered_contacts = [
             c for c in updated_contacts if c[self.unique_column] in unique_ids
@@ -127,7 +132,11 @@ class Office365Plugin(BaseSourcePlugin):
             )
             return None
 
-        contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
+        try:
+            contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
+        except UnexpectedEndpointException:
+            return None
+
         updated_contacts = self._update_contact_fields(contacts)
         lowered_term = term.lower()
 
@@ -161,4 +170,5 @@ class Office365Plugin(BaseSourcePlugin):
         for contact in contacts:
             contact.setdefault('givenName', '')
             contact['email'] = services.get_first_email(contact)
+            contact['numbers'] = services.aggregate_numbers(contact)
         return contacts

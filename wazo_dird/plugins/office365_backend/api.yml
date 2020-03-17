@@ -23,7 +23,7 @@ paths:
           description: |
             Contacts as fetched from microsoft api.
 
-            To know more about microsoft contacts properties, see
+            To know more about Microsoft contacts properties, see
             https://docs.microsoft.com/en-us/graph/api/resources/contact?view=graph-rest-1.0#properties
           schema:
             $ref: '#/definitions/Office365ContactList'
@@ -83,12 +83,12 @@ paths:
               format_columns:
                 name: "{givenName} {surname}"
                 phone_mobile: "{mobilePhone}"
-                number: "{businessPhones[0]}"
+                number: "{numbers[0]}"
                 reverse: "{givenName} {surname}"
                 email: "{email}"
               name: office365
-              searched_columns: ["displayName", "mobilePhone"]
-              first_matched_columns: ["businessPhones", "mobilePhone"]
+              searched_columns: ["displayName", "mobilePhone", "homePhones", "mobilePhone"]
+              first_matched_columns: ["businessPhones", "mobilePhone", "homePhones"]
         '400':
           $ref: '#/responses/CreateError'
         '409':
@@ -155,6 +155,11 @@ paths:
 definitions:
   MicrosoftSource:
     title: MicrosoftSource
+    description: |
+      In addition to the keys defined by the [Microsoft API](https://docs.microsoft.com/en-us/graph/api/resources/contact?view=graph-rest-1.0#),
+      `format_columns` also accepts a `numbers` field that aggregates the values from the
+      `businessPhones`, `homePhones` and `mobilePhone` fields.
+      Example: `"format_columns": {"number": "{numbers[0]}"}`
     allOf:
       - $ref: '#/definitions/Source'
       - properties:
@@ -171,29 +176,6 @@ definitions:
         - name
         - auth
         - confd
-  MicrosoftSourcePostFormatColumns:
-    title: format_columns
-    properties:
-      name:
-        example: "{firstname} {lastname}"
-        type: string
-      display_name:
-        example: "{firstname} {lastname}"
-        type: string
-      phone:
-        example: "{phone}"
-        type: string
-      phone_mobile:
-        example: "{mobile}"
-        type: string
-      reverse:
-        example: "{firstname} {lastname}"
-        type: string
-    required:
-      - name
-      - display_name
-      - phone_mobile
-      - reverse
   Office365ContactList:
     properties:
       items:
