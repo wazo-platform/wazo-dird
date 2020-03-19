@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
@@ -26,7 +26,19 @@ GOOGLE_CONTACT_LIST = {
                 "id": {
                     "$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/20aec7728b4f316b"
                 },
-                "title": {"$t": "Mario Bros", "type": "text"},
+                "title": {"$t": "Mario Brös", "type": "text"},
+                "gd$name": {
+                    "gd$fullName": {"$t": "Mario Bros"},
+                    "gd$givenName": {"$t": "Mario"},
+                    "gd$familyName": {"$t": "Bros"},
+                },
+                "gd$organization": [
+                    {
+                        "rel": "http://schemas.google.com/g/2005#other",
+                        "gd$orgTitle": {"$t": "Artist"},
+                        "gd$orgName": {"$t": "MarioLand"},
+                    }
+                ],
                 "gd$email": [
                     {
                         "address": "mario@bros.example.com",
@@ -43,6 +55,16 @@ GOOGLE_CONTACT_LIST = {
                         "rel": "http://schemas.google.com/g/2005#home",
                         "uri": "tel:+1-555-555-1111",
                         "$t": "+1 5555551111",
+                    },
+                ],
+                "gd$structuredPostalAddress": [
+                    {
+                        "rel": "http://schemas.google.com/g/2005#home",
+                        "gd$formattedAddress": {"$t": "Main Land"},
+                    },
+                    {
+                        "label": "Second address",
+                        "gd$formattedAddress": {"$t": "Alternative Land"},
                     },
                 ],
             },
@@ -75,6 +97,7 @@ GOOGLE_CONTACT_LIST = {
                         "$t": "(555) 555-2222",
                     },
                 ],
+                "content": {"$t": "Second character"},
             },
         ],
     }
@@ -160,16 +183,34 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                 items=contains_inanyorder(
                     has_entries(
                         name='Mario Bros',
-                        emails=contains_inanyorder('mario@bros.example.com'),
+                        firstname='Mario',
+                        lastname='Bros',
+                        emails=contains_inanyorder(
+                            has_entries(
+                                address='mario@bros.example.com', label='other'
+                            ),
+                        ),
                         numbers=contains_inanyorder('+15555551111', '+15555551234'),
                         numbers_by_label=has_entries(
                             home='+15555551111', mobile='+15555551234'
+                        ),
+                        organizations=contains_inanyorder(
+                            has_entries(name='MarioLand', title='Artist'),
+                        ),
+                        addresses=contains_inanyorder(
+                            has_entries(address='Main Land', label='home'),
+                            has_entries(
+                                address='Alternative Land', label='Second address'
+                            ),
                         ),
                     ),
                     has_entries(
                         name='Luigi Bros',
                         emails=contains_inanyorder(
-                            'Luigi@bros.example.com', 'luigi_bros@caramail.com'
+                            has_entries(address='Luigi@bros.example.com', label='home'),
+                            has_entries(
+                                address='luigi_bros@caramail.com', label='Old school'
+                            ),
                         ),
                         numbers=contains_inanyorder(
                             '5555552222', '+15555551111', '+15555554567'
@@ -182,6 +223,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                             'mobile',
                             '+15555554567',
                         ),
+                        note='Second character',
                     ),
                 ),
                 total=2,

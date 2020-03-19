@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class GoogleService:
 
     USER_AGENT = 'wazo_ua/1.0'
-    url = 'https://google.com/m8/feeds/contacts/default/full'
+    contacts_url = 'https://google.com/m8/feeds/contacts/default/full'
     groups_url = 'https://google.com/m8/feeds/groups/default/full'
 
     def __init__(self):
@@ -46,7 +46,7 @@ class GoogleService:
 
         # TODO find a way to remove this verify = False
         response = requests.get(
-            self.url, headers=headers, params=query_params, verify=False
+            self.contacts_url, headers=headers, params=query_params, verify=False
         )
         if response.status_code != 200:
             return []
@@ -127,9 +127,14 @@ class ContactFormatter:
         return {
             'id': self._extract_id(contact),
             'name': self._extract_name(contact),
+            'firstname': self._extract_first_name(contact),
+            'lastname': self._extract_last_name(contact),
             'numbers_by_label': self._extract_numbers_by_label(contact),
             'numbers': self._extract_numbers(contact),
             'emails': self._extract_emails(contact),
+            'organizations': self._extract_organizations(contact),
+            'addresses': self._extract_addresses(contact),
+            'note': self._extract_note(contact),
         }
 
     @classmethod
@@ -139,7 +144,8 @@ class ContactFormatter:
             address = email.get('address')
             if not address:
                 continue
-            emails.append(address)
+            label_or_type = cls._extract_type(email) or ''
+            emails.append({'address': address, 'label': label_or_type})
         return emails
 
     @classmethod
@@ -187,15 +193,54 @@ class ContactFormatter:
 
         return numbers
 
-    @staticmethod
-    def _extract_name(contact):
-        return contact.get('title', {}).get('$t', '')
+    @classmethod
+    def _extract_name(cls, contact):
+        name = contact.get('gd$name', {}).get('gd$fullName', {}).get('$t', '')
+        if not name:
+            name = contact.get('title', {}).get('$t', '')
+        return name
 
-    @staticmethod
-    def _extract_type(entry):
+    @classmethod
+    def _extract_first_name(cls, contact):
+        return contact.get('gd$name', {}).get('gd$givenName', {}).get('$t', '')
+
+    @classmethod
+    def _extract_last_name(cls, contact):
+        return contact.get('gd$name', {}).get('gd$familyName', {}).get('$t', '')
+
+    @classmethod
+    def _extract_type(cls, entry):
         rel = entry.get('rel')
         if rel:
             _, type_ = rel.rsplit('#', 1)
         else:
             type_ = entry.get('label')
         return type_
+
+    @classmethod
+    def _extract_organizations(cls, contact):
+        organizations = []
+        organizations_from_contact = contact.get('gd$organization', [])
+        for organization in organizations_from_contact:
+            organization_name = organization.get('gd$orgName', {}).get('$t', '')
+            organization_title = organization.get('gd$orgTitle', {}).get('$t', '')
+            organizations.append(
+                {'name': organization_name, 'title': organization_title}
+            )
+
+        return organizations
+
+    @classmethod
+    def _extract_addresses(cls, contact):
+        addresses = []
+        addresses_from_contact = contact.get('gd$structuredPostalAddress', [])
+        for address in addresses_from_contact:
+            formatted_address = address.get('gd$formattedAddress', {}).get('$t', '')
+            label_or_type = cls._extract_type(address) or ''
+            addresses.append({'address': formatted_address, 'label': label_or_type})
+
+        return addresses
+
+    @classmethod
+    def _extract_note(cls, contact):
+        return contact.get('content', {}).get('$t', '')

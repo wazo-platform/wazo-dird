@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -29,6 +29,27 @@ class TestGoogleContactFormatter(unittest.TestCase):
         formatted_contact = self.formatter.format(google_contact)
 
         assert_that(formatted_contact, has_entries(name='Joe Blow'))
+
+    def test_format_name_when_fullname(self):
+        google_contact = {
+            'title': {'$t': 'Test User1', 'type': 'text'},
+            'gd$name': {'gd$fullName': {'$t': 'Test FullName'}},
+        }
+
+        formatted_contact = self.formatter.format(google_contact)
+        assert_that(formatted_contact, has_entries(name='Test FullName'))
+
+    def test_format_first_name(self):
+        google_contact = {'gd$name': {'gd$givenName': {'$t': 'Test'}}}
+
+        formatted_contact = self.formatter.format(google_contact)
+        assert_that(formatted_contact, has_entries(firstname='Test'))
+
+    def test_format_last_name(self):
+        google_contact = {'gd$name': {'gd$familyName': {'$t': 'Family'}}}
+
+        formatted_contact = self.formatter.format(google_contact)
+        assert_that(formatted_contact, has_entries(lastname='Family'))
 
     def test_multiple_numbers(self):
         google_contact = {
@@ -73,6 +94,7 @@ class TestGoogleContactFormatter(unittest.TestCase):
                     'rel': 'http://schemas.google.com/g/2005#home',
                 },
                 {'address': 'other@example.com', 'label': 'custom'},
+                {'address': 'other2@example.com'},
             ]
         }
 
@@ -80,5 +102,69 @@ class TestGoogleContactFormatter(unittest.TestCase):
 
         assert_that(
             formatted_contact,
-            has_entries(emails=contains('home@example.com', 'other@example.com')),
+            has_entries(
+                emails=contains(
+                    has_entries(address='home@example.com', label='home'),
+                    has_entries(address='other@example.com', label='custom'),
+                    has_entries(address='other2@example.com', label=''),
+                ),
+            ),
+        )
+
+    def test_organization(self):
+        google_contact = {
+            'gd$organization': [
+                {
+                    'gd$orgTitle': {'$t': 'Tester'},
+                    'gd$orgName': {'$t': 'Test Company'},
+                },
+                {'gd$orgTitle': {'$t': 'President'}, 'gd$orgName': {'$t': 'Acme'}},
+            ],
+        }
+
+        formatted_contact = self.formatter.format(google_contact)
+
+        assert_that(
+            formatted_contact,
+            has_entries(
+                organizations=contains(
+                    has_entries(name='Test Company', title='Tester'),
+                    has_entries(name='Acme', title='President'),
+                ),
+            ),
+        )
+
+    def test_addresses(self):
+        google_contact = {
+            'gd$structuredPostalAddress': [
+                {
+                    'rel': 'http://schemas.google.com/g/2005#home',
+                    'gd$formattedAddress': {'$t': 'First address'},
+                },
+                {
+                    'label': 'Test address',
+                    'gd$formattedAddress': {'$t': 'Second address'},
+                },
+            ],
+        }
+
+        formatted_contact = self.formatter.format(google_contact)
+
+        assert_that(
+            formatted_contact,
+            has_entries(
+                addresses=contains(
+                    has_entries(address='First address', label='home'),
+                    has_entries(address='Second address', label='Test address'),
+                ),
+            ),
+        )
+
+    def test_note(self):
+        google_contact = {'content': {'$t': 'Notey'}}
+
+        formatted_contact = self.formatter.format(google_contact)
+
+        assert_that(
+            formatted_contact, has_entries(note='Notey'),
         )
