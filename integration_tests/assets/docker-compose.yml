@@ -28,19 +28,19 @@ services:
     ports:
       - "5432"
 
-  microsoft-mock:
-    environment:
-      FLASK_ENV: development
-    image: microsoft-mock
-    ports:
-      - "80"
-
   rabbitmq:
     image: rabbitmq
     ports:
       - "5672"
 
   google.com:
+    image: jamesdbloom/mockserver:mockserver-5.7.0
+    user: root
+    ports:
+      - "443"
+    command: ["-serverPort", "443"]
+
+  microsoft.com:
     image: jamesdbloom/mockserver:mockserver-5.7.0
     user: root
     ports:

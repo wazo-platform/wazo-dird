@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -148,6 +148,31 @@ def google_result(contact_list, group_list=None):
                 )
                 groups_expected['times']['unlimited'] = True
                 mock_server.mock_any_response(groups_expected)
+
+            try:
+                result = decorated(self, mock_server, *args, **kwargs)
+            finally:
+                mock_server.reset()
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def office365_result(contact_list):
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            office365_port = self.service_port(443, 'microsoft.com')
+            mock_server = UnVerifiedMockServerClient(
+                'https://localhost:{}'.format(office365_port)
+            )
+            expectation = mock_server.create_expectation(
+                '/me/contacts', contact_list, 200
+            )
+            expectation['times']['unlimited'] = True
+            mock_server.mock_any_response(expectation)
 
             try:
                 result = decorated(self, mock_server, *args, **kwargs)

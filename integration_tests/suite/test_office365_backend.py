@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -21,12 +21,31 @@ from xivo_test_helpers.auth import AuthClient as AuthMock
 from xivo_test_helpers.hamcrest.raises import raises
 from .base_dird_integration_test import BackendWrapper
 from .helpers.base import DirdAssetRunningTestCase
+from .helpers.fixtures import http as fixtures
 
 requests.packages.urllib3.disable_warnings()
 VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
 MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
 SUB_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee11'
 
+OFFICE365_CONTACTS = {
+    "value": [
+        {
+            "@odata.etag": "W/\"an-odata-etag\"",
+            "id": "an-id",
+            "displayName": "Wario Bros",
+            "givenName": "Wario",
+            "surname": "Bros",
+            "mobilePhone": "",
+            "businessPhones": ['5555555555'],
+            "emailAddresses": [
+                {"address": "wbros@wazoquebec.onmicrosoft.com"},
+                {},
+                {},
+            ],
+        }
+    ]
+}
 
 class BaseOffice365TestCase(DirdAssetRunningTestCase):
 
@@ -87,7 +106,7 @@ class BaseOffice365TestCase(DirdAssetRunningTestCase):
 
 class BaseOffice365PluginTestCase(BaseOffice365TestCase):
 
-    asset = 'plugin_dird_microsoft'
+    asset = 'dird_microsoft'
 
     def setUp(self):
         self.auth_mock = AuthMock(host='0.0.0.0', port=self.service_port(9497, 'auth'))
@@ -102,10 +121,10 @@ class BaseOffice365PluginTestCase(BaseOffice365TestCase):
 
 class TestOffice365Plugin(BaseOffice365PluginTestCase):
 
-    asset = 'plugin_dird_microsoft'
+    asset = 'dird_microsoft'
 
     def config(self):
-        microsoft_port = self.service_port(80, 'microsoft-mock')
+        microsoft_port = self.service_port(443, 'microsoft.com')
         return {
             'auth': {
                 'host': 'localhost',
@@ -123,7 +142,8 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
             'type': 'office365',
         }
 
-    def test_plugin_lookup(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_plugin_lookup(self, office365_api):
         self.auth_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
         result = self.backend.search('war', self.LOOKUP_ARGS)
@@ -139,6 +159,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
             ),
         )
 
+    @fixtures.office365_result(OFFICE365_CONTACTS)
     def test_plugin_favorites(self):
         self.auth_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
@@ -155,7 +176,8 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
             ),
         )
 
-    def test_plugin_reverse(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_plugin_reverse(self, office365_api):
         self.auth_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
         result = self.backend.first('5555555555', self.LOOKUP_ARGS)
@@ -172,7 +194,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
 
 class TestOffice365PluginWrongEndpoint(BaseOffice365PluginTestCase):
 
-    asset = 'plugin_dird_microsoft'
+    asset = 'dird_microsoft'
 
     def config(self):
         return {
@@ -194,7 +216,8 @@ class TestOffice365PluginWrongEndpoint(BaseOffice365PluginTestCase):
             'type': 'office365',
         }
 
-    def test_plugin_lookup_with_wrong_endpoint(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_plugin_lookup_with_wrong_endpoint(self, office365_api):
         self.auth_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
         result = self.backend.search('war', self.LOOKUP_ARGS)
@@ -219,7 +242,7 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
     def config(self):
         return {
             'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
-            'endpoint': 'http://microsoft-mock:80/me/contacts',
+            'endpoint': 'http://microsoft.com:443/me/contacts',
             'first_matched_columns': [],
             'format_columns': {
                 'firstname': "{givenName}",
@@ -237,7 +260,8 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
             host='0.0.0.0', port=self.service_port(9497, 'auth')
         )
 
-    def test_given_microsoft_when_lookup_then_contacts_fetched(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_given_microsoft_when_lookup_then_contacts_fetched(self, office365_api):
         self.auth_client_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
         result = self.client.directories.lookup(term='war', profile='default')
@@ -246,7 +270,8 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
             has_entries(results=contains(has_entries(column_values=contains('Wario')))),
         )
 
-    def test_given_no_microsoft_when_lookup_then_no_result(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_given_no_microsoft_when_lookup_then_no_result(self, office365_api):
         self.auth_client_mock.reset_external_auth()
 
         result = self.client.directories.lookup(term='war', profile='default')
@@ -254,7 +279,8 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
 
         assert_that(result, is_(empty()))
 
-    def test_given_microsoft_source_when_get_all_contacts_then_contacts_fetched(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_given_microsoft_source_when_get_all_contacts_then_contacts_fetched(self, office365_api):
         self.auth_client_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
         result = self.client.backends.list_contacts_from_source(
@@ -277,8 +303,9 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
             ),
         )
 
+    @fixtures.office365_result(OFFICE365_CONTACTS)
     def test_given_non_existing_microsoft_source_when_get_all_contacts_then_not_found(
-        self,
+        self, office365_api
     ):
         self.auth_client_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
@@ -291,8 +318,9 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
             ),
         )
 
+    @fixtures.office365_result(OFFICE365_CONTACTS)
     def test_given_source_and_non_existing_tenant_when_get_all_contacts_then_not_found(
-        self,
+        self, office365_api
     ):
         self.auth_client_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
@@ -329,7 +357,8 @@ class TestDirdOffice365PluginNoEndpoint(BaseOffice365TestCase):
             'type': 'office365',
         }
 
-    def test_given_microsoft_when_lookup_with_no_endpoint_then_no_error(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_given_microsoft_when_lookup_with_no_endpoint_then_no_error(self, office365_api):
         assert_that(
             self.source['endpoint'],
             equal_to('https://graph.microsoft.com/v1.0/me/contacts'),
@@ -351,7 +380,7 @@ class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
     def config(self):
         return {
             'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
-            'endpoint': 'http://microsoft-mock:80/me/contacts/error',
+            'endpoint': 'http://microsoft.com:443/me/contacts/error',
             'first_matched_columns': [],
             'format_columns': {
                 'display_name': "{firstname} {lastname}",
@@ -364,7 +393,8 @@ class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
             'type': 'office365',
         }
 
-    def test_given_microsoft_when_lookup_with_error_endpoint_then_no_error(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_given_microsoft_when_lookup_with_error_endpoint_then_no_error(self, office365_api):
         assert_that(
             calling(self.client.directories.lookup).with_args(
                 term='war', profile='default'
@@ -372,7 +402,8 @@ class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
             not_(raises(Exception)),
         )
 
-    def test_given_microsoft_when_fetch_all_contacts_with_error_endpoint(self):
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_given_microsoft_when_fetch_all_contacts_with_error_endpoint(self, office365_api):
         assert_that(
             calling(self.client.backends.list_contacts_from_source).with_args(
                 backend=self.BACKEND, source_uuid=self.source['uuid']
