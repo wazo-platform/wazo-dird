@@ -12,4 +12,4 @@ services:
     ports:
       - "9489"
     volumes:
-      - "./etc/wazo-dird/conf.d/asset.ldap_service_down.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/conf.d/20-bus-disabled.yml:/etc/wazo-dird/conf.d/20-bus-disabled.yml"

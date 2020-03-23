@@ -1,58 +1,7 @@
-enabled_plugins:
-  backends:
-    sample: false
-    ldap: true
-    wazo: true
-    csv: true
-    csv_ws: true
-    personal: true
-    phonebook: true
-    unknown: true
-    google: true
-    office365: true
-
-  views:
-    backends_view: true
-    config_view: true
-    conference_view: true
-    csv_backend: true
-    csv_ws_backend: true
-    default_json: true
-    displays_view: true
-    headers_view: true
-    ldap_backend: true
-    personal_view: true
-    wazo_backend: true
-    personal_backend: true
-    phonebook_backend: true
-    profiles_view: true
-    sources_view: true
-    status_view: true
-    profile_sources_view: true
-    google_view: true
-    office365_backend: true
-
 foo:
     bar: main
     other: 42
 
 auth:
-  host: auth
   username: any
   password: thing
-
-rest_api:
-  listen: 0.0.0.0
-  port: 9489
-  certificate: /usr/local/share/ssl/dird/server.crt
-  private_key: /usr/local/share/ssl/dird/server.key
-
-bus:
-  host: rabbitmq
-  port: 5672
-  username: guest
-  password: guest
-  enabled: true
-
-service_discovery:
-  enabled: false

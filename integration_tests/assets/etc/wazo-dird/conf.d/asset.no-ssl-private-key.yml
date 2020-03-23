@@ -1,18 +1,10 @@
 enabled_plugins:
   backends:
     sample: true
-  views:
-    default_json: true
-    headers_view: true
 
 rest_api:
-  listen: 0.0.0.0
-  port: 9489
   certificate: /tmp/ssl/dird/server.crt
   private_key: /tmp/ssl/dird/server.key
 
 bus:
-  enabled: false
-
-service_discovery:
   enabled: false

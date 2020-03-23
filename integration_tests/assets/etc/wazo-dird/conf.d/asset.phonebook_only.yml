@@ -1,5 +1,0 @@
-rest_api:
-  listen: 0.0.0.0
-  port: 9489
-  certificate: /usr/local/share/ssl/dird/server.crt
-  private_key: /usr/local/share/ssl/dird/server.key

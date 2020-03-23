@@ -1,19 +1,24 @@
 db_uri: postgresql://asterisk:proformatique@db/asterisk
 
-enabled_plugins:
-  backends:
-    wazo: true
-  views:
-    default_json: true
-
 rest_api:
   listen: 0.0.0.0
   port: 9489
   certificate: /usr/local/share/ssl/dird/server.crt
   private_key: /usr/local/share/ssl/dird/server.key
 
+auth:
+  host: auth
+  port: 9497
+  verify_certificate: /usr/local/share/ssl/auth/server.crt
+  username: wazo-dird
+  password: secret
+
 bus:
-  enabled: false
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest
+  enabled: true
 
 service_discovery:
   enabled: false

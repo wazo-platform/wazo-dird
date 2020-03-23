@@ -9,7 +9,7 @@ services:
       TARGETS: "dird:9489 auth:9497 db:5432"
   dird:
     volumes:
-      - "./etc/wazo-dird/conf.d/asset.ldap_service_innactive.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/conf.d/20-bus-disabled.yml:/etc/wazo-dird/conf.d/20-bus-disabled.yml"
   slapd:
     image: alpine
     command: "sh -c 'while true; do sleep 10; done'"
