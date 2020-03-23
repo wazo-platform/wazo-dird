@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -46,12 +46,10 @@ _DEFAULT_CONFIG = {
     'foreground': False,
     'pid_filename': '/run/wazo-dird/wazo-dird.pid',
     'rest_api': {
-        'https': {
-            'listen': '0.0.0.0',
-            'port': _DEFAULT_HTTPS_PORT,
-            'certificate': '/usr/share/xivo-certs/server.crt',
-            'private_key': '/usr/share/xivo-certs/server.key',
-        },
+        'listen': '0.0.0.0',
+        'port': _DEFAULT_HTTPS_PORT,
+        'certificate': '/usr/share/xivo-certs/server.crt',
+        'private_key': '/usr/share/xivo-certs/server.key',
         'cors': {
             'enabled': True,
             'allow_headers': ['Content-Type', 'X-Auth-Token', 'Wazo-Tenant'],

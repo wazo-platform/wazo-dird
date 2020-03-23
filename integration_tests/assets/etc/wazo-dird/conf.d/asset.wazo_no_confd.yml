@@ -7,11 +7,10 @@ enabled_plugins:
     default_json: true
 
 rest_api:
-  https:
-    listen: 0.0.0.0
-    port: 9489
-    certificate: /usr/local/share/ssl/dird/server.crt
-    private_key: /usr/local/share/ssl/dird/server.key
+  listen: 0.0.0.0
+  port: 9489
+  certificate: /usr/local/share/ssl/dird/server.crt
+  private_key: /usr/local/share/ssl/dird/server.key
 
 bus:
   enabled: false

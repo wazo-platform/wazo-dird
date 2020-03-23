@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -43,7 +43,7 @@ class Controller:
             self.config.get('consul'),
             self.config.get('service_discovery'),
             self.config.get('bus'),
-            partial(self_check, self.config['rest_api']['https']['port']),
+            partial(self_check, self.config['rest_api']['port']),
         ]
         self._source_manager = SourceManager(
             self.config['enabled_plugins']['backends'],

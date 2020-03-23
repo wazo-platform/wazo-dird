@@ -20,11 +20,10 @@ services:
         tenant_uuid: 9b9c2b06-d2be-413f-8113-36239f4b866d
 
 rest_api:
-  https:
-    listen: 0.0.0.0
-    port: 9489
-    certificate: /usr/local/share/ssl/dird/server.crt
-    private_key: /usr/local/share/ssl/dird/server.key
+  listen: 0.0.0.0
+  port: 9489
+  certificate: /usr/local/share/ssl/dird/server.crt
+  private_key: /usr/local/share/ssl/dird/server.key
 
 bus:
   enabled: false
