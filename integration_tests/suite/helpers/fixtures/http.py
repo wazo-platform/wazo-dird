@@ -166,10 +166,10 @@ def office365_result(contact_list):
         def wrapper(self, *args, **kwargs):
             office365_port = self.service_port(443, 'microsoft.com')
             mock_server = UnVerifiedMockServerClient(
-                'https://localhost:{}'.format(office365_port)
+                'http://localhost:{}'.format(office365_port)
             )
             expectation = mock_server.create_expectation(
-                '/me/contacts', contact_list, 200
+                '/v1.0/me/contacts', contact_list, 200
             )
             expectation['times']['unlimited'] = True
             mock_server.mock_any_response(expectation)
@@ -203,6 +203,37 @@ def google_source(**source_args):
             finally:
                 try:
                     self.client.backends.delete_source('google', source['uuid'])
+                except Exception as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def office365_source(**source_args):
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            source_args.setdefault('name', random_string())
+            source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
+            source_args.setdefault(
+                'auth', {'host': 'auth', 'port': 9497, 'verify_certificate': False}
+            )
+            source_args.setdefault('endpoint', 'http://microsoft.com:443/v1.0/me/contacts')
+
+            client = self.get_client(source_args['token'])
+            source = client.backends.create_source(backend='office365', body=source_args)
+
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.client.backends.delete_source('office365', source['uuid'])
                 except Exception as e:
                     response = getattr(e, 'response', None)
                     status_code = getattr(response, 'status_code', None)

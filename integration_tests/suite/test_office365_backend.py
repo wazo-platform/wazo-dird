@@ -21,12 +21,13 @@ from xivo_test_helpers.auth import AuthClient as AuthMock
 from xivo_test_helpers.hamcrest.raises import raises
 from .base_dird_integration_test import BackendWrapper
 from .helpers.base import DirdAssetRunningTestCase
+from .helpers.constants import (
+    SUB_TENANT,
+    VALID_TOKEN_MAIN_TENANT,
+)
 from .helpers.fixtures import http as fixtures
 
 requests.packages.urllib3.disable_warnings()
-VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
-MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
-SUB_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee11'
 
 OFFICE365_CONTACTS = {
     "value": [
@@ -160,7 +161,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
         )
 
     @fixtures.office365_result(OFFICE365_CONTACTS)
-    def test_plugin_favorites(self):
+    def test_plugin_favorites(self, office365_api):
         self.auth_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
         result = self.backend.list(['an-id'], self.FAVORITE_ARGS)
