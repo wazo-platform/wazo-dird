@@ -1,9 +1,3 @@
-enabled_plugins:
-  backends:
-    csv: true
-  views:
-    default_json: true
-
 services:
   service_discovery:
     template_path: /etc/wazo-dird/templates.d/
@@ -19,17 +13,7 @@ services:
         service_key: key
         tenant_uuid: 9b9c2b06-d2be-413f-8113-36239f4b866d
 
-rest_api:
-  https:
-    listen: 0.0.0.0
-    port: 9489
-    certificate: /usr/local/share/ssl/dird/server.crt
-    private_key: /usr/local/share/ssl/dird/server.key
-
 bus:
-  enabled: false
-
-service_discovery:
   enabled: false
 
 consul:

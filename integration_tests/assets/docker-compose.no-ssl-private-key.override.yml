@@ -7,5 +7,5 @@ services:
       TARGETS: ""
   dird:
     volumes:
-      - "./etc/wazo-dird/conf.d/asset.no-ssl-private-key.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/conf.d/asset.no-ssl-private-key.yml:/etc/wazo-dird/conf.d/20-config.yml"
       - "./ssl/dird/server.crt:/tmp/ssl/dird/server.crt"

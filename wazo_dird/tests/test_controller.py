@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -29,11 +29,9 @@ class TestController(TestCase):
         config = self._create_config(
             **{
                 'rest_api': {
-                    'https': {
-                        'listen': '127.0.0.1',
-                        'port': '9489',
-                        'certificate': 'my-certificate',
-                    }
+                    'listen': '127.0.0.1',
+                    'port': '9489',
+                    'certificate': 'my-certificate',
                 },
                 'debug': s.debug,
                 'service_discovery': {'enabled': False},
@@ -82,9 +80,7 @@ class TestController(TestCase):
         config['enabled_plugins'].setdefault('services', {})
         config['enabled_plugins'].setdefault('views', {})
         config.setdefault('sources', {})
-        config.setdefault(
-            'rest_api', {'https': {'port': Mock(), 'certificate': 'my-certificate'}}
-        )
+        config.setdefault('rest_api', {'port': Mock(), 'certificate': 'my-certificate'})
         config.setdefault('services', Mock())
         config.setdefault('source_config_dir', Mock())
         config.setdefault('views', Mock())

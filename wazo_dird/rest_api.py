@@ -1,4 +1,4 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
 import os
@@ -55,16 +55,14 @@ class CoreRestApi:
     def run(self):
         self.api.init_app(self.app)
 
-        https_config = self.config['https']
-
-        bind_addr = (https_config['listen'], https_config['port'])
+        bind_addr = (self.config['listen'], self.config['port'])
 
         wsgi_app = ReverseProxied(
             ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': self.app}))
         )
         server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         server.ssl_adapter = http_helpers.ssl_adapter(
-            https_config['certificate'], https_config['private_key']
+            self.config['certificate'], self.config['private_key']
         )
         logger.debug(
             'WSGIServer starting... uid: %s, listen: %s:%s',

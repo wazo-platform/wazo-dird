@@ -15,6 +15,7 @@ class TestBackends(BaseDirdIntegrationTest):
         # not sample which is disabled
         # not unknown which is not installed
         expected = [
+            'conference',
             'csv',
             'csv_ws',
             'google',
@@ -24,18 +25,19 @@ class TestBackends(BaseDirdIntegrationTest):
             'phonebook',
             'wazo',
         ]
-        self._assert_matches(result, 8, 8, contains_inanyorder, *expected)
+        self._assert_matches(result, 9, 9, contains_inanyorder, *expected)
 
         result = self.client.backends.list(search='a')
         self._assert_matches(
-            result, 8, 3, contains_inanyorder, 'ldap', 'personal', 'wazo'
+            result, 9, 3, contains_inanyorder, 'ldap', 'personal', 'wazo'
         )
 
         result = self.client.backends.list(name='csv')
-        self._assert_matches(result, 8, 1, contains, 'csv')
+        self._assert_matches(result, 9, 1, contains, 'csv')
 
         result = self.client.backends.list(order='name', direction='asc')
         expected = [
+            'conference',
             'csv',
             'csv_ws',
             'google',
@@ -45,7 +47,7 @@ class TestBackends(BaseDirdIntegrationTest):
             'phonebook',
             'wazo',
         ]
-        self._assert_matches(result, 8, 8, contains, *expected)
+        self._assert_matches(result, 9, 9, contains, *expected)
 
         result = self.client.backends.list(order='name', direction='desc')
         expected = [
@@ -57,17 +59,18 @@ class TestBackends(BaseDirdIntegrationTest):
             'google',
             'csv_ws',
             'csv',
+            'conference',
         ]
-        self._assert_matches(result, 8, 8, contains, *expected)
+        self._assert_matches(result, 9, 9, contains, *expected)
 
         result = self.client.backends.list(limit=2, offset=5)
-        self._assert_matches(result, 8, 8, contains, 'personal', 'phonebook')
+        self._assert_matches(result, 9, 9, contains, 'office365', 'personal')
 
         result = self.client.backends.list(limit=2)
-        self._assert_matches(result, 8, 8, contains, 'csv', 'csv_ws')
+        self._assert_matches(result, 9, 9, contains, 'conference', 'csv')
 
-        result = self.client.backends.list(offset=6)
-        self._assert_matches(result, 8, 8, contains, 'phonebook', 'wazo')
+        result = self.client.backends.list(offset=7)
+        self._assert_matches(result, 9, 9, contains, 'phonebook', 'wazo')
 
     @staticmethod
     def _assert_matches(result, total, filtered, matcher, *names):

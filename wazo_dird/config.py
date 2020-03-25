@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -26,7 +26,17 @@ _DEFAULT_CONFIG = {
     'debug': False,
     'extra_config_files': '/etc/wazo-dird/conf.d/',
     'enabled_plugins': {
-        'backends': {},
+        'backends': {
+            'conference': True,
+            'csv': True,
+            'csv_ws': True,
+            'google': True,
+            'ldap': True,
+            'office365': True,
+            'personal': True,
+            'phonebook': True,
+            'wazo': True,
+        },
         'services': {
             'cleanup': True,
             'config': True,
@@ -39,19 +49,40 @@ _DEFAULT_CONFIG = {
             'reverse': True,
             'source': True,
         },
-        'views': {},
+        'views': {
+            'api_view': True,
+            'backends_view': True,
+            'conference_view': True,
+            'config_view': True,
+            'csv_backend': True,
+            'csv_ws_backend': True,
+            'default_json': True,
+            'displays_view': True,
+            'google_view': True,
+            'headers_view': True,
+            'ldap_backend': True,
+            'office365_backend': True,
+            'personal_backend': True,
+            'personal_view': True,
+            'phonebook_backend': True,
+            'phonebook_view': True,
+            'profile_sources_view': True,
+            'profiles_view': True,
+            'sources': True,
+            'sources_view': True,
+            'status_view': True,
+            'wazo_backend': True,
+        },
     },
     'log_level': 'info',
     'log_filename': '/var/log/wazo-dird.log',
     'foreground': False,
     'pid_filename': '/run/wazo-dird/wazo-dird.pid',
     'rest_api': {
-        'https': {
-            'listen': '0.0.0.0',
-            'port': _DEFAULT_HTTPS_PORT,
-            'certificate': '/usr/share/xivo-certs/server.crt',
-            'private_key': '/usr/share/xivo-certs/server.key',
-        },
+        'listen': '0.0.0.0',
+        'port': _DEFAULT_HTTPS_PORT,
+        'certificate': '/usr/share/xivo-certs/server.crt',
+        'private_key': '/usr/share/xivo-certs/server.key',
         'cors': {
             'enabled': True,
             'allow_headers': ['Content-Type', 'X-Auth-Token', 'Wazo-Tenant'],

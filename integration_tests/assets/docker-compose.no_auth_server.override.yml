@@ -9,5 +9,4 @@ services:
       TARGETS: "auth:9497 dird:9489 db:5432"
   dird:
     volumes:
-      - "./etc/wazo-dird/conf.d/asset.no_auth_server.yml:/etc/wazo-dird/config.yml"
-      - "./etc/wazo-dird/conf.d/asset.no_auth_server.no_auth.yml:/etc/wazo-dird/conf.d/no_auth.yml"
+      - "./etc/wazo-dird/conf.d/asset.no_auth_server.yml:/etc/wazo-dird/conf.d/20-config.yml"
