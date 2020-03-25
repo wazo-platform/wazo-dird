@@ -78,7 +78,7 @@ class Office365Plugin(BaseSourcePlugin):
         except MicrosoftTokenNotFoundException:
             return []
         try:
-            contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
+            contacts, _ = self.office365.get_contacts(microsoft_token, self.endpoint)
         except UnexpectedEndpointException:
             return []
 
@@ -105,7 +105,7 @@ class Office365Plugin(BaseSourcePlugin):
             return []
 
         try:
-            contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
+            contacts, _ = self.office365.get_contacts(microsoft_token, self.endpoint)
         except UnexpectedEndpointException:
             return []
 
@@ -133,7 +133,7 @@ class Office365Plugin(BaseSourcePlugin):
             return None
 
         try:
-            contacts = self.office365.get_contacts(microsoft_token, self.endpoint)
+            contacts, _ = self.office365.get_contacts(microsoft_token, self.endpoint)
         except UnexpectedEndpointException:
             return None
 

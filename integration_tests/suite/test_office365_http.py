@@ -289,7 +289,7 @@ class TestPut(BaseOffice365CRUDTestCase):
             'name': 'new',
             'searched_columns': ['givenName', 'surname', 'mobilePhone', 'businessPhones'],
             'first_matched_columns': ['mobilePhone'],
-            'format_columns': {'name': '{firstname} {lastname}'},
+            'format_columns': {'name': '{givenName} {surname}'},
         }
 
     @fixtures.office365_source(name='foobar')
@@ -338,10 +338,9 @@ class TestPut(BaseOffice365CRUDTestCase):
                 uuid=foobar['uuid'],
                 tenant_uuid=foobar['tenant_uuid'],
                 name='new',
-                auth=has_entries(username='foo', password='secret'),
-                searched_columns=['firstname'],
-                first_matched_columns=['exten'],
-                format_columns={'name': '{firstname} {lastname}'},
+                searched_columns=['givenName', 'surname', 'mobilePhone', 'businessPhones'],
+                first_matched_columns=['mobilePhone'],
+                format_columns={'name': '{givenName} {surname}'},
             ),
         )
 

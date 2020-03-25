@@ -1,7 +1,7 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, calling, contains, contains_inanyorder, empty, has_entries
+from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
 
 from xivo_test_helpers.auth import AuthClient as AuthMock
 from xivo_test_helpers.hamcrest.raises import raises
@@ -19,7 +19,6 @@ from .helpers.fixtures import http as fixtures
 OFFICE365_CONTACT_LIST = {
     "value": [
         {
-            "@odata.etag": "W/\"an-odata-etag\"",
             "id": "an-id",
             "displayName": "Mario Bros",
             "givenName": "Mario",
@@ -28,12 +27,9 @@ OFFICE365_CONTACT_LIST = {
             "businessPhones": ['7777777777'],
             "emailAddresses": [
                 {"address": "mbros@wazoquebec.onmicrosoft.com"},
-                {},
-                {},
             ],
         },
         {
-            "@odata.etag": "W/\"another-odata-etag\"",
             "id": "another-id",
             "displayName": "Luigi Bros",
             "givenName": "Luigi",
@@ -42,8 +38,6 @@ OFFICE365_CONTACT_LIST = {
             "businessPhones": ['5555555555'],
             "emailAddresses": [
                 {"address": "lbros@wazoquebec.onmicrosoft.com"},
-                {},
-                {},
             ],
         }
     ]
@@ -123,10 +117,11 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
                                 address='mbros@wazoquebec.onmicrosoft.com'
                             ),
                         ),
-                        mobilePhone=empty(),
+                        mobilePhone='',
                         businessPhones=contains_inanyorder('7777777777'),
                     ),
                     has_entries(
+                        id='another-id',
                         displayName='Luigi Bros',
                         givenName='Luigi',
                         surname='Bros',
@@ -135,7 +130,7 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
                                 address='lbros@wazoquebec.onmicrosoft.com'
                             ),
                         ),
-                        mobilePhone=empty(),
+                        mobilePhone='',
                         businessPhones=contains_inanyorder('5555555555'),
                     ),
                 ),

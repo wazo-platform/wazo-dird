@@ -6,6 +6,7 @@ import uuid
 
 import requests
 
+from operator import itemgetter
 from wazo_auth_client import Client as Auth
 
 from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
@@ -20,10 +21,20 @@ class Office365Service:
 
     USER_AGENT = 'wazo_ua/1.0'
 
-    def get_contacts(self, microsoft_token, url):
+    def get_contacts(self, microsoft_token, url, **list_params):
+        headers = self.headers(microsoft_token)
+        count = self._get_total_contacts(microsoft_token, url)
+        contacts = list(self._fetch(microsoft_token, url, count))
+        total_contacts = len(contacts)
+        sorted_contacts = self._sort(contacts, **list_params)
+        paginated_contacts = self._paginate(sorted_contacts, **list_params)
+        return paginated_contacts, total_contacts
+
+
+    def _fetch(self, microsoft_token, url, count):
         headers = self.headers(microsoft_token)
         try:
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, params={'$top': count})
             if response.status_code == 200:
                 logger.debug('Successfully fetched contacts from microsoft.')
                 return response.json().get('value', [])
@@ -36,6 +47,45 @@ class Office365Service:
                 )
         except requests.RequestException:
             raise UnexpectedEndpointException(endpoint=url)
+
+    def _get_total_contacts(self, microsoft_token, url):
+        headers = self.headers(microsoft_token)
+        try:
+            response = requests.get(url, headers=headers, params={'$count': 'true'})
+            if response.status_code == 200:
+                count = response.json().get('@odata.count', 0)
+                logger.debug('Successfully got contact number from Microsoft: %s', count)
+                return count
+            else:
+                logger.error(
+                    'An error occured while fetching information from Microsoft endpoint'
+                )
+                raise UnexpectedEndpointException(
+                    enpoint=url, error_code=response.status_code
+                )
+        except requests.RequestException:
+            raise UnexpectedEndpointException(endpoint=url)
+
+    def _paginate(self, contacts, limit=None, offset=None, **_):
+        if limit is None and offset is None:
+            return contacts
+
+        if offset:
+            end = contacts[offset:]
+        else:
+            end = contacts
+
+        if limit is None:
+            return end
+
+        return end[:limit]
+
+    def _sort(self, contacts, order=None, direction=None, **_):
+        if not order:
+            return contacts
+
+        reverse = direction == 'desc'
+        return sorted(contacts, key=itemgetter(order), reverse=reverse)
 
     def headers(self, microsoft_token):
         return {
