@@ -8,7 +8,6 @@ first_matched_columns:
 tenant_uuid: {{ tenant_uuid }}
 auth:
   host: auth
-  verify_certificate: false
 confd:
   host: {{ hostname }}
   port: {{ port }}
