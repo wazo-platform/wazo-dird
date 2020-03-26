@@ -58,7 +58,9 @@ class MicrosoftContactList(AuthResource):
             user_uuid, token_from_request, **source['auth']
         )
 
-        contacts, total = self.office365.get_contacts(microsoft_token, source['endpoint'], **list_params)
+        contacts, total = self.office365.get_contacts(
+            microsoft_token, source['endpoint'], **list_params
+        )
 
         return (
             {'filtered': total, 'items': contacts, 'total': total},

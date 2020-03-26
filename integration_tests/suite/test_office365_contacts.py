@@ -25,9 +25,7 @@ OFFICE365_CONTACT_LIST = {
             "surname": "Bros",
             "mobilePhone": "",
             "businessPhones": ['7777777777'],
-            "emailAddresses": [
-                {"address": "mbros@wazoquebec.onmicrosoft.com"},
-            ],
+            "emailAddresses": [{"address": "mbros@wazoquebec.onmicrosoft.com"}],
         },
         {
             "id": "another-id",
@@ -36,10 +34,8 @@ OFFICE365_CONTACT_LIST = {
             "surname": "Bros",
             "mobilePhone": "",
             "businessPhones": ['5555555555'],
-            "emailAddresses": [
-                {"address": "lbros@wazoquebec.onmicrosoft.com"},
-            ],
-        }
+            "emailAddresses": [{"address": "lbros@wazoquebec.onmicrosoft.com"}],
+        },
     ]
 }
 
@@ -113,9 +109,7 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
                         givenName='Mario',
                         surname='Bros',
                         emailAddresses=contains_inanyorder(
-                            has_entries(
-                                address='mbros@wazoquebec.onmicrosoft.com'
-                            ),
+                            has_entries(address='mbros@wazoquebec.onmicrosoft.com'),
                         ),
                         mobilePhone='',
                         businessPhones=contains_inanyorder('7777777777'),
@@ -126,9 +120,7 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
                         givenName='Luigi',
                         surname='Bros',
                         emailAddresses=contains_inanyorder(
-                            has_entries(
-                                address='lbros@wazoquebec.onmicrosoft.com'
-                            ),
+                            has_entries(address='lbros@wazoquebec.onmicrosoft.com'),
                         ),
                         mobilePhone='',
                         businessPhones=contains_inanyorder('5555555555'),

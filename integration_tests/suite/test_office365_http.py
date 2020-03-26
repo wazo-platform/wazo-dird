@@ -58,7 +58,9 @@ class TestDelete(BaseOffice365CRUDTestCase):
         )
 
         assert_that(
-            calling(self.client.backends.delete_source).with_args(BACKEND, UNKNOWN_UUID),
+            calling(self.client.backends.delete_source).with_args(
+                BACKEND, UNKNOWN_UUID
+            ),
             raises(Exception).matching(HTTP_404),
         )
 
@@ -230,11 +232,7 @@ class TestPost(BaseOffice365CRUDTestCase):
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),
-                has_entries(
-                    message=ANY,
-                    error_id='invalid-data',
-                    details=ANY,
-                ),
+                has_entries(message=ANY, error_id='invalid-data', details=ANY,),
             )
         else:
             self.fail('Should have raised')
@@ -287,7 +285,12 @@ class TestPut(BaseOffice365CRUDTestCase):
         super().setUp()
         self.new_body = {
             'name': 'new',
-            'searched_columns': ['givenName', 'surname', 'mobilePhone', 'businessPhones'],
+            'searched_columns': [
+                'givenName',
+                'surname',
+                'mobilePhone',
+                'businessPhones',
+            ],
             'first_matched_columns': ['mobilePhone'],
             'format_columns': {'name': '{givenName} {surname}'},
         }
@@ -315,11 +318,7 @@ class TestPut(BaseOffice365CRUDTestCase):
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),
-                has_entries(
-                    message=ANY,
-                    error_id='invalid-data',
-                    details=ANY,
-                ),
+                has_entries(message=ANY, error_id='invalid-data', details=ANY,),
             )
         else:
             self.fail('Should have raised')
@@ -338,7 +337,12 @@ class TestPut(BaseOffice365CRUDTestCase):
                 uuid=foobar['uuid'],
                 tenant_uuid=foobar['tenant_uuid'],
                 name='new',
-                searched_columns=['givenName', 'surname', 'mobilePhone', 'businessPhones'],
+                searched_columns=[
+                    'givenName',
+                    'surname',
+                    'mobilePhone',
+                    'businessPhones',
+                ],
                 first_matched_columns=['mobilePhone'],
                 format_columns={'name': '{givenName} {surname}'},
             ),
@@ -351,7 +355,9 @@ class TestPut(BaseOffice365CRUDTestCase):
         sub_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
         assert_that(
-            calling(sub_client.backends.edit_source).with_args(BACKEND, main['uuid'], sub),
+            calling(sub_client.backends.edit_source).with_args(
+                BACKEND, main['uuid'], sub
+            ),
             not_(raises(Exception).matching(HTTP_409)),
         )
 

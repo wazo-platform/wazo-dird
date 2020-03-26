@@ -22,14 +22,12 @@ class Office365Service:
     USER_AGENT = 'wazo_ua/1.0'
 
     def get_contacts(self, microsoft_token, url, **list_params):
-        headers = self.headers(microsoft_token)
         count = self._get_total_contacts(microsoft_token, url)
         contacts = list(self._fetch(microsoft_token, url, count))
         total_contacts = len(contacts)
         sorted_contacts = self._sort(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total_contacts
-
 
     def _fetch(self, microsoft_token, url, count):
         headers = self.headers(microsoft_token)
@@ -54,7 +52,9 @@ class Office365Service:
             response = requests.get(url, headers=headers, params={'$count': 'true'})
             if response.status_code == 200:
                 count = response.json().get('@odata.count', 0)
-                logger.debug('Successfully got contact number from Microsoft: %s', count)
+                logger.debug(
+                    'Successfully got contact number from Microsoft: %s', count
+                )
                 return count
             else:
                 logger.error(

@@ -38,6 +38,7 @@ class ContactListSchema(_ListSchema):
     sort_columns = ['displayName', 'givenName', 'surname']
     default_sort_column = 'displayName'
 
+
 source_schema = SourceSchema()
 source_list_schema = SourceSchema(many=True)
 list_schema = ListSchema()

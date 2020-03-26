@@ -48,6 +48,7 @@ OFFICE365_CONTACTS = {
     ]
 }
 
+
 class BaseOffice365TestCase(DirdAssetRunningTestCase):
 
     service = 'dird'
@@ -155,7 +156,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
                 has_entries(
                     number='5555555555',
                     email='wbros@wazoquebec.onmicrosoft.com',
-                    **self.WARIO
+                    **self.WARIO,
                 )
             ),
         )
@@ -172,7 +173,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
                 has_entries(
                     number='5555555555',
                     email='wbros@wazoquebec.onmicrosoft.com',
-                    **self.WARIO
+                    **self.WARIO,
                 )
             ),
         )
@@ -188,7 +189,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
             has_entries(
                 number='5555555555',
                 email='wbros@wazoquebec.onmicrosoft.com',
-                **self.WARIO
+                **self.WARIO,
             ),
         )
 
@@ -281,7 +282,9 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
         assert_that(result, is_(empty()))
 
     @fixtures.office365_result(OFFICE365_CONTACTS)
-    def test_given_microsoft_source_when_get_all_contacts_then_contacts_fetched(self, office365_api):
+    def test_given_microsoft_source_when_get_all_contacts_then_contacts_fetched(
+        self, office365_api
+    ):
         self.auth_client_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
 
         result = self.client.backends.list_contacts_from_source(
@@ -359,7 +362,9 @@ class TestDirdOffice365PluginNoEndpoint(BaseOffice365TestCase):
         }
 
     @fixtures.office365_result(OFFICE365_CONTACTS)
-    def test_given_microsoft_when_lookup_with_no_endpoint_then_no_error(self, office365_api):
+    def test_given_microsoft_when_lookup_with_no_endpoint_then_no_error(
+        self, office365_api
+    ):
         assert_that(
             self.source['endpoint'],
             equal_to('https://graph.microsoft.com/v1.0/me/contacts'),
@@ -403,7 +408,9 @@ class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
         )
 
     @fixtures.office365_error()
-    def test_given_microsoft_when_fetch_all_contacts_with_error_endpoint(self, office365_api):
+    def test_given_microsoft_when_fetch_all_contacts_with_error_endpoint(
+        self, office365_api
+    ):
         assert_that(
             calling(self.client.backends.list_contacts_from_source).with_args(
                 backend=self.BACKEND, source_uuid=self.source['uuid']
