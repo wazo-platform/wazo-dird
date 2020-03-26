@@ -168,8 +168,41 @@ def office365_result(contact_list):
             mock_server = UnVerifiedMockServerClient(
                 'http://localhost:{}'.format(office365_port)
             )
+            count_expectation = mock_server.create_expectation(
+                '/v1.0/me/contacts', {'@odata.count': len(contact_list)}, 200
+            )
+            count_expectation['httpRequest']['queryStringParameters'] = {'$count': ['true']}
+            count_expectation['times']['unlimited'] = True
+            mock_server.mock_any_response(count_expectation)
+
             expectation = mock_server.create_expectation(
                 '/v1.0/me/contacts', contact_list, 200
+            )
+            expectation['times']['unlimited'] = True
+            expectation['httpRequest']['queryStringParameters'] = {'$top': [str(len(contact_list))]}
+            mock_server.mock_any_response(expectation)
+
+            try:
+                result = decorated(self, mock_server, *args, **kwargs)
+            finally:
+                mock_server.reset()
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def office365_error():
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            office365_port = self.service_port(443, 'microsoft.com')
+            mock_server = UnVerifiedMockServerClient(
+                'http://localhost:{}'.format(office365_port)
+            )
+            expectation = mock_server.create_expectation(
+                '/v1.0/me/contacts/error', {}, 404
             )
             expectation['times']['unlimited'] = True
             mock_server.mock_any_response(expectation)

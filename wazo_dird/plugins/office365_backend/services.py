@@ -61,7 +61,7 @@ class Office365Service:
                     'An error occured while fetching information from Microsoft endpoint'
                 )
                 raise UnexpectedEndpointException(
-                    enpoint=url, error_code=response.status_code
+                    endpoint=url, error_code=response.status_code
                 )
         except requests.RequestException:
             raise UnexpectedEndpointException(endpoint=url)

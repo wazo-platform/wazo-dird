@@ -125,14 +125,14 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
     asset = 'dird_microsoft'
 
     def config(self):
-        microsoft_port = self.service_port(443, 'microsoft.com')
+        office365_port = self.service_port(443, 'microsoft.com')
         return {
             'auth': {
                 'host': 'localhost',
                 'port': self.service_port(9497, 'auth'),
                 'verify_certificate': False,
             },
-            'endpoint': 'http://localhost:{}/me/contacts'.format(microsoft_port),
+            'endpoint': f'http://localhost:{office365_port}/v1.0/me/contacts',
             'first_matched_columns': ['businessPhones', 'mobilePhone'],
             'format_columns': {
                 'number': '{businessPhones[0]}',
@@ -243,7 +243,7 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
     def config(self):
         return {
             'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
-            'endpoint': 'http://microsoft.com:443/me/contacts',
+            'endpoint': 'http://microsoft.com:443/v1.0/me/contacts',
             'first_matched_columns': [],
             'format_columns': {
                 'firstname': "{givenName}",
@@ -381,7 +381,7 @@ class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
     def config(self):
         return {
             'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
-            'endpoint': 'http://microsoft.com:443/me/contacts/error',
+            'endpoint': 'http://microsoft.com:443/v1.0/me/contacts/error',
             'first_matched_columns': [],
             'format_columns': {
                 'display_name': "{firstname} {lastname}",
@@ -394,8 +394,7 @@ class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
             'type': 'office365',
         }
 
-    @fixtures.office365_result(OFFICE365_CONTACTS)
-    def test_given_microsoft_when_lookup_with_error_endpoint_then_no_error(self, office365_api):
+    def test_given_microsoft_when_lookup_with_error_endpoint_then_no_error(self):
         assert_that(
             calling(self.client.directories.lookup).with_args(
                 term='war', profile='default'
@@ -403,7 +402,7 @@ class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
             not_(raises(Exception)),
         )
 
-    @fixtures.office365_result(OFFICE365_CONTACTS)
+    @fixtures.office365_error()
     def test_given_microsoft_when_fetch_all_contacts_with_error_endpoint(self, office365_api):
         assert_that(
             calling(self.client.backends.list_contacts_from_source).with_args(
