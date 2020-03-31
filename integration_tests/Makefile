@@ -1,7 +1,4 @@
-microsoft-mock:
-	docker build --no-cache -t microsoft-mock -f assets/microsoft-mock/Dockerfile assets/microsoft-mock
-
-test-setup: egg-info build-dird build-db-image microsoft-mock
+test-setup: egg-info build-dird build-db-image
 
 build-dird:
 	docker build -t wazopbx/wazo-dird ..
@@ -17,4 +14,4 @@ egg-info:
 test:
 	pytest
 
-.PHONY: test-setup build-dird build-db-image egg-info test microsoft-mock
+.PHONY: test-setup build-dird build-db-image egg-info test

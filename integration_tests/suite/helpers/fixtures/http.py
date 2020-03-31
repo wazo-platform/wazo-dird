@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -160,6 +160,68 @@ def google_result(contact_list, group_list=None):
     return decorator
 
 
+def office365_result(contact_list):
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            office365_port = self.service_port(443, 'microsoft.com')
+            mock_server = UnVerifiedMockServerClient(
+                'http://localhost:{}'.format(office365_port)
+            )
+            count_expectation = mock_server.create_expectation(
+                '/v1.0/me/contacts', {'@odata.count': len(contact_list)}, 200
+            )
+            count_expectation['httpRequest']['queryStringParameters'] = {
+                '$count': ['true']
+            }
+            count_expectation['times']['unlimited'] = True
+            mock_server.mock_any_response(count_expectation)
+
+            expectation = mock_server.create_expectation(
+                '/v1.0/me/contacts', contact_list, 200
+            )
+            expectation['times']['unlimited'] = True
+            expectation['httpRequest']['queryStringParameters'] = {
+                '$top': [str(len(contact_list))]
+            }
+            mock_server.mock_any_response(expectation)
+
+            try:
+                result = decorated(self, mock_server, *args, **kwargs)
+            finally:
+                mock_server.reset()
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def office365_error():
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            office365_port = self.service_port(443, 'microsoft.com')
+            mock_server = UnVerifiedMockServerClient(
+                'http://localhost:{}'.format(office365_port)
+            )
+            expectation = mock_server.create_expectation(
+                '/v1.0/me/contacts/error', {}, 404
+            )
+            expectation['times']['unlimited'] = True
+            mock_server.mock_any_response(expectation)
+
+            try:
+                result = decorated(self, mock_server, *args, **kwargs)
+            finally:
+                mock_server.reset()
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 def google_source(**source_args):
     def decorator(decorated):
         @wraps(decorated)
@@ -178,6 +240,41 @@ def google_source(**source_args):
             finally:
                 try:
                     self.client.backends.delete_source('google', source['uuid'])
+                except Exception as e:
+                    response = getattr(e, 'response', None)
+                    status_code = getattr(response, 'status_code', None)
+                    if status_code != 404:
+                        raise
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def office365_source(**source_args):
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            source_args.setdefault('name', random_string())
+            source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
+            source_args.setdefault(
+                'auth', {'host': 'auth', 'port': 9497, 'verify_certificate': False}
+            )
+            source_args.setdefault(
+                'endpoint', 'http://microsoft.com:443/v1.0/me/contacts'
+            )
+
+            client = self.get_client(source_args['token'])
+            source = client.backends.create_source(
+                backend='office365', body=source_args
+            )
+
+            try:
+                result = decorated(self, source, *args, **kwargs)
+            finally:
+                try:
+                    self.client.backends.delete_source('office365', source['uuid'])
                 except Exception as e:
                     response = getattr(e, 'response', None)
                     status_code = getattr(response, 'status_code', None)

@@ -4,8 +4,8 @@ services:
     depends_on:
       - auth
       - dird
-      - microsoft-mock
+      - microsoft.com
       - db
       - rabbitmq
     environment:
-      TARGETS: "auth:9497 dird:9489 microsoft-mock:80 db:5432 rabbitmq:5672"
+      TARGETS: "auth:9497 dird:9489 microsoft.com:443 db:5432 rabbitmq:5672"
