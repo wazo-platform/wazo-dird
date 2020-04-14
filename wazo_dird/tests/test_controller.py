@@ -68,7 +68,12 @@ class TestController(TestCase):
         controller.run()
 
         self.load_views.assert_called_once_with(
-            config, s.enabled, ANY, controller.auth_client, controller.status_aggregator
+            config,
+            s.enabled,
+            ANY,
+            controller.auth_client,
+            controller.status_aggregator,
+            controller.rest_api,
         )
 
     def _create_config(self, **kwargs):

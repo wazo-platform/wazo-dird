@@ -1,12 +1,10 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
 from stevedore import NamedExtensionManager
 from xivo import plugin_helpers
-
-from wazo_dird import rest_api
 
 logger = logging.getLogger(__name__)
 services_extension_manager = None
@@ -44,13 +42,16 @@ def unload_views():
         views_extension_manager.map(unload_view)
 
 
-def load_views(config, enabled_views, services, auth_client, status_aggregator):
+def load_views(
+    config, enabled_views, services, auth_client, status_aggregator, rest_api
+):
     global views_extension_manager
     dependencies = {
         'config': config,
         'services': services,
         'auth_client': auth_client,
         'api': rest_api.api,
+        'flask_app': rest_api.app,
         'status_aggregator': status_aggregator,
     }
     views_extension_manager, views = _load_plugins(

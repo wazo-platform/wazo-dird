@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from setuptools import setup
@@ -53,6 +53,7 @@ setup(
             'displays_view = wazo_dird.plugins.displays.plugin:DisplaysViewPlugin',
             'default_json = wazo_dird.plugins.default_json.plugin:JsonViewPlugin',
             'google_view = wazo_dird.plugins.google_backend.plugin:GoogleViewPlugin',
+            'graphql_view = wazo_dird.plugins.graphql.plugin:GraphQLViewPlugin',
             'headers_view = wazo_dird.plugins.headers.plugin:HeadersViewPlugin',
             'ldap_backend = wazo_dird.plugins.ldap_backend.plugin:LDAPView',
             'office365_backend = wazo_dird.plugins.office365_backend.plugin:Office365View',
