@@ -1,10 +1,11 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
 
 from hamcrest import assert_that, contains, equal_to, empty, is_, none
 from mock import Mock, patch
+from requests import RequestException
 
 from wazo_dird import make_result_class
 from ..plugin import WazoUserPlugin
@@ -239,7 +240,7 @@ class TestWazoUserBackendSearch(_BaseTest):
         assert_that(result, contains())
 
     def test_fetch_entries_when_client_does_not_return_list(self):
-        self._confd_client.users.list.side_effect = Exception()
+        self._confd_client.users.list.side_effect = RequestException()
 
         result = self._source._fetch_entries()
 
@@ -247,7 +248,7 @@ class TestWazoUserBackendSearch(_BaseTest):
 
     def test_fetch_entries_when_client_does_not_return_uuid(self):
         self._source._uuid = None
-        self._confd_client.infos.side_effect = Exception()
+        self._confd_client.infos.side_effect = RequestException()
 
         result = self._source._fetch_entries()
 

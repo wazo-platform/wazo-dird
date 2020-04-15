@@ -1,10 +1,10 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
 from unidecode import unidecode
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, RequestException
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
@@ -120,7 +120,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         except ConnectionError as e:
             logger.info('%s', e)
             return []
-        except Exception as e:
+        except RequestException as e:
             response = getattr(e, 'response', None)
             status_code = getattr(response, 'status_code', None)
             logger.info(
@@ -134,7 +134,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         except ConnectionError as e:
             logger.info('%s', e)
             return []
-        except Exception as e:
+        except RequestException as e:
             response = getattr(e, 'response', None)
             status_code = getattr(response, 'status_code', None)
 
