@@ -12,7 +12,8 @@ _DEFAULT_CONFIG = {
     'auth': {
         'host': 'localhost',
         'port': 9497,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'prefix': None,
+        'https': False,
         'key_file': '',
     },
     'config_file': '/etc/wazo-dird/config.yml',

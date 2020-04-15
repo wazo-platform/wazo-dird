@@ -4,8 +4,6 @@ enabled_plugins:
 
 auth:
   host: inexisting-auth-server
-  port: 9497
-  verify_certificate: /usr/local/share/ssl/auth/server.crt
 
 bus:
   enabled: false

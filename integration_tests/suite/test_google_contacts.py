@@ -138,7 +138,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             'google',
             {
                 'name': 'google',
-                'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
+                'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
             },
         )
         self.source_uuid = source['uuid']

@@ -91,7 +91,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
         super().setUpClass()
         client = cls.get_client()
         source_body = {
-            'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
+            'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
             'first_matched_columns': ['numbers'],
             'format_columns': {
                 'phone_mobile': '{numbers_by_label[mobile]}',

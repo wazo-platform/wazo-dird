@@ -131,7 +131,8 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
             'auth': {
                 'host': 'localhost',
                 'port': self.service_port(9497, 'auth'),
-                'verify_certificate': False,
+                'prefix': None,
+                'https': False,
             },
             'endpoint': f'http://localhost:{office365_port}/v1.0/me/contacts',
             'first_matched_columns': ['businessPhones', 'mobilePhone'],
@@ -203,7 +204,8 @@ class TestOffice365PluginWrongEndpoint(BaseOffice365PluginTestCase):
             'auth': {
                 'host': 'localhost',
                 'port': self.service_port(9497, 'auth'),
-                'verify_certificate': False,
+                'prefix': None,
+                'https': False,
             },
             'endpoint': 'wrong-endpoint',
             'first_matched_columns': [],
@@ -243,7 +245,7 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
 
     def config(self):
         return {
-            'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
+            'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
             'endpoint': 'http://microsoft.com:443/v1.0/me/contacts',
             'first_matched_columns': [],
             'format_columns': {
@@ -348,7 +350,7 @@ class TestDirdOffice365PluginNoEndpoint(BaseOffice365TestCase):
 
     def config(self):
         return {
-            'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
+            'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
             'first_matched_columns': [],
             'format_columns': {
                 'firstname': "{givenName}",
@@ -385,7 +387,7 @@ class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
 
     def config(self):
         return {
-            'auth': {'host': 'auth', 'port': 9497, 'verify_certificate': False},
+            'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
             'endpoint': 'http://microsoft.com:443/v1.0/me/contacts/error',
             'first_matched_columns': [],
             'format_columns': {

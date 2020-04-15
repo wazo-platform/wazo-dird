@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -305,7 +305,7 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         tenant_uuid = MAIN_TENANT
         try:
             auth_port = cls.service_port(9497, 'auth')
-            auth_client = AuthClient('localhost', auth_port, verify_certificate=False)
+            auth_client = AuthClient('localhost', auth_port, prefix=None, https=False)
             auth_client.users.new(
                 uuid=VALID_UUID_1, tenant_uuid=MAIN_TENANT, username='foobar2'
             )
