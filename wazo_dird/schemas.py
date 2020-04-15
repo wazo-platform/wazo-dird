@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
@@ -66,6 +66,8 @@ class ConfdConfigSchema(BaseSchema):
 class BaseAuthConfigSchema(BaseSchema):
     host = fields.String(validate=Length(min=1, max=1024), missing='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), missing=9497)
+    prefix = fields.String(allow_none=True, missing='/api/auth')
+    https = fields.Boolean(missing=True)
     verify_certificate = VerifyCertificateField(missing=True)
     timeout = fields.Float(validate=Range(min=0, max=3660))
     version = fields.String(validate=Length(min=1, max=16), missing='0.1')

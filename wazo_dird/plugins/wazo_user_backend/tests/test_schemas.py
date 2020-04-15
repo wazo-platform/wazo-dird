@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -40,6 +40,8 @@ class TestSourceSchema(TestCase):
                     port=9497,
                     username='foo',
                     password='bar',
+                    prefix='/api/auth',
+                    https=True,
                     verify_certificate=True,
                 ),
                 confd=has_entries(

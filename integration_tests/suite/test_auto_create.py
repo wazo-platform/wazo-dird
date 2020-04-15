@@ -70,7 +70,8 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                             auth={
                                 'host': 'localhost',
                                 'port': 9497,
-                                'verify_certificate': '/usr/share/xivo-certs/server.crt',
+                                'prefix': None,
+                                'https': False,
                                 'version': '0.1',
                                 'key_file': key_file,
                             },
@@ -137,7 +138,8 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                             auth={
                                 'host': 'localhost',
                                 'port': 9497,
-                                'verify_certificate': '/usr/share/xivo-certs/server.crt',
+                                'prefix': None,
+                                'https': False,
                                 'version': '0.1',
                             },
                             first_matched_columns=has_item('numbers'),

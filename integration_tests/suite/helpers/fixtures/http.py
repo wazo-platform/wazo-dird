@@ -229,7 +229,7 @@ def google_source(**source_args):
             source_args.setdefault('name', random_string())
             source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
             source_args.setdefault(
-                'auth', {'host': 'auth', 'port': 9497, 'verify_certificate': False}
+                'auth', {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False}
             )
 
             client = self.get_client(source_args['token'])
@@ -259,7 +259,7 @@ def office365_source(**source_args):
             source_args.setdefault('name', random_string())
             source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
             source_args.setdefault(
-                'auth', {'host': 'auth', 'port': 9497, 'verify_certificate': False}
+                'auth', {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False}
             )
             source_args.setdefault(
                 'endpoint', 'http://microsoft.com:443/v1.0/me/contacts'

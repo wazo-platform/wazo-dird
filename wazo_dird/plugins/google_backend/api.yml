@@ -94,7 +94,8 @@ paths:
               auth:
                 host: localhost
                 port: 9497
-                verify_certificate: /usr/share/xivo-certs/server.crt
+                prefix: null
+                https: false
                 version: 0.1
               format_columns:
                 phone: "{numbers[0]}"

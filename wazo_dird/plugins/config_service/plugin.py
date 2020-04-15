@@ -34,7 +34,8 @@ CONFERENCE_SOURCE_BODY = {
     'auth': {
         'host': 'localhost',
         'port': 9497,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'prefix': None,
+        'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-dird-conference-backend-key.yml',
         'version': '0.1',
     },
@@ -64,7 +65,8 @@ WAZO_SOURCE_BODY = {
     'auth': {
         'host': 'localhost',
         'port': 9497,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'prefix': None,
+        'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-dird-wazo-backend-key.yml',
         'version': '0.1',
     },
@@ -83,7 +85,8 @@ OFFICE_365_SOURCE_BODY = {
     'auth': {
         'host': 'localhost',
         'port': 9497,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'prefix': None,
+        'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-dird-wazo-backend-key.yml',
         'version': '0.1',
     },
@@ -107,7 +110,8 @@ GOOGLE_SOURCE_BODY = {
     'auth': {
         'host': 'localhost',
         'port': 9497,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'prefix': None,
+        'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-dird-wazo-backend-key.yml',
         'version': '0.1',
     },
