@@ -126,7 +126,7 @@ class _BaseTest(unittest.TestCase):
 class TestWazoUserBackendSearch(_BaseTest):
     def setUp(self):
         super().setUp()
-        response = {'items': [CONFD_USER_1, CONFD_USER_2]}
+        response = {'items': [CONFD_USER_1, CONFD_USER_2], 'total': 2}
         self._confd_client.users.list.return_value = response
         self._source._client = self._confd_client
         self._source._SourceResult = SourceResult

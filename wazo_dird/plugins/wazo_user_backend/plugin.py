@@ -90,6 +90,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         return [entry for entry in entries if match_fn(entry)]
 
     def first_match(self, term, args=None):
+        logger.debug('Looking for "%s"', term)
         entries = self._fetch_entries(term)
 
         def match_fn(entry):
@@ -100,7 +101,9 @@ class WazoUserPlugin(BaseSourcePlugin):
 
         for entry in entries:
             if match_fn(entry):
+                logger.debug('Found a match: %s', entry)
                 return entry
+        logger.debug('Found no match')
         return None
 
     def list(self, unique_ids, args=None):
@@ -159,6 +162,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         if term:
             search_params['search'] = term
         users = self._client.users.list(**search_params)
+        logger.debug('Fetched %s users', users['total'])
         return (user for user in users['items'])
 
     def _source_result_from_entry(self, entry, uuid):
