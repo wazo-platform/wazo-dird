@@ -29,7 +29,10 @@ def upgrade():
         if not auth_config:
             continue
 
-        if auth_config['host'] in ('localhost', '127.0.0.1') and auth_config['port'] == 9497:
+        if (
+            auth_config['host'] in ('localhost', '127.0.0.1')
+            and auth_config['port'] == 9497
+        ):
             source.extra_fields['auth']['prefix'] = None
             source.extra_fields['auth']['https'] = False
             source.extra_fields['auth']['verify_certificate'] = True
@@ -51,7 +54,9 @@ def get_sources():
             dird_source_table.c.extra_fields,
             dird_source_table.c.backend,
         ]
-    ).where(dird_source_table.c.backend.in_(['wazo', 'conference', 'office365', 'google']))
+    ).where(
+        dird_source_table.c.backend.in_(['wazo', 'conference', 'office365', 'google'])
+    )
     return op.get_bind().execute(sources)
 
 
@@ -64,8 +69,13 @@ def downgrade():
 
         source.extra_fields['auth'].pop('prefix', None)
         source.extra_fields['auth'].pop('https', None)
-        if auth_config['host'] in ('localhost', '127.0.0.1') and auth_config['port'] == 9497:
-            source.extra_fields['auth']['verify_certificate'] = '/usr/share/xivo-certs/server.crt'
+        if (
+            auth_config['host'] in ('localhost', '127.0.0.1')
+            and auth_config['port'] == 9497
+        ):
+            source.extra_fields['auth'][
+                'verify_certificate'
+            ] = '/usr/share/xivo-certs/server.crt'
         query = (
             dird_source_table.update()
             .where(dird_source_table.c.uuid == source.uuid)
