@@ -1,6 +1,8 @@
 enabled_plugins:
   backends:
     broken_lookup: true
+    chained_broken_first_lookup: true
+    chained_second_lookup: true
 
 bus:
   enabled: false
