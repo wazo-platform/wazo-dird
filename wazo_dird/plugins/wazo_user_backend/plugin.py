@@ -1,10 +1,10 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
 from unidecode import unidecode
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, RequestException
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
@@ -90,6 +90,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         return [entry for entry in entries if match_fn(entry)]
 
     def first_match(self, term, args=None):
+        logger.debug('Looking for "%s"', term)
         entries = self._fetch_entries(term)
 
         def match_fn(entry):
@@ -100,7 +101,9 @@ class WazoUserPlugin(BaseSourcePlugin):
 
         for entry in entries:
             if match_fn(entry):
+                logger.debug('Found a match: %s', entry)
                 return entry
+        logger.debug('Found no match')
         return None
 
     def list(self, unique_ids, args=None):
@@ -120,7 +123,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         except ConnectionError as e:
             logger.info('%s', e)
             return []
-        except Exception as e:
+        except RequestException as e:
             response = getattr(e, 'response', None)
             status_code = getattr(response, 'status_code', None)
             logger.info(
@@ -134,7 +137,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         except ConnectionError as e:
             logger.info('%s', e)
             return []
-        except Exception as e:
+        except RequestException as e:
             response = getattr(e, 'response', None)
             status_code = getattr(response, 'status_code', None)
 
@@ -159,6 +162,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         if term:
             search_params['search'] = term
         users = self._client.users.list(**search_params)
+        logger.debug('Fetched %s users', users['total'])
         return (user for user in users['items'])
 
     def _source_result_from_entry(self, entry, uuid):
