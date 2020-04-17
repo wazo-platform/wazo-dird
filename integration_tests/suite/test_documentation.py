@@ -1,4 +1,4 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -22,4 +22,5 @@ class TestDocumentation(DirdAssetRunningTestCase):
         port = self.service_port(9489, 'dird')
         api_url = 'https://localhost:{port}/0.1/api/api.yml'.format(port=port)
         api = requests.get(api_url, verify=False)
+        api.raise_for_status()
         validate_v2_spec(yaml.safe_load(api.text))
