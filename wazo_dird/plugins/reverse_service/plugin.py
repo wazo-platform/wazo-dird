@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -82,7 +82,7 @@ class _ReverseService(helpers.BaseService):
             logger.info('Timeout on reverse lookup for exten: %s', exten)
 
     def _async_reverse(self, source, exten, args):
-        raise_stopper = helpers.RaiseStopper(return_on_raise=[])
+        raise_stopper = helpers.RaiseStopper(return_on_raise=None)
         future = self._executor.submit(
             raise_stopper.execute, source.first_match, exten, args
         )

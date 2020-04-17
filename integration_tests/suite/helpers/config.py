@@ -272,7 +272,13 @@ def new_half_broken_config(Session):
         name='default',
         display='default_display',
         services={
-            'lookup': {'sources': ['my_csv', 'broken', 'my_other_csv'], 'timeout': 0.5},
+            'lookup': {
+                'sources': ['my_csv', 'broken', 'my_other_csv'],
+                'timeout': 0.5,
+            },
+            'reverse': {
+                'sources': ['chained_broken_first_lookup', 'chained_second_lookup']
+            },
             'favorites': {'sources': ['my_csv', 'broken', 'my_other_csv']},
         },
     )
@@ -294,6 +300,10 @@ def new_half_broken_config(Session):
         format_columns={'lastname': "{ln}", 'firstname': "{fn}", 'number': "{num}"},
     )
     config.with_source(backend='broken', name='broken')
+    config.with_source(
+        backend='chained_broken_first_lookup', name='chained_broken_first_lookup'
+    )
+    config.with_source(backend='chained_second_lookup', name='chained_second_lookup')
     return config
 
 

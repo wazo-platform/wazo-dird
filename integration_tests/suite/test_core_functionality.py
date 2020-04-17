@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -182,6 +182,13 @@ class TestLookupWhenASourceFails(HalfBrokenTestCase):
         assert_that(
             result['results'][1]['column_values'],
             contains('Alice', 'AAA', '5555555555'),
+        )
+
+    def test_that_reverse_returns_a_result(self):
+        result = self.reverse('5555555555', 'default', VALID_UUID)
+
+        assert_that(
+            result, has_entries({'display': 'Second Lookup', 'exten': '5555555555'})
         )
 
 
