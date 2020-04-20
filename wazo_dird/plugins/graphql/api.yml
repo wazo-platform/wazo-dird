@@ -11,6 +11,7 @@ paths:
     post:
       operationId: graphql_query
       summary: Execute a GraphQL query. This is a GraphQL endpoint, not a REST endpoint.
+      description: '**Required ACL:** `dird.graphql.{root_field_name}`, e.g. `dird.graphql.hello`'
       tags:
         - work_in_progress
       responses:
