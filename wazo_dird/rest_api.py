@@ -39,6 +39,7 @@ class CoreRestApi:
         AuthResource.auth_config = global_config['auth']
 
         http_helpers.add_logger(self.app, logger)
+        self.app.before_request(http_helpers.log_before_request)
         self.app.after_request(http_helpers.log_request)
         self.app.secret_key = os.urandom(24)
         self.app.permanent_session_lifetime = timedelta(minutes=5)

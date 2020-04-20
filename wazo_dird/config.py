@@ -60,6 +60,7 @@ _DEFAULT_CONFIG = {
             'default_json': True,
             'displays_view': True,
             'google_view': True,
+            'graphql_view': True,
             'headers_view': True,
             'ldap_backend': True,
             'office365_backend': True,

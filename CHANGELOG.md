@@ -1,5 +1,9 @@
 # Changelog
 
+## 20.06
+
+* Added a GraphQL endpoint in `/0.1/graphql`.
+
 ## 19.17
 
 * Removed the following endpoints and migrated them to ``wazo-phoned``:

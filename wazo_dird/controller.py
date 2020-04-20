@@ -66,6 +66,7 @@ class Controller:
             self.services,
             self.auth_client,
             self.status_aggregator,
+            self.rest_api,
         )
         self._source_manager.set_source_service(self.services['source'])
         self.status_aggregator.add_provider(self.bus.provide_status)
