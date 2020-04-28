@@ -62,9 +62,6 @@ class GraphQLViewPlugin(BaseViewPlugin):
         app.add_url_rule(
             '/{version}/graphql'.format(version=rest_api.VERSION),
             view_func=GraphQLView.as_view(
-                'graphql',
-                schema=schema,
-                graphiql=True,
-                middleware=[authorization_middleware],
+                'graphql', schema=schema, middleware=[authorization_middleware],
             ),
         )
