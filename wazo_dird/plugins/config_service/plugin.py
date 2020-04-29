@@ -77,9 +77,13 @@ WAZO_SOURCE_BODY = {
         'verify_certificate': '/usr/share/xivo-certs/server.crt',
         'version': '1.1',
     },
-    'format_columns': {'phone': '{exten}', 'name': '{firstname} {lastname}'},
+    'format_columns': {
+        'phone': '{exten}',
+        'name': '{firstname} {lastname}',
+        'reverse': '{firstname} {lastname}',
+    },
     'searched_columns': ['firstname', 'lastname', 'exten'],
-    'first_matched_columns': [],
+    'first_matched_columns': ['mobile_phone_number'],
 }
 OFFICE_365_SOURCE_BODY = {
     'auth': {
