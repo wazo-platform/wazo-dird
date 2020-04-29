@@ -53,9 +53,13 @@ class AuthorizationMiddleware:
 class GraphQLViewPlugin(BaseViewPlugin):
     def load(self, dependencies):
         app = dependencies['flask_app']
-        config = dependencies['config']
-        resolver = Resolver()
+
+        profile_service = dependencies['services'].get('profile')
+        reverse_service = dependencies['services'].get('reverse')
+        resolver = Resolver(profile_service, reverse_service)
         schema = make_schema(resolver)
+
+        config = dependencies['config']
         auth_client = dependencies['auth_client']
         authorization_middleware = AuthorizationMiddleware(config['auth'], auth_client)
 
