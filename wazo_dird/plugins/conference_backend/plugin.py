@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -61,21 +61,30 @@ class ConferencePlugin(BaseSourcePlugin):
         registry.unregister_all()
 
     def list(self, unique_ids, args=None):
+        logger.debug('Listing all conferences')
         contacts = self._fetch_contacts()
         matching_contacts = (c for c in contacts if str(c['id']) in unique_ids)
-        return [self._SourceResult(c) for c in matching_contacts]
+        results = [self._SourceResult(c) for c in matching_contacts]
+        logger.debug('Found %s conferences', len(results))
+        return results
 
     def search(self, term, profile=None, args=None):
+        logger.debug('Looking for all conferences matching "%s"', term)
         clean_term = unidecode(term.lower())
         contacts = self._fetch_contacts()
         matching_contacts = (c for c in contacts if self._search_filter(clean_term, c))
-        return [self._SourceResult(c) for c in matching_contacts]
+        results = [self._SourceResult(c) for c in matching_contacts]
+        logger.debug('Found %s conferences', len(results))
+        return results
 
     def first_match(self, term, args=None):
+        logger.debug('Looking for first conference matching "%s"', term)
         lowered_term = term.lower()
         for contact in self._fetch_contacts():
             if self._first_match_filter(lowered_term, contact):
+                logger.debug('Found one conference')
                 return self._SourceResult(contact)
+        logger.debug('Found no conference')
 
     def _first_match_filter(self, lowered_term, contact):
         for column in self._first_matched_columns:
