@@ -5,6 +5,7 @@ from hamcrest import (
     assert_that,
     contains,
     contains_string,
+    equal_to,
     has_entries,
 )
 from wazo_dird_client import Client as DirdClient
@@ -53,6 +54,25 @@ class TestGraphQL(BaseDirdIntegrationTest):
         response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN)
 
         assert response == {'data': {'hello': 'world'}}
+
+    def test_user_me(self):
+        dird = DirdClient(
+            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
+        )
+        tenant_uuid = None
+        query = {
+            'query': '''
+            {
+                me {
+                    user_uuid
+                }
+            }
+            ''',
+        }
+
+        response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN)
+
+        assert_that(response['data']['me']['user_uuid'], equal_to('uuid'))
 
 
 class TestGraphQLNoAuth(BaseDirdIntegrationTest):

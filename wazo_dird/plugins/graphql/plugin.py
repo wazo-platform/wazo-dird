@@ -62,6 +62,10 @@ class GraphQLViewPlugin(BaseViewPlugin):
         app.add_url_rule(
             '/{version}/graphql'.format(version=rest_api.VERSION),
             view_func=GraphQLView.as_view(
-                'graphql', schema=schema, middleware=[authorization_middleware],
+                'graphql',
+                schema=schema,
+                middleware=[authorization_middleware],
+                # get_context: source: https://github.com/graphql-python/flask-graphql/issues/52#issuecomment-412773200
+                get_context=dict,
             ),
         )
