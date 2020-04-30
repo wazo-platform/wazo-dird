@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -11,6 +11,7 @@ DB_URI_FMT = os.getenv(
 )
 VALID_UUID = 'uuid-tenant-master'
 VALID_UUID_1 = 'uuid-1'
+VALID_TOKEN = 'valid-token'
 VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
