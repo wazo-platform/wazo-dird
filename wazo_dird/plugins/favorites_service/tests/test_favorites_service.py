@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -26,7 +26,8 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
         self.assertRaises(ValueError, plugin.load, {'config': self._config})
 
-    def test_that_load_returns_a_service(self):
+    @patch('wazo_dird.plugins.favorites_service.plugin._FavoritesService')
+    def test_that_load_returns_a_service(self, MockedFavoritesService):
         plugin = FavoritesServicePlugin()
 
         service = plugin.load(
