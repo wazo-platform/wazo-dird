@@ -57,6 +57,7 @@ class BaseSourceSchema(BaseSchema):
 class ConfdConfigSchema(BaseSchema):
     host = fields.String(validate=Length(min=1, max=1024), missing='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), missing=9486)
+    prefix = fields.String(allow_none=True, missing='/api/confd')
     verify_certificate = VerifyCertificateField(missing=True)
     timeout = fields.Float(validate=Range(min=0, max=3660))
     https = fields.Boolean(missing=True)

@@ -16,7 +16,7 @@
       "music_on_hold": null,
       "links": [
         {
-          "href": "https://confd:9486/1.1/conferences/4",
+          "href": "https://confd/api/confd/1.1/conferences/4",
           "rel": "conferences"
         }
       ],
@@ -27,7 +27,7 @@
           "context": "inside",
           "links": [
             {
-              "href": "https://confd:9486/1.1/extensions/98",
+              "href": "https://confd/api/confd/1.1/extensions/98",
               "rel": "extensions"
             }
           ]
@@ -51,7 +51,7 @@
       "music_on_hold": null,
       "links": [
         {
-          "href": "https://confd:9486/1.1/conferences/3",
+          "href": "https://confd/api/confd/1.1/conferences/3",
           "rel": "conferences"
         }
       ],
@@ -66,7 +66,7 @@
               "context": "from-extern",
               "links": [
                 {
-                  "href": "https://confd:9486/1.1/extensions/77",
+                  "href": "https://confd/api/confd/1.1/extensions/77",
                   "rel": "extensions"
                 }
               ]
@@ -74,7 +74,7 @@
           ],
           "links": [
             {
-              "href": "https://confd:9486/1.1/incalls/14",
+              "href": "https://confd/api/confd/1.1/incalls/14",
               "rel": "incalls"
             }
           ]
@@ -97,7 +97,7 @@
       "music_on_hold": null,
       "links": [
         {
-          "href": "https://confd:9486/1.1/conferences/1",
+          "href": "https://confd/api/confd/1.1/conferences/1",
           "rel": "conferences"
         }
       ],
@@ -108,7 +108,7 @@
           "context": "inside",
           "links": [
             {
-              "href": "https://confd:9486/1.1/extensions/57",
+              "href": "https://confd/api/confd/1.1/extensions/57",
               "rel": "extensions"
             }
           ]
@@ -124,7 +124,7 @@
               "context": "from-extern",
               "links": [
                 {
-                  "href": "https://confd:9486/1.1/extensions/76",
+                  "href": "https://confd/api/confd/1.1/extensions/76",
                   "rel": "extensions"
                 }
               ]
@@ -132,7 +132,7 @@
           ],
           "links": [
             {
-              "href": "https://confd:9486/1.1/incalls/13",
+              "href": "https://confd/api/confd/1.1/incalls/13",
               "rel": "incalls"
             }
           ]
@@ -155,7 +155,7 @@
       "music_on_hold": null,
       "links": [
         {
-          "href": "https://confd:9486/1.1/conferences/6",
+          "href": "https://confd/api/confd/1.1/conferences/6",
           "rel": "conferences"
         }
       ],
@@ -166,7 +166,7 @@
           "context": "inside",
           "links": [
             {
-              "href": "https://confd:9486/1.1/extensions/58",
+              "href": "https://confd/api/confd/1.1/extensions/58",
               "rel": "extensions"
             }
           ]
@@ -182,7 +182,7 @@
               "context": "from-extern",
               "links": [
                 {
-                  "href": "https://confd:9486/1.1/extensions/78",
+                  "href": "https://confd/api/confd/1.1/extensions/78",
                   "rel": "extensions"
                 }
               ]
@@ -190,7 +190,7 @@
           ],
           "links": [
             {
-              "href": "https://confd:9486/1.1/incalls/15",
+              "href": "https://confd/api/confd/1.1/incalls/15",
               "rel": "incalls"
             }
           ]

@@ -42,8 +42,8 @@ CONFERENCE_SOURCE_BODY = {
     'confd': {
         'host': 'localhost',
         'port': 9486,
-        'https': True,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'prefix': None,
+        'https': False,
         'version': '1.1',
     },
     'format_columns': {'phone': '{extensions[0]}'},
@@ -73,8 +73,8 @@ WAZO_SOURCE_BODY = {
     'confd': {
         'host': 'localhost',
         'port': 9486,
-        'https': True,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'prefix': None,
+        'https': False,
         'version': '1.1',
     },
     'format_columns': {

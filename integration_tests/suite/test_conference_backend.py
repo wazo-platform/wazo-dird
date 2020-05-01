@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains, contains_inanyorder, empty, has_entries
@@ -26,13 +26,15 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
             'auth': {
                 'host': 'localhost',
                 'port': self.service_port(9497, 'auth'),
-                'verify_certificate': False,
+                'prefix': None,
+                'https': False,
             },
             'confd': {
                 'host': 'localhost',
                 'port': self.service_port(9486, 'confd'),
-                'version': '1.1',
+                'prefix': None,
                 'https': False,
+                'version': '1.1',
             },
             'format_columns': {
                 'displayname': '{name}',
