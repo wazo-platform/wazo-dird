@@ -38,6 +38,7 @@ def upgrade():
             source.extra_fields['confd'].pop('verify_certificate', None)
         else:
             source.extra_fields['confd']['prefix'] = '/api/confd'
+            source.extra_fields['confd'].pop('port', None)
         query = (
             dird_source_table.update()
             .where(dird_source_table.c.uuid == source.uuid)
