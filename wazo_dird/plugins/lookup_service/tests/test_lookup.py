@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -30,7 +30,8 @@ class TestLookupServicePlugin(unittest.TestCase):
 
         self.assertRaises(ValueError, plugin.load, {'config': sentinel.sources})
 
-    def test_that_load_returns_a_service(self):
+    @patch('wazo_dird.plugins.lookup_service.plugin._LookupService')
+    def test_that_load_returns_a_service(self, MockedLookupService):
         plugin = LookupServicePlugin()
 
         service = plugin.load(

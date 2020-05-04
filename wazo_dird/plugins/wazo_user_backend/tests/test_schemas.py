@@ -45,7 +45,11 @@ class TestSourceSchema(TestCase):
                     verify_certificate=True,
                 ),
                 confd=has_entries(
-                    host='localhost', port=9486, https=True, verify_certificate=True
+                    host='localhost',
+                    port=9486,
+                    prefix='/api/confd',
+                    https=True,
+                    verify_certificate=True,
                 ),
             ),
         )

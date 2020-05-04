@@ -78,9 +78,9 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                             confd={
                                 'host': 'localhost',
                                 'port': 9486,
-                                'verify_certificate': '/usr/share/xivo-certs/server.crt',
+                                'prefix': None,
+                                'https': False,
                                 'version': '1.1',
-                                'https': True,
                             },
                             first_matched_columns=empty(),
                             searched_columns=contains_inanyorder(

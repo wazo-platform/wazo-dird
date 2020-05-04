@@ -144,7 +144,7 @@ def new_conference_config(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'america', 'port': 9486, 'https': False},
+        confd={'host': 'america', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['name'],
     )
     config.with_source(
@@ -158,7 +158,7 @@ def new_conference_config(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'america', 'port': 9486, 'https': False},
+        confd={'host': 'america', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['name'],
     )
     config.with_profile(
@@ -613,7 +613,7 @@ def new_wazo_users_config(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'america', 'port': 9486, 'https': False},
+        confd={'host': 'america', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_profile(
@@ -644,7 +644,7 @@ def new_wazo_users_multiple_wazo_config(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'asia', 'port': 9486, 'https': False},
+        confd={'host': 'asia', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_source(
@@ -657,7 +657,7 @@ def new_wazo_users_multiple_wazo_config(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'america', 'port': 9486, 'https': False},
+        confd={'host': 'america', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_source(
@@ -670,7 +670,7 @@ def new_wazo_users_multiple_wazo_config(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'europe', 'port': 9486, 'https': False},
+        confd={'host': 'europe', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_source(
@@ -684,7 +684,7 @@ def new_wazo_users_multiple_wazo_config(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'america', 'port': 9486, 'https': False},
+        confd={'host': 'america', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_profile(
@@ -736,7 +736,7 @@ def new_multi_source_profile(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'asia', 'port': 9486, 'https': False},
+        confd={'host': 'asia', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_source(
@@ -750,7 +750,7 @@ def new_multi_source_profile(Session):
             'prefix': None,
             'https': False,
         },
-        confd={'host': 'america', 'port': 9486, 'https': False},
+        confd={'host': 'america', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['firstname', 'lastname'],
     )
     config.with_profile(

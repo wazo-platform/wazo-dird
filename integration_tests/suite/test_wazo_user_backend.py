@@ -52,13 +52,15 @@ class TestWazoUser(DirdAssetRunningTestCase):
             'auth': {
                 'host': 'localhost',
                 'port': self.service_port(9497, 'auth'),
-                'verify_certificate': False,
+                'prefix': None,
+                'https': False,
             },
             'confd': {
                 'host': 'localhost',
                 'port': self.service_port(9486, 'confd'),
-                'version': '1.1',
+                'prefix': None,
                 'https': False,
+                'version': '1.1',
             },
             'format_columns': {
                 'number': "{exten}",
