@@ -16,10 +16,10 @@ def make_schema(resolver):
         name='contact',
         fields={
             'firstname': GraphQLField(
-                type=GraphQLString, resolver=resolver.get_contact_firstname
+                type=GraphQLString, resolver=resolver.get_contact_field
             ),
             'lastname': GraphQLField(
-                type=GraphQLString, resolver=resolver.get_contact_lastname
+                type=GraphQLString, resolver=resolver.get_contact_field
             ),
         },
     )
