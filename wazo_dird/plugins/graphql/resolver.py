@@ -3,6 +3,15 @@
 
 from flask import request
 from wazo_dird import auth
+from wazo_dird.exception import NoSuchProfile
+
+from graphql import GraphQLError
+
+
+class NoSuchProfileGraphQLError(GraphQLError):
+    def __init__(self, profile):
+        message = f'No such profile: {profile}'
+        super().__init__(message)
 
 
 class Resolver:
@@ -29,7 +38,11 @@ class Resolver:
         tenant_uuid = info.context['tenant_uuid']
         token_id = info.context['token_id']
         profile = args['profile']
-        profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
+        try:
+            profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
+        except NoSuchProfile as e:
+            raise NoSuchProfileGraphQLError(e.profile)
+
         if args.get('extens'):
             results = [
                 self.reverse_service.reverse(
