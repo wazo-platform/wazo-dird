@@ -95,7 +95,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
             'query': '''
             {
                 me {
-                    user_uuid
+                    userUuid
                 }
             }
             ''',
@@ -103,7 +103,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN)
 
-        assert_that(response['data']['me']['user_uuid'], equal_to('uuid'))
+        assert_that(response['data']['me']['userUuid'], equal_to('uuid'))
 
     def test_multiple_reverse_lookup(self):
         dird = DirdClient(
