@@ -4,24 +4,13 @@
 import requests
 
 from flask_graphql import GraphQLView
-from graphql import GraphQLError
 from wazo_dird import BaseViewPlugin
 from wazo_dird import rest_api
 from xivo import auth_verifier
 
+from .exceptions import AuthServerUnreachable, Unauthorized
 from .resolver import Resolver
 from .schema import make_schema
-
-
-class Unauthorized(GraphQLError):
-    def __init__(self):
-        super().__init__(message='Unauthorized')
-
-
-class AuthServerUnreachable(GraphQLError):
-    def __init__(self, auth_config):
-        message = f'Authentication server {auth_config["host"]}:{auth_config["port"]} unreachable'
-        super().__init__(message)
 
 
 class AuthorizationMiddleware:

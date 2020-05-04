@@ -5,13 +5,7 @@ from flask import request
 from wazo_dird import auth
 from wazo_dird.exception import NoSuchProfile
 
-from graphql import GraphQLError
-
-
-class NoSuchProfileGraphQLError(GraphQLError):
-    def __init__(self, profile):
-        message = f'No such profile: {profile}'
-        super().__init__(message)
+from .exceptions import NoSuchProfileGraphQLError
 
 
 class Resolver:
