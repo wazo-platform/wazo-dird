@@ -3,9 +3,9 @@
 
 from flask import request
 from wazo_dird import auth
-from wazo_dird.exception import NoSuchProfile
+from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
 
-from .exceptions import NoSuchProfileGraphQLError
+from .exceptions import graphql_error_from_api_exception
 
 
 class Resolver:
@@ -35,7 +35,7 @@ class Resolver:
         try:
             profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
         except NoSuchProfile as e:
-            raise NoSuchProfileGraphQLError(e.profile)
+            raise graphql_error_from_api_exception(NoSuchProfileAPIException(e.profile))
 
         if args.get('extens'):
             results = [

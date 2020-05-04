@@ -6,9 +6,13 @@ import requests
 from flask_graphql import GraphQLView
 from wazo_dird import BaseViewPlugin
 from wazo_dird import rest_api
-from xivo import auth_verifier
+from xivo.auth_verifier import (
+    AuthServerUnreachable,
+    Unauthorized,
+    extract_token_id_from_header,
+)
 
-from .exceptions import AuthServerUnreachable, Unauthorized
+from .exceptions import graphql_error_from_api_exception
 from .resolver import Resolver
 from .schema import make_schema
 
@@ -21,20 +25,22 @@ class AuthorizationMiddleware:
     def _is_root_query(self, info):
         return 'prev' not in info.path
 
-    def _is_authorized(self, info):
+    def _is_authorized(self, info, token_id):
         root_field = info.field_name
         required_acl = f'dird.graphql.{root_field}'
-        token_id = auth_verifier.extract_token_id_from_header()
         try:
             token_is_valid = self._auth_client.token.is_valid(token_id, required_acl)
-        except requests.RequestException:
-            raise AuthServerUnreachable(self._auth_config)
+        except requests.RequestException as e:
+            host = self._auth_config['host']
+            port = self._auth_config['port']
+            raise graphql_error_from_api_exception(AuthServerUnreachable(host, port, e))
 
         return token_is_valid
 
     def resolve(self, next, root, info, **args):
-        if self._is_root_query(info) and not self._is_authorized(info):
-            raise Unauthorized()
+        token_id = extract_token_id_from_header()
+        if self._is_root_query(info) and not self._is_authorized(info, token_id):
+            raise graphql_error_from_api_exception(Unauthorized(token_id))
 
         return next(root, info, **args)
 

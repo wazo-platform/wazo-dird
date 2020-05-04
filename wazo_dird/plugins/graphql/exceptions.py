@@ -1,6 +1,8 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import time
+
 from graphql import GraphQLError
 
 
@@ -15,7 +17,12 @@ class AuthServerUnreachable(GraphQLError):
         super().__init__(message)
 
 
-class NoSuchProfileGraphQLError(GraphQLError):
-    def __init__(self, profile):
-        message = f'No such profile: {profile}'
-        super().__init__(message)
+def graphql_error_from_api_exception(e):
+    extensions = {
+        'error_id': e.id_,
+        'details': e.details or {},
+        'timestamp': time.time(),
+    }
+    if e.resource:
+        extensions['resource'] = e.resource
+    return GraphQLError(e.message, extensions=extensions)

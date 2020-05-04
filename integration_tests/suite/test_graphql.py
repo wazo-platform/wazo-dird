@@ -7,6 +7,7 @@ from hamcrest import (
     contains_string,
     equal_to,
     has_entries,
+    has_entry,
 )
 from wazo_dird_client import Client as DirdClient
 from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
@@ -44,14 +45,30 @@ class TestGraphQL(BaseDirdIntegrationTest):
         response = dird.graphql.query(query, tenant_uuid, token)
         assert_that(
             response['errors'],
-            contains(has_entries({'path': ['hello'], 'message': 'Unauthorized'})),
+            contains(
+                has_entries(
+                    {
+                        'path': ['hello'],
+                        'message': 'Unauthorized',
+                        'extensions': has_entry('error_id', 'unauthorized'),
+                    }
+                )
+            ),
         )
 
         # Token without ACL
         response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN_NO_ACL)
         assert_that(
             response['errors'],
-            contains(has_entries({'path': ['hello'], 'message': 'Unauthorized'})),
+            contains(
+                has_entries(
+                    {
+                        'path': ['hello'],
+                        'message': 'Unauthorized',
+                        'extensions': has_entry('error_id', 'unauthorized'),
+                    }
+                )
+            ),
         )
 
         # Valid token
@@ -137,7 +154,11 @@ class TestGraphQL(BaseDirdIntegrationTest):
             response['errors'],
             contains(
                 has_entries(
-                    {'path': ['me', 'contacts'], 'message': contains_string('profile')}
+                    {
+                        'path': ['me', 'contacts'],
+                        'message': contains_string('profile'),
+                        'extensions': has_entry('error_id', 'unknown-profile'),
+                    }
                 )
             ),
         )
