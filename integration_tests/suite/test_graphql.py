@@ -142,6 +142,34 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ),
         )
 
+    def test_multiple_reverse_lookup_with_one_error(self):
+        dird = DirdClient(
+            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
+        )
+        tenant_uuid = None
+        query = {
+            'query': '''
+            {
+                me {
+                    contacts(profile: "default", extens: ["5555555555", "999", "5555551234"]) {
+                        firstname
+                    }
+                }
+            }
+            ''',
+        }
+
+        response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
+
+        assert_that(
+            response['data']['me']['contacts'],
+            contains(
+                has_entries({'firstname': 'Alice'}),
+                None,
+                has_entries({'firstname': 'Bob'}),
+            ),
+        )
+
 
 class TestGraphQLNoAuth(BaseDirdIntegrationTest):
 
