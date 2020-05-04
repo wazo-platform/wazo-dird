@@ -191,6 +191,31 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ),
         )
 
+    def test_multiple_reverse_contact_fields(self):
+        dird = DirdClient(
+            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
+        )
+        tenant_uuid = None
+        query = {
+            'query': '''
+            {
+                me {
+                    contacts(profile: "default", extens: ["5555555555"]) {
+                        firstname
+                        lastname
+                    }
+                }
+            }
+            ''',
+        }
+
+        response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
+
+        assert_that(
+            response['data']['me']['contacts'],
+            contains(has_entries({'firstname': 'Alice', 'lastname': 'AAA'})),
+        )
+
 
 class TestGraphQLNoAuth(BaseDirdIntegrationTest):
 

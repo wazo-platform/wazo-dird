@@ -49,3 +49,6 @@ class Resolver:
 
     def get_contact_firstname(self, contact, info, **args):
         return contact.fields['firstname']
+
+    def get_contact_lastname(self, contact, info, **args):
+        return contact.fields['lastname']

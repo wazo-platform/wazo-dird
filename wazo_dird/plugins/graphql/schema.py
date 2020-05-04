@@ -18,6 +18,9 @@ def make_schema(resolver):
             'firstname': GraphQLField(
                 type=GraphQLString, resolver=resolver.get_contact_firstname
             ),
+            'lastname': GraphQLField(
+                type=GraphQLString, resolver=resolver.get_contact_lastname
+            ),
         },
     )
 
