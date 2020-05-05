@@ -49,3 +49,6 @@ class Resolver:
 
     def get_contact_field(self, contact, info, **args):
         return contact.fields[info.field_name]
+
+    def get_reverse_field(self, contact, info, **args):
+        return contact.fields['reverse']

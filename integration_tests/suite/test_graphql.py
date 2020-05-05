@@ -218,6 +218,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
                             node {
                                 firstname
                                 lastname
+                                wazoReverse
                             }
                         }
                     }
@@ -232,7 +233,14 @@ class TestGraphQL(BaseDirdIntegrationTest):
             response['data']['me']['contacts']['edges'],
             contains(
                 has_entry(
-                    'node', has_entries({'firstname': 'Alice', 'lastname': 'AAA'})
+                    'node',
+                    has_entries(
+                        {
+                            'firstname': 'Alice',
+                            'lastname': 'AAA',
+                            'wazoReverse': 'Alice AAA',
+                        }
+                    ),
                 ),
             ),
         )
