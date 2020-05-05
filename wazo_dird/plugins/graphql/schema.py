@@ -1,11 +1,14 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from graphene import ObjectType, String, Schema, Field, List
+from graphene import ObjectType, String, Schema, Field, List, relay, Connection
 
 
 def make_schema(resolver):
     class Contact(ObjectType):
+        class Meta:
+            interfaces = [relay.Node]
+
         firstname = Field(String)
         lastname = Field(String)
 
@@ -15,9 +18,16 @@ def make_schema(resolver):
         def resolve_lastname(contact, info):
             return resolver.get_contact_field(contact, info)
 
+        def get_node(self, info, id):
+            pass
+
+    class ContactConnection(Connection):
+        class Meta:
+            node = Contact
+
     class UserMe(ObjectType):
-        contacts = Field(
-            List(Contact),
+        contacts = relay.ConnectionField(
+            ContactConnection,
             extens=List(
                 String,
                 description='Return only contacts having exactly one of the given extens',

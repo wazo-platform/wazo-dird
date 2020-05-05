@@ -115,7 +115,11 @@ class TestGraphQL(BaseDirdIntegrationTest):
             {
                 me {
                     contacts(profile: "default", extens: ["5555555555", "5555551234"]) {
-                        firstname
+                        edges {
+                            node {
+                                firstname
+                            }
+                        }
                     }
                 }
             }
@@ -125,9 +129,10 @@ class TestGraphQL(BaseDirdIntegrationTest):
         response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
 
         assert_that(
-            response['data']['me']['contacts'],
+            response['data']['me']['contacts']['edges'],
             contains(
-                has_entries({'firstname': 'Alice'}), has_entries({'firstname': 'Bob'}),
+                has_entry('node', has_entries({'firstname': 'Alice'})),
+                has_entry('node', has_entries({'firstname': 'Bob'})),
             ),
         )
 
@@ -141,7 +146,11 @@ class TestGraphQL(BaseDirdIntegrationTest):
             {
                 me {
                     contacts(profile: "wrong", extens: ["5555555555", "5555551234"]) {
-                        firstname
+                        edges {
+                            node {
+                                firstname
+                            }
+                        }
                     }
                 }
             }
@@ -173,7 +182,11 @@ class TestGraphQL(BaseDirdIntegrationTest):
             {
                 me {
                     contacts(profile: "default", extens: ["5555555555", "999", "5555551234"]) {
-                        firstname
+                        edges {
+                            node {
+                                firstname
+                            }
+                        }
                     }
                 }
             }
@@ -183,11 +196,11 @@ class TestGraphQL(BaseDirdIntegrationTest):
         response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
 
         assert_that(
-            response['data']['me']['contacts'],
+            response['data']['me']['contacts']['edges'],
             contains(
-                has_entries({'firstname': 'Alice'}),
-                None,
-                has_entries({'firstname': 'Bob'}),
+                has_entry('node', has_entries({'firstname': 'Alice'})),
+                has_entry('node', None),
+                has_entry('node', has_entries({'firstname': 'Bob'})),
             ),
         )
 
@@ -201,8 +214,12 @@ class TestGraphQL(BaseDirdIntegrationTest):
             {
                 me {
                     contacts(profile: "default", extens: ["5555555555"]) {
-                        firstname
-                        lastname
+                        edges {
+                            node {
+                                firstname
+                                lastname
+                            }
+                        }
                     }
                 }
             }
@@ -212,8 +229,12 @@ class TestGraphQL(BaseDirdIntegrationTest):
         response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
 
         assert_that(
-            response['data']['me']['contacts'],
-            contains(has_entries({'firstname': 'Alice', 'lastname': 'AAA'})),
+            response['data']['me']['contacts']['edges'],
+            contains(
+                has_entry(
+                    'node', has_entries({'firstname': 'Alice', 'lastname': 'AAA'})
+                ),
+            ),
         )
 
 
