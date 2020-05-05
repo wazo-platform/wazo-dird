@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
+    any_of,
     assert_that,
     contains,
     contains_string,
@@ -219,6 +220,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
                                 firstname
                                 lastname
                                 wazoReverse
+                                wazoSourceName
                             }
                         }
                     }
@@ -239,6 +241,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
                             'firstname': 'Alice',
                             'lastname': 'AAA',
                             'wazoReverse': 'Alice AAA',
+                            'wazoSourceName': any_of('my_csv', 'my_csv_2'),
                         }
                     ),
                 ),

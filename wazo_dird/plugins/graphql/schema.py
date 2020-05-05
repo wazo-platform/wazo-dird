@@ -12,6 +12,7 @@ def make_schema(resolver):
         firstname = Field(String)
         lastname = Field(String)
         wazo_reverse = Field(String)
+        wazo_source_name = Field(String)
 
         def resolve_firstname(contact, info):
             return resolver.get_contact_field(contact, info)
@@ -21,6 +22,9 @@ def make_schema(resolver):
 
         def resolve_wazo_reverse(contact, info):
             return resolver.get_reverse_field(contact, info)
+
+        def resolve_wazo_source_name(contact, info):
+            return resolver.get_source_name(contact, info)
 
         def get_node(self, info, id):
             pass
