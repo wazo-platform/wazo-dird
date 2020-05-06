@@ -29,21 +29,24 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
         main_tenant_token = MockUserToken.some_token(
-            metadata={'tenant_uuid': MAIN_TENANT}
+            metadata={'uuid': 'my-user-uuid', 'tenant_uuid': MAIN_TENANT}
         )
         mock_auth_client.set_token(main_tenant_token)
         cls.main_tenant_token = main_tenant_token.token_id
+        cls.dird = DirdClient(
+            'localhost', cls.service_port(9489, 'dird'), verify_certificate=False
+        )
+        cls.dird.set_token(cls.main_tenant_token)
 
     def test_authentication(self):
         dird = DirdClient(
             'localhost', self.service_port(9489, 'dird'), verify_certificate=False
         )
         query = {'query': '{ hello }'}
-        tenant_uuid = None
-        token = None
 
         # Wrong token
-        response = dird.graphql.query(query, tenant_uuid, token)
+        dird.set_token(None)
+        response = dird.graphql.query(query)
         assert_that(
             response['errors'],
             contains(
@@ -58,7 +61,8 @@ class TestGraphQL(BaseDirdIntegrationTest):
         )
 
         # Token without ACL
-        response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN_NO_ACL)
+        dird.set_token(VALID_TOKEN_NO_ACL)
+        response = dird.graphql.query(query)
         assert_that(
             response['errors'],
             contains(
@@ -73,25 +77,18 @@ class TestGraphQL(BaseDirdIntegrationTest):
         )
 
         # Valid token
-        response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN)
+        dird.set_token(VALID_TOKEN)
+        response = dird.graphql.query(query)
         assert response == {'data': {'hello': 'world'}}
 
     def test_hello_world(self):
-        dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
-        )
         query = {'query': '{ hello }'}
-        tenant_uuid = None
 
-        response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN)
+        response = self.dird.graphql.query(query)
 
         assert response == {'data': {'hello': 'world'}}
 
     def test_user_me(self):
-        dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
-        )
-        tenant_uuid = None
         query = {
             'query': '''
             {
@@ -102,15 +99,11 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ''',
         }
 
-        response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN)
+        response = self.dird.graphql.query(query)
 
-        assert_that(response['data']['me']['userUuid'], equal_to('uuid'))
+        assert_that(response['data']['me']['userUuid'], equal_to('my-user-uuid'))
 
     def test_multiple_reverse_lookup(self):
-        dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
-        )
-        tenant_uuid = None
         query = {
             'query': '''
             {
@@ -127,7 +120,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ''',
         }
 
-        response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
+        response = self.dird.graphql.query(query)
 
         assert_that(
             response['data']['me']['contacts']['edges'],
@@ -138,10 +131,6 @@ class TestGraphQL(BaseDirdIntegrationTest):
         )
 
     def test_multiple_reverse_lookup_wrong_profile(self):
-        dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
-        )
-        tenant_uuid = None
         query = {
             'query': '''
             {
@@ -158,7 +147,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ''',
         }
 
-        response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
+        response = self.dird.graphql.query(query)
 
         assert_that(
             response['errors'],
@@ -174,10 +163,6 @@ class TestGraphQL(BaseDirdIntegrationTest):
         )
 
     def test_multiple_reverse_lookup_with_one_error(self):
-        dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
-        )
-        tenant_uuid = None
         query = {
             'query': '''
             {
@@ -194,7 +179,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ''',
         }
 
-        response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
+        response = self.dird.graphql.query(query)
 
         assert_that(
             response['data']['me']['contacts']['edges'],
@@ -206,10 +191,6 @@ class TestGraphQL(BaseDirdIntegrationTest):
         )
 
     def test_multiple_reverse_contact_fields(self):
-        dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
-        )
-        tenant_uuid = None
         query = {
             'query': '''
             {
@@ -229,7 +210,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ''',
         }
 
-        response = dird.graphql.query(query, tenant_uuid, self.main_tenant_token)
+        response = self.dird.graphql.query(query)
 
         assert_that(
             response['data']['me']['contacts']['edges'],
@@ -257,10 +238,10 @@ class TestGraphQLNoAuth(BaseDirdIntegrationTest):
         dird = DirdClient(
             'localhost', self.service_port(9489, 'dird'), verify_certificate=False
         )
+        dird.set_token(VALID_TOKEN)
         query = {'query': '{ hello }'}
-        tenant_uuid = None
 
-        response = dird.graphql.query(query, tenant_uuid, VALID_TOKEN)
+        response = dird.graphql.query(query)
         assert_that(
             response['errors'],
             contains(
