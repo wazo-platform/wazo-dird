@@ -55,7 +55,6 @@ consul:
   scheme: http
   host: localhost
   port: 8500
-  verify: /usr/share/xivo-certs/server.crt
 
 #enabled_plugins:
 #  backends:

@@ -17,12 +17,7 @@ _DEFAULT_CONFIG = {
         'key_file': '',
     },
     'config_file': '/etc/wazo-dird/config.yml',
-    'consul': {
-        'scheme': 'http',
-        'host': 'localhost',
-        'port': 8500,
-        'verify': '/usr/share/xivo-certs/server.crt',
-    },
+    'consul': {'scheme': 'http', 'host': 'localhost', 'port': 8500},
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'debug': False,
     'extra_config_files': '/etc/wazo-dird/conf.d/',
