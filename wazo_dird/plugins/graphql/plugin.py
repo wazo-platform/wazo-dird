@@ -4,24 +4,17 @@
 import requests
 
 from flask_graphql import GraphQLView
-from graphql import GraphQLError
 from wazo_dird import BaseViewPlugin
 from wazo_dird import rest_api
-from xivo import auth_verifier
+from xivo.auth_verifier import (
+    AuthServerUnreachable,
+    Unauthorized,
+    extract_token_id_from_header,
+)
 
+from .exceptions import graphql_error_from_api_exception
 from .resolver import Resolver
 from .schema import make_schema
-
-
-class Unauthorized(GraphQLError):
-    def __init__(self):
-        super().__init__(message='Unauthorized')
-
-
-class AuthServerUnreachable(GraphQLError):
-    def __init__(self, auth_config):
-        message = f'Authentication server {auth_config["host"]}:{auth_config["port"]} unreachable'
-        super().__init__(message)
 
 
 class AuthorizationMiddleware:
@@ -32,20 +25,22 @@ class AuthorizationMiddleware:
     def _is_root_query(self, info):
         return 'prev' not in info.path
 
-    def _is_authorized(self, info):
+    def _is_authorized(self, info, token_id):
         root_field = info.field_name
         required_acl = f'dird.graphql.{root_field}'
-        token_id = auth_verifier.extract_token_id_from_header()
         try:
             token_is_valid = self._auth_client.token.is_valid(token_id, required_acl)
-        except requests.RequestException:
-            raise AuthServerUnreachable(self._auth_config)
+        except requests.RequestException as e:
+            host = self._auth_config['host']
+            port = self._auth_config['port']
+            raise graphql_error_from_api_exception(AuthServerUnreachable(host, port, e))
 
         return token_is_valid
 
     def resolve(self, next, root, info, **args):
-        if self._is_root_query(info) and not self._is_authorized(info):
-            raise Unauthorized()
+        token_id = extract_token_id_from_header()
+        if self._is_root_query(info) and not self._is_authorized(info, token_id):
+            raise graphql_error_from_api_exception(Unauthorized(token_id))
 
         return next(root, info, **args)
 
@@ -53,15 +48,23 @@ class AuthorizationMiddleware:
 class GraphQLViewPlugin(BaseViewPlugin):
     def load(self, dependencies):
         app = dependencies['flask_app']
-        config = dependencies['config']
-        resolver = Resolver()
+
+        profile_service = dependencies['services'].get('profile')
+        reverse_service = dependencies['services'].get('reverse')
+        resolver = Resolver(profile_service, reverse_service)
         schema = make_schema(resolver)
+
+        config = dependencies['config']
         auth_client = dependencies['auth_client']
         authorization_middleware = AuthorizationMiddleware(config['auth'], auth_client)
 
         app.add_url_rule(
             '/{version}/graphql'.format(version=rest_api.VERSION),
             view_func=GraphQLView.as_view(
-                'graphql', schema=schema, middleware=[authorization_middleware],
+                'graphql',
+                schema=schema,
+                middleware=[authorization_middleware],
+                # get_context: source: https://github.com/graphql-python/flask-graphql/issues/52#issuecomment-412773200
+                get_context=dict,
             ),
         )

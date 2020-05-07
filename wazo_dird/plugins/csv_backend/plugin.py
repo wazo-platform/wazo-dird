@@ -66,14 +66,18 @@ class CSVPlugin(BaseSourcePlugin):
         return self._list_from_predicate(fn)
 
     def first_match(self, term, args=None):
+        logger.debug('Looking for the first CSV entry matching "%s"', term)
         if self.FIRST_MATCHED_COLUMNS not in self._config:
+            logger.debug('No column configured for first match. Stopping.')
             return None
 
         for entry in self._content:
             if self._exact_match_entry(
                 term, self._config[self.FIRST_MATCHED_COLUMNS], entry
             ):
+                logger.debug('Found one CSV entry matching "%s"', term)
                 return self._SourceResult(entry)
+        logger.debug('Found no CSV entry matching "%s"', term)
         return None
 
     def list(self, unique_ids, args=None):
