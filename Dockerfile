@@ -1,7 +1,6 @@
 FROM python:3.7-buster
 
 COPY . /usr/src/wazo-dird
-COPY ./contribs/docker/certs /usr/share/xivo-certs
 
 WORKDIR /usr/src/wazo-dird
 
@@ -20,8 +19,6 @@ RUN apt-get -yq update \
    && apt-get -yqq autoremove \
    && apt-get -yqq clean \
    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-ADD ./contribs/docker/certs /usr/share/xivo-certs
 
 EXPOSE 9489
 

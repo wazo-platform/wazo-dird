@@ -75,10 +75,10 @@ _DEFAULT_CONFIG = {
     'log_filename': '/var/log/wazo-dird.log',
     'pid_filename': '/run/wazo-dird/wazo-dird.pid',
     'rest_api': {
-        'listen': '0.0.0.0',
+        'listen': '127.0.0.1',
         'port': _DEFAULT_HTTPS_PORT,
-        'certificate': '/usr/share/xivo-certs/server.crt',
-        'private_key': '/usr/share/xivo-certs/server.key',
+        'certificate': None,  # Deprecated
+        'private_key': None,  # Deprecated
         'cors': {
             'enabled': True,
             'allow_headers': ['Content-Type', 'X-Auth-Token', 'Wazo-Tenant'],

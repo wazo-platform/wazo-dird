@@ -5,7 +5,6 @@ import os
 from hamcrest import has_properties
 
 ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
-CA_CERT = os.path.join(ASSET_ROOT, 'ssl', 'dird', 'server.crt')
 DB_URI_FMT = os.getenv(
     'DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}/asterisk'
 )

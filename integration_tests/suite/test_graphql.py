@@ -34,19 +34,20 @@ class TestGraphQL(BaseDirdIntegrationTest):
         mock_auth_client.set_token(main_tenant_token)
         cls.main_tenant_token = main_tenant_token.token_id
         cls.dird = DirdClient(
-            'localhost', cls.service_port(9489, 'dird'), verify_certificate=False
+            'localhost', cls.service_port(9489, 'dird'), prefix=None, https=False
         )
         cls.dird.set_token(cls.main_tenant_token)
 
+    def setUp(self):
+        super().setUp()
+        self.dird.set_token(self.main_tenant_token)
+
     def test_authentication(self):
-        dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
-        )
         query = {'query': '{ hello }'}
 
         # Wrong token
-        dird.set_token(None)
-        response = dird.graphql.query(query)
+        self.dird.set_token(None)
+        response = self.dird.graphql.query(query)
         assert_that(
             response['errors'],
             contains(
@@ -61,8 +62,8 @@ class TestGraphQL(BaseDirdIntegrationTest):
         )
 
         # Token without ACL
-        dird.set_token(VALID_TOKEN_NO_ACL)
-        response = dird.graphql.query(query)
+        self.dird.set_token(VALID_TOKEN_NO_ACL)
+        response = self.dird.graphql.query(query)
         assert_that(
             response['errors'],
             contains(
@@ -77,8 +78,8 @@ class TestGraphQL(BaseDirdIntegrationTest):
         )
 
         # Valid token
-        dird.set_token(VALID_TOKEN)
-        response = dird.graphql.query(query)
+        self.dird.set_token(VALID_TOKEN)
+        response = self.dird.graphql.query(query)
         assert response == {'data': {'hello': 'world'}}
 
     def test_hello_world(self):
@@ -236,7 +237,7 @@ class TestGraphQLNoAuth(BaseDirdIntegrationTest):
 
     def test_unreachable_auth_should_return_error(self):
         dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), verify_certificate=False
+            'localhost', self.service_port(9489, 'dird'), prefix=None, https=False
         )
         dird.set_token(VALID_TOKEN)
         query = {'query': '{ hello }'}
