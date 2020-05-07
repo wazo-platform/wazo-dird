@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -31,13 +31,6 @@ class TestConfig(TestCase):
         result = config.load(s.logger, ['-c', 'my_file'])
 
         assert_that(result['config_file'], equal_to('my_file'))
-
-    def test_load_when_foreground_in_argv_then_ignore_default_value(self, mock_open):
-        mock_open.side_effect = IOError('no such file')
-
-        result = config.load(s.logger, ['-f'])
-
-        assert_that(result['foreground'], equal_to(True))
 
     def test_load_when_user_in_argv_then_ignore_default_value(self, mock_open):
         mock_open.side_effect = IOError('no such file')

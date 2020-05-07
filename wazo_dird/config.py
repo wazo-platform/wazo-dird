@@ -78,7 +78,6 @@ _DEFAULT_CONFIG = {
     },
     'log_level': 'info',
     'log_filename': '/var/log/wazo-dird.log',
-    'foreground': False,
     'pid_filename': '/run/wazo-dird/wazo-dird.pid',
     'rest_api': {
         'listen': '0.0.0.0',
@@ -148,12 +147,6 @@ def _parse_cli_args(argv):
         help="Log debug messages. Overrides log_level. Default: %(default)s",
     )
     parser.add_argument(
-        '-f',
-        '--foreground',
-        action='store_true',
-        help="Foreground, don't daemonize. Default: %(default)s",
-    )
-    parser.add_argument(
         '-l',
         '--log-level',
         action='store',
@@ -170,8 +163,6 @@ def _parse_cli_args(argv):
         result['config_file'] = parsed_args.config_file
     if parsed_args.debug:
         result['debug'] = parsed_args.debug
-    if parsed_args.foreground:
-        result['foreground'] = parsed_args.foreground
     if parsed_args.log_level:
         result['log_level'] = parsed_args.log_level
     if parsed_args.user:

@@ -25,4 +25,4 @@ ADD ./contribs/docker/certs /usr/share/xivo-certs
 
 EXPOSE 9489
 
-CMD ["wazo-dird", "-fd"]
+CMD ["wazo-dird", "-d"]

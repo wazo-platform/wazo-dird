@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -13,6 +13,7 @@ from wazo_dird.controller import Controller
 from wazo_dird.config import load as load_config
 
 logger = logging.getLogger(__name__)
+FOREGROUND = True  # Always in foreground systemd takes care of daemonizing
 
 
 class _PreConfigLogger:
@@ -55,10 +56,7 @@ def main(argv=None):
         config = load_config(logger, argv)
 
         xivo_logging.setup_logging(
-            config['log_filename'],
-            config['foreground'],
-            config['debug'],
-            config['log_level'],
+            config['log_filename'], FOREGROUND, config['debug'], config['log_level'],
         )
     xivo_logging.silence_loggers(
         ['Flask-Cors', 'amqp', 'urllib3', 'stevedore.extension'], logging.WARNING
@@ -75,7 +73,7 @@ def main(argv=None):
 
     controller = Controller(config)
 
-    with pidfile_context(config['pid_filename'], config['foreground']):
+    with pidfile_context(config['pid_filename'], FOREGROUND):
         try:
             controller.run()
         except KeyboardInterrupt:
