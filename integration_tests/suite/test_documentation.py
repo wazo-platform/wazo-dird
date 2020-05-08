@@ -20,7 +20,7 @@ class TestDocumentation(DirdAssetRunningTestCase):
 
     def test_documentation_errors(self):
         port = self.service_port(9489, 'dird')
-        api_url = 'https://localhost:{port}/0.1/api/api.yml'.format(port=port)
-        api = requests.get(api_url, verify=False)
+        api_url = 'http://localhost:{port}/0.1/api/api.yml'.format(port=port)
+        api = requests.get(api_url)
         api.raise_for_status()
         validate_v2_spec(yaml.safe_load(api.text))

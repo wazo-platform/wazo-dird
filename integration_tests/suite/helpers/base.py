@@ -22,7 +22,6 @@ from wazo_dird import database
 
 from .constants import (
     ASSET_ROOT,
-    CA_CERT,
     DIRD_TOKEN_TENANT,
     DB_URI_FMT,
     MAIN_TENANT,
@@ -116,7 +115,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def get_client(cls, token=VALID_TOKEN_MAIN_TENANT):
-        return Client(cls.host, cls.port, token=token, verify_certificate=False)
+        return Client(cls.host, cls.port, token=token, prefix=None, https=False)
 
     @property
     def client(self):
@@ -124,7 +123,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def url(cls, *parts):
-        return 'https://localhost:{port}/0.1/{parts}'.format(
+        return 'http://localhost:{port}/0.1/{parts}'.format(
             port=cls.port, parts="/".join(map(str, parts))
         )
 
@@ -416,14 +415,12 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     def delete(*args, **kwargs):
         token = kwargs.pop('token', None)
         kwargs.setdefault('headers', {'X-Auth-Token': token})
-        kwargs.setdefault('verify', CA_CERT)
         return requests.delete(*args, **kwargs)
 
     @staticmethod
     def get(*args, **kwargs):
         token = kwargs.pop('token', None)
         kwargs.setdefault('headers', {'X-Auth-Token': token})
-        kwargs.setdefault('verify', CA_CERT)
         return requests.get(*args, **kwargs)
 
     @staticmethod
@@ -432,7 +429,6 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         kwargs.setdefault(
             'headers', {'X-Auth-Token': token, 'Content-Type': 'application/json'}
         )
-        kwargs.setdefault('verify', CA_CERT)
         return requests.post(*args, **kwargs)
 
     @staticmethod
@@ -441,7 +437,6 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         kwargs.setdefault(
             'headers', {'X-Auth-Token': token, 'Content-Type': 'application/json'}
         )
-        kwargs.setdefault('verify', CA_CERT)
         return requests.put(*args, **kwargs)
 
     @staticmethod

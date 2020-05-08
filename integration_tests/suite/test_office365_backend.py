@@ -71,7 +71,8 @@ class BaseOffice365TestCase(DirdAssetRunningTestCase):
             'host': 'localhost',
             'port': port,
             'token': VALID_TOKEN_MAIN_TENANT,
-            'verify_certificate': False,
+            'prefix': None,
+            'https': False,
         }
         self.client = DirdClient(**dird_config)
         self.source = self.client.backends.create_source(

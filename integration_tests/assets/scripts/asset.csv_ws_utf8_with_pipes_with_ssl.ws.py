@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Avencall
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import unicode_literals
@@ -12,8 +12,8 @@ from flask import Flask, request, Response
 app = Flask(__name__)
 
 context = (
-    '/usr/local/share/ssl/dird/server.crt',
-    '/usr/local/share/ssl/dird/server.key',
+    '/usr/local/share/ssl/generic/server.crt',
+    '/usr/local/share/ssl/generic/server.key',
 )
 
 headers = ['id', 'firstname', 'lastname', 'number']

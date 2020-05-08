@@ -1,5 +1,9 @@
 # Changelog
 
+## 20.07
+
+* Deprecate SSL configuration
+
 ## 20.06
 
 * Added a GraphQL endpoint in `/0.1/graphql`.

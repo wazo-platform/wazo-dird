@@ -62,9 +62,14 @@ class CoreRestApi:
             ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': self.app}))
         )
         server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
-        server.ssl_adapter = http_helpers.ssl_adapter(
-            self.config['certificate'], self.config['private_key']
-        )
+        if self.config['certificate'] and self.config['private_key']:
+            logger.warning(
+                'Using service SSL configuration is deprecated. Please use NGINX instead.'
+            )
+            server.ssl_adapter = http_helpers.ssl_adapter(
+                self.config['certificate'], self.config['private_key']
+            )
+
         logger.debug(
             'WSGIServer starting... uid: %s, listen: %s:%s',
             os.getuid(),

@@ -1,9 +1,0 @@
-version: '3'
-services:
-  sync:
-    depends_on:
-      - dird
-  dird:
-    volumes:
-      - "./etc/wazo-dird/conf.d/asset.no-ssl-certificate.yml:/etc/wazo-dird/conf.d/20-config.yml"
-      - "./ssl/dird/server.key:/tmp/ssl/dird/server.key"

@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -16,7 +16,6 @@ from hamcrest import (
 from mock import ANY
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from xivo_test_helpers.hamcrest.raises import raises
-from wazo_dird_client import Client
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
@@ -34,16 +33,6 @@ class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
     asset = 'all_routes'
     valid_body = {'name': 'internal', 'auth': {'key_file': '/path/to/the/key/file'}}
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.host = 'localhost'
-        cls.port = cls.service_port(9489, 'dird')
-
-    @property
-    def client(self):
-        return self.get_client()
-
     def assert_unknown_source_exception(self, source_uuid, exception):
         assert_that(exception.response.status_code, equal_to(404))
         assert_that(
@@ -54,9 +43,6 @@ class BaseWazoCRUDTestCase(BaseDirdIntegrationTest):
                 details=has_entries(uuid=source_uuid),
             ),
         )
-
-    def get_client(self, token=VALID_TOKEN_MAIN_TENANT):
-        return Client(self.host, self.port, token=token, verify_certificate=False)
 
     @contextmanager
     def source(self, client, *args, **kwargs):

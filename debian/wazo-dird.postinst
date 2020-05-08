@@ -5,7 +5,6 @@ set -e
 LOG_FILENAME='/var/log/wazo-dird.log'
 DIRD_ALEMBIC_INI_PATH='/usr/share/wazo-dird'
 DAEMONNAME='wazo-dird'
-OLD_NGINX_CONFIG="/etc/nginx/locations/https-available/xivo-dird /etc/nginx/locations/https-enabled/xivo-dird"
 
 
 case "$1" in
@@ -15,56 +14,13 @@ case "$1" in
 		(cd $DIRD_ALEMBIC_INI_PATH && python3 -m alembic.config -c alembic.ini upgrade head)
 
 		if [ ! -e "$LOG_FILENAME" ]; then
-			# The log filename was renamed in Wazo 18.05 Debian Stretch
-			if [ -e "/var/log/xivo-dird.log" ]; then
-				for f in $(ls /var/log/xivo-dird.log*); do
-					new_name=$(echo "${f}" | awk -F'/' '{ print $NF }' | sed 's/xivo/wazo/')
-					mv "${f}" "/var/log/${new_name}"
-				done
-			else
-				touch "$LOG_FILENAME"
-			fi
+			touch "$LOG_FILENAME"
 		fi
 		chown www-data: "$LOG_FILENAME"
 
 		if [ -z "$2" ]; then
-			# The config dir was moved from /etc/xivo-dird in version 18.05
-			if [ -e /etc/xivo-dird/conf.d ]; then
-				(
-					shopt -s nullglob
-					for f in /etc/xivo-dird/conf.d/*; do
-						mv "${f}" /etc/wazo-dird/conf.d/
-					done
-				)
-			fi
-			if [ -e /etc/xivo-dird/templates.d ]; then
-				(
-					shopt -s nullglob
-					for f in /etc/xivo-dird/templates.d/*; do
-						mv "${f}" /etc/wazo-dird/templates.d/
-					done
-				)
-			fi
-			rm -rf /etc/xivo-dird
-
 			ln -sf	/etc/nginx/locations/https-available/$DAEMONNAME \
 					/etc/nginx/locations/https-enabled/$DAEMONNAME
-			for f in ${OLD_NGINX_CONFIG}; do
-				rm -f ${f}
-			done
-
-		fi
-
-		# Remove the old PID file directory
-		if dpkg --compare-versions "$2" lt '18.05~'; then
-			rm -rf /run/xivo-dird
-		fi
-
-		# Remove old configuration files
-		if dpkg --compare-versions "$2" lt '19.06~'; then
-			rm -f /etc/wazo-dird/conf.d/050-xivo-services.yml
-			rm -f /etc/wazo-dird/conf.d/050-xivo-sources.yml
-			rm -f /etc/wazo-dird/conf.d/050-xivo-views.yml
 		fi
 	;;
 
