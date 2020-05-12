@@ -27,11 +27,11 @@ class TestGraphQL(BaseDirdIntegrationTest):
     def setUpClass(cls):
         super().setUpClass()
 
-        mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        cls.auth = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
         main_tenant_token = MockUserToken.some_token(
             metadata={'uuid': 'my-user-uuid', 'tenant_uuid': MAIN_TENANT}
         )
-        mock_auth_client.set_token(main_tenant_token)
+        cls.auth.set_token(main_tenant_token)
         cls.main_tenant_token = main_tenant_token.token_id
         cls.dird = DirdClient(
             'localhost', cls.service_port(9489, 'dird'), prefix=None, https=False
@@ -43,10 +43,9 @@ class TestGraphQL(BaseDirdIntegrationTest):
         self.dird.set_token(self.main_tenant_token)
 
     def test_authentication(self):
-        query = {'query': '{ hello }'}
-
         # Wrong token
         self.dird.set_token(None)
+        query = {'query': '{ hello }'}
         response = self.dird.graphql.query(query)
         assert_that(
             response['errors'],
@@ -63,6 +62,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         # Token without ACL
         self.dird.set_token(VALID_TOKEN_NO_ACL)
+        query = {'query': '{ hello }'}
         response = self.dird.graphql.query(query)
         assert_that(
             response['errors'],
@@ -77,8 +77,21 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ),
         )
 
+        # Valid token get subfield
+        token = MockUserToken.some_token(
+            user_uuid='my-user-uuid',
+            metadata={'tenant_uuid': MAIN_TENANT},
+            acls=['dird.graphql.me'],
+        )
+        self.auth.set_token(token)
+        query = {'query': '{ me { userUuid } }'}
+        self.dird.set_token(token.token_id)
+        response = self.dird.graphql.query(query)
+        assert response == {'data': {'me': {'userUuid': 'my-user-uuid'}}}
+
         # Valid token
         self.dird.set_token(VALID_TOKEN)
+        query = {'query': '{ hello }'}
         response = self.dird.graphql.query(query)
         assert response == {'data': {'hello': 'world'}}
 

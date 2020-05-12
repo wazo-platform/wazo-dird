@@ -23,7 +23,7 @@ class AuthorizationMiddleware:
         self._auth_client = auth_client
 
     def _is_root_query(self, info):
-        return 'prev' not in info.path
+        return len(info.path) == 1
 
     def _is_authorized(self, info, token_id):
         root_field = info.field_name
