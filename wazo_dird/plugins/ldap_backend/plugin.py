@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import itertools
@@ -226,11 +226,11 @@ class _LDAPConfig:
         )
         return self._build_filter_from_list(list_)
 
-    def _build_filter_from_list(self, l):
-        if len(l) == 1:
-            return l[0]
+    def _build_filter_from_list(self, list_):
+        if len(list_) == 1:
+            return list_[0]
         else:
-            return '(|%s)' % ''.join(l)
+            return '(|%s)' % ''.join(list_)
 
     def build_list_filter(self, uids):
         if not uids:
