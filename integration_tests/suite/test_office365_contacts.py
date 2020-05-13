@@ -61,7 +61,7 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
             {
                 'name': 'office365',
                 'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
-                'endpoint': f'http://microsoft.com:443/v1.0/me/contacts',
+                'endpoint': 'http://microsoft.com:443/v1.0/me/contacts',
             },
         )
         self.source_uuid = source['uuid']
