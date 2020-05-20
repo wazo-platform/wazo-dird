@@ -95,6 +95,12 @@ class TestGraphQL(BaseDirdIntegrationTest):
         response = self.dird.graphql.query(query)
         assert response == {'data': {'hello': 'world'}}
 
+        # No token needed for __schema
+        self.dird.set_token(None)
+        query = {'query': '{ __schema { queryType { name }}}'}
+        response = self.dird.graphql.query(query)
+        assert response == {'data': {'__schema': {'queryType': {'name': 'Query'}}}}
+
     def test_hello_world(self):
         query = {'query': '{ hello }'}
 
