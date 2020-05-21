@@ -1,25 +1,30 @@
-FROM python:3.7-buster
+FROM python:3.7-slim-buster AS compile-image
+LABEL maintainer="Wazo Maintainers <dev@wazo.community>"
+
+RUN python -m venv /opt/venv
+# Activate virtual env
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN apt-get -q update
+RUN apt-get -yq install gcc libldap2-dev libsasl2-dev
 
 COPY . /usr/src/wazo-dird
-
 WORKDIR /usr/src/wazo-dird
+RUN pip install -r requirements.txt
+RUN python setup.py install
 
-RUN apt-get -yq update \
-   && apt-get -yqq install libldap2-dev libsasl2-dev \
-   && mkdir -p /etc/wazo-dird/conf.d \
-   && mkdir -p /etc/wazo-dird/templates.d \
-   && mkdir -p /run/wazo-dird \
-   && chmod a+w /run/wazo-dird \
-   && touch /var/log/wazo-dird.log \
-   && chown www-data: /var/log/wazo-dird.log \
-   && pip install -r requirements.txt \
-   && cp -r etc/* /etc \
-   && python setup.py install \
-   && apt-get -yqq remove libldap2-dev libsasl2-dev \
-   && apt-get -yqq autoremove \
-   && apt-get -yqq clean \
-   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+FROM python:3.7-slim-buster AS build-image
+COPY --from=compile-image /opt/venv /opt/venv
+
+COPY ./etc/wazo-dird /etc/wazo-dird
+RUN true \
+    && mkdir -p /etc/wazo-dird/conf.d \
+    && mkdir -p /etc/wazo-dird/templates.d \
+    && install -o www-data -g www-data /dev/null /var/log/wazo-dird.log \
+    && install -d -o www-data -g www-data /run/wazo-dird/
 
 EXPOSE 9489
 
+# Activate virtual env
+ENV PATH="/opt/venv/bin:$PATH"
 CMD ["wazo-dird", "-d"]
