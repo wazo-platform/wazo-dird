@@ -37,12 +37,22 @@ class AuthorizationMiddleware:
 
         return token_is_valid
 
-    def resolve(self, next, root, info, **args):
-        token_id = extract_token_id_from_header()
-        if self._is_root_query(info) and not self._is_authorized(info, token_id):
-            raise graphql_error_from_api_exception(Unauthorized(token_id))
+    def _is_schema_query(self, info):
+        root_field = info.field_name
+        return root_field == '__schema'
 
-        return next(root, info, **args)
+    def resolve(self, next, root, info, **args):
+        if not self._is_root_query(info):
+            return next(root, info, **args)
+
+        if self._is_schema_query(info):
+            return next(root, info, **args)
+
+        token_id = extract_token_id_from_header()
+        if self._is_authorized(info, token_id):
+            return next(root, info, **args)
+
+        raise graphql_error_from_api_exception(Unauthorized(token_id))
 
 
 class GraphQLViewPlugin(BaseViewPlugin):
