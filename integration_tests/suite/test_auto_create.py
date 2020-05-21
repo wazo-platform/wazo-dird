@@ -7,7 +7,6 @@ from hamcrest import (
     assert_that,
     contains,
     contains_inanyorder,
-    empty,
     has_entries,
     has_item,
 )
@@ -82,11 +81,16 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                                 'https': False,
                                 'version': '1.1',
                             },
-                            first_matched_columns=empty(),
+                            first_matched_columns=contains_inanyorder(
+                                'extensions', 'incalls'
+                            ),
                             searched_columns=contains_inanyorder(
                                 'name', 'extensions', 'incalls'
                             ),
-                            format_columns={'phone': '{extensions[0]}'},
+                            format_columns={
+                                'phone': '{extensions[0]}',
+                                'reverse': '{name}',
+                            },
                         )
                     )
                 ),

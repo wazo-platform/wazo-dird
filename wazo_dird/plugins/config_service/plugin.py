@@ -46,9 +46,9 @@ CONFERENCE_SOURCE_BODY = {
         'https': False,
         'version': '1.1',
     },
-    'format_columns': {'phone': '{extensions[0]}'},
+    'format_columns': {'phone': '{extensions[0]}', 'reverse': '{name}'},
     'searched_columns': ['name', 'extensions', 'incalls'],
-    'first_matched_columns': [],
+    'first_matched_columns': ['extensions', 'incalls'],
 }
 PERSONAL_SOURCE_BODY = {
     'name': 'personal',
