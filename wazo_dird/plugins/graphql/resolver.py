@@ -55,3 +55,6 @@ class Resolver:
 
     def get_source_name(self, contact, info, **args):
         return contact.source
+
+    def get_backend(self, contact, info, **args):
+        return contact.backend

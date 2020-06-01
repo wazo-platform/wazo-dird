@@ -222,6 +222,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
                                 lastname
                                 wazoReverse
                                 wazoSourceName
+                                wazoBackend
                             }
                         }
                     }
@@ -243,6 +244,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
                             'lastname': 'AAA',
                             'wazoReverse': 'Alice AAA',
                             'wazoSourceName': any_of('my_csv', 'my_csv_2'),
+                            'wazoBackend': 'csv',
                         }
                     ),
                 ),
