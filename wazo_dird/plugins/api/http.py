@@ -1,4 +1,4 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -7,6 +7,7 @@ import yaml
 from pkg_resources import resource_string, iter_entry_points
 from flask import make_response
 from xivo.chain_map import ChainMap
+from xivo.http_helpers import reverse_proxy_fix_api_spec
 
 from wazo_dird.rest_api import ErrorCatchingResource
 
@@ -50,6 +51,7 @@ class ApiResource(ErrorCatchingResource):
         if not api_spec.get('info'):
             return {'error': "API spec does not exist"}, 404
 
+        reverse_proxy_fix_api_spec(api_spec)
         return make_response(
             yaml.dump(dict(api_spec)), 200, {'Content-Type': 'application/x-yaml'}
         )

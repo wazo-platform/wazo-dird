@@ -21,7 +21,7 @@ info:
 x-xivo-port: 9489
 x-xivo-name: dird
 schemes:
-- https
+- http
 basePath: /0.1
 consumes:
 - application/json
