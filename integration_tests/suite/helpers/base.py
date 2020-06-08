@@ -1,7 +1,6 @@
 # Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import logging
 import requests
 import uuid
 
@@ -34,8 +33,6 @@ from .config import (
     new_null_config,
     new_personal_only_config,
 )
-
-logging.getLogger('stevedore.extension').setLevel(level=logging.INFO)
 
 
 class DirdAssetRunningTestCase(AssetLaunchingTestCase):
