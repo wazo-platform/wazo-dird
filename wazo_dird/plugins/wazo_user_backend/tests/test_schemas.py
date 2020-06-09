@@ -37,7 +37,7 @@ class TestSourceSchema(TestCase):
                 format_columns=all_of(instance_of(dict), empty()),
                 auth=has_entries(
                     host='localhost',
-                    port=9497,
+                    port=443,
                     username='foo',
                     password='bar',
                     prefix='/api/auth',
@@ -46,7 +46,7 @@ class TestSourceSchema(TestCase):
                 ),
                 confd=has_entries(
                     host='localhost',
-                    port=9486,
+                    port=443,
                     prefix='/api/confd',
                     https=True,
                     verify_certificate=True,
