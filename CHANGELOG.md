@@ -1,8 +1,18 @@
 # Changelog
 
+## 20.08
+
+* Added the following GraphQL attributes:
+
+  * Contact object: `wazoSourceName`, `wazoBackend`
+
 ## 20.07
 
 * Deprecate SSL configuration
+* Added the following GraphQL attributes:
+
+  * UserMe object: `contacts`
+  * Contact object: `firstname`, `lastname`, `wazoReverse`
 
 ## 20.06
 
