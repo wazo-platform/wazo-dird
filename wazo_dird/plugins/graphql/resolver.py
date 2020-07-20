@@ -5,6 +5,7 @@ from flask import request
 from wazo_dird import auth
 from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
 
+from . import schema
 from .exceptions import graphql_error_from_api_exception
 
 
@@ -46,6 +47,11 @@ class Resolver:
             ]
             return results
         return []
+
+    def get_contact_type(self, contact, info):
+        if contact.backend == 'wazo':
+            return schema.WazoContact
+        return schema.Contact
 
     def get_contact_field(self, contact, info, **args):
         return contact.fields[info.field_name]

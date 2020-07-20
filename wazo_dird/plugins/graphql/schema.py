@@ -26,8 +26,7 @@ class ContactInterface(Interface):
 
     @classmethod
     def resolve_type(cls, contact, info):
-        # return info.context['resolver'].get_contact_type(contact, info)
-        return cls._resolve_type(contact, info)
+        return info.context['resolver'].get_contact_type(contact, info)
 
     def resolve_firstname(contact, info):
         return info.context['resolver'].get_contact_field(contact, info)
@@ -49,11 +48,6 @@ class ContactInterface(Interface):
 
     def get_node(self, info, id):
         pass
-
-    def _resolve_type(contact, info):
-        if contact.backend == 'wazo':
-            return WazoContact
-        return Contact
 
 
 class Contact(ObjectType):
