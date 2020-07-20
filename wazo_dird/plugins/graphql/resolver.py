@@ -53,6 +53,9 @@ class Resolver:
     def get_reverse_field(self, contact, info, **args):
         return contact.fields['reverse']
 
+    def get_source_entry_id(self, contact, info, **args):
+        return None if contact.source_entry_id is None else contact.source_entry_id()
+
     def get_source_name(self, contact, info, **args):
         return contact.source
 
