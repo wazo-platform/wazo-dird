@@ -62,7 +62,7 @@ class GraphQLViewPlugin(BaseViewPlugin):
         profile_service = dependencies['services'].get('profile')
         reverse_service = dependencies['services'].get('reverse')
         resolver = Resolver(profile_service, reverse_service)
-        schema = make_schema(resolver)
+        schema = make_schema()
 
         config = dependencies['config']
         auth_client = dependencies['auth_client']
@@ -75,6 +75,6 @@ class GraphQLViewPlugin(BaseViewPlugin):
                 schema=schema,
                 middleware=[authorization_middleware],
                 # get_context: source: https://github.com/graphql-python/flask-graphql/issues/52#issuecomment-412773200
-                get_context=dict,
+                get_context=lambda: {'resolver': resolver},
             ),
         )
