@@ -14,7 +14,7 @@ from wazo_dird_client import Client as DirdClient
 from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
-from .helpers.config import new_csv_with_multiple_displays_config
+from .helpers.config import new_csv_with_multiple_displays_config, new_wazo_users_config
 from .helpers.constants import VALID_TOKEN, VALID_TOKEN_NO_ACL, MAIN_TENANT
 
 
@@ -272,5 +272,69 @@ class TestGraphQLNoAuth(BaseDirdIntegrationTest):
                 has_entries(
                     {'path': ['hello'], 'message': contains_string('unreachable')}
                 )
+            ),
+        )
+
+
+class TestGraphQLWazoBackend(BaseDirdIntegrationTest):
+
+    asset = 'wazo_users_multiple_wazo'
+    config_factory = new_wazo_users_config
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.auth = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        main_tenant_token = MockUserToken.some_token(
+            metadata={'uuid': 'my-user-uuid', 'tenant_uuid': MAIN_TENANT}
+        )
+        cls.auth.set_token(main_tenant_token)
+        cls.main_tenant_token = main_tenant_token.token_id
+        cls.dird = DirdClient(
+            'localhost', cls.service_port(9489, 'dird'), prefix=None, https=False
+        )
+        cls.dird.set_token(cls.main_tenant_token)
+
+    def setUp(self):
+        super().setUp()
+        self.dird.set_token(self.main_tenant_token)
+
+    def test_wazo_backend_fields(self):
+        query = {
+            'query': '''
+            {
+                me {
+                    contacts(profile: "default", extens: ["1234"]) {
+                        edges {
+                            node {
+                                firstname
+                                lastname
+                                ... on WazoContact {
+                                    userUuid
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ''',
+        }
+
+        response = self.dird.graphql.query(query)
+
+        assert_that(
+            response['data']['me']['contacts']['edges'],
+            contains(
+                has_entry(
+                    'node',
+                    has_entries(
+                        {
+                            'firstname': 'John',
+                            'lastname': 'Doe',
+                            'userUuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
+                        }
+                    ),
+                ),
             ),
         )

@@ -1,11 +1,20 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from graphene import ObjectType, String, Schema, Field, List, relay, Connection
+from graphene import (
+    Connection,
+    Field,
+    Interface,
+    List,
+    ObjectType,
+    Schema,
+    String,
+    relay,
+)
 
 
 def make_schema(resolver):
-    class Contact(ObjectType):
+    class ContactInterface(Interface):
         class Meta:
             interfaces = [relay.Node]
 
@@ -15,6 +24,11 @@ def make_schema(resolver):
         wazo_source_entry_id = Field(String)
         wazo_source_name = Field(String)
         wazo_backend = Field(String)
+
+        @classmethod
+        def resolve_type(cls, contact, info):
+            # return resolver.get_contact_type(contact, info)
+            return cls._resolve_type(contact, info)
 
         def resolve_firstname(contact, info):
             return resolver.get_contact_field(contact, info)
@@ -37,9 +51,39 @@ def make_schema(resolver):
         def get_node(self, info, id):
             pass
 
+        def _resolve_type(contact, info):
+            if contact.backend == 'wazo':
+                return WazoContact
+            return Contact
+
+    class Contact(ObjectType):
+        class Meta:
+            interfaces = [ContactInterface]
+
+    class WazoContact(ObjectType):
+        class Meta:
+            interfaces = [ContactInterface]
+
+        user_id = Field(String)
+        user_uuid = Field(String)
+        endpoint_id = Field(String)
+        agent_id = Field(String)
+
+        def resolve_user_id(contact, info):
+            return resolver.get_contact_user_id(contact, info)
+
+        def resolve_user_uuid(contact, info):
+            return resolver.get_contact_user_uuid(contact, info)
+
+        def resolve_endpoint_id(contact, info):
+            return resolver.get_contact_endpoint_id(contact, info)
+
+        def resolve_agent_id(contact, info):
+            return resolver.get_contact_agent_id(contact, info)
+
     class ContactConnection(Connection):
         class Meta:
-            node = Contact
+            node = ContactInterface
 
     class UserMe(ObjectType):
         contacts = relay.ConnectionField(
@@ -70,4 +114,4 @@ def make_schema(resolver):
         def resolve_me(root, info):
             return resolver.get_user_me(root, info)
 
-    return Schema(query=Query)
+    return Schema(query=Query, types=[WazoContact, Contact])
