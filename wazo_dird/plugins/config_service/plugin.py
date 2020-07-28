@@ -83,7 +83,7 @@ WAZO_SOURCE_BODY = {
         'reverse': '{firstname} {lastname}',
     },
     'searched_columns': ['firstname', 'lastname', 'exten'],
-    'first_matched_columns': ['mobile_phone_number'],
+    'first_matched_columns': ['exten', 'mobile_phone_number'],
 }
 OFFICE_365_SOURCE_BODY = {
     'auth': {
