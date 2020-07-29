@@ -615,11 +615,15 @@ def new_wazo_users_config(Session):
         },
         confd={'host': 'america', 'port': 9486, 'https': False, 'prefix': None},
         searched_columns=['firstname', 'lastname'],
+        first_matched_columns=['exten'],
     )
     config.with_profile(
         name='default',
         display='default_display',
-        services={'lookup': {'sources': ['wazo_america']}},
+        services={
+            'lookup': {'sources': ['wazo_america']},
+            'reverse': {'sources': ['wazo_america']},
+        },
     )
     return config
 
