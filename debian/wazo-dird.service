@@ -1,12 +1,13 @@
 [Unit]
 Description=wazo-dird server
 After=network.target postgresql.service
-Before=monit.service
+StartLimitBurst=15
+StartLimitIntervalSec=150
 
 [Service]
-ExecStartPre=/usr/bin/install -d -o www-data -g www-data /run/wazo-dird
 ExecStart=/usr/bin/wazo-dird --user www-data
-PIDFile=/run/wazo-dird/wazo-dird.pid
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

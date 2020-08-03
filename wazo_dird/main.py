@@ -6,14 +6,12 @@ import sys
 
 from xivo import xivo_logging
 from xivo.config_helper import set_xivo_uuid, UUIDNotFound
-from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
 
 from wazo_dird.controller import Controller
 from wazo_dird.config import load as load_config
 
 logger = logging.getLogger(__name__)
-FOREGROUND = True  # Always in foreground systemd takes care of daemonizing
 
 
 class _PreConfigLogger:
@@ -56,7 +54,9 @@ def main(argv=None):
         config = load_config(logger, argv)
 
         xivo_logging.setup_logging(
-            config['log_filename'], FOREGROUND, config['debug'], config['log_level'],
+            config['log_filename'],
+            debug=config['debug'],
+            log_level=config['log_level'],
         )
     xivo_logging.silence_loggers(
         ['Flask-Cors', 'amqp', 'urllib3', 'stevedore.extension'], logging.WARNING
@@ -73,9 +73,8 @@ def main(argv=None):
 
     controller = Controller(config)
 
-    with pidfile_context(config['pid_filename'], FOREGROUND):
-        try:
-            controller.run()
-        except KeyboardInterrupt:
-            # exit without stack trace
-            pass
+    try:
+        controller.run()
+    except KeyboardInterrupt:
+        # exit without stack trace
+        pass
