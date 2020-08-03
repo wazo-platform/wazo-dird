@@ -73,7 +73,6 @@ _DEFAULT_CONFIG = {
     },
     'log_level': 'info',
     'log_filename': '/var/log/wazo-dird.log',
-    'pid_filename': '/run/wazo-dird/wazo-dird.pid',
     'rest_api': {
         'listen': '127.0.0.1',
         'port': _DEFAULT_HTTPS_PORT,

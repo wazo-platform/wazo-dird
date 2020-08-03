@@ -10,7 +10,6 @@ from ..main import main
 
 
 @patch('wazo_dird.main.set_xivo_uuid')
-@patch('wazo_dird.main.pidfile_context')
 @patch('wazo_dird.main.change_user')
 @patch('wazo_dird.main.xivo_logging')
 @patch('wazo_dird.main.Controller')
@@ -34,13 +33,12 @@ class TestWazoDird(TestCase):
             'log_filename': s.log_filename,
             'log_level': s.log_level,
             'user': s.user,
-            'pid_filename': s.pid_filename,
         }
 
         main(s.argv)
 
         xivo_logging.setup_logging.assert_called_once_with(
-            s.log_filename, True, s.debug, s.log_level
+            s.log_filename, debug=s.debug, log_level=s.log_level
         )
 
     def test_main_when_config_user_then_change_user(
@@ -51,7 +49,6 @@ class TestWazoDird(TestCase):
             'log_filename': s.log_filename,
             'log_level': s.log_level,
             'user': s.user,
-            'pid_filename': s.pid_filename,
         }
 
         main(s.argv)
@@ -66,7 +63,6 @@ class TestWazoDird(TestCase):
             'log_filename': s.log_filename,
             'log_level': s.log_level,
             'user': None,
-            'pid_filename': s.pid_filename,
         }
 
         main(s.argv)
@@ -80,7 +76,6 @@ class TestWazoDird(TestCase):
             'log_filename': s.log_filename,
             'log_level': s.log_level,
             'user': None,
-            'pid_filename': s.pid_filename,
         }
 
         main(s.argv)

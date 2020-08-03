@@ -22,8 +22,7 @@ RUN true \
     && apt-get -yq install libldap-2.4-2 \
     && mkdir -p /etc/wazo-dird/conf.d \
     && mkdir -p /etc/wazo-dird/templates.d \
-    && install -o www-data -g www-data /dev/null /var/log/wazo-dird.log \
-    && install -d -o www-data -g www-data /run/wazo-dird/
+    && install -o www-data -g www-data /dev/null /var/log/wazo-dird.log
 
 EXPOSE 9489
 
