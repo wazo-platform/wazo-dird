@@ -19,6 +19,7 @@ class ContactInterface(Interface):
 
     firstname = Field(String)
     lastname = Field(String)
+    email = Field(String)
     wazo_reverse = Field(String)
     wazo_source_entry_id = Field(String)
     wazo_source_name = Field(String)
@@ -32,6 +33,9 @@ class ContactInterface(Interface):
         return info.context['resolver'].get_contact_field(contact, info)
 
     def resolve_lastname(contact, info):
+        return info.context['resolver'].get_contact_field(contact, info)
+
+    def resolve_email(contact, info):
         return info.context['resolver'].get_contact_field(contact, info)
 
     def resolve_wazo_reverse(contact, info):

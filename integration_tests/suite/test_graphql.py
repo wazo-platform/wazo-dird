@@ -220,6 +220,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
                             node {
                                 firstname
                                 lastname
+                                email
                                 wazoReverse
                                 wazoSourceName
                                 wazoSourceEntryId
@@ -243,6 +244,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
                         {
                             'firstname': 'Alice',
                             'lastname': 'AAA',
+                            'email': 'alice@example.com',
                             'wazoReverse': 'Alice AAA',
                             'wazoSourceName': any_of('my_csv', 'my_csv_2'),
                             'wazoSourceEntryId': '1',
