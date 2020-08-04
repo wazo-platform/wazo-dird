@@ -206,6 +206,7 @@ def new_csv_with_multiple_displays_config(Session):
         format_columns={
             'lastname': "{ln}",
             'firstname': "{fn}",
+            'email': "{eml}",
             'number': "{num}",
             'reverse': '{fn} {ln}',
         },
@@ -222,6 +223,7 @@ def new_csv_with_multiple_displays_config(Session):
         format_columns={
             'lastname': "{ln}",
             'firstname': "{fn}",
+            'email': "{eml}",
             'number': "{num}",
             'reverse': '{fn} {ln}',
         },
