@@ -1,6 +1,13 @@
 # Changelog
 
-## 20.08
+## 20.11
+
+* Added the following GraphQL attributes:
+
+  * Contact object: `email`, `sourceEntryId`
+  * WazoContact object: `userUuid`
+
+## 20.09
 
 * Added the following GraphQL attributes:
 
