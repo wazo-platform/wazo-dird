@@ -6,7 +6,6 @@ import uuid
 
 import requests
 
-from operator import itemgetter
 from wazo_auth_client import Client as Auth
 
 from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
@@ -15,6 +14,8 @@ from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointExcep
 logger = logging.getLogger(__name__)
 
 NUMBER_FIELDS = ('businessPhones', 'homePhones', 'mobilePhone')
+MAX_CHAR = chr(0x10FFFF)
+ALMOST_LAST_STRING = MAX_CHAR * 16
 
 
 class Office365Service:
@@ -25,7 +26,7 @@ class Office365Service:
         count = self._get_total_contacts(microsoft_token, url)
         contacts = list(self._fetch(microsoft_token, url, count))
         total_contacts = len(contacts)
-        sorted_contacts = self._sort(contacts, **list_params)
+        sorted_contacts = self.sort(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total_contacts
 
@@ -80,13 +81,6 @@ class Office365Service:
 
         return end[:limit]
 
-    def _sort(self, contacts, order=None, direction=None, **_):
-        if not order:
-            return contacts
-
-        reverse = direction == 'desc'
-        return sorted(contacts, key=itemgetter(order), reverse=reverse)
-
     def headers(self, microsoft_token):
         return {
             'User-Agent': self.USER_AGENT,
@@ -95,6 +89,19 @@ class Office365Service:
             'client-request-id': str(uuid.uuid4),
             'return-client-request-id': 'true',
         }
+
+    @staticmethod
+    def sort(contacts, order=None, direction=None, **_):
+        if not order:
+            return contacts
+
+        reverse = direction == 'desc'
+
+        def get_value(contact):
+            value = contact.get(order)
+            return value or ALMOST_LAST_STRING
+
+        return sorted(contacts, key=get_value, reverse=reverse)
 
 
 def get_microsoft_access_token(user_uuid, wazo_token, **auth_config):
