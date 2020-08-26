@@ -169,3 +169,34 @@ class TestGoogleContactFormatter(unittest.TestCase):
             formatted_contact,
             has_entries(note='Notey'),
         )
+
+    def test_sort(self):
+        a = {
+            'firstname': 'a',
+            'lastname': 'z',
+            'exten': '1001',
+        }
+        b = {
+            'firstname': 'b',
+            'lastname': 'y',
+            'exten': '1002',
+        }
+        c = {
+            'firstname': 'c',
+            'lastname': None,
+            'exten': '1003',
+        }
+
+        result = services.GoogleService.sort([b, c, a])
+        assert_that(result, contains(b, c, a))
+
+        result = services.GoogleService.sort([b, c, a], order='firstname')
+        assert_that(result, contains(a, b, c))
+
+        result = services.GoogleService.sort([b, c, a], order='lastname')
+        assert_that(result, contains(b, a, c))
+
+        result = services.GoogleService.sort(
+            [a, b, c], order='firstname', direction='desc'
+        )
+        assert_that(result, contains(c, b, a))

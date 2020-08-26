@@ -3,8 +3,6 @@
 
 import logging
 
-from operator import itemgetter
-
 import requests
 
 from wazo_auth_client import Client as Auth
@@ -13,6 +11,8 @@ from .exceptions import GoogleTokenNotFoundException
 
 
 logger = logging.getLogger(__name__)
+MAX_CHAR = chr(0x10FFFF)
+ALMOST_LAST_STRING = MAX_CHAR * 16
 
 
 class GoogleService:
@@ -31,7 +31,7 @@ class GoogleService:
     def get_contacts(self, google_token, **list_params):
         contacts = list(self._fetch(google_token, term=list_params.get('search')))
         total = len(contacts)
-        sorted_contacts = self._sort(contacts, **list_params)
+        sorted_contacts = self.sort(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total
 
@@ -85,13 +85,6 @@ class GoogleService:
 
         return end[:limit]
 
-    def _sort(self, contacts, order=None, direction=None, **_):
-        if not order:
-            return contacts
-
-        reverse = direction == 'desc'
-        return sorted(contacts, key=itemgetter(order), reverse=reverse)
-
     def headers(self, google_token):
         return {
             'User-Agent': self.USER_AGENT,
@@ -99,6 +92,19 @@ class GoogleService:
             'Accept': 'application/json',
             'GData-Version': '3.0',
         }
+
+    @staticmethod
+    def sort(contacts, order=None, direction=None, **_):
+        if not order:
+            return contacts
+
+        reverse = direction == 'desc'
+
+        def get_value(contact):
+            value = contact.get(order)
+            return value or ALMOST_LAST_STRING
+
+        return sorted(contacts, key=get_value, reverse=reverse)
 
 
 def get_google_access_token(user_uuid, wazo_token, **auth_config):
