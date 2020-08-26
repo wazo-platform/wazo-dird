@@ -1,11 +1,11 @@
-# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from operator import itemgetter
 from pkg_resources import iter_entry_points
+from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 
-class BackendService:
+class BackendService(SelfSortingServiceMixin):
 
     _backend_entry_points = 'wazo_dird.backends'
 
@@ -27,7 +27,7 @@ class BackendService:
 
     def list_(self, **kwargs):
         matches = self._filter_matches(self._backends, **kwargs)
-        filtered = self._sort(matches, **kwargs)
+        filtered = self.sort(matches, **kwargs)
         paginated = self._paginate(filtered, **kwargs)
         return paginated
 
@@ -69,8 +69,3 @@ class BackendService:
             return backends[offset : limit + offset]
 
         return backends[offset:]
-
-    @staticmethod
-    def _sort(backends, order=None, direction=None, **ignored):
-        reverse = direction == 'desc'
-        return sorted(backends, key=itemgetter(order), reverse=reverse)

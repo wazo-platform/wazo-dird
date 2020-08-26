@@ -1,13 +1,13 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
 from itertools import islice
-from operator import itemgetter
 
 from wazo_dird import BaseServicePlugin, database, exception
 from wazo_dird.database.helpers import Session
+from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class ProfileServicePlugin(BaseServicePlugin):
         return _ProfileService(database.ProfileCRUD(Session), controller)
 
 
-class _ProfileService:
+class _ProfileService(SelfSortingServiceMixin):
     def __init__(self, crud, controller):
         self._profile_crud = crud
         self._controller = controller
@@ -66,9 +66,10 @@ class _ProfileService:
         total = len(sources)
         sources = self._filter_sources(sources, **list_params)
         filtered = len(sources)
-        sources = self._paginate(sources, **list_params)
+        sorted_sources = self.sort(sources, **list_params)
+        paginated_sources = self._paginate(sorted_sources, **list_params)
 
-        return total, filtered, sources
+        return total, filtered, paginated_sources
 
     def list_(self, visible_tenants, **list_params):
         return self._profile_crud.list_(visible_tenants, **list_params)
@@ -76,17 +77,12 @@ class _ProfileService:
     def _paginate(
         self, sources, limit=None, offset=0, order='name', direction='asc', **ignored
     ):
-        selected_sources = []
-
-        reverse = direction != 'asc'
-        selected_sources = sorted(sources, key=itemgetter(order), reverse=reverse)
-
         if limit is not None:
             limit = offset + limit
-            return list(islice(selected_sources, offset, limit))
+            return list(islice(sources, offset, limit))
 
         if limit is None:
-            return list(islice(selected_sources, offset, None))
+            return list(islice(sources, offset, None))
 
     def _filter_sources(
         self, sources, name=None, backend=None, uuid=None, search=None, **ignored
