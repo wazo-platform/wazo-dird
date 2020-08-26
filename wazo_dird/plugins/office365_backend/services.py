@@ -8,17 +8,17 @@ import requests
 
 from wazo_auth_client import Client as Auth
 
+from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
+
 from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
 
 
 logger = logging.getLogger(__name__)
 
 NUMBER_FIELDS = ('businessPhones', 'homePhones', 'mobilePhone')
-MAX_CHAR = chr(0x10FFFF)
-ALMOST_LAST_STRING = MAX_CHAR * 16
 
 
-class Office365Service:
+class Office365Service(SelfSortingServiceMixin):
 
     USER_AGENT = 'wazo_ua/1.0'
 
@@ -89,19 +89,6 @@ class Office365Service:
             'client-request-id': str(uuid.uuid4),
             'return-client-request-id': 'true',
         }
-
-    @staticmethod
-    def sort(contacts, order=None, direction=None, **_):
-        if not order:
-            return contacts
-
-        reverse = direction == 'desc'
-
-        def get_value(contact):
-            value = contact.get(order)
-            return value or ALMOST_LAST_STRING
-
-        return sorted(contacts, key=get_value, reverse=reverse)
 
 
 def get_microsoft_access_token(user_uuid, wazo_token, **auth_config):

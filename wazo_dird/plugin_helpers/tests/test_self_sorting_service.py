@@ -5,7 +5,7 @@ import unittest
 
 from hamcrest import assert_that, contains
 
-from ..services import Office365Service as Service
+from ..self_sorting_service import SelfSortingServiceMixin as Service
 
 
 class TestOffice365Service(unittest.TestCase):

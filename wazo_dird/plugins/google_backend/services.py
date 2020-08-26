@@ -6,16 +6,15 @@ import logging
 import requests
 
 from wazo_auth_client import Client as Auth
+from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 from .exceptions import GoogleTokenNotFoundException
 
 
 logger = logging.getLogger(__name__)
-MAX_CHAR = chr(0x10FFFF)
-ALMOST_LAST_STRING = MAX_CHAR * 16
 
 
-class GoogleService:
+class GoogleService(SelfSortingServiceMixin):
 
     USER_AGENT = 'wazo_ua/1.0'
     contacts_url = 'https://google.com/m8/feeds/contacts/default/full'
@@ -92,19 +91,6 @@ class GoogleService:
             'Accept': 'application/json',
             'GData-Version': '3.0',
         }
-
-    @staticmethod
-    def sort(contacts, order=None, direction=None, **_):
-        if not order:
-            return contacts
-
-        reverse = direction == 'desc'
-
-        def get_value(contact):
-            value = contact.get(order)
-            return value or ALMOST_LAST_STRING
-
-        return sorted(contacts, key=get_value, reverse=reverse)
 
 
 def get_google_access_token(user_uuid, wazo_token, **auth_config):
