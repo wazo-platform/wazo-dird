@@ -22,7 +22,7 @@ class CSVView(BaseBackendView):
 
 
 class CSVPlugin(BaseSourcePlugin):
-    '''The CSVPlugin sources will load a file containing CSV entries
+    """The CSVPlugin sources will load a file containing CSV entries
     and search through the entries according to the configuration file.
 
     The following values are required in the configuration:
@@ -32,7 +32,7 @@ class CSVPlugin(BaseSourcePlugin):
 
     The `file` is the file that should be read by the plugin
     The `searched_columns` are the columns used to search for a term
-    '''
+    """
 
     def load(self, args):
         if 'config' not in args:
@@ -135,7 +135,8 @@ class CSVPlugin(BaseSourcePlugin):
                 values.append(entry[column_name])
             except KeyError:
                 logger.info(
-                    'plugin misconfigured "%s" is not in the CSV file', column_name,
+                    'plugin misconfigured "%s" is not in the CSV file',
+                    column_name,
                 )
         return values
 

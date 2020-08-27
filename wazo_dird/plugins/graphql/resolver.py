@@ -41,7 +41,11 @@ class Resolver:
         if args.get('extens'):
             results = [
                 self.reverse_service.reverse(
-                    profile_config, exten, profile, user_uuid=user_uuid, token=token_id,
+                    profile_config,
+                    exten,
+                    profile,
+                    user_uuid=user_uuid,
+                    token=token_id,
                 )
                 for exten in args['extens']
             ]

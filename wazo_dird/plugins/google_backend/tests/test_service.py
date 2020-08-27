@@ -166,5 +166,6 @@ class TestGoogleContactFormatter(unittest.TestCase):
         formatted_contact = self.formatter.format(google_contact)
 
         assert_that(
-            formatted_contact, has_entries(note='Notey'),
+            formatted_contact,
+            has_entries(note='Notey'),
         )

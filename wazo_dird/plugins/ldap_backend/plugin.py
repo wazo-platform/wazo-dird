@@ -190,8 +190,8 @@ class _LDAPConfig:
 
         if ldap_custom_filter and first_matched_columns:
             custom_filter = self._build_search_filter_from_custom_filter(term_escaped)
-            generated_filter = self._build_exact_search_filter_from_first_matched_columns(
-                term_escaped
+            generated_filter = (
+                self._build_exact_search_filter_from_first_matched_columns(term_escaped)
             )
             return self._build_filter_from_custom_and_generated_filter(
                 custom_filter, generated_filter

@@ -232,7 +232,11 @@ class TestPost(BaseOffice365CRUDTestCase):
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),
-                has_entries(message=ANY, error_id='invalid-data', details=ANY,),
+                has_entries(
+                    message=ANY,
+                    error_id='invalid-data',
+                    details=ANY,
+                ),
             )
         else:
             self.fail('Should have raised')
@@ -318,7 +322,11 @@ class TestPut(BaseOffice365CRUDTestCase):
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),
-                has_entries(message=ANY, error_id='invalid-data', details=ANY,),
+                has_entries(
+                    message=ANY,
+                    error_id='invalid-data',
+                    details=ANY,
+                ),
             )
         else:
             self.fail('Should have raised')
