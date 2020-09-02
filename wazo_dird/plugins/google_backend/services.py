@@ -3,11 +3,10 @@
 
 import logging
 
-from operator import itemgetter
-
 import requests
 
 from wazo_auth_client import Client as Auth
+from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 from .exceptions import GoogleTokenNotFoundException
 
@@ -15,7 +14,7 @@ from .exceptions import GoogleTokenNotFoundException
 logger = logging.getLogger(__name__)
 
 
-class GoogleService:
+class GoogleService(SelfSortingServiceMixin):
 
     USER_AGENT = 'wazo_ua/1.0'
     contacts_url = 'https://google.com/m8/feeds/contacts/default/full'
@@ -31,7 +30,7 @@ class GoogleService:
     def get_contacts(self, google_token, **list_params):
         contacts = list(self._fetch(google_token, term=list_params.get('search')))
         total = len(contacts)
-        sorted_contacts = self._sort(contacts, **list_params)
+        sorted_contacts = self.sort(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total
 
@@ -84,13 +83,6 @@ class GoogleService:
             return end
 
         return end[:limit]
-
-    def _sort(self, contacts, order=None, direction=None, **_):
-        if not order:
-            return contacts
-
-        reverse = direction == 'desc'
-        return sorted(contacts, key=itemgetter(order), reverse=reverse)
 
     def headers(self, google_token):
         return {

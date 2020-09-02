@@ -6,8 +6,9 @@ import uuid
 
 import requests
 
-from operator import itemgetter
 from wazo_auth_client import Client as Auth
+
+from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
 
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 NUMBER_FIELDS = ('businessPhones', 'homePhones', 'mobilePhone')
 
 
-class Office365Service:
+class Office365Service(SelfSortingServiceMixin):
 
     USER_AGENT = 'wazo_ua/1.0'
 
@@ -25,7 +26,7 @@ class Office365Service:
         count = self._get_total_contacts(microsoft_token, url)
         contacts = list(self._fetch(microsoft_token, url, count))
         total_contacts = len(contacts)
-        sorted_contacts = self._sort(contacts, **list_params)
+        sorted_contacts = self.sort(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total_contacts
 
@@ -79,13 +80,6 @@ class Office365Service:
             return end
 
         return end[:limit]
-
-    def _sort(self, contacts, order=None, direction=None, **_):
-        if not order:
-            return contacts
-
-        reverse = direction == 'desc'
-        return sorted(contacts, key=itemgetter(order), reverse=reverse)
 
     def headers(self, microsoft_token):
         return {
