@@ -1,7 +1,9 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-MAX_CHAR = chr(0x10FFFF)
+from sys import maxunicode
+
+MAX_CHAR = chr(maxunicode)
 ALMOST_LAST_STRING = MAX_CHAR * 16
 
 
