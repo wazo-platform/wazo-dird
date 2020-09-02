@@ -1,42 +1,42 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import abc
 
 
 class BaseServicePlugin(metaclass=abc.ABCMeta):
-    '''
+    """
     This is the base class of a dird service. The service is responsible of
     its directory sources
-    '''
+    """
 
     @abc.abstractmethod
     def load(self, args):
-        '''
+        """
         Bootstraps the plugin instance. The flask app, bus connection and other
         handles will be passed through the args dictionary
-        '''
+        """
 
     def unload(self):
-        '''
+        """
         Does the cleanup before the service can be deleted
-        '''
+        """
 
 
 class BaseViewPlugin(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def load(self, dependencies):
-        '''
+        """
         The load method is responsible of acquiring resources for the plugin and
         add the routes to the http_app.
-        '''
+        """
 
 
 class BaseSourcePlugin(metaclass=abc.ABCMeta):
-    '''
+    """
     A backend plugin in xivo should implement this base class implicitly or
     explicitly
-    '''
+    """
 
     # These string are expected in the configuration
     SEARCHED_COLUMNS = 'searched_columns'  # These columns are the ones we search in
@@ -47,20 +47,20 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def load(self, args):
-        '''
+        """
         The load function is responsible for setting up the source and acquiring
         any resources necessary.
-        '''
+        """
 
     def unload(self):
-        '''
+        """
         The unload method is used to release any resources that are under the
         responsibility of this instance.
-        '''
+        """
 
     @abc.abstractmethod
     def search(self, term, args=None):
-        '''
+        """
         The search method should return a list of dict containing the search
         results.
 
@@ -71,11 +71,11 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
 
         If the backend has a `unique_column` configuration, a new column will be
         added with a `__unique_id` header containing the unique key.
-        '''
+        """
 
     @abc.abstractmethod
     def first_match(self, exten, args=None):
-        '''
+        """
         The first_match method should return a dict containing the first matched
         result.
 
@@ -86,10 +86,10 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
 
         If the backend has a `unique_column` configuration, a new column will be
         added with a `__unique_id` header containing the unique key.
-        '''
+        """
 
     def list(self, uids, args):
-        '''
+        """
         Returns a list of results based on the unique column for this backend.
         This function is not mandatory as some backends make it harder than
         others to query for specific ids. If a backend does not provide the list
@@ -98,5 +98,5 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         Results returned from list should be formatted in the same way than
         results from search. Meaning that the `__unique_id` column should be
         added and display columns should be present.
-        '''
+        """
         return []
