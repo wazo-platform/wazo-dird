@@ -1,4 +1,4 @@
-FROM wazopbx/wazo-base-db
+FROM wazoplatform/wazo-base-db
 MAINTAINER Wazo Maintainers <dev@wazo.community>
 
 ADD . /usr/src/wazo-dird
