@@ -1,4 +1,4 @@
-FROM wazopbx/wazo-dird
+FROM wazoplatform/wazo-dird
 
 ENV PYTHONDONTWRITEBYTECODE='true'
 

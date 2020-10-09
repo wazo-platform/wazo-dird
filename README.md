@@ -7,20 +7,20 @@ simple REST API.
 
 ## Docker
 
-The wazopbx/wazo-dird image can be built using the following command:
+The wazoplatform/wazo-dird image can be built using the following command:
 
 ```sh
-docker build -t wazopbx/wazo-dird .
+docker build -t wazoplatform/wazo-dird .
 ```
 
-The `wazopbx/wazo-dird` image contains a configuration file to listen to HTTP
+The `wazoplatform/wazo-dird` image contains a configuration file to listen to HTTP
 requests on "0.0.0.0". To change this behavior, create or edit the file
 `/etc/wazo-dird/conf.d/listen.yml`
 
-The wazopbx/wazo-dird-db image can be built using the following command:
+The wazoplatform/wazo-dird-db image can be built using the following command:
 
 ```sh
-docker build -f contribs/docker/Dockerfile-db -t wazopbx/wazo-dird-db .
+docker build -f contribs/docker/Dockerfile-db -t wazoplatform/wazo-dird-db .
 ```
 
 ## Running unit tests
