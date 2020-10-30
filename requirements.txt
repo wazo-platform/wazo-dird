@@ -11,7 +11,7 @@ flask-graphql==2.0.1
 flask==1.0.2
 graphene==2.1.8
 jinja2==2.10
-kombu==4.2.1
+kombu==4.6.11
 marshmallow==3.0.0b14
 psycopg2==2.7.7
 python-consul==0.7.1
