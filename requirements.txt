@@ -10,7 +10,7 @@ flask-restful==0.3.7
 flask-graphql==2.0.1
 flask==1.0.2
 graphene==2.1.8
-jinja2==2.10
+jinja2==2.10.1
 kombu==4.6.11
 marshmallow==3.0.0b14
 psycopg2==2.7.7
