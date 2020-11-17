@@ -73,17 +73,11 @@ class Office365Plugin(BaseSourcePlugin):
 
     def search(self, term, args=None):
         logger.debug('Searching term=%s', term)
-        try:
-            microsoft_token = self._get_microsoft_token(**args)
-        except MicrosoftTokenNotFoundException:
-            return []
-        try:
-            contacts, _ = self.office365.get_contacts(microsoft_token, self.endpoint)
-        except UnexpectedEndpointException:
+        contacts = self._fetch_contacts(args)
+        if not contacts:
             return []
 
         updated_contacts = self._update_contact_fields(contacts)
-
         lowered_term = term.lower()
 
         def match_fn(contact):
@@ -99,14 +93,8 @@ class Office365Plugin(BaseSourcePlugin):
         return [self._SourceResult(c) for c in sorted_contacts]
 
     def list(self, unique_ids, args=None):
-        try:
-            microsoft_token = self._get_microsoft_token(**args)
-        except MicrosoftTokenNotFoundException:
-            return []
-
-        try:
-            contacts, _ = self.office365.get_contacts(microsoft_token, self.endpoint)
-        except UnexpectedEndpointException:
+        contacts = self._fetch_contacts(args)
+        if not contacts:
             return []
 
         updated_contacts = self._update_contact_fields(contacts)
@@ -119,23 +107,14 @@ class Office365Plugin(BaseSourcePlugin):
     def first_match(self, term, args=None):
         if not self._first_matched_columns:
             logger.debug(
-                '%s is a source for reverse lookups but the not have a "first_matched_columns"',
+                '%s is a source for reverse lookups but does not have a "first_matched_columns"',
                 self.name,
             )
             return
 
-        try:
-            microsoft_token = self._get_microsoft_token(**args)
-        except MicrosoftTokenNotFoundException:
-            logger.debug(
-                'could not find a matching microsoft token, aborting first_match'
-            )
-            return None
-
-        try:
-            contacts, _ = self.office365.get_contacts(microsoft_token, self.endpoint)
-        except UnexpectedEndpointException:
-            return None
+        contacts = self._fetch_contacts(args)
+        if not contacts:
+            return
 
         updated_contacts = self._update_contact_fields(contacts)
         lowered_term = term.lower()
@@ -143,6 +122,40 @@ class Office365Plugin(BaseSourcePlugin):
         for contact in updated_contacts:
             if self._first_match_predicate(lowered_term, contact):
                 return self._SourceResult(contact)
+
+    def match_all(self, terms, args=None):
+        if not self._first_matched_columns:
+            logger.debug(
+                '%s is a source for reverse lookups but does not have a "first_matched_columns"',
+                self.name,
+            )
+            return {}
+
+        contacts = self._fetch_contacts(args)
+        if not contacts:
+            return {}
+
+        updated_contacts = self._update_contact_fields(contacts)
+        results = {}
+        for term in terms:
+            lowered_term = term.lower()
+            for contact in updated_contacts:
+                if self._first_match_predicate(lowered_term, contact):
+                    results[term] = self._SourceResult(contact)
+        return results
+
+    def _fetch_contacts(self, args=None):
+        try:
+            microsoft_token = self._get_microsoft_token(**args)
+        except MicrosoftTokenNotFoundException:
+            logger.debug('could not find a matching Microsoft token')
+            return
+
+        try:
+            contacts, _ = self.office365.get_contacts(microsoft_token, self.endpoint)
+        except UnexpectedEndpointException:
+            return
+        return contacts
 
     def _first_match_predicate(self, term, contact):
         for column in self._first_matched_columns:
