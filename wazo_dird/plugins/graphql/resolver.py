@@ -39,17 +39,13 @@ class Resolver:
             raise graphql_error_from_api_exception(NoSuchProfileAPIException(e.profile))
 
         if args.get('extens'):
-            results = [
-                self.reverse_service.reverse(
-                    profile_config,
-                    exten,
-                    profile,
-                    user_uuid=user_uuid,
-                    token=token_id,
-                )
-                for exten in args['extens']
-            ]
-            return results
+            return self.reverse_service.reverse_many(
+                profile_config,
+                args['extens'],
+                profile,
+                user_uuid=user_uuid,
+                token=token_id,
+            )
         return []
 
     def get_contact_type(self, contact, info):

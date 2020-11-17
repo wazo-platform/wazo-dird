@@ -1,5 +1,9 @@
 # Changelog
 
+## 20.16
+
+* Backend plugins now implement a new method: `match_all()`
+
 ## 20.11
 
 * Added the following GraphQL attributes:
