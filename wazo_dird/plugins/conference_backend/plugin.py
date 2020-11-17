@@ -86,6 +86,20 @@ class ConferencePlugin(BaseSourcePlugin):
                 return self._SourceResult(contact)
         logger.debug('Found no conference')
 
+    def match_all(self, terms, args=None):
+        logger.debug('Looking for conference matching "%s"', terms)
+        results = {}
+        for contact in self._fetch_contacts():
+            for term in terms:
+                lowered_term = term.lower()
+                if self._first_match_filter(lowered_term, contact):
+                    results[term] = self._SourceResult(contact)
+                    logger.debug('Found one conference match to "%s"', term)
+
+        if not results:
+            logger.debug('Found no conference')
+        return results
+
     def _first_match_filter(self, lowered_term, contact):
         for column in self._first_matched_columns:
             column_value = contact.get(column) or ''

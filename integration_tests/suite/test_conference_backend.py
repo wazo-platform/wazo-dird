@@ -134,6 +134,17 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
             ),
         )
 
+    def test_match_all_returns_the_expected_result(self):
+        result = self.backend.match_all(['4002', '1009'])
+
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(displayname='test'),
+                has_entries(displayname='daily scrum'),
+            ),
+        )
+
     def test_favorites(self):
         result = self.backend.list(['1', '4'], None)
         assert_that(
