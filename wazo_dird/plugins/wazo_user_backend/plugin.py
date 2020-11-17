@@ -50,6 +50,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         'mobile_phone_number',
         'voicemail_number',
     ]
+    _match_all_supported_columns = ['exten', 'mobile_phone_number']
 
     def __init__(self):
         self._client = None
@@ -106,6 +107,35 @@ class WazoUserPlugin(BaseSourcePlugin):
         logger.debug('Found no match')
         return None
 
+    def match_all(self, terms, args=None):
+        results = {}
+
+        # NOTE(fblackburn) fallback if one of fields are not supported
+        supported = all(
+            column in self._match_all_supported_columns
+            for column in self._first_matched_columns
+        )
+        first_match_faster = len(terms) < len(self._first_matched_columns)
+        if not supported or first_match_faster:
+            results = {}
+            for term in terms:
+                results[term] = self.first_match(term, args=args)
+            return results
+
+        for column in self._first_matched_columns:
+            terms_merged = ','.join(terms)
+            logger.debug('Looking for "%s"="%s"', column, terms)
+            entries = self._fetch_entries(terms_merged, column)
+            for entry in entries:
+                term = entry.fields.get(column)
+                if term in terms:
+                    results[term] = entry
+                    logger.debug('Found a match: %s', entry)
+
+        if not results:
+            logger.debug('Found no match')
+        return results
+
     def list(self, unique_ids, args=None):
         entries = self._fetch_entries()
 
@@ -117,7 +147,7 @@ class WazoUserPlugin(BaseSourcePlugin):
 
         return [entry for entry in entries if match_fn(entry)]
 
-    def _fetch_entries(self, term=None):
+    def _fetch_entries(self, term=None, column='search'):
         try:
             uuid = self._get_uuid()
         except ConnectionError as e:
@@ -133,7 +163,7 @@ class WazoUserPlugin(BaseSourcePlugin):
             return []
 
         try:
-            entries = self._fetch_users(term)
+            entries = self._fetch_users(term, column)
         except ConnectionError as e:
             logger.info('%s', e)
             return []
@@ -157,10 +187,10 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._uuid = infos['uuid']
         return self._uuid
 
-    def _fetch_users(self, term=None):
+    def _fetch_users(self, term=None, column='search'):
         search_params = dict(self._search_params)
         if term:
-            search_params['search'] = term
+            search_params[column] = term
         users = self._client.users.list(**search_params)
         logger.debug('Fetched %s users', users['total'])
         return (user for user in users['items'])

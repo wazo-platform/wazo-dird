@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -39,6 +39,10 @@ class BackendWrapper:
 
     def first(self, term, *args, **kwargs):
         return self._source.first_match(term, *args, **kwargs).fields
+
+    def match_all(self, terms, *args, **kwargs):
+        results = self._source.match_all(terms, *args, **kwargs)
+        return [value.fields for value in results.values()]
 
     def list(self, source_ids, *args, **kwargs):
         results = self._source.list(source_ids, *args, **kwargs)
