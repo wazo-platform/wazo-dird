@@ -98,7 +98,7 @@ class GooglePlugin(BaseSourcePlugin):
     def first_match(self, term, args=None):
         if not self._first_matched_columns:
             logger.debug(
-                '%s is a source for reverse lookups but the not have a "first_matched_columns"',
+                '%s is a source for reverse lookups but does not have a "first_matched_columns"',
                 self.name,
             )
             return
@@ -115,6 +115,29 @@ class GooglePlugin(BaseSourcePlugin):
         for contact in contacts:
             if self._first_match_predicate(lowered_term, contact):
                 return self._SourceResult(contact)
+
+    def match_all(self, terms, args=None):
+        if not self._first_matched_columns:
+            logger.debug(
+                '%s is a source for reverse lookups but does not have a "first_matched_columns"',
+                self.name,
+            )
+            return {}
+
+        try:
+            google_token = self._get_google_token(**args)
+        except GoogleTokenNotFoundException:
+            logger.debug('could not find a matching google token, aborting match_all')
+            return {}
+
+        contacts, _ = self.google.get_contacts(google_token)
+        results = {}
+        for term in terms:
+            lowered_term = term.lower()
+            for contact in contacts:
+                if self._first_match_predicate(lowered_term, contact):
+                    results[term] = self._SourceResult(contact)
+        return results
 
     def _first_match_predicate(self, term, contact):
         for column in self._first_matched_columns:
