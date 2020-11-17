@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_dird import BaseSourcePlugin
@@ -33,4 +33,7 @@ class SamplePlugin(BaseSourcePlugin):
         return [self._result]
 
     def first_match(self, term, args=None):
+        return self._result
+
+    def match_all(self, term, args=None):
         return self._result
