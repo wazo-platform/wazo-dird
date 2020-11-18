@@ -1,4 +1,4 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -9,7 +9,7 @@ from contextlib import contextmanager
 import kombu
 
 from kombu.mixins import ConsumerMixin
-from xivo_bus import Marshaler, Publisher
+from xivo_bus import Marshaler, FailFastPublisher
 
 from xivo.status import Status
 
@@ -75,7 +75,7 @@ class Bus:
             producer = kombu.Producer(
                 bus_connection, exchange=bus_exchange, auto_declare=True
             )
-            self._publisher = Publisher(producer, self._marshaler)
+            self._publisher = FailFastPublisher(producer, self._marshaler)
         return self._publisher
 
 
