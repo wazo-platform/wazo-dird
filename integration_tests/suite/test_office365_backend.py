@@ -195,6 +195,23 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
             ),
         )
 
+    @fixtures.office365_result(OFFICE365_CONTACTS)
+    def test_match_all_returns_the_expected_result(self, _):
+        self.auth_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
+
+        result = self.backend.match_all(['5555555555'], self.LOOKUP_ARGS)
+
+        assert_that(
+            result,
+            contains(
+                has_entries(
+                    number='5555555555',
+                    email='wbros@wazoquebec.onmicrosoft.com',
+                    **self.WARIO,
+                ),
+            ),
+        )
+
 
 class TestOffice365PluginWrongEndpoint(BaseOffice365PluginTestCase):
 

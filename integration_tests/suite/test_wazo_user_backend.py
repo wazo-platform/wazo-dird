@@ -37,6 +37,12 @@ class TestWazoUser(DirdAssetRunningTestCase):
             'exten': '1000',
             'voicemail_number': '1234',
         }
+        self._bob = {
+            'id': 1,
+            'firstname': 'John',
+            'lastname': 'Doe',
+            'exten': '1234',
+        }
 
     def tearDown(self):
         self.backend.unload()
@@ -78,6 +84,17 @@ class TestWazoUser(DirdAssetRunningTestCase):
         result = self.backend.first('1000')
 
         assert_that(result, has_entries(**self._dylan))
+
+    def test_match_all_returns_the_expected_result(self):
+        result = self.backend.match_all(['1000', '1234'])
+
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(**self._dylan),
+                has_entries(**self._bob),
+            ),
+        )
 
     def test_that_relations_are_present(self):
         results = self.backend.search_raw('john')

@@ -34,7 +34,7 @@ class BaseViewPlugin(metaclass=abc.ABCMeta):
 
 class BaseSourcePlugin(metaclass=abc.ABCMeta):
     """
-    A backend plugin in xivo should implement this base class implicitly or
+    A backend plugin in wazo should implement this base class implicitly or
     explicitly
     """
 
@@ -87,6 +87,24 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         If the backend has a `unique_column` configuration, a new column will be
         added with a `__unique_id` header containing the unique key.
         """
+
+    def match_all(self, extens, args=None):
+        """
+        The match_all method should return a dict with exten matched as key and
+        a dict containing result as value.
+
+        The results should include the columns that are expected by the display.
+        When columns from the source do not match the columns from the display,
+        the `format_columns` dictionary can be used by the administrator
+        to add or modify columns.
+
+        If the backend has a `unique_column` configuration, a new column will be
+        added with a `__unique_id` header containing the unique key.
+        """
+        results = {}
+        for exten in extens:
+            results[exten] = self.first_match(exten, args=args)
+        return results
 
     def list(self, uids, args):
         """

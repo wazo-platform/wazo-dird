@@ -3,8 +3,16 @@
 
 import unittest
 
-from hamcrest import assert_that, contains, equal_to, empty, is_, none
-from mock import Mock, patch
+from hamcrest import (
+    assert_that,
+    contains,
+    empty,
+    equal_to,
+    has_entries,
+    is_,
+    none,
+)
+from mock import Mock, call, patch
 from requests import RequestException
 
 from wazo_dird import make_result_class
@@ -211,6 +219,45 @@ class TestWazoUserBackendSearch(_BaseTest):
         )
 
         assert_that(result, is_(none()))
+
+    def test_match_all(self):
+        self._source._first_matched_columns = ['exten']
+
+        result = self._source.match_all(['1234', '5678'])
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', exten='1234,5678'
+        )
+
+        assert_that(result, has_entries({'1234': SOURCE_2}))
+
+    def test_match_all_when_no_result(self):
+        self._source._first_matched_columns = ['exten']
+
+        result = self._source.match_all(['12'])
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', exten='12'
+        )
+
+        assert_that(result, has_entries({}))
+
+    def test_match_all_when_not_supported_column_then_fallback(self):
+        self._source._first_matched_columns = ['exten', 'unsupported']
+
+        self._source.match_all(['12', '34'])
+
+        call1 = call(recurse=True, view='directory', search='12')
+        call2 = call(recurse=True, view='directory', search='34')
+        self._confd_client.users.list.assert_has_calls([call1, call2])
+
+    def test_match_all_when_first_match_faster_then_fallback(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        self._source.match_all(['12'])
+
+        call1 = call(recurse=True, view='directory', search='12')
+        self._confd_client.users.list.assert_has_calls([call1])
 
     def test_list_with_unknown_id(self):
         result = self._source.list(unique_ids=['42'])
