@@ -103,7 +103,9 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         """
         results = {}
         for exten in extens:
-            results[exten] = self.first_match(exten, args=args)
+            entry = self.first_match(exten, args=args)
+            if entry:
+                results[exten] = entry
         return results
 
     def list(self, uids, args):
