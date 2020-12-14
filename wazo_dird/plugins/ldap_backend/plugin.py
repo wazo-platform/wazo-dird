@@ -52,6 +52,22 @@ class LDAPPlugin(BaseSourcePlugin):
 
         return self._first_match_and_format(filter_str)
 
+    def match_all(self, extens, args=None):
+        results = {}
+        columns = self._ldap_config.first_matched_columns()
+        logger.debug('Looking for columns (%s) with (%s)', columns, extens)
+        filter_str = self._ldap_config.build_match_all_filter(extens)
+        entries = self._match_all_and_format(filter_str)
+        for column in columns:
+            for entry in entries:
+                term = entry.fields.get(column)
+                if term in extens:
+                    results[term] = entry
+                    logger.debug('Found a match: %s', entry)
+        if not results:
+            logger.debug('Found no match')
+        return results
+
     def list(self, uids, args=None):
         # XXX what is the character encoding used in uids ?
         if not self._ldap_config.unique_column():
@@ -80,6 +96,18 @@ class LDAPPlugin(BaseSourcePlugin):
         if not dn:
             return None
         return self._ldap_result_formatter.format_one_result(attrs)
+
+    def _match_all_and_format(self, filter_str):
+        with self._lock:
+            raw_results = self._ldap_client.search(filter_str)
+
+        results = []
+        for dn, attrs in raw_results:
+            if not dn:
+                continue
+            contact = self._ldap_result_formatter.format_one_result(attrs)
+            results.append(contact)
+        return results
 
 
 class _LDAPFactory:
@@ -203,6 +231,10 @@ class _LDAPConfig:
                 term_escaped
             )
         return None
+
+    def build_match_all_filter(self, terms):
+        filters = [self.build_first_match_filter(term) for term in terms]
+        return self._build_filter_from_list(filters)
 
     def _build_filter_from_custom_and_generated_filter(
         self, custom_filter, generated_filter

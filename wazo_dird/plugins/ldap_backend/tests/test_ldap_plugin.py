@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import ldap
@@ -9,7 +9,7 @@ import uuid
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from ldap.ldapobject import LDAPObject
-from mock import Mock, ANY, sentinel
+from mock import Mock, ANY, sentinel, call
 from wazo_dird.plugins.base_plugins import BaseSourcePlugin
 from wazo_dird.plugins.source_result import make_result_class
 
@@ -101,6 +101,27 @@ class TestLDAPPlugin(unittest.TestCase):
         self.ldap_config.build_first_match_filter.assert_called_once_with(exten)
         self.ldap_client.search.assert_called_once_with(sentinel.filter, 1)
         self.assertIs(result, None)
+
+    def test_match_all(self):
+        extens = ['123', '456']
+        self.ldap_config.first_matched_columns.return_value = ['column1', 'column2']
+        self.ldap_config.build_match_all_filter.return_value = sentinel.filter
+        self.ldap_client.search.return_value = [
+            (sentinel.result_1_dn, sentinel.result_1_attrs),
+            (sentinel.result_2_dn, sentinel.result_2_attrs),
+            (None, sentinel.result_3_attrs),
+        ]
+        format_result = Mock(fields={'column1': '123', 'column2': '456'})
+        self.ldap_result_formatter.format_one_result.return_value = format_result
+
+        self.ldap_plugin.load(self.config)
+        result = self.ldap_plugin.match_all(extens)
+
+        self.ldap_config.build_match_all_filter.assert_called_once_with(extens)
+        self.ldap_client.search.assert_called_once_with(sentinel.filter)
+        calls = [call(sentinel.result_1_attrs), call(sentinel.result_2_attrs)]
+        self.ldap_result_formatter.format_one_result.assert_has_calls(calls)
+        self.assertEqual(result, {'123': format_result, '456': format_result})
 
     def test_list_empty(self):
         uids = []
