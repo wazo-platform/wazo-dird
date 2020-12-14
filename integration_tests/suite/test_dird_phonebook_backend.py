@@ -1,4 +1,4 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -111,6 +111,11 @@ class TestPhonebookBackend(unittest.TestCase):
         result = self.backend.first(self.draco['number'])
 
         assert_that(result, equal_to(self.draco))
+
+    def test_match_all_returns_the_expected_result(self):
+        result = self.backend.match_all([self.draco['number'], '999999'])
+
+        assert_that(result, contains_inanyorder(equal_to(self.draco)))
 
     def test_that_list_returns_the_contacts(self):
         result = self.backend.list(
