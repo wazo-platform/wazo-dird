@@ -233,7 +233,11 @@ class _LDAPConfig:
         return None
 
     def build_match_all_filter(self, terms):
-        filters = [self.build_first_match_filter(term) for term in terms]
+        filters = []
+        for term in terms:
+            filter_ = self.build_first_match_filter(term)
+            if filter_:
+                filters.append(filter_)
         return self._build_filter_from_list(filters)
 
     def _build_filter_from_custom_and_generated_filter(
