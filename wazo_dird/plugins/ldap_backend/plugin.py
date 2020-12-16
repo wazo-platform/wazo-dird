@@ -133,7 +133,7 @@ class _LDAPConfig:
             BaseSourcePlugin.SEARCHED_COLUMNS
         ):
             raise LookupError(
-                "%s need a searched_columns OR"
+                "%s need a searched_columns OR "
                 "ldap_custom_filter in it's configuration" % config.get('name')
             )
 
