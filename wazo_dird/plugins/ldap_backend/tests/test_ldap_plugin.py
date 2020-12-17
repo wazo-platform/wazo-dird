@@ -471,6 +471,11 @@ class TestLDAPConfig(unittest.TestCase):
             '(|(entryUUID=foo)(entryUUID=bar))', ldap_config.build_list_filter(uids)
         )
 
+    def test_build_match_all_filter_when_no_first_match_columns_filter(self):
+        ldap_config = self.new_ldap_config({BaseSourcePlugin.FIRST_MATCHED_COLUMNS: []})
+
+        self.assertEqual('(|)', ldap_config.build_match_all_filter(['1234']))
+
 
 class TestLDAPClient(unittest.TestCase):
     def setUp(self):

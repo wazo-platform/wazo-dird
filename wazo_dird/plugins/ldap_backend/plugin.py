@@ -133,7 +133,7 @@ class _LDAPConfig:
             BaseSourcePlugin.SEARCHED_COLUMNS
         ):
             raise LookupError(
-                "%s need a searched_columns OR"
+                "%s need a searched_columns OR "
                 "ldap_custom_filter in it's configuration" % config.get('name')
             )
 
@@ -233,7 +233,11 @@ class _LDAPConfig:
         return None
 
     def build_match_all_filter(self, terms):
-        filters = [self.build_first_match_filter(term) for term in terms]
+        filters = []
+        for term in terms:
+            filter_ = self.build_first_match_filter(term)
+            if filter_:
+                filters.append(filter_)
         return self._build_filter_from_list(filters)
 
     def _build_filter_from_custom_and_generated_filter(
