@@ -1,9 +1,9 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
 
-from hamcrest import assert_that, contains, contains_inanyorder, has_entries
+from hamcrest import assert_that, contains, contains_inanyorder, has_entries, has_items
 
 from .. import services
 
@@ -82,6 +82,10 @@ class TestGoogleContactFormatter(unittest.TestCase):
                 ),
                 numbers=contains_inanyorder(
                     '+15551239876', '5551231111', '+15551234567'
+                ),
+                numbers_except_label=has_entries(
+                    mobile=has_items('+15551239876', '5551231111'),
+                    home=has_items('+15551234567', '5551231111'),
                 ),
             ),
         )

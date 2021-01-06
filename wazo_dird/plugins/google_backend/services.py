@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -123,6 +123,7 @@ class ContactFormatter:
             'lastname': self._extract_last_name(contact),
             'numbers_by_label': self._extract_numbers_by_label(contact),
             'numbers': self._extract_numbers(contact),
+            'numbers_except_label': self._extract_numbers_except_label(contact),
             'emails': self._extract_emails(contact),
             'organizations': self._extract_organizations(contact),
             'addresses': self._extract_addresses(contact),
@@ -182,6 +183,28 @@ class ContactFormatter:
                 number = number.replace(char, '')
 
             numbers[type_] = number
+
+        return numbers
+
+    @classmethod
+    def _extract_numbers_except_label(cls, contact):
+        numbers_by_label = cls._extract_numbers_by_label(contact)
+        numbers = {}
+
+        for type_ in (
+            'home',
+            'work',
+            'mobile',
+            'other',
+            'main',
+            'home_fax',
+            'work_fax',
+            'google_voice',
+            'pager',
+        ):
+            candidates = dict(numbers_by_label)
+            candidates.pop(type_, None)
+            numbers[type_] = list(candidates.values())
 
         return numbers
 
