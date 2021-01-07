@@ -1,6 +1,7 @@
 # Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import itertools
 import logging
 import uuid
 
@@ -16,6 +17,8 @@ from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointExcep
 logger = logging.getLogger(__name__)
 
 NUMBER_FIELDS = ('businessPhones', 'homePhones', 'mobilePhone')
+MULTI_PHONE_FIELDS = ('businessPhones', 'homePhones')
+SINGLE_PHONE_FIELDS = ('mobilePhone',)
 
 
 class Office365Service(SelfSortingServiceMixin):
@@ -126,3 +129,26 @@ def aggregate_numbers(contact):
             else:
                 all_numbers.append(field_value)
     return all_numbers
+
+
+def get_numbers_except_label(contact):
+    numbers_by_phonetype = {}
+    for phone_field in MULTI_PHONE_FIELDS:
+        numbers_by_phonetype[phone_field] = contact.get(phone_field) or []
+
+    for phone_field in SINGLE_PHONE_FIELDS:
+        phone_number = contact.get(phone_field)
+        if not phone_number:
+            numbers_by_phonetype[phone_field] = []
+        else:
+            numbers_by_phonetype[phone_field] = [phone_number]
+
+    numbers_except_phonetype = {}
+    for phone_field in numbers_by_phonetype:
+        candidates = dict(numbers_by_phonetype)
+        candidates.pop(phone_field, None)
+        numbers_except_phonetype[phone_field] = list(
+            itertools.chain(*candidates.values())
+        )
+
+    return numbers_except_phonetype

@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -184,4 +184,5 @@ class Office365Plugin(BaseSourcePlugin):
             contact.setdefault('givenName', '')
             contact['email'] = services.get_first_email(contact)
             contact['numbers'] = services.aggregate_numbers(contact)
+            contact['numbers_except_label'] = services.get_numbers_except_label(contact)
         return contacts

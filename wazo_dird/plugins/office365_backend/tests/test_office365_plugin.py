@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
@@ -6,8 +6,11 @@ from unittest import TestCase
 from hamcrest import (
     assert_that,
     calling,
+    contains_inanyorder,
+    empty,
     equal_to,
     has_entry,
+    has_entries,
     has_item,
     has_items,
     not_,
@@ -80,7 +83,20 @@ class TestOffice365Plugin(TestCase):
 
         assert_that(
             self.source._update_contact_fields([mario]),
-            has_item(has_entry('numbers', has_items('1234', '567', '890', '111'))),
+            has_item(
+                has_entries(
+                    {
+                        'numbers': has_items('1234', '567', '890', '111'),
+                        'numbers_except_label': has_entries(
+                            {
+                                'mobilePhone': contains_inanyorder('567', '890', '111'),
+                                'businessPhones': contains_inanyorder('1234', '111'),
+                                'homePhones': contains_inanyorder('1234', '567', '890'),
+                            }
+                        ),
+                    }
+                )
+            ),
         )
 
     def test_update_contact_fields_one_phone(self):
@@ -95,5 +111,18 @@ class TestOffice365Plugin(TestCase):
 
         assert_that(
             self.source._update_contact_fields([mario]),
-            has_item(has_entry('numbers', has_item('111'))),
+            has_item(
+                has_entries(
+                    {
+                        'numbers': has_item('111'),
+                        'numbers_except_label': has_entries(
+                            {
+                                'mobilePhone': contains_inanyorder('111'),
+                                'businessPhones': contains_inanyorder('111'),
+                                'homePhones': empty(),
+                            }
+                        ),
+                    }
+                )
+            ),
         )
