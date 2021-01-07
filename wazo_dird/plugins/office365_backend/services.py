@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -36,6 +36,7 @@ class Office365Service(SelfSortingServiceMixin):
             response = requests.get(url, headers=headers, params={'$top': count})
             if response.status_code == 200:
                 logger.debug('Successfully fetched contacts from microsoft.')
+                logger.debug('Raw data: %s', response.text)
                 return response.json().get('value', [])
             else:
                 logger.error(
