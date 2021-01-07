@@ -126,3 +126,31 @@ class TestOffice365Plugin(TestCase):
                 )
             ),
         )
+
+    def test_update_contact_fields_no_phone(self):
+        self.source.load(self.DEPENDENCIES)
+
+        mario = {
+            'name': 'Mario Bros',
+            'mobilePhone': None,
+            'businessPhones': [],
+            'homePhones': [],
+        }
+
+        assert_that(
+            self.source._update_contact_fields([mario]),
+            has_item(
+                has_entries(
+                    {
+                        'numbers': empty(),
+                        'numbers_except_label': has_entries(
+                            {
+                                'mobilePhone': empty(),
+                                'businessPhones': empty(),
+                                'homePhones': empty(),
+                            }
+                        ),
+                    }
+                )
+            ),
+        )
