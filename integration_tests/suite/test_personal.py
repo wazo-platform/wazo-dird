@@ -48,9 +48,6 @@ class TestListPersonal(PersonalOnlyTestCase):
         assert_that(result['items'], contains())
 
 
-# This test will be more stable when dird gets a /status resource to know if its connected
-# to rabbitmq. Until then, this test fails most of the time on jenkins.
-@unittest.skip('Waiting for a /status resource')
 class TestDeletedUser(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
@@ -60,6 +57,12 @@ class TestDeletedUser(BaseDirdIntegrationTest):
         bus_port = self.service_port(5672, 'rabbitmq')
         self.bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
         until.true(self.bus.is_up, timeout=5)
+
+        def wait_for_dird_bus_connection():
+            response = self.client.status.get()
+            assert_that(response, has_entries(bus_consumer={'status': 'ok'}))
+
+        until.assert_(wait_for_dird_bus_connection, timeout=6)
 
     def test_that_deleting_a_user_deletes_its_storage(self):
         def check():
