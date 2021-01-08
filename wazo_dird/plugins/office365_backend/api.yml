@@ -157,9 +157,9 @@ definitions:
     title: MicrosoftSource
     description: |
       In addition to the keys defined by the [Microsoft API](https://docs.microsoft.com/en-us/graph/api/resources/contact?view=graph-rest-1.0#),
-      `format_columns` also accepts a `numbers` field that aggregates the values from the
-      `businessPhones`, `homePhones` and `mobilePhone` fields.
-      Example: `"format_columns": {"number": "{numbers[0]}"}`
+      `format_columns` also accepts the following columns:
+      * a `numbers` field that aggregates the values from the `businessPhones`, `homePhones` and `mobilePhone` fields. Example: `"format_columns": {"phone": "{numbers[0]}"}`
+      * a `numbers_except_label` field that aggregates the same values than `numbers`, except for one field. Example: `"format_columns": {"phone": "{numbers_except_label[mobilePhone][0]}"}` will result in one of the phone numbers except the mobile phone.
     allOf:
       - $ref: '#/definitions/Source'
       - properties:

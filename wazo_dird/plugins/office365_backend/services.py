@@ -1,6 +1,7 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import itertools
 import logging
 import uuid
 
@@ -15,7 +16,8 @@ from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointExcep
 
 logger = logging.getLogger(__name__)
 
-NUMBER_FIELDS = ('businessPhones', 'homePhones', 'mobilePhone')
+MULTI_PHONE_FIELDS = ('businessPhones', 'homePhones')
+SINGLE_PHONE_FIELDS = ('mobilePhone',)
 
 
 class Office365Service(SelfSortingServiceMixin):
@@ -36,6 +38,7 @@ class Office365Service(SelfSortingServiceMixin):
             response = requests.get(url, headers=headers, params={'$top': count})
             if response.status_code == 200:
                 logger.debug('Successfully fetched contacts from microsoft.')
+                logger.debug('Raw data: %s', response.text)
                 return response.json().get('value', [])
             else:
                 logger.error(
@@ -117,11 +120,34 @@ def get_first_email(contact_information):
 
 def aggregate_numbers(contact):
     all_numbers = []
-    for field in NUMBER_FIELDS:
+    for field in SINGLE_PHONE_FIELDS:
         field_value = contact.get(field)
         if field_value:
-            if isinstance(field_value, list):
-                all_numbers.extend(field_value)
-            else:
-                all_numbers.append(field_value)
+            all_numbers.append(field_value)
+    for field in MULTI_PHONE_FIELDS:
+        field_value = contact.get(field) or []
+        all_numbers.extend(field_value)
     return all_numbers
+
+
+def get_numbers_except_label(contact):
+    numbers_by_phonetype = {}
+    for phone_field in MULTI_PHONE_FIELDS:
+        numbers_by_phonetype[phone_field] = contact.get(phone_field) or []
+
+    for phone_field in SINGLE_PHONE_FIELDS:
+        phone_number = contact.get(phone_field)
+        if not phone_number:
+            numbers_by_phonetype[phone_field] = []
+        else:
+            numbers_by_phonetype[phone_field] = [phone_number]
+
+    numbers_except_phonetype = {}
+    for phone_field in numbers_by_phonetype:
+        candidates = dict(numbers_by_phonetype)
+        candidates.pop(phone_field, None)
+        numbers_except_phonetype[phone_field] = list(
+            itertools.chain(*candidates.values())
+        )
+
+    return numbers_except_phonetype

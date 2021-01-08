@@ -71,7 +71,8 @@ paths:
 
         * name: the contact name
         * numbers: a list of phone numbers
-        * numbers_by_label: a map of type to numbers {'mobile': <number>, 'home': <number>}
+        * numbers_by_label: a map of type to numbers {'mobile': <number>, 'home': <number>, ...}. Types are defined by Google, currently known types include: 'home', 'work', 'mobile', 'other', 'main', 'home_fax', 'work_fax', 'google_voice', 'pager'.
+        * numbers_except_label: a map from type to every other number {'mobile': [<number>, <number], 'home': [<number>, <number>], ...}. See available types above. For example, the 'mobile' key will contain the 'work' and 'home' numbers, but will exclude the 'mobile' number.
         * emails: a list of email addresses
       tags:
         - configuration
