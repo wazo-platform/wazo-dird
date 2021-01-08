@@ -1,8 +1,6 @@
 # Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import kombu
-
 from hamcrest import (
     assert_that,
     contains,
@@ -10,7 +8,7 @@ from hamcrest import (
     has_entries,
     has_item,
 )
-from xivo_bus import Publisher, Marshaler
+from xivo_bus import Marshaler
 from xivo_bus.resources.auth.events import TenantCreatedEvent
 from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
@@ -30,18 +28,8 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         self.tenant_uuid = SUB_TENANT
         self.tenant_name = 'mytenant'
         bus_port = self.service_port(5672, 'rabbitmq')
-        bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
-        until.true(bus.is_up, timeout=5)
+        self.bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
 
-        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(
-            username='guest', password='guest', host='localhost', port=bus_port
-        )
-        connection = kombu.Connection(bus_url)
-        connection.connect()
-        marshaler = Marshaler('the-xivo-uuid')
-        exchange = kombu.Exchange('xivo', type='topic')
-        producer = kombu.Producer(connection, exchange=exchange, auto_declare=True)
-        self.publisher = Publisher(producer, marshaler)
         self.mock_auth_client = MockAuthClient(
             'localhost', self.service_port(9497, 'auth')
         )
@@ -231,5 +219,10 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         return token.token_id
 
     def _publish_tenant_created_event(self):
-        msg = TenantCreatedEvent(uuid=self.tenant_uuid, name=self.tenant_name)
-        self.publisher.publish(msg)
+        event = TenantCreatedEvent(uuid=self.tenant_uuid, name=self.tenant_name)
+        marshaler = Marshaler('the-xivo-uuid')
+        message = {
+            'data': event.marshal(),
+            **marshaler.metadata(event),
+        }
+        self.bus.publish(message, routing_key=event.routing_key)
