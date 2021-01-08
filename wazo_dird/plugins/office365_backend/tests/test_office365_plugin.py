@@ -9,7 +9,6 @@ from hamcrest import (
     contains_inanyorder,
     empty,
     equal_to,
-    has_entry,
     has_entries,
     has_item,
     has_items,
