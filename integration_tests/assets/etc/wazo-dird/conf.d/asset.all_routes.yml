@@ -5,3 +5,7 @@ foo:
 auth:
   username: any
   password: thing
+
+enabled_plugins:
+  services:
+    broken_bus: true

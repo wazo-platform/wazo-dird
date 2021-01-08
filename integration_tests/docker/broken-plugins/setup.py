@@ -17,6 +17,9 @@ setup(
             'broken_lookup = xivo_dird_broken_plugins.broken_backend:BrokenLookup',
             'chained_broken_first_lookup = xivo_dird_broken_plugins.broken_backend:ChainedBrokenFirstLookup',
             'chained_second_lookup = xivo_dird_broken_plugins.broken_backend:ChainedSecondLookup',
-        ]
+        ],
+        'wazo_dird.services': [
+            'broken_bus = xivo_dird_broken_plugins.broken_service:BrokenBusPlugin',
+        ],
     },
 )
