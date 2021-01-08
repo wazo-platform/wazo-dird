@@ -1,5 +1,12 @@
 # Changelog
 
+## 21.01
+
+* Office365 and Google default source configuration has changed:
+
+  * Google: format column `phone = {numbers_except_label[mobile][0]}`
+  * Office365: format column `phone = {numbers_except_label[mobilePhone][0]}`
+
 ## 20.16
 
 * Backend plugins now implement a new method: `match_all()`
