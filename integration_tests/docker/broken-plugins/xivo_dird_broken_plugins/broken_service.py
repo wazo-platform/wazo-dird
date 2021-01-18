@@ -31,6 +31,7 @@ class BrokenBusPlugin:
         self.bus.add_consumer(self._QUEUE, self.on_dird_test_message)
 
     def on_dird_test_message(self, body, message):
-        if body['name'] != 'dird_ping':
-            return
-        self.bus.publish(PongEvent(), headers={})
+        if body['name'] == 'dird_ping':
+            self.bus.publish(PongEvent(), headers={})
+        elif body['name'] == 'crash_ping':
+            raise Exception('Crash message received')
