@@ -170,8 +170,6 @@ class Service:
             sources = self._auto_create_sources(uuid, name)
             display = self._auto_create_display(uuid, name)
             self._auto_create_profile(uuid, name, display, sources)
-        finally:
-            message.ack()
 
     def _add_source(self, backend, body):
         source_service = self._controller.services.get('source')
