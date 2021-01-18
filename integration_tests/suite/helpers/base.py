@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -439,6 +439,10 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @staticmethod
     def assert_list_result(result, items, total, filtered):
         assert_that(result, has_entries(items=items, total=total, filtered=filtered))
+
+    def bus_is_up(self):
+        result = self.client.status.get()
+        return result['bus_consumer']['status'] != 'fail'
 
 
 class BasePhonebookTestCase(BaseDirdIntegrationTest):
