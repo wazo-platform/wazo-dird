@@ -1,10 +1,11 @@
-# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import threading
 
 from contextlib import contextmanager
+from functools import partial
 
 import kombu
 
@@ -87,7 +88,7 @@ class _Consumer(ConsumerMixin):
 
     def get_consumers(self, Consumer, channel):
         return [
-            Consumer(queue, callbacks=[callback])
+            Consumer(queue, callbacks=[partial(self.no_error_callback, callback)])
             for (queue, callback) in self._queues_and_callbacks
         ]
 
@@ -101,3 +102,13 @@ class _Consumer(ConsumerMixin):
     def on_connection_revived(self):
         super().on_connection_revived()
         self._is_running = True
+
+    @staticmethod
+    def no_error_callback(callback, body, message):
+        logger.debug('running callback')
+        try:
+            callback(body, message)
+        except Exception:
+            logger.exception('Consumer callback exception')
+        finally:
+            message.ack()

@@ -1,8 +1,6 @@
-# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import unittest
-import kombu
 import uuid
 
 from hamcrest import (
@@ -23,10 +21,11 @@ from hamcrest import (
     not_,
 )
 from mock import ANY
-from xivo_bus.resources.user import event
-from xivo_bus import Publisher, Marshaler
+from xivo_bus.resources.user.event import DeleteUserEvent
+from xivo_bus import Marshaler
 from xivo_test_helpers import until
 from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from xivo_test_helpers.bus import BusClient
 
 from wazo_auth_client import Client as AuthClient
 
@@ -49,21 +48,16 @@ class TestListPersonal(PersonalOnlyTestCase):
         assert_that(result['items'], contains())
 
 
-# This test will be more stable when dird gets a /status resource to know if its connected
-# to rabbitmq. Until then, this test fails most of the time on jenkins.
-@unittest.skip('Waiting for a /status resource')
 class TestDeletedUser(BaseDirdIntegrationTest):
 
     asset = 'personal_only'
 
     def setUp(self):
         super().setUp()
+        until.true(self.bus_is_up, tries=10)
         bus_port = self.service_port(5672, 'rabbitmq')
-        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(
-            username='guest', password='guest', host='localhost', port=bus_port
-        )
-        self._connection = kombu.Connection(bus_url)
-        self._connection.connect()
+        self.bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
+        until.true(self.bus.is_up, timeout=5)
 
     def test_that_deleting_a_user_deletes_its_storage(self):
         def check():
@@ -78,14 +72,13 @@ class TestDeletedUser(BaseDirdIntegrationTest):
         until.assert_(check, tries=3)
 
     def _publish_user_deleted_event(self, uuid):
-        msg = event.DeleteUserEvent(42, uuid)
+        event = DeleteUserEvent(42, uuid)
         marshaler = Marshaler('the-xivo-uuid')
-        exchange = kombu.Exchange('xivo', type='topic')
-        producer = kombu.Producer(
-            self._connection, exchange=exchange, auto_declare=True
-        )
-        publisher = Publisher(producer, marshaler)
-        publisher.publish(msg)
+        message = {
+            'data': event.marshal(),
+            **marshaler.metadata(event),
+        }
+        self.bus.publish(message, routing_key=event.routing_key)
 
 
 class TestAddPersonal(PersonalOnlyTestCase):
