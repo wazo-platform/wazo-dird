@@ -88,7 +88,7 @@ class _Consumer(ConsumerMixin):
 
     def get_consumers(self, Consumer, channel):
         return [
-            Consumer(queue, callbacks=[partial(self.no_error_callback, callback)])
+            Consumer(queue, callbacks=[partial(self._on_bus_message, callback)])
             for (queue, callback) in self._queues_and_callbacks
         ]
 
@@ -104,8 +104,8 @@ class _Consumer(ConsumerMixin):
         self._is_running = True
 
     @staticmethod
-    def no_error_callback(callback, body, message):
-        logger.debug('running callback')
+    def _on_bus_message(callback, body, message):
+        logger.debug('running callback %s', callback)
         try:
             callback(body, message)
         except Exception:
