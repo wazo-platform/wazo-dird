@@ -43,7 +43,7 @@ def get_google_sources():
 
 
 def update_google_source(source):
-    if source.format_columns['phone'] == '{numbers[0]}':
+    if source.format_columns.get('phone') == '{numbers[0]}':
         source.format_columns['phone'] = '{numbers_except_label[mobile][0]}'
     query = (
         dird_source_table.update()
@@ -67,7 +67,7 @@ def get_office365_sources():
 
 
 def update_office365_source(source):
-    if source.format_columns['phone'] == '{numbers[0]}':
+    if source.format_columns.get('phone') == '{numbers[0]}':
         source.format_columns['phone'] = '{numbers_except_label[mobilePhone][0]}'
     query = (
         dird_source_table.update()
