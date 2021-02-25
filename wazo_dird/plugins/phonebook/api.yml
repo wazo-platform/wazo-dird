@@ -146,7 +146,7 @@ paths:
     post:
       summary: Create a new contact
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create`'
-      operationId: create_phonebook
+      operationId: create_phonebook_contact
       tags:
       - phonebook
       parameters:

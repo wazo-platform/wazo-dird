@@ -2,7 +2,7 @@ paths:
   /backends/office365/sources/{source_uuid}/contacts:
     get:
       description: '**Required ACL:** `dird.backends.office365.sources.{source_uuid}.contacts.read`'
-      operationId: list_contacts from source
+      operationId: list_microsoft_contacts_from_source
       parameters:
         - $ref: '#/parameters/tenantuuid'
         - in: path
