@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -81,7 +81,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
         token = MockUserToken.some_token(
             user_uuid='my-user-uuid',
             metadata={'tenant_uuid': MAIN_TENANT},
-            acls=['dird.graphql.me'],
+            acl=['dird.graphql.me'],
         )
         self.auth.set_token(token)
         query = {'query': '{ me { userUuid } }'}
