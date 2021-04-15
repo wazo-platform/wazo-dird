@@ -4,12 +4,10 @@
       - wazo-tox-py37
     check:
       jobs:
-        - dird-tox-integration:
-            nodeset: vm-debian-10-m1s
+        - dird-tox-integration
     gate:
       jobs:
-        - dird-tox-integration:
-            nodeset: vm-debian-10-m1s
+        - dird-tox-integration
 
 - job:
     name: dird-tox-integration
