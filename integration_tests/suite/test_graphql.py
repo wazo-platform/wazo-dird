@@ -9,6 +9,8 @@ from hamcrest import (
     equal_to,
     has_entries,
     has_entry,
+    has_key,
+    not_,
 )
 from wazo_dird_client import Client as DirdClient
 from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
@@ -254,6 +256,40 @@ class TestGraphQL(BaseDirdIntegrationTest):
                 ),
             ),
         )
+
+    def test_reverse_missing_contact_fields(self):
+        query = {
+            'query': '''
+            {
+                me {
+                    contacts(profile: "default", extens: ["4444444444"]) {
+                        edges {
+                            node {
+                                firstname
+                                lastname
+                                email
+                            }
+                        }
+                    }
+                }
+            }
+            ''',
+        }
+
+        response = self.dird.graphql.query(query)
+
+        assert_that(
+            response['data']['me']['contacts']['edges'],
+            contains(
+                has_entry(
+                    'node',
+                    has_entries(
+                        {'firstname': 'Dave', 'lastname': 'DDD', 'email': None}
+                    ),
+                ),
+            ),
+        )
+        assert_that(response, not_(has_key('errors')))
 
 
 class TestGraphQLNoAuth(BaseDirdIntegrationTest):

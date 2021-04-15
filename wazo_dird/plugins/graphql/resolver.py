@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
@@ -54,7 +54,7 @@ class Resolver:
         return schema.Contact
 
     def get_contact_field(self, contact, info, **args):
-        return contact.fields[info.field_name]
+        return contact.fields.get(info.field_name)
 
     def get_contact_user_uuid(self, contact, info, **args):
         return contact.relations['user_uuid']
