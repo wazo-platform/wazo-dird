@@ -99,7 +99,21 @@ def get_microsoft_access_token(user_uuid, wazo_token, **auth_config):
         auth = Auth(token=wazo_token, **auth_config)
         return auth.external.get('microsoft', user_uuid).get('access_token')
     except requests.HTTPError as e:
-        logger.error('Microsoft token could not be fetched from wazo-auth, error %s', e)
+        if e.response.status_code == 404:
+            if 'unknown-external-auth-type' in e.response.text:
+                logger.debug(
+                    'The "microsoft" authentication type has not been configured'
+                )
+                raise MicrosoftTokenNotFoundException(user_uuid)
+            elif 'unknown-external-auth' in e.response.text:
+                logger.debug(
+                    'user %s has no "microsoft" authentication configured', user_uuid
+                )
+                raise MicrosoftTokenNotFoundException(user_uuid)
+
+        logger.error(
+            'Microsoft token could not be fetched from wazo-auth, error: %s', e
+        )
         raise MicrosoftTokenNotFoundException(user_uuid)
     except requests.exceptions.ConnectionError as e:
         logger.error(

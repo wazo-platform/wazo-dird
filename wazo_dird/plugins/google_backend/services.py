@@ -98,6 +98,16 @@ def get_google_access_token(user_uuid, wazo_token, **auth_config):
         auth = Auth(token=wazo_token, **auth_config)
         return auth.external.get('google', user_uuid).get('access_token')
     except requests.HTTPError as e:
+        if e.response.status_code == 404:
+            if 'unknown-external-auth-type' in e.response.text:
+                logger.debug('The "google" authentication type has not been configured')
+                raise GoogleTokenNotFoundException(user_uuid)
+            elif 'unknown-external-auth' in e.response.text:
+                logger.debug(
+                    'user %s has no "google" authentication configured', user_uuid
+                )
+                raise GoogleTokenNotFoundException(user_uuid)
+
         logger.error('Google token could not be fetched from wazo-auth, error: %s', e)
         raise GoogleTokenNotFoundException(user_uuid)
     except requests.exceptions.ConnectionError as e:
