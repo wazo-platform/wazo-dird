@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -213,6 +213,21 @@ def new_csv_with_multiple_displays_config(Session):
     )
     config.with_source(
         backend='csv',
+        name='my_csv_no_email',
+        file='/tmp/data/test_no_email.csv',
+        separator=",",
+        unique_column='id',
+        searched_columns=['fn', 'ln'],
+        first_matched_columns=['num'],
+        format_columns={
+            'lastname': "{ln}",
+            'firstname': "{fn}",
+            'number': "{num}",
+            'reverse': '{fn} {ln}',
+        },
+    )
+    config.with_source(
+        backend='csv',
         tenant_uuid=TENANT_UUID_2,
         name='my_csv_2',
         file='/tmp/data/test.csv',
@@ -232,9 +247,9 @@ def new_csv_with_multiple_displays_config(Session):
         name='default',
         display='default_display',
         services={
-            'lookup': {'sources': ['my_csv'], 'timeout': 0.5},
-            'favorites': {'sources': ['my_csv'], 'timeout': 0.5},
-            'reverse': {'sources': ['my_csv'], 'timeout': 0.5},
+            'lookup': {'sources': ['my_csv', 'my_csv_no_email'], 'timeout': 0.5},
+            'favorites': {'sources': ['my_csv', 'my_csv_no_email'], 'timeout': 0.5},
+            'reverse': {'sources': ['my_csv', 'my_csv_no_email'], 'timeout': 0.5},
         },
     )
     config.with_profile(
