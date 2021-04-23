@@ -1,4 +1,4 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from mock import Mock
@@ -56,13 +56,13 @@ class TestWazoUser(DirdAssetRunningTestCase):
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['exten'],
             'auth': {
-                'host': 'localhost',
+                'host': '127.0.0.1',
                 'port': self.service_port(9497, 'auth'),
                 'prefix': None,
                 'https': False,
             },
             'confd': {
-                'host': 'localhost',
+                'host': '127.0.0.1',
                 'port': self.service_port(9486, 'confd'),
                 'prefix': None,
                 'https': False,

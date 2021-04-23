@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -134,7 +134,7 @@ def google_result(contact_list, group_list=None):
         def wrapper(self, *args, **kwargs):
             google_port = self.service_port(443, 'google.com')
             mock_server = UnVerifiedMockServerClient(
-                'https://localhost:{}'.format(google_port)
+                'https://127.0.0.1:{}'.format(google_port)
             )
             expectation = mock_server.create_expectation(
                 '/m8/feeds/contacts/default/full', contact_list, 200
@@ -166,7 +166,7 @@ def office365_result(contact_list):
         def wrapper(self, *args, **kwargs):
             office365_port = self.service_port(443, 'microsoft.com')
             mock_server = UnVerifiedMockServerClient(
-                'http://localhost:{}'.format(office365_port)
+                'http://127.0.0.1:{}'.format(office365_port)
             )
             count_expectation = mock_server.create_expectation(
                 '/v1.0/me/contacts', {'@odata.count': len(contact_list)}, 200
@@ -203,7 +203,7 @@ def office365_error():
         def wrapper(self, *args, **kwargs):
             office365_port = self.service_port(443, 'microsoft.com')
             mock_server = UnVerifiedMockServerClient(
-                'http://localhost:{}'.format(office365_port)
+                'http://127.0.0.1:{}'.format(office365_port)
             )
             expectation = mock_server.create_expectation(
                 '/v1.0/me/contacts/error', {}, 404

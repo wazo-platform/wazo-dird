@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
@@ -143,7 +143,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
         )
         self.source_uuid = source['uuid']
 
-        auth_client_mock = AuthMock(host='localhost', port=auth_port)
+        auth_client_mock = AuthMock(host='127.0.0.1', port=auth_port)
         auth_client_mock.set_external_auth(self.GOOGLE_EXTERNAL_AUTH)
 
     def tearDown(self):

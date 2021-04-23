@@ -15,7 +15,7 @@ class TestBusConsumer(BaseDirdIntegrationTest):
         super().setUp()
         until.true(self.bus_is_up, tries=10)
         bus_port = self.service_port(5672, 'rabbitmq')
-        self.bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
+        self.bus = BusClient.from_connection_fields(host='127.0.0.1', port=bus_port)
 
     def test_message_is_received(self):
         bus_events = self.bus.accumulator('dird.test')

@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -68,7 +68,7 @@ class BaseOffice365TestCase(DirdAssetRunningTestCase):
         super().setUp()
         port = self.service_port(9489, 'dird')
         dird_config = {
-            'host': 'localhost',
+            'host': '127.0.0.1',
             'port': port,
             'token': VALID_TOKEN_MAIN_TENANT,
             'prefix': None,
@@ -130,12 +130,12 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
         office365_port = self.service_port(443, 'microsoft.com')
         return {
             'auth': {
-                'host': 'localhost',
+                'host': '127.0.0.1',
                 'port': self.service_port(9497, 'auth'),
                 'prefix': None,
                 'https': False,
             },
-            'endpoint': f'http://localhost:{office365_port}/v1.0/me/contacts',
+            'endpoint': f'http://127.0.0.1:{office365_port}/v1.0/me/contacts',
             'first_matched_columns': ['businessPhones', 'mobilePhone'],
             'format_columns': {
                 'number': '{businessPhones[0]}',
@@ -220,7 +220,7 @@ class TestOffice365PluginWrongEndpoint(BaseOffice365PluginTestCase):
     def config(self):
         return {
             'auth': {
-                'host': 'localhost',
+                'host': '127.0.0.1',
                 'port': self.service_port(9497, 'auth'),
                 'prefix': None,
                 'https': False,

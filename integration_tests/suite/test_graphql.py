@@ -29,14 +29,14 @@ class TestGraphQL(BaseDirdIntegrationTest):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.auth = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        cls.auth = MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
         main_tenant_token = MockUserToken.some_token(
             metadata={'uuid': 'my-user-uuid', 'tenant_uuid': MAIN_TENANT}
         )
         cls.auth.set_token(main_tenant_token)
         cls.main_tenant_token = main_tenant_token.token_id
         cls.dird = DirdClient(
-            'localhost', cls.service_port(9489, 'dird'), prefix=None, https=False
+            '127.0.0.1', cls.service_port(9489, 'dird'), prefix=None, https=False
         )
         cls.dird.set_token(cls.main_tenant_token)
 
@@ -298,7 +298,7 @@ class TestGraphQLNoAuth(BaseDirdIntegrationTest):
 
     def test_unreachable_auth_should_return_error(self):
         dird = DirdClient(
-            'localhost', self.service_port(9489, 'dird'), prefix=None, https=False
+            '127.0.0.1', self.service_port(9489, 'dird'), prefix=None, https=False
         )
         dird.set_token(VALID_TOKEN)
         query = {'query': '{ hello }'}
@@ -323,14 +323,14 @@ class TestGraphQLWazoBackend(BaseDirdIntegrationTest):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.auth = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        cls.auth = MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
         main_tenant_token = MockUserToken.some_token(
             metadata={'uuid': 'my-user-uuid', 'tenant_uuid': MAIN_TENANT}
         )
         cls.auth.set_token(main_tenant_token)
         cls.main_tenant_token = main_tenant_token.token_id
         cls.dird = DirdClient(
-            'localhost', cls.service_port(9489, 'dird'), prefix=None, https=False
+            '127.0.0.1', cls.service_port(9489, 'dird'), prefix=None, https=False
         )
         cls.dird.set_token(cls.main_tenant_token)
 

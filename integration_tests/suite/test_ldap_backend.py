@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import ldap
@@ -102,7 +102,7 @@ class TestLDAP(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        ldap_uri = 'ldap://localhost:{port}'.format(port=cls.service_port(389, 'slapd'))
+        ldap_uri = 'ldap://127.0.0.1:{port}'.format(port=cls.service_port(389, 'slapd'))
 
         try:
             cls.entry_uuids = add_contacts(cls.CONTACTS, ldap_uri)
@@ -174,7 +174,7 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        ldap_uri = 'ldap://localhost:{port}'.format(port=cls.service_port(389, 'slapd'))
+        ldap_uri = 'ldap://127.0.0.1:{port}'.format(port=cls.service_port(389, 'slapd'))
 
         try:
             cls.entry_uuids = add_contacts(cls.CONTACTS, ldap_uri)

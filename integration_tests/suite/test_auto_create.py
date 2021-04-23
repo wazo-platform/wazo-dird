@@ -28,10 +28,10 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         self.tenant_uuid = SUB_TENANT
         self.tenant_name = 'mytenant'
         bus_port = self.service_port(5672, 'rabbitmq')
-        self.bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
+        self.bus = BusClient.from_connection_fields(host='127.0.0.1', port=bus_port)
 
         self.mock_auth_client = MockAuthClient(
-            'localhost', self.service_port(9497, 'auth')
+            '127.0.0.1', self.service_port(9497, 'auth')
         )
 
         def wait_for_dird_bus_connection():

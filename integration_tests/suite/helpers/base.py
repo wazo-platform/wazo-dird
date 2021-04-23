@@ -84,7 +84,7 @@ class AutoConfiguredDirdTestCase(DBRunningTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.mock_auth_client = MockAuthClient(
-            'localhost', cls.service_port(9497, 'auth')
+            '127.0.0.1', cls.service_port(9497, 'auth')
         )
         cls.config = cls.config_factory(cls.Session)
         cls.config.setup()
@@ -99,11 +99,11 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.host = 'localhost'
+        cls.host = '127.0.0.1'
         cls.port = cls.service_port(9489, 'dird')
         try:
             auth_port = cls.service_port(9497, 'auth')
-            auth_client = AuthClient('localhost', auth_port, prefix=None, https=False)
+            auth_client = AuthClient('127.0.0.1', auth_port, prefix=None, https=False)
             auth_client.users.new(
                 uuid=VALID_UUID, tenant_uuid=MAIN_TENANT, username='foobar'
             )
@@ -120,7 +120,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def url(cls, *parts):
-        return 'http://localhost:{port}/0.1/{parts}'.format(
+        return 'http://127.0.0.1:{port}/0.1/{parts}'.format(
             port=cls.port, parts="/".join(map(str, parts))
         )
 
