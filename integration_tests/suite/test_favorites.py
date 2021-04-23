@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -30,7 +30,7 @@ class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
                 {'uuid': TENANT_UUID_2, 'name': 'second'},
             ]
         }
-        mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
         user_token_1 = MockUserToken.some_token(
             metadata={'tenant_uuid': tenants['items'][0]['uuid']}
         )
@@ -202,7 +202,7 @@ class TestFavoritesBusEvents(PersonalOnlyTestCase):
                 {'uuid': str(uuid.uuid4()), 'name': 'second'},
             ]
         }
-        mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
         user_token_1 = MockUserToken.some_token(
             metadata={'tenant_uuid': tenants['items'][0]['uuid']}
         )
@@ -217,7 +217,7 @@ class TestFavoritesBusEvents(PersonalOnlyTestCase):
 
     def test_that_adding_favorite_produces_bus_event(self):
         bus_port = self.service_port(5672, 'rabbitmq')
-        bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
+        bus = BusClient.from_connection_fields(host='127.0.0.1', port=bus_port)
         until.true(bus.is_up, tries=5)
         bus_events = bus.accumulator('directory.*.favorite.*')
 

@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains, empty, has_entries
@@ -35,10 +35,10 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
         return {
             'type': 'csv_ws',
             'name': 'my_csv',
-            'list_url': 'https://localhost:{port}/ws'.format(
+            'list_url': 'https://127.0.0.1:{port}/ws'.format(
                 port=self.service_port(9485, 'ws')
             ),
-            'lookup_url': 'https://localhost:{port}/ws'.format(
+            'lookup_url': 'https://127.0.0.1:{port}/ws'.format(
                 port=self.service_port(9485, 'ws')
             ),
             'verify_certificate': False,
@@ -100,10 +100,10 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
         return {
             'type': 'csv_ws',
             'name': 'my_csv',
-            'list_url': 'http://localhost:{port}/ws'.format(
+            'list_url': 'http://127.0.0.1:{port}/ws'.format(
                 port=self.service_port(9485, 'ws')
             ),
-            'lookup_url': 'http://localhost:{port}/ws'.format(
+            'lookup_url': 'http://127.0.0.1:{port}/ws'.format(
                 port=self.service_port(9485, 'ws')
             ),
             'delimiter': ',',

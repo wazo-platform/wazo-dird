@@ -56,7 +56,7 @@ class TestDeletedUser(BaseDirdIntegrationTest):
         super().setUp()
         until.true(self.bus_is_up, tries=10)
         bus_port = self.service_port(5672, 'rabbitmq')
-        self.bus = BusClient.from_connection_fields(host='localhost', port=bus_port)
+        self.bus = BusClient.from_connection_fields(host='127.0.0.1', port=bus_port)
         until.true(self.bus.is_up, timeout=5)
 
     def test_that_deleting_a_user_deletes_its_storage(self):
@@ -83,7 +83,7 @@ class TestDeletedUser(BaseDirdIntegrationTest):
 
 class TestAddPersonal(PersonalOnlyTestCase):
     def test_that_a_token_with_no_user_uuid_returns_401(self):
-        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', self.service_port(9497, 'auth'))
         tenant_uuid = MAIN_TENANT
         invalid_token_uuid = str(uuid.uuid4())
         invalid_token = MockUserToken.some_token(
@@ -152,7 +152,7 @@ class TestAddPersonal(PersonalOnlyTestCase):
 
 class TestRemovePersonal(PersonalOnlyTestCase):
     def test_that_a_token_with_no_user_uuid_returns_401(self):
-        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', self.service_port(9497, 'auth'))
         tenant_uuid = MAIN_TENANT
         invalid_token_uuid = str(uuid.uuid4())
         invalid_token = MockUserToken.some_token(
@@ -186,7 +186,7 @@ class TestRemovePersonal(PersonalOnlyTestCase):
 
 class TestPurgePersonal(PersonalOnlyTestCase):
     def test_that_a_token_with_no_user_uuid_returns_401(self):
-        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', self.service_port(9497, 'auth'))
         tenant_uuid = MAIN_TENANT
         invalid_token_uuid = str(uuid.uuid4())
         invalid_token = MockUserToken.some_token(
@@ -233,7 +233,7 @@ class TestPersonalVisibility(PersonalOnlyTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
         tenant_uuid = MAIN_TENANT
         valid_token_1 = MockUserToken.some_token(
             token=VALID_TOKEN_1, metadata={'tenant_uuid': tenant_uuid}
@@ -294,11 +294,11 @@ class TestLookupPersonal(PersonalOnlyTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        mock_auth_client = MockAuthClient('localhost', cls.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
         tenant_uuid = MAIN_TENANT
         try:
             auth_port = cls.service_port(9497, 'auth')
-            auth_client = AuthClient('localhost', auth_port, prefix=None, https=False)
+            auth_client = AuthClient('127.0.0.1', auth_port, prefix=None, https=False)
             auth_client.users.new(
                 uuid=VALID_UUID_1, tenant_uuid=MAIN_TENANT, username='foobar2'
             )
@@ -427,7 +427,7 @@ class TestLookupPersonal(PersonalOnlyTestCase):
 
 class TestEditPersonal(PersonalOnlyTestCase):
     def test_that_a_token_with_no_user_uuid_returns_401(self):
-        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', self.service_port(9497, 'auth'))
         tenant_uuid = MAIN_TENANT
         invalid_token_uuid = str(uuid.uuid4())
         invalid_token = MockUserToken.some_token(
@@ -504,7 +504,7 @@ class TestEditInvalidPersonal(PersonalOnlyTestCase):
 
 class TestGetPersonal(PersonalOnlyTestCase):
     def test_that_a_token_with_no_user_uuid_returns_401(self):
-        mock_auth_client = MockAuthClient('localhost', self.service_port(9497, 'auth'))
+        mock_auth_client = MockAuthClient('127.0.0.1', self.service_port(9497, 'auth'))
         tenant_uuid = MAIN_TENANT
         invalid_token_uuid = str(uuid.uuid4())
         invalid_token = MockUserToken.some_token(
