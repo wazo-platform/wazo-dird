@@ -22,11 +22,6 @@ class BrokenBusPlugin:
     )
 
     def load(self, dependencies):
-        import logging
-
-        logger = logging.getLogger(__name__)
-
-        logger.critical('LOAD')
         self.bus = dependencies['bus']
         self.bus.add_consumer(self._QUEUE, self.on_dird_test_message)
 
