@@ -215,19 +215,26 @@ class ContactFormatter:
         return numbers
 
     @classmethod
+    def _find_name(cls, contact):
+        for name in contact.get('names', []):
+            return name
+        return {}
+
+    @classmethod
     def _extract_name(cls, contact):
-        name = contact.get('gd$name', {}).get('gd$fullName', {}).get('$t', '')
+        name_obj = cls._find_name(contact)
+        name = name_obj.get('displayName')
         if not name:
-            name = contact.get('title', {}).get('$t', '')
+            name = name_obj.get('unstructuredName')
         return name
 
     @classmethod
     def _extract_first_name(cls, contact):
-        return contact.get('gd$name', {}).get('gd$givenName', {}).get('$t', '')
+        return cls._find_name(contact).get('givenName')
 
     @classmethod
     def _extract_last_name(cls, contact):
-        return contact.get('gd$name', {}).get('gd$familyName', {}).get('$t', '')
+        return cls._find_name(contact).get('familyName')
 
     @classmethod
     def _extract_type(cls, entry):
