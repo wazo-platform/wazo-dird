@@ -121,66 +121,23 @@ class TestGoogleContactFormatter(unittest.TestCase):
         self.formatter = services.ContactFormatter()
 
     def test_format_id(self):
-        google_contact = {
-            'id': {
-                '$t': 'http://www.google.com/m8/feeds/contacts/me%40example.com/base/72b6b4840bf772e6'
-            }
-        }
-
-        formatted_contact = self.formatter.format(google_contact)
-
-        assert_that(formatted_contact, has_entries(id='72b6b4840bf772e6'))
+        formatted_contact = self.formatter.format(self.google_contact)
+        assert_that(formatted_contact, has_entries(id='3ef7a14009000bb7'))
 
     def test_format_name(self):
-        google_contact = {'title': {'$t': 'Joe Blow', 'type': 'text'}}
-
-        formatted_contact = self.formatter.format(google_contact)
-
-        assert_that(formatted_contact, has_entries(name='Joe Blow'))
-
-    def test_format_name_when_fullname(self):
-        google_contact = {
-            'title': {'$t': 'Test User1', 'type': 'text'},
-            'gd$name': {'gd$fullName': {'$t': 'Test FullName'}},
-        }
-
-        formatted_contact = self.formatter.format(google_contact)
-        assert_that(formatted_contact, has_entries(name='Test FullName'))
+        formatted_contact = self.formatter.format(self.google_contact)
+        assert_that(formatted_contact, has_entries(name='Luigi Bros'))
 
     def test_format_first_name(self):
-        google_contact = {'gd$name': {'gd$givenName': {'$t': 'Test'}}}
-
-        formatted_contact = self.formatter.format(google_contact)
-        assert_that(formatted_contact, has_entries(firstname='Test'))
+        formatted_contact = self.formatter.format(self.google_contact)
+        assert_that(formatted_contact, has_entries(firstname='Luigi'))
 
     def test_format_last_name(self):
-        google_contact = {'gd$name': {'gd$familyName': {'$t': 'Family'}}}
-
-        formatted_contact = self.formatter.format(google_contact)
-        assert_that(formatted_contact, has_entries(lastname='Family'))
+        formatted_contact = self.formatter.format(self.google_contact)
+        assert_that(formatted_contact, has_entries(lastname='Bros'))
 
     def test_multiple_numbers(self):
-        google_contact = {
-            'gd$phoneNumber': [
-                {
-                    'rel': 'http://schemas.google.com/g/2005#mobile',
-                    'uri': 'tel:+1-555-123-4567',
-                    '$t': '+1 555-123-4567',
-                },
-                {
-                    'rel': 'http://schemas.google.com/g/2005#home',
-                    'uri': 'tel:+1-555-123-9876',
-                    '$t': '+1 5551239876',
-                },
-                {
-                    'label': 'custom',
-                    '$t': '(555) 123-1111',
-                    'uri': 'tel:+1-555-123-1111',
-                },
-            ]
-        }
-
-        formatted_contact = self.formatter.format(google_contact)
+        formatted_contact = self.formatter.format(self.google_contact)
 
         assert_that(
             formatted_contact,
