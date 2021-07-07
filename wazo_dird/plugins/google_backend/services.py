@@ -140,8 +140,8 @@ class ContactFormatter:
     @classmethod
     def _extract_emails(cls, contact):
         emails = []
-        for email in contact.get('gd$email', []):
-            address = email.get('address')
+        for email in contact.get('emailAddresses', []):
+            address = email.get('value')
             if not address:
                 continue
             label_or_type = cls._extract_type(email) or ''
