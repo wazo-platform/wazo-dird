@@ -243,10 +243,10 @@ class ContactFormatter:
     @classmethod
     def _extract_organizations(cls, contact):
         organizations = []
-        organizations_from_contact = contact.get('gd$organization', [])
+        organizations_from_contact = contact.get('organizations', [])
         for organization in organizations_from_contact:
-            organization_name = organization.get('gd$orgName', {}).get('$t', '')
-            organization_title = organization.get('gd$orgTitle', {}).get('$t', '')
+            organization_name = organization.get('name')
+            organization_title = organization.get('title')
             organizations.append(
                 {'name': organization_name, 'title': organization_title}
             )
