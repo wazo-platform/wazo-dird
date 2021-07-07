@@ -238,12 +238,7 @@ class ContactFormatter:
 
     @classmethod
     def _extract_type(cls, entry):
-        rel = entry.get('rel')
-        if rel:
-            _, type_ = rel.rsplit('#', 1)
-        else:
-            type_ = entry.get('label')
-        return type_
+        return entry.get('type')
 
     @classmethod
     def _extract_organizations(cls, contact):
