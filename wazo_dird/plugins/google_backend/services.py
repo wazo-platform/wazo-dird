@@ -36,37 +36,41 @@ class GoogleService(SelfSortingServiceMixin):
         return paginated_contacts, total
 
     def _fetch(self, google_token, term=None):
+        url = self.people_url
         headers = self.headers(google_token)
         query_params = {
             'personFields': 'names,emailAddresses,phoneNumbers,addresses,organizations',
             'pageSize': 1000,
         }
+
         if term:
+            url = self.search_url
+            query_params = {  # personFields becomes 'readMask' when searching; both should be the same
+                'readMask': 'names,emailAddresses,phoneNumbers,addresses,organizations',
+                'pageSize': 30,
+            }
+            requests.get(
+                url, headers=headers, params=query_params
+            )  # empty request to 'warm' cache
             query_params['query'] = term
 
-        response = requests.get(self.people_url, headers=headers, params=query_params)
+        response = requests.get(url, headers=headers, params=query_params)
         if response.status_code != 200:
             return []
 
         logger.debug('Sucessfully fetched contacts from google')
         logger.debug('Raw data: %s', response.text)
-        for contact in response.json().get('connections', []):
-            yield self.formatter.format(contact)
 
-    def _get_my_contacts_group_id(self, headers):
-        query_params = {'alt': 'json'}
-        response = requests.get(
-            self.groups_url, headers=headers, params=query_params, verify=False
-        )
-        if response.status_code != 200:
-            return
-
-        logger.debug('Fetched groups from Google')
-        logger.debug('Raw data: %s', response.text)
-        groups = response.json().get('feed', {}).get('entry', [])
-        for group in groups:
-            if group.get('gContact$systemGroup', {}).get('id') == 'Contacts':
-                return group.get('id', {}).get('$t')
+        if term:
+            for contact in response.json().get('results', []):
+                formatted_contact = self.formatter.format(contact.get('person', {}))
+                logger.critical(formatted_contact)
+                yield formatted_contact
+        else:
+            for contact in response.json().get('connections', []):
+                formatted_contact = self.formatter.format(contact)
+                logger.critical(formatted_contact)
+                yield formatted_contact
 
     def _paginate(self, contacts, limit=None, offset=None, **_):
         if limit is None and offset is None:
