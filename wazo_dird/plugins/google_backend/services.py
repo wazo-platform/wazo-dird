@@ -57,7 +57,7 @@ class GoogleService(SelfSortingServiceMixin):
         if response.status_code != 200:
             return []
 
-        logger.debug('Sucessfully fetched contacts from google')
+        logger.debug('Successfully fetched contacts from google')
         logger.debug('Raw data: %s', response.text)
 
         if term:
