@@ -37,15 +37,16 @@ class GoogleService(SelfSortingServiceMixin):
     def _fetch(self, google_token, term=None):
         url = self.people_url
         headers = self.headers(google_token)
+        fields = 'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
         query_params = {
-            'personFields': 'names,emailAddresses,phoneNumbers,addresses,organizations',
+            'personFields': fields,
             'pageSize': 1000,
         }
 
         if term:
             url = self.search_url
-            query_params = {  # personFields becomes 'readMask' when searching; both should be the same
-                'readMask': 'names,emailAddresses,phoneNumbers,addresses,organizations',
+            query_params = {
+                'readMask': fields,
                 'pageSize': 30,
             }
             requests.get(
