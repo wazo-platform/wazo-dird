@@ -9,6 +9,114 @@ from .. import services
 
 
 class TestGoogleContactFormatter(unittest.TestCase):
+
+    google_contact = {
+        "resourceName": "people/c4537272446000040887",
+        "etag": "%EgwQQDcJPgECPQwLPy4aBAIBBwUiDDBMeWYxSWljM2pnPQ==",
+        "names": [
+            {
+                "metadata": {
+                    "primary": True,
+                    "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+                },
+                "displayName": "Luigi Bros",
+                "familyName": "Bros",
+                "givenName": "Luigi",
+                "displayNameLastFirst": "Bros, Luigi",
+                "unstructuredName": "Luigi Bros",
+            }
+        ],
+        "addresses": [
+            {
+                "metadata": {
+                    "primary": True,
+                    "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+                },
+                "formattedValue": "1600 Pennsylvania Avenue NW\\nWashington, DC 20500\\nUS",
+                "type": "work",
+                "formattedType": "Work",
+                "streetAddress": "1600 Pennsylvania Avenue NW",
+                "city": "Washington",
+                "region": "DC",
+                "postalCode": "20500",
+                "country": "US",
+                "countryCode": "US",
+            },
+            {
+                "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+                "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
+                "type": "home",
+                "formattedType": "Home",
+                "streetAddress": "24 Sussex Dr",
+                "city": "Ottawa",
+                "region": "ON",
+                "postalCode": "K1M 1M4",
+                "country": "CA",
+                "countryCode": "CA",
+            },
+        ],
+        "emailAddresses": [
+            {
+                "metadata": {
+                    "primary": True,
+                    "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+                },
+                "value": "luigi_bros@caramail.com",
+                "type": "Old",
+                "formattedType": "Old",
+            },
+            {
+                "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+                "value": "luigi2@example.com",
+                "type": "New",
+                "formattedType": "New",
+            },
+        ],
+        "phoneNumbers": [
+            {
+                "metadata": {
+                    "primary": True,
+                    "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+                },
+                "value": "555-555-1234",
+                "type": "work",
+                "formattedType": "Work",
+            },
+            {
+                "metadata": {"source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}},
+                "value": "555-555-4321",
+                "type": "home",
+                "formattedType": "Home",
+            },
+            {
+                "metadata": {"source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}},
+                "value": "(555) 555-8888",
+                "type": "mobile",
+                "formattedType": "Mobile",
+            },
+        ],
+        "biographies": [
+            {
+                "metadata": {
+                    "primary": True,
+                    "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+                },
+                "value": "Notes user 02",
+                "contentType": "TEXT_PLAIN",
+            }
+        ],
+        "organizations": [
+            {
+                "metadata": {
+                    "primary": True,
+                    "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+                },
+                "name": "Mushroom Kingdom",
+                "title": "Plumber",
+            }
+        ],
+    }
+
     def setUp(self):
         self.formatter = services.ContactFormatter()
 
