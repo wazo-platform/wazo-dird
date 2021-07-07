@@ -19,7 +19,6 @@ class GoogleService(SelfSortingServiceMixin):
     USER_AGENT = 'wazo_ua/1.0'
     people_url = 'https://people.googleapis.com/v1/people/me/connections'
     search_url = 'https://people.googleapis.com/v1/people:searchContacts'
-    groups_url = 'https://google.com/m8/feeds/groups/default/full'
 
     def __init__(self):
         self.formatter = ContactFormatter()
