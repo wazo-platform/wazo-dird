@@ -21,26 +21,20 @@ GOOGLE_CONTACT_LIST = {
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "38ad74eb0f67d221"
-                        }
+                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
                     },
                     "displayName": "Mario Bros",
                     "familyName": "Bros",
                     "givenName": "Mario",
                     "displayNameLastFirst": "Bros, Mario",
-                    "unstructuredName": "Mario Bros"
+                    "unstructuredName": "Mario Bros",
                 }
             ],
             "addresses": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "38ad74eb0f67d221"
-                        }
+                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
                     },
                     "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
                     "streetAddress": "24 Sussex Dr",
@@ -48,85 +42,67 @@ GOOGLE_CONTACT_LIST = {
                     "region": "ON",
                     "postalCode": "K1M 1M4",
                     "country": "CA",
-                    "countryCode": "CA"
+                    "countryCode": "CA",
                 }
             ],
             "emailAddresses": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "38ad74eb0f67d221"
-                        }
+                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
                     },
                     "value": "mario@bros.example.com",
                     "type": "work",
-                    "formattedType": "Work"
+                    "formattedType": "Work",
                 }
             ],
             "phoneNumbers": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "38ad74eb0f67d221"
-                        }
+                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
                     },
                     "value": "555-555-1234",
                     "type": "work",
-                    "formattedType": "Work"
+                    "formattedType": "Work",
                 },
                 {
                     "metadata": {
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "38ad74eb0f67d221"
-                        }
+                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}
                     },
                     "value": "555-555-4321",
                     "type": "home",
-                    "formattedType": "Home"
+                    "formattedType": "Home",
                 },
                 {
                     "metadata": {
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "38ad74eb0f67d221"
-                        }
+                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}
                     },
                     "value": "555-555-8888",
                     "type": "mobile",
-                    "formattedType": "Mobile"
-                }
+                    "formattedType": "Mobile",
+                },
             ],
             "biographies": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "38ad74eb0f67d221"
-                        }
+                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
                     },
                     "value": "Notes test",
-                    "contentType": "TEXT_PLAIN"
+                    "contentType": "TEXT_PLAIN",
                 }
             ],
             "organizations": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "38ad74eb0f67d221"
-                        }
+                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
                     },
                     "name": "Mushroom Kingdom",
-                    "title": "Plumber"
+                    "title": "Plumber",
                 }
-            ]
+            ],
         },
         {
             "resourceName": "people/c4537272446000040887",
@@ -135,26 +111,20 @@ GOOGLE_CONTACT_LIST = {
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
                     },
                     "displayName": "Luigi Bros",
                     "familyName": "Bros",
                     "givenName": "Luigi",
                     "displayNameLastFirst": "Bros, Luigi",
-                    "unstructuredName": "Luigi Bros"
+                    "unstructuredName": "Luigi Bros",
                 }
             ],
             "addresses": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
                     },
                     "formattedValue": "1600 Pennsylvania Avenue NW\\nWashington, DC 20500\\nUS",
                     "type": "work",
@@ -164,14 +134,11 @@ GOOGLE_CONTACT_LIST = {
                     "region": "DC",
                     "postalCode": "20500",
                     "country": "US",
-                    "countryCode": "US"
+                    "countryCode": "US",
                 },
                 {
                     "metadata": {
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}
                     },
                     "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
                     "type": "home",
@@ -181,101 +148,81 @@ GOOGLE_CONTACT_LIST = {
                     "region": "ON",
                     "postalCode": "K1M 1M4",
                     "country": "CA",
-                    "countryCode": "CA"
-                }
+                    "countryCode": "CA",
+                },
             ],
             "emailAddresses": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
                     },
                     "value": "luigi_bros@caramail.com",
                     "type": "Old",
-                    "formattedType": "Old"
+                    "formattedType": "Old",
                 },
                 {
                     "metadata": {
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}
                     },
                     "value": "luigi2@example.com",
                     "type": "New",
-                    "formattedType": "New"
-                }
+                    "formattedType": "New",
+                },
             ],
             "phoneNumbers": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
                     },
                     "value": "555-555-4567",
                     "type": "home",
-                    "formattedType": "Home"
+                    "formattedType": "Home",
                 },
                 {
                     "metadata": {
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}
                     },
                     "value": "555-555-1234",
                     "type": "work",
-                    "formattedType": "Work"
+                    "formattedType": "Work",
                 },
                 {
                     "metadata": {
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}
                     },
                     "value": "555-555-8888",
                     "type": "mobile",
-                    "formattedType": "Mobile"
-                }
+                    "formattedType": "Mobile",
+                },
             ],
             "biographies": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
                     },
                     "value": "Notes user 02",
-                    "contentType": "TEXT_PLAIN"
+                    "contentType": "TEXT_PLAIN",
                 }
             ],
             "organizations": [
                 {
                     "metadata": {
                         "primary": True,
-                        "source": {
-                            "type": "CONTACT",
-                            "id": "3ef7a14009000bb7"
-                        }
+                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
                     },
                     "name": "Mushroom Kingdom",
-                    "title": "Plumber"
+                    "title": "Plumber",
                 }
-            ]
-        }
+            ],
+        },
     ],
     "totalPeople": 2,
-    "totalItems": 2
+    "totalItems": 2,
 }
+
 
 class TestGooglePlugin(BaseDirdIntegrationTest):
 
