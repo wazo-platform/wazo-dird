@@ -267,4 +267,8 @@ class ContactFormatter:
 
     @classmethod
     def _extract_note(cls, contact):
-        return contact.get('content', {}).get('$t', '')
+        bios = contact.get('biographies', [])
+        if bios:
+            return bios[0].get('value')
+        else:
+            return None
