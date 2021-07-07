@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class GoogleService(SelfSortingServiceMixin):
 
     USER_AGENT = 'wazo_ua/1.0'
-    contacts_url = 'https://google.com/m8/feeds/contacts/default/full'
+    people_url = 'https://people.googleapis.com/v1/people/me/connections'
     groups_url = 'https://google.com/m8/feeds/groups/default/full'
 
     def __init__(self):
@@ -43,10 +43,7 @@ class GoogleService(SelfSortingServiceMixin):
         if group_id:
             query_params['group'] = group_id
 
-        # TODO find a way to remove this verify = False
-        response = requests.get(
-            self.contacts_url, headers=headers, params=query_params, verify=False
-        )
+        response = requests.get(self.people_url, headers=headers, params=query_params)
         if response.status_code != 200:
             return []
 
