@@ -176,12 +176,12 @@ class ContactFormatter:
     @classmethod
     def _extract_numbers_by_label(cls, contact):
         numbers = {}
-        for number in contact.get('gd$phoneNumber', []):
+        for number in contact.get('phoneNumbers', []):
             type_ = cls._extract_type(number)
             if not type_:
                 continue
 
-            number = number.get('$t')
+            number = number.get('value')
             if not number:
                 continue
 
