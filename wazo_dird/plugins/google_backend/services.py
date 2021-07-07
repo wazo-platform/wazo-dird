@@ -36,12 +36,12 @@ class GoogleService(SelfSortingServiceMixin):
 
     def _fetch(self, google_token, term=None):
         headers = self.headers(google_token)
-        group_id = self._get_my_contacts_group_id(headers)
-        query_params = {'alt': 'json', 'max-results': 1000}
+        query_params = {
+            'personFields': 'names,emailAddresses,phoneNumbers,addresses,organizations',
+            'pageSize': 1000,
+        }
         if term:
-            query_params['q'] = term
-        if group_id:
-            query_params['group'] = group_id
+            query_params['query'] = term
 
         response = requests.get(self.people_url, headers=headers, params=query_params)
         if response.status_code != 200:
@@ -49,7 +49,7 @@ class GoogleService(SelfSortingServiceMixin):
 
         logger.debug('Sucessfully fetched contacts from google')
         logger.debug('Raw data: %s', response.text)
-        for contact in response.json().get('feed', {}).get('entry', []):
+        for contact in response.json().get('connections', []):
             yield self.formatter.format(contact)
 
     def _get_my_contacts_group_id(self, headers):
