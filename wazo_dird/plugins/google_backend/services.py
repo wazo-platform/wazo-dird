@@ -140,8 +140,8 @@ class ContactFormatter:
     @classmethod
     def _extract_emails(cls, contact):
         emails = []
-        for email in contact.get('gd$email', []):
-            address = email.get('address')
+        for email in contact.get('emailAddresses', []):
+            address = email.get('value')
             if not address:
                 continue
             label_or_type = cls._extract_type(email) or ''
@@ -167,22 +167,21 @@ class ContactFormatter:
 
     @staticmethod
     def _extract_id(contact):
-        url = contact.get('id', {}).get('$t', '')
-        if not url:
+        names = contact.get('names', [])
+        if not names:
             return
-
-        _, id_ = url.rsplit('/', 1)
-        return id_
+        _id = names[0].get('metadata', {}).get('source', {}).get('id')
+        return _id
 
     @classmethod
     def _extract_numbers_by_label(cls, contact):
         numbers = {}
-        for number in contact.get('gd$phoneNumber', []):
+        for number in contact.get('phoneNumbers', []):
             type_ = cls._extract_type(number)
             if not type_:
                 continue
 
-            number = number.get('$t')
+            number = number.get('value')
             if not number:
                 continue
 
@@ -216,36 +215,38 @@ class ContactFormatter:
         return numbers
 
     @classmethod
+    def _find_name(cls, contact):
+        for name in contact.get('names', []):
+            return name
+        return {}
+
+    @classmethod
     def _extract_name(cls, contact):
-        name = contact.get('gd$name', {}).get('gd$fullName', {}).get('$t', '')
+        name_obj = cls._find_name(contact)
+        name = name_obj.get('displayName')
         if not name:
-            name = contact.get('title', {}).get('$t', '')
+            name = name_obj.get('unstructuredName')
         return name
 
     @classmethod
     def _extract_first_name(cls, contact):
-        return contact.get('gd$name', {}).get('gd$givenName', {}).get('$t', '')
+        return cls._find_name(contact).get('givenName')
 
     @classmethod
     def _extract_last_name(cls, contact):
-        return contact.get('gd$name', {}).get('gd$familyName', {}).get('$t', '')
+        return cls._find_name(contact).get('familyName')
 
     @classmethod
     def _extract_type(cls, entry):
-        rel = entry.get('rel')
-        if rel:
-            _, type_ = rel.rsplit('#', 1)
-        else:
-            type_ = entry.get('label')
-        return type_
+        return entry.get('type')
 
     @classmethod
     def _extract_organizations(cls, contact):
         organizations = []
-        organizations_from_contact = contact.get('gd$organization', [])
+        organizations_from_contact = contact.get('organizations', [])
         for organization in organizations_from_contact:
-            organization_name = organization.get('gd$orgName', {}).get('$t', '')
-            organization_title = organization.get('gd$orgTitle', {}).get('$t', '')
+            organization_name = organization.get('name')
+            organization_title = organization.get('title')
             organizations.append(
                 {'name': organization_name, 'title': organization_title}
             )
@@ -255,9 +256,9 @@ class ContactFormatter:
     @classmethod
     def _extract_addresses(cls, contact):
         addresses = []
-        addresses_from_contact = contact.get('gd$structuredPostalAddress', [])
+        addresses_from_contact = contact.get('addresses', [])
         for address in addresses_from_contact:
-            formatted_address = address.get('gd$formattedAddress', {}).get('$t', '')
+            formatted_address = address.get('formattedValue')
             label_or_type = cls._extract_type(address) or ''
             addresses.append({'address': formatted_address, 'label': label_or_type})
 
