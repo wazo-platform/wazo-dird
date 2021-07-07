@@ -167,12 +167,11 @@ class ContactFormatter:
 
     @staticmethod
     def _extract_id(contact):
-        url = contact.get('id', {}).get('$t', '')
-        if not url:
+        names = contact.get('names', [])
+        if not names:
             return
-
-        _, id_ = url.rsplit('/', 1)
-        return id_
+        _id = names[0].get('metadata', {}).get('source', {}).get('id')
+        return _id
 
     @classmethod
     def _extract_numbers_by_label(cls, contact):
