@@ -62,14 +62,10 @@ class GoogleService(SelfSortingServiceMixin):
 
         if term:
             for contact in response.json().get('results', []):
-                formatted_contact = self.formatter.format(contact.get('person', {}))
-                logger.critical(formatted_contact)
-                yield formatted_contact
+                yield self.formatter.format(contact.get('person', {}))
         else:
             for contact in response.json().get('connections', []):
-                formatted_contact = self.formatter.format(contact)
-                logger.critical(formatted_contact)
-                yield formatted_contact
+                yield self.formatter.format(contact)
 
     def _paginate(self, contacts, limit=None, offset=None, **_):
         if limit is None and offset is None:
