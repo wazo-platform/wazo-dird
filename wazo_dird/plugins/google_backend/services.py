@@ -50,11 +50,11 @@ class GoogleService(SelfSortingServiceMixin):
                 'pageSize': 30,
             }
             requests.get(
-                url, headers=headers, params=query_params
+                url, headers=headers, params=query_params, verify=False
             )  # empty request to 'warm' cache
             query_params['query'] = term
 
-        response = requests.get(url, headers=headers, params=query_params)
+        response = requests.get(url, headers=headers, params=query_params, verify=False)
         if response.status_code != 200:
             return []
 

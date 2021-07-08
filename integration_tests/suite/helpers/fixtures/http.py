@@ -1,6 +1,5 @@
 # Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
 import random
 import requests
 import string
@@ -128,26 +127,25 @@ def display(**display_args):
     return decorator
 
 
-def google_result(contact_list, group_list=None):
+def google_result(contact_list):
     def decorator(decorated):
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
-            google_port = self.service_port(443, 'google.com')
+            google_port = self.service_port(443, 'people.googleapis.com')
             mock_server = UnVerifiedMockServerClient(
                 'https://127.0.0.1:{}'.format(google_port)
             )
-            expectation = mock_server.create_expectation(
-                '/m8/feeds/contacts/default/full', contact_list, 200
+            main_expectation = mock_server.create_expectation(
+                '/v1/people/me/connections', contact_list, 200
             )
-            expectation['times']['unlimited'] = True
-            mock_server.mock_any_response(expectation)
+            search_expectation = mock_server.create_expectation(
+                '/v1/people:searchContacts', contact_list, 200
+            )
+            main_expectation['times']['unlimited'] = True
+            search_expectation['times']['unlimited'] = True
 
-            if group_list:
-                groups_expected = mock_server.create_expectation(
-                    '/m8/feeds/groups/default/full', group_list, 200
-                )
-                groups_expected['times']['unlimited'] = True
-                mock_server.mock_any_response(groups_expected)
+            mock_server.mock_any_response(main_expectation)
+            mock_server.mock_any_response(search_expectation)
 
             try:
                 result = decorated(self, mock_server, *args, **kwargs)
