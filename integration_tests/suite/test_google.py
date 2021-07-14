@@ -285,7 +285,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
         client.profiles.delete(cls.profile_uuid)
         super().tearDownClass()
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_plugin_lookup(self, google_api):
         result = self.client.directories.lookup(term='mario', profile='default')
 
@@ -307,7 +307,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
             ),
         )
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_plugin_favorites(self, google_api):
         response = self.client.directories.lookup(term='luigi', profile='default')
         luigi = response['results'][0]
@@ -324,7 +324,7 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
             ),
         )
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_plugin_reverse(self, google_api):
         response = self.client.directories.reverse(
             exten='5555551234', profile='default', user_uuid='uuid-tenant-master'
