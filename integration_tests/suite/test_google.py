@@ -12,213 +12,208 @@ from .helpers.fixtures import http as fixtures
 
 requests.packages.urllib3.disable_warnings()
 
-GOOGLE_CONTACT_LIST = {
-    "connections": [
+MARIO_INFO = {
+    "resourceName": "people/c4084048990019506721",
+    "etag": "%Eg0FEEA3CT4BAj0MCz8uGgQCAQcFIgxyV3lrbVp6aVFmRT0=",
+    "names": [
         {
-            "resourceName": "people/c4084048990019506721",
-            "etag": "%Eg0FEEA3CT4BAj0MCz8uGgQCAQcFIgxyV3lrbVp6aVFmRT0=",
-            "names": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
-                    },
-                    "displayName": "Mario Bros",
-                    "familyName": "Bros",
-                    "givenName": "Mario",
-                    "displayNameLastFirst": "Bros, Mario",
-                    "unstructuredName": "Mario Bros",
-                }
-            ],
-            "addresses": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
-                    },
-                    "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
-                    "streetAddress": "24 Sussex Dr",
-                    "city": "Ottawa",
-                    "region": "ON",
-                    "postalCode": "K1M 1M4",
-                    "country": "CA",
-                    "countryCode": "CA",
-                }
-            ],
-            "emailAddresses": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
-                    },
-                    "value": "mario@bros.example.com",
-                    "type": "work",
-                    "formattedType": "Work",
-                }
-            ],
-            "phoneNumbers": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
-                    },
-                    "value": "555-555-1234",
-                    "type": "work",
-                    "formattedType": "Work",
-                },
-                {
-                    "metadata": {
-                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}
-                    },
-                    "value": "555-555-4321",
-                    "type": "home",
-                    "formattedType": "Home",
-                },
-                {
-                    "metadata": {
-                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}
-                    },
-                    "value": "555-555-8888",
-                    "type": "mobile",
-                    "formattedType": "Mobile",
-                },
-            ],
-            "biographies": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
-                    },
-                    "value": "Notes test",
-                    "contentType": "TEXT_PLAIN",
-                }
-            ],
-            "organizations": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
-                    },
-                    "name": "Mushroom Kingdom",
-                    "title": "Plumber",
-                }
-            ],
-        },
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+            },
+            "displayName": "Mario Bros",
+            "familyName": "Bros",
+            "givenName": "Mario",
+            "displayNameLastFirst": "Bros, Mario",
+            "unstructuredName": "Mario Bros",
+        }
+    ],
+    "addresses": [
         {
-            "resourceName": "people/c4537272446000040887",
-            "etag": "%Eg0FEEA3CT4BAj0MCz8uGgQCAQcFIgxaV0Zzb2hGVFBGaz0=",
-            "names": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
-                    },
-                    "displayName": "Luigi Bros",
-                    "familyName": "Bros",
-                    "givenName": "Luigi",
-                    "displayNameLastFirst": "Bros, Luigi",
-                    "unstructuredName": "Luigi Bros",
-                }
-            ],
-            "addresses": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
-                    },
-                    "formattedValue": "1600 Pennsylvania Avenue NW\\nWashington, DC 20500\\nUS",
-                    "type": "work",
-                    "formattedType": "Work",
-                    "streetAddress": "1600 Pennsylvania Avenue NW",
-                    "city": "Washington",
-                    "region": "DC",
-                    "postalCode": "20500",
-                    "country": "US",
-                    "countryCode": "US",
-                },
-                {
-                    "metadata": {
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}
-                    },
-                    "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
-                    "type": "home",
-                    "formattedType": "Home",
-                    "streetAddress": "24 Sussex Dr",
-                    "city": "Ottawa",
-                    "region": "ON",
-                    "postalCode": "K1M 1M4",
-                    "country": "CA",
-                    "countryCode": "CA",
-                },
-            ],
-            "emailAddresses": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
-                    },
-                    "value": "luigi_bros@caramail.com",
-                    "type": "Old",
-                    "formattedType": "Old",
-                },
-                {
-                    "metadata": {
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}
-                    },
-                    "value": "luigi2@example.com",
-                    "type": "New",
-                    "formattedType": "New",
-                },
-            ],
-            "phoneNumbers": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
-                    },
-                    "value": "555-555-4567",
-                    "type": "home",
-                    "formattedType": "Home",
-                },
-                {
-                    "metadata": {
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}
-                    },
-                    "value": "555-555-1234",
-                    "type": "work",
-                    "formattedType": "Work",
-                },
-                {
-                    "metadata": {
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}
-                    },
-                    "value": "555-555-8888",
-                    "type": "mobile",
-                    "formattedType": "Mobile",
-                },
-            ],
-            "biographies": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
-                    },
-                    "value": "Notes user 02",
-                    "contentType": "TEXT_PLAIN",
-                }
-            ],
-            "organizations": [
-                {
-                    "metadata": {
-                        "primary": True,
-                        "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
-                    },
-                    "name": "Mushroom Kingdom",
-                    "title": "Plumber",
-                }
-            ],
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
+            "type": "home",
+            "formattedType": "Home",
+            "streetAddress": "24 Sussex Dr",
+            "city": "Ottawa",
+            "region": "ON",
+            "postalCode": "K1M 1M4",
+            "country": "CA",
+            "countryCode": "CA",
         },
     ],
+    "emailAddresses": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+            },
+            "value": "mario@bros.example.com",
+            "type": "work",
+            "formattedType": "Work",
+        }
+    ],
+    "phoneNumbers": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+            },
+            "value": "555-555-1234",
+            "type": "work",
+            "formattedType": "Work",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}},
+            "value": "555-555-4321",
+            "type": "home",
+            "formattedType": "Home",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}},
+            "value": "555-555-8888",
+            "type": "mobile",
+            "formattedType": "Mobile",
+        },
+    ],
+    "biographies": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+            },
+            "value": "Notes test",
+            "contentType": "TEXT_PLAIN",
+        }
+    ],
+    "organizations": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+            },
+            "name": "Mushroom Kingdom",
+            "title": "Plumber",
+        }
+    ],
+}
+
+
+LUIGI_INFO = {
+    "resourceName": "people/c4537272446000040887",
+    "etag": "%Eg0FEEA3CT4BAj0MCz8uGgQCAQcFIgxaV0Zzb2hGVFBGaz0=",
+    "names": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "displayName": "Luigi Bros",
+            "familyName": "Bros",
+            "givenName": "Luigi",
+            "displayNameLastFirst": "Bros, Luigi",
+            "unstructuredName": "Luigi Bros",
+        }
+    ],
+    "addresses": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "formattedValue": "1600 Pennsylvania Avenue NW\\nWashington, DC 20500\\nUS",
+            "type": "work",
+            "formattedType": "Work",
+            "streetAddress": "1600 Pennsylvania Avenue NW",
+            "city": "Washington",
+            "region": "DC",
+            "postalCode": "20500",
+            "country": "US",
+            "countryCode": "US",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
+            "type": "home",
+            "formattedType": "Home",
+            "streetAddress": "24 Sussex Dr",
+            "city": "Ottawa",
+            "region": "ON",
+            "postalCode": "K1M 1M4",
+            "country": "CA",
+            "countryCode": "CA",
+        },
+    ],
+    "emailAddresses": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "value": "luigi_bros@caramail.com",
+            "type": "Old",
+            "formattedType": "Old",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "value": "luigi2@example.com",
+            "type": "New",
+            "formattedType": "New",
+        },
+    ],
+    "phoneNumbers": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "value": "555-555-4567",
+            "type": "home",
+            "formattedType": "Home",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "value": "555-555-1234",
+            "type": "work",
+            "formattedType": "Work",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "value": "555-555-8888",
+            "type": "mobile",
+            "formattedType": "Mobile",
+        },
+    ],
+    "biographies": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "value": "Notes user 02",
+            "contentType": "TEXT_PLAIN",
+        }
+    ],
+    "organizations": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "name": "Mushroom Kingdom",
+            "title": "Plumber",
+        }
+    ],
+}
+
+GOOGLE_CONTACT_LIST = {
+    "connections": [MARIO_INFO, LUIGI_INFO],
+    "totalPeople": 2,
+    "totalItems": 2,
+}
+
+GOOGLE_SEARCH_LIST = {
+    "results": [{"person": MARIO_INFO}, {"person": LUIGI_INFO}],
     "totalPeople": 2,
     "totalItems": 2,
 }
