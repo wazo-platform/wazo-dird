@@ -368,19 +368,6 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                 'headers': {'Authorization': ['Bearer an-access-token']},
             }
         )
-        google_api.verify(
-            {
-                'method': 'GET',
-                'path': '/m8/feeds/contacts/default/full',
-                'headers': {'Authorization': ['Bearer an-access-token']},
-                'queryStringParameters': {
-                    'q': ['mario'],
-                    'group': [
-                        'http://www.google.com/m8/feeds/groups/peach%40bros.example.com/base/6',
-                    ],
-                },
-            }
-        )
 
     def list_(self, client, *args, **kwargs):
         return client.backends.list_contacts_from_source('google', *args, **kwargs)
