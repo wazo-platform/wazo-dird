@@ -49,9 +49,12 @@ class GoogleService(SelfSortingServiceMixin):
                 'readMask': fields,
                 'pageSize': 30,
             }
-            requests.get(
+
+            # Requests have verify=False because the integration tests do not have proper SSL
+            # Find a way to selectively turn off verification for testing
+            requests.get(  # empty request to 'warm' cache
                 url, headers=headers, params=query_params, verify=False
-            )  # empty request to 'warm' cache
+            )
             query_params['query'] = term
 
         response = requests.get(url, headers=headers, params=query_params, verify=False)
