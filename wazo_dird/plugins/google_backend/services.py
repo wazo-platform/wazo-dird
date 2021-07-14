@@ -17,8 +17,14 @@ logger = logging.getLogger(__name__)
 class GoogleService(SelfSortingServiceMixin):
 
     USER_AGENT = 'wazo_ua/1.0'
+
     people_url = 'https://people.googleapis.com/v1/people/me/connections'
     search_url = 'https://people.googleapis.com/v1/people:searchContacts'
+    batch_url = 'https://people.googleapis.com/v1/people:batchGet'
+
+    person_fields = (
+        'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
+    )
 
     def __init__(self):
         self.formatter = ContactFormatter()
@@ -35,34 +41,29 @@ class GoogleService(SelfSortingServiceMixin):
         return paginated_contacts, total
 
     def _fetch(self, google_token, term=None):
-        url = self.people_url
         headers = self.headers(google_token)
-        fields = 'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
-        query_params = {
-            'personFields': fields,
+        url = self.people_url
+        params = {
+            'personFields': self.person_fields,
             'pageSize': 1000,
         }
 
         if term:
             url = self.search_url
-            query_params = {
-                'readMask': fields,
+            params = {
+                'readMask': self.person_fields,
                 'pageSize': 30,
             }
 
-            # Requests have verify=False because the integration tests do not have proper SSL
-            # Find a way to selectively turn off verification for testing
-            requests.get(  # empty request to 'warm' cache
-                url, headers=headers, params=query_params, verify=False
-            )
-            query_params['query'] = term
+            # empty request to 'warm' cache, recommended by Google
+            self._get_request(url, headers, params)
+            params['query'] = term
 
-        response = requests.get(url, headers=headers, params=query_params, verify=False)
-        if response.status_code != 200:
+        response = self._get_request(
+            url, headers, params, 'Fetched contacts from Google'
+        )
+        if not response:
             return []
-
-        logger.debug('Successfully fetched contacts from google')
-        logger.debug('Raw data: %s', response.text)
 
         if term:
             for contact in response.json().get('results', []):
@@ -70,6 +71,28 @@ class GoogleService(SelfSortingServiceMixin):
         else:
             for contact in response.json().get('connections', []):
                 yield self.formatter.format(contact)
+
+    def _get_batch_of_contacts(self, headers, contact_ids):
+        params = [('personFields', self.person_fields)]
+        for contact_id in contact_ids:
+            params.append(('resourceNames', contact_id))
+
+        response = self._get_request(
+            self.batch_url, headers, params, 'Fetched batch of contacts from Google'
+        )
+        return response.json().get('responses', [])
+
+    def _get_request(self, url, headers, params, debug_message=None):
+        # Requests have verify=False because the integration test mock servers do not have proper SSL
+        # Find a way to selectively turn off verification during testing only
+        response = requests.get(url, headers=headers, params=params, verify=False)
+        if response.status_code != 200:
+            return
+
+        logger.debug('Get Request Successful: ' + str(debug_message))
+        logger.debug('Raw data: %s', response.text)
+
+        return response
 
     def _paginate(self, contacts, limit=None, offset=None, **_):
         if limit is None and offset is None:

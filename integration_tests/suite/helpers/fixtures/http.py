@@ -127,7 +127,7 @@ def display(**display_args):
     return decorator
 
 
-def google_result(contact_list, search_list):
+def google_result(contact_list, search_list=None):
     def decorator(decorated):
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
@@ -135,17 +135,19 @@ def google_result(contact_list, search_list):
             mock_server = UnVerifiedMockServerClient(
                 'https://127.0.0.1:{}'.format(google_port)
             )
+
             main_expectation = mock_server.create_expectation(
                 '/v1/people/me/connections', contact_list, 200
             )
-            search_expectation = mock_server.create_expectation(
-                '/v1/people:searchContacts', search_list, 200
-            )
             main_expectation['times']['unlimited'] = True
-            search_expectation['times']['unlimited'] = True
-
             mock_server.mock_any_response(main_expectation)
-            mock_server.mock_any_response(search_expectation)
+
+            if search_list:
+                search_expectation = mock_server.create_expectation(
+                    '/v1/people:searchContacts', search_list, 200
+                )
+                search_expectation['times']['unlimited'] = True
+                mock_server.mock_any_response(search_expectation)
 
             try:
                 result = decorated(self, mock_server, *args, **kwargs)
