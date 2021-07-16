@@ -243,8 +243,8 @@ class ContactFormatter:
 
     @classmethod
     def _find_name(cls, contact):
-        for name in contact.get('names', []):
-            return name
+        for name_obj in contact.get('names', []):
+            return name_obj
         return {}
 
     @classmethod
