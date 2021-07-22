@@ -3,7 +3,6 @@
 
 from unittest import TestCase
 
-from hamcrest import assert_that
 from mock import Mock, patch
 from copy import deepcopy
 
@@ -20,7 +19,6 @@ SOURCE_CONFIG = {
 }
 
 
-@patch('wazo_dird.plugin_helpers.confd_client_registry.ConfdClient')
 @patch('wazo_dird.plugin_helpers.confd_client_registry.AuthClient')
 @patch(
     'wazo_dird.plugin_helpers.confd_client_registry.parse_config_file',
@@ -29,20 +27,21 @@ SOURCE_CONFIG = {
 class TestClientRegistry(TestCase):
     def setUp(self):
         self.registry = _Registry()
+        self.confd_client = (
+            patch('wazo_dird.plugin_helpers.confd_client_registry.ConfdClient')
+            .start()
+            .return_value
+        )
 
     def tearDown(self):
         self.registry.unregister_all()
 
-    def test_set_tenant_with_key_file(self, auth_mock, confd_mock):
+    def test_set_tenant_with_key_file(self, auth_mock):
         self.registry.get(SOURCE_CONFIG)
+        self.confd_client.set_tenant.assert_called_once()
 
-        confd_instance = confd_mock.return_value
-        confd_instance.set_tenant.assert_called_once()
-
-    def test_set_tenant_without_key_file(self, auth_mock, confd_mock):
+    def test_set_tenant_without_key_file(self, auth_mock):
         config = deepcopy(SOURCE_CONFIG)
         del config['auth']['key_file']
         self.registry.get(config)
-
-        confd_instance = confd_mock.return_value
-        confd_instance.set_tenant.assert_not_called()
+        self.confd_client.set_tenant.assert_not_called()
