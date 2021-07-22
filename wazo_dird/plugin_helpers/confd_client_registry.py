@@ -37,7 +37,7 @@ class _Registry:
             self._clients = {}
 
     def _add_client(self, source_config):
-        logger.debug('Instanciating a new confd client for %s', source_config['uuid'])
+        logger.debug('Instantiating a new confd client for %s', source_config['uuid'])
         confd_config = source_config['confd']
 
         logger.debug('confd config %s', confd_config)
