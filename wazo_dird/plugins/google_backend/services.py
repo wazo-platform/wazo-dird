@@ -87,12 +87,12 @@ class GoogleService(SelfSortingServiceMixin):
         # Find a way to selectively turn off verification during testing only
         response = requests.get(url, headers=headers, params=params, verify=False)
         if response.status_code != 200:
-            logger.debug('Get Request Unsuccessful: %s' % str(response.status_code))
-            logger.debug('Raw data: %s' % response.text)
+            logger.debug('Get Request Unsuccessful: %s', response.status_code)
+            logger.debug('Raw data: %s', response.text)
             return
 
-        logger.debug('Get Request Successful: %s' % debug_message)
-        logger.debug('Raw data: %s' % response.text)
+        logger.debug('Get Request Successful: %s', debug_message)
+        logger.debug('Raw data: %s', response.text)
         return response
 
     def _paginate(self, contacts, limit=None, offset=None, **_):
