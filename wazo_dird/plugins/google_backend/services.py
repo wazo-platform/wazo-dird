@@ -198,7 +198,7 @@ class ContactFormatter:
         names = contact.get('names', [])
         if not names:
             return
-        _id = names[0].get('metadata', {}).get('source', {}).get('id')
+        _id = names[0].get('metadata', {}).get('source', {}).get('id', '')
         return _id
 
     @classmethod
@@ -251,18 +251,18 @@ class ContactFormatter:
     @classmethod
     def _extract_name(cls, contact):
         name_obj = cls._find_name(contact)
-        name = name_obj.get('displayName')
+        name = name_obj.get('displayName', '')
         if not name:
-            name = name_obj.get('unstructuredName')
+            name = name_obj.get('unstructuredName', '')
         return name
 
     @classmethod
     def _extract_first_name(cls, contact):
-        return cls._find_name(contact).get('givenName')
+        return cls._find_name(contact).get('givenName', '')
 
     @classmethod
     def _extract_last_name(cls, contact):
-        return cls._find_name(contact).get('familyName')
+        return cls._find_name(contact).get('familyName', '')
 
     @classmethod
     def _extract_type(cls, entry):
@@ -273,8 +273,8 @@ class ContactFormatter:
         organizations = []
         organizations_from_contact = contact.get('organizations', [])
         for organization in organizations_from_contact:
-            organization_name = organization.get('name')
-            organization_title = organization.get('title')
+            organization_name = organization.get('name', '')
+            organization_title = organization.get('title', '')
             organizations.append(
                 {'name': organization_name, 'title': organization_title}
             )
@@ -286,7 +286,7 @@ class ContactFormatter:
         addresses = []
         addresses_from_contact = contact.get('addresses', [])
         for address in addresses_from_contact:
-            formatted_address = address.get('formattedValue')
+            formatted_address = address.get('formattedValue', '')
             label_or_type = cls._extract_type(address) or ''
             addresses.append({'address': formatted_address, 'label': label_or_type})
 
@@ -298,4 +298,4 @@ class ContactFormatter:
         if bios:
             return bios[0].get('value')
         else:
-            return None
+            return ''
