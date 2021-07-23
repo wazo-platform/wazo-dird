@@ -37,7 +37,12 @@ class _Registry:
             self._clients = {}
 
     def _add_client(self, source_config):
-        logger.debug('Instanciating a new confd client for %s', source_config['uuid'])
+        logger.debug('Instantiating a new confd client for %s', source_config['uuid'])
+        confd_config = source_config['confd']
+
+        logger.debug('confd config %s', confd_config)
+        client = ConfdClient(**confd_config)
+
         auth_config = dict(source_config['auth'])
         if auth_config.get('key_file'):
             # File must be readable by wazo-dird
@@ -49,13 +54,11 @@ class _Registry:
                 return
             auth_config['username'] = key_file['service_id']
             auth_config['password'] = key_file['service_key']
+
+            client.set_tenant(source_config['tenant_uuid'])
+
         auth_client = AuthClient(**auth_config)
         token_renewer = TokenRenewer(auth_client)
-
-        confd_config = source_config['confd']
-        logger.debug('confd config %s', confd_config)
-        client = ConfdClient(**confd_config)
-        client.set_tenant(source_config['tenant_uuid'])
 
         token_renewer.subscribe_to_token_change(client.set_token)
         token_renewer.start()
