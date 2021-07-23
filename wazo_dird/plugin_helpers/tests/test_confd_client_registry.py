@@ -19,7 +19,8 @@ SOURCE_CONFIG = {
 }
 
 
-@patch('wazo_dird.plugin_helpers.confd_client_registry.AuthClient')
+@patch('wazo_dird.plugin_helpers.confd_client_registry.AuthClient', Mock())
+@patch('wazo_dird.plugin_helpers.confd_client_registry.TokenRenewer', Mock())
 @patch(
     'wazo_dird.plugin_helpers.confd_client_registry.parse_config_file',
     Mock(return_value={'service_id': 'serv_id', 'service_key': 'serv_key'}),
@@ -36,11 +37,11 @@ class TestClientRegistry(TestCase):
     def tearDown(self):
         self.registry.unregister_all()
 
-    def test_set_tenant_with_key_file(self, auth_mock):
+    def test_set_tenant_with_key_file(self):
         self.registry.get(SOURCE_CONFIG)
         self.confd_client.set_tenant.assert_called_once()
 
-    def test_set_tenant_without_key_file(self, auth_mock):
+    def test_set_tenant_without_key_file(self):
         config = deepcopy(SOURCE_CONFIG)
         del config['auth']['key_file']
         self.registry.get(config)
