@@ -266,7 +266,7 @@ class ContactFormatter:
 
     @classmethod
     def _extract_type(cls, entry):
-        return entry.get('type')
+        return entry.get('type', 'other')
 
     @classmethod
     def _extract_organizations(cls, contact):
