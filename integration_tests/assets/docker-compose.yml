@@ -30,7 +30,7 @@ services:
     ports:
       - "5672"
 
-  google.com:
+  people.googleapis.com:
     image: jamesdbloom/mockserver:mockserver-5.7.0
     user: root
     ports:

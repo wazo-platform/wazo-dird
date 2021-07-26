@@ -4,8 +4,8 @@ services:
     depends_on:
       - auth
       - dird
-      - google.com
+      - people.googleapis.com
       - db
       - rabbitmq
     environment:
-      TARGETS: "auth:9497 dird:9489 google.com:443 db:5432 rabbitmq:5672"
+      TARGETS: "auth:9497 dird:9489 people.googleapis.com:443 db:5432 rabbitmq:5672"

@@ -17,8 +17,14 @@ logger = logging.getLogger(__name__)
 class GoogleService(SelfSortingServiceMixin):
 
     USER_AGENT = 'wazo_ua/1.0'
-    contacts_url = 'https://google.com/m8/feeds/contacts/default/full'
-    groups_url = 'https://google.com/m8/feeds/groups/default/full'
+
+    people_url = 'https://people.googleapis.com/v1/people/me/connections'
+    search_url = 'https://people.googleapis.com/v1/people:searchContacts'
+    batch_url = 'https://people.googleapis.com/v1/people:batchGet'
+
+    person_fields = (
+        'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
+    )
 
     def __init__(self):
         self.formatter = ContactFormatter()
@@ -36,39 +42,58 @@ class GoogleService(SelfSortingServiceMixin):
 
     def _fetch(self, google_token, term=None):
         headers = self.headers(google_token)
-        group_id = self._get_my_contacts_group_id(headers)
-        query_params = {'alt': 'json', 'max-results': 1000}
-        if term:
-            query_params['q'] = term
-        if group_id:
-            query_params['group'] = group_id
+        url = self.people_url
+        params = {
+            'personFields': self.person_fields,
+            'pageSize': 1000,
+        }
 
-        # TODO find a way to remove this verify = False
-        response = requests.get(
-            self.contacts_url, headers=headers, params=query_params, verify=False
+        if term:
+            url = self.search_url
+            params = {
+                'readMask': self.person_fields,
+                'pageSize': 30,
+            }
+
+            # empty request to 'warm' cache, recommended by Google
+            self._get_request(url, headers, params)
+            params['query'] = term
+
+        response = self._get_request(
+            url, headers, params, 'Fetched contacts from Google'
         )
-        if response.status_code != 200:
+        if not response:
             return []
 
-        logger.debug('Sucessfully fetched contacts from google')
-        logger.debug('Raw data: %s', response.text)
-        for contact in response.json().get('feed', {}).get('entry', []):
-            yield self.formatter.format(contact)
+        if term:
+            for contact in response.json().get('results', []):
+                yield self.formatter.format(contact.get('person', {}))
+        else:
+            for contact in response.json().get('connections', []):
+                yield self.formatter.format(contact)
 
-    def _get_my_contacts_group_id(self, headers):
-        query_params = {'alt': 'json'}
-        response = requests.get(
-            self.groups_url, headers=headers, params=query_params, verify=False
+    def _get_batch_of_contacts(self, headers, contact_ids):
+        params = [('personFields', self.person_fields)]
+        for contact_id in contact_ids:
+            params.append(('resourceNames', contact_id))
+
+        response = self._get_request(
+            self.batch_url, headers, params, 'Fetched batch of contacts from Google'
         )
+        return response.json().get('responses', [])
+
+    def _get_request(self, url, headers, params, debug_message=None):
+        # Requests have verify=False because the integration test mock servers do not have proper SSL
+        # Find a way to selectively turn off verification during testing only
+        response = requests.get(url, headers=headers, params=params, verify=False)
         if response.status_code != 200:
+            logger.debug('Get Request Unsuccessful: %s', response.status_code)
+            logger.debug('Raw data: %s', response.text)
             return
 
-        logger.debug('Fetched groups from Google')
+        logger.debug('Get Request Successful: %s', debug_message)
         logger.debug('Raw data: %s', response.text)
-        groups = response.json().get('feed', {}).get('entry', [])
-        for group in groups:
-            if group.get('gContact$systemGroup', {}).get('id') == 'Contacts':
-                return group.get('id', {}).get('$t')
+        return response
 
     def _paginate(self, contacts, limit=None, offset=None, **_):
         if limit is None and offset is None:
@@ -118,7 +143,7 @@ def get_google_access_token(user_uuid, wazo_token, **auth_config):
         )
         raise GoogleTokenNotFoundException(user_uuid)
     except requests.RequestException as e:
-        logger.error('Error occured while connecting to wazo-auth, error: %s', e)
+        logger.error('Error occurred while connecting to wazo-auth, error: %s', e)
 
 
 class ContactFormatter:
@@ -143,8 +168,8 @@ class ContactFormatter:
     @classmethod
     def _extract_emails(cls, contact):
         emails = []
-        for email in contact.get('gd$email', []):
-            address = email.get('address')
+        for email in contact.get('emailAddresses', []):
+            address = email.get('value')
             if not address:
                 continue
             label_or_type = cls._extract_type(email) or ''
@@ -170,22 +195,21 @@ class ContactFormatter:
 
     @staticmethod
     def _extract_id(contact):
-        url = contact.get('id', {}).get('$t', '')
-        if not url:
+        names = contact.get('names', [])
+        if not names:
             return
-
-        _, id_ = url.rsplit('/', 1)
-        return id_
+        _id = names[0].get('metadata', {}).get('source', {}).get('id', '')
+        return _id
 
     @classmethod
     def _extract_numbers_by_label(cls, contact):
         numbers = {}
-        for number in contact.get('gd$phoneNumber', []):
+        for number in contact.get('phoneNumbers', []):
             type_ = cls._extract_type(number)
             if not type_:
                 continue
 
-            number = number.get('$t')
+            number = number.get('value')
             if not number:
                 continue
 
@@ -219,36 +243,38 @@ class ContactFormatter:
         return numbers
 
     @classmethod
+    def _find_name(cls, contact):
+        for name_obj in contact.get('names', []):
+            return name_obj
+        return {}
+
+    @classmethod
     def _extract_name(cls, contact):
-        name = contact.get('gd$name', {}).get('gd$fullName', {}).get('$t', '')
+        name_obj = cls._find_name(contact)
+        name = name_obj.get('displayName', '')
         if not name:
-            name = contact.get('title', {}).get('$t', '')
+            name = name_obj.get('unstructuredName', '')
         return name
 
     @classmethod
     def _extract_first_name(cls, contact):
-        return contact.get('gd$name', {}).get('gd$givenName', {}).get('$t', '')
+        return cls._find_name(contact).get('givenName', '')
 
     @classmethod
     def _extract_last_name(cls, contact):
-        return contact.get('gd$name', {}).get('gd$familyName', {}).get('$t', '')
+        return cls._find_name(contact).get('familyName', '')
 
     @classmethod
     def _extract_type(cls, entry):
-        rel = entry.get('rel')
-        if rel:
-            _, type_ = rel.rsplit('#', 1)
-        else:
-            type_ = entry.get('label')
-        return type_
+        return entry.get('type', 'other')
 
     @classmethod
     def _extract_organizations(cls, contact):
         organizations = []
-        organizations_from_contact = contact.get('gd$organization', [])
+        organizations_from_contact = contact.get('organizations', [])
         for organization in organizations_from_contact:
-            organization_name = organization.get('gd$orgName', {}).get('$t', '')
-            organization_title = organization.get('gd$orgTitle', {}).get('$t', '')
+            organization_name = organization.get('name', '')
+            organization_title = organization.get('title', '')
             organizations.append(
                 {'name': organization_name, 'title': organization_title}
             )
@@ -258,9 +284,9 @@ class ContactFormatter:
     @classmethod
     def _extract_addresses(cls, contact):
         addresses = []
-        addresses_from_contact = contact.get('gd$structuredPostalAddress', [])
+        addresses_from_contact = contact.get('addresses', [])
         for address in addresses_from_contact:
-            formatted_address = address.get('gd$formattedAddress', {}).get('$t', '')
+            formatted_address = address.get('formattedValue', '')
             label_or_type = cls._extract_type(address) or ''
             addresses.append({'address': formatted_address, 'label': label_or_type})
 
@@ -268,4 +294,8 @@ class ContactFormatter:
 
     @classmethod
     def _extract_note(cls, contact):
-        return contact.get('content', {}).get('$t', '')
+        bios = contact.get('biographies', [])
+        if bios:
+            return bios[0].get('value')
+        else:
+            return ''

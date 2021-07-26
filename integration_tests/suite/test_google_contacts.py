@@ -16,105 +16,211 @@ from .helpers.constants import (
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
 
-GOOGLE_CONTACT_LIST = {
-    "feed": {
-        "openSearch$totalResults": {"$t": "2"},
-        "openSearch$startIndex": {"$t": "1"},
-        "openSearch$itemsPerPage": {"$t": "10000"},
-        "entry": [
-            {
-                "id": {
-                    "$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/20aec7728b4f316b"
-                },
-                "title": {"$t": "Mario Brös", "type": "text"},
-                "gd$name": {
-                    "gd$fullName": {"$t": "Mario Bros"},
-                    "gd$givenName": {"$t": "Mario"},
-                    "gd$familyName": {"$t": "Bros"},
-                },
-                "gd$organization": [
-                    {
-                        "rel": "http://schemas.google.com/g/2005#other",
-                        "gd$orgTitle": {"$t": "Artist"},
-                        "gd$orgName": {"$t": "MarioLand"},
-                    }
-                ],
-                "gd$email": [
-                    {
-                        "address": "mario@bros.example.com",
-                        "rel": "http://schemas.google.com/g/2005#other",
-                    }
-                ],
-                "gd$phoneNumber": [
-                    {
-                        "rel": "http://schemas.google.com/g/2005#mobile",
-                        "uri": "tel:+1-555-555-1234",
-                        "$t": "+1 555-555-1234",
-                    },
-                    {
-                        "rel": "http://schemas.google.com/g/2005#home",
-                        "uri": "tel:+1-555-555-1111",
-                        "$t": "+1 5555551111",
-                    },
-                ],
-                "gd$structuredPostalAddress": [
-                    {
-                        "rel": "http://schemas.google.com/g/2005#home",
-                        "gd$formattedAddress": {"$t": "Main Land"},
-                    },
-                    {
-                        "label": "Second address",
-                        "gd$formattedAddress": {"$t": "Alternative Land"},
-                    },
-                ],
+
+MARIO_INFO = {
+    "resourceName": "people/c4084048990019506721",
+    "etag": "%Eg0FEEA3CT4BAj0MCz8uGgQCAQcFIgxyV3lrbVp6aVFmRT0=",
+    "names": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
             },
-            {
-                "id": {
-                    "$t": "http://www.google.com/m8/feeds/contacts/peach%40bros.example.com/base/72b6b4840bf772e6"
-                },
-                "title": {"$t": "Luigi Bros", "type": "text"},
-                "gd$email": [
-                    {
-                        "address": "Luigi@bros.example.com",
-                        "rel": "http://schemas.google.com/g/2005#home",
-                    },
-                    {"address": "luigi_bros@caramail.com", "label": "Old school"},
-                ],
-                "gd$phoneNumber": [
-                    {
-                        "rel": "http://schemas.google.com/g/2005#mobile",
-                        "uri": "tel:+1-555-555-4567",
-                        "$t": "+1 555-555-4567",
-                    },
-                    {
-                        "rel": "http://schemas.google.com/g/2005#home",
-                        "uri": "tel:+1-555-555-1111",
-                        "$t": "+1 5555551111",
-                    },
-                    {
-                        "label": "Mushroom land land-line",
-                        "uri": "tel:+1-555-555-2222",
-                        "$t": "(555) 555-2222",
-                    },
-                ],
-                "content": {"$t": "Second character"},
+            "displayName": "Mario Bros",
+            "familyName": "Bros",
+            "givenName": "Mario",
+            "displayNameLastFirst": "Bros, Mario",
+            "unstructuredName": "Mario Bros",
+        }
+    ],
+    "addresses": [
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
+            "type": "home",
+            "formattedType": "Home",
+            "streetAddress": "24 Sussex Dr",
+            "city": "Ottawa",
+            "region": "ON",
+            "postalCode": "K1M 1M4",
+            "country": "CA",
+            "countryCode": "CA",
+        },
+    ],
+    "emailAddresses": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
             },
-        ],
-    }
+            "value": "mario@bros.example.com",
+            "type": "work",
+            "formattedType": "Work",
+        }
+    ],
+    "phoneNumbers": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+            },
+            "value": "555-555-1234",
+            "type": "work",
+            "formattedType": "Work",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}},
+            "value": "555-555-4321",
+            "type": "home",
+            "formattedType": "Home",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "38ad74eb0f67d221"}},
+            "value": "555-555-8888",
+            "type": "mobile",
+            "formattedType": "Mobile",
+        },
+    ],
+    "biographies": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+            },
+            "value": "Notes test",
+            "contentType": "TEXT_PLAIN",
+        }
+    ],
+    "organizations": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "38ad74eb0f67d221"},
+            },
+            "name": "Mushroom Kingdom",
+            "title": "Plumber",
+        }
+    ],
 }
 
 
-GOOGLE_GROUP_LIST = {
-    "feed": {
-        "entry": [
-            {
-                "id": {
-                    "$t": "http://www.google.com/m8/feeds/groups/peach%40bros.example.com/base/6"
-                },
-                "gContact$systemGroup": {"id": "Contacts"},
+LUIGI_INFO = {
+    "resourceName": "people/c4537272446000040887",
+    "etag": "%Eg0FEEA3CT4BAj0MCz8uGgQCAQcFIgxaV0Zzb2hGVFBGaz0=",
+    "names": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
             },
-        ],
-    }
+            "displayName": "Luigi Bros",
+            "familyName": "Bros",
+            "givenName": "Luigi",
+            "displayNameLastFirst": "Bros, Luigi",
+            "unstructuredName": "Luigi Bros",
+        }
+    ],
+    "addresses": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "formattedValue": "1600 Pennsylvania Avenue NW\\nWashington, DC 20500\\nUS",
+            "type": "work",
+            "formattedType": "Work",
+            "streetAddress": "1600 Pennsylvania Avenue NW",
+            "city": "Washington",
+            "region": "DC",
+            "postalCode": "20500",
+            "country": "US",
+            "countryCode": "US",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "formattedValue": "24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA",
+            "type": "home",
+            "formattedType": "Home",
+            "streetAddress": "24 Sussex Dr",
+            "city": "Ottawa",
+            "region": "ON",
+            "postalCode": "K1M 1M4",
+            "country": "CA",
+            "countryCode": "CA",
+        },
+    ],
+    "emailAddresses": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "value": "luigi_bros@caramail.com",
+            "type": "Old",
+            "formattedType": "Old",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "value": "luigi2@example.com",
+            "type": "New",
+            "formattedType": "New",
+        },
+    ],
+    "phoneNumbers": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "value": "555-555-4567",
+            "type": "home",
+            "formattedType": "Home",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "value": "555-555-1234",
+            "type": "work",
+            "formattedType": "Work",
+        },
+        {
+            "metadata": {"source": {"type": "CONTACT", "id": "3ef7a14009000bb7"}},
+            "value": "555-555-8888",
+            "type": "mobile",
+            "formattedType": "Mobile",
+        },
+    ],
+    "biographies": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "value": "Notes user 02",
+            "contentType": "TEXT_PLAIN",
+        }
+    ],
+    "organizations": [
+        {
+            "metadata": {
+                "primary": True,
+                "source": {"type": "CONTACT", "id": "3ef7a14009000bb7"},
+            },
+            "name": "Mushroom Kingdom",
+            "title": "Plumber",
+        }
+    ],
+}
+
+GOOGLE_CONTACT_LIST = {
+    "connections": [MARIO_INFO, LUIGI_INFO],
+    "totalPeople": 2,
+    "totalItems": 2,
+}
+
+GOOGLE_SEARCH_LIST = {
+    "results": [{"person": MARIO_INFO}, {"person": LUIGI_INFO}],
+    "totalPeople": 2,
+    "totalItems": 2,
 }
 
 
@@ -174,7 +280,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             raises(Exception).matching(HTTP_404),
         )
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_list(self, google_api):
         result = self.list_(self.client, self.source_uuid)
         assert_that(
@@ -186,44 +292,40 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
                         firstname='Mario',
                         lastname='Bros',
                         emails=contains_inanyorder(
-                            has_entries(
-                                address='mario@bros.example.com', label='other'
-                            ),
+                            has_entries(address='mario@bros.example.com', label='work'),
                         ),
-                        numbers=contains_inanyorder('+15555551111', '+15555551234'),
+                        numbers=contains_inanyorder(
+                            '5555551234', '5555558888', '5555554321'
+                        ),
                         numbers_by_label=has_entries(
-                            home='+15555551111', mobile='+15555551234'
+                            home='5555554321', mobile='5555558888', work='5555551234'
                         ),
                         organizations=contains_inanyorder(
-                            has_entries(name='MarioLand', title='Artist'),
+                            has_entries(name='Mushroom Kingdom', title='Plumber'),
                         ),
                         addresses=contains_inanyorder(
-                            has_entries(address='Main Land', label='home'),
                             has_entries(
-                                address='Alternative Land', label='Second address'
+                                address='24 Sussex Dr\\nOttawa, ON K1M 1M4\\nCA',
+                                label='home',
                             ),
                         ),
+                        note='Notes test',
                     ),
                     has_entries(
                         name='Luigi Bros',
                         emails=contains_inanyorder(
-                            has_entries(address='Luigi@bros.example.com', label='home'),
-                            has_entries(
-                                address='luigi_bros@caramail.com', label='Old school'
-                            ),
+                            has_entries(address='luigi2@example.com', label='New'),
+                            has_entries(address='luigi_bros@caramail.com', label='Old'),
                         ),
                         numbers=contains_inanyorder(
-                            '5555552222', '+15555551111', '+15555554567'
+                            '5555551234', '5555558888', '5555554567'
                         ),
                         numbers_by_label=has_entries(
-                            'Mushroom land land-line',
-                            '5555552222',
-                            'home',
-                            '+15555551111',
-                            'mobile',
-                            '+15555554567',
+                            work='5555551234',
+                            home='5555554567',
+                            mobile='5555558888',
                         ),
-                        note='Second character',
+                        note='Notes user 02',
                     ),
                 ),
                 total=2,
@@ -231,7 +333,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             ),
         )
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_pagination(self, google_api):
         mario = has_entries(name='Mario Bros')
         luigi = has_entries(name='Luigi Bros')
@@ -256,27 +358,14 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             has_entries(items=contains(mario)),
         )
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_GROUP_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_search(self, google_api):
         self.list_(self.client, self.source_uuid, search='mario'),
         google_api.verify(
             {
                 'method': 'GET',
-                'path': '/m8/feeds/groups/default/full',
+                'path': '/v1/people:searchContacts',
                 'headers': {'Authorization': ['Bearer an-access-token']},
-            }
-        )
-        google_api.verify(
-            {
-                'method': 'GET',
-                'path': '/m8/feeds/contacts/default/full',
-                'headers': {'Authorization': ['Bearer an-access-token']},
-                'queryStringParameters': {
-                    'q': ['mario'],
-                    'group': [
-                        'http://www.google.com/m8/feeds/groups/peach%40bros.example.com/base/6',
-                    ],
-                },
             }
         )
 
