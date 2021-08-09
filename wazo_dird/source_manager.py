@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -6,6 +6,7 @@ import threading
 
 
 import stevedore
+from functools import partial
 from stevedore import NamedExtensionManager
 
 from xivo import plugin_helpers
@@ -48,11 +49,15 @@ class SourceManager:
             logger.info('no source found with uuid %s', source_uuid)
             return
 
+        on_missing_entrypoints = partial(
+            plugin_helpers.on_missing_entrypoints,
+            self._namespace,
+        )
         manager = NamedExtensionManager(
             self._namespace,
             [source_config['backend']],
             on_load_failure_callback=plugin_helpers.on_load_failure,
-            on_missing_entrypoints_callback=plugin_helpers.on_missing_entrypoints,
+            on_missing_entrypoints_callback=on_missing_entrypoints,
             invoke_on_load=True,
         )
 
