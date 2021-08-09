@@ -1,8 +1,9 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
+from functools import partial
 from stevedore import NamedExtensionManager
 from xivo import plugin_helpers
 
@@ -67,12 +68,13 @@ def _load_plugins(namespace, names, dependencies):
         logger.info('no enabled plugins')
         return
 
+    on_missing_entrypoints = partial(plugin_helpers.on_missing_entrypoints, namespace)
     manager = NamedExtensionManager(
         namespace,
         names,
         name_order=True,
         on_load_failure_callback=plugin_helpers.on_load_failure,
-        on_missing_entrypoints_callback=plugin_helpers.on_missing_entrypoints,
+        on_missing_entrypoints_callback=on_missing_entrypoints,
         invoke_on_load=True,
     )
 
