@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -55,7 +55,7 @@ class _Registry:
             auth_config['username'] = key_file['service_id']
             auth_config['password'] = key_file['service_key']
 
-            client.set_tenant(source_config['tenant_uuid'])
+            client.tenant_uuid = source_config['tenant_uuid']
 
         auth_client = AuthClient(**auth_config)
         token_renewer = TokenRenewer(auth_client)
