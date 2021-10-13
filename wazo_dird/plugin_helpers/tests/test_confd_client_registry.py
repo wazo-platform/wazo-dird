@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -39,10 +39,10 @@ class TestClientRegistry(TestCase):
 
     def test_set_tenant_with_key_file(self):
         self.registry.get(SOURCE_CONFIG)
-        self.confd_client.set_tenant.assert_called_once()
+        assert self.confd_client.tenant_uuid == SOURCE_CONFIG['tenant_uuid']
 
     def test_set_tenant_without_key_file(self):
         config = deepcopy(SOURCE_CONFIG)
         del config['auth']['key_file']
         self.registry.get(config)
-        self.confd_client.set_tenant.assert_not_called()
+        assert self.confd_client.tenant_uuid != SOURCE_CONFIG['tenant_uuid']
