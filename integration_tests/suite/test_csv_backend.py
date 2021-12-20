@@ -1,6 +1,7 @@
 # Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
 import unittest
 import yaml
 
@@ -38,6 +39,34 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
             response['results'],
             contains(has_entries(column_values=self._alice + favorite)),
         )
+
+    def test_that_csv_file_changes_have_been_committed(self):
+
+        line_to_append = '4,James,XXX,222123666,achohra@example.com'
+        file_to_update = os.path.join(
+            self.assets_root, 'tmp', 'data', 'asset.all_routes.test.csv'
+        )
+        updated_column_values = ['James', 'XXX', '222123666']
+
+        try:
+            with open(file_to_update, 'a') as my_file:
+
+                my_file.write(line_to_append)
+
+            response = self.lookup('James', 'default')
+            favorite = [False]
+            assert_that(
+                response['results'],
+                contains(has_entries(column_values=updated_column_values + favorite)),
+            )
+
+        finally:
+
+            with open(file_to_update, "r") as in_file:
+                lines = in_file.readlines()[:-1]
+
+            with open(file_to_update, "w+") as out_file:
+                out_file.writelines(lines)
 
     def test_reverse_lookup(self):
         response = self.reverse('5555555555', 'default', VALID_UUID)

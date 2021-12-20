@@ -3,6 +3,7 @@
 
 import csv
 import logging
+import pathlib
 
 from functools import partial
 from wazo_dird import BaseSourcePlugin
@@ -34,6 +35,10 @@ class CSVPlugin(BaseSourcePlugin):
     The `searched_columns` are the columns used to search for a term
     """
 
+    def __init__(self):
+        super().__init__()
+        self._csv_last_modification_time = None
+
     def load(self, args):
         if 'config' not in args:
             logger.warning('Missing config in startup arguments: %s', args)
@@ -57,7 +62,7 @@ class CSVPlugin(BaseSourcePlugin):
     def search(self, term, args=None):
         if self.SEARCHED_COLUMNS not in self._config:
             return []
-
+        self._load_file()
         fn = partial(
             self._low_case_match_entry,
             term.lower(),
@@ -67,6 +72,7 @@ class CSVPlugin(BaseSourcePlugin):
 
     def first_match(self, term, args=None):
         logger.debug('Looking for the first CSV entry matching "%s"', term)
+        self._load_file()
         if self.FIRST_MATCHED_COLUMNS not in self._config:
             logger.debug('No column configured for first match. Stopping.')
             return None
@@ -83,7 +89,7 @@ class CSVPlugin(BaseSourcePlugin):
     def list(self, unique_ids, args=None):
         if not self._has_unique_id:
             return []
-
+        self._load_file()
         fn = partial(self._is_in_unique_ids, unique_ids)
         return self._list_from_predicate(fn)
 
@@ -94,16 +100,23 @@ class CSVPlugin(BaseSourcePlugin):
 
         filename = self._config['file']
         delimiter = str(self._config.get('separator', ','))
-
+        fname = pathlib.Path(filename)
         try:
-            logger.debug('Reading %s with delimiter %r', filename, delimiter)
-            with open(filename, 'r') as f:
-                csvreader = csv.reader(f, delimiter=delimiter)
-                keys = [key for key in next(csvreader)]
-                self._content = [self._row_to_dict(keys, row) for row in csvreader]
-                logger.debug('Loaded with %s', self._content)
-        except IOError:
-            logger.exception('Could not load CSV file content')
+            tmp_csv_file_last_modification_date = fname.stat().st_mtime
+            if self._csv_last_modification_time == tmp_csv_file_last_modification_date:
+                return
+            try:
+                logger.debug('Reading %s with delimiter %r', filename, delimiter)
+                with open(filename, 'r') as f:
+                    csvreader = csv.reader(f, delimiter=delimiter)
+                    keys = [key for key in next(csvreader)]
+                    self._content = [self._row_to_dict(keys, row) for row in csvreader]
+                    logger.debug('Loaded with %s', self._content)
+                self._csv_last_modification_time = tmp_csv_file_last_modification_date
+            except IOError:
+                logger.exception('Could not load CSV file content')
+        except FileNotFoundError:
+            logger.exception('Could not locate CSV file on the system')
 
     def _list_from_predicate(self, predicate):
         return list(map(self._SourceResult, filter(predicate, self._content)))
