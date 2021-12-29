@@ -15,7 +15,7 @@ kombu==4.6.11
 marshmallow==3.0.0b14
 psycopg2==2.7.7
 python-consul==0.7.1
-python-ldap==3.1.0
+python-ldap==3.4.0
 pyyaml==3.13  # from xivo-lib-py
 requests==2.21.0
 sqlalchemy==1.2.18
