@@ -10,10 +10,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from hamcrest import assert_that, equal_to, has_entries
 
-from xivo_test_helpers import until
-from xivo_test_helpers.auth import AuthClient as MockAuthClient
-from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
-from xivo_test_helpers.db import DBUserClient
+from wazo_test_helpers import until
+from wazo_test_helpers.auth import AuthClient as MockAuthClient
+from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
+from wazo_test_helpers.db import DBUserClient
 
 from wazo_auth_client import Client as AuthClient
 from wazo_dird_client import Client

@@ -1,4 +1,4 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
@@ -27,7 +27,7 @@ from sqlalchemy import and_, func, exc
 
 from wazo_dird import database, exception
 
-from xivo_test_helpers.hamcrest.uuid_ import uuid_
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_dird.database.queries import base
 from .helpers.base import DBRunningTestCase
 from .helpers.fixtures import db as fixtures

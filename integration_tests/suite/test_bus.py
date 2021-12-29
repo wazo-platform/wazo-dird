@@ -1,8 +1,8 @@
 # Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from xivo_test_helpers.bus import BusClient
-from xivo_test_helpers import until
+from wazo_test_helpers.bus import BusClient
+from wazo_test_helpers import until
 
 from .helpers.base import BaseDirdIntegrationTest
 

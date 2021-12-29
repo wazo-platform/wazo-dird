@@ -23,9 +23,9 @@ from hamcrest import (
 from mock import ANY
 from xivo_bus.resources.user.event import DeleteUserEvent
 from xivo_bus import Marshaler
-from xivo_test_helpers import until
-from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
-from xivo_test_helpers.bus import BusClient
+from wazo_test_helpers import until
+from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from wazo_test_helpers.bus import BusClient
 
 from wazo_auth_client import Client as AuthClient
 

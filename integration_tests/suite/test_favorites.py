@@ -3,9 +3,9 @@
 
 import uuid
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to, has_entry
-from xivo_test_helpers.bus import BusClient
-from xivo_test_helpers import until
-from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from wazo_test_helpers.bus import BusClient
+from wazo_test_helpers import until
+from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
 from .helpers.base import (
     BaseDirdIntegrationTest,
