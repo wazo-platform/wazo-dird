@@ -17,8 +17,8 @@ from hamcrest import (
 )
 from mock import Mock
 from wazo_dird_client import Client as DirdClient
-from xivo_test_helpers.auth import AuthClient as AuthMock
-from xivo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.auth import AuthClient as AuthMock
+from wazo_test_helpers.hamcrest.raises import raises
 from .base_dird_integration_test import BackendWrapper
 from .helpers.base import DirdAssetRunningTestCase
 from .helpers.constants import (

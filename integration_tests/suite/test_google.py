@@ -1,11 +1,11 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
 
 from hamcrest import assert_that, contains, has_entries, has_item
 
-from xivo_test_helpers.auth import AuthClient as AuthMock
+from wazo_test_helpers.auth import AuthClient as AuthMock
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures

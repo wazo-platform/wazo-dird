@@ -10,10 +10,10 @@ from hamcrest import (
 )
 from xivo_bus import Marshaler
 from xivo_bus.resources.auth.events import TenantCreatedEvent
-from xivo_test_helpers import until
-from xivo_test_helpers.hamcrest.uuid_ import uuid_
-from xivo_test_helpers.bus import BusClient
-from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from wazo_test_helpers import until
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
+from wazo_test_helpers.bus import BusClient
+from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import SUB_TENANT

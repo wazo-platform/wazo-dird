@@ -3,8 +3,8 @@
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
 
-from xivo_test_helpers.auth import AuthClient as AuthMock
-from xivo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.auth import AuthClient as AuthMock
+from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.constants import (
     HTTP_404,

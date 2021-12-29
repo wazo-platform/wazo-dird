@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -15,8 +15,8 @@ from hamcrest import (
     has_properties,
     not_,
 )
-from xivo_test_helpers.hamcrest.raises import raises
-from xivo_test_helpers.hamcrest.uuid_ import uuid_
+from wazo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.config import new_multi_source_profile
 from .helpers.base import BaseDirdIntegrationTest

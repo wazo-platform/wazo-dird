@@ -12,7 +12,7 @@ from hamcrest import (
     has_entry,
 )
 
-from xivo_test_helpers import until
+from wazo_test_helpers import until
 
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
 from .helpers.config import new_wazo_users_config, new_wazo_users_multiple_wazo_config

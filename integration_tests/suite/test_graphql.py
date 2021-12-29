@@ -13,7 +13,7 @@ from hamcrest import (
     not_,
 )
 from wazo_dird_client import Client as DirdClient
-from xivo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_csv_with_multiple_displays_config, new_wazo_users_config
