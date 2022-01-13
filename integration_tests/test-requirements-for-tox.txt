@@ -3,7 +3,6 @@ https://github.com/wazo-platform/xivo-bus/archive/master.zip
 https://github.com/wazo-platform/wazo-test-helpers/archive/master.zip
 https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 
-docker-compose
 openapi-spec-validator
 pyhamcrest
 # pytest 4.2.0 has a bug: https://github.com/pytest-dev/pytest/issues/4700
