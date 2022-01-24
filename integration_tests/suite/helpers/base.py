@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -33,6 +33,7 @@ from .config import (
     new_null_config,
     new_personal_only_config,
 )
+from .wait_strategy import RestApiOkWaitStrategy
 
 
 class DirdAssetRunningTestCase(AssetLaunchingTestCase):
@@ -96,6 +97,9 @@ class AutoConfiguredDirdTestCase(DBRunningTestCase):
 
 
 class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
+
+    wait_strategy = RestApiOkWaitStrategy()
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -109,6 +113,8 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
             )
         except Exception:
             pass
+        cls.dird = cls.get_client()
+        cls.wait_strategy.wait(cls)
 
     @classmethod
     def get_client(cls, token=VALID_TOKEN_MAIN_TENANT):
