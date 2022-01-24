@@ -1,4 +1,4 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -18,6 +18,7 @@ from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_csv_with_multiple_displays_config, new_wazo_users_config
 from .helpers.constants import VALID_TOKEN, VALID_TOKEN_NO_ACL, MAIN_TENANT
+from .helpers.wait_strategy import NoWaitStrategy
 
 
 class TestGraphQL(BaseDirdIntegrationTest):
@@ -295,6 +296,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 class TestGraphQLNoAuth(BaseDirdIntegrationTest):
 
     asset = 'no_auth_server'
+    wait_strategy = NoWaitStrategy()
 
     def test_unreachable_auth_should_return_error(self):
         dird = DirdClient(

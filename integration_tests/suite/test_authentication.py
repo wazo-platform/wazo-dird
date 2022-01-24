@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains_string, equal_to
@@ -6,6 +6,7 @@ from hamcrest import assert_that, contains_string, equal_to
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_auth_only_config
 from .helpers.constants import VALID_TOKEN_MAIN_TENANT, VALID_TOKEN_NO_ACL, VALID_UUID
+from .helpers.wait_strategy import NoWaitStrategy
 
 
 class TestAuthentication(BaseDirdIntegrationTest):
@@ -32,6 +33,7 @@ class TestAuthentication(BaseDirdIntegrationTest):
 class TestAuthenticationError(BaseDirdIntegrationTest):
 
     asset = 'no_auth_server'
+    wait_strategy = NoWaitStrategy()
 
     @classmethod
     def setUpClass(cls):
