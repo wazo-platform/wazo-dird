@@ -7,7 +7,7 @@ services:
       - db
       # - confd  # not confd, we WANT it to take time to start
     environment:
-      PORTS: "dird:9489 auth:9497 db:5432"
+      TARGETS: "dird:9489 auth:9497 db:5432"
   dird:
     depends_on:
       - america
