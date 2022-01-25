@@ -21,3 +21,23 @@ class RestApiOkWaitStrategy(WaitStrategy):
             assert_that(status, has_entries({'rest_api': has_entries(status='ok')}))
 
         until.assert_(is_ready, tries=60)
+
+
+class EverythingOkWaitStrategy(WaitStrategy):
+    def wait(self, integration_test):
+        def is_ready():
+            try:
+                status = integration_test.dird.status.get()
+            except requests.RequestException:
+                status = {}
+            assert_that(
+                status,
+                has_entries(
+                    {
+                        'rest_api': has_entries(status='ok'),
+                        'bus_consumer': has_entries(status='ok'),
+                    }
+                ),
+            )
+
+        until.assert_(is_ready, tries=60)
