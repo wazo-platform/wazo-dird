@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -17,11 +17,13 @@ from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import SUB_TENANT
+from .helpers.wait_strategy import EverythingOkWaitStrategy
 
 
 class TestConfigAutoCreation(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
+    wait_strategy = EverythingOkWaitStrategy()
 
     def setUp(self):
         super().setUp()

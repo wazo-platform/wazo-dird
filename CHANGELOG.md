@@ -1,5 +1,9 @@
 # Changelog
 
+## 22.02
+
+* `rest_api` field has been added to status resource
+
 ## 21.01
 
 * Office365 and Google default source configuration has changed:
