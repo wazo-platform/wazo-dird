@@ -6,9 +6,9 @@ services:
     environment:
       TARGETS: "ws:9485"
   ws:
-    image: p0bailey/docker-flask
+    image: wazoplatform/wazo-dird-ws-mock:local
     ports:
       - "9485"
     volumes:
       - "./scripts/asset.csv_ws_iso88591_with_coma.ws.py:/tmp/ws.py"
-    command: "python /tmp/ws.py ',' 'iso-8859-1'"
+    command: "python3 /tmp/ws.py ',' 'iso-8859-1'"

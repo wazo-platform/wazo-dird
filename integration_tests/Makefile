@@ -1,4 +1,4 @@
-test-setup: egg-info build-dird build-db-image
+test-setup: egg-info build-dird build-db-image build-ws-mock-image
 
 build-dird:
 	docker build -t wazoplatform/wazo-dird ..
@@ -6,6 +6,9 @@ build-dird:
 
 build-db-image:
 	docker build -f ../contribs/docker/Dockerfile-db -t wazoplatform/wazo-dird-db ..
+
+build-ws-mock-image:
+	docker build -f docker/wazo-dird-ws-mock.Dockerfile -t wazoplatform/wazo-dird-ws-mock:local .
 
 egg-info:
 	cd .. && python setup.py egg_info
