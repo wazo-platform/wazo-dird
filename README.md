@@ -20,7 +20,7 @@ requests on "0.0.0.0". To change this behavior, create or edit the file
 The wazoplatform/wazo-dird-db image can be built using the following command:
 
 ```sh
-docker build -f contribs/docker/Dockerfile-db -t wazoplatform/wazo-dird-db .
+docker build -f contribs/docker/wazo-dird-db.Dockerfile -t wazoplatform/wazo-dird-db .
 ```
 
 ## Running unit tests
