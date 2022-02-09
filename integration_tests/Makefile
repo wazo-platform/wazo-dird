@@ -1,11 +1,14 @@
-test-setup: egg-info build-dird build-db-image
+test-setup: egg-info build-dird build-db-image build-ws-mock-image
 
 build-dird:
 	docker build -t wazoplatform/wazo-dird ..
-	docker build --no-cache -t wazo-dird-test -f docker/Dockerfile-dird-test ..
+	docker build --no-cache -t wazo-dird-test -f docker/wazo-dird-test.Dockerfile ..
 
 build-db-image:
-	docker build -f ../contribs/docker/Dockerfile-db -t wazoplatform/wazo-dird-db ..
+	docker build -f ../contribs/docker/wazo-dird-db.Dockerfile -t wazoplatform/wazo-dird-db ..
+
+build-ws-mock-image:
+	docker build -f docker/wazo-dird-ws-mock.Dockerfile -t wazoplatform/wazo-dird-ws-mock:local .
 
 egg-info:
 	cd .. && python setup.py egg_info

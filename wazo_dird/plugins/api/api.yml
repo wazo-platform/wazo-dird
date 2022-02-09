@@ -311,6 +311,7 @@ definitions:
     items:
       $ref: '#/definitions/PhonebookContact'
   ContactBodySample:
+    description: Those are only example attributes. The API accepts any arbitrary attributes.
     properties:
       firstname:
         type: string

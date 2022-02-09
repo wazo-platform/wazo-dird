@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import unicode_literals
@@ -13,17 +13,17 @@ app = Flask(__name__)
 
 headers = ['id', 'firstname', 'lastname', 'number']
 entries = [
-    (1, 'Andrée-Anne', 'Smith', '5551231111'),
-    (42, 'Benoît', 'Malone', '5551232222'),
-    (3, 'Jack', 'Sparrow', '5551233333'),
+    ('1', 'Andrée-Anne', 'Smith', '5551231111'),
+    ('42', 'Benoît', 'Malone', '5551232222'),
+    ('3', 'Jack', 'Sparrow', '5551233333'),
 ]
 
-separator = unicode(sys.argv[1])
+separator = sys.argv[1]
 charset = sys.argv[2]
 
 
 def line(fields, separator=separator):
-    return '{}\n'.format(separator.join(map(unicode, fields))).encode(charset)
+    return '{}\n'.format(separator.join(fields)).encode(charset)
 
 
 @app.route('/ws')
@@ -33,7 +33,7 @@ def ws():
     if not request.args.keys():
         result = entries
 
-    for field, term in request.args.iteritems():
+    for field, term in request.args.items():
         if field not in headers:
             continue
 
@@ -59,5 +59,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print 'Starting', charset
+    print('Starting', charset)
     main()

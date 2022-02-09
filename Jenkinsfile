@@ -28,7 +28,7 @@ pipeline {
     }
     stage('Docker build DB') {
       steps {
-        sh "docker build -t wazoplatform/${JOB_NAME}-db:latest -f contribs/docker/Dockerfile-db ."
+        sh "docker build -t wazoplatform/${JOB_NAME}-db:latest -f contribs/docker/wazo-dird-db.Dockerfile ."
       }
     }
     stage('Docker publish DB') {
