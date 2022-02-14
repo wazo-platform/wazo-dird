@@ -14,7 +14,21 @@ from werkzeug.contrib.fixers import ProxyFix
 from xivo import http_helpers
 from xivo.http_helpers import ReverseProxied
 
-from .http import AuthResource, auth_verifier
+from .http import (
+    LegacyErrorCatchingResource,
+    LegacyAuthResource,
+    ErrorCatchingResource,
+    AuthResource,
+    auth_verifier,
+)
+
+# Compatibility for old plugins < 22.03
+__all__ = [
+    'LegacyErrorCatchingResource',
+    'LegacyAuthResource',
+    'ErrorCatchingResource',
+    'AuthResource',
+]
 
 logger = logging.getLogger(__name__)
 
