@@ -1,8 +1,15 @@
-# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
-from hamcrest import assert_that, contains, contains_inanyorder, equal_to, has_entry
+from hamcrest import (
+    assert_that,
+    contains,
+    contains_inanyorder,
+    equal_to,
+    has_entry,
+    has_key,
+)
 from wazo_test_helpers.bus import BusClient
 from wazo_test_helpers import until
 from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
@@ -222,7 +229,11 @@ class TestFavoritesBusEvents(PersonalOnlyTestCase):
         bus_events = bus.accumulator('directory.*.favorite.*')
 
         def favorite_bus_event_received(name):
-            return name in (message['name'] for message in bus_events.accumulate())
+            names = []
+            for message in bus_events.accumulate(with_headers=True):
+                assert_that(message, has_entry('headers', has_key('tenant_uuid')))
+                names.append(message['message']['name'])
+            return name in names
 
         with self.personal({'firstname': 'Alice'}) as alice:
             with self.favorite('personal', alice['id']):
