@@ -3,12 +3,11 @@
 
 from flask import request
 
-from xivo.tenant_flask_helpers import Tenant
-
 from wazo_dird.auth import required_acl
 from wazo_dird.helpers import SourceItem, SourceList
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.confd_client_registry import registry
+from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 
 from .contact import ContactLister
 from .schemas import (
@@ -58,8 +57,7 @@ class WazoContactList(AuthResource):
 
     @required_acl('dird.backends.wazo.sources.{source_uuid}.contacts.read')
     def get(self, source_uuid):
-        tenant_uuid = Tenant.autodetect().uuid
-        visible_tenants = self.get_visible_tenants(tenant_uuid)
+        visible_tenants = get_tenant_uuids(recurse=True)
         list_params = contact_list_param_schema.load(request.args)
         source_config = self._source_service.get('wazo', source_uuid, visible_tenants)
 

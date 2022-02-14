@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
-from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
 from wazo_dird.http import AuthResource
+from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 
 from .schemas import source_list_schema, list_schema
 
@@ -17,12 +17,7 @@ class Sources(AuthResource):
     @required_acl('dird.sources.read')
     def get(self):
         list_params = list_schema.load(request.args)
-        tenant_uuid = Tenant.autodetect().uuid
-        if list_params['recurse']:
-            visible_tenants = self.get_visible_tenants(tenant_uuid)
-        else:
-            visible_tenants = [tenant_uuid]
-
+        visible_tenants = get_tenant_uuids(recurse=list_params['recurse'])
         backend = list_params.pop('backend', None)
         sources = self._source_service.list_(backend, visible_tenants, **list_params)
         items = source_list_schema.dump(sources)
