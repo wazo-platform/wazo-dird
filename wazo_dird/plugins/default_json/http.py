@@ -19,7 +19,7 @@ from wazo_dird.exception import (
 )
 from wazo_dird.helpers import DisplayAwareResource
 from wazo_dird.auth import required_acl
-from wazo_dird.http_server import LegacyAuthResource, AuthResource
+from wazo_dird.http import LegacyAuthResource, AuthResource
 
 logger = logging.getLogger(__name__)
 

@@ -15,7 +15,7 @@ from xivo.rest_api_helpers import APIException
 
 from wazo_dird import auth
 from wazo_dird.auth import required_acl
-from wazo_dird.http_server import LegacyAuthResource
+from wazo_dird.http import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 

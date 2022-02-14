@@ -9,7 +9,7 @@ from flask import make_response
 from xivo.chain_map import ChainMap
 from xivo.http_helpers import reverse_proxy_fix_api_spec
 
-from wazo_dird.http_server import ErrorCatchingResource
+from wazo_dird.http import ErrorCatchingResource
 
 logger = logging.getLogger(__name__)
 

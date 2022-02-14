@@ -22,7 +22,7 @@ from wazo_dird.exception import (
     NoSuchPhonebook,
     NoSuchTenant,
 )
-from wazo_dird.http_server import LegacyAuthResource
+from wazo_dird.http import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 

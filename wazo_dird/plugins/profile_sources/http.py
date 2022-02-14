@@ -3,7 +3,7 @@
 
 from flask import request
 from wazo_dird.auth import required_acl
-from wazo_dird.http_server import AuthResource
+from wazo_dird.http import AuthResource
 from xivo.tenant_flask_helpers import Tenant
 
 from .schemas import ListSchema

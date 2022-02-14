@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_dird.auth import required_acl
-from wazo_dird.http_server import LegacyAuthResource
+from wazo_dird.http import LegacyAuthResource
 
 
 class Config(LegacyAuthResource):

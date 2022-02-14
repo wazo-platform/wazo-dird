@@ -7,10 +7,9 @@ from collections import namedtuple
 from flask import request
 from xivo.tenant_flask_helpers import Tenant
 from wazo_dird import BaseViewPlugin
-from wazo_dird.http_server import AuthResource
+from wazo_dird.http import AuthResource
 
 logger = logging.getLogger()
-
 
 DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
 
