@@ -6,10 +6,7 @@ import time
 
 from functools import wraps
 
-from requests import HTTPError
-from flask import request
 from flask_restful import Resource
-from wazo_auth_client import Client as AuthClient
 from xivo import mallow_helpers, rest_api_helpers
 from xivo.auth_verifier import AuthVerifier
 
@@ -57,22 +54,3 @@ class AuthResource(ErrorCatchingResource):
     method_decorators = [
         auth_verifier.verify_token
     ] + ErrorCatchingResource.method_decorators
-
-    def get_visible_tenants(self, tenant):
-        token = request.headers['X-Auth-Token']
-        auth_client = AuthClient(**self.auth_config)
-        auth_client.set_token(token)
-
-        try:
-            visible_tenants = auth_client.tenants.list(tenant_uuid=tenant)['items']
-        except HTTPError as e:
-            response = getattr(e, 'response', None)
-            status_code = getattr(response, 'status_code', None)
-            if status_code == 401:
-                logger.warning(
-                    'a user is doing multi-tenant queries without the tenant list ACL'
-                )
-                return [tenant]
-            raise
-
-        return [tenant['uuid'] for tenant in visible_tenants]

@@ -43,7 +43,6 @@ class CoreRestApi:
     def __init__(self, global_config):
         self.config = global_config['rest_api']
         app.config['auth'] = global_config['auth']
-        AuthResource.auth_config = global_config['auth']
         http_helpers.add_logger(app, logger)
         app.before_request(http_helpers.log_before_request)
         app.after_request(http_helpers.log_request)
