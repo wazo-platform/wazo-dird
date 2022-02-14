@@ -1,4 +1,4 @@
-# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
 import os
@@ -22,51 +22,51 @@ from xivo import mallow_helpers
 from xivo import rest_api_helpers
 from xivo.http_helpers import ReverseProxied
 
+logger = logging.getLogger(__name__)
 
 VERSION = 0.1
 TEMPLATE_FOLDER = 'plugins/templates'
 
-logger = logging.getLogger(__name__)
-api = Api(prefix='/{}'.format(VERSION))
+app = Flask('wazo-setupd')
+api = Api(app, prefix='/{}'.format(VERSION))
 auth_verifier = AuthVerifier()
 
 
 class CoreRestApi:
     def __init__(self, global_config):
         self.config = global_config['rest_api']
-        self.app = Flask('wazo_dird', template_folder=TEMPLATE_FOLDER)
-        self.app.config['auth'] = global_config['auth']
+        app.config['auth'] = global_config['auth']
         AuthResource.auth_config = global_config['auth']
-
-        http_helpers.add_logger(self.app, logger)
-        self.app.before_request(http_helpers.log_before_request)
-        self.app.after_request(http_helpers.log_request)
-        self.app.secret_key = os.urandom(24)
-        self.app.permanent_session_lifetime = timedelta(minutes=5)
-        self.load_cors()
-        self.api = api
+        http_helpers.add_logger(app, logger)
+        app.before_request(http_helpers.log_before_request)
+        app.after_request(http_helpers.log_request)
+        app.secret_key = os.urandom(24)
+        app.permanent_session_lifetime = timedelta(minutes=5)
+        app.config.update(global_config)
         auth_verifier.set_config(global_config['auth'])
+        self.load_cors()
+        self.server = None
+        self.app = app
+        self.api = api
 
     def load_cors(self):
         cors_config = dict(self.config.get('cors', {}))
         enabled = cors_config.pop('enabled', False)
         if enabled:
-            CORS(self.app, **cors_config)
+            CORS(app, **cors_config)
 
     def run(self):
-        self.api.init_app(self.app)
-
         bind_addr = (self.config['listen'], self.config['port'])
 
         wsgi_app = ReverseProxied(
-            ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': self.app}))
+            ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': app}))
         )
-        server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
+        self.server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         if self.config['certificate'] and self.config['private_key']:
             logger.warning(
                 'Using service SSL configuration is deprecated. Please use NGINX instead.'
             )
-            server.ssl_adapter = http_helpers.ssl_adapter(
+            self.server.ssl_adapter = http_helpers.ssl_adapter(
                 self.config['certificate'], self.config['private_key']
             )
 
@@ -76,13 +76,17 @@ class CoreRestApi:
             bind_addr[0],
             bind_addr[1],
         )
-        for route in http_helpers.list_routes(self.app):
+        for route in http_helpers.list_routes(app):
             logger.debug(route)
 
         try:
-            server.start()
-        finally:
-            server.stop()
+            self.server.start()
+        except KeyboardInterrupt:
+            self.server.stop()
+
+    def stop(self):
+        if self.server:
+            self.server.stop()
 
 
 def handle_api_exception(func):

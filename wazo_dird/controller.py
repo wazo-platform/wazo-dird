@@ -1,8 +1,7 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-import sys
 import signal
 
 from functools import partial
@@ -20,10 +19,6 @@ from .source_manager import SourceManager
 from .database.helpers import init_db
 
 logger = logging.getLogger(__name__)
-
-
-def _signal_handler(signum, frame):
-    sys.exit(0)
 
 
 class Controller:
@@ -53,6 +48,7 @@ class Controller:
         )
 
     def run(self):
+        signal.signal(signal.SIGTERM, partial(_sigterm_handler, self))
         self.services = plugin_manager.load_services(
             self.config,
             self.config['enabled_plugins']['services'],
@@ -71,7 +67,6 @@ class Controller:
         self._source_manager.set_source_service(self.services['source'])
         self.status_aggregator.add_provider(self.bus.provide_status)
 
-        signal.signal(signal.SIGTERM, _signal_handler)
         with self.token_renewer:
             with ServiceCatalogRegistration(*self._service_registration_params):
                 self.bus.start()
@@ -82,3 +77,11 @@ class Controller:
                     plugin_manager.unload_services()
                     self._source_manager.unload_sources()
                     self.bus.stop()
+
+    def stop(self, reason):
+        logger.warning('Stopping wazo-dird: %s', reason)
+        self.rest_api.stop()
+
+
+def _sigterm_handler(controller, signum, frame):
+    controller.stop(reason='SIGTERM')
