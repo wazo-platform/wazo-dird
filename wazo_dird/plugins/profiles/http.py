@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -7,7 +7,7 @@ from flask import request
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.http_server import AuthResource
 
 from .schemas import list_schema, profile_list_schema, profile_schema
 

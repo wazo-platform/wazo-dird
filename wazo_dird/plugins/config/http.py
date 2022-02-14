@@ -1,8 +1,8 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import LegacyAuthResource
+from wazo_dird.http_server import LegacyAuthResource
 
 
 class Config(LegacyAuthResource):

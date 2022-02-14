@@ -13,7 +13,7 @@ from xivo.token_renewer import TokenRenewer
 from . import auth
 from . import plugin_manager
 from .bus import Bus
-from .rest_api import CoreRestApi
+from .http_server import CoreRestApi
 from .service_discovery import self_check
 from .source_manager import SourceManager
 from .database.helpers import init_db
