@@ -10,6 +10,7 @@ from wazo_dird.plugins.source_result import make_result_class
 
 # Compatibility for old plugins < 22.03
 from wazo_dird import http_server
+
 sys.modules['wazo_dird.rest_api'] = sys.modules['wazo_dird.http_server']
 
 __all__ = [

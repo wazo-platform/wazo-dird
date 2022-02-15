@@ -64,9 +64,7 @@ class CoreRestApi:
     def run(self):
         bind_addr = (self.config['listen'], self.config['port'])
 
-        wsgi_app = ReverseProxied(
-            ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': app}))
-        )
+        wsgi_app = ReverseProxied(ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': app})))
         self.server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         if self.config['certificate'] and self.config['private_key']:
             logger.warning(
