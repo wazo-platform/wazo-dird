@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 VERSION = 0.1
 TEMPLATE_FOLDER = 'plugins/templates'
 
-app = Flask('wazo-setupd')
+app = Flask('wazo-dird')
 api = Api(app, prefix='/{}'.format(VERSION))
 
 
