@@ -1,11 +1,11 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
 
 from flask_graphql import GraphQLView
 from wazo_dird import BaseViewPlugin
-from wazo_dird import rest_api
+from wazo_dird import http_server
 from xivo.auth_verifier import (
     AuthServerUnreachable,
     Unauthorized,
@@ -69,7 +69,7 @@ class GraphQLViewPlugin(BaseViewPlugin):
         authorization_middleware = AuthorizationMiddleware(config['auth'], auth_client)
 
         app.add_url_rule(
-            '/{version}/graphql'.format(version=rest_api.VERSION),
+            '/{version}/graphql'.format(version=http_server.VERSION),
             view_func=GraphQLView.as_view(
                 'graphql',
                 schema=schema,

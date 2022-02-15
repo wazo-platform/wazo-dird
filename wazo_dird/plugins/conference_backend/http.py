@@ -1,14 +1,14 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
-from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import exception
 from wazo_dird.helpers import SourceItem, SourceList
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.confd_client_registry import registry
+from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 
 from .schemas import (
     contact_list_param_schema,
@@ -57,8 +57,7 @@ class ConferenceContactList(AuthResource):
 
     @required_acl('dird.backends.conference.sources.{source_uuid}.contacts.read')
     def get(self, source_uuid):
-        tenant_uuid = Tenant.autodetect().uuid
-        visible_tenants = self.get_visible_tenants(tenant_uuid)
+        visible_tenants = get_tenant_uuids(recurse=True)
         list_params = contact_list_param_schema.load(request.args)
         source_config = self._source_service.get(
             'conference', source_uuid, visible_tenants

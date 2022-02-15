@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -7,10 +7,10 @@ from collections import namedtuple
 from flask import request
 from xivo.tenant_flask_helpers import Tenant
 from wazo_dird import BaseViewPlugin
-from wazo_dird.rest_api import AuthResource
+from wazo_dird.http import AuthResource
+from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 
 logger = logging.getLogger()
-
 
 DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
 
@@ -90,12 +90,7 @@ class _BaseSourceResource(AuthResource):
 class SourceList(_BaseSourceResource):
     def get(self):
         list_params = self.list_schema.load(request.args)
-        tenant = Tenant.autodetect()
-        if list_params['recurse']:
-            visible_tenants = self.get_visible_tenants(tenant.uuid)
-        else:
-            visible_tenants = [tenant.uuid]
-
+        visible_tenants = get_tenant_uuids(recurse=list_params['recurse'])
         sources = self._service.list_(self._backend, visible_tenants, **list_params)
         items = self.source_list_schema.dump(sources)
         filtered = self._service.count(self._backend, visible_tenants, **list_params)
@@ -112,20 +107,17 @@ class SourceList(_BaseSourceResource):
 
 class SourceItem(_BaseSourceResource):
     def delete(self, source_uuid):
-        tenant = Tenant.autodetect()
-        visible_tenants = self.get_visible_tenants(tenant.uuid)
+        visible_tenants = get_tenant_uuids(recurse=True)
         self._service.delete(self._backend, source_uuid, visible_tenants)
         return '', 204
 
     def get(self, source_uuid):
-        tenant = Tenant.autodetect()
-        visible_tenants = self.get_visible_tenants(tenant.uuid)
+        visible_tenants = get_tenant_uuids(recurse=True)
         body = self._service.get(self._backend, source_uuid, visible_tenants)
         return self.source_schema.dump(body)
 
     def put(self, source_uuid):
-        tenant = Tenant.autodetect()
-        visible_tenants = self.get_visible_tenants(tenant.uuid)
+        visible_tenants = get_tenant_uuids(recurse=True)
         args = self.source_schema.load(request.get_json())
         self._service.edit(self._backend, source_uuid, visible_tenants, args)
         return '', 204

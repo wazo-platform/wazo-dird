@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -8,7 +8,7 @@ from xivo.tenant_flask_helpers import Tenant
 from wazo_dird.exception import OldAPIException
 from wazo_dird.helpers import DisplayAwareResource
 from wazo_dird.auth import required_acl
-from wazo_dird.rest_api import LegacyAuthResource
+from wazo_dird.http import LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 

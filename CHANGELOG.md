@@ -1,5 +1,9 @@
 # Changelog
 
+## 22.03
+
+* `rest_api` python module has been renamed and split to `http_server` and `http`
+
 ## 22.02
 
 * `rest_api` field has been added to status resource
