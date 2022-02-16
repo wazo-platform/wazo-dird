@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -160,10 +160,12 @@ class _FavoritesService(helpers.BaseService):
         backend = source['backend']
         self._crud.create(user_uuid, backend, source_name, contact_id)
         event = FavoriteAddedEvent(self._xivo_uuid, user_uuid, source_name, contact_id)
+        headers = {
+            'tenant_uuid': tenant_uuid,
+            'user_uuid:{uuid}'.format(uuid=user_uuid): True,
+        }
         try:
-            self._bus.publish(
-                event, headers={'user_uuid:{uuid}'.format(uuid=user_uuid): True}
-            )
+            self._bus.publish(event, headers=headers)
         except OSError as e:
             logger.error('failed to publish bus event %s', e)
             logger.info('%s', event)
@@ -181,6 +183,8 @@ class _FavoritesService(helpers.BaseService):
 
         self._crud.delete(user_uuid, source_name, contact_id)
         event = FavoriteDeletedEvent(self._xivo_uuid, user_uuid, source, contact_id)
-        self._bus.publish(
-            event, headers={'user_uuid:{uuid}'.format(uuid=user_uuid): True}
-        )
+        headers = {
+            'tenant_uuid': tenant_uuid,
+            'user_uuid:{uuid}'.format(uuid=user_uuid): True,
+        }
+        self._bus.publish(event, headers=headers)
