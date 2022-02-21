@@ -27,7 +27,7 @@ class ServiceDictSchema(fields.Nested):
             result[service_name] = ServiceConfigSchema().dump(service_config)
         return result
 
-    def _deserialize(self, nested_obj, attr, obj, **_):
+    def _deserialize(self, nested_obj, attr, obj, **kwargs):
         if nested_obj is None:
             return None
 

@@ -24,9 +24,10 @@ class ContactSchema(BaseSchema):
     extensions = fields.Nested(ExtensionSchema, many=True, unknown=EXCLUDE)
     incalls = fields.Nested(ExtensionSchema, many=True, unknown=EXCLUDE)
 
-    @pre_dump(pass_many=True)
-    def unpack_extensions(self, data, many):
-        extension_schema = ExtensionSchema(many=True)
+    @pre_dump
+    def unpack_extensions(self, data, **kwargs):
+        many = kwargs.get('many', False)
+        extension_schema = ExtensionSchema(many)
         for contact in data:
             incalls = []
 

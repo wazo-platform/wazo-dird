@@ -5,7 +5,6 @@ from marshmallow import (
     EXCLUDE,
     exceptions,
     Schema,
-    compat,
     pre_load,
     utils,
     validates_schema,
@@ -20,25 +19,22 @@ class BaseSchema(Schema):
         unknown = EXCLUDE
 
     @pre_load
-    def ensude_dict(self, data):
+    def ensude_dict(self, data, **kwargs):
         return data or {}
 
 
 class VerifyCertificateField(fields.Field):
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if value in (True, 'true', 'True'):
             return True
 
         if value in (False, 'false', 'False'):
             return False
 
-        if not isinstance(value, compat.basestring):
-            self.fail('invalid')
-
         try:
             return utils.ensure_text_type(value)
         except UnicodeDecodeError:
-            self.fail('invalid_utf8')
+            self.make_error('invalid_utf8')
 
 
 class BaseSourceSchema(BaseSchema):
@@ -80,7 +76,7 @@ class AuthConfigSchema(BaseAuthConfigSchema):
     password = fields.String(validate=Length(min=1, max=512), allow_none=True)
 
     @validates_schema
-    def validate_auth_info(self, data):
+    def validate_auth_info(self, data, **kwargs):
         key_file = data.get('key_file')
         username = data.get('username')
 

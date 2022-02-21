@@ -16,7 +16,7 @@ class DisplayColumnSchema(BaseSchema):
     number_display = fields.String(allow_none=True)
 
     @marshmallow.validates_schema
-    def check_not_empty(self, data):
+    def check_not_empty(self, data, **kwargs):
         if not data:
             raise marshmallow.ValidationError('Empty columns are now allowed')
 

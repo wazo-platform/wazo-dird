@@ -15,7 +15,7 @@ class SourceSchema(BaseSourceSchema):
     ldap_custom_filter = fields.String(validate=Length(min=1, max=1024), missing=None)
     ldap_network_timeout = fields.Float(validate=Range(min=0), default=0.3)
     ldap_timeout = fields.Float(validate=Range(min=0), default=1.0)
-    unique_column = fields.String(Length(min=1, max=128), allownone=True, missing=None)
+    unique_column = fields.String(validate=Length(min=1, max=128), allownone=True, missing=None)
     unique_column_format = fields.String(
         validate=OneOf(['string', 'binary_uuid']), missing='string'
     )
