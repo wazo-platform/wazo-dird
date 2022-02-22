@@ -26,8 +26,7 @@ class ContactSchema(BaseSchema):
 
     @pre_dump
     def unpack_extensions(self, data, **kwargs):
-        many = kwargs.get('many', False)
-        extension_schema = ExtensionSchema(many)
+        extension_schema = ExtensionSchema(many=True)
         for contact in data:
             incalls = []
 
