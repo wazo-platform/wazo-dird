@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.mallow import fields
@@ -8,7 +8,7 @@ from wazo_dird.schemas import BaseSourceSchema
 
 
 class SourceSchema(BaseSourceSchema):
-    unique_column = fields.String(Length(min=1, max=128), allownone=True, missing=None)
+    unique_column = fields.String(Length(min=1, max=128), allow_none=True, missing=None)
     file = fields.String(Length(min=1), required=True)
     separator = fields.String(Length(min=1, max=1), missing=',')
 
