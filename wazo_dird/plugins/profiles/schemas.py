@@ -1,7 +1,6 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import EXCLUDE
 from xivo.mallow import fields
 from xivo.mallow.validate import Length
 from xivo.mallow_helpers import ListSchema as _ListSchema
@@ -13,7 +12,7 @@ class ResourceSchema(BaseSchema):
 
 
 class ServiceConfigSchema(BaseSchema):
-    sources = fields.Nested(ResourceSchema, many=True, missing=[], unknown=EXCLUDE)
+    sources = fields.Nested(ResourceSchema, many=True, missing=[])
     options = fields.Dict(missing={})
 
 
@@ -42,8 +41,8 @@ class ProfileSchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
-    display = fields.Nested(ResourceSchema, unknown=EXCLUDE)
-    services = ServiceDictSchema(BaseSchema, required=True, unknown=EXCLUDE)
+    display = fields.Nested(ResourceSchema)
+    services = ServiceDictSchema(BaseSchema, required=True)
 
 
 class ListSchema(_ListSchema):

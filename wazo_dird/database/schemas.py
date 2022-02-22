@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import marshmallow
@@ -30,7 +30,6 @@ class DisplaySchema(BaseSchema):
         many=True,
         required=True,
         validate=Length(min=1),
-        unknown=marshmallow.EXCLUDE,
     )
 
 
@@ -42,7 +41,7 @@ class SourceSchema(BaseSchema):
 
 
 class ServiceSchema(BaseSchema):
-    sources = fields.Nested(SourceSchema, many=True, unknown=marshmallow.EXCLUDE)
+    sources = fields.Nested(SourceSchema, many=True)
 
 
 class ServiceDictSchema(fields.Nested):
@@ -64,4 +63,4 @@ class ProfileSchema(BaseSchema):
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String()
     display = fields.Nested(DisplaySchema)
-    services = ServiceDictSchema(BaseSchema, required=True, unknown=marshmallow.EXCLUDE)
+    services = ServiceDictSchema(BaseSchema, required=True)
