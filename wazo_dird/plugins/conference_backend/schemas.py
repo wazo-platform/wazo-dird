@@ -27,16 +27,15 @@ class ContactSchema(BaseSchema):
     @pre_dump
     def unpack_extensions(self, data, **kwargs):
         extension_schema = ExtensionSchema(many=True)
-        for contact in data:
-            incalls = []
+        incalls = []
 
-            extensions = extension_schema.dump(contact['extensions'])
+        extensions = extension_schema.dump(data['extensions'])
 
-            for incall in contact['incalls']:
-                incalls += extension_schema.dump(incall['extensions'])
+        for incall in data['incalls']:
+            incalls += extension_schema.dump(incall['extensions'])
 
-            contact['extensions'] = extensions
-            contact['incalls'] = incalls
+        data['extensions'] = extensions
+        data['incalls'] = incalls
 
         return data
 
