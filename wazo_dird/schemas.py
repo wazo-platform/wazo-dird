@@ -1,26 +1,16 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
-    EXCLUDE,
     exceptions,
-    Schema,
-    pre_load,
     utils,
     validates_schema,
 )
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range, validate_string_dict
+from xivo.mallow_helpers import Schema
 
-
-class BaseSchema(Schema):
-    class Meta:
-        ordered = True
-        unknown = EXCLUDE
-
-    @pre_load
-    def ensude_dict(self, data, **kwargs):
-        return data or {}
+BaseSchema = Schema
 
 
 class VerifyCertificateField(fields.Field):
