@@ -1,44 +1,30 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
-    EXCLUDE,
     exceptions,
-    Schema,
-    compat,
-    pre_load,
     utils,
     validates_schema,
 )
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range, validate_string_dict
+from xivo.mallow_helpers import Schema
 
-
-class BaseSchema(Schema):
-    class Meta:
-        ordered = True
-        unknown = EXCLUDE
-
-    @pre_load
-    def ensude_dict(self, data):
-        return data or {}
+BaseSchema = Schema
 
 
 class VerifyCertificateField(fields.Field):
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if value in (True, 'true', 'True'):
             return True
 
         if value in (False, 'false', 'False'):
             return False
 
-        if not isinstance(value, compat.basestring):
-            self.fail('invalid')
-
         try:
             return utils.ensure_text_type(value)
         except UnicodeDecodeError:
-            self.fail('invalid_utf8')
+            self.make_error('invalid_utf8')
 
 
 class BaseSourceSchema(BaseSchema):
@@ -80,7 +66,7 @@ class AuthConfigSchema(BaseAuthConfigSchema):
     password = fields.String(validate=Length(min=1, max=512), allow_none=True)
 
     @validates_schema
-    def validate_auth_info(self, data):
+    def validate_auth_info(self, data, **kwargs):
         key_file = data.get('key_file')
         username = data.get('username')
 
