@@ -1,4 +1,4 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -11,9 +11,16 @@ token_renewer = Mock()
 token_renewer.__enter__ = Mock()
 token_renewer.__exit__ = Mock()
 TokenRenewer = Mock(return_value=token_renewer)
+CoreBus = Mock(
+    return_value=Mock(
+        __enter__=Mock(),
+        __exit__=Mock(),
+    )
+)
 
 
 @patch('wazo_dird.controller.TokenRenewer', TokenRenewer)
+@patch('wazo_dird.controller.CoreBus', CoreBus)
 @patch('wazo_dird.controller.init_db', Mock())
 class TestController(TestCase):
     def setUp(self):
