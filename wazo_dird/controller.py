@@ -12,7 +12,7 @@ from xivo.status import StatusAggregator
 from xivo.token_renewer import TokenRenewer
 from . import auth
 from . import plugin_manager
-from .bus import Bus
+from .bus import CoreBus
 from .http_server import CoreRestApi
 from .service_discovery import self_check
 from .source_manager import SourceManager
@@ -26,7 +26,7 @@ class Controller:
         self.config = config
         init_db(config['db_uri'])
         self.rest_api = CoreRestApi(self.config)
-        self.bus = Bus(config)
+        self.bus = CoreBus(service_uuid=self.config.get('uuid'), **self.config['bus'])
         auth.set_auth_config(self.config['auth'])
         self.auth_client = AuthClient(**self.config['auth'])
         self.token_renewer = TokenRenewer(self.auth_client)
@@ -68,15 +68,14 @@ class Controller:
         self.status_aggregator.add_provider(self.bus.provide_status)
 
         with self.token_renewer:
-            with ServiceCatalogRegistration(*self._service_registration_params):
-                self.bus.start()
-                try:
-                    self.rest_api.run()
-                finally:
-                    plugin_manager.unload_views()
-                    plugin_manager.unload_services()
-                    self._source_manager.unload_sources()
-                    self.bus.stop()
+            with self.bus:
+                with ServiceCatalogRegistration(*self._service_registration_params):
+                    try:
+                        self.rest_api.run()
+                    finally:
+                        plugin_manager.unload_views()
+                        plugin_manager.unload_services()
+                        self._source_manager.unload_sources()
 
     def stop(self, reason):
         logger.warning('Stopping wazo-dird: %s', reason)
