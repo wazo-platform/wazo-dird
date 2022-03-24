@@ -1,11 +1,8 @@
-# Copyright 2016-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
-import kombu
-
-from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.user.event import DeleteUserEvent
 
 from wazo_dird import BaseServicePlugin
@@ -26,15 +23,11 @@ class StorageCleanupServicePlugin(BaseServicePlugin):
 
 
 class _StorageCleanupService:
-
-    _exchange = kombu.Exchange('xivo', type='topic')
-    _routing_key = 'config.user.deleted'
-
     def __init__(self, bus):
-        queue = kombu.Queue(
-            exchange=self._exchange, routing_key=self._routing_key, exclusive=True
-        )
-        bus.add_consumer(queue, self._on_user_deleted_event)
+        bus.subscribe(DeleteUserEvent.name, self._on_user_deleted_event)
+
+    def _on_user_deleted_event(self, user):
+        self._remove_user(user['uuid'])
 
     # executed in the consumer thread
     def _remove_user(self, user_uuid):
@@ -42,11 +35,3 @@ class _StorageCleanupService:
         session = Session()
         database.delete_user(session, user_uuid)
         session.commit()
-
-    def _on_user_deleted_event(self, body, message):
-        try:
-            event = Marshaler.unmarshal_message(body, DeleteUserEvent)
-        except (InvalidMessage, KeyError):
-            logger.exception('Ignoring the following malformed bus message: %s', body)
-        else:
-            self._remove_user(event.uuid)
