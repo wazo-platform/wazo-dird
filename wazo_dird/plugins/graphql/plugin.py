@@ -4,6 +4,10 @@
 import requests
 
 from flask_graphql import GraphQLView
+from wazo_auth_client.exceptions import (
+    InvalidTokenException,
+    MissingPermissionsTokenException,
+)
 from wazo_dird import BaseViewPlugin
 from wazo_dird import http_server
 from xivo.auth_verifier import (
@@ -30,6 +34,8 @@ class AuthorizationMiddleware:
         required_acl = f'dird.graphql.{root_field}'
         try:
             token_is_valid = self._auth_client.token.is_valid(token_id, required_acl)
+        except (InvalidTokenException, MissingPermissionsTokenException):
+            token_is_valid = False
         except requests.RequestException as e:
             host = self._auth_config['host']
             port = self._auth_config['port']
