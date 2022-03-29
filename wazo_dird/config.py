@@ -1,4 +1,4 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -99,6 +99,10 @@ _DEFAULT_CONFIG = {
         'exchange_name': 'xivo',
         'exchange_type': 'topic',
         'exchange_durable': True,
+        'subscribe': {
+            'exchange_name': 'wazo-headers',
+            'exchange_type': 'headers',
+        },
     },
     'service_discovery': {
         'enabled': True,

@@ -1,10 +1,8 @@
-# Copyright 2016-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-import kombu
 
-from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.auth.events import TenantCreatedEvent
 
 from wazo_dird import BaseServicePlugin
@@ -142,34 +140,22 @@ class ConfigServicePlugin(BaseServicePlugin):
 
 
 class Service:
-
-    _QUEUE = kombu.Queue(
-        exchange=kombu.Exchange('xivo', type='topic'),
-        routing_key='auth.tenants.*.created',
-        exclusive=True,
-    )
-
     def __init__(self, config, bus, controller):
         self._bus = bus
         self._config = config
         self._controller = controller
-        bus.add_consumer(self._QUEUE, self._on_new_tenant)
+
+        self._bus.subscribe(TenantCreatedEvent.name, self._on_new_tenant_event)
 
     def get_current_config(self):
         return self._config
 
-    def _on_new_tenant(self, body, message):
-        try:
-            event = Marshaler.unmarshal_message(body, TenantCreatedEvent)
-            body = event.marshal()
-            uuid = body['uuid']
-            name = body['name']
-        except (InvalidMessage, KeyError):
-            logger.info('Ignoring the following malformed bus message: %s', body)
-        else:
-            sources = self._auto_create_sources(uuid, name)
-            display = self._auto_create_display(uuid, name)
-            self._auto_create_profile(uuid, name, display, sources)
+    def _on_new_tenant_event(self, tenant):
+        name = tenant['name']
+        uuid = tenant['uuid']
+        sources = self._auto_create_sources(uuid, name)
+        display = self._auto_create_display(uuid, name)
+        self._auto_create_profile(uuid, name, display, sources)
 
     def _add_source(self, backend, body):
         source_service = self._controller.services.get('source')

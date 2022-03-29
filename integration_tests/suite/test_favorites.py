@@ -8,7 +8,8 @@ from hamcrest import (
     contains_inanyorder,
     equal_to,
     has_entry,
-    has_key,
+    has_entries,
+    has_item,
 )
 from wazo_test_helpers.bus import BusClient
 from wazo_test_helpers import until
@@ -226,17 +227,22 @@ class TestFavoritesBusEvents(PersonalOnlyTestCase):
         bus_port = self.service_port(5672, 'rabbitmq')
         bus = BusClient.from_connection_fields(host='127.0.0.1', port=bus_port)
         until.true(bus.is_up, tries=5)
+        bus.downstream_exchange_declare('wazo-headers', 'headers')
         bus_events = bus.accumulator('directory.*.favorite.*')
 
         def favorite_bus_event_received(name):
-            names = []
-            for message in bus_events.accumulate(with_headers=True):
-                assert_that(message, has_entry('headers', has_key('tenant_uuid')))
-                names.append(message['message']['name'])
-            return name in names
+            assert_that(
+                bus_events.accumulate(with_headers=True),
+                has_item(
+                    has_entries(
+                        message=has_entry('name', name),
+                        headers=has_entry('tenant_uuid', MAIN_TENANT),
+                    )
+                ),
+            )
 
         with self.personal({'firstname': 'Alice'}) as alice:
             with self.favorite('personal', alice['id']):
-                until.true(favorite_bus_event_received, 'favorite_added', tries=2)
+                until.assert_(favorite_bus_event_received, 'favorite_added', tries=2)
 
-        until.true(favorite_bus_event_received, 'favorite_deleted', tries=2)
+        until.assert_(favorite_bus_event_received, 'favorite_deleted', tries=2)

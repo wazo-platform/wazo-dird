@@ -8,7 +8,7 @@ from hamcrest import (
     has_entries,
     has_item,
 )
-from xivo_bus import Marshaler
+from datetime import datetime
 from xivo_bus.resources.auth.events import TenantCreatedEvent
 from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
@@ -31,6 +31,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         self.tenant_name = 'mytenant'
         bus_port = self.service_port(5672, 'rabbitmq')
         self.bus = BusClient.from_connection_fields(host='127.0.0.1', port=bus_port)
+        self.bus.downstream_exchange_declare('wazo-headers', 'headers')
 
         self.mock_auth_client = MockAuthClient(
             '127.0.0.1', self.service_port(9497, 'auth')
@@ -222,9 +223,11 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
 
     def _publish_tenant_created_event(self):
         event = TenantCreatedEvent(uuid=self.tenant_uuid, name=self.tenant_name)
-        marshaler = Marshaler('the-xivo-uuid')
         message = {
             'data': event.marshal(),
-            **marshaler.metadata(event),
+            'name': event.name,
+            'origin_uuid': 'the-xivo-uuid',
+            'timestamp': datetime.now().isoformat(),
         }
-        self.bus.publish(message, routing_key=event.routing_key)
+        headers = {'name': TenantCreatedEvent.name}
+        self.bus.publish(message, headers=headers, routing_key=event.routing_key)

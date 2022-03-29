@@ -1,4 +1,4 @@
-# Copyright 2016-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -6,12 +6,10 @@ import threading
 import time
 from uuid import UUID
 
-import kombu
 import yaml
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from xivo.consul_helpers import ServiceFinder
-from xivo_bus.marshaler import InvalidMessage, Marshaler
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
 from wazo_dird import BaseServicePlugin
 
@@ -32,13 +30,6 @@ class ServiceDiscoveryServicePlugin(BaseServicePlugin):
 
 
 class _Service:
-
-    QUEUE = kombu.Queue(
-        exchange=kombu.Exchange('xivo', type='topic'),
-        routing_key='service.registered.*',
-        exclusive=True,
-    )
-
     def __init__(self, config, bus, source_manager, controller):
         self._controller = controller
         self._config = config
@@ -49,7 +40,7 @@ class _Service:
             return
         self._source_config_generator = SourceConfigGenerator(service_disco_config)
         self._profile_config_updater = ProfileConfigUpdater(config)
-        bus.add_consumer(self.QUEUE, self._on_service_registered)
+        bus.subscribe(ServiceRegisteredEvent.name, self._on_service_registered_event)
         finder = ServiceFinder(config['consul'])
 
         fetcher_thread = threading.Thread(
@@ -101,20 +92,15 @@ class _Service:
         }
         return True if source_service.list_(**search_params) else False
 
-    def _on_service_registered(self, body, message):
-        try:
-            event = Marshaler.unmarshal_message(body, ServiceRegisteredEvent)
-        except (InvalidMessage, KeyError):
-            logger.exception('Ignoring the following malformed bus message: %s', body)
-        else:
-            uuid = _find_first_uuid(event.tags)
-            if uuid:
-                self._on_service_added(
-                    event.service_name,
-                    event.advertise_address,
-                    event.advertise_port,
-                    uuid,
-                )
+    def _on_service_registered_event(self, service):
+        uuid = _find_first_uuid(service['tags'])
+        if uuid:
+            self._on_service_added(
+                service['service_name'],
+                service['address'],
+                service['port'],
+                uuid,
+            )
 
 
 def _find_first_uuid(tags):
