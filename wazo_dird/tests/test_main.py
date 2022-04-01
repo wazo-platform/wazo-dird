@@ -1,10 +1,10 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
 
 from hamcrest import assert_that, equal_to
-from mock import ANY, patch, sentinel as s
+from mock import patch, sentinel as s
 
 from ..main import main
 
@@ -18,7 +18,7 @@ class TestWazoDird(TestCase):
     def test_main_injects_argv_into_config_loading(self, load_config, *_):
         main(s.argv)
 
-        load_config.assert_called_once_with(ANY, s.argv)
+        load_config.assert_called_once_with(s.argv)
 
     def test_main_injects_config_in_controller(self, load_config, controller_init, *_):
         config = load_config.return_value
