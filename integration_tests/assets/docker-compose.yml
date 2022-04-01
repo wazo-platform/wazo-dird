@@ -22,7 +22,7 @@ services:
       # - "${LOCAL_GIT_REPOS}/xivo-bus/xivo_bus:/opt/venv/lib/python3.7/site-packages/xivo_bus"
 
   db:
-    image: wazoplatform/wazo-dird-db
+    image: wazoplatform/wazo-dird-db:local
     ports:
       - "5432"
 
