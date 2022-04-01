@@ -65,7 +65,6 @@ _DEFAULT_CONFIG = {
             'phonebook_view': True,
             'profile_sources_view': True,
             'profiles_view': True,
-            'sources': True,
             'sources_view': True,
             'status_view': True,
             'wazo_backend': True,
