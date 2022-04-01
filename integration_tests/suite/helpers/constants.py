@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -6,7 +6,7 @@ from hamcrest import has_properties
 
 ASSET_ROOT = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
 DB_URI_FMT = os.getenv(
-    'DB_URI', 'postgresql://asterisk:proformatique@127.0.0.1:{port}/asterisk'
+    'DB_URI', 'postgresql://wazo-dird:Secr7t@127.0.0.1:{port}/wazo-dird'
 )
 VALID_UUID = 'uuid-tenant-master'
 VALID_UUID_1 = 'uuid-1'
