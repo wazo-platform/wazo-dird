@@ -5,7 +5,7 @@ build-dird:
 	docker build --no-cache -t wazo-dird-test -f docker/wazo-dird-test.Dockerfile ..
 
 build-db-image:
-	docker build -f ../contribs/docker/wazo-dird-db.Dockerfile -t wazoplatform/wazo-dird-db ..
+	docker build --pull -f ../contribs/docker/wazo-dird-db.Dockerfile -t wazoplatform/wazo-dird-db:local ..
 
 build-ws-mock-image:
 	docker build -f docker/wazo-dird-ws-mock.Dockerfile -t wazoplatform/wazo-dird-ws-mock:local .

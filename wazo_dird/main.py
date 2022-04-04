@@ -51,7 +51,7 @@ def main(argv=None):
     with _PreConfigLogger() as logger:
         logger.debug('Starting wazo-dird')
 
-        config = load_config(logger, argv)
+        config = load_config(argv)
 
         xivo_logging.setup_logging(
             config['log_filename'],

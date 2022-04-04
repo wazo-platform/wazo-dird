@@ -1,4 +1,4 @@
-db_uri: postgresql://asterisk:proformatique@db/asterisk
+db_uri: postgresql://wazo-dird:Secr7t@db/wazo-dird
 
 rest_api:
   listen: 0.0.0.0

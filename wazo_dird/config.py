@@ -65,7 +65,6 @@ _DEFAULT_CONFIG = {
             'phonebook_view': True,
             'profile_sources_view': True,
             'profiles_view': True,
-            'sources': True,
             'sources_view': True,
             'status_view': True,
             'wazo_backend': True,
@@ -117,7 +116,7 @@ _DEFAULT_CONFIG = {
 }
 
 
-def load(logger, argv):
+def load(argv):
     cli_config = _parse_cli_args(argv)
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
     reinterpreted_config = _get_reinterpreted_raw_values(

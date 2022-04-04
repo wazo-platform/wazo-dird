@@ -1,9 +1,10 @@
-# Copyright 2016-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
+from sqlalchemy import create_engine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -18,6 +19,19 @@ fileConfig(config.config_file_name)
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+VERSION_TABLE = 'alembic_version_dird'
+URI = os.getenv('ALEMBIC_DB_URI', None)
+
+
+def get_url():
+    # The import should not be top level to allow the usage of the ALEMBIC_DB_URI
+    # environment variable when the DB is not hosted on the same host as wazo-dird.
+    # When building the docker image for the database for example.
+    from wazo_dird.config import load as load_config
+
+    wazo_config = load_config('')
+    return wazo_config.get('db_uri')
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
@@ -31,8 +45,8 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url, version_table='alembic_version_dird')
+    url = URI or config.get_main_option("sqlalchemy.url") or get_url()
+    context.configure(url=url, version_table=VERSION_TABLE)
 
     with context.begin_transaction():
         context.run_migrations()
@@ -45,14 +59,12 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    engine = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix='sqlalchemy.',
-        poolclass=pool.NullPool,
-    )
+
+    url = URI or config.get_main_option("sqlalchemy.url") or get_url()
+    engine = create_engine(url)
 
     connection = engine.connect()
-    context.configure(connection=connection, version_table='alembic_version_dird')
+    context.configure(connection=connection, version_table=VERSION_TABLE)
 
     try:
         with context.begin_transaction():

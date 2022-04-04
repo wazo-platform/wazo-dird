@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -516,7 +516,7 @@ def new_personal_only_config(Session):
     config.with_source(
         backend='personal',
         name='personal',
-        db_uri='postgresql://asterisk:proformatique@db/asterisk',
+        db_uri='postgresql://wazo-dird:Secr7t@db/wazo-dird',
         searched_columns=['firstname', 'lastname'],
         first_matched_columns=['number'],
         format_columns={'reverse': '{firstname} {lastname}'},
