@@ -7,7 +7,7 @@ info:
     \ such as a person's phone number, number, office number, department, office number,\
     \ etc. The information displayed is selected via a profile. Directories can be\
     \ aggregated using multiple data sources such as an LDAP server, a CSV file, another\
-    \ Wazo server, etc.\n\n\nPlease refer to [the documentation](http://documentation.wazo.community)\
+    \ Wazo server, etc.\n\n\nPlease refer to [the documentation](https://wazo-platform.org/uc-doc)\
     \ for further details.\n\n\nNote: The 0.1 API is currently in development. Major\
     \ changes could still happen and new resources will be added over time."
   version: '0.1'
@@ -16,7 +16,7 @@ info:
     url: http://www.gnu.org/licenses/gpl.txt
   contact:
     name: Dev Team
-    url: http://wazo.community
+    url: https://wazo-platform.org
     email: dev@wazo.community
 x-xivo-port: 9489
 x-xivo-name: dird
