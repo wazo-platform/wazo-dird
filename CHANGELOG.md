@@ -1,5 +1,9 @@
 # Changelog
 
+## 22.08
+
+* The `config` endpoint is now accessible only by *master* tenant
+
 ## 22.03
 
 * `rest_api` python module has been renamed and split to `http_server` and `http`
