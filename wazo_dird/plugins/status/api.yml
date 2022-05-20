@@ -16,6 +16,8 @@ definitions:
     properties:
       bus_consumer:
         $ref: '#/definitions/ComponentWithStatus'
+      master_tenant:
+        $ref: '#/definitions/ComponentWithStatus'
       rest_api:
         $ref: '#/definitions/ComponentWithStatus'
   ComponentWithStatus:

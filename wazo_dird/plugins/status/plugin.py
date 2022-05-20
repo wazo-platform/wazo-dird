@@ -14,12 +14,14 @@ class StatusViewPlugin(BaseViewPlugin):
     def load(self, dependencies):
         api = dependencies['api']
 
+        config = dependencies['config']
+
         status_aggregator = dependencies['status_aggregator']
 
         status_aggregator.add_provider(provide_status)
 
         api.add_resource(
-            StatusResource, '/status', resource_class_args=[status_aggregator]
+            StatusResource, '/status', resource_class_args=[status_aggregator, config]
         )
 
 
