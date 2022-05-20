@@ -38,6 +38,8 @@ from .helpers.constants import (
     VALID_TOKEN_2,
 )
 
+from .helpers.base import MASTER_USER_UUID
+
 from .helpers.base import BaseDirdIntegrationTest, PersonalOnlyTestCase
 
 
@@ -68,7 +70,7 @@ class TestDeletedUser(BaseDirdIntegrationTest):
         check()
 
         self.post_personal({'firstname': 'Alice'})
-        self._publish_user_deleted_event(VALID_UUID)
+        self._publish_user_deleted_event(MASTER_USER_UUID)
 
         until.assert_(check, tries=3)
 
@@ -397,7 +399,7 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         )
 
     def test_reverse_lookup_with_user_uuid(self):
-        result = self.reverse('123456', 'default', VALID_UUID)
+        result = self.reverse('123456', 'default', MASTER_USER_UUID)
 
         assert_that(result['display'], equal_to('Elice Wowo'))
 
