@@ -6,16 +6,23 @@ import requests
 from hamcrest import assert_that, has_entries
 
 from wazo_test_helpers import until
-from wazo_test_helpers.wait_strategy import WaitStrategy, NoWaitStrategy
 
-__all__ = ['NoWaitStrategy']
+
+class WaitStrategy:
+    def wait(self, dird):
+        raise NotImplementedError()
+
+
+class NoWaitStrategy(WaitStrategy):
+    def wait(self, dird):
+        pass
 
 
 class RestApiOkWaitStrategy(WaitStrategy):
-    def wait(self, integration_test):
+    def wait(self, dird):
         def is_ready():
             try:
-                status = integration_test.dird.status.get()
+                status = dird.status.get()
             except requests.RequestException:
                 status = {}
             assert_that(status, has_entries({'rest_api': has_entries(status='ok')}))
@@ -24,10 +31,10 @@ class RestApiOkWaitStrategy(WaitStrategy):
 
 
 class EverythingOkWaitStrategy(WaitStrategy):
-    def wait(self, integration_test):
+    def wait(self, dird):
         def is_ready():
             try:
-                status = integration_test.dird.status.get()
+                status = dird.status.get()
             except requests.RequestException:
                 status = {}
             assert_that(
@@ -36,6 +43,7 @@ class EverythingOkWaitStrategy(WaitStrategy):
                     {
                         'rest_api': has_entries(status='ok'),
                         'bus_consumer': has_entries(status='ok'),
+                        'master_tenant': has_entries(status='ok'),
                     }
                 ),
             )
