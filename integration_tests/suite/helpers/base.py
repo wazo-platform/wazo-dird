@@ -1,6 +1,8 @@
 # Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
+
 import requests
 import uuid
 
@@ -11,21 +13,20 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from hamcrest import assert_that, equal_to, has_entries
 
 from wazo_test_helpers import until
-from wazo_test_helpers.auth import AuthClient as MockAuthClient
 from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_test_helpers.db import DBUserClient
-
-from wazo_auth_client import Client as AuthClient
-from wazo_dird_client import Client
+from wazo_test_helpers.auth import (
+    AuthClient as MockAuthClient,
+    MockCredentials,
+    MockUserToken,
+)
+from wazo_dird_client import Client as DirdClient
 from wazo_dird import database
 
 from .constants import (
     ASSET_ROOT,
     DIRD_TOKEN_TENANT,
     DB_URI_FMT,
-    MAIN_TENANT,
-    VALID_UUID,
-    VALID_TOKEN_MAIN_TENANT,
 )
 from .config import (
     new_csv_with_multiple_displays_config,
@@ -35,11 +36,24 @@ from .config import (
 )
 from .wait_strategy import RestApiOkWaitStrategy
 
+WAZO_UUID = '00000000-0000-4000-8000-00003eb8004d'
+
+MASTER_TOKEN = 'valid-token-master-tenant'
+MASTER_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
+MASTER_USER_UUID = '5f243438-a429-46a8-a992-baed872081e0'
+
+USERS_TENANT = '00000000-0000-4000-8000-000000000202'
+USER_1_UUID = '00000000-0000-4000-8000-000000000302'
+USER_1_TOKEN = '00000000-0000-4000-8000-000000000102'
+USER_2_UUID = '00000000-0000-4000-8000-000000000303'
+USER_2_TOKEN = '00000000-0000-4000-8000-000000000103'
+
+START_TIMEOUT = int(os.environ.get('INTEGRATION_TEST_TIMEOUT', '30'))
+
 
 class DirdAssetRunningTestCase(AssetLaunchingTestCase):
 
     assets_root = ASSET_ROOT
-    service = 'dird'
 
 
 class DBRunningTestCase(DirdAssetRunningTestCase):
@@ -77,48 +91,87 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
         until.true(database.is_up, timeout=5, message='Postgres did not come back up')
 
 
-class AutoConfiguredDirdTestCase(DBRunningTestCase):
+class BaseDirdIntegrationTest(DBRunningTestCase):
 
-    config_factory = new_null_config
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.mock_auth_client = MockAuthClient(
-            '127.0.0.1', cls.service_port(9497, 'auth')
-        )
-        cls.config = cls.config_factory(cls.Session)
-        cls.config.setup()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.config.tear_down()
-        super().tearDownClass()
-
-
-class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
-
+    service = 'dird'
     wait_strategy = RestApiOkWaitStrategy()
+    config_factory = new_null_config
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.host = '127.0.0.1'
         cls.port = cls.service_port(9489, 'dird')
-        try:
-            auth_port = cls.service_port(9497, 'auth')
-            auth_client = AuthClient('127.0.0.1', auth_port, prefix=None, https=False)
-            auth_client.users.new(
-                uuid=VALID_UUID, tenant_uuid=MAIN_TENANT, username='foobar'
-            )
-        except Exception:
-            pass
-        cls.dird = cls.get_client()
-        cls.wait_strategy.wait(cls)
+        cls.configure_wazo_auth()
+        cls.dird = cls.make_dird(MASTER_TOKEN)
+        cls.config = cls.config_factory(cls.Session)
+        cls.config.setup()
+        cls.wait_strategy.wait(cls.dird)
 
     @classmethod
-    def get_client(cls, token=VALID_TOKEN_MAIN_TENANT):
-        return Client(cls.host, cls.port, token=token, prefix=None, https=False)
+    def tearDownClass(cls):
+        cls.config.tear_down()
+        super().tearDownClass()
+
+    @classmethod
+    def make_dird(cls, token):
+        return DirdClient(
+            '127.0.0.1',
+            cls.service_port(9489, 'dird'),
+            prefix=None,
+            https=False,
+            token=token,
+        )
+
+    @classmethod
+    def make_mock_auth(cls):
+        return MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
+
+    @classmethod
+    def configure_wazo_auth(cls):
+        cls.mock_auth_client = cls.make_mock_auth()
+        credentials = MockCredentials('wazo-dird', 'secret')
+        cls.mock_auth_client.set_valid_credentials(credentials, MASTER_TOKEN)
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                MASTER_TOKEN,
+                MASTER_USER_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': MASTER_TENANT, 'uuid': MASTER_USER_UUID},
+            )
+        )
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                USER_1_TOKEN,
+                USER_1_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': USERS_TENANT, 'uuid': USER_1_UUID},
+            )
+        )
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                USER_2_TOKEN,
+                USER_2_UUID,
+                WAZO_UUID,
+                {"tenant_uuid": USERS_TENANT, "uuid": USER_2_UUID},
+            )
+        )
+        cls.mock_auth_client.set_tenants(
+            {
+                'uuid': MASTER_TENANT,
+                'name': 'dird-tests-master',
+                'parent_uuid': MASTER_TENANT,
+            },
+            {
+                'uuid': USERS_TENANT,
+                'name': 'dird-tests-users',
+                'parent_uuid': MASTER_TENANT,
+            },
+        )
+
+    @classmethod
+    def get_client(cls, token=MASTER_TOKEN):
+        return DirdClient(cls.host, cls.port, token=token, prefix=None, https=False)
 
     @property
     def client(self):
@@ -142,7 +195,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.get(url, params=params, token=token)
 
     @classmethod
-    def lookup(cls, term, profile, token=VALID_TOKEN_MAIN_TENANT):
+    def lookup(cls, term, profile, token=MASTER_TOKEN):
         response = cls.get_lookup_result(term, profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -154,7 +207,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.get(url, params=params, token=token)
 
     @classmethod
-    def lookup_user(cls, term, profile, user_uuid, token=VALID_TOKEN_MAIN_TENANT):
+    def lookup_user(cls, term, profile, user_uuid, token=MASTER_TOKEN):
         response = cls.get_lookup_user_result(term, profile, user_uuid, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -166,7 +219,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def headers(cls, profile):
-        response = cls.get_headers_result(profile, token=VALID_TOKEN_MAIN_TENANT)
+        response = cls.get_headers_result(profile, token=MASTER_TOKEN)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
@@ -177,7 +230,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.get(url, params=params, token=token)
 
     @classmethod
-    def reverse(cls, exten, profile, user_uuid, token=VALID_TOKEN_MAIN_TENANT):
+    def reverse(cls, exten, profile, user_uuid, token=MASTER_TOKEN):
         response = cls.get_reverse_result(exten, profile, user_uuid, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -188,7 +241,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.get(url, token=token)
 
     @classmethod
-    def favorites(cls, profile, token=VALID_TOKEN_MAIN_TENANT):
+    def favorites(cls, profile, token=MASTER_TOKEN):
         response = cls.get_favorites_result(profile, token=token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -199,7 +252,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.put(url, token=token)
 
     @classmethod
-    def put_favorite(cls, directory, contact, token=VALID_TOKEN_MAIN_TENANT):
+    def put_favorite(cls, directory, contact, token=MASTER_TOKEN):
         response = cls.put_favorite_result(directory, contact, token=token)
         assert_that(response.status_code, equal_to(204))
 
@@ -209,12 +262,12 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.delete(url, token=token)
 
     @classmethod
-    def delete_favorite(cls, directory, contact, token=VALID_TOKEN_MAIN_TENANT):
+    def delete_favorite(cls, directory, contact, token=MASTER_TOKEN):
         response = cls.delete_favorite_result(directory, contact, token=token)
         assert_that(response.status_code, equal_to(204))
 
     @contextmanager
-    def favorite(self, source, source_entry_id, token=VALID_TOKEN_MAIN_TENANT):
+    def favorite(self, source, source_entry_id, token=MASTER_TOKEN):
         self.put_favorite(source, source_entry_id, token)
         try:
             yield
@@ -222,28 +275,24 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
             self.delete_favorite_result(source, source_entry_id, token)
 
     @classmethod
-    def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
+    def post_phonebook(cls, tenant, phonebook_body, token=MASTER_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks')
         return cls.post(url, json=phonebook_body, token=token)
 
     @classmethod
-    def put_phonebook(
-        cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN_MAIN_TENANT
-    ):
+    def put_phonebook(cls, tenant, phonebook_id, phonebook_body, token=MASTER_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
         return cls.put(url, json=phonebook_body, token=token)
 
     @classmethod
     def post_phonebook_contact(
-        cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN_MAIN_TENANT
+        cls, tenant, phonebook_id, contact_body, token=MASTER_TOKEN
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
         return cls.post(url, json=contact_body, token=token)
 
     @classmethod
-    def import_phonebook_contact(
-        cls, tenant, phonebook_id, body, token=VALID_TOKEN_MAIN_TENANT
-    ):
+    def import_phonebook_contact(cls, tenant, phonebook_id, body, token=MASTER_TOKEN):
         url = cls.url(
             'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', 'import'
         )
@@ -257,7 +306,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         phonebook_id,
         contact_uuid,
         contact_body,
-        token=VALID_TOKEN_MAIN_TENANT,
+        token=MASTER_TOKEN,
     ):
         url = cls.url(
             'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid
@@ -270,13 +319,13 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.post(url, json=personal_infos, token=token)
 
     @classmethod
-    def post_personal(cls, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
+    def post_personal(cls, personal_infos, token=MASTER_TOKEN):
         response = cls.post_personal_result(personal_infos, token)
         assert_that(response.status_code, equal_to(201))
         return response.json()
 
     @contextmanager
-    def personal(self, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
+    def personal(self, personal_infos, token=MASTER_TOKEN):
         response = self.post_personal(personal_infos, token)
         try:
             yield response
@@ -291,9 +340,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.post(url, data=csv, headers=headers)
 
     @classmethod
-    def import_personal(
-        cls, personal_infos, token=VALID_TOKEN_MAIN_TENANT, encoding='utf-8'
-    ):
+    def import_personal(cls, personal_infos, token=MASTER_TOKEN, encoding='utf-8'):
         response = cls.import_personal_result(personal_infos, token, encoding)
         assert_that(response.status_code, equal_to(201))
         return response.json()
@@ -304,14 +351,14 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.get(url, token=token)
 
     @classmethod
-    def list_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
+    def list_personal(cls, token=MASTER_TOKEN):
         response = cls.list_personal_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
     @classmethod
     def list_phonebooks(cls, tenant, token=None, **kwargs):
-        token = token or VALID_TOKEN_MAIN_TENANT
+        token = token or MASTER_TOKEN
         url = cls.url('tenants', tenant, 'phonebooks')
         return cls.get(url, params=kwargs, token=token)
 
@@ -321,7 +368,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.get(url, params={'format': 'text/csv'}, token=token)
 
     @classmethod
-    def export_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
+    def export_personal(cls, token=MASTER_TOKEN):
         response = cls.export_personal_result(token)
         assert_that(response.status_code, equal_to(200))
         return response.text
@@ -332,19 +379,19 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.get(url, token=token)
 
     @classmethod
-    def get_personal(cls, personal_id, token=VALID_TOKEN_MAIN_TENANT):
+    def get_personal(cls, personal_id, token=MASTER_TOKEN):
         response = cls.get_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 
     @classmethod
-    def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
+    def get_phonebook(cls, tenant, phonebook_id, token=MASTER_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
         return cls.get(url, token=token)
 
     @classmethod
     def get_phonebook_contact(
-        cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN_MAIN_TENANT
+        cls, tenant, phonebook_id, contact_uuid, token=MASTER_TOKEN
     ):
         url = cls.url(
             'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid
@@ -353,7 +400,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
 
     @classmethod
     def list_phonebook_contacts(
-        cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT, **kwargs
+        cls, tenant, phonebook_id, token=MASTER_TOKEN, **kwargs
     ):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
         return cls.get(url, params=kwargs, token=token)
@@ -364,7 +411,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.put(url, json=personal_infos, token=token)
 
     @classmethod
-    def put_personal(cls, personal_id, personal_infos, token=VALID_TOKEN_MAIN_TENANT):
+    def put_personal(cls, personal_id, personal_infos, token=MASTER_TOKEN):
         response = cls.put_personal_result(personal_id, personal_infos, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
@@ -375,18 +422,18 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.delete(url, token=token)
 
     @classmethod
-    def delete_personal(cls, personal_id, token=VALID_TOKEN_MAIN_TENANT):
+    def delete_personal(cls, personal_id, token=MASTER_TOKEN):
         response = cls.delete_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(204))
 
     @classmethod
-    def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
+    def delete_phonebook(cls, tenant, phonebook_id, token=MASTER_TOKEN):
         url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
         return cls.delete(url, token=token)
 
     @classmethod
     def delete_phonebook_contact(
-        cls, tenant, phonebook_id, contact_id, token=VALID_TOKEN_MAIN_TENANT
+        cls, tenant, phonebook_id, contact_id, token=MASTER_TOKEN
     ):
         url = cls.url(
             'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_id
@@ -399,7 +446,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.delete(url, token=token)
 
     @classmethod
-    def purge_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
+    def purge_personal(cls, token=MASTER_TOKEN):
         response = cls.purge_personal_result(token)
         assert_that(response.status_code, equal_to(204))
 
@@ -409,7 +456,7 @@ class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
         return cls.get(url, token=token)
 
     @classmethod
-    def get_personal_with_profile(cls, profile, token=VALID_TOKEN_MAIN_TENANT):
+    def get_personal_with_profile(cls, profile, token=MASTER_TOKEN):
         response = cls.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
