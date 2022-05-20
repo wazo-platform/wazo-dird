@@ -3,8 +3,9 @@
 
 import logging
 
-from xivo.auth_verifier import required_tenant, required_acl
+from xivo.auth_verifier import required_tenant, required_acl, no_auth
 from wazo_auth_client import Client
+from xivo.status import Status
 
 from werkzeug.local import LocalProxy as Proxy
 from .http_server import app
@@ -37,6 +38,12 @@ def init_master_tenant(token):
     app.config['auth']['master_tenant_uuid'] = tenant_uuid
 
 
+def provide_status(status):
+    status['master_tenant']['status'] = (
+        Status.ok if app.config['auth']['master_tenant_uuid'] else Status.fail
+    )
+
+
 def get_master_tenant_uuid():
     if not app:
         raise Exception('Flask appilication is not configured')
@@ -49,4 +56,4 @@ def get_master_tenant_uuid():
 
 
 master_tenant_uuid = Proxy(get_master_tenant_uuid)
-__all__ = ['required_acl']
+__all__ = ['required_acl', 'no_auth']

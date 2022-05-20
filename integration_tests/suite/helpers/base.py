@@ -102,8 +102,8 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
         super().setUpClass()
         cls.host = '127.0.0.1'
         cls.port = cls.service_port(9489, 'dird')
-        cls.configure_wazo_auth()
         cls.dird = cls.make_dird(MASTER_TOKEN)
+        cls.configure_wazo_auth()
         cls.config = cls.config_factory(cls.Session)
         cls.config.setup()
         cls.wait_strategy.wait(cls.dird)

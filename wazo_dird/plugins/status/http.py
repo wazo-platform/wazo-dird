@@ -6,23 +6,9 @@ from wazo_dird.http import AuthResource
 
 
 class StatusResource(AuthResource):
-    def __init__(self, status_aggregator, config):
+    def __init__(self, status_aggregator):
         self.status_aggregator = status_aggregator
-        self._config = config
 
     @required_acl('dird.status.read')
     def get(self):
-        result = {
-            'bus_consumer': {
-                'status': self.status_aggregator.status()['bus_consumer']['status']
-            },
-            'rest_api': {
-                'status': self.status_aggregator.status()['rest_api']['status']
-            },
-            'master_tenant': {
-                'status': 'ok'
-                if self._config['auth'].get('master_tenant_uuid')
-                else 'fail'
-            },
-        }
-        return result, 200
+        return self.status_aggregator.status(), 200

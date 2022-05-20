@@ -36,6 +36,7 @@ class Controller:
             )
         self.token_renewer.subscribe_to_token_change(self.auth_client.set_token)
         self.status_aggregator = StatusAggregator()
+        self.status_aggregator.add_provider(auth.provide_status)
         self._service_registration_params = [
             'wazo-dird',
             self.config.get('uuid'),

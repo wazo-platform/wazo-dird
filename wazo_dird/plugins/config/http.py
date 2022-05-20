@@ -1,9 +1,8 @@
 # Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from wazo_dird.auth import required_master_tenant
+from wazo_dird.auth import required_acl, required_master_tenant
 from wazo_dird.http import AuthResource
-from xivo.auth_verifier import required_acl
 
 
 class Config(AuthResource):
