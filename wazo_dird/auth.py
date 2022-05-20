@@ -3,14 +3,17 @@
 
 import logging
 
-from xivo import auth_verifier
+from xivo.auth_verifier import required_tenant, required_acl
 from wazo_auth_client import Client
+
+from werkzeug.local import LocalProxy as Proxy
+from .http_server import app
+from .exception import MatserTenantNotInitiatedException
 
 logger = logging.getLogger(__name__)
 
 auth_config = None
 auth_client = None
-required_acl = auth_verifier.required_acl
 
 
 def set_auth_config(config):
@@ -23,3 +26,27 @@ def client():
     if not auth_client:
         auth_client = Client(**auth_config)
     return auth_client
+
+
+def required_master_tenant():
+    return required_tenant(master_tenant_uuid)
+
+
+def init_master_tenant(token):
+    tenant_uuid = token['metadata']['tenant_uuid']
+    app.config['auth']['master_tenant_uuid'] = tenant_uuid
+
+
+def get_master_tenant_uuid():
+    if not app:
+        raise Exception('Flask appilication is not configured')
+
+    tenant_uuid = app.config['auth'].get('master_tenant_uuid')
+    if not tenant_uuid:
+        raise MatserTenantNotInitiatedException()
+
+    return tenant_uuid
+
+
+master_tenant_uuid = Proxy(get_master_tenant_uuid)
+__all__ = ['required_acl']
