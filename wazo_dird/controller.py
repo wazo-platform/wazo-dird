@@ -13,7 +13,7 @@ from xivo.token_renewer import TokenRenewer
 from . import auth
 from . import plugin_manager
 from .bus import CoreBus
-from .http_server import app, CoreRestApi
+from .http_server import CoreRestApi
 from .service_discovery import self_check
 from .source_manager import SourceManager
 from .database.helpers import init_db
@@ -30,7 +30,7 @@ class Controller:
         auth.set_auth_config(self.config['auth'])
         self.auth_client = AuthClient(**self.config['auth'])
         self.token_renewer = TokenRenewer(self.auth_client)
-        if not app.config['auth'].get('master_tenant_uuid'):
+        if not self.config['auth'].get('master_tenant_uuid'):
             self.token_renewer.subscribe_to_next_token_details_change(
                 auth.init_master_tenant
             )
