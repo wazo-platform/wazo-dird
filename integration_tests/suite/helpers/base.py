@@ -25,7 +25,6 @@ from wazo_dird import database
 
 from .constants import (
     ASSET_ROOT,
-    DIRD_TOKEN_TENANT,
     DB_URI_FMT,
 )
 from .config import (
@@ -519,14 +518,14 @@ class BasePhonebookTestCase(BaseDirdIntegrationTest):
                     pass
 
     def set_tenants(self, *tenant_names):
-        items = [{'uuid': DIRD_TOKEN_TENANT}]
+        items = [{'uuid': MASTER_TENANT}]
         for tenant_name in tenant_names:
             self.tenants.setdefault(
                 tenant_name,
                 {
                     'uuid': str(uuid.uuid4()),
                     'name': tenant_name,
-                    'parent_uuid': DIRD_TOKEN_TENANT,
+                    'parent_uuid': MASTER_TENANT,
                 },
             )
             items.append(self.tenants[tenant_name])
