@@ -130,7 +130,7 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
     @classmethod
     def configure_wazo_auth(cls):
         cls.mock_auth_client = cls.make_mock_auth()
-        credentials = MockCredentials('wazo-dird', 'secret')
+        credentials = MockCredentials('dird-service', 'dird-password')
         cls.mock_auth_client.set_valid_credentials(credentials, MASTER_TOKEN)
         cls.mock_auth_client.set_token(
             MockUserToken(

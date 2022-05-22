@@ -5,8 +5,8 @@ rest_api:
 
 auth:
   host: auth
-  username: wazo-dird
-  password: secret
+  username: dird-service
+  password: dird-password
 
 bus:
   host: rabbitmq
