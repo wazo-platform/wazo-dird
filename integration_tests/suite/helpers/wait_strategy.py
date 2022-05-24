@@ -6,16 +6,9 @@ import requests
 from hamcrest import assert_that, has_entries
 
 from wazo_test_helpers import until
+from wazo_test_helpers.wait_strategy import WaitStrategy, NoWaitStrategy
 
-
-class WaitStrategy:
-    def wait(self, dird):
-        raise NotImplementedError()
-
-
-class NoWaitStrategy(WaitStrategy):
-    def wait(self, dird):
-        pass
+__all__ = ['NoWaitStrategy']
 
 
 class RestApiOkWaitStrategy(WaitStrategy):

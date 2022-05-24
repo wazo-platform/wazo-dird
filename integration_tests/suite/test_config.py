@@ -1,7 +1,6 @@
 # Copyright 2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from requests import RequestException
 from hamcrest import (
     assert_that,
     has_key,
@@ -49,14 +48,15 @@ class TestConfig(BaseDirdIntegrationTest):
         dird = self.make_dird(MASTER_TOKEN)
 
         def _returns_503():
-            try:
-                dird.config.get(MASTER_TENANT)
-            except DirdError as e:
-                assert e.status_code == 503
-            except RequestException as e:
-                raise AssertionError(e)
-            else:
-                raise AssertionError('Should not return a success')
+            assert_that(
+                calling(dird.config.get).with_args(MASTER_TENANT),
+                raises(DirdError).matching(
+                    has_properties(
+                        status_code=503,
+                        error_id='matser-tenant-not-initiated',
+                    )
+                ),
+            )
 
         until.assert_(_returns_503, tries=10)
 

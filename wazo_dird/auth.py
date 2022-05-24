@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -46,7 +46,7 @@ def provide_status(status):
 
 def get_master_tenant_uuid():
     if not app:
-        raise Exception('Flask appilication is not configured')
+        raise Exception('Flask application is not configured')
 
     tenant_uuid = app.config['auth'].get('master_tenant_uuid')
     if not tenant_uuid:

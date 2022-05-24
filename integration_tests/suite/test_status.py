@@ -7,11 +7,7 @@ from hamcrest import (
 )
 from wazo_test_helpers import until
 
-from .helpers.base import (
-    BaseDirdIntegrationTest,
-    MASTER_TENANT,
-    MASTER_TOKEN,
-)
+from .helpers.base import BaseDirdIntegrationTest
 from .helpers.wait_strategy import EverythingOkWaitStrategy
 
 
@@ -20,17 +16,14 @@ class TestStatusAllOK(BaseDirdIntegrationTest):
     wait_strategy = EverythingOkWaitStrategy()
 
     def test_when_status_then_status_ok(self):
-        dird = self.make_dird(MASTER_TOKEN)
-
         def status_ok():
-            result = dird.status.get(MASTER_TENANT)
+            result = self.dird.status.get()
             assert_that(
                 result,
                 has_entries(
-                    {
-                        'rest_api': has_entries({'status': 'ok'}),
-                        'master_tenant': has_entries({'status': 'ok'}),
-                    },
+                    rest_api=has_entries(status='ok'),
+                    bus_consumer=has_entries(status='ok'),
+                    master_tenant=has_entries(status='ok'),
                 ),
             )
 
