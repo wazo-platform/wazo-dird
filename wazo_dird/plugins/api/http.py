@@ -6,14 +6,15 @@ import yaml
 
 from pkg_resources import resource_string, iter_entry_points
 from flask import make_response
-from flask_restful import Resource
 from xivo.chain_map import ChainMap
 from xivo.http_helpers import reverse_proxy_fix_api_spec
+
+from wazo_dird.http import ErrorCatchingResource
 
 logger = logging.getLogger(__name__)
 
 
-class ApiResource(Resource):
+class ApiResource(ErrorCatchingResource):
 
     api_entry_point = "wazo_dird.views"
     api_filename = "api.yml"

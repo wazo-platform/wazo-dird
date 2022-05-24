@@ -16,7 +16,7 @@ from wazo_test_helpers.bus import BusClient
 from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
-from .helpers.base import USERS_TENANT
+from .helpers.constants import SUB_TENANT
 from .helpers.wait_strategy import RestApiOkWaitStrategy
 
 
@@ -27,7 +27,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
 
     def setUp(self):
         super().setUp()
-        self.tenant_uuid = USERS_TENANT
+        self.tenant_uuid = SUB_TENANT
         self.tenant_name = 'mytenant'
         bus_port = self.service_port(5672, 'rabbitmq')
         self.bus = BusClient.from_connection_fields(host='127.0.0.1', port=bus_port)

@@ -14,11 +14,13 @@ from wazo_test_helpers.hamcrest.raises import raises
 from .helpers.wait_strategy import EverythingOkWaitStrategy
 from .helpers.base import (
     BaseDirdIntegrationTest,
-    MASTER_TENANT,
     START_TIMEOUT,
-    MASTER_TOKEN,
-    USER_1_TOKEN,
-    USERS_TENANT,
+)
+from .helpers.constants import (
+    MAIN_TENANT,
+    SUB_TENANT,
+    VALID_TOKEN_MAIN_TENANT,
+    VALID_TOKEN_SUB_TENANT,
 )
 
 
@@ -28,16 +30,16 @@ class TestConfig(BaseDirdIntegrationTest):
 
     def test_config_with_master_tenant(self):
 
-        dird = self.make_dird(MASTER_TOKEN)
-        result = dird.config.get(MASTER_TENANT)
+        dird = self.make_dird(VALID_TOKEN_MAIN_TENANT)
+        result = dird.config.get(MAIN_TENANT)
 
         assert_that(result, has_key('rest_api'))
 
     def test_restrict_only_master_tenant(self):
-        dird = self.make_dird(USER_1_TOKEN)
+        dird = self.make_dird(VALID_TOKEN_SUB_TENANT)
 
         assert_that(
-            calling(dird.config.get).with_args(USERS_TENANT),
+            calling(dird.config.get).with_args(SUB_TENANT),
             raises(DirdError).matching(has_properties(status_code=401)),
         )
 
@@ -45,11 +47,11 @@ class TestConfig(BaseDirdIntegrationTest):
         self.stop_service('dird')
         self.stop_service('auth')
         self.start_service('dird')
-        dird = self.make_dird(MASTER_TOKEN)
+        dird = self.make_dird(VALID_TOKEN_MAIN_TENANT)
 
         def _returns_503():
             assert_that(
-                calling(dird.config.get).with_args(MASTER_TENANT),
+                calling(dird.config.get).with_args(MAIN_TENANT),
                 raises(DirdError).matching(
                     has_properties(
                         status_code=503,
@@ -67,7 +69,7 @@ class TestConfig(BaseDirdIntegrationTest):
 
         def _not_return_503():
             try:
-                response = dird.config.get(MASTER_TENANT)
+                response = dird.config.get(MAIN_TENANT)
                 assert_that(response, has_key('debug'))
             except Exception as e:
                 raise AssertionError(e)
