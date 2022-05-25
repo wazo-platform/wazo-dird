@@ -12,13 +12,13 @@ from hamcrest import (
     has_key,
     not_,
 )
+from contextlib import contextmanager
 from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_csv_with_multiple_displays_config, new_wazo_users_config
 from .helpers.constants import VALID_TOKEN, VALID_TOKEN_NO_ACL, MAIN_TENANT
-from .helpers.wait_strategy import NoWaitStrategy
 
 
 class TestGraphQL(BaseDirdIntegrationTest):
@@ -29,7 +29,10 @@ class TestGraphQL(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._configure_auth()
 
+    @classmethod
+    def _configure_auth(cls):
         cls.auth = MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
         main_tenant_token = MockUserToken.some_token(
             metadata={'uuid': 'my-user-uuid', 'tenant_uuid': MAIN_TENANT}
@@ -40,6 +43,13 @@ class TestGraphQL(BaseDirdIntegrationTest):
             '127.0.0.1', cls.service_port(9489, 'dird'), prefix=None, https=False
         )
         cls.dird.set_token(cls.main_tenant_token)
+
+    @classmethod
+    @contextmanager
+    def auth_stopped(cls):
+        with super().auth_stopped():
+            yield
+        cls._configure_auth()
 
     def setUp(self):
         super().setUp()
@@ -292,28 +302,20 @@ class TestGraphQL(BaseDirdIntegrationTest):
         )
         assert_that(response, not_(has_key('errors')))
 
-
-class TestGraphQLNoAuth(BaseDirdIntegrationTest):
-
-    asset = 'no_auth_server'
-    wait_strategy = NoWaitStrategy()
-
     def test_unreachable_auth_should_return_error(self):
-        dird = DirdClient(
-            '127.0.0.1', self.service_port(9489, 'dird'), prefix=None, https=False
-        )
-        dird.set_token(VALID_TOKEN)
-        query = {'query': '{ hello }'}
+        with self.auth_stopped():
+            dird = self.make_dird(VALID_TOKEN)
+            query = {'query': '{ hello }'}
 
-        response = dird.graphql.query(query)
-        assert_that(
-            response['errors'],
-            contains(
-                has_entries(
-                    {'path': ['hello'], 'message': contains_string('unreachable')}
-                )
-            ),
-        )
+            response = dird.graphql.query(query)
+            assert_that(
+                response['errors'],
+                contains(
+                    has_entries(
+                        {'path': ['hello'], 'message': contains_string('unreachable')}
+                    )
+                ),
+            )
 
 
 class TestGraphQLWazoBackend(BaseDirdIntegrationTest):

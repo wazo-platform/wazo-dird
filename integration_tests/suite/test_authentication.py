@@ -6,7 +6,6 @@ from hamcrest import assert_that, contains_string, equal_to
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_auth_only_config
 from .helpers.constants import VALID_TOKEN_MAIN_TENANT, VALID_TOKEN_NO_ACL, VALID_UUID
-from .helpers.wait_strategy import NoWaitStrategy
 
 
 class TestAuthentication(BaseDirdIntegrationTest):
@@ -29,25 +28,15 @@ class TestAuthentication(BaseDirdIntegrationTest):
 
         assert_that(result.status_code, equal_to(401))
 
-
-class TestAuthenticationError(BaseDirdIntegrationTest):
-
-    asset = 'no_auth_server'
-    wait_strategy = NoWaitStrategy()
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.stop_service(service_name='auth')
-
     def test_no_auth_server_gives_503(self):
-        result = self.get_headers_result('default', token=VALID_TOKEN_MAIN_TENANT)
+        with self.auth_stopped():
+            result = self.get_headers_result('default', token=VALID_TOKEN_MAIN_TENANT)
 
-        assert_that(result.status_code, equal_to(503))
-        assert_that(
-            result.json()['reason'][0],
-            contains_string('Authentication server unreachable'),
-        )
+            assert_that(result.status_code, equal_to(503))
+            assert_that(
+                result.json()['reason'][0],
+                contains_string('Authentication server unreachable'),
+            )
 
 
 class TestAuthenticationCoverage(BaseDirdIntegrationTest):
