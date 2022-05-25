@@ -6,7 +6,7 @@ import string
 
 from wazo_dird import database
 
-from .constants import MAIN_TENANT, SUB_TENANT, TENANT_UUID_2
+from .constants import MAIN_TENANT, SUB_TENANT
 
 
 def _random_string(n):
@@ -228,7 +228,7 @@ def new_csv_with_multiple_displays_config(Session):
     )
     config.with_source(
         backend='csv',
-        tenant_uuid=TENANT_UUID_2,
+        tenant_uuid=SUB_TENANT,
         name='my_csv_2',
         file='/tmp/data/test.csv',
         separator=",",

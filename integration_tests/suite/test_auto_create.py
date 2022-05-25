@@ -17,13 +17,13 @@ from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import SUB_TENANT
-from .helpers.wait_strategy import EverythingOkWaitStrategy
+from .helpers.wait_strategy import RestApiOkWaitStrategy
 
 
 class TestConfigAutoCreation(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
-    wait_strategy = EverythingOkWaitStrategy()
+    wait_strategy = RestApiOkWaitStrategy()
 
     def setUp(self):
         super().setUp()

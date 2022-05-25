@@ -5,7 +5,7 @@ paths:
       description: '**Required ACL:** `dird.config.read`'
       operationId: configuration_get
       tags:
-        - configuration
+        - config
       produces:
         - application/json
       responses:

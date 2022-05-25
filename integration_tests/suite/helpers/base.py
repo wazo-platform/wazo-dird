@@ -1,6 +1,8 @@
 # Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
+
 import requests
 import uuid
 
@@ -11,21 +13,28 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from hamcrest import assert_that, equal_to, has_entries
 
 from wazo_test_helpers import until
-from wazo_test_helpers.auth import AuthClient as MockAuthClient
 from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_test_helpers.db import DBUserClient
-
-from wazo_auth_client import Client as AuthClient
-from wazo_dird_client import Client
+from wazo_test_helpers.auth import (
+    AuthClient as MockAuthClient,
+    MockCredentials,
+    MockUserToken,
+)
+from wazo_dird_client import Client as DirdClient
 from wazo_dird import database
 
 from .constants import (
     ASSET_ROOT,
-    DIRD_TOKEN_TENANT,
     DB_URI_FMT,
     MAIN_TENANT,
-    VALID_UUID,
+    MAIN_USER_UUID,
+    SUB_TENANT,
+    VALID_TOKEN_SUB_TENANT,
+    USER_2_TOKEN,
+    USER_1_UUID,
+    USER_2_UUID,
     VALID_TOKEN_MAIN_TENANT,
+    WAZO_UUID,
 )
 from .config import (
     new_csv_with_multiple_displays_config,
@@ -34,6 +43,9 @@ from .config import (
     new_personal_only_config,
 )
 from .wait_strategy import RestApiOkWaitStrategy
+
+
+START_TIMEOUT = int(os.environ.get('INTEGRATION_TEST_TIMEOUT', '30'))
 
 
 class DirdAssetRunningTestCase(AssetLaunchingTestCase):
@@ -77,48 +89,86 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
         until.true(database.is_up, timeout=5, message='Postgres did not come back up')
 
 
-class AutoConfiguredDirdTestCase(DBRunningTestCase):
-
-    config_factory = new_null_config
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.mock_auth_client = MockAuthClient(
-            '127.0.0.1', cls.service_port(9497, 'auth')
-        )
-        cls.config = cls.config_factory(cls.Session)
-        cls.config.setup()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.config.tear_down()
-        super().tearDownClass()
-
-
-class BaseDirdIntegrationTest(AutoConfiguredDirdTestCase):
+class BaseDirdIntegrationTest(DBRunningTestCase):
 
     wait_strategy = RestApiOkWaitStrategy()
+    config_factory = new_null_config
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.host = '127.0.0.1'
         cls.port = cls.service_port(9489, 'dird')
-        try:
-            auth_port = cls.service_port(9497, 'auth')
-            auth_client = AuthClient('127.0.0.1', auth_port, prefix=None, https=False)
-            auth_client.users.new(
-                uuid=VALID_UUID, tenant_uuid=MAIN_TENANT, username='foobar'
+        cls.dird = cls.make_dird(VALID_TOKEN_MAIN_TENANT)
+        cls.configure_wazo_auth()
+        cls.config = cls.config_factory(cls.Session)
+        cls.config.setup()
+        cls.wait_strategy.wait(cls.dird)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.config.tear_down()
+        super().tearDownClass()
+
+    @classmethod
+    def make_dird(cls, token):
+        return DirdClient(
+            '127.0.0.1',
+            cls.service_port(9489, 'dird'),
+            prefix=None,
+            https=False,
+            token=token,
+        )
+
+    @classmethod
+    def make_mock_auth(cls):
+        return MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
+
+    @classmethod
+    def configure_wazo_auth(cls):
+        cls.mock_auth_client = cls.make_mock_auth()
+        credentials = MockCredentials('dird-service', 'dird-password')
+        cls.mock_auth_client.set_valid_credentials(credentials, VALID_TOKEN_MAIN_TENANT)
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                VALID_TOKEN_MAIN_TENANT,
+                MAIN_USER_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': MAIN_TENANT, 'uuid': MAIN_USER_UUID},
             )
-        except Exception:
-            pass
-        cls.dird = cls.get_client()
-        cls.wait_strategy.wait(cls)
+        )
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                VALID_TOKEN_SUB_TENANT,
+                USER_1_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': SUB_TENANT, 'uuid': USER_1_UUID},
+            )
+        )
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                USER_2_TOKEN,
+                USER_2_UUID,
+                WAZO_UUID,
+                {"tenant_uuid": SUB_TENANT, "uuid": USER_2_UUID},
+            )
+        )
+        cls.mock_auth_client.set_tenants(
+            {
+                'uuid': MAIN_TENANT,
+                'name': 'dird-tests-master',
+                'parent_uuid': MAIN_TENANT,
+            },
+            {
+                'uuid': SUB_TENANT,
+                'name': 'dird-tests-users',
+                'parent_uuid': MAIN_TENANT,
+            },
+        )
 
     @classmethod
     def get_client(cls, token=VALID_TOKEN_MAIN_TENANT):
-        return Client(cls.host, cls.port, token=token, prefix=None, https=False)
+        return DirdClient(cls.host, cls.port, token=token, prefix=None, https=False)
 
     @property
     def client(self):
@@ -472,14 +522,14 @@ class BasePhonebookTestCase(BaseDirdIntegrationTest):
                     pass
 
     def set_tenants(self, *tenant_names):
-        items = [{'uuid': DIRD_TOKEN_TENANT}]
+        items = [{'uuid': MAIN_TENANT}]
         for tenant_name in tenant_names:
             self.tenants.setdefault(
                 tenant_name,
                 {
                     'uuid': str(uuid.uuid4()),
                     'name': tenant_name,
-                    'parent_uuid': DIRD_TOKEN_TENANT,
+                    'parent_uuid': MAIN_TENANT,
                 },
             )
             items.append(self.tenants[tenant_name])

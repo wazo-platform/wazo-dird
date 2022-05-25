@@ -30,8 +30,13 @@ class Controller:
         auth.set_auth_config(self.config['auth'])
         self.auth_client = AuthClient(**self.config['auth'])
         self.token_renewer = TokenRenewer(self.auth_client)
+        if not self.config['auth'].get('master_tenant_uuid'):
+            self.token_renewer.subscribe_to_next_token_details_change(
+                auth.init_master_tenant
+            )
         self.token_renewer.subscribe_to_token_change(self.auth_client.set_token)
         self.status_aggregator = StatusAggregator()
+        self.status_aggregator.add_provider(auth.provide_status)
         self._service_registration_params = [
             'wazo-dird',
             self.config.get('uuid'),

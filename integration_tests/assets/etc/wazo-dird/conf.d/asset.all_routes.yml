@@ -3,8 +3,8 @@ foo:
     other: 42
 
 auth:
-  username: any
-  password: thing
+  username: wazo-dird
+  password: secret
 
 enabled_plugins:
   services:

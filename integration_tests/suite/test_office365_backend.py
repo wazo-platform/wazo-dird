@@ -22,7 +22,7 @@ from wazo_test_helpers.hamcrest.raises import raises
 from .base_dird_integration_test import BackendWrapper
 from .helpers.base import DirdAssetRunningTestCase
 from .helpers.constants import (
-    SUB_TENANT,
+    UNKNOWN_TENANT,
     VALID_TOKEN_MAIN_TENANT,
 )
 from .helpers.fixtures import http as fixtures
@@ -352,7 +352,7 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
             calling(self.client.backends.list_contacts_from_source).with_args(
                 backend=self.BACKEND,
                 source_uuid=self.source['uuid'],
-                tenant_uuid=SUB_TENANT,
+                tenant_uuid=UNKNOWN_TENANT,
             ),
             raises(requests.HTTPError).matching(
                 has_property('response', has_properties('status_code', 404))
