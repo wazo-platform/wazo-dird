@@ -1,4 +1,4 @@
-# Copyright 2016-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
@@ -21,7 +21,7 @@ from hamcrest import (
     not_,
     raises,
 )
-from mock import ANY
+from unittest.mock import ANY
 
 from sqlalchemy import and_, func, exc
 

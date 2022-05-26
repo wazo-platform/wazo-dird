@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -11,7 +11,7 @@ from hamcrest import has_entries
 from hamcrest import has_entry
 from hamcrest import has_item
 from hamcrest import not_
-from mock import ANY, call, Mock, sentinel as s
+from unittest.mock import ANY, call, Mock, sentinel as s
 
 from wazo_dird.helpers import DisplayColumn
 from wazo_dird import make_result_class

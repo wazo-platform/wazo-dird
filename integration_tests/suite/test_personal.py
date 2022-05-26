@@ -20,7 +20,7 @@ from hamcrest import (
     none,
     not_,
 )
-from mock import ANY
+from unittest.mock import ANY
 from xivo_bus.resources.user.event import DeleteUserEvent
 from xivo_bus import Marshaler
 from wazo_test_helpers import until

@@ -1,8 +1,8 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains, contains_inanyorder, empty, has_entries
-from mock import Mock
+from unittest.mock import Mock
 
 from .base_dird_integration_test import BackendWrapper
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
