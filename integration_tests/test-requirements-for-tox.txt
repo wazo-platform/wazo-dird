@@ -9,7 +9,6 @@ pyhamcrest
 pytest!=4.2.0
 python-ldap
 sh
-mock
 
 # for database tests
 psycopg2-binary

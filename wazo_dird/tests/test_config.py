@@ -4,7 +4,7 @@
 import logging
 
 from hamcrest import assert_that, has_entries, equal_to
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 from unittest import TestCase
 
 from wazo_dird import config

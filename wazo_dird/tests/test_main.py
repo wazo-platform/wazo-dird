@@ -4,7 +4,7 @@
 from unittest import TestCase
 
 from hamcrest import assert_that, equal_to
-from mock import patch, sentinel as s
+from unittest.mock import patch, sentinel as s
 
 from ..main import main
 

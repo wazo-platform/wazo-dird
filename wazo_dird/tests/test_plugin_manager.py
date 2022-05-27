@@ -1,10 +1,10 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
 
 from hamcrest import assert_that, calling, not_, raises
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 
 from wazo_dird import plugin_manager
 

@@ -1,4 +1,4 @@
-# Copyright 2016-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -6,7 +6,7 @@ import string
 import unittest
 
 from uuid import uuid4
-from mock import Mock
+from unittest.mock import Mock
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to
 
 from wazo_dird import database

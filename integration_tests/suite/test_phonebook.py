@@ -1,7 +1,7 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from mock import ANY
+from unittest.mock import ANY
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to, has_entries
 from .helpers.base import BasePhonebookTestCase
 

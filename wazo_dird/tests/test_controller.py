@@ -3,7 +3,7 @@
 
 from unittest import TestCase
 
-from mock import ANY, Mock, patch, sentinel as s
+from unittest.mock import ANY, Mock, patch, sentinel as s
 
 from wazo_dird.controller import Controller
 
