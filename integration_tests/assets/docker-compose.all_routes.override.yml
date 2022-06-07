@@ -12,8 +12,7 @@ services:
       TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
   dird:
     volumes:
-      - "./etc/wazo-dird/conf.d/asset.all_routes.other.yml:/etc/wazo-dird/conf.d/other.yml"
-      - "./etc/wazo-dird/conf.d/asset.all_routes.yml:/etc/wazo-dird/config.yml"
+      - "./etc/wazo-dird/conf.d/20-broken-bus.yml:/etc/wazo-dird/conf.d/20-broken-bus.yml"
       - "./tmp/data/asset.all_routes.test.csv:/tmp/data/test.csv"
       - "./tmp/data/asset.all_routes.test_no_email.csv:/tmp/data/test_no_email.csv"
   rabbitmq:

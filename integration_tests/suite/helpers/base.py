@@ -167,6 +167,16 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
         )
 
     @classmethod
+    @contextmanager
+    def auth_stopped(cls):
+        cls.stop_service('auth')
+        yield
+        cls.start_service('auth')
+        auth = cls.make_mock_auth()
+        until.true(auth.is_up, timeout=START_TIMEOUT)
+        cls.configure_wazo_auth()
+
+    @classmethod
     def get_client(cls, token=VALID_TOKEN_MAIN_TENANT):
         return DirdClient(cls.host, cls.port, token=token, prefix=None, https=False)
 

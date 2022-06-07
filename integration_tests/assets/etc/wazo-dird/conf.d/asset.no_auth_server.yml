@@ -1,9 +1,0 @@
-enabled_plugins:
-  backends:
-    sample: true
-
-auth:
-  host: inexisting-auth-server
-
-bus:
-  enabled: false

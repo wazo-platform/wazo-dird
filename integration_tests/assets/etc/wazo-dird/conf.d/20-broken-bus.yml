@@ -1,0 +1,3 @@
+enabled_plugins:
+  services:
+    broken_bus: true
