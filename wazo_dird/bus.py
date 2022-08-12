@@ -19,7 +19,9 @@ class CoreBus(BusPublisher, BusConsumer):
         exchange_type='',
         **kwargs
     ):
+        name = 'wazo-dird'
         super().__init__(
+            name=name,
             service_uuid=service_uuid,
             username=username,
             password=password,
