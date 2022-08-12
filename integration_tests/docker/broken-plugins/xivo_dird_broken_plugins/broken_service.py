@@ -1,15 +1,15 @@
 # Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from xivo_bus.resources.common.event import BaseEvent
+from xivo_bus.resources.common.event import ServiceEvent
 
 
-class PongEvent(BaseEvent):
-
+class PongEvent(ServiceEvent):
     name = 'dird_pong'
     routing_key_fmt = 'dird.test'
 
-    _body = {'payload': 'pong'}
+    def __init__(self):
+        super().__init__({'payload': 'pong'})
 
 
 class BrokenBusPlugin:
