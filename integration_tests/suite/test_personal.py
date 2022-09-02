@@ -21,8 +21,6 @@ from hamcrest import (
     not_,
 )
 from unittest.mock import ANY
-from xivo_bus.resources.user.event import DeleteUserEvent
-from xivo_bus import Marshaler
 from wazo_test_helpers import until
 from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
 from wazo_test_helpers.bus import BusClient
@@ -73,16 +71,19 @@ class TestDeletedUser(BaseDirdIntegrationTest):
         until.assert_(check, tries=3)
 
     def _publish_user_deleted_event(self, uuid):
-        event = DeleteUserEvent(42, uuid)
-        marshaler = Marshaler('the-xivo-uuid')
-        message = {
-            'data': event.marshal(),
-            **marshaler.metadata(event),
+        payload = {
+            'data': {
+                'id': 42,
+                'uuid': str(uuid),
+            }
         }
         self.bus.publish(
-            message,
-            headers={'name': DeleteUserEvent.name},
-            routing_key=event.routing_key,
+            payload,
+            headers={
+                'name': 'user_deleted',
+                'tenant_uuid': MAIN_TENANT,
+                f'user_uuid:{uuid}': True,
+            },
         )
 
 

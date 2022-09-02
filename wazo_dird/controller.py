@@ -26,7 +26,7 @@ class Controller:
         self.config = config
         init_db(config['db_uri'])
         self.rest_api = CoreRestApi(self.config)
-        self.bus = CoreBus(service_uuid=self.config.get('uuid'), **self.config['bus'])
+        self.bus = CoreBus(config.get('uuid'), **config['bus'])
         auth.set_auth_config(self.config['auth'])
         self.auth_client = AuthClient(**self.config['auth'])
         self.token_renewer = TokenRenewer(self.auth_client)

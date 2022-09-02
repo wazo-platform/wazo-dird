@@ -3,7 +3,7 @@
 
 import logging
 
-from xivo_bus.resources.user.event import DeleteUserEvent
+from xivo_bus.resources.user.event import UserDeletedEvent
 
 from wazo_dird import BaseServicePlugin
 from wazo_dird import database
@@ -24,7 +24,7 @@ class StorageCleanupServicePlugin(BaseServicePlugin):
 
 class _StorageCleanupService:
     def __init__(self, bus):
-        bus.subscribe(DeleteUserEvent.name, self._on_user_deleted_event)
+        bus.subscribe(UserDeletedEvent.name, self._on_user_deleted_event)
 
     def _on_user_deleted_event(self, user):
         self._remove_user(user['uuid'])

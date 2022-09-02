@@ -8,10 +8,10 @@ from collections import defaultdict, namedtuple
 from concurrent.futures import ALL_COMPLETED
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import wait
-from xivo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
 from wazo_dird import BaseServicePlugin, helpers
 from wazo_dird import database, exception
 from wazo_dird.database.helpers import Session
+from xivo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
 
 logger = logging.getLogger(__name__)
 
@@ -159,16 +159,10 @@ class _FavoritesService(helpers.BaseService):
 
         backend = source['backend']
         self._crud.create(user_uuid, backend, source_name, contact_id)
-        event = FavoriteAddedEvent(self._xivo_uuid, user_uuid, source_name, contact_id)
-        headers = {
-            'tenant_uuid': tenant_uuid,
-            'user_uuid:{uuid}'.format(uuid=user_uuid): True,
-        }
-        try:
-            self._bus.publish(event, headers=headers)
-        except OSError as e:
-            logger.error('failed to publish bus event %s', e)
-            logger.info('%s', event)
+        event = FavoriteAddedEvent(
+            source_name, contact_id, self._xivo_uuid, tenant_uuid, user_uuid
+        )
+        self._bus.publish(event)
 
     def remove_favorite(self, tenant_uuid, source_name, contact_id, user_uuid):
         sources = self._available_sources(tenant_uuid)
@@ -182,9 +176,7 @@ class _FavoritesService(helpers.BaseService):
             raise self.NoSuchSourceException(source_name)
 
         self._crud.delete(user_uuid, source_name, contact_id)
-        event = FavoriteDeletedEvent(self._xivo_uuid, user_uuid, source, contact_id)
-        headers = {
-            'tenant_uuid': tenant_uuid,
-            'user_uuid:{uuid}'.format(uuid=user_uuid): True,
-        }
-        self._bus.publish(event, headers=headers)
+        event = FavoriteDeletedEvent(
+            source_name, contact_id, self._xivo_uuid, tenant_uuid, user_uuid
+        )
+        self._bus.publish(event)

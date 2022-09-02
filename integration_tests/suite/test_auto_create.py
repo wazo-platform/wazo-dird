@@ -8,8 +8,6 @@ from hamcrest import (
     has_entries,
     has_item,
 )
-from datetime import datetime
-from xivo_bus.resources.auth.events import TenantCreatedEvent
 from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_test_helpers.bus import BusClient
@@ -222,12 +220,12 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
         return token.token_id
 
     def _publish_tenant_created_event(self):
-        event = TenantCreatedEvent(uuid=self.tenant_uuid, name=self.tenant_name)
-        message = {
-            'data': event.marshal(),
-            'name': event.name,
-            'origin_uuid': 'the-xivo-uuid',
-            'timestamp': datetime.now().isoformat(),
-        }
-        headers = {'name': TenantCreatedEvent.name}
-        self.bus.publish(message, headers=headers, routing_key=event.routing_key)
+        payload = {'data': {'uuid': self.tenant_uuid, 'name': self.tenant_name}}
+        self.bus.publish(
+            payload,
+            headers={
+                'name': 'auth_tenant_added',
+                'tenant_uuid': self.tenant_uuid,
+                'origin_uuid': 'the-wazo-uuid',
+            },
+        )
