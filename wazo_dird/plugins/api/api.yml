@@ -228,6 +228,9 @@ definitions:
       term:
         type: string
         description: Search term used for these results
+      links:
+        type: array
+        description: List of urls
     required:
     - backend
     - column_headers
