@@ -205,30 +205,6 @@ definitions:
         description: Data types for the headers
         items:
           type: string
-  ContactList:
-    properties:
-      column_headers:
-        type: array
-        description: Labels for the headers
-        items:
-          type: string
-      column_types:
-        type: array
-        description: Data types for the headers
-        items:
-          type: string
-      results:
-        items:
-          $ref: '#/definitions/Contact'
-        type: array
-        description: List of results
-  Lookup:
-    allOf:
-      - $ref: '#/definitions/ContactList'
-      - properties:
-          term:
-            type: string
-            description: Search term used for these results
   Contact:
     properties:
       column_values:
