@@ -205,46 +205,6 @@ definitions:
         description: Data types for the headers
         items:
           type: string
-  Lookup:
-    properties:
-      backend:
-        type: string
-        description: Backend type
-      column_headers:
-        type: array
-        description: Labels for the headers
-        items:
-          type: string
-      column_types:
-        type: array
-        description: Data types for the headers
-        items:
-          type: string
-      results:
-        items:
-          $ref: '#/definitions/Contact'
-        type: array
-        description: List of results
-      term:
-        type: string
-        description: Search term used for these results
-      links:
-        type: array
-        description: List of urls
-    required:
-    - backend
-    - column_headers
-    - column_types
-    - results
-    - term
-    - links
-  ContactList:
-    properties:
-      results:
-        items:
-          $ref: '#/definitions/Contact'
-        type: array
-        description: List of results
   Contact:
     properties:
       column_values:
@@ -255,6 +215,9 @@ definitions:
         $ref: '#/definitions/Relation'
       source:
         type: string
+      backend:
+        type: string
+        description: Backend type
   Relation:
     properties:
       xivo_id:
