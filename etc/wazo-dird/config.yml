@@ -46,7 +46,7 @@ bus:
   exchange_type: topic
   exchange_durable: True
 
-# Contact storage server (Consul) connection settings
+# Consul connection settings
 consul:
   scheme: http
   host: localhost
