@@ -20,6 +20,7 @@ stevedore
 flask-cors==3.0.7
 flask-restful==0.3.7
 flask==1.0.2
+importlib_metadata<5.0.0  # from kombu - https://github.com/celery/kombu/issues/1600
 itsdangerous==0.24  # from flask
 jinja2==2.10  # from flask
 markupsafe==1.1.0  # from flask

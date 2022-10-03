@@ -10,6 +10,7 @@ flask-graphql==2.0.1
 flask-restful==0.3.7
 flask==1.0.2
 graphene==2.1.8
+importlib_metadata==1.6.0  # from kombu
 itsdangerous==0.24  # from flask
 jinja2==2.10
 kombu==4.6.11
