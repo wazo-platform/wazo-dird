@@ -3,6 +3,7 @@
 
 import uuid
 from hamcrest import (
+    any_of,
     assert_that,
     contains,
     contains_inanyorder,
@@ -225,17 +226,24 @@ class TestFavoritesBusEvents(PersonalOnlyTestCase):
 
     def test_that_adding_favorite_produces_bus_event(self):
         bus_port = self.service_port(5672, 'rabbitmq')
-        bus = BusClient.from_connection_fields(host='127.0.0.1', port=bus_port)
+        bus = BusClient.from_connection_fields(
+            host='127.0.0.1',
+            port=bus_port,
+            exchange_name='wazo-headers',
+            exchange_type='headers',
+        )
         until.true(bus.is_up, tries=5)
-        bus.downstream_exchange_declare('wazo-headers', 'headers')
-        bus_events = bus.accumulator('directory.*.favorite.*')
+        added_accumulator = bus.accumulator(headers={'name': 'favorite_added'})
+        removed_accumulator = bus.accumulator(headers={'name': 'favorite_deleted'})
 
-        def favorite_bus_event_received(name):
+        def favorite_bus_event_received(accumulator):
             assert_that(
-                bus_events.accumulate(with_headers=True),
+                accumulator.accumulate(with_headers=True),
                 has_item(
                     has_entries(
-                        message=has_entry('name', name),
+                        message=has_entry(
+                            'name', any_of('favorite_added', 'favorite_deleted')
+                        ),
                         headers=has_entry('tenant_uuid', MAIN_TENANT),
                     )
                 ),
@@ -243,6 +251,6 @@ class TestFavoritesBusEvents(PersonalOnlyTestCase):
 
         with self.personal({'firstname': 'Alice'}) as alice:
             with self.favorite('personal', alice['id']):
-                until.assert_(favorite_bus_event_received, 'favorite_added', tries=2)
+                until.assert_(favorite_bus_event_received, added_accumulator, tries=2)
 
-        until.assert_(favorite_bus_event_received, 'favorite_deleted', tries=2)
+        until.assert_(favorite_bus_event_received, removed_accumulator, tries=2)
