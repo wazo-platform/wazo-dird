@@ -1,5 +1,13 @@
 # Changelog
 
+## 23.01
+
+* Bus configuration keys changes:
+
+  * `exchange_name` now defaults to `wazo-headers`
+  * `exchange_type` was removed
+  * `exchange_durable` was removed
+
 ## 22.08
 
 * The `config` endpoint is now accessible only by *master* tenant
