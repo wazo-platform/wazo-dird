@@ -18,7 +18,15 @@ class RestApiOkWaitStrategy(WaitStrategy):
                 status = dird.status.get()
             except requests.RequestException:
                 status = {}
-            assert_that(status, has_entries({'rest_api': has_entries(status='ok')}))
+            assert_that(
+                status,
+                has_entries(
+                    {
+                        'rest_api': has_entries(status='ok'),
+                        'master_tenant': has_entries(status='ok'),
+                    }
+                ),
+            )
 
         until.assert_(is_ready, tries=60)
 

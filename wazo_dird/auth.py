@@ -40,7 +40,7 @@ def init_master_tenant(token):
 
 def provide_status(status):
     status['master_tenant']['status'] = (
-        Status.ok if app.config['auth']['master_tenant_uuid'] else Status.fail
+        Status.ok if app.config['auth'].get('master_tenant_uuid') else Status.fail
     )
 
 
