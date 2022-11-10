@@ -35,18 +35,66 @@ class Office365Service(SelfSortingServiceMixin):
     def _fetch(self, microsoft_token, url, count):
         headers = self.headers(microsoft_token)
         try:
-            response = requests.get(url, headers=headers, params={'$top': count})
-            if response.status_code == 200:
-                logger.debug('Successfully fetched contacts from microsoft.')
-                logger.debug('Raw data: %s', response.text)
-                return response.json().get('value', [])
-            else:
-                logger.error(
-                    'An error occured while fetching information from microsoft endpoint'
+            if count == 1:
+                response = requests.get(url, headers=headers, params={'$top': count})
+                if response.status_code == 200:
+                    logger.debug('Successfully fetched contacts from microsoft.')
+                    logger.debug('Raw data: %s', response.text)
+                    return response.json().get('value', [])
+                else:
+                    logger.error(
+                        'An error occured while fetching information from microsoft endpoint'
+                    )
+                    raise UnexpectedEndpointException(
+                        endpoint=url, error_code=response.status_code
+                    )
+            elif count > 1:
+                all_contacts_list = []
+                first_page_response = requests.get(
+                    url, headers=headers, params={'$top': count}
                 )
-                raise UnexpectedEndpointException(
-                    endpoint=url, error_code=response.status_code
-                )
+                if first_page_response.status_code == 200:
+                    logger.debug(
+                        'Successfully fetched contacts from first page from microsoft.'
+                    )
+                    logger.debug('Moving to the next pages...')
+                    all_contacts_list = first_page_response.json().get('value', [])
+
+                    next_page_url = first_page_response.json().get('@odata.nextLink')
+                    has_more_pages = True
+                    while has_more_pages:
+                        next_page_response = requests.get(
+                            next_page_url, headers=headers, params={'$top': count}
+                        )
+                        if next_page_response.status_code == 200:
+                            logger.debug(
+                                f'Successfully fetched contacts from microsoft page: {next_page_url}'
+                            )
+                            all_contacts_list += next_page_response.json().get(
+                                'value', []
+                            )
+                            if '@odata.nextLink' in next_page_response.json():
+                                next_page_url = next_page_response.json().get(
+                                    '@odata.nextLink'
+                                )
+                            else:
+                                has_more_pages = False
+                        else:
+                            logger.error(
+                                'An error occured while fetching information from microsoft endpoint'
+                            )
+                            raise UnexpectedEndpointException(
+                                endpoint=next_page_url,
+                                error_code=next_page_response.status_code,
+                            )
+                    return all_contacts_list
+                else:
+                    logger.error(
+                        'An error occured while fetching information from microsoft endpoint'
+                    )
+                    raise UnexpectedEndpointException(
+                        endpoint=url, error_code=response.status_code
+                    )
         except requests.RequestException:
             raise UnexpectedEndpointException(endpoint=url)
 
