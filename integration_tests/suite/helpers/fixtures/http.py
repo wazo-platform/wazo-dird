@@ -197,6 +197,55 @@ def office365_result(contact_list):
     return decorator
 
 
+def office365_paginated_result(pages):
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            office365_port = self.service_port(443, 'microsoft.com')
+            mock_server = UnVerifiedMockServerClient(
+                'http://127.0.0.1:{}'.format(office365_port)
+            )
+            for current_page in pages:
+                current_page_path = current_page.pop('endpoint')
+                next_page_url = ''
+                if '@odata.nextLink' in current_page:
+                    next_page_url = current_page.pop('@odata.nextLink')
+                count_expectation = mock_server.create_expectation(
+                    current_page_path, {'@odata.count': len(current_page['value'])}, 200
+                )
+                count_expectation['httpRequest']['queryStringParameters'] = {
+                    '$count': ['true'],
+                }
+                count_expectation['times']['unlimited'] = True
+                mock_server.mock_any_response(count_expectation)
+
+                expectation = mock_server.create_expectation(
+                    current_page_path, {'value': current_page['value']}, 200
+                )
+                expectation['times']['unlimited'] = True
+                expectation['httpRequest']['queryStringParameters'] = {
+                    '$top': [str(len(current_page['value']))]
+                }
+                if next_page_url:
+                    expectation['httpResponse']['headers'].append(
+                        {
+                            'name': '@odata.nextLink',
+                            'values': [next_page_url],
+                        }
+                    )
+                mock_server.mock_any_response(expectation)
+
+            try:
+                result = decorated(self, mock_server, *args, **kwargs)
+            finally:
+                mock_server.reset()
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 def office365_error():
     def decorator(decorated):
         @wraps(decorated)

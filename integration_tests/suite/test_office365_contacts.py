@@ -58,7 +58,7 @@ PAGED_OFFICE365_CONTACTS_LIST = [
         ],
         '@odata.count': 2,
         '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts?$skip=10',
-        'endpoint': 'http://microsoft.com:443/v1.0/me/contacts',
+        'endpoint': '/v1.0/me/contacts',
     },
     {
         "value": [
@@ -76,7 +76,7 @@ PAGED_OFFICE365_CONTACTS_LIST = [
             for i in range(10, 20)
         ],
         '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts?%24skip=30',
-        'endpoint': 'http://microsoft.com:443/v1.0/me/contacts?%24skip=10',
+        'endpoint': '/v1.0/me/contacts?%24skip=10',
     },
     {
         "value": [
@@ -93,7 +93,7 @@ PAGED_OFFICE365_CONTACTS_LIST = [
             }
             for i in range(20, 50)
         ],
-        'endpoint': 'http://microsoft.com:443/v1.0/me/contacts?%24skip=30',
+        'endpoint': '/v1.0/me/contacts?%24skip=30',
     },
 ]
 
@@ -137,7 +137,7 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
             raises(Exception).matching(HTTP_404),
         )
 
-    @fixtures.office365_result(PAGED_OFFICE365_CONTACTS_LIST)
+    @fixtures.office365_paginated_result(PAGED_OFFICE365_CONTACTS_LIST)
     def test_list_more_than_1000_contacts(self, _):
         result = self.list_(self.client, self.source_uuid)
         assert_that(

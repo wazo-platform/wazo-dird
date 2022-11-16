@@ -59,22 +59,25 @@ class Office365Service(SelfSortingServiceMixin):
                     )
                     logger.debug('Moving to the next pages...')
                     all_contacts_list = first_page_response.json().get('value', [])
-
-                    next_page_url = first_page_response.json().get('@odata.nextLink')
+                    next_page_url = ''
+                    if '@odata.nextLink' in first_page_response.headers:
+                        next_page_url = first_page_response.headers.get(
+                            '@odata.nextLink'
+                        )
                     has_more_pages = True
                     while has_more_pages:
                         next_page_response = requests.get(
                             next_page_url, headers=headers, params={'$top': count}
                         )
                         if next_page_response.status_code == 200:
-                            logger.debug(
-                                f'Successfully fetched contacts from microsoft page: {next_page_url}'
-                            )
+                            # logger.debug(
+                            #     f'Successfully fetched contacts from microsoft page: {next_page_url}'
+                            # )
                             all_contacts_list += next_page_response.json().get(
                                 'value', []
                             )
-                            if '@odata.nextLink' in next_page_response.json():
-                                next_page_url = next_page_response.json().get(
+                            if '@odata.nextLink' in next_page_response.headers:
+                                next_page_url = next_page_response.headers.get(
                                     '@odata.nextLink'
                                 )
                             else:
