@@ -8,6 +8,9 @@ from functools import wraps
 from mockserver import MockServerClient as BaseMockServerClient
 
 from ..constants import VALID_TOKEN_MAIN_TENANT
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class UnVerifiedMockServerClient(BaseMockServerClient):
@@ -205,35 +208,38 @@ def office365_paginated_result(pages):
             mock_server = UnVerifiedMockServerClient(
                 'http://127.0.0.1:{}'.format(office365_port)
             )
-            for current_page in pages:
-                current_page_path = current_page.pop('endpoint')
-                next_page_url = ''
-                if '@odata.nextLink' in current_page:
-                    next_page_url = current_page.pop('@odata.nextLink')
-                count_expectation = mock_server.create_expectation(
-                    current_page_path, {'@odata.count': len(current_page['value'])}, 200
-                )
-                count_expectation['httpRequest']['queryStringParameters'] = {
-                    '$count': ['true'],
-                }
-                count_expectation['times']['unlimited'] = True
-                mock_server.mock_any_response(count_expectation)
+            count_expectation = mock_server.create_expectation(
+                '/v1.0/me/contacts', {'@odata.count': len(pages)}, 200
+            )
+            count_expectation['httpRequest']['queryStringParameters'] = {
+                '$count': ['true'],
+            }
+
+            count_expectation['times']['unlimited'] = True
+            mock_server.mock_any_response(count_expectation)
+            counter = 0
+            while counter < len(pages):
+                current_page = pages[counter]
+                # current_page_path = current_page.pop('endpoint')
 
                 expectation = mock_server.create_expectation(
-                    current_page_path, {'value': current_page['value']}, 200
+                    '/v1.0/me/contacts', current_page, 200
                 )
                 expectation['times']['unlimited'] = True
-                expectation['httpRequest']['queryStringParameters'] = {
-                    '$top': [str(len(current_page['value']))]
-                }
-                if next_page_url:
-                    expectation['httpResponse']['headers'].append(
-                        {
-                            'name': '@odata.nextLink',
-                            'values': [next_page_url],
-                        }
-                    )
+                if '@odata.nextLink' in current_page:
+                    skip_value = current_page.get('@odata.nextLink').split('skip=')[1]
+                    expectation['httpRequest']['queryStringParameters'] = {
+                        '$skip': [str(skip_value)],
+                        '$top': [str(len(pages))],
+                    }
+                else:
+                    expectation['httpRequest']['queryStringParameters'] = {
+                        '$top': [str(len(pages))]
+                    }
+                expectation['httpRequest']['method'] = 'GET'
+                expectation['httpRequest']['path'] = '/v1.0/me/contacts'
                 mock_server.mock_any_response(expectation)
+                counter += 1
 
             try:
                 result = decorated(self, mock_server, *args, **kwargs)

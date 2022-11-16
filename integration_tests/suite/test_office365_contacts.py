@@ -56,7 +56,6 @@ PAGED_OFFICE365_CONTACTS_LIST = [
             }
             for i in range(10)
         ],
-        '@odata.count': 2,
         '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts?$skip=10',
         'endpoint': '/v1.0/me/contacts',
     },
@@ -75,8 +74,8 @@ PAGED_OFFICE365_CONTACTS_LIST = [
             }
             for i in range(10, 20)
         ],
-        '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts?%24skip=30',
-        'endpoint': '/v1.0/me/contacts?%24skip=10',
+        '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts?$skip=30',
+        'endpoint': '/v1.0/me/contacts?$skip=10',
     },
     {
         "value": [
@@ -93,7 +92,7 @@ PAGED_OFFICE365_CONTACTS_LIST = [
             }
             for i in range(20, 50)
         ],
-        'endpoint': '/v1.0/me/contacts?%24skip=30',
+        'endpoint': '/v1.0/me/contacts?$skip=30',
     },
 ]
 
@@ -167,7 +166,7 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
         )
 
     @fixtures.office365_result(OFFICE365_CONTACT_LIST)
-    def test_list(self, office365_api):
+    def test_list_1(self, office365_api):
         result = self.list_(self.client, self.source_uuid)
         assert_that(
             result,
