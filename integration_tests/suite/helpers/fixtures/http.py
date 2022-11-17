@@ -8,9 +8,6 @@ from functools import wraps
 from mockserver import MockServerClient as BaseMockServerClient
 
 from ..constants import VALID_TOKEN_MAIN_TENANT
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class UnVerifiedMockServerClient(BaseMockServerClient):
@@ -220,24 +217,17 @@ def office365_paginated_result(pages):
             counter = 0
             while counter < len(pages):
                 current_page = pages[counter]
-                # current_page_path = current_page.pop('endpoint')
+                current_page_path = current_page.pop('endpoint')
 
                 expectation = mock_server.create_expectation(
-                    '/v1.0/me/contacts', current_page, 200
+                    current_page_path, current_page, 200
                 )
                 expectation['times']['unlimited'] = True
-                if '@odata.nextLink' in current_page:
-                    skip_value = current_page.get('@odata.nextLink').split('skip=')[1]
-                    expectation['httpRequest']['queryStringParameters'] = {
-                        '$skip': [str(skip_value)],
-                        '$top': [str(len(pages))],
-                    }
-                else:
-                    expectation['httpRequest']['queryStringParameters'] = {
-                        '$top': [str(len(pages))]
-                    }
+                expectation['httpRequest']['queryStringParameters'] = {
+                    '$top': [str(len(pages))]
+                }
                 expectation['httpRequest']['method'] = 'GET'
-                expectation['httpRequest']['path'] = '/v1.0/me/contacts'
+                expectation['httpRequest']['path'] = current_page_path
                 mock_server.mock_any_response(expectation)
                 counter += 1
 

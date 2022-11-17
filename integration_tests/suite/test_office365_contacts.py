@@ -1,7 +1,14 @@
 # Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
+from hamcrest import (
+    assert_that,
+    calling,
+    contains,
+    contains_inanyorder,
+    has_entries,
+    has_item,
+)
 
 from wazo_test_helpers.auth import AuthClient as AuthMock
 from wazo_test_helpers.hamcrest.raises import raises
@@ -15,6 +22,7 @@ from .helpers.constants import (
 )
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
+
 
 OFFICE365_CONTACT_LIST = {
     "value": [
@@ -39,7 +47,6 @@ OFFICE365_CONTACT_LIST = {
     ]
 }
 
-
 PAGED_OFFICE365_CONTACTS_LIST = [
     {
         "value": [
@@ -54,9 +61,9 @@ PAGED_OFFICE365_CONTACTS_LIST = [
                     {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
                 ],
             }
-            for i in range(10)
+            for i in range(1000)
         ],
-        '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts?$skip=10',
+        '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts/path1',
         'endpoint': '/v1.0/me/contacts',
     },
     {
@@ -72,10 +79,10 @@ PAGED_OFFICE365_CONTACTS_LIST = [
                     {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
                 ],
             }
-            for i in range(10, 20)
+            for i in range(1000, 2000)
         ],
-        '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts?$skip=30',
-        'endpoint': '/v1.0/me/contacts?$skip=10',
+        '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts/path2',
+        'endpoint': '/v1.0/me/contacts/path1',
     },
     {
         "value": [
@@ -90,9 +97,9 @@ PAGED_OFFICE365_CONTACTS_LIST = [
                     {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
                 ],
             }
-            for i in range(20, 50)
+            for i in range(2000, 5000)
         ],
-        'endpoint': '/v1.0/me/contacts?$skip=30',
+        'endpoint': '/v1.0/me/contacts/path2',
     },
 ]
 
@@ -142,10 +149,24 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
         assert_that(
             result,
             has_entries(
-                total=50,
-                filtered=50,
+                total=5000,
+                filtered=5000,
             ),
         )
+        result_items = result.get('items')
+        for i in range(5000):
+            expected_entry = {
+                "id": f"an-id-{i}",
+                "displayName": f"displayName-{i}",
+                "givenName": f"givenName-{i}",
+                "surname": f"surname-{i}",
+                "mobilePhone": "",
+                "businessPhones": ['7777777777'],
+                "emailAddresses": [
+                    {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
+                ],
+            }
+            assert_that(result_items, has_item(expected_entry))
 
     @fixtures.office365_source(token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.office365_source(token=VALID_TOKEN_SUB_TENANT)
@@ -166,7 +187,7 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
         )
 
     @fixtures.office365_result(OFFICE365_CONTACT_LIST)
-    def test_list_1(self, office365_api):
+    def test_list(self, office365_api):
         result = self.list_(self.client, self.source_uuid)
         assert_that(
             result,
