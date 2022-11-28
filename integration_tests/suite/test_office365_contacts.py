@@ -47,6 +47,9 @@ OFFICE365_CONTACT_LIST = {
     ]
 }
 
+TOTAL_NUMBER_OF_PAGINATED_CONTACTS = 5000
+FIRST_PAGE_TOTAL_NUMBER_OF_CONTACTS = 1000
+SECOND_PAGE_TOTAL_NUMBER_OF_CONTACTS = 2000
 PAGED_OFFICE365_CONTACTS_LIST = [
     {
         "value": [
@@ -61,7 +64,7 @@ PAGED_OFFICE365_CONTACTS_LIST = [
                     {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
                 ],
             }
-            for i in range(1000)
+            for i in range(FIRST_PAGE_TOTAL_NUMBER_OF_CONTACTS)
         ],
         '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts/path1',
         'endpoint': '/v1.0/me/contacts',
@@ -79,7 +82,10 @@ PAGED_OFFICE365_CONTACTS_LIST = [
                     {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
                 ],
             }
-            for i in range(1000, 2000)
+            for i in range(
+                FIRST_PAGE_TOTAL_NUMBER_OF_CONTACTS,
+                SECOND_PAGE_TOTAL_NUMBER_OF_CONTACTS,
+            )
         ],
         '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts/path2',
         'endpoint': '/v1.0/me/contacts/path1',
@@ -97,7 +103,9 @@ PAGED_OFFICE365_CONTACTS_LIST = [
                     {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
                 ],
             }
-            for i in range(2000, 5000)
+            for i in range(
+                SECOND_PAGE_TOTAL_NUMBER_OF_CONTACTS, TOTAL_NUMBER_OF_PAGINATED_CONTACTS
+            )
         ],
         'endpoint': '/v1.0/me/contacts/path2',
     },
@@ -149,12 +157,12 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
         assert_that(
             result,
             has_entries(
-                total=5000,
-                filtered=5000,
+                total=TOTAL_NUMBER_OF_PAGINATED_CONTACTS,
+                filtered=TOTAL_NUMBER_OF_PAGINATED_CONTACTS,
             ),
         )
         result_items = result.get('items')
-        for i in range(5000):
+        for i in range(TOTAL_NUMBER_OF_PAGINATED_CONTACTS):
             expected_entry = {
                 "id": f"an-id-{i}",
                 "displayName": f"displayName-{i}",
