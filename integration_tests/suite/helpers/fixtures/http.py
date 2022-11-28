@@ -221,9 +221,6 @@ def office365_paginated_result(pages):
                     current_page_path, current_page, 200
                 )
                 expectation['times']['unlimited'] = True
-                expectation['httpRequest']['queryStringParameters'] = {
-                    '$top': [str(len(pages))]
-                }
                 expectation['httpRequest']['method'] = 'GET'
                 expectation['httpRequest']['path'] = current_page_path
                 mock_server.mock_any_response(expectation)

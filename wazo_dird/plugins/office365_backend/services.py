@@ -51,7 +51,8 @@ class Office365Service(SelfSortingServiceMixin):
             elif count > 1:
                 all_contacts_list = []
                 first_page_response = requests.get(
-                    url, headers=headers, params={'$top': count}
+                    url,
+                    headers=headers,
                 )
                 if first_page_response.status_code == 200:
                     logger.debug(
@@ -65,9 +66,6 @@ class Office365Service(SelfSortingServiceMixin):
                         next_page_response = requests.get(
                             next_page_url,
                             headers=headers,
-                            params={
-                                '$top': count,
-                            },
                         )
                         if next_page_response.status_code == 200:
                             logger.debug(
