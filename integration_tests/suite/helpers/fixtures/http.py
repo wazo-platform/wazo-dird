@@ -214,9 +214,7 @@ def office365_paginated_result(pages):
 
             count_expectation['times']['unlimited'] = True
             mock_server.mock_any_response(count_expectation)
-            counter = 0
-            while counter < len(pages):
-                current_page = pages[counter]
+            for current_page in pages:
                 current_page_path = current_page.pop('endpoint')
 
                 expectation = mock_server.create_expectation(
@@ -229,7 +227,6 @@ def office365_paginated_result(pages):
                 expectation['httpRequest']['method'] = 'GET'
                 expectation['httpRequest']['path'] = current_page_path
                 mock_server.mock_any_response(expectation)
-                counter += 1
 
             try:
                 result = decorated(self, mock_server, *args, **kwargs)
