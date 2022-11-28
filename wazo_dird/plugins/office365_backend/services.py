@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import itertools
@@ -71,7 +71,8 @@ class Office365Service(SelfSortingServiceMixin):
                         )
                         if next_page_response.status_code == 200:
                             logger.debug(
-                                f'Successfully fetched contacts from microsoft page: {next_page_url}'
+                                'Successfully fetched contacts from microsoft page: %s'
+                                % next_page_url
                             )
                             all_contacts_list += next_page_response.json().get(
                                 'value', []
@@ -84,7 +85,8 @@ class Office365Service(SelfSortingServiceMixin):
                                 has_more_pages = False
                         else:
                             logger.error(
-                                'An error occured while fetching information from microsoft endpoint'
+                                'An error occured while fetching information from microsoft endpoint: %s'
+                                % next_page_url
                             )
                             raise UnexpectedEndpointException(
                                 endpoint=next_page_url,
