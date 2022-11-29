@@ -69,8 +69,8 @@ class Office365Service(SelfSortingServiceMixin):
                         )
                         if next_page_response.status_code == 200:
                             logger.debug(
-                                'Successfully fetched contacts from microsoft page: %s'
-                                % next_page_url
+                                'Successfully fetched contacts from microsoft page: %s',
+                                next_page_url,
                             )
                             all_contacts_list += next_page_response.json().get(
                                 'value', []
@@ -83,8 +83,8 @@ class Office365Service(SelfSortingServiceMixin):
                                 has_more_pages = False
                         else:
                             logger.error(
-                                'An error occured while fetching information from microsoft endpoint: %s'
-                                % next_page_url
+                                'An error occured while fetching information from microsoft endpoint: %s',
+                                next_page_url,
                             )
                             raise UnexpectedEndpointException(
                                 endpoint=next_page_url,

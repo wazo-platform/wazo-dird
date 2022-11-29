@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -88,6 +88,12 @@ class Office365Plugin(BaseSourcePlugin):
             return False
 
         filtered_contacts = [c for c in updated_contacts if match_fn(c)]
+
+        # Note(achohra): We need to make sure that `givenName` key/value exists to avoid TypeError when sorting
+        for contact in filtered_contacts:
+            if not contact.get('givenName'):
+                contact.update({'givenName': ''})
+
         sorted_contacts = sorted(filtered_contacts, key=itemgetter('givenName'))
 
         return [self._SourceResult(c) for c in sorted_contacts]
