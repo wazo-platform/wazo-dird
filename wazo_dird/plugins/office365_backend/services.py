@@ -25,17 +25,17 @@ class Office365Service(SelfSortingServiceMixin):
     USER_AGENT = 'wazo_ua/1.0'
 
     def get_contacts(self, microsoft_token, url, **list_params):
-        count = self._get_total_contacts(microsoft_token, url)
-        contacts = list(self._fetch(microsoft_token, url, count))
+        count, has_multiple_pages = self._get_total_contacts(microsoft_token, url)
+        contacts = list(self._fetch(microsoft_token, url, count, has_multiple_pages))
         total_contacts = len(contacts)
         sorted_contacts = self.sort(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total_contacts
 
-    def _fetch(self, microsoft_token, url, count):
+    def _fetch(self, microsoft_token, url, count, has_multiple_pages):
         headers = self.headers(microsoft_token)
         try:
-            if count == 1:
+            if not has_multiple_pages:
                 response = requests.get(url, headers=headers, params={'$top': count})
                 if response.status_code == 200:
                     logger.debug('Successfully fetched contacts from microsoft.')
@@ -48,7 +48,7 @@ class Office365Service(SelfSortingServiceMixin):
                     raise UnexpectedEndpointException(
                         endpoint=url, error_code=response.status_code
                     )
-            elif count > 1:
+            else:
                 all_contacts_list = []
                 first_page_response = requests.get(
                     url,
@@ -102,6 +102,7 @@ class Office365Service(SelfSortingServiceMixin):
             raise UnexpectedEndpointException(endpoint=url)
 
     def _get_total_contacts(self, microsoft_token, url):
+        has_multiple_pages = False
         headers = self.headers(microsoft_token)
         try:
             response = requests.get(url, headers=headers, params={'$count': 'true'})
@@ -110,7 +111,9 @@ class Office365Service(SelfSortingServiceMixin):
                 logger.debug(
                     'Successfully got contact number from Microsoft: %s', count
                 )
-                return count
+                if '@odata.nextLink' in response.json():
+                    has_multiple_pages = True
+                return count, has_multiple_pages
             else:
                 logger.error(
                     'An error occured while fetching information from Microsoft endpoint'

@@ -168,8 +168,9 @@ def office365_result(contact_list):
             mock_server = UnVerifiedMockServerClient(
                 'http://127.0.0.1:{}'.format(office365_port)
             )
+            expected_count = len(contact_list['value'])
             count_expectation = mock_server.create_expectation(
-                '/v1.0/me/contacts', {'@odata.count': len(contact_list)}, 200
+                '/v1.0/me/contacts', {'@odata.count': expected_count}, 200
             )
             count_expectation['httpRequest']['queryStringParameters'] = {
                 '$count': ['true']
@@ -182,7 +183,7 @@ def office365_result(contact_list):
             )
             expectation['times']['unlimited'] = True
             expectation['httpRequest']['queryStringParameters'] = {
-                '$top': [str(len(contact_list))]
+                '$top': [str(expected_count)]
             }
             mock_server.mock_any_response(expectation)
 
@@ -205,8 +206,17 @@ def office365_paginated_result(pages):
             mock_server = UnVerifiedMockServerClient(
                 'http://127.0.0.1:{}'.format(office365_port)
             )
+            expected_count = 0
+            for current_page in pages:
+                expected_count += len(current_page['value'])
+
             count_expectation = mock_server.create_expectation(
-                '/v1.0/me/contacts', {'@odata.count': len(pages)}, 200
+                '/v1.0/me/contacts',
+                {
+                    '@odata.count': expected_count,
+                    '@odata.nextLink': pages[0].get('@odata.nextLink'),
+                },
+                200,
             )
             count_expectation['httpRequest']['queryStringParameters'] = {
                 '$count': ['true'],
