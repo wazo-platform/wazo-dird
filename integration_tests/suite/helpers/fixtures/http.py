@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 import random
 import requests
@@ -168,8 +168,9 @@ def office365_result(contact_list):
             mock_server = UnVerifiedMockServerClient(
                 'http://127.0.0.1:{}'.format(office365_port)
             )
+            expected_count = len(contact_list['value'])
             count_expectation = mock_server.create_expectation(
-                '/v1.0/me/contacts', {'@odata.count': len(contact_list)}, 200
+                '/v1.0/me/contacts', {'@odata.count': expected_count}, 200
             )
             count_expectation['httpRequest']['queryStringParameters'] = {
                 '$count': ['true']
@@ -182,9 +183,57 @@ def office365_result(contact_list):
             )
             expectation['times']['unlimited'] = True
             expectation['httpRequest']['queryStringParameters'] = {
-                '$top': [str(len(contact_list))]
+                '$top': [str(expected_count)]
             }
             mock_server.mock_any_response(expectation)
+
+            try:
+                result = decorated(self, mock_server, *args, **kwargs)
+            finally:
+                mock_server.reset()
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def office365_paginated_result(pages):
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            office365_port = self.service_port(443, 'microsoft.com')
+            mock_server = UnVerifiedMockServerClient(
+                'http://127.0.0.1:{}'.format(office365_port)
+            )
+            expected_count = 0
+            for current_page in pages:
+                expected_count += len(current_page['value'])
+
+            count_expectation = mock_server.create_expectation(
+                '/v1.0/me/contacts',
+                {
+                    '@odata.count': expected_count,
+                    '@odata.nextLink': pages[0].get('@odata.nextLink'),
+                },
+                200,
+            )
+            count_expectation['httpRequest']['queryStringParameters'] = {
+                '$count': ['true'],
+            }
+
+            count_expectation['times']['unlimited'] = True
+            mock_server.mock_any_response(count_expectation)
+            for current_page in pages:
+                current_page_path = current_page.pop('endpoint')
+
+                expectation = mock_server.create_expectation(
+                    current_page_path, current_page, 200
+                )
+                expectation['times']['unlimited'] = True
+                expectation['httpRequest']['method'] = 'GET'
+                expectation['httpRequest']['path'] = current_page_path
+                mock_server.mock_any_response(expectation)
 
             try:
                 result = decorated(self, mock_server, *args, **kwargs)

@@ -1,7 +1,14 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
+from hamcrest import (
+    assert_that,
+    calling,
+    contains,
+    contains_inanyorder,
+    has_entries,
+    has_item,
+)
 
 from wazo_test_helpers.auth import AuthClient as AuthMock
 from wazo_test_helpers.hamcrest.raises import raises
@@ -15,6 +22,7 @@ from .helpers.constants import (
 )
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
+
 
 OFFICE365_CONTACT_LIST = {
     "value": [
@@ -38,6 +46,70 @@ OFFICE365_CONTACT_LIST = {
         },
     ]
 }
+
+TOTAL_NUMBER_OF_PAGINATED_CONTACTS = 5000
+FIRST_PAGE_TOTAL_NUMBER_OF_CONTACTS = 1000
+SECOND_PAGE_TOTAL_NUMBER_OF_CONTACTS = 2000
+PAGED_OFFICE365_CONTACTS_LIST = [
+    {
+        "value": [
+            {
+                "id": f"an-id-{i}",
+                "displayName": f"displayName-{i}",
+                "givenName": f"givenName-{i}",
+                "surname": f"surname-{i}",
+                "mobilePhone": "",
+                "businessPhones": ['7777777777'],
+                "emailAddresses": [
+                    {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
+                ],
+            }
+            for i in range(FIRST_PAGE_TOTAL_NUMBER_OF_CONTACTS)
+        ],
+        '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts/path1',
+        'endpoint': '/v1.0/me/contacts',
+    },
+    {
+        "value": [
+            {
+                "id": f"an-id-{i}",
+                "displayName": f"displayName-{i}",
+                "givenName": f"givenName-{i}",
+                "surname": f"surname-{i}",
+                "mobilePhone": "",
+                "businessPhones": ['7777777777'],
+                "emailAddresses": [
+                    {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
+                ],
+            }
+            for i in range(
+                FIRST_PAGE_TOTAL_NUMBER_OF_CONTACTS,
+                SECOND_PAGE_TOTAL_NUMBER_OF_CONTACTS,
+            )
+        ],
+        '@odata.nextLink': 'http://microsoft.com:443/v1.0/me/contacts/path2',
+        'endpoint': '/v1.0/me/contacts/path1',
+    },
+    {
+        "value": [
+            {
+                "id": f"an-id-{i}",
+                "displayName": f"displayName-{i}",
+                "givenName": f"givenName-{i}",
+                "surname": f"surname-{i}",
+                "mobilePhone": "",
+                "businessPhones": ['7777777777'],
+                "emailAddresses": [
+                    {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
+                ],
+            }
+            for i in range(
+                SECOND_PAGE_TOTAL_NUMBER_OF_CONTACTS, TOTAL_NUMBER_OF_PAGINATED_CONTACTS
+            )
+        ],
+        'endpoint': '/v1.0/me/contacts/path2',
+    },
+]
 
 
 class BaseOffice365AssetTestCase(BaseDirdIntegrationTest):
@@ -78,6 +150,31 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
             calling(self.list_).with_args(self.client, UNKNOWN_UUID),
             raises(Exception).matching(HTTP_404),
         )
+
+    @fixtures.office365_paginated_result(PAGED_OFFICE365_CONTACTS_LIST)
+    def test_list_more_than_1000_contacts(self, _):
+        result = self.list_(self.client, self.source_uuid)
+        assert_that(
+            result,
+            has_entries(
+                total=TOTAL_NUMBER_OF_PAGINATED_CONTACTS,
+                filtered=TOTAL_NUMBER_OF_PAGINATED_CONTACTS,
+            ),
+        )
+        result_items = result.get('items')
+        for i in range(TOTAL_NUMBER_OF_PAGINATED_CONTACTS):
+            expected_entry = {
+                "id": f"an-id-{i}",
+                "displayName": f"displayName-{i}",
+                "givenName": f"givenName-{i}",
+                "surname": f"surname-{i}",
+                "mobilePhone": "",
+                "businessPhones": ['7777777777'],
+                "emailAddresses": [
+                    {"address": f"email-{i}@wazoquebec.onmicrosoft.com"}
+                ],
+            }
+            assert_that(result_items, has_item(expected_entry))
 
     @fixtures.office365_source(token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.office365_source(token=VALID_TOKEN_SUB_TENANT)

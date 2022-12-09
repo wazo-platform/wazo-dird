@@ -1,8 +1,7 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-from operator import itemgetter
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
@@ -88,7 +87,16 @@ class Office365Plugin(BaseSourcePlugin):
             return False
 
         filtered_contacts = [c for c in updated_contacts if match_fn(c)]
-        sorted_contacts = sorted(filtered_contacts, key=itemgetter('givenName'))
+
+        # Note(achohra): We need to make sure that `givenName` key/value exists to avoid TypeError when sorting
+
+        def get_field_or_empty(field_name):
+            def g(obj):
+                return obj.get(field_name, '')
+
+            return g
+
+        sorted_contacts = sorted(filtered_contacts, key=get_field_or_empty('givenName'))
 
         return [self._SourceResult(c) for c in sorted_contacts]
 
