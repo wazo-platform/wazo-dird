@@ -1,4 +1,4 @@
-# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_test_helpers.bus import BusClient
@@ -31,7 +31,6 @@ class TestBusConsumer(BaseDirdIntegrationTest):
         self.bus.publish(
             ping_event,
             headers={'name': 'dird_ping'},
-            routing_key='dird.test',
         )
 
         def pong_bus_event_received():
@@ -58,14 +57,12 @@ class TestBusConsumer(BaseDirdIntegrationTest):
         self.bus.publish(
             crash_event,
             headers={'name': 'crash_ping'},
-            routing_key='dird.test',
         )
 
         ping_event = {'name': 'dird_ping', 'data': {'payload': 'ping'}}
         self.bus.publish(
             ping_event,
             headers={'name': 'dird_ping'},
-            routing_key='dird.test',
         )
 
         def pong_bus_event_received():

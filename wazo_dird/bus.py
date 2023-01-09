@@ -1,4 +1,4 @@
-# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.status import Status
@@ -38,10 +38,10 @@ class CoreBus(BusPublisher, BusConsumer):
             Status.ok if self.consumer_connected() else Status.fail
         )
 
-    def publish(self, event, headers=None, routing_key=None, payload=None):
+    def publish(self, event, extra_headers=None, payload=None):
         if not self.enabled:
             return
-        super().publish(event, headers, routing_key, payload)
+        super().publish(event, extra_headers, payload)
 
     def start(self):
         if not self.enabled:
