@@ -42,9 +42,7 @@ bus:
   password: guest
   host: localhost
   port: 5672
-  exchange_name: xivo
-  exchange_type: topic
-  exchange_durable: True
+  exchange_name: wazo-headers
 
 # Consul connection settings
 consul:
