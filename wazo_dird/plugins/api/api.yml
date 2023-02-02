@@ -367,7 +367,7 @@ definitions:
       verify_certificate:
         type: string
         description: If the HTTPs certificates should be verified and the path of the certificate if a custom certificate is used.
-        default: true
+        default: 'true'
       timeout:
         type: number
   ConfdConfig:
