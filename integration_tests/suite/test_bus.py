@@ -9,7 +9,6 @@ from .helpers.base import BaseDirdIntegrationTest
 
 
 class TestBusConsumer(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
 
     def setUp(self):

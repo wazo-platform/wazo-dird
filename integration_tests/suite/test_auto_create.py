@@ -19,7 +19,6 @@ from .helpers.wait_strategy import RestApiOkWaitStrategy
 
 
 class TestConfigAutoCreation(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
     wait_strategy = RestApiOkWaitStrategy()
 

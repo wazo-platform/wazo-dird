@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
@@ -225,7 +225,6 @@ GOOGLE_SEARCH_LIST = {
 
 
 class BaseGoogleAssetTestCase(BaseDirdIntegrationTest):
-
     GOOGLE_EXTERNAL_AUTH = {
         "access_token": "an-access-token",
         "scope": "a-scope",
@@ -234,7 +233,6 @@ class BaseGoogleAssetTestCase(BaseDirdIntegrationTest):
 
 
 class TestGoogleContactList(BaseGoogleAssetTestCase):
-
     asset = 'dird_google'
 
     def setUp(self):

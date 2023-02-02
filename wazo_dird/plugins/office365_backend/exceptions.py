@@ -1,11 +1,10 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.rest_api_helpers import APIException
 
 
 class UnexpectedEndpointException(APIException):
-
     code = 503
 
     def __init__(self, **kwargs):
@@ -15,7 +14,6 @@ class UnexpectedEndpointException(APIException):
 
 
 class MicrosoftTokenNotFoundException(APIException):
-
     code = 404
 
     def __init__(self, user_uuid):

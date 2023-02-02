@@ -47,7 +47,6 @@ class TestListPersonal(PersonalOnlyTestCase):
 
 
 class TestDeletedUser(BaseDirdIntegrationTest):
-
     asset = 'personal_only'
 
     def setUp(self):

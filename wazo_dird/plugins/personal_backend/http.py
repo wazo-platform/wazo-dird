@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -9,7 +9,6 @@ from .schemas import list_schema, source_schema, source_list_schema
 
 
 class PersonalList(SourceList):
-
     list_schema = list_schema
     source_schema = source_schema
     source_list_schema = source_list_schema
@@ -24,7 +23,6 @@ class PersonalList(SourceList):
 
 
 class PersonalItem(SourceItem):
-
     source_schema = source_schema
 
     @required_acl('dird.backends.personal.sources.{source_uuid}.delete')

@@ -1,4 +1,4 @@
-# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -115,7 +115,6 @@ def _default_error_route(f):
 
 
 class ContactAll(_Resource):
-
     error_code_map = {
         InvalidArgumentError: 400,
         InvalidContactException: 400,
@@ -154,7 +153,6 @@ class ContactAll(_Resource):
 
 
 class PhonebookAll(_Resource):
-
     error_code_map = {
         InvalidArgumentError: 400,
         DuplicatedPhonebookException: 409,
@@ -193,7 +191,6 @@ class PhonebookAll(_Resource):
 
 
 class ContactImport(_Resource):
-
     error_code_map = {NoSuchTenant: 404, NoSuchPhonebook: 404}
 
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
@@ -225,7 +222,6 @@ class ContactImport(_Resource):
 
 
 class ContactOne(_Resource):
-
     error_code_map = {
         DuplicatedContactException: 409,
         InvalidContactException: 400,
@@ -277,7 +273,6 @@ class ContactOne(_Resource):
 
 
 class PhonebookOne(_Resource):
-
     error_code_map = {
         DatabaseServiceUnavailable: 503,
         DuplicatedPhonebookException: 409,

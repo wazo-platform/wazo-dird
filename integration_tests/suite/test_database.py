@@ -1,4 +1,4 @@
-# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
@@ -67,7 +67,6 @@ def with_user_uuid(f):
 
 
 class DBStarter(DBRunningTestCase):
-
     asset = 'database'
 
 
@@ -1178,7 +1177,6 @@ class TestFavoriteCrud(_BaseTest):
 
 
 class TestPhonebookContactSearchEngine(_BaseTest):
-
     tenant_uuid = new_uuid()
 
     def setUp(self):

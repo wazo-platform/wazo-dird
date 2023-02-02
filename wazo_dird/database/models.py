@@ -1,4 +1,4 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import Column, ForeignKey, Integer, schema, String, text, Text
@@ -13,7 +13,6 @@ UUID_LENGTH = 36
 
 
 class Contact(Base):
-
     __tablename__ = 'dird_contact'
     __table_args__ = (
         schema.UniqueConstraint('user_uuid', 'hash'),
@@ -33,7 +32,6 @@ class Contact(Base):
 
 
 class ContactFields(Base):
-
     __tablename__ = 'dird_contact_fields'
 
     id = Column(Integer(), primary_key=True)
@@ -45,7 +43,6 @@ class ContactFields(Base):
 
 
 class Display(Base):
-
     __tablename__ = 'dird_display'
     __table_args__ = (schema.UniqueConstraint('uuid', 'tenant_uuid'),)
 
@@ -61,7 +58,6 @@ class Display(Base):
 
 
 class DisplayColumn(Base):
-
     __tablename__ = 'dird_display_column'
 
     uuid = Column(
@@ -80,7 +76,6 @@ class DisplayColumn(Base):
 
 
 class Favorite(Base):
-
     __tablename__ = 'dird_favorite'
 
     source_uuid = Column(
@@ -97,7 +92,6 @@ class Favorite(Base):
 
 
 class Phonebook(Base):
-
     __tablename__ = 'dird_phonebook'
     __table_args__ = (
         schema.UniqueConstraint('name', 'tenant_uuid'),
@@ -111,7 +105,6 @@ class Phonebook(Base):
 
 
 class Profile(Base):
-
     __tablename__ = 'dird_profile'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
@@ -140,7 +133,6 @@ class Profile(Base):
 
 
 class ProfileServiceSource(Base):
-
     __tablename__ = 'dird_profile_service_source'
     __table_args__ = (
         schema.ForeignKeyConstraint(
@@ -167,7 +159,6 @@ class ProfileServiceSource(Base):
 
 
 class ProfileService(Base):
-
     __tablename__ = 'dird_profile_service'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'profile_tenant_uuid'),
@@ -195,7 +186,6 @@ class ProfileService(Base):
 
 
 class Service(Base):
-
     __tablename__ = 'dird_service'
 
     uuid = Column(
@@ -205,7 +195,6 @@ class Service(Base):
 
 
 class Source(Base):
-
     __tablename__ = 'dird_source'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
@@ -225,7 +214,6 @@ class Source(Base):
 
 
 class Tenant(Base):
-
     __tablename__ = 'dird_tenant'
 
     uuid = Column(
@@ -234,7 +222,6 @@ class Tenant(Base):
 
 
 class User(Base):
-
     __tablename__ = 'dird_user'
 
     user_uuid = Column(String(UUID_LENGTH), primary_key=True)

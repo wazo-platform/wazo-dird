@@ -1,4 +1,4 @@
-# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -34,7 +34,6 @@ EMPTY_RELATIONS = {
 
 
 class BaseMultipleSourceLauncher(BaseDirdIntegrationTest):
-
     asset = 'multiple_sources'
     config_factory = new_multiple_sources_config
 
@@ -67,7 +66,6 @@ class TestSourceModification(BaseMultipleSourceLauncher):
 
 
 class TestCoreSourceManagement(BaseMultipleSourceLauncher):
-
     alice_aaa = {
         'column_values': ['Alice', 'AAA', '5555555555'],
         'source': 'my_csv',

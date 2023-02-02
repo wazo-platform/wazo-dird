@@ -1,4 +1,4 @@
-# Copyright 2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -29,7 +29,6 @@ class TestConfig(BaseDirdIntegrationTest):
     wait_strategy = EverythingOkWaitStrategy()
 
     def test_config_with_master_tenant(self):
-
         dird = self.make_dird(VALID_TOKEN_MAIN_TENANT)
         result = dird.config.get(MAIN_TENANT)
 

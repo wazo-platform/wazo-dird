@@ -1,4 +1,4 @@
-# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -22,7 +22,6 @@ from .helpers.constants import VALID_TOKEN, VALID_TOKEN_NO_ACL, MAIN_TENANT
 
 
 class TestGraphQL(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
     config_factory = new_csv_with_multiple_displays_config
 
@@ -319,7 +318,6 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
 
 class TestGraphQLWazoBackend(BaseDirdIntegrationTest):
-
     asset = 'wazo_users_multiple_wazo'
     config_factory = new_wazo_users_config
 

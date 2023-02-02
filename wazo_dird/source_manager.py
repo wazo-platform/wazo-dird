@@ -1,4 +1,4 @@
-# Copyright 2014-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class SourceManager:
-
     _namespace = 'wazo_dird.backends'
 
     def __init__(self, enabled_backends, config, auth_client, token_renewer):

@@ -1,4 +1,4 @@
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -37,7 +37,6 @@ def _get_calling_user_uuid():
 
 
 class PersonalAll(LegacyAuthResource):
-
     personal_service = None
 
     @classmethod
@@ -115,7 +114,6 @@ class PersonalAll(LegacyAuthResource):
 
 
 class PersonalOne(LegacyAuthResource):
-
     personal_service = None
 
     @classmethod
@@ -167,7 +165,6 @@ class PersonalOne(LegacyAuthResource):
 
 
 class PersonalImport(LegacyAuthResource):
-
     personal_service = None
 
     @classmethod

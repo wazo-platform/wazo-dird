@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -41,7 +41,6 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
         )
 
     def test_that_csv_file_changes_have_been_committed(self):
-
         line_to_append = '4,James,XXX,222123666,achohra@example.com'
         file_to_update = os.path.join(
             self.assets_root, 'tmp', 'data', 'asset.all_routes.test.csv'
@@ -50,7 +49,6 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
 
         try:
             with open(file_to_update, 'a') as my_file:
-
                 my_file.write(line_to_append)
 
             response = self.lookup('James', 'default')
@@ -61,7 +59,6 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
             )
 
         finally:
-
             with open(file_to_update, "r") as in_file:
                 lines = in_file.readlines()[:-1]
 
@@ -101,7 +98,6 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
 
 
 class TestCSVNoUnique(_BaseCSVFileTestCase):
-
     asset = 'csv_with_no_unique_column'
     source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
 
@@ -116,7 +112,6 @@ class TestCSVNoUnique(_BaseCSVFileTestCase):
 
 
 class TestCSVWithAccents(_BaseCSVFileTestCase):
-
     asset = 'csv_with_no_unique_column'
     source_config = 'etc/wazo-dird/sources.d/my_test_csv.yml'
 
@@ -136,7 +131,6 @@ class TestCSVWithAccents(_BaseCSVFileTestCase):
 
 
 class TestCSVSeparator(BaseDirdIntegrationTest):
-
     asset = 'csv_with_pipes'
     config_factory = new_csv_with_pipes_config
 

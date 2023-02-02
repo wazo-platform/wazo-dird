@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import itertools
@@ -21,7 +21,6 @@ SINGLE_PHONE_FIELDS = ('mobilePhone',)
 
 
 class Office365Service(SelfSortingServiceMixin):
-
     USER_AGENT = 'wazo_ua/1.0'
 
     def get_contacts(self, microsoft_token, url, **list_params):

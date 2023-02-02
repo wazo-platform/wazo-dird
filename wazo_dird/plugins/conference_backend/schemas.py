@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import pre_dump
@@ -41,7 +41,6 @@ class ContactSchema(BaseSchema):
 
 
 class ContactListSchema(_ListSchema):
-
     searchable_columns = ['id', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'
@@ -50,7 +49,6 @@ class ContactListSchema(_ListSchema):
 
 
 class ListSchema(_ListSchema):
-
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'

@@ -1,4 +1,4 @@
-# Copyright 2018-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
@@ -20,7 +20,6 @@ from .schemas import (
 
 
 class WazoList(SourceList):
-
     list_schema = list_schema
     source_schema = source_schema
     source_list_schema = source_list_schema
@@ -35,7 +34,6 @@ class WazoList(SourceList):
 
 
 class WazoItem(SourceItem):
-
     source_schema = source_schema
 
     @required_acl('dird.backends.wazo.sources.{source_uuid}.delete')

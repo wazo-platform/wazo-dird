@@ -1,4 +1,4 @@
-# Copyright 2018-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from pkg_resources import iter_entry_points
@@ -6,7 +6,6 @@ from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixi
 
 
 class BackendService(SelfSortingServiceMixin):
-
     _backend_entry_points = 'wazo_dird.backends'
 
     def __init__(self, config):

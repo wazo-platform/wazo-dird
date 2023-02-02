@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from collections import defaultdict
@@ -200,7 +200,6 @@ class PhonebookContactCRUD(BaseDAO):
 
 
 class PhonebookCRUD(BaseDAO):
-
     _default_sort_order = 'name'
     _default_sort_direction = 'asc'
 

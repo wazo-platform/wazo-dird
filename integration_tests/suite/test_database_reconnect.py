@@ -1,4 +1,4 @@
-# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, equal_to
@@ -7,7 +7,6 @@ from .helpers.constants import VALID_TOKEN_MAIN_TENANT
 
 
 class TestDBRestart(BaseDirdIntegrationTest):
-
     asset = 'personal_only'
 
     def tearDown(self):

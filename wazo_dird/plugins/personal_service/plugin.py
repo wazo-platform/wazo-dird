@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -35,7 +35,6 @@ class PersonalServicePlugin(BaseServicePlugin):
 
 
 class _PersonalService:
-
     NoSuchContact = exception.NoSuchContact
     DuplicatedContactException = exception.DuplicatedContactException
 

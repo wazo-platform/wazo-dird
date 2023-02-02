@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.mallow import fields
@@ -37,7 +37,6 @@ class ServiceDictSchema(fields.Nested):
 
 
 class ProfileSchema(BaseSchema):
-
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
@@ -46,7 +45,6 @@ class ProfileSchema(BaseSchema):
 
 
 class ListSchema(_ListSchema):
-
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'

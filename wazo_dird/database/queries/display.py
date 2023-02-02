@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_, func, text
@@ -9,7 +9,6 @@ from .. import Display, DisplayColumn
 
 
 class DisplayCRUD(BaseDAO):
-
     _display_schema = schemas.DisplaySchema()
 
     def count(self, visible_tenants, **list_params):
