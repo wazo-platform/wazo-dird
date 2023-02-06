@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class PersonalView(BaseBackendView):
-
     backend = 'personal'
     list_resource = http.PersonalList
     item_resource = http.PersonalItem

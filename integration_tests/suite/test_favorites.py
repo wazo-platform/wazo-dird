@@ -1,4 +1,4 @@
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -26,7 +26,6 @@ from .helpers.constants import MAIN_TENANT, TENANT_UUID_2, VALID_TOKEN_MAIN_TENA
 
 
 class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
     config_factory = new_csv_with_multiple_displays_config
 

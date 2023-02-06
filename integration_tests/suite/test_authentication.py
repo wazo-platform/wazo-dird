@@ -1,4 +1,4 @@
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains_string, equal_to
@@ -9,7 +9,6 @@ from .helpers.constants import VALID_TOKEN_MAIN_TENANT, VALID_TOKEN_NO_ACL, VALI
 
 
 class TestAuthentication(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
     config_factory = new_auth_only_config
 
@@ -40,7 +39,6 @@ class TestAuthentication(BaseDirdIntegrationTest):
 
 
 class TestAuthenticationCoverage(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
 
     def test_auth_on_headers(self):

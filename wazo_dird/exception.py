@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from time import time
@@ -88,7 +88,6 @@ class NoSuchTenant(ValueError):
 
 
 class DuplicatedContactException(Exception):
-
     _msg = 'Duplicating contact'
 
     def __init__(self):
@@ -96,12 +95,10 @@ class DuplicatedContactException(Exception):
 
 
 class DuplicatedFavoriteException(Exception):
-
     pass
 
 
 class DuplicatedPhonebookException(Exception):
-
     _msg = 'Duplicating phonebook'
 
     def __init__(self):
@@ -123,12 +120,10 @@ class DuplicatedSourceException(APIException):
 
 
 class ProfileNotFoundError(Exception):
-
     pass
 
 
 class InvalidArgumentError(Exception):
-
     pass
 
 
@@ -148,7 +143,6 @@ class InvalidPhonebookException(Exception):
 
 
 class InvalidContactException(Exception):
-
     pass
 
 

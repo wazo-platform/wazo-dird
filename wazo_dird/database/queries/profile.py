@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_, exc, func, text
@@ -11,7 +11,6 @@ from .. import Profile, ProfileService, ProfileServiceSource, Service
 
 
 class ProfileCRUD(BaseDAO):
-
     _profile_schema = schemas.ProfileSchema()
 
     def count(self, visible_tenants, **list_params):

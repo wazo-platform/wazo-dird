@@ -1,4 +1,4 @@
-# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import ldap
@@ -29,7 +29,6 @@ Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
 
 
 class LDAPHelper:
-
     BASE_DN = 'dc=wazo-dird,dc=wazo,dc=community'
     ADMIN_DN = 'cn=admin,{}'.format(BASE_DN)
     ADMIN_PASSWORD = 'wazopassword'
@@ -87,7 +86,6 @@ def add_contacts(contacts, ldap_uri):
 
 
 class TestLDAP(BaseDirdIntegrationTest):
-
     asset = 'ldap'
     config_factory = new_ldap_config
 
@@ -160,7 +158,6 @@ class TestLDAP(BaseDirdIntegrationTest):
 
 
 class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
-
     asset = 'ldap_city'
     config_factory = new_ldap_city_config
 
@@ -196,7 +193,6 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
 
 
 class TestLDAPServiceIsInnactive(BaseDirdIntegrationTest):
-
     asset = 'ldap_service_innactive'
     config_factory = new_ldap_service_innactive_config
 
@@ -209,7 +205,6 @@ class TestLDAPServiceIsInnactive(BaseDirdIntegrationTest):
 
 
 class TestLDAPServiceIsDown(BaseDirdIntegrationTest):
-
     asset = 'ldap_service_down'
     config_factory = new_ldap_service_down_config
 

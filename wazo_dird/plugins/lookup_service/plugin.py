@@ -1,4 +1,4 @@
-# Copyright 2014-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -38,7 +38,6 @@ class LookupServicePlugin(BaseServicePlugin):
 
 
 class _LookupService(helpers.BaseService):
-
     _service_name = 'lookup'
 
     def __init__(self, *args, **kwargs):

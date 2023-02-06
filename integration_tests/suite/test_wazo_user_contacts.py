@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -27,7 +27,6 @@ BACKEND = 'wazo'
 
 
 class TestWazoContactList(BaseDirdIntegrationTest):
-
     asset = 'wazo_users_multiple_wazo'
     config_factory = new_wazo_users_multiple_wazo_config
 

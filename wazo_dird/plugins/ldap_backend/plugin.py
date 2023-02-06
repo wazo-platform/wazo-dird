@@ -1,4 +1,4 @@
-# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import itertools
@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class LDAPView(BaseBackendView):
-
     backend = 'ldap'
     list_resource = http.LDAPList
     item_resource = http.LDAPItem
@@ -122,7 +121,6 @@ class _LDAPFactory:
 
 
 class _LDAPConfig:
-
     DEFAULT_LDAP_USERNAME = ''
     DEFAULT_LDAP_PASSWORD = ''
     DEFAULT_LDAP_NETWORK_TIMEOUT = 0.3

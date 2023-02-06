@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import textwrap
@@ -17,7 +17,6 @@ from .helpers.constants import VALID_TOKEN_MAIN_TENANT
 
 
 class TestPersonalImportFail(BaseDirdIntegrationTest):
-
     asset = 'personal_only'
 
     def test_that_import_empty_returns_400(self):
@@ -78,7 +77,6 @@ class TestPersonalImportFail(BaseDirdIntegrationTest):
 
 
 class TestPersonalImportSuccess(BaseDirdIntegrationTest):
-
     asset = 'personal_only'
 
     def test_that_import_with_correct_data_appears_in_list(self):
@@ -105,7 +103,6 @@ class TestPersonalImportSuccess(BaseDirdIntegrationTest):
 
 
 class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
-
     asset = 'personal_only'
 
     def test_that_import_with_one_wrongly_formatted_creates_the_others(self):
@@ -158,7 +155,6 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
 
 
 class TestPersonalImportUTF8(BaseDirdIntegrationTest):
-
     asset = 'personal_only'
 
     def test_that_import_with_utf8_chars_is_valid(self):
@@ -179,7 +175,6 @@ class TestPersonalImportUTF8(BaseDirdIntegrationTest):
 
 
 class TestPersonalImportCP1252(BaseDirdIntegrationTest):
-
     asset = 'personal_only'
 
     def test_that_import_with_cp1252_chars_is_valid(self):

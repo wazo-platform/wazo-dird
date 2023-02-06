@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_properties
@@ -15,7 +15,6 @@ from .helpers.constants import (
 
 
 class TestList(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
 
     @fixtures.ldap_source(name='abc')

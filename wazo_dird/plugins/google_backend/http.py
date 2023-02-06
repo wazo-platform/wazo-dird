@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class GoogleContactList(AuthResource):
-
     BACKEND = 'google'
 
     def __init__(self, auth_config, config, source_service):
@@ -43,7 +42,6 @@ class GoogleContactList(AuthResource):
 
 
 class GoogleList(SourceList):
-
     list_schema = list_schema
     source_schema = source_schema
     source_list_schema = source_list_schema
@@ -58,7 +56,6 @@ class GoogleList(SourceList):
 
 
 class GoogleItem(SourceItem):
-
     source_schema = source_schema
 
     @required_acl('dird.backends.google.sources.{source_uuid}.delete')

@@ -1,4 +1,4 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -56,7 +56,6 @@ class BaseCSVTestDirectory(unittest.TestCase):
 
 
 class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
-
     content = pipe_separated_content
 
     def test_search_with_different_separator(self):
@@ -77,7 +76,6 @@ class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
 
 
 class TestCsvDirectorySource(BaseCSVTestDirectory):
-
     content = comma_separated_content
 
     def setUp(self):

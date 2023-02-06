@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -14,7 +14,6 @@ CHARSET_REGEX = re.compile('.*; *charset *= *(.*)')
 
 
 class PersonalViewPlugin(BaseViewPlugin):
-
     personal_all_url = '/personal'
     personal_one_url = '/personal/<contact_id>'
     personal_import_url = '/personal/import'

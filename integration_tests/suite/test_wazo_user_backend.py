@@ -1,4 +1,4 @@
-# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import Mock
@@ -21,7 +21,6 @@ from .base_dird_integration_test import BackendWrapper
 
 
 class TestWazoUser(DirdAssetRunningTestCase):
-
     asset = 'wazo_confd'
     uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
 
@@ -121,7 +120,6 @@ class TestWazoUser(DirdAssetRunningTestCase):
 
 
 class TestWazoUserNoConfd(BaseDirdIntegrationTest):
-
     asset = 'wazo_no_confd'
     config_factory = new_wazo_users_config
 
@@ -131,7 +129,6 @@ class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 
 
 class TestWazoUserLateConfd(BaseDirdIntegrationTest):
-
     asset = 'wazo_users_late_confd'
     config_factory = new_wazo_users_config
 
@@ -155,7 +152,6 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
 
 
 class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
-
     asset = 'wazo_users_multiple_wazo'
     config_factory = new_wazo_users_multiple_wazo_config
 
@@ -226,7 +222,6 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
 
 class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
-
     asset = 'wazo_users_missing_one_wazo'
     config_factory = new_wazo_users_multiple_wazo_config
 
@@ -253,7 +248,6 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
 
 
 class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
-
     asset = 'wazo_users_two_working_one_404'
     config_factory = new_wazo_users_multiple_wazo_config
 
@@ -293,7 +287,6 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
 
 
 class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
-
     asset = 'wazo_users_two_working_one_timeout'
     config_factory = new_wazo_users_multiple_wazo_config
 

@@ -1,4 +1,4 @@
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class _NoSuchProfileException(ValueError):
-
     msg_tpl = 'No such profile in favorite service configuration: {}'
 
     def __init__(self, profile):
@@ -26,7 +25,6 @@ class _NoSuchProfileException(ValueError):
 
 
 class _NoSuchSourceException(ValueError):
-
     msg_tpl = 'No such source: {}'
 
     def __init__(self, source):
@@ -63,7 +61,6 @@ class FavoritesServicePlugin(BaseServicePlugin):
 
 
 class _FavoritesService(helpers.BaseService):
-
     NoSuchFavoriteException = exception.NoSuchFavorite
     NoSuchProfileException = _NoSuchProfileException
     NoSuchSourceException = _NoSuchSourceException

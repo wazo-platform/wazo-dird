@@ -1,4 +1,4 @@
-# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains, empty, has_entries
@@ -13,7 +13,6 @@ class _BaseCSVWSBackend(DirdAssetRunningTestCase):
 
 
 class TestCSVWSBackend(_BaseCSVWSBackend):
-
     asset = 'csv_ws_utf8_with_pipes_with_ssl'
 
     def setUp(self):
@@ -78,7 +77,6 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
 
 
 class TestCSVWSBackendComa(_BaseCSVWSBackend):
-
     asset = 'csv_ws_iso88591_with_coma'
 
     def setUp(self):

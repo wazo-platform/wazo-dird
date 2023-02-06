@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -49,7 +49,6 @@ START_TIMEOUT = int(os.environ.get('INTEGRATION_TEST_TIMEOUT', '30'))
 
 
 class DirdAssetRunningTestCase(AssetLaunchingTestCase):
-
     assets_root = ASSET_ROOT
     service = 'dird'
 
@@ -90,7 +89,6 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
 
 
 class BaseDirdIntegrationTest(DBRunningTestCase):
-
     wait_strategy = RestApiOkWaitStrategy()
     config_factory = new_null_config
 
@@ -512,7 +510,6 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
 
 
 class BasePhonebookTestCase(BaseDirdIntegrationTest):
-
     asset = 'phonebook_only'
 
     def setUp(self):
@@ -547,19 +544,16 @@ class BasePhonebookTestCase(BaseDirdIntegrationTest):
 
 
 class CSVWithMultipleDisplayTestCase(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
     config_factory = new_csv_with_multiple_displays_config
 
 
 class HalfBrokenTestCase(BaseDirdIntegrationTest):
-
     asset = 'half_broken'
     config_factory = new_half_broken_config
 
 
 class PersonalOnlyTestCase(BaseDirdIntegrationTest):
-
     asset = 'personal_only'
     config_factory = new_personal_only_config
 

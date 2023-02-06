@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -31,7 +31,6 @@ from .helpers.fixtures import http as fixtures
 
 
 class BaseProfileTestCase(BaseDirdIntegrationTest):
-
     asset = 'all_routes'
 
     @contextmanager
@@ -625,7 +624,6 @@ class TestPut(BaseProfileTestCase):
 
 
 class TestGetSourcesFromProfile(BaseProfileTestCase):
-
     config_factory = new_multi_source_profile
 
     def test_when_get_then_sources_returned(self):

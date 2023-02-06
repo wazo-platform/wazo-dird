@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -50,7 +50,6 @@ OFFICE365_CONTACTS = {
 
 
 class BaseOffice365TestCase(DirdAssetRunningTestCase):
-
     service = 'dird'
 
     MICROSOFT_EXTERNAL_AUTH = {
@@ -108,7 +107,6 @@ class BaseOffice365TestCase(DirdAssetRunningTestCase):
 
 
 class BaseOffice365PluginTestCase(BaseOffice365TestCase):
-
     asset = 'dird_microsoft'
 
     def setUp(self):
@@ -123,7 +121,6 @@ class BaseOffice365PluginTestCase(BaseOffice365TestCase):
 
 
 class TestOffice365Plugin(BaseOffice365PluginTestCase):
-
     asset = 'dird_microsoft'
 
     def config(self):
@@ -214,7 +211,6 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
 
 
 class TestOffice365PluginWrongEndpoint(BaseOffice365PluginTestCase):
-
     asset = 'dird_microsoft'
 
     def config(self):
@@ -248,7 +244,6 @@ class TestOffice365PluginWrongEndpoint(BaseOffice365PluginTestCase):
 
 
 class TestDirdOffice365Plugin(BaseOffice365TestCase):
-
     asset = 'dird_microsoft'
 
     BACKEND = 'office365'
@@ -361,7 +356,6 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
 
 
 class TestDirdOffice365PluginNoEndpoint(BaseOffice365TestCase):
-
     asset = 'dird_microsoft'
 
     BACKEND = 'office365'
@@ -398,7 +392,6 @@ class TestDirdOffice365PluginNoEndpoint(BaseOffice365TestCase):
 
 
 class TestDirdOffice365PluginErrorEndpoint(BaseOffice365TestCase):
-
     asset = 'dird_microsoft'
 
     BACKEND = 'office365'

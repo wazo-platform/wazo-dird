@@ -1,4 +1,4 @@
-# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -113,7 +113,6 @@ PAGED_OFFICE365_CONTACTS_LIST = [
 
 
 class BaseOffice365AssetTestCase(BaseDirdIntegrationTest):
-
     OFFICE365_EXTERNAL_AUTH = {
         "access_token": "an-access-token",
         "scope": "a-scope",
@@ -122,7 +121,6 @@ class BaseOffice365AssetTestCase(BaseDirdIntegrationTest):
 
 
 class TestOffice365ContactList(BaseOffice365AssetTestCase):
-
     asset = 'dird_microsoft'
 
     def setUp(self):

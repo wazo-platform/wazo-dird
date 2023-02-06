@@ -1,4 +1,4 @@
-# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class GoogleService(SelfSortingServiceMixin):
-
     USER_AGENT = 'wazo_ua/1.0'
 
     people_url = 'https://people.googleapis.com/v1/people/me/connections'
@@ -147,7 +146,6 @@ def get_google_access_token(user_uuid, wazo_token, **auth_config):
 
 
 class ContactFormatter:
-
     chars_to_remove = [' ', '-', '(', ')']
 
     def format(self, contact):
