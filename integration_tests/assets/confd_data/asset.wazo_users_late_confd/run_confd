@@ -5,4 +5,4 @@ while [ ! -e /var/local/start-confd ] ; do
     sleep 1
 done
 cd /tmp
-python -m SimpleHTTPServer 9486
+python3 -m http.server 9486
