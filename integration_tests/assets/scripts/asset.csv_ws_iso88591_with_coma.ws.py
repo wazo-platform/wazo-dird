@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+#!/usr/bin/env python3
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-from __future__ import unicode_literals
-
 import sys
 
 from flask import Flask, request, Response
@@ -22,8 +19,8 @@ separator = sys.argv[1]
 charset = sys.argv[2]
 
 
-def line(fields, separator=separator):
-    return '{}\n'.format(separator.join(fields)).encode(charset)
+def line(fields, sep=separator):
+    return f'{sep.join(fields)}\n'.encode(charset)
 
 
 @app.route('/ws')
@@ -51,7 +48,7 @@ def ws():
         for entry in data:
             yield line(entry)
 
-    return Response(generate(), content_type='text/csv; charset={}'.format(charset))
+    return Response(generate(), content_type=f'text/csv; charset={charset}')
 
 
 def main():

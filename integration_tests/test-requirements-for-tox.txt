@@ -5,8 +5,7 @@ https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 
 openapi-spec-validator
 pyhamcrest
-# pytest 4.2.0 has a bug: https://github.com/pytest-dev/pytest/issues/4700
-pytest!=4.2.0
+pytest
 python-ldap
 sh
 
@@ -17,15 +16,14 @@ unidecode==1.0.23
 cheroot==6.5.4
 kombu
 stevedore
-flask-cors==3.0.7
-flask-restful==0.3.7
-flask==1.0.2
-importlib_metadata<5.0.0  # from kombu - https://github.com/celery/kombu/issues/1600
-itsdangerous==0.24  # from flask
-jinja2==2.10  # from flask
-markupsafe==1.1.0  # from flask
+flask-cors==3.0.9
+flask-restful==0.3.8
+flask==1.1.2
+itsdangerous==1.1.0  # from flask
+jinja2==2.11.3  # from flask
+markupsafe==1.1.1 # from jinja
 marshmallow==3.10.0
-werkzeug==0.14.1
+werkzeug==1.0.1
 https://github.com/wazo-platform/wazo-lib-rest-client/archive/master.zip
 https://github.com/wazo-platform/wazo-auth-client/archive/master.zip
 https://github.com/wazo-platform/wazo-confd-client/archive/master.zip

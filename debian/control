@@ -2,19 +2,19 @@ Source: wazo-dird
 Section: python
 Priority: optional
 Maintainer: Wazo Maintainers <dev@wazo.community>
-Build-Depends: debhelper (>= 9), dh-python, dh-systemd (>= 1.5), python3-all, python3-setuptools
+Build-Depends: debhelper (>= 12), dh-python, python3-all, python3-setuptools
 Standards-Version: 3.9.6
-X-Python-Version: >= 3.7
+X-Python-Version: >= 3.9
 
 Package: wazo-dird
 Architecture: all
 Depends: ${python3:Depends},
          ${misc:Depends},
-         alembic (>= 0.8.8),
-         python3-alembic (>= 0.8.8),
+         alembic,
+         python3-alembic,
          python3-cheroot,
          python3-flask,
-         python3-flask-cors (>= 3.0.2),
+         python3-flask-cors,
          python3-flask-restful,
          python3-graphql-core (>= 3.2),
          python3-graphql-server (>= 3.0.0),
