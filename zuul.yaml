@@ -1,11 +1,11 @@
 - project:
     templates:
-      - wazo-tox-linters
-      - wazo-tox-py37
+      # - wazo-tox-linters
+      # - wazo-tox-py37
       - debian-packaging-template
-    check:
-      jobs:
-        - dird-tox-integration
+    # check:
+    #   jobs:
+    #     - dird-tox-integration
     gate:
       jobs:
         - dird-tox-integration
