@@ -1,9 +1,9 @@
-# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
 
-from flask_graphql import GraphQLView
+from graphql_server.flask import GraphQLView
 from wazo_dird import BaseViewPlugin
 from wazo_dird import http_server
 from xivo.auth_verifier import (
@@ -23,7 +23,7 @@ class AuthorizationMiddleware:
         self._auth_client = auth_client
 
     def _is_root_query(self, info):
-        return len(info.path) == 1
+        return info.path.prev is None
 
     def _is_authorized(self, info, token_id):
         root_field = info.field_name
@@ -69,12 +69,11 @@ class GraphQLViewPlugin(BaseViewPlugin):
         authorization_middleware = AuthorizationMiddleware(config['auth'], auth_client)
 
         app.add_url_rule(
-            '/{version}/graphql'.format(version=http_server.VERSION),
+            f'/{http_server.VERSION}/graphql',
             view_func=GraphQLView.as_view(
                 'graphql',
-                schema=schema,
+                schema=schema.graphql_schema,
                 middleware=[authorization_middleware],
-                # get_context: source: https://github.com/graphql-python/flask-graphql/issues/52#issuecomment-412773200
-                get_context=lambda: {'resolver': resolver},
+                context={'resolver': resolver},
             ),
         )

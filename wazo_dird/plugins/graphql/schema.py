@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from graphene import (
@@ -14,9 +14,7 @@ from graphene import (
 
 
 class ContactInterface(Interface):
-    class Meta:
-        interfaces = [relay.Node]
-
+    # These are two words... should be first_name and last_name
     firstname = Field(String)
     lastname = Field(String)
     email = Field(String)
@@ -56,12 +54,12 @@ class ContactInterface(Interface):
 
 class Contact(ObjectType):
     class Meta:
-        interfaces = [ContactInterface]
+        interfaces = (ContactInterface,)
 
 
 class WazoContact(ObjectType):
     class Meta:
-        interfaces = [ContactInterface]
+        interfaces = (ContactInterface,)
 
     user_id = Field(String)
     user_uuid = Field(String)

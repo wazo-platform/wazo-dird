@@ -1,4 +1,4 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
@@ -19,10 +19,11 @@ class Resolver:
 
     def get_user_me(self, root, info, **args):
         token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
+        token_info = auth.client().token.get(token)
+        metadata = token_info['metadata']
         info.context['token_id'] = token
-        info.context['user_uuid'] = token_infos['metadata']['uuid']
-        info.context['tenant_uuid'] = token_infos['metadata']['tenant_uuid']
+        info.context['user_uuid'] = metadata['uuid']
+        info.context['tenant_uuid'] = metadata['tenant_uuid']
         return {}
 
     def get_user_me_uuid(self, root, info, **args):
