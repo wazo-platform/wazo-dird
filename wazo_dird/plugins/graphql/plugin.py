@@ -1,9 +1,13 @@
 # Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Callable
 
 import requests
 
 from graphql_server.flask import GraphQLView
+
 from wazo_dird import BaseViewPlugin
 from wazo_dird import http_server
 from xivo.auth_verifier import (
@@ -16,16 +20,21 @@ from .exceptions import graphql_error_from_api_exception
 from .resolver import Resolver
 from .schema import make_schema
 
+if TYPE_CHECKING:
+    from wazo_auth_client.client import AuthClient
+    from wazo_dird.plugins.source_result import _SourceResult
+    from .resolver import ResolveInfo
+
 
 class AuthorizationMiddleware:
-    def __init__(self, auth_config, auth_client):
+    def __init__(self, auth_config, auth_client: AuthClient) -> None:
         self._auth_config = auth_config
         self._auth_client = auth_client
 
-    def _is_root_query(self, info):
+    def _is_root_query(self, info: ResolveInfo) -> bool:
         return info.path.prev is None
 
-    def _is_authorized(self, info, token_id):
+    def _is_authorized(self, info: ResolveInfo, token_id: str) -> bool:
         root_field = info.field_name
         required_acl = f'dird.graphql.{root_field}'
         try:
@@ -37,11 +46,13 @@ class AuthorizationMiddleware:
 
         return token_is_valid
 
-    def _is_schema_query(self, info):
+    def _is_schema_query(self, info: ResolveInfo) -> bool:
         root_field = info.field_name
         return root_field == '__schema'
 
-    def resolve(self, next, root, info, **args):
+    def resolve(
+        self, next: Callable, root: _SourceResult, info: ResolveInfo, **args: Any
+    ):
         if not self._is_root_query(info):
             return next(root, info, **args)
 
