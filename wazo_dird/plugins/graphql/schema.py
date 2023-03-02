@@ -76,16 +76,16 @@ class WazoContact(ObjectType):
     agent_id = Field(String)
 
     def resolve_user_id(contact, info: ResolveInfo):
-        return info.context['resolver'].get_contact_user_id(contact, info)
+        return info.context['resolver'].get_contact_related_field(contact, info)
 
     def resolve_user_uuid(contact, info: ResolveInfo):
         return info.context['resolver'].get_contact_user_uuid(contact, info)
 
     def resolve_endpoint_id(contact, info: ResolveInfo):
-        return info.context['resolver'].get_contact_endpoint_id(contact, info)
+        return info.context['resolver'].get_contact_related_field(contact, info)
 
     def resolve_agent_id(contact, info: ResolveInfo):
-        return info.context['resolver'].get_contact_agent_id(contact, info)
+        return info.context['resolver'].get_contact_related_field(contact, info)
 
 
 class ContactConnection(Connection):

@@ -351,7 +351,10 @@ class TestGraphQLWazoBackend(BaseDirdIntegrationTest):
                                 firstname
                                 lastname
                                 ... on WazoContact {
-                                    userUuid
+                                    userUuid,
+                                    userId,
+                                    agentId,
+                                    endpointId
                                 }
                             }
                         }
@@ -362,7 +365,6 @@ class TestGraphQLWazoBackend(BaseDirdIntegrationTest):
         }
 
         response = self.dird.graphql.query(query)
-
         assert_that(
             response['data']['me']['contacts']['edges'],
             contains(
@@ -373,6 +375,9 @@ class TestGraphQLWazoBackend(BaseDirdIntegrationTest):
                             'firstname': 'John',
                             'lastname': 'Doe',
                             'userUuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
+                            'userId': '1',
+                            'agentId': '3',
+                            'endpointId': '2',
                         }
                     ),
                 ),

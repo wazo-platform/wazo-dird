@@ -82,6 +82,11 @@ class Resolver:
     def get_contact_field(self, contact: _SourceResult, info: ResolveInfo, **args: Any):
         return contact.fields.get(info.field_name)
 
+    def get_contact_related_field(
+        self, contact: _SourceResult, info: ResolveInfo, **args: Any
+    ):
+        return contact.relations.get(info.field_name.replace('Id', '_id'))
+
     def get_contact_user_uuid(
         self, contact: _SourceResult, info: ResolveInfo, **args: Any
     ):
