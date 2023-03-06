@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 
 
 class ContactInterface(Interface):
-    # These are two words... should be first_name and last_name
     firstname = Field(String)
     lastname = Field(String)
     email = Field(String)
