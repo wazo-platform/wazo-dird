@@ -35,11 +35,6 @@ def upgrade():
         ['tenant_uuid'],
     )
     op.create_index(
-        'dird_display_column__idx__display_uuid',
-        'dird_display_column',
-        ['display_uuid'],
-    )
-    op.create_index(
         'dird_phonebook__idx__tenant_uuid',
         'dird_phonebook',
         ['tenant_uuid'],
@@ -90,7 +85,6 @@ def downgrade():
     op.drop_index('dird_profile__idx__display_tenant_uuid')
     op.drop_index('dird_profile__idx__tenant_uuid')
     op.drop_index('dird_phonebook__idx__tenant_uuid')
-    op.drop_index('dird_display_column__idx__display_uuid')
     op.drop_index('dird_display__idx__tenant_uuid')
     op.drop_index('dird_contact_fields__idx__contact_uuid')
     op.drop_index('dird_contact__idx__phonebook_id')

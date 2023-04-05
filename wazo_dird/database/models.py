@@ -67,9 +67,6 @@ class Display(Base):
 
 class DisplayColumn(Base):
     __tablename__ = 'dird_display_column'
-    __table_args__ = (
-        schema.Index('dird_display_column__idx__display_uuid', 'display_uuid'),
-    )
 
     uuid = Column(
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
