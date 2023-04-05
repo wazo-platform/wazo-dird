@@ -122,8 +122,8 @@ class Profile(Base):
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
         schema.UniqueConstraint('name', 'tenant_uuid'),
         schema.ForeignKeyConstraint(
-            ['display_uuid', 'display_tenant_uuid'],
-            ['dird_display.uuid', 'dird_display.tenant_uuid'],
+            ('display_uuid', 'display_tenant_uuid'),
+            ('dird_display.uuid', 'dird_display.tenant_uuid'),
             ondelete='SET NULL',
             name='dird_profile_display_uuid_tenant_fkey',
         ),
@@ -151,14 +151,14 @@ class ProfileServiceSource(Base):
     __tablename__ = 'dird_profile_service_source'
     __table_args__ = (
         schema.ForeignKeyConstraint(
-            ['profile_service_uuid', 'profile_tenant_uuid'],
-            ['dird_profile_service.uuid', 'dird_profile_service.profile_tenant_uuid'],
+            ('profile_service_uuid', 'profile_tenant_uuid'),
+            ('dird_profile_service.uuid', 'dird_profile_service.profile_tenant_uuid'),
             ondelete='CASCADE',
             name='dird_profile_service_source_profile_service_uuid_tenant_fkey',
         ),
         schema.ForeignKeyConstraint(
-            ['source_uuid', 'source_tenant_uuid'],
-            ['dird_source.uuid', 'dird_source.tenant_uuid'],
+            ('source_uuid', 'source_tenant_uuid'),
+            ('dird_source.uuid', 'dird_source.tenant_uuid'),
             ondelete='CASCADE',
             name='dird_profile_service_source_source_uuid_tenant_fkey',
         ),
@@ -178,8 +178,8 @@ class ProfileService(Base):
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'profile_tenant_uuid'),
         schema.ForeignKeyConstraint(
-            ['profile_uuid', 'profile_tenant_uuid'],
-            ['dird_profile.uuid', 'dird_profile.tenant_uuid'],
+            ('profile_uuid', 'profile_tenant_uuid'),
+            ('dird_profile.uuid', 'dird_profile.tenant_uuid'),
             ondelete='CASCADE',
             name='dird_profile_service_profile_uuid_tenant_fkey',
         ),
