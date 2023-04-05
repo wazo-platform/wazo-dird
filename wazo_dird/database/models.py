@@ -17,6 +17,8 @@ class Contact(Base):
     __table_args__ = (
         schema.UniqueConstraint('user_uuid', 'hash'),
         schema.UniqueConstraint('phonebook_id', 'hash'),
+        schema.Index('dird_contact__idx__user_uuid', 'user_uuid'),
+        schema.Index('dird_contact__idx__phonebook_id', 'phonebook_id'),
     )
 
     uuid = Column(
@@ -33,6 +35,9 @@ class Contact(Base):
 
 class ContactFields(Base):
     __tablename__ = 'dird_contact_fields'
+    __table_args__ = (
+        schema.Index('dird_contact_fields__idx__contact_uuid', 'contact_uuid'),
+    )
 
     id = Column(Integer(), primary_key=True)
     name = Column(Text(), nullable=False, index=True)
@@ -44,7 +49,10 @@ class ContactFields(Base):
 
 class Display(Base):
     __tablename__ = 'dird_display'
-    __table_args__ = (schema.UniqueConstraint('uuid', 'tenant_uuid'),)
+    __table_args__ = (
+        schema.UniqueConstraint('uuid', 'tenant_uuid'),
+        schema.Index('dird_display__idx__tenant_uuid', 'tenant_uuid'),
+    )
 
     uuid = Column(
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
@@ -59,6 +67,9 @@ class Display(Base):
 
 class DisplayColumn(Base):
     __tablename__ = 'dird_display_column'
+    __table_args__ = (
+        schema.Index('dird_display_column__idx__display_uuid', 'display_uuid'),
+    )
 
     uuid = Column(
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
@@ -96,6 +107,7 @@ class Phonebook(Base):
     __table_args__ = (
         schema.UniqueConstraint('name', 'tenant_uuid'),
         schema.CheckConstraint("name != ''"),
+        schema.Index('dird_phonebook__idx__tenant_uuid', 'tenant_uuid'),
     )
 
     id = Column(Integer, primary_key=True)
@@ -116,6 +128,9 @@ class Profile(Base):
             name='dird_profile_display_uuid_tenant_fkey',
         ),
         schema.CheckConstraint('tenant_uuid = display_tenant_uuid'),
+        schema.Index('dird_profile__idx__tenant_uuid', 'tenant_uuid'),
+        schema.Index('dird_profile__idx__display_tenant_uuid', 'display_tenant_uuid'),
+        schema.Index('dird_profile__idx__display_uuid', 'display_uuid'),
     )
 
     uuid = Column(
@@ -168,6 +183,18 @@ class ProfileService(Base):
             ondelete='CASCADE',
             name='dird_profile_service_profile_uuid_tenant_fkey',
         ),
+        schema.Index(
+            'dird_profile_service__idx__profile_uuid',
+            'profile_uuid',
+        ),
+        schema.Index(
+            'dird_profile_service__idx__profile_tenant_uuid',
+            'profile_tenant_uuid',
+        ),
+        schema.Index(
+            'dird_profile_service__idx__service_uuid',
+            'service_uuid',
+        ),
     )
 
     uuid = Column(
@@ -199,6 +226,7 @@ class Source(Base):
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
         schema.UniqueConstraint('name', 'tenant_uuid'),
+        schema.Index('dird_source__idx__tenant_uuid', 'tenant_uuid'),
     )
 
     uuid = Column(
