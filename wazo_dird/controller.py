@@ -1,8 +1,9 @@
-# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import signal
+import threading
 
 from functools import partial
 
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 class Controller:
     def __init__(self, config):
         self.config = config
+        self._stopping_thread = None
         init_db(config['db_uri'])
         self.rest_api = CoreRestApi(self.config)
         self.bus = CoreBus(config.get('uuid'), **config['bus'])
@@ -53,7 +55,8 @@ class Controller:
         )
 
     def run(self):
-        signal.signal(signal.SIGTERM, partial(_sigterm_handler, self))
+        signal.signal(signal.SIGTERM, partial(_signal_handler, self))
+        signal.signal(signal.SIGINT, partial(_signal_handler, self))
         self.services = plugin_manager.load_services(
             self.config,
             self.config['enabled_plugins']['services'],
@@ -81,11 +84,14 @@ class Controller:
                         plugin_manager.unload_views()
                         plugin_manager.unload_services()
                         self._source_manager.unload_sources()
+                        if self._stopping_thread:
+                            self._stopping_thread.join()
 
     def stop(self, reason):
         logger.warning('Stopping wazo-dird: %s', reason)
-        self.rest_api.stop()
+        self._stopping_thread = threading.Thread(target=self.rest_api.stop, name=reason)
+        self._stopping_thread.start()
 
 
-def _sigterm_handler(controller, signum, frame):
-    controller.stop(reason='SIGTERM')
+def _signal_handler(controller, signum, frame):
+    controller.stop(reason=signal.Signals(signum).name)

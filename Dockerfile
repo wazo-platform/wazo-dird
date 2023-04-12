@@ -1,7 +1,7 @@
-FROM python:3.7-slim-buster AS compile-image
+FROM python:3.9-slim-bullseye AS compile-image
 LABEL maintainer="Wazo Maintainers <dev@wazo.community>"
 
-RUN python -m venv /opt/venv
+RUN python3 -m venv /opt/venv
 # Activate virtual env
 ENV PATH="/opt/venv/bin:$PATH"
 
@@ -10,10 +10,10 @@ RUN apt-get -yq install gcc libldap2-dev libsasl2-dev
 
 COPY . /usr/src/wazo-dird
 WORKDIR /usr/src/wazo-dird
-RUN pip install -r requirements.txt
-RUN python setup.py install
+RUN pip3 install -r requirements.txt
+RUN python3 setup.py install
 
-FROM python:3.7-slim-buster AS build-image
+FROM python:3.9-slim-bullseye AS build-image
 COPY --from=compile-image /opt/venv /opt/venv
 
 COPY ./etc/wazo-dird /etc/wazo-dird

@@ -26,9 +26,9 @@ docker build -f contribs/docker/wazo-dird-db.Dockerfile -t wazoplatform/wazo-dir
 ## Running unit tests
 
 ```sh
-apt-get install libpq-dev python-dev libffi-dev libyaml-dev libldap2-dev libsasl2-dev
+apt-get install libpq-dev python3-dev libffi-dev libyaml-dev libldap2-dev libsasl2-dev
 pip install tox
-tox --recreate -e py37
+tox --recreate -e py39
 ```
 
 ## Running integration tests

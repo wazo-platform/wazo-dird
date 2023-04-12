@@ -11,8 +11,8 @@ build-ws-mock-image:
 	docker build -f docker/wazo-dird-ws-mock.Dockerfile -t wazoplatform/wazo-dird-ws-mock:local .
 
 egg-info:
-	cd .. && python setup.py egg_info
-	cd docker/broken-plugins && python setup.py egg_info
+	cd .. && python3 setup.py egg_info
+	cd docker/broken-plugins && python3 setup.py egg_info
 
 test:
 	pytest
