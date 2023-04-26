@@ -88,16 +88,19 @@ class _SourceResult:
     def __ne__(self, other):
         return not self == other
 
-    def __repr__(self):
-        return '%s(%s, %s, %s, %s, %s, %s)' % (
-            self.__class__.__name__,
-            self.fields,
-            self.relations['xivo_id'],
-            self.relations['agent_id'],
-            self.relations['user_id'],
-            self.relations['user_uuid'],
-            self.relations['endpoint_id'],
+    def __repr__(self) -> str:
+        data = ', '.join(
+            str(datum)
+            for datum in (
+                self.fields,
+                self.relations['xivo_id'],
+                self.relations['agent_id'],
+                self.relations['user_id'],
+                self.relations['user_uuid'],
+                self.relations['endpoint_id'],
+            )
         )
+        return f'{self.__class__.__name__}({data})'
 
 
 def make_result_class(

@@ -90,6 +90,6 @@ class PhonebookPlugin(BaseSourcePlugin):
                 return phonebook['id']
 
         raise InvalidConfigError(
-            'sources/{}/phonebook_name'.format(self._source_name),
-            'unknown phonebook {}'.format(phonebook_name),
+            f'sources/{self._source_name}/phonebook_name',
+            f'unknown phonebook {phonebook_name}',
         )

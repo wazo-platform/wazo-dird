@@ -106,13 +106,13 @@ class CSVPlugin(BaseSourcePlugin):
                 return
             try:
                 logger.debug('Reading %s with delimiter %r', filename, delimiter)
-                with open(filename, 'r') as f:
+                with open(filename) as f:
                     csvreader = csv.reader(f, delimiter=delimiter)
                     keys = [key for key in next(csvreader)]
                     self._content = [self._row_to_dict(keys, row) for row in csvreader]
                     logger.debug('Loaded with %s', self._content)
                 self._csv_last_modification_time = tmp_csv_file_last_modification_date
-            except IOError:
+            except OSError:
                 logger.exception('Could not load CSV file content')
         except FileNotFoundError:
             logger.exception('Could not locate CSV file on the system')

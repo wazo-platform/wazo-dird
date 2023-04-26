@@ -184,9 +184,7 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
 
     @classmethod
     def url(cls, *parts):
-        return 'http://127.0.0.1:{port}/0.1/{parts}'.format(
-            port=cls.port, parts="/".join(map(str, parts))
-        )
+        return f'http://127.0.0.1:{cls.port}/0.1/{"/".join(map(str, parts))}'
 
     @classmethod
     def get_config(cls, token):
@@ -344,7 +342,7 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
     @classmethod
     def import_personal_result(cls, csv, token=None, encoding='utf-8'):
         url = cls.url('personal', 'import')
-        content_type = 'text/csv; charset={}'.format(encoding)
+        content_type = f'text/csv; charset={encoding}'
         headers = {'X-Auth-Token': token, 'Content-Type': content_type}
         return cls.post(url, data=csv, headers=headers)
 

@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unidecode import unidecode
@@ -64,7 +64,7 @@ class PersonalContactSearchEngine(BaseDAO):
         if not columns:
             return False
 
-        pattern = '%{}%'.format(unidecode(term))
+        pattern = f'%{unidecode(term)}%'
         return and_(
             User.user_uuid == user_uuid,
             unaccent(ContactFields.value).ilike(pattern),

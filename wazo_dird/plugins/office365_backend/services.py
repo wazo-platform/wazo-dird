@@ -140,7 +140,7 @@ class Office365Service(SelfSortingServiceMixin):
     def headers(self, microsoft_token):
         return {
             'User-Agent': self.USER_AGENT,
-            'Authorization': 'Bearer {0}'.format(microsoft_token),
+            'Authorization': f'Bearer {microsoft_token}',
             'Accept': 'application/json',
             'client-request-id': str(uuid.uuid4),
             'return-client-request-id': 'true',

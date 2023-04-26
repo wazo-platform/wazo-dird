@@ -249,14 +249,12 @@ class _LDAPConfig:
         return self._config['ldap_custom_filter'].replace('%Q', term_escaped)
 
     def _build_search_filter_from_searched_columns(self, term_escaped):
-        list_ = list(
-            '(%s=*%s*)' % (attr, term_escaped) for attr in self.searched_columns()
-        )
+        list_ = list(f'({attr}=*{term_escaped}*)' for attr in self.searched_columns())
         return self._build_filter_from_list(list_)
 
     def _build_exact_search_filter_from_first_matched_columns(self, term_escaped):
         list_ = list(
-            '(%s=%s)' % (attr, term_escaped) for attr in self.first_matched_columns()
+            f'({attr}={term_escaped})' for attr in self.first_matched_columns()
         )
         return self._build_filter_from_list(list_)
 
@@ -274,7 +272,7 @@ class _LDAPConfig:
 
         list_ = []
         for uid in self._convert_uids(uids):
-            list_.append('(%s=%s)' % (unique_column, uid))
+            list_.append(f'({unique_column}={uid})')
         return self._build_filter_from_list(list_)
 
     def _convert_uids(self, uids):

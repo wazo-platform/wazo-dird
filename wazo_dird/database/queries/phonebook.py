@@ -31,7 +31,7 @@ class PhonebookContactSearchEngine(BaseDAO):
         self._phonebook_id = phonebook_id
 
     def find_contacts(self, term):
-        pattern = '%{}%'.format(term)
+        pattern = f'%{term}%'
         filter_ = self._new_search_filter(pattern, self._searched_columns)
         with self.new_session() as s:
             return self._find_contacts_with_filter(s, filter_)
@@ -187,7 +187,7 @@ class PhonebookContactCRUD(BaseDAO):
     def _list_contacts(self, s, query, phonebook_id, search):
         filter_ = and_(
             Contact.phonebook_id == phonebook_id,
-            ContactFields.value.ilike('%{}%'.format(search)) if search else True,
+            ContactFields.value.ilike(f'%{search}%') if search else True,
         )
         return s.query(query).join(Contact).join(Phonebook).filter(filter_)
 
@@ -227,9 +227,7 @@ class PhonebookCRUD(BaseDAO):
             for attribute_name, value in phonebook_body.items():
                 if not hasattr(phonebook, attribute_name):
                     raise TypeError(
-                        '{} has no attribute {}'.format(
-                            phonebook.__class__.__name__, attribute_name
-                        )
+                        f'{phonebook.__class__.__name__} has no attribute {attribute_name}'
                     )
                 setattr(phonebook, attribute_name, value)
             self.flush_or_raise(s, DuplicatedPhonebookException)
@@ -275,9 +273,7 @@ class PhonebookCRUD(BaseDAO):
             order_by_column = getattr(Phonebook, order_by_column_name)
         except AttributeError:
             raise TypeError(
-                '{} has no attribute {}'.format(
-                    Phonebook.__class__.__name__, order_by_column_name
-                )
+                f'{Phonebook.__class__.__name__} has no attribute {order_by_column_name}'
             )
         direction = direction or self._default_sort_direction
         order_by_column_and_direction = getattr(order_by_column, direction)()
@@ -303,7 +299,7 @@ class PhonebookCRUD(BaseDAO):
         if not search:
             return Phonebook.tenant_uuid == tenant_uuid
         else:
-            pattern = '%{}%'.format(search)
+            pattern = f'%{search}%'
             return and_(
                 Phonebook.tenant_uuid == tenant_uuid,
                 or_(

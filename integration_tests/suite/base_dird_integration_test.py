@@ -1,4 +1,4 @@
-# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -16,7 +16,7 @@ requests.packages.urllib3.disable_warnings()
 
 def absolute_file_name(asset_name, path):
     dirname, basename = os.path.split(path)
-    real_basename = 'asset.{}.{}'.format(asset_name, basename)
+    real_basename = f'asset.{asset_name}.{basename}'
     return os.path.join(ASSET_ROOT, dirname, real_basename)
 
 

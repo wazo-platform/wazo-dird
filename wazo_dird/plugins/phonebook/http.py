@@ -86,7 +86,7 @@ class _ArgParser:
         if value in valid_values:
             return value
 
-        raise InvalidArgumentError('{} should be one of {}'.format(name, valid_values))
+        raise InvalidArgumentError(f'{name} should be one of {valid_values}')
 
     @staticmethod
     def _get_positive_int(args, name):
@@ -97,7 +97,7 @@ class _ArgParser:
         except ValueError:
             pass
 
-        raise InvalidArgumentError('{} should be a positive integer'.format(name))
+        raise InvalidArgumentError(f'{name} should be a positive integer')
 
 
 def _default_error_route(f):
@@ -209,9 +209,9 @@ class ContactImport(_Resource):
 
         reader = csv.reader(data)
         fields = next(reader)
-        duplicates = list(set([f for f in fields if fields.count(f) > 1]))
+        duplicates = list({f for f in fields if fields.count(f) > 1})
         if duplicates:
-            return _make_error('duplicate columns: {}'.format(duplicates), 400)
+            return _make_error(f'duplicate columns: {duplicates}', 400)
 
         to_add = [c for c in csv.DictReader(data)]
         created, failed = self.phonebook_service.import_contacts(

@@ -19,20 +19,20 @@ class DatabaseServiceUnavailable(Exception):
 class NoSuchDisplay(APIException):
     def __init__(self, uuid):
         display_uuid = str(uuid)
-        msg = 'No such display: "{}"'.format(display_uuid)
+        msg = f'No such display: "{display_uuid}"'
         details = {'uuid': display_uuid}
         super().__init__(404, msg, 'unknown-display', details, 'displays')
 
 
 class NoSuchFavorite(ValueError):
     def __init__(self, contact_id):
-        message = "No such favorite: {}".format(contact_id)
+        message = f"No such favorite: {contact_id}"
         super().__init__(message)
 
 
 class NoSuchPhonebook(ValueError):
     def __init__(self, phonebook_id):
-        message = 'No such phonebook: {}'.format(phonebook_id)
+        message = f'No such phonebook: {phonebook_id}'
         super().__init__(message)
 
 
@@ -41,7 +41,7 @@ class NoSuchProfile(OldAPIException):
         self.profile = profile
         status_code = 404
         body = {
-            'reason': ['The profile `{}` does not exist'.format(profile)],
+            'reason': [f'The profile `{profile}` does not exist'],
             'timestamp': [time()],
             'status_code': status_code,
         }
@@ -51,7 +51,7 @@ class NoSuchProfile(OldAPIException):
 class NoSuchProfileAPIException(APIException):
     def __init__(self, uuid):
         profile_uuid = str(uuid)
-        msg = 'No such profile: "{}"'.format(profile_uuid)
+        msg = f'No such profile: "{profile_uuid}"'
         details = {'uuid': profile_uuid}
         super().__init__(404, msg, 'unknown-profile', details, 'profiles')
 
@@ -60,7 +60,7 @@ class NoSuchUser(OldAPIException):
     def __init__(self, user_uuid):
         status_code = 404
         body = {
-            'reason': ['The user `{}` does not exist'.format(user_uuid)],
+            'reason': [f'The user `{user_uuid}` does not exist'],
             'timestamp': [time()],
             'status_code': status_code,
         }
@@ -69,21 +69,21 @@ class NoSuchUser(OldAPIException):
 
 class NoSuchContact(ValueError):
     def __init__(self, contact_id):
-        message = "No such contact: {}".format(contact_id)
+        message = f"No such contact: {contact_id}"
         super().__init__(message)
 
 
 class NoSuchSource(APIException):
     def __init__(self, uuid):
         source_uuid = str(uuid)
-        msg = 'No such source: "{}"'.format(source_uuid)
+        msg = f'No such source: "{source_uuid}"'
         details = {'uuid': source_uuid}
         super().__init__(404, msg, 'unknown-source', details, 'sources')
 
 
 class NoSuchTenant(ValueError):
     def __init__(self, tenant_name):
-        message = 'No such tenant: {}'.format(tenant_name)
+        message = f'No such tenant: {tenant_name}'
         super().__init__(message)
 
 
@@ -107,14 +107,14 @@ class DuplicatedPhonebookException(Exception):
 
 class DuplicatedProfileException(APIException):
     def __init__(self, name):
-        msg = 'The name "{}" is already used'.format(name)
+        msg = f'The name "{name}" is already used'
         details = {'name': {'constraint_id': 'unique', 'message': msg}}
         super().__init__(409, 'Conflict detected', 'conflict', details, 'profiles')
 
 
 class DuplicatedSourceException(APIException):
     def __init__(self, name):
-        msg = 'The name "{}" is already used'.format(name)
+        msg = f'The name "{name}" is already used'
         details = {'name': {'constraint_id': 'unique', 'message': msg}}
         super().__init__(409, 'Conflict detected', 'conflict', details, 'sources')
 

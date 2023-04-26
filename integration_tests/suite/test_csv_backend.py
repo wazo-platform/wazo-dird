@@ -59,7 +59,7 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
             )
 
         finally:
-            with open(file_to_update, "r") as in_file:
+            with open(file_to_update) as in_file:
                 lines = in_file.readlines()[:-1]
 
             with open(file_to_update, "w+") as out_file:
@@ -68,7 +68,7 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
     def test_reverse_lookup(self):
         response = self.reverse('5555555555', 'default', VALID_UUID)
 
-        expected_display = '{} {}'.format(self._alice[0], self._alice[1])
+        expected_display = f'{self._alice[0]} {self._alice[1]}'
         assert_that(response, has_entries(display=expected_display))
 
     def test_that_listing_by_ids_works(self):

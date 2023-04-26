@@ -29,8 +29,7 @@ class GoogleService(SelfSortingServiceMixin):
         self.formatter = ContactFormatter()
 
     def get_contacts_with_term(self, google_token, term):
-        for contact in self._fetch(google_token, term=term):
-            yield contact
+        yield from self._fetch(google_token, term=term)
 
     def get_contacts(self, google_token, **list_params):
         contacts = list(self._fetch(google_token, term=list_params.get('search')))
@@ -111,7 +110,7 @@ class GoogleService(SelfSortingServiceMixin):
     def headers(self, google_token):
         return {
             'User-Agent': self.USER_AGENT,
-            'Authorization': 'Bearer {}'.format(google_token),
+            'Authorization': f'Bearer {google_token}',
             'Accept': 'application/json',
             'GData-Version': '3.0',
         }

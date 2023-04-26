@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 import random
 import requests
@@ -132,9 +132,7 @@ def google_result(contact_list, search_list=None):
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             google_port = self.service_port(443, 'people.googleapis.com')
-            mock_server = UnVerifiedMockServerClient(
-                'https://127.0.0.1:{}'.format(google_port)
-            )
+            mock_server = UnVerifiedMockServerClient(f'https://127.0.0.1:{google_port}')
 
             main_expectation = mock_server.create_expectation(
                 '/v1/people/me/connections', contact_list, 200
@@ -166,7 +164,7 @@ def office365_result(contact_list):
         def wrapper(self, *args, **kwargs):
             office365_port = self.service_port(443, 'microsoft.com')
             mock_server = UnVerifiedMockServerClient(
-                'http://127.0.0.1:{}'.format(office365_port)
+                f'http://127.0.0.1:{office365_port}'
             )
             expected_count = len(contact_list['value'])
             count_expectation = mock_server.create_expectation(
@@ -204,7 +202,7 @@ def office365_paginated_result(pages):
         def wrapper(self, *args, **kwargs):
             office365_port = self.service_port(443, 'microsoft.com')
             mock_server = UnVerifiedMockServerClient(
-                'http://127.0.0.1:{}'.format(office365_port)
+                f'http://127.0.0.1:{office365_port}'
             )
             expected_count = 0
             for current_page in pages:
@@ -252,7 +250,7 @@ def office365_error():
         def wrapper(self, *args, **kwargs):
             office365_port = self.service_port(443, 'microsoft.com')
             mock_server = UnVerifiedMockServerClient(
-                'http://127.0.0.1:{}'.format(office365_port)
+                f'http://127.0.0.1:{office365_port}'
             )
             expectation = mock_server.create_expectation(
                 '/v1.0/me/contacts/error', {}, 404

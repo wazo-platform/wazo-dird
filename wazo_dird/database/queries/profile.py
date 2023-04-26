@@ -117,7 +117,7 @@ class ProfileCRUD(BaseDAO):
         if name is not None:
             filter_ = and_(filter_, Profile.name == name)
         if search is not None:
-            pattern = '%{}%'.format(search)
+            pattern = f'%{search}%'
             filter_ = and_(filter_, Profile.name.ilike(pattern))
         return filter_
 

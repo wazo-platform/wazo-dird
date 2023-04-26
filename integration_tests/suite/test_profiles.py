@@ -444,7 +444,7 @@ class TestPost(BaseProfileTestCase):
             assert_that(e.response.status_code, equal_to(400))
             assert_that(e.response.json(), has_entries(error_id='invalid-data'))
         else:
-            self.fail('Should have raised: {}'.format(body))
+            self.fail(f'Should have raised: {body}')
 
 
 class TestPut(BaseProfileTestCase):
