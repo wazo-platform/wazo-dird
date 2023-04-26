@@ -32,7 +32,7 @@ class ApiResource(ErrorCatchingResource):
                     specs.append(spec)
             except ImportError:
                 logger.debug('failed to import %s', plugin_package)
-            except IOError:
+            except OSError:
                 logger.debug(
                     'API spec for module "%s" does not exist', module.module_name
                 )

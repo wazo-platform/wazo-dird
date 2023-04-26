@@ -15,10 +15,10 @@ class BackendService(SelfSortingServiceMixin):
                 continue
             configured_backends.add(backend_name)
 
-        installed_backends = set(
+        installed_backends = {
             module.name
             for module in iter_entry_points(group=self._backend_entry_points)
-        )
+        }
 
         self._backends = [
             {'name': backend} for backend in configured_backends & installed_backends

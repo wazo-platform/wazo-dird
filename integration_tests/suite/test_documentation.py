@@ -19,7 +19,7 @@ class TestDocumentation(DirdAssetRunningTestCase):
 
     def test_documentation_errors(self):
         port = self.service_port(9489, 'dird')
-        api_url = 'http://127.0.0.1:{port}/0.1/api/api.yml'.format(port=port)
+        api_url = f'http://127.0.0.1:{port}/0.1/api/api.yml'
         api = requests.get(api_url)
         api.raise_for_status()
         validate_spec(yaml.safe_load(api.text), validator=openapi_v2_spec_validator)

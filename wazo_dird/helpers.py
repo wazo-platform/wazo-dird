@@ -129,9 +129,7 @@ class BaseBackendView(BaseViewPlugin):
     def __init__(self, *args, **kwargs):
         members = [getattr(self, name, None) for name in self._required_members]
         if None in members:
-            msg = '{} should have the following members: {}'.format(
-                self.__class__.__name__, self._required_members
-            )
+            msg = f'{self.__class__.__name__} should have the following members: {self._required_members}'
             raise Exception(msg)
 
         super().__init__(*args, **kwargs)
@@ -145,11 +143,11 @@ class BaseBackendView(BaseViewPlugin):
 
         api.add_resource(
             self.list_resource,
-            '/backends/{}/sources'.format(self.backend),
+            f'/backends/{self.backend}/sources',
             resource_class_args=args,
         )
         api.add_resource(
             self.item_resource,
-            '/backends/{}/sources/<source_uuid>'.format(self.backend),
+            f'/backends/{self.backend}/sources/<source_uuid>',
             resource_class_args=args,
         )

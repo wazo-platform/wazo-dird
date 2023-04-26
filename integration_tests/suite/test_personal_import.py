@@ -141,13 +141,11 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
             break
 
         csv = textwrap.dedent(
-            '''\
+            f'''\
         id,firstname
-        {},not alice
+        {uuid},not alice
         29d4aec1-db4c-4c67-80a0-b83136c58a47,bob
-        '''.format(
-                uuid
-            )
+        '''
         )
         result = self.import_personal(csv, VALID_TOKEN_MAIN_TENANT)
 

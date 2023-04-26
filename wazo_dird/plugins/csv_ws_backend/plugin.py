@@ -135,5 +135,4 @@ class _CSVReader:
 
 def unicode_csv_reader(unicode_data, **kwargs):
     csv_reader = csv.reader(unicode_data.split('\n'), **kwargs)
-    for row in csv_reader:
-        yield row
+    yield from csv_reader

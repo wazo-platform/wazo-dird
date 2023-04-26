@@ -275,7 +275,7 @@ class TestPost(BaseDisplayTestCase):
             assert_that(e.response.status_code, equal_to(400))
             assert_that(e.response.json(), has_entries(error_id='invalid-data'))
         else:
-            self.fail('Should have raised: {}'.format(body))
+            self.fail(f'Should have raised: {body}')
 
     @contextmanager
     def create(self, client, *args, **kwargs):
@@ -354,7 +354,7 @@ class TestPut(BaseDisplayTestCase):
             assert_that(e.response.status_code, equal_to(400))
             assert_that(e.response.json(), has_entries(error_id='invalid-data'))
         else:
-            self.fail('Should have raised: {}'.format(body))
+            self.fail(f'Should have raised: {body}')
 
     @fixtures.display(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.display(name='foosub', token=VALID_TOKEN_SUB_TENANT)

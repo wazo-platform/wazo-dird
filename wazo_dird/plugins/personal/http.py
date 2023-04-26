@@ -93,7 +93,7 @@ class PersonalAll(LegacyAuthResource):
             return '', 204
         csv_text = io.StringIO()
         fieldnames = sorted(
-            list(set(attribute for contact in contacts for attribute in contact))
+            list({attribute for contact in contacts for attribute in contact})
         )
         for contact in contacts:
             for attribute in contact:

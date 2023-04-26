@@ -40,7 +40,7 @@ class _PersonalService:
 
     class InvalidPersonalContact(ValueError):
         def __init__(self, errors):
-            message = "Invalid personal contact: {}".format(errors)
+            message = f"Invalid personal contact: {errors}"
             ValueError.__init__(self, message)
             self.errors = errors
 
@@ -57,9 +57,9 @@ class _PersonalService:
     def create_contacts(self, contact_infos, user_uuid):
         errors = []
         to_add = []
-        existing_contact_uuids = set(
-            [contact['id'] for contact in self._crud.list_personal_contacts()]
-        )
+        existing_contact_uuids = {
+            contact['id'] for contact in self._crud.list_personal_contacts()
+        }
 
         for contact_info in contact_infos:
             try:
@@ -128,7 +128,7 @@ class _PersonalService:
         if existing_contact_uuids:
             uuid = contact_infos.get('id', contact_infos.get('uuid'))
             if uuid and uuid in existing_contact_uuids:
-                raise PersonalImportError('contact "{}" already exist'.format(uuid))
+                raise PersonalImportError(f'contact "{uuid}" already exist')
 
 
 class DisabledPersonalSource:

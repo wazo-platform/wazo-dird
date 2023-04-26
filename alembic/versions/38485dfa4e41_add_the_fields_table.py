@@ -13,8 +13,8 @@ revision = '38485dfa4e41'
 down_revision = '265d68f9c337'
 
 table_name = 'dird_contact_fields'
-name_index = '{}_name_idx'.format(table_name)
-value_index = '{}_value_idx'.format(table_name)
+name_index = f'{table_name}_name_idx'
+value_index = f'{table_name}_value_idx'
 
 
 def upgrade():

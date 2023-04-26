@@ -1,4 +1,4 @@
-# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -169,7 +169,7 @@ class Service:
     def _add_conference_source(self, tenant_uuid, name):
         backend = 'conference'
         body = dict(CONFERENCE_SOURCE_BODY)
-        body['name'] = 'auto_{}_{}'.format(backend, name)
+        body['name'] = f'auto_{backend}_{name}'
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
@@ -182,21 +182,21 @@ class Service:
     def _add_wazo_user_source(self, tenant_uuid, name):
         backend = 'wazo'
         body = dict(WAZO_SOURCE_BODY)
-        body['name'] = 'auto_{}_{}'.format(backend, name)
+        body['name'] = f'auto_{backend}_{name}'
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
     def _add_office365_source(self, tenant_uuid, name):
         backend = 'office365'
         body = dict(OFFICE_365_SOURCE_BODY)
-        body['name'] = 'auto_{}_{}'.format(backend, name)
+        body['name'] = f'auto_{backend}_{name}'
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
     def _add_google_source(self, tenant_uuid, name):
         backend = 'google'
         body = dict(GOOGLE_SOURCE_BODY)
-        body['name'] = 'auto_{}_{}'.format(backend, name)
+        body['name'] = f'auto_{backend}_{name}'
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
@@ -216,7 +216,7 @@ class Service:
         try:
             display = display_service.create(
                 tenant_uuid=tenant_uuid,
-                name='auto_{}'.format(name),
+                name=f'auto_{name}',
                 columns=DEFAULT_DISPLAY_COLUMNS,
             )
             logger.info(

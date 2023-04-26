@@ -34,12 +34,8 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
         return {
             'type': 'csv_ws',
             'name': 'my_csv',
-            'list_url': 'https://127.0.0.1:{port}/ws'.format(
-                port=self.service_port(9485, 'ws')
-            ),
-            'lookup_url': 'https://127.0.0.1:{port}/ws'.format(
-                port=self.service_port(9485, 'ws')
-            ),
+            'list_url': f'https://127.0.0.1:{self.service_port(9485, "ws")}/ws',
+            'lookup_url': f'https://127.0.0.1:{self.service_port(9485, "ws")}/ws',
             'verify_certificate': False,
             'delimiter': "|",
             'unique_column': 'id',
@@ -98,12 +94,8 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
         return {
             'type': 'csv_ws',
             'name': 'my_csv',
-            'list_url': 'http://127.0.0.1:{port}/ws'.format(
-                port=self.service_port(9485, 'ws')
-            ),
-            'lookup_url': 'http://127.0.0.1:{port}/ws'.format(
-                port=self.service_port(9485, 'ws')
-            ),
+            'list_url': f'http://127.0.0.1:{self.service_port(9485, "ws")}/ws',
+            'lookup_url': f'http://127.0.0.1:{self.service_port(9485, "ws")}/ws',
             'delimiter': ',',
             'unique_column': 'id',
             'searched_columns': ['firstname', 'lastname'],

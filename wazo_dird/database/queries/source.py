@@ -94,7 +94,7 @@ class SourceCRUD(BaseDAO):
         if name is not None:
             filter_ = and_(filter_, Source.name == name)
         if search is not None:
-            pattern = '%{}%'.format(search)
+            pattern = f'%{search}%'
             filter_ = and_(filter_, Source.name.ilike(pattern))
 
         return filter_
@@ -140,7 +140,7 @@ class SourceCRUD(BaseDAO):
         searched_columns,
         first_matched_columns,
         format_columns,
-        **extra_fields
+        **extra_fields,
     ):
         source.name = name
         source.searched_columns = searched_columns
@@ -159,5 +159,5 @@ class SourceCRUD(BaseDAO):
             searched_columns=source.searched_columns,
             first_matched_columns=source.first_matched_columns,
             format_columns=source.format_columns,
-            **source.extra_fields or {}
+            **source.extra_fields or {},
         )

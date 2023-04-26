@@ -1,4 +1,4 @@
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import ldap
@@ -392,7 +392,7 @@ class TestLDAPConfig(unittest.TestCase):
         ldap_config = _LDAPConfig(
             {
                 BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
-                'ldap_custom_filter': str('(cn=*%Q*)'),
+                'ldap_custom_filter': '(cn=*%Q*)',
             }
         )
 

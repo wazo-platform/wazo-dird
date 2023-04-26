@@ -30,9 +30,9 @@ Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
 
 class LDAPHelper:
     BASE_DN = 'dc=wazo-dird,dc=wazo,dc=community'
-    ADMIN_DN = 'cn=admin,{}'.format(BASE_DN)
+    ADMIN_DN = f'cn=admin,{BASE_DN}'
     ADMIN_PASSWORD = 'wazopassword'
-    QUEBEC_DN = 'ou=québec,{}'.format(BASE_DN)
+    QUEBEC_DN = f'ou=québec,{BASE_DN}'
 
     def __init__(self, ldap_uri):
         self._ldap_obj = ldap.initialize(ldap_uri)
@@ -46,8 +46,8 @@ class LDAPHelper:
         self._ldap_obj.add_s(self.QUEBEC_DN, modlist)
 
     def add_contact(self, contact):
-        cn = '{} {}'.format(contact.firstname, contact.lastname)
-        dn = 'cn={},{}'.format(cn, self.QUEBEC_DN)
+        cn = f'{contact.firstname} {contact.lastname}'
+        dn = f'cn={cn},{self.QUEBEC_DN}'
         modlist = addModlist(
             {
                 'objectClass': [b'inetOrgPerson'],
@@ -100,7 +100,7 @@ class TestLDAP(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        ldap_uri = 'ldap://127.0.0.1:{port}'.format(port=cls.service_port(389, 'slapd'))
+        ldap_uri = f'ldap://127.0.0.1:{cls.service_port(389, "slapd")}'
 
         try:
             cls.entry_uuids = add_contacts(cls.CONTACTS, ldap_uri)
@@ -171,7 +171,7 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        ldap_uri = 'ldap://127.0.0.1:{port}'.format(port=cls.service_port(389, 'slapd'))
+        ldap_uri = f'ldap://127.0.0.1:{cls.service_port(389, "slapd")}'
 
         try:
             cls.entry_uuids = add_contacts(cls.CONTACTS, ldap_uri)
