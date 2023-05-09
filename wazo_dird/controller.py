@@ -26,7 +26,7 @@ class Controller:
     def __init__(self, config):
         self.config = config
         self._stopping_thread = None
-        init_db(config['db_uri'])
+        init_db(config['db_uri'], pool_size=config['rest_api']['max_threads'])
         self.rest_api = CoreRestApi(self.config)
         self.bus = CoreBus(config.get('uuid'), **config['bus'])
         auth.set_auth_config(self.config['auth'])
