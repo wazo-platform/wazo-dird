@@ -547,3 +547,54 @@ class TestGetPersonal(PersonalOnlyTestCase):
 
         assert_that(contact_get, equal_to(contact_post))
         assert_that(contact_get, equal_to(contact_put))
+
+
+class TestSearchPersonal(PersonalOnlyTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.post_personal({'firstname': 'Alice'})
+        self.post_personal({'firstname': 'Etienne'})
+        self.post_personal({'firstname': 'Céline'})
+        self.post_personal({'firstname': 'Ãlberto'})
+        self.post_personal({'firstname': 'Bob'})
+
+    def test_that_search_ordered_returns_right_order(self):
+        result = self.list_personal(order='firstname')
+        assert_that(
+            result['items'],
+            contains(
+                has_entry('firstname', 'Alice'),
+                has_entry('firstname', 'Ãlberto'),
+                has_entry('firstname', 'Bob'),
+                has_entry('firstname', 'Céline'),
+                has_entry('firstname', 'Etienne'),
+            ),
+        )
+
+        result = self.list_personal(order='firstname', direction='desc')
+        assert_that(
+            result['items'],
+            contains(
+                has_entry('firstname', 'Etienne'),
+                has_entry('firstname', 'Céline'),
+                has_entry('firstname', 'Bob'),
+                has_entry('firstname', 'Ãlberto'),
+                has_entry('firstname', 'Alice'),
+            ),
+        )
+
+        wrong_column = 'invalid'
+        response = self.list_personal_result(
+            VALID_TOKEN_MAIN_TENANT,
+            order= wrong_column)
+        assert_that(response.status_code, equal_to(400))
+        assert_that(response.json(), has_entry('reason',f"order: column '{wrong_column}' was not found"))
+
+        wrong_direction = 'invalid'
+        response = self.list_personal_result(
+            VALID_TOKEN_MAIN_TENANT,
+            direction =wrong_direction)
+        assert_that(response.status_code, equal_to(400))
+        assert_that(response.json(),
+                    has_entry('reason', 'direction must be asc or desc'))

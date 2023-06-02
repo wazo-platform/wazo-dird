@@ -86,15 +86,23 @@ class PersonalContactSearchEngine(BaseDAO):
 
 
 class PersonalContactCRUD(BaseDAO):
-    def list_personal_contacts(self, user_uuid=None):
+    def list_personal_contacts(self, user_uuid=None, search_params={}):
         filter_ = text('true')
         if user_uuid:
             filter_ = and_(filter_, Contact.user_uuid == user_uuid)
 
+        order, limit, offset, reverse = self._extract_search_params(
+            search_params)
+
         with self.new_session() as s:
             query = s.query(distinct(Contact.uuid)).filter(filter_)
             contact_uuids = [uuid for (uuid,) in query.all()]
-            return list_contacts_by_uuid(s, contact_uuids)
+            return self._apply_search_params(
+                list_contacts_by_uuid(s, contact_uuids),
+                order,
+                limit,
+                offset,
+                reverse)
 
     def create_personal_contact(self, user_uuid, contact_info):
         with self.new_session() as s:

@@ -101,8 +101,8 @@ class _PersonalService:
         formatted_contacts = source.format_contacts(contacts)
         return formatted_contacts
 
-    def list_contacts_raw(self, user_uuid):
-        return self._crud.list_personal_contacts(user_uuid)
+    def list_contacts_raw(self, user_uuid, search_params=None):
+        return self._crud.list_personal_contacts(user_uuid, search_params=search_params)
 
     def _find_personal_source(self, tenant_uuid):
         source_service = self._controller.services['source']
