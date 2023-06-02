@@ -550,7 +550,6 @@ class TestGetPersonal(PersonalOnlyTestCase):
 
 
 class TestSearchPersonal(PersonalOnlyTestCase):
-
     def setUp(self):
         super().setUp()
         self.post_personal({'firstname': 'Alice'})
@@ -586,15 +585,19 @@ class TestSearchPersonal(PersonalOnlyTestCase):
 
         wrong_column = 'invalid'
         response = self.list_personal_result(
-            VALID_TOKEN_MAIN_TENANT,
-            order= wrong_column)
+            VALID_TOKEN_MAIN_TENANT, order=wrong_column
+        )
         assert_that(response.status_code, equal_to(400))
-        assert_that(response.json(), has_entry('reason',f"order: column '{wrong_column}' was not found"))
+        assert_that(
+            response.json(),
+            has_entry('reason', f"order: column '{wrong_column}' was not found"),
+        )
 
         wrong_direction = 'invalid'
         response = self.list_personal_result(
-            VALID_TOKEN_MAIN_TENANT,
-            direction =wrong_direction)
+            VALID_TOKEN_MAIN_TENANT, direction=wrong_direction
+        )
         assert_that(response.status_code, equal_to(400))
-        assert_that(response.json(),
-                    has_entry('reason', 'direction must be asc or desc'))
+        assert_that(
+            response.json(), has_entry('reason', 'direction must be asc or desc')
+        )

@@ -126,7 +126,7 @@ class BaseDAO:
         if not limit:
             return rows[offset:]
         else:
-            return rows[offset:offset + limit]
+            return rows[offset : offset + limit]
 
     def validate_parameters(self, parameters):
         if parameters['offset'] < 0:
