@@ -68,7 +68,7 @@ class Office365Service(SelfSortingServiceMixin):
         headers = self.headers(microsoft_token)
         response = self._get_data(url, headers, {'$count': 'true'})
         count = response.json().get('@odata.count', 0)
-        logger.debug(f'Microsoft contacts number: %s', count)
+        logger.debug(f'Microsoft contacts number: {count}')
         return count
 
     def _paginate(self, contacts, limit=None, offset=None, **_):
