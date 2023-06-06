@@ -66,7 +66,7 @@ class Office365Service(SelfSortingServiceMixin):
 
     def _get_total_contacts(self, microsoft_token, url):
         headers = self.headers(microsoft_token)
-        response = self.get_data(url, headers, {'$count': 'true'})
+        response = self._get_data(url, headers, {'$count': 'true'})
         count = response.json().get('@odata.count', 0)
         logger.debug(f'Microsoft contacts number: %s', count)
         return count
