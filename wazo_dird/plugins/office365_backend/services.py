@@ -55,7 +55,7 @@ class Office365Service(SelfSortingServiceMixin):
         else:
             logger.error(
                 f'An error occured while fetching data from Microsoft {url} - ',
-                response.json()
+                response.json(),
             )
             raise UnexpectedEndpointException(
                 endpoint=url, error_code=response.status_code
@@ -68,9 +68,7 @@ class Office365Service(SelfSortingServiceMixin):
         headers = self.headers(microsoft_token)
         response = self.get_data(url, headers, {'$count': 'true'})
         count = response.json().get('@odata.count', 0)
-        logger.debug(
-            f'Microsoft contacts number: %s', count
-        )
+        logger.debug(f'Microsoft contacts number: %s', count)
         return count
 
     def _paginate(self, contacts, limit=None, offset=None, **_):
