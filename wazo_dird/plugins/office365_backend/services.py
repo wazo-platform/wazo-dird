@@ -48,18 +48,25 @@ class Office365Service(SelfSortingServiceMixin):
         return contacts
 
     def _get_data(self, url, headers, params=None):
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code == 200:
-            logger.debug(f'Successfully fetched data from Microsoft {url}')
-            return response
-        else:
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            if response.status_code == 200:
+                logger.debug(f'Successfully fetched data from Microsoft {url}')
+                return response
+            else:
+                logger.error(
+                    f'An error occured while fetching data from Microsoft {url} - ',
+                    response.json(),
+                )
+                raise UnexpectedEndpointException(
+                    endpoint=url, error_code=response.status_code
+                )
+        except requests.RequestException:
             logger.error(
                 f'An error occured while fetching data from Microsoft {url} - ',
                 response.json(),
             )
-            raise UnexpectedEndpointException(
-                endpoint=url, error_code=response.status_code
-            )
+            raise UnexpectedEndpointException(endpoint=url)
 
     def _extract_contacts(self, response):
         return response.json().get('value', [])
