@@ -601,3 +601,13 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         assert_that(
             response.json(), has_entry('reason', 'direction must be asc or desc')
         )
+
+    def test_that_search_limited_returns_right_number(self):
+        result = self.list_personal(order='firstname', limit=2)
+        assert_that(
+            result['items'],
+            contains(
+                has_entry('firstname', 'Alice'),
+                has_entry('firstname', 'Ãlberto'),
+            ),
+        )

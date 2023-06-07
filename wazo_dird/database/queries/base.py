@@ -129,10 +129,10 @@ class BaseDAO:
             return rows[offset : offset + limit]
 
     def validate_parameters(self, parameters):
-        if parameters['offset'] < 0:
+        if int(parameters['offset']) < 0:
             raise ValueError('offset must be positive number')
 
-        if parameters['limit'] is not None and parameters['limit'] <= 0:
+        if parameters['limit'] is not None and int(parameters['limit']) <= 0:
             raise ValueError('limit must be a positive number')
 
         if parameters['direction'] not in self.SORT_DIRECTIONS.keys():
@@ -144,7 +144,7 @@ class BaseDAO:
         self.validate_parameters(parameters)
 
         order = parameters.pop('order', None)
-        limit = parameters.pop('limit', None)
-        offset = parameters.pop('offset', 0)
+        limit = int(parameters.pop('limit', 0))
+        offset = int(parameters.pop('offset', 0))
         reverse = False if parameters.pop('direction', 'asc') == 'asc' else True
         return order, limit, offset, reverse
