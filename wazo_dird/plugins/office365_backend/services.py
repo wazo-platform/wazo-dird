@@ -62,9 +62,7 @@ class Office365Service(SelfSortingServiceMixin):
                     endpoint=url, error_code=response.status_code
                 )
         except requests.RequestException as e:
-            logger.error(
-                f'An error occured while fetching data from Microsoft {url}', e
-            )
+            logger.error(f'An error occured while fetching data from Microsoft {url}')
             raise UnexpectedEndpointException(endpoint=url)
 
     def _extract_contacts(self, response):
