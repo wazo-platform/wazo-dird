@@ -144,7 +144,9 @@ class BaseDAO:
         self.validate_parameters(parameters)
 
         order = parameters.pop('order', None)
-        limit = int(parameters.pop('limit', 0))
+        limit = parameters.pop('limit', None)
+        if limit is not None:
+            limit = int(limit)
         offset = int(parameters.pop('offset', 0))
         reverse = False if parameters.pop('direction', 'asc') == 'asc' else True
         return order, limit, offset, reverse
