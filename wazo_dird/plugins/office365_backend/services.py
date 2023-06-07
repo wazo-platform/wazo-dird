@@ -61,7 +61,7 @@ class Office365Service(SelfSortingServiceMixin):
                 raise UnexpectedEndpointException(
                     endpoint=url, error_code=response.status_code
                 )
-        except requests.RequestException as e:
+        except requests.RequestException:
             logger.error(f'An error occured while fetching data from Microsoft {url}')
             raise UnexpectedEndpointException(endpoint=url)
 
