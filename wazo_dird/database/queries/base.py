@@ -6,6 +6,7 @@ import json
 import unicodedata
 
 from contextlib import contextmanager
+from itertools import islice
 from sqlalchemy import exc
 from wazo_dird.exception import DatabaseServiceUnavailable
 from wazo_dird.database import Tenant, User
@@ -102,12 +103,10 @@ class BaseDAO:
 
         return user
 
-    def _populate_parameters(self, parameters=None):
+    def _generate_parameters(self, parameters):
         new_params = dict(self.DEFAULTS)
         if parameters:
-            parameters.setdefault('offset', self.DEFAULTS['offset'])
             new_params.update(parameters)
-
         return new_params
 
     def _apply_search_params(self, rows, order, limit, offset, reverse):
@@ -121,12 +120,9 @@ class BaseDAO:
             except KeyError:
                 raise ValueError(f"order: column '{order}' was not found")
         elif reverse:
-            rows.reverse()
+            rows = reversed(rows)
 
-        if not limit:
-            return rows[offset:]
-        else:
-            return rows[offset : offset + limit]
+        return list(islice(rows, offset, offset + limit if limit else None))
 
     def validate_parameters(self, parameters):
         if int(parameters['offset']) < 0:
@@ -138,9 +134,8 @@ class BaseDAO:
         if parameters['direction'] not in self.SORT_DIRECTIONS.keys():
             raise ValueError('direction must be asc or desc')
 
-    def _extract_search_params(self, parameters={}):
-        parameters = parameters.copy()
-        parameters = self._populate_parameters(parameters)
+    def _extract_search_params(self, parameters):
+        parameters = self._generate_parameters(parameters)
         self.validate_parameters(parameters)
 
         order = parameters.pop('order', None)
@@ -148,5 +143,5 @@ class BaseDAO:
         if limit is not None:
             limit = int(limit)
         offset = int(parameters.pop('offset', 0))
-        reverse = False if parameters.pop('direction', 'asc') == 'asc' else True
+        reverse = not (parameters.pop('direction', 'asc') == 'asc')
         return order, limit, offset, reverse

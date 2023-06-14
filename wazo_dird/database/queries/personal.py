@@ -86,7 +86,7 @@ class PersonalContactSearchEngine(BaseDAO):
 
 
 class PersonalContactCRUD(BaseDAO):
-    def list_personal_contacts(self, user_uuid=None, search_params={}):
+    def list_personal_contacts(self, user_uuid=None, search_params=None):
         filter_ = text('true')
         if user_uuid:
             filter_ = and_(filter_, Contact.user_uuid == user_uuid)
