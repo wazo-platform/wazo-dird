@@ -36,18 +36,20 @@ class Office365Service(SelfSortingServiceMixin):
             return []
 
         headers = self.headers(microsoft_token)
-        response = self._get_data(url, headers, {'$top': count})
-        contacts = self._extract_contacts(response)
+        response = self._fetch_response(url, headers, {'$top': count})
+        data = response.json()
+        contacts = self._extract_contacts(data)
 
-        while '@odata.nextLink' in response.json():
+        while '@odata.nextLink' in data:
             logger.debug('Moving to the next page...')
-            next_page_url = response.json().get('@odata.nextLink')
-            response = self._get_data(next_page_url, headers)
-            contacts += self._extract_contacts(response)
+            next_page_url = data.get('@odata.nextLink')
+            response = self._fetch_response(next_page_url, headers)
+            data = response.json()
+            contacts += self._extract_contacts(data)
 
         return contacts
 
-    def _get_data(self, url, headers, params=None):
+    def _fetch_response(self, url, headers, params=None):
         try:
             response = requests.get(url, headers=headers, params=params)
             if response.status_code == 200:
@@ -55,8 +57,7 @@ class Office365Service(SelfSortingServiceMixin):
                 return response
             else:
                 logger.error(
-                    f'An error occured while fetching data from Microsoft {url} - ',
-                    response.json(),
+                    f'An error occured while fetching data from Microsoft {url} - {response.text}'
                 )
                 raise UnexpectedEndpointException(
                     endpoint=url, error_code=response.status_code
@@ -65,12 +66,12 @@ class Office365Service(SelfSortingServiceMixin):
             logger.error(f'An error occured while fetching data from Microsoft {url}')
             raise UnexpectedEndpointException(endpoint=url)
 
-    def _extract_contacts(self, response):
-        return response.json().get('value', [])
+    def _extract_contacts(self, data):
+        return data.get('value', [])
 
     def _get_total_contacts(self, microsoft_token, url):
         headers = self.headers(microsoft_token)
-        response = self._get_data(url, headers, {'$count': 'true'})
+        response = self._fetch_response(url, headers, {'$count': 'true'})
         count = response.json().get('@odata.count', 0)
         logger.debug(f'Microsoft contacts number: {count}')
         return count
