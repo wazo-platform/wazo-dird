@@ -1,10 +1,12 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import hashlib
 import json
+import unicodedata
 
 from contextlib import contextmanager
+from itertools import islice
 from sqlalchemy import exc
 from wazo_dird.exception import DatabaseServiceUnavailable
 from wazo_dird.database import Tenant, User
@@ -47,6 +49,19 @@ def compute_contact_hash(contact_info):
 
 
 class BaseDAO:
+    SORT_DIRECTIONS = {
+        'asc': None,
+        'desc': None,
+    }
+
+    DEFAULTS = {
+        'search': None,
+        'order': None,
+        'direction': 'asc',
+        'limit': None,
+        'offset': 0,
+    }
+
     def __init__(self, Session):
         self._Session = Session
 
@@ -87,3 +102,46 @@ class BaseDAO:
             session.flush()
 
         return user
+
+    def _generate_parameters(self, parameters):
+        new_params = dict(self.DEFAULTS)
+        if parameters:
+            new_params.update(parameters)
+        return new_params
+
+    def _apply_search_params(self, rows, order, limit, offset, reverse):
+        if order:
+            try:
+                rows = sorted(
+                    rows,
+                    key=lambda x: unicodedata.normalize('NFKD', x[order]),
+                    reverse=reverse,
+                )
+            except KeyError:
+                raise ValueError(f"order: column '{order}' was not found")
+        elif reverse:
+            rows = reversed(rows)
+
+        return list(islice(rows, offset, offset + limit if limit else None))
+
+    def validate_parameters(self, parameters):
+        if int(parameters['offset']) < 0:
+            raise ValueError('offset must be positive number')
+
+        if parameters['limit'] is not None and int(parameters['limit']) <= 0:
+            raise ValueError('limit must be a positive number')
+
+        if parameters['direction'] not in self.SORT_DIRECTIONS.keys():
+            raise ValueError('direction must be asc or desc')
+
+    def _extract_search_params(self, parameters):
+        parameters = self._generate_parameters(parameters)
+        self.validate_parameters(parameters)
+
+        order = parameters.pop('order', None)
+        limit = parameters.pop('limit', None)
+        if limit is not None:
+            limit = int(limit)
+        offset = int(parameters.pop('offset', 0))
+        reverse = not (parameters.pop('direction', 'asc') == 'asc')
+        return order, limit, offset, reverse

@@ -355,13 +355,13 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
         return response.json()
 
     @classmethod
-    def list_personal_result(cls, token=None):
+    def list_personal_result(cls, token=None, **parameters):
         url = cls.url('personal')
-        return cls.get(url, token=token)
+        return cls.get(url, token=token, params=parameters)
 
     @classmethod
-    def list_personal(cls, token=VALID_TOKEN_MAIN_TENANT):
-        response = cls.list_personal_result(token)
+    def list_personal(cls, token=VALID_TOKEN_MAIN_TENANT, **parameters):
+        response = cls.list_personal_result(token, **parameters)
         assert_that(response.status_code, equal_to(200))
         return response.json()
 

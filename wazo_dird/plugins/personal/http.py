@@ -64,8 +64,13 @@ class PersonalAll(LegacyAuthResource):
     @required_acl('dird.personal.read')
     def get(self):
         user_uuid = _get_calling_user_uuid()
-
-        contacts = self.personal_service.list_contacts_raw(user_uuid)
+        try:
+            contacts = self.personal_service.list_contacts_raw(
+                user_uuid, search_params=request.args
+            )
+        except ValueError as e:
+            error = {'reason': str(e), 'timestamp': [time()], 'status_code': 400}
+            return error, 400
 
         mimetype = request.mimetype
         if not mimetype:
