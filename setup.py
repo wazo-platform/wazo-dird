@@ -59,6 +59,7 @@ setup(
             'office365_backend = wazo_dird.plugins.office365_backend.plugin:Office365View',
             'personal_view = wazo_dird.plugins.personal.plugin:PersonalViewPlugin',
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
+            'phonebook_deprecated_view = wazo_dird.plugins.phonebook_deprecated.plugin:DeprecatedPhonebookViewPlugin',
             'phonebook_backend = wazo_dird.plugins.phonebook_backend.plugin:PhonebookView',
             'status_view = wazo_dird.plugins.status.plugin:StatusViewPlugin',
             'personal_backend = wazo_dird.plugins.personal_backend.plugin:PersonalView',
