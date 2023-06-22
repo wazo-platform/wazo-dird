@@ -272,49 +272,6 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
             self.delete_favorite_result(source, source_entry_id, token)
 
     @classmethod
-    def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
-        url = cls.url('tenants', tenant, 'phonebooks')
-        return cls.post(url, json=phonebook_body, token=token)
-
-    @classmethod
-    def put_phonebook(
-        cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN_MAIN_TENANT
-    ):
-        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        return cls.put(url, json=phonebook_body, token=token)
-
-    @classmethod
-    def post_phonebook_contact(
-        cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN_MAIN_TENANT
-    ):
-        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
-        return cls.post(url, json=contact_body, token=token)
-
-    @classmethod
-    def import_phonebook_contact(
-        cls, tenant, phonebook_id, body, token=VALID_TOKEN_MAIN_TENANT
-    ):
-        url = cls.url(
-            'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', 'import'
-        )
-        headers = {'X-Auth-Token': token, 'Context-Type': 'text/csv; charset=utf-8'}
-        return cls.post(url, data=body, headers=headers)
-
-    @classmethod
-    def put_phonebook_contact(
-        cls,
-        tenant,
-        phonebook_id,
-        contact_uuid,
-        contact_body,
-        token=VALID_TOKEN_MAIN_TENANT,
-    ):
-        url = cls.url(
-            'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid
-        )
-        return cls.put(url, json=contact_body, token=token)
-
-    @classmethod
     def post_personal_result(cls, personal_infos, token=None):
         url = cls.url('personal')
         return cls.post(url, json=personal_infos, token=token)
@@ -360,12 +317,6 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
         return response.json()
 
     @classmethod
-    def list_phonebooks(cls, tenant, token=None, **kwargs):
-        token = token or VALID_TOKEN_MAIN_TENANT
-        url = cls.url('tenants', tenant, 'phonebooks')
-        return cls.get(url, params=kwargs, token=token)
-
-    @classmethod
     def export_personal_result(cls, token=None):
         url = cls.url('personal')
         return cls.get(url, params={'format': 'text/csv'}, token=token)
@@ -388,27 +339,6 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
         return response.json()
 
     @classmethod
-    def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
-        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        return cls.get(url, token=token)
-
-    @classmethod
-    def get_phonebook_contact(
-        cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN_MAIN_TENANT
-    ):
-        url = cls.url(
-            'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid
-        )
-        return cls.get(url, token=token)
-
-    @classmethod
-    def list_phonebook_contacts(
-        cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT, **kwargs
-    ):
-        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
-        return cls.get(url, params=kwargs, token=token)
-
-    @classmethod
     def put_personal_result(cls, personal_id, personal_infos, token=None):
         url = cls.url('personal', personal_id)
         return cls.put(url, json=personal_infos, token=token)
@@ -428,20 +358,6 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
     def delete_personal(cls, personal_id, token=VALID_TOKEN_MAIN_TENANT):
         response = cls.delete_personal_result(personal_id, token)
         assert_that(response.status_code, equal_to(204))
-
-    @classmethod
-    def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
-        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
-        return cls.delete(url, token=token)
-
-    @classmethod
-    def delete_phonebook_contact(
-        cls, tenant, phonebook_id, contact_id, token=VALID_TOKEN_MAIN_TENANT
-    ):
-        url = cls.url(
-            'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_id
-        )
-        return cls.delete(url, token=token)
 
     @classmethod
     def purge_personal_result(cls, token=None):
@@ -506,6 +422,90 @@ class BasePhonebookTestCase(BaseDirdIntegrationTest):
 
     def setUp(self):
         self.tenants = {}
+
+    @classmethod
+    def get_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
+        return cls.get(url, token=token)
+
+    @classmethod
+    def list_phonebooks(cls, tenant, token=None, **kwargs):
+        token = token or VALID_TOKEN_MAIN_TENANT
+        url = cls.url('tenants', tenant, 'phonebooks')
+        return cls.get(url, params=kwargs, token=token)
+
+    @classmethod
+    def get_phonebook_contact(
+        cls, tenant, phonebook_id, contact_uuid, token=VALID_TOKEN_MAIN_TENANT
+    ):
+        url = cls.url(
+            'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid
+        )
+        return cls.get(url, token=token)
+
+    @classmethod
+    def list_phonebook_contacts(
+        cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT, **kwargs
+    ):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
+        return cls.get(url, params=kwargs, token=token)
+
+    @classmethod
+    def post_phonebook(cls, tenant, phonebook_body, token=VALID_TOKEN_MAIN_TENANT):
+        url = cls.url('tenants', tenant, 'phonebooks')
+        return cls.post(url, json=phonebook_body, token=token)
+
+    @classmethod
+    def put_phonebook(
+        cls, tenant, phonebook_id, phonebook_body, token=VALID_TOKEN_MAIN_TENANT
+    ):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
+        return cls.put(url, json=phonebook_body, token=token)
+
+    @classmethod
+    def post_phonebook_contact(
+        cls, tenant, phonebook_id, contact_body, token=VALID_TOKEN_MAIN_TENANT
+    ):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id, 'contacts')
+        return cls.post(url, json=contact_body, token=token)
+
+    @classmethod
+    def import_phonebook_contact(
+        cls, tenant, phonebook_id, body, token=VALID_TOKEN_MAIN_TENANT
+    ):
+        url = cls.url(
+            'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', 'import'
+        )
+        headers = {'X-Auth-Token': token, 'Context-Type': 'text/csv; charset=utf-8'}
+        return cls.post(url, data=body, headers=headers)
+
+    @classmethod
+    def put_phonebook_contact(
+        cls,
+        tenant,
+        phonebook_id,
+        contact_uuid,
+        contact_body,
+        token=VALID_TOKEN_MAIN_TENANT,
+    ):
+        url = cls.url(
+            'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_uuid
+        )
+        return cls.put(url, json=contact_body, token=token)
+
+    @classmethod
+    def delete_phonebook(cls, tenant, phonebook_id, token=VALID_TOKEN_MAIN_TENANT):
+        url = cls.url('tenants', tenant, 'phonebooks', phonebook_id)
+        return cls.delete(url, token=token)
+
+    @classmethod
+    def delete_phonebook_contact(
+        cls, tenant, phonebook_id, contact_id, token=VALID_TOKEN_MAIN_TENANT
+    ):
+        url = cls.url(
+            'tenants', tenant, 'phonebooks', phonebook_id, 'contacts', contact_id
+        )
+        return cls.delete(url, token=token)
 
     def tearDown(self):
         for tenant_name in self.tenants:
