@@ -3,7 +3,7 @@
 
 from unittest.mock import ANY
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to, has_entries
-from .helpers.base import BaseDeprecatedPhonebookTestCase
+from .helpers.phonebook_deprecated import BaseDeprecatedPhonebookTestCase
 
 
 class TestList(BaseDeprecatedPhonebookTestCase):
