@@ -3,10 +3,10 @@
 
 from unittest.mock import ANY
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to, has_entries
-from .helpers.base import BasePhonebookTestCase
+from .helpers.base import BaseDeprecatedPhonebookTestCase
 
 
-class TestList(BasePhonebookTestCase):
+class TestList(BaseDeprecatedPhonebookTestCase):
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
@@ -85,7 +85,7 @@ class TestList(BasePhonebookTestCase):
             assert_that(result.status_code, equal_to(400), value)
 
 
-class TestPost(BasePhonebookTestCase):
+class TestPost(BaseDeprecatedPhonebookTestCase):
     def test_unknown_tenant(self):
         self.set_tenants()
         valid_body = {'name': 'foobar'}
@@ -122,7 +122,7 @@ class TestPost(BasePhonebookTestCase):
             assert_that(result.status_code, equal_to(400), body)
 
 
-class TestGet(BasePhonebookTestCase):
+class TestGet(BaseDeprecatedPhonebookTestCase):
     def test_unknown_tenant(self):
         self.set_tenants('valid')
         valid_body = {'name': 'foobar'}
@@ -156,7 +156,7 @@ class TestGet(BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(404))
 
 
-class TestDelete(BasePhonebookTestCase):
+class TestDelete(BaseDeprecatedPhonebookTestCase):
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
@@ -190,7 +190,7 @@ class TestDelete(BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(404))
 
 
-class TestPut(BasePhonebookTestCase):
+class TestPut(BaseDeprecatedPhonebookTestCase):
     def test_unknown_tenant(self):
         self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
@@ -256,7 +256,7 @@ class TestPut(BasePhonebookTestCase):
         assert_that(result.status_code, equal_to(409))
 
 
-class _BasePhonebookContactTestCase(BasePhonebookTestCase):
+class _BasePhonebookContactTestCase(BaseDeprecatedPhonebookTestCase):
     def setUp(self):
         super().setUp()
         self.tenant_1 = 'valid'

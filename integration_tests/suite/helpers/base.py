@@ -417,7 +417,7 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
         return result['bus_consumer']['status'] != 'fail'
 
 
-class BasePhonebookTestCase(BaseDirdIntegrationTest):
+class BaseDeprecatedPhonebookTestCase(BaseDirdIntegrationTest):
     asset = 'phonebook_only'
 
     def setUp(self):
