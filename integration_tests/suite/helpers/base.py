@@ -2,48 +2,42 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
+import uuid
+from contextlib import contextmanager
 
 import requests
-import uuid
-
-from contextlib import contextmanager
+from hamcrest import assert_that, equal_to, has_entries
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-
-from hamcrest import assert_that, equal_to, has_entries
-
+from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers import until
 from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
+from wazo_test_helpers.auth import AuthClient as MockAuthClient
+from wazo_test_helpers.auth import MockCredentials, MockUserToken
 from wazo_test_helpers.db import DBUserClient
-from wazo_test_helpers.auth import (
-    AuthClient as MockAuthClient,
-    MockCredentials,
-    MockUserToken,
-)
-from wazo_dird_client import Client as DirdClient
+
 from wazo_dird import database
 
-from .constants import (
-    ASSET_ROOT,
-    DB_URI_FMT,
-    MAIN_TENANT,
-    MAIN_USER_UUID,
-    SUB_TENANT,
-    VALID_TOKEN_SUB_TENANT,
-    USER_2_TOKEN,
-    USER_1_UUID,
-    USER_2_UUID,
-    VALID_TOKEN_MAIN_TENANT,
-    WAZO_UUID,
-)
 from .config import (
     new_csv_with_multiple_displays_config,
     new_half_broken_config,
     new_null_config,
     new_personal_only_config,
 )
+from .constants import (
+    ASSET_ROOT,
+    DB_URI_FMT,
+    MAIN_TENANT,
+    MAIN_USER_UUID,
+    SUB_TENANT,
+    USER_1_UUID,
+    USER_2_TOKEN,
+    USER_2_UUID,
+    VALID_TOKEN_MAIN_TENANT,
+    VALID_TOKEN_SUB_TENANT,
+    WAZO_UUID,
+)
 from .wait_strategy import RestApiOkWaitStrategy
-
 
 START_TIMEOUT = int(os.environ.get('INTEGRATION_TEST_TIMEOUT', '30'))
 

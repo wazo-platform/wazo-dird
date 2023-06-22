@@ -1,13 +1,13 @@
 # Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import csv
 import logging
 import time
-import csv
 import traceback
+from functools import wraps
 
 from flask import request
-from functools import wraps
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
