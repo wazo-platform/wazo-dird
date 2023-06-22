@@ -82,7 +82,45 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
         until.true(database.is_up, timeout=5, message='Postgres did not come back up')
 
 
-class BaseDirdIntegrationTest(DBRunningTestCase):
+class RequestUtilMixin:
+    @staticmethod
+    def _update_headers(kwargs, defaults=None):
+        token = kwargs.pop('token', None)
+        tenant = kwargs.pop('tenant', None)
+        kwargs.setdefault('headers', {})
+        kwargs['headers'].setdefault('X-Auth-Token', token)
+        kwargs['headers'].setdefault('Wazo-Tenant', tenant)
+        if defaults:
+            for k, v in defaults.items():
+                kwargs['headers'].setdefault(k, v)
+        return kwargs
+
+    @staticmethod
+    def delete(*args, **kwargs):
+        kwargs = RequestUtilMixin._update_headers(kwargs)
+        return requests.delete(*args, **kwargs)
+
+    @staticmethod
+    def get(*args, **kwargs):
+        kwargs = RequestUtilMixin._update_headers(kwargs)
+        return requests.get(*args, **kwargs)
+
+    @staticmethod
+    def post(*args, **kwargs):
+        kwargs = RequestUtilMixin._update_headers(
+            kwargs, defaults={'Content-Type': 'application/json'}
+        )
+        return requests.post(*args, **kwargs)
+
+    @staticmethod
+    def put(*args, **kwargs):
+        kwargs = RequestUtilMixin._update_headers(
+            kwargs, defaults={'Content-Type': 'application/json'}
+        )
+        return requests.put(*args, **kwargs)
+
+
+class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
     wait_strategy = RestApiOkWaitStrategy()
     config_factory = new_null_config
 
@@ -379,34 +417,6 @@ class BaseDirdIntegrationTest(DBRunningTestCase):
         response = cls.get_personal_with_profile_result(profile, token)
         assert_that(response.status_code, equal_to(200))
         return response.json()
-
-    @staticmethod
-    def delete(*args, **kwargs):
-        token = kwargs.pop('token', None)
-        kwargs.setdefault('headers', {'X-Auth-Token': token})
-        return requests.delete(*args, **kwargs)
-
-    @staticmethod
-    def get(*args, **kwargs):
-        token = kwargs.pop('token', None)
-        kwargs.setdefault('headers', {'X-Auth-Token': token})
-        return requests.get(*args, **kwargs)
-
-    @staticmethod
-    def post(*args, **kwargs):
-        token = kwargs.pop('token', None)
-        kwargs.setdefault(
-            'headers', {'X-Auth-Token': token, 'Content-Type': 'application/json'}
-        )
-        return requests.post(*args, **kwargs)
-
-    @staticmethod
-    def put(*args, **kwargs):
-        token = kwargs.pop('token', None)
-        kwargs.setdefault(
-            'headers', {'X-Auth-Token': token, 'Content-Type': 'application/json'}
-        )
-        return requests.put(*args, **kwargs)
 
     @staticmethod
     def assert_list_result(result, items, total, filtered):
