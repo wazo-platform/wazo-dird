@@ -1,7 +1,9 @@
 # Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
+from typing import TypedDict
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird import database
@@ -20,13 +22,28 @@ class PhonebookView(BaseBackendView):
     item_resource = http.PhonebookItem
 
 
+class Config(TypedDict, total=False):
+    name: str  # phonebook source name
+    tenant_uuid: str
+    phonebook_uuid: str
+    phonebook_id: int
+
+
+class Dependencies(TypedDict):
+    config: Config
+
+
 class PhonebookPlugin(BaseSourcePlugin):
+    _crud: database.PhonebookCRUD
+    _source_name: str
+    _search_engine: database.PhonebookContactSearchEngine
+
     def __init__(self, *args, **kwargs):
-        self._crud = None
-        self._source_name = None
+        self._crud: database.PhonebookCRUD = None
+        self._source_name: str = None
         super().__init__(*args, **kwargs)
 
-    def load(self, dependencies):
+    def load(self, dependencies: Dependencies):
         logger.debug('Loading phonebook source')
         unique_column = 'id'
         config = dependencies['config']
@@ -66,7 +83,7 @@ class PhonebookPlugin(BaseSourcePlugin):
             logger.debug('Found one matching contact.')
             return contact
 
-    def list(self, source_entry_ids, *args, **kwargs):
+    def list(self, source_entry_ids, args=None):
         logger.debug('Listing phonebook contacts')
         matching_contacts = self._search_engine.list_contacts(source_entry_ids)
         return self.format_contacts(matching_contacts)
