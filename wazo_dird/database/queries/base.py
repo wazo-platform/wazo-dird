@@ -3,11 +3,13 @@
 
 import hashlib
 import json
+from typing import Iterator
 import unicodedata
 
 from contextlib import contextmanager
 from itertools import islice
 from sqlalchemy import exc
+from sqlalchemy.orm import scoped_session, Session as BaseSession
 from wazo_dird.exception import DatabaseServiceUnavailable
 from wazo_dird.database import Tenant, User
 
@@ -62,7 +64,7 @@ class BaseDAO:
         'offset': 0,
     }
 
-    def __init__(self, Session):
+    def __init__(self, Session: scoped_session):
         self._Session = Session
 
     def flush_or_raise(self, session, Exception_, *args, **kwargs):
@@ -73,7 +75,7 @@ class BaseDAO:
             raise Exception_(*args, **kwargs)
 
     @contextmanager
-    def new_session(self):
+    def new_session(self) -> Iterator[BaseSession]:
         session = self._Session()
         try:
             yield session
