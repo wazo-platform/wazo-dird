@@ -38,10 +38,10 @@ class PhonebookPlugin(BaseSourcePlugin):
         self._crud = database.PhonebookCRUD(Session)
 
         tenant_uuid = config['tenant_uuid']
-        phonebook_id = self._get_phonebook_id(tenant_uuid, config)
+        phonebook_key = self._get_phonebook_key(tenant_uuid, config)
 
         self._search_engine = database.PhonebookContactSearchEngine(
-            Session, tenant_uuid, phonebook_id, searched_columns, first_matched_columns
+            Session, tenant_uuid, phonebook_key, searched_columns, first_matched_columns
         )
 
         self._SourceResult = make_result_class(
@@ -79,15 +79,17 @@ class PhonebookPlugin(BaseSourcePlugin):
         if self._is_loaded.wait(timeout=1.0) is not True:
             logger.error('%s is not initialized', self._source_name)
 
-    def _get_phonebook_id(self, tenant_uuid, config):
-        if 'phonebook_id' in config:
-            return config['phonebook_id']
+    def _get_phonebook_key(self, tenant_uuid, config) -> database.PhonebookKey:
+        if 'phonebook_uuid' in config:
+            return database.PhonebookKey(uuid=config['phonebook_uuid'])
+        elif 'phonebook_id' in config:
+            return database.PhonebookKey(id=config['phonebook_id'])
 
         phonebook_name = config['name']
         phonebooks = self._crud.list(tenant_uuid, search=phonebook_name)
         for phonebook in phonebooks:
             if phonebook['name'] == phonebook_name:
-                return phonebook['id']
+                return database.PhonebookKey(uuid=phonebook['uuid'])
 
         raise InvalidConfigError(
             f'sources/{self._source_name}/phonebook_name',

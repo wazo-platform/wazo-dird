@@ -9,7 +9,7 @@ from uuid import uuid4
 from unittest.mock import Mock
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to
 
-from wazo_dird import database
+from wazo_dird import BaseSourcePlugin, database
 from .helpers.base import DBRunningTestCase
 from .base_dird_integration_test import BackendWrapper
 
@@ -68,7 +68,7 @@ class TestPhonebookBackend(unittest.TestCase):
         )
         contacts = [
             self.phonebook_contact_crud.create(
-                self.tenant_uuid, self.phonebook['id'], c
+                self.tenant_uuid, database.PhonebookKey(uuid=self.phonebook['uuid']), c
             )
             for c in contact_bodies
         ]
@@ -85,10 +85,11 @@ class TestPhonebookBackend(unittest.TestCase):
             'tenant_uuid': self.tenant_uuid,
             'name': 'hogwarts',
             'phonebook_id': self.phonebook['id'],
+            'phonebook_uuid': self.phonebook['uuid'],
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['number'],
         }
-        self.backend = self._load_backend(config)
+        self.backend: BaseSourcePlugin = self._load_backend(config)
 
     def _load_backend(self, config):
         dependencies = {
@@ -99,7 +100,9 @@ class TestPhonebookBackend(unittest.TestCase):
         return BackendWrapper('phonebook', dependencies)
 
     def tearDown(self):
-        self.phonebook_crud.delete(self.tenant_uuid, self.phonebook['id'])
+        self.phonebook_crud.delete(
+            self.tenant_uuid, database.PhonebookKey(uuid=self.phonebook['uuid'])
+        )
 
     def test_that_searching_for_grid_returns_agrid(self):
         result = self.backend.search('grid')
