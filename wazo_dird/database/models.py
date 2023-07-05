@@ -1,13 +1,13 @@
 # Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import Column, ForeignKey, Integer, schema, String, text, Text
+from sqlalchemy import Column, ForeignKey, Integer, Sequence, schema, String, text, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON
+from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON, UUID
 
-Base = declarative_base()
+Base: type = declarative_base()
 
 UUID_LENGTH = 36
 
@@ -16,9 +16,12 @@ class Contact(Base):
     __tablename__ = 'dird_contact'
     __table_args__ = (
         schema.UniqueConstraint('user_uuid', 'hash'),
-        schema.UniqueConstraint('phonebook_id', 'hash'),
+        schema.UniqueConstraint(
+            'phonebook_uuid',
+            'hash',
+        ),
         schema.Index('dird_contact__idx__user_uuid', 'user_uuid'),
-        schema.Index('dird_contact__idx__phonebook_id', 'phonebook_id'),
+        schema.Index('dird_contact__idx__phonebook_uuid', 'phonebook_uuid'),
     )
 
     uuid = Column(
@@ -27,10 +30,13 @@ class Contact(Base):
     user_uuid = Column(
         String(UUID_LENGTH), ForeignKey('dird_user.user_uuid', ondelete='CASCADE')
     )
-    phonebook_id = Column(
-        Integer(), ForeignKey('dird_phonebook.id', ondelete='CASCADE')
+
+    phonebook_uuid = Column(
+        UUID(as_uuid=False), ForeignKey('dird_phonebook.uuid', ondelete='CASCADE')
     )
     hash = Column(String(40), nullable=False)
+
+    phonebook = relationship(lambda: Phonebook, foreign_keys=[phonebook_uuid])
 
 
 class ContactFields(Base):
@@ -103,11 +109,17 @@ class Phonebook(Base):
     __tablename__ = 'dird_phonebook'
     __table_args__ = (
         schema.UniqueConstraint('name', 'tenant_uuid'),
+        schema.UniqueConstraint('id'),
         schema.CheckConstraint("name != ''"),
         schema.Index('dird_phonebook__idx__tenant_uuid', 'tenant_uuid'),
     )
 
-    id = Column(Integer, primary_key=True)
+    id = Column(
+        Integer, Sequence("dird_phonebook_id_seq", start=1), nullable=False, unique=True
+    )
+    uuid = Column(
+        UUID(as_uuid=False), server_default=text('uuid_generate_v4()'), primary_key=True
+    )
     name = Column(String(255), nullable=False)
     description = Column(Text)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
