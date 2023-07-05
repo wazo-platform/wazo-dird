@@ -5,6 +5,7 @@ import logging
 import time
 import csv
 import traceback
+from typing import TypedDict
 
 from flask import request
 from functools import wraps
@@ -23,6 +24,8 @@ from wazo_dird.exception import (
     NoSuchTenant,
 )
 from wazo_dird.http import LegacyAuthResource
+from wazo_auth_client import Client as AuthClient
+
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +40,12 @@ def _make_error(reason, status_code):
 class _Resource(LegacyAuthResource):
     def __init__(self, phonebook_service, auth_client):
         self.phonebook_service = phonebook_service
-        self._auth_client = auth_client
+        self._auth_client: AuthClient = auth_client
 
-    def _find_tenant(self, scoping_tenant, name):
-        tenants = self._auth_client.tenants.list(name=name)['items']
+    def _find_tenant(self, scoping_tenant: Tenant, name: str):
+        tenants = self._auth_client.tenants.list(
+            tenant_uuid=scoping_tenant.uuid, name=name
+        )['items']
         for tenant in tenants:
             return tenant
         raise NoSuchTenant(name)
@@ -114,6 +119,11 @@ def _default_error_route(f):
     return decorator
 
 
+class PhonebookKey(TypedDict, total=False):
+    id: int
+    uuid: str
+
+
 class DeprecatedPhonebookContactAll(_Resource):
     error_code_map = {
         InvalidArgumentError: 400,
@@ -131,7 +141,7 @@ class DeprecatedPhonebookContactAll(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
             self.phonebook_service.create_contact(
-                matching_tenant['uuid'], phonebook_id, request.json
+                matching_tenant['uuid'], PhonebookKey(id=phonebook_id), request.json
             ),
             201,
         )
@@ -143,10 +153,14 @@ class DeprecatedPhonebookContactAll(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         count = self.phonebook_service.count_contact(
-            matching_tenant['uuid'], phonebook_id, **parser.count_params()
+            matching_tenant['uuid'],
+            PhonebookKey(id=phonebook_id),
+            **parser.count_params(),
         )
         contacts = self.phonebook_service.list_contact(
-            matching_tenant['uuid'], phonebook_id, **parser.list_params()
+            matching_tenant['uuid'],
+            PhonebookKey(id=phonebook_id),
+            **parser.list_params(),
         )
 
         return {'items': contacts, 'total': count}, 200
@@ -215,7 +229,7 @@ class DeprecatedPhonebookContactImport(_Resource):
 
         to_add = [c for c in csv.DictReader(data)]
         created, failed = self.phonebook_service.import_contacts(
-            matching_tenant['uuid'], phonebook_id, to_add
+            matching_tenant['uuid'], PhonebookKey(id=phonebook_id), to_add
         )
 
         return {'created': created, 'failed': failed}
@@ -240,7 +254,7 @@ class DeprecatedPhonebookContactOne(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
             self.phonebook_service.get_contact(
-                matching_tenant['uuid'], phonebook_id, contact_uuid
+                matching_tenant['uuid'], PhonebookKey(id=phonebook_id), contact_uuid
             ),
             200,
         )
@@ -253,7 +267,7 @@ class DeprecatedPhonebookContactOne(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         self.phonebook_service.delete_contact(
-            matching_tenant['uuid'], phonebook_id, contact_uuid
+            matching_tenant['uuid'], PhonebookKey(id=phonebook_id), contact_uuid
         )
         return '', 204
 
@@ -266,7 +280,10 @@ class DeprecatedPhonebookContactOne(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
             self.phonebook_service.edit_contact(
-                matching_tenant['uuid'], phonebook_id, contact_uuid, request.json
+                matching_tenant['uuid'],
+                PhonebookKey(id=phonebook_id),
+                contact_uuid,
+                request.json,
             ),
             200,
         )
@@ -286,7 +303,9 @@ class DeprecatedPhonebookOne(_Resource):
     def delete(self, tenant, phonebook_id):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
-        self.phonebook_service.delete_phonebook(matching_tenant['uuid'], phonebook_id)
+        self.phonebook_service.delete_phonebook(
+            matching_tenant['uuid'], PhonebookKey(id=phonebook_id)
+        )
         return '', 204
 
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
@@ -295,7 +314,9 @@ class DeprecatedPhonebookOne(_Resource):
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
-            self.phonebook_service.get_phonebook(matching_tenant['uuid'], phonebook_id),
+            self.phonebook_service.get_phonebook(
+                matching_tenant['uuid'], PhonebookKey(id=phonebook_id)
+            ),
             200,
         )
 
@@ -306,7 +327,7 @@ class DeprecatedPhonebookOne(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
             self.phonebook_service.edit_phonebook(
-                matching_tenant['uuid'], phonebook_id, request.json
+                matching_tenant['uuid'], PhonebookKey(id=phonebook_id), request.json
             ),
             200,
         )
