@@ -3,6 +3,7 @@
 
 import os
 from contextlib import contextmanager
+from typing import ClassVar
 
 import requests
 from hamcrest import assert_that, equal_to, has_entries
@@ -18,6 +19,7 @@ from wazo_test_helpers.db import DBUserClient
 from wazo_dird import database
 
 from .config import (
+    Config,
     new_csv_with_multiple_displays_config,
     new_half_broken_config,
     new_null_config,
@@ -123,6 +125,12 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
     wait_strategy = RestApiOkWaitStrategy()
     config_factory = new_null_config
 
+    host: ClassVar[str]
+    port: ClassVar[int]
+    mock_auth_client: ClassVar[MockAuthClient]
+    dird: ClassVar[DirdClient]
+    config: ClassVar[Config]
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -150,7 +158,7 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
         )
 
     @classmethod
-    def make_mock_auth(cls):
+    def make_mock_auth(cls) -> MockAuthClient:
         return MockAuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
 
     @classmethod
