@@ -4,10 +4,10 @@
 from wazo_dird import BaseViewPlugin
 
 from .http import (
+    DeprecatedPhonebookAll,
     DeprecatedPhonebookContactAll,
     DeprecatedPhonebookContactImport,
     DeprecatedPhonebookContactOne,
-    DeprecatedPhonebookAll,
     DeprecatedPhonebookOne,
 )
 
