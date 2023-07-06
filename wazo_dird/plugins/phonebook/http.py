@@ -9,7 +9,8 @@ import traceback
 from functools import wraps
 from typing import cast
 from uuid import UUID
-from flask import request
+
+from flask import Request, request
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
@@ -29,6 +30,7 @@ from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService, Phoneb
 
 from .schemas import ContactListSchema, PhonebookListSchema
 
+request: Request  # type: ignore[no-redef]
 
 logger = logging.getLogger(__name__)
 
@@ -86,13 +88,13 @@ class PhonebookContactAll(_Resource):
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.read')
     @_default_error_route
     def get(self, phonebook_uuid: UUID):
-        list_params = ContactListSchema().load(cast(dict, request.args))
+        list_params: dict = ContactListSchema().load(request.args)  # type: ignore
         tenant = Tenant.autodetect()
 
         count = self.phonebook_service.count_contact(
             tenant.uuid,
             PhonebookKey(uuid=str(phonebook_uuid)),
-            **ContactListSchema().count(cast(dict, request.args)),
+            **ContactListSchema().count(request.args),
         )
         contacts = self.phonebook_service.list_contact(
             tenant.uuid, PhonebookKey(uuid=str(phonebook_uuid)), **list_params
@@ -115,8 +117,8 @@ class PhonebookAll(_Resource):
     def get(self):
         tenant = Tenant.autodetect()
 
-        list_params = PhonebookListSchema().load(cast(dict, request.args))
-        count_params = PhonebookListSchema().count(cast(dict, request.args))
+        list_params = cast(dict, PhonebookListSchema().load(request.args))
+        count_params = cast(dict, PhonebookListSchema().count(request.args))
 
         count = self.phonebook_service.count_phonebook(tenant.uuid, **count_params)
         phonebooks = self.phonebook_service.list_phonebook(tenant.uuid, **list_params)
@@ -127,11 +129,9 @@ class PhonebookAll(_Resource):
     @_default_error_route
     def post(self):
         tenant = Tenant.autodetect()
-
+        body = cast(dict, request.json)
         return (
-            self.phonebook_service.create_phonebook(
-                tenant.uuid, cast(dict, request.json)
-            ),
+            self.phonebook_service.create_phonebook(tenant.uuid, body),
             201,
         )
 
@@ -145,8 +145,9 @@ class PhonebookContactImport(_Resource):
         tenant = Tenant.autodetect()
 
         charset = request.mimetype_params.get('charset', 'utf-8')
+        raw_data = cast(bytes, request.data)
         try:
-            data = request.data.decode(charset).split('\n')
+            data = raw_data.decode(charset).split('\n')
         except LookupError as e:
             if 'unknown encoding:' in str(e):
                 return _make_error(str(e), 400)
@@ -203,13 +204,13 @@ class PhonebookContactOne(_Resource):
     @_default_error_route
     def put(self, phonebook_uuid: UUID, contact_uuid: UUID):
         tenant = Tenant.autodetect()
-
+        body = cast(dict, request.json)
         return (
             self.phonebook_service.edit_contact(
                 tenant.uuid,
                 PhonebookKey(uuid=str(phonebook_uuid)),
                 str(contact_uuid),
-                cast(dict, request.json),
+                body,
             ),
             200,
         )
@@ -250,12 +251,12 @@ class PhonebookOne(_Resource):
     @_default_error_route
     def put(self, phonebook_uuid: UUID):
         tenant = Tenant.autodetect()
-
+        body = cast(dict, request.json)
         return (
             self.phonebook_service.edit_phonebook(
                 tenant.uuid,
                 PhonebookKey(uuid=str(phonebook_uuid)),
-                cast(dict, request.json),
+                body,
             ),
             200,
         )
