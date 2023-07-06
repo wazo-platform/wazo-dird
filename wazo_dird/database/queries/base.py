@@ -3,7 +3,7 @@
 
 import hashlib
 import json
-from typing import Iterator
+from typing import Iterator, Mapping, TypedDict, cast
 import unicodedata
 
 from contextlib import contextmanager
@@ -27,7 +27,11 @@ def extract_constraint_name(error):
         return None
 
 
-def list_contacts_by_uuid(session, uuids):
+class ContactInfo(TypedDict, total=False):
+    id: str
+
+
+def list_contacts_by_uuid(session: BaseSession, uuids: list[str]) -> list[ContactInfo]:
     if not uuids:
         return []
 
@@ -40,10 +44,10 @@ def list_contacts_by_uuid(session, uuids):
         if uuid not in result:
             result[uuid] = {'id': uuid}
         result[uuid][contact_field.name] = contact_field.value
-    return list(result.values())
+    return cast(list[ContactInfo], list(result.values()))
 
 
-def compute_contact_hash(contact_info):
+def compute_contact_hash(contact_info: Mapping) -> str:
     d = dict(contact_info)
     d.pop('id', None)
     string_representation = json.dumps(d, sort_keys=True).encode('utf-8')
