@@ -1,15 +1,16 @@
 # Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+
 import logging
 
-from marshmallow import ValidationError, fields, Schema, validate, pre_load
+from marshmallow import Schema, ValidationError, fields, pre_load, validate
 from unidecode import unidecode
 
-from wazo_dird import BaseServicePlugin
-from wazo_dird import database
+from wazo_dird import BaseServicePlugin, database
 from wazo_dird.database.helpers import Session
-from wazo_dird.database.queries.phonebook import Direction, PhonebookKey
+from wazo_dird.database.queries.base import ContactInfo
+from wazo_dird.database.queries.phonebook import Direction, PhonebookDict, PhonebookKey
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
 
 logger = logging.getLogger(__name__)
@@ -46,16 +47,16 @@ class _PhonebookService:
 
     def list_contact(
         self,
-        tenant_uuid: str,
+        visible_tenants: list[str],
         phonebook_key: PhonebookKey,
         limit: int | None = None,
         offset: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
         **params,
-    ):
+    ) -> list[ContactInfo]:
         results = self._contact_crud.list(
-            tenant_uuid,
+            visible_tenants,
             phonebook_key,
             **params,
         )
@@ -72,25 +73,34 @@ class _PhonebookService:
             results = results[:limit]
         return results
 
-    def list_phonebook(self, tenant_uuid: str, **params):
+    def list_phonebook(
+        self, visible_tenants: list[str], **params
+    ) -> list[PhonebookDict]:
         return self._phonebook_crud.list(
-            tenant_uuid,
+            visible_tenants,
             **params,
         )
 
-    def count_contact(self, tenant_uuid: str, phonebook_key: PhonebookKey, **params):
-        return self._contact_crud.count(tenant_uuid, phonebook_key, **params)
+    def count_contact(
+        self, visible_tenants: list[str], phonebook_key: PhonebookKey, **params
+    ) -> int:
+        return self._contact_crud.count(visible_tenants, phonebook_key, **params)
 
-    def count_phonebook(self, tenant_uuid: str, **params):
-        return self._phonebook_crud.count(tenant_uuid, **params)
+    def count_phonebook(self, visible_tenants: list[str], **params) -> int:
+        return self._phonebook_crud.count(visible_tenants, **params)
 
     def create_contact(
-        self, tenant_uuid: str, phonebook_key: PhonebookKey, contact_info: dict
-    ):
+        self,
+        visible_tenants: list[str],
+        phonebook_key: PhonebookKey,
+        contact_info: dict,
+    ) -> ContactInfo:
         validated_contact = self._validate_contact(contact_info)
-        return self._contact_crud.create(tenant_uuid, phonebook_key, validated_contact)
+        return self._contact_crud.create(
+            visible_tenants, phonebook_key, validated_contact
+        )
 
-    def create_phonebook(self, tenant_uuid: str, phonebook_info: dict):
+    def create_phonebook(self, tenant_uuid: str, phonebook_info: dict) -> PhonebookDict:
         try:
             body: dict = _PhonebookSchema().load(phonebook_info)  # type: ignore
         except ValidationError as e:
@@ -99,46 +109,54 @@ class _PhonebookService:
 
     def edit_contact(
         self,
-        tenant_uuid: str,
+        visible_tenants: list[str],
         phonebook_key: PhonebookKey,
         contact_uuid: str,
         contact_info: dict,
-    ):
+    ) -> ContactInfo:
         return self._contact_crud.edit(
-            tenant_uuid,
+            visible_tenants,
             phonebook_key,
             contact_uuid,
             self._validate_contact(contact_info),
         )
 
     def edit_phonebook(
-        self, tenant_uuid: str, phonebook_key: PhonebookKey, phonebook_info: dict
-    ):
+        self,
+        visible_tenants: list[str],
+        phonebook_key: PhonebookKey,
+        phonebook_info: dict,
+    ) -> PhonebookDict:
         try:
             body: dict = _PhonebookSchema().load(phonebook_info)  # type: ignore
         except ValidationError as e:
             raise InvalidPhonebookException(e.messages)
-        return self._phonebook_crud.edit(tenant_uuid, phonebook_key, body)
+        return self._phonebook_crud.edit(visible_tenants, phonebook_key, body)
 
     def delete_contact(
-        self, tenant_uuid: str, phonebook_key: PhonebookKey, contact_uuid: str
+        self, visible_tenants: list[str], phonebook_key: PhonebookKey, contact_uuid: str
     ):
-        return self._contact_crud.delete(tenant_uuid, phonebook_key, contact_uuid)
+        return self._contact_crud.delete(visible_tenants, phonebook_key, contact_uuid)
 
-    def delete_phonebook(self, tenant_uuid: str, phonebook_key: PhonebookKey):
-        return self._phonebook_crud.delete(tenant_uuid, phonebook_key)
+    def delete_phonebook(self, visible_tenants: list[str], phonebook_key: PhonebookKey):
+        return self._phonebook_crud.delete(visible_tenants, phonebook_key)
 
     def get_contact(
-        self, tenant_uuid: str, phonebook_key: PhonebookKey, contact_uuid: str
-    ):
-        return self._contact_crud.get(tenant_uuid, phonebook_key, contact_uuid)
+        self, visible_tenants: list[str], phonebook_key: PhonebookKey, contact_uuid: str
+    ) -> ContactInfo:
+        return self._contact_crud.get(visible_tenants, phonebook_key, contact_uuid)
 
-    def get_phonebook(self, tenant_uuid: str, phonebook_key: PhonebookKey):
-        return self._phonebook_crud.get(tenant_uuid, phonebook_key)
+    def get_phonebook(
+        self, visible_tenants: list[str], phonebook_key: PhonebookKey
+    ) -> PhonebookDict:
+        return self._phonebook_crud.get(visible_tenants, phonebook_key)
 
     def import_contacts(
-        self, tenant_uuid: str, phonebook_key: PhonebookKey, contacts: list[dict]
-    ):
+        self,
+        visible_tenants: list[str],
+        phonebook_key: PhonebookKey,
+        contacts: list[dict],
+    ) -> tuple[list[ContactInfo], list[dict]]:
         to_add, errors = [], []
         for contact in contacts:
             try:
@@ -147,7 +165,7 @@ class _PhonebookService:
                 errors.append(contact)
 
         created, failed = self._contact_crud.create_many(
-            tenant_uuid, phonebook_key, to_add
+            visible_tenants, phonebook_key, to_add
         )
 
         return created, failed + errors

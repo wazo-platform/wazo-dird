@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
+from typing import Any
 import unittest
 
 from collections import defaultdict
@@ -137,7 +138,7 @@ class _BaseTest(unittest.TestCase):
 
     def _list_contacts(self):
         with closing(Session()) as s:
-            contacts = defaultdict(dict)
+            contacts: dict[str, dict[str, Any]] = defaultdict(dict)
             for field in s.query(database.ContactFields).all():
                 contacts[field.contact_uuid][field.name] = field.value
         return list(contacts.values())
@@ -158,7 +159,7 @@ class _BasePhonebookCRUDTest(_BaseTest):
         yield phonebook
         if delete:
             self._crud.delete(
-                tenant_uuid, database.PhonebookKey(uuid=phonebook['uuid'])
+                [tenant_uuid], database.PhonebookKey(uuid=phonebook['uuid'])
             )
 
 
@@ -298,12 +299,12 @@ class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid, 'a'), self._new_phonebook(
             tenant_uuid, 'b'
         ), self._new_phonebook(tenant_uuid, 'c'):
-            result = self._crud.count(tenant_uuid)
+            result = self._crud.count([tenant_uuid])
 
         assert_that(result, equal_to(3))
 
     def test_that_an_unknown_tenant_returns_zero(self):
-        result = self._crud.count('unknown')
+        result = self._crud.count(['unknown'])
 
         assert_that(result, equal_to(0))
 
@@ -312,7 +313,7 @@ class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid, 'a'), self._new_phonebook(
             tenant_uuid, 'b'
         ), self._new_phonebook('other', 'c'):
-            result = self._crud.count(tenant_uuid)
+            result = self._crud.count([tenant_uuid])
 
         assert_that(result, equal_to(2))
 
@@ -321,7 +322,7 @@ class TestPhonebookCRUDCount(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid, 'ab'), self._new_phonebook(
             tenant_uuid, 'bc'
         ), self._new_phonebook(tenant_uuid, 'cd'):
-            result = self._crud.count(tenant_uuid, search='b')
+            result = self._crud.count([tenant_uuid], search='b')
 
         assert_that(result, equal_to(2))
 
@@ -403,7 +404,7 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         tenant_uuid = new_uuid()
         with self._new_phonebook(tenant_uuid, 'first', delete=False) as phonebook:
             self._crud.delete(
-                tenant_uuid, database.PhonebookKey(uuid=phonebook['uuid'])
+                [tenant_uuid], database.PhonebookKey(uuid=phonebook['uuid'])
             )
 
         with closing(Session()) as session:
@@ -419,7 +420,7 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         wrong_tenant_uuid = new_uuid()
         assert_that(
             calling(self._crud.delete).with_args(
-                wrong_tenant_uuid, database.PhonebookKey(uuid=new_uuid())
+                [wrong_tenant_uuid], database.PhonebookKey(uuid=new_uuid())
             ),
             raises(exception.NoSuchPhonebook),
         )
@@ -431,7 +432,7 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid_1, 'main') as phonebook:
             assert_that(
                 calling(self._crud.delete).with_args(
-                    tenant_uuid_2, database.PhonebookKey(uuid=phonebook['uuid'])
+                    [tenant_uuid_2], database.PhonebookKey(uuid=phonebook['uuid'])
                 ),
                 raises(exception.NoSuchPhonebook),
             )
@@ -447,7 +448,7 @@ class TestPhonebookCRUDDelete(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid_1, 'a') as phonebook:
             try:
                 self._crud.delete(
-                    tenant_uuid_2, database.PhonebookKey(uuid=phonebook['uuid'])
+                    [tenant_uuid_2], database.PhonebookKey(uuid=phonebook['uuid'])
                 )
             except exception.NoSuchPhonebook:
                 pass  # as expected
@@ -467,7 +468,7 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid, 'name') as phonebook:
             new_body = {'name': 'new_name', 'description': 'lol'}
             result = self._crud.edit(
-                tenant_uuid, database.PhonebookKey(uuid=phonebook['uuid']), new_body
+                [tenant_uuid], database.PhonebookKey(uuid=phonebook['uuid']), new_body
             )
 
         assert_that(
@@ -482,7 +483,9 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
 
             assert_that(
                 calling(self._crud.edit).with_args(
-                    tenant_uuid, database.PhonebookKey(uuid=phonebook['uuid']), new_body
+                    [tenant_uuid],
+                    database.PhonebookKey(uuid=phonebook['uuid']),
+                    new_body,
                 ),
                 raises(TypeError),
             )
@@ -492,7 +495,7 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
 
         assert_that(
             calling(self._crud.edit).with_args(
-                tenant_uuid, database.PhonebookKey(uuid=new_uuid()), {'name': 'test'}
+                [tenant_uuid], database.PhonebookKey(uuid=new_uuid()), {'name': 'test'}
             ),
             raises(exception.NoSuchPhonebook),
         )
@@ -505,7 +508,7 @@ class TestPhonebookCRUDEdit(_BasePhonebookCRUDTest):
         ) as phonebook_a, self._new_phonebook(tenant_uuid_2, 'b'):
             assert_that(
                 calling(self._crud.edit).with_args(
-                    tenant_uuid_2,
+                    [tenant_uuid_2],
                     database.PhonebookKey(uuid=phonebook_a['uuid']),
                     {'name': 'foo'},
                 ),
@@ -518,7 +521,7 @@ class TestPhonebookCRUDGet(_BasePhonebookCRUDTest):
         tenant_uuid = new_uuid()
         with self._new_phonebook(tenant_uuid, 'a') as phonebook:
             result = self._crud.get(
-                tenant_uuid, database.PhonebookKey(uuid=phonebook['uuid'])
+                [tenant_uuid], database.PhonebookKey(uuid=phonebook['uuid'])
             )
 
         assert_that(result, equal_to(phonebook))
@@ -527,7 +530,7 @@ class TestPhonebookCRUDGet(_BasePhonebookCRUDTest):
         tenant_uuid = new_uuid()
         assert_that(
             calling(self._crud.get).with_args(
-                tenant_uuid, database.PhonebookKey(id=42)
+                [tenant_uuid], database.PhonebookKey(id=42)
             ),
             raises(exception.NoSuchPhonebook),
         )
@@ -536,7 +539,7 @@ class TestPhonebookCRUDGet(_BasePhonebookCRUDTest):
         tenant_uuid = new_uuid()
         assert_that(
             calling(self._crud.get).with_args(
-                tenant_uuid, database.PhonebookKey(uuid=new_uuid())
+                [tenant_uuid], database.PhonebookKey(uuid=new_uuid())
             ),
             raises(exception.NoSuchPhonebook),
         )
@@ -547,7 +550,7 @@ class TestPhonebookCRUDGet(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid_1, 'a') as phonebook:
             assert_that(
                 calling(self._crud.get).with_args(
-                    tenant_uuid_2, database.PhonebookKey(uuid=phonebook['uuid'])
+                    [tenant_uuid_2], database.PhonebookKey(uuid=phonebook['uuid'])
                 ),
                 raises(exception.NoSuchPhonebook),
             )
@@ -559,7 +562,7 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid, 'a') as a, self._new_phonebook(
             tenant_uuid, 'b'
         ) as b, self._new_phonebook(tenant_uuid, 'c') as c:
-            result = self._crud.list(tenant_uuid)
+            result = self._crud.list([tenant_uuid])
         assert_that(result, contains_inanyorder(a, b, c))
 
     def test_that_phonebooks_from_others_are_not_listed(self):
@@ -567,12 +570,12 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid, 'a') as a, self._new_phonebook(
             tenant_uuid, 'b'
         ) as b, self._new_phonebook('not_t', 'c'):
-            result = self._crud.list(tenant_uuid)
+            result = self._crud.list([tenant_uuid])
         assert_that(result, contains_inanyorder(a, b))
 
     def test_that_no_phonebooks_returns_an_empty_list(self):
         tenant_uuid = new_uuid()
-        result = self._crud.list(tenant_uuid)
+        result = self._crud.list([tenant_uuid])
 
         assert_that(result, empty())
 
@@ -585,7 +588,7 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
         ) as b, self._new_phonebook(
             tenant_uuid, 'c'
         ) as c:
-            result = self._crud.list(tenant_uuid, order='description')
+            result = self._crud.list([tenant_uuid], order='description')
         assert_that(result, contains_inanyorder(b, a, c))
 
     def test_that_phonebooks_order_with_invalid_field_raises(self):
@@ -596,7 +599,7 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
             tenant_uuid, 'c'
         ):
             assert_that(
-                calling(self._crud.list).with_args(tenant_uuid, order='foo'),
+                calling(self._crud.list).with_args([tenant_uuid], order='foo'),
                 raises(TypeError),
             )
 
@@ -609,7 +612,9 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
         ) as b, self._new_phonebook(
             tenant_uuid, 'c'
         ) as c:
-            result = self._crud.list(tenant_uuid, order='description', direction='desc')
+            result = self._crud.list(
+                [tenant_uuid], order='description', direction='desc'
+            )
         assert_that(result, contains_inanyorder(a, b, c))
 
     def test_that_phonebooks_can_be_limited(self):
@@ -617,7 +622,7 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid, 'a') as a, self._new_phonebook(
             tenant_uuid, 'b'
         ) as b, self._new_phonebook(tenant_uuid, 'c'):
-            result = self._crud.list(tenant_uuid, limit=2)
+            result = self._crud.list([tenant_uuid], limit=2)
         assert_that(result, contains_inanyorder(a, b))
 
     def test_that_an_offset_can_be_supplied(self):
@@ -625,7 +630,7 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
         with self._new_phonebook(tenant_uuid, 'a'), self._new_phonebook(
             tenant_uuid, 'b'
         ), self._new_phonebook(tenant_uuid, 'c') as c:
-            result = self._crud.list(tenant_uuid, offset=2)
+            result = self._crud.list([tenant_uuid], offset=2)
         assert_that(result, contains_inanyorder(c))
 
     def test_that_list_only_returns_matching_phonebooks(self):
@@ -635,7 +640,7 @@ class TestPhonebookCRUDList(_BasePhonebookCRUDTest):
         ) as a, self._new_phonebook(tenant_uuid, 'bb') as b, self._new_phonebook(
             tenant_uuid, 'cc'
         ):
-            result = self._crud.list(tenant_uuid, search='b')
+            result = self._crud.list([tenant_uuid], search='b')
 
         assert_that(result, contains_inanyorder(a, b))
 
@@ -654,7 +659,7 @@ class _BasePhonebookContactCRUDTest(_BaseTest):
 
     def tearDown(self):
         self._phonebook_crud.delete(
-            self._tenant_uuid, database.PhonebookKey(uuid=self._phonebook_uuid)
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid)
         )
         super().tearDown()
 
@@ -662,7 +667,7 @@ class _BasePhonebookContactCRUDTest(_BaseTest):
 class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
     def test_that_a_phonebook_contact_can_be_created(self):
         result = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
@@ -674,13 +679,13 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
 
     def test_that_duplicated_contacts_cannot_be_created(self):
         self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
         assert_that(
             calling(self._crud.create).with_args(
-                self._tenant_uuid,
+                [self._tenant_uuid],
                 database.PhonebookKey(uuid=self._phonebook_uuid),
                 self._body,
             ),
@@ -691,12 +696,12 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
         phonebook_2 = self._phonebook_crud.create(self._tenant_uuid, {'name': 'second'})
 
         contact_1 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
         contact_2 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=phonebook_2['uuid']),
             self._body,
         )
@@ -707,7 +712,7 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
         wrong_tenant_uuid = new_uuid()
         assert_that(
             calling(self._crud.create).with_args(
-                wrong_tenant_uuid,
+                [wrong_tenant_uuid],
                 database.PhonebookKey(uuid=self._phonebook_uuid),
                 self._body,
             ),
@@ -723,7 +728,7 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
         body = [contact_1, contact_2, contact_3]
 
         created, errors = self._crud.create_many(
-            self._tenant_uuid, database.PhonebookKey(uuid=self._phonebook_uuid), body
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid), body
         )
 
         assert_that(
@@ -743,7 +748,7 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
         body = [contact_1, contact_2, contact_3]
 
         created, errors = self._crud.create_many(
-            self._tenant_uuid, database.PhonebookKey(uuid=self._phonebook_uuid), body
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid), body
         )
 
         assert_that(
@@ -760,13 +765,13 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
 class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
     def test_that_deleting_contact_removes_it(self):
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
 
         self._crud.delete(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             contact['id'],
         )
@@ -775,7 +780,7 @@ class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
 
     def test_that_deleting_with_another_tenant_does_not_work(self):
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
@@ -783,7 +788,7 @@ class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
         wrong_tenant_uuid = new_uuid()
         assert_that(
             calling(self._crud.delete).with_args(
-                wrong_tenant_uuid,
+                [wrong_tenant_uuid],
                 database.PhonebookKey(uuid=self._phonebook_uuid),
                 contact['id'],
             ),
@@ -796,7 +801,7 @@ class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
 
         assert_that(
             calling(self._crud.delete).with_args(
-                self._tenant_uuid,
+                [self._tenant_uuid],
                 database.PhonebookKey(uuid=self._phonebook_uuid),
                 unknown_contact_uuid,
             ),
@@ -807,13 +812,13 @@ class TestPhonebookContactCRUDDelete(_BasePhonebookContactCRUDTest):
 class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
     def test_that_get_returns_the_contact(self):
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
 
         result = self._crud.get(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             contact['id'],
         )
@@ -825,14 +830,14 @@ class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
             self._tenant_uuid, {'name': 'other'}
         )
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
 
         assert_that(
             calling(self._crud.get).with_args(
-                self._tenant_uuid,
+                [self._tenant_uuid],
                 database.PhonebookKey(id=other_phonebook['id']),
                 contact['id'],
             ),
@@ -840,7 +845,7 @@ class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
         )
         assert_that(
             calling(self._crud.get).with_args(
-                self._tenant_uuid,
+                [self._tenant_uuid],
                 database.PhonebookKey(uuid=other_phonebook['uuid']),
                 contact['id'],
             ),
@@ -849,7 +854,7 @@ class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
 
     def test_that_get_wont_work_with_the_wrong_tenant(self):
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
@@ -857,7 +862,7 @@ class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
 
         assert_that(
             calling(self._crud.get).with_args(
-                wrong_tenant_uuid,
+                [wrong_tenant_uuid],
                 database.PhonebookKey(uuid=self._phonebook_uuid),
                 contact['id'],
             ),
@@ -868,7 +873,7 @@ class TestPhonebookContactCRUDGet(_BasePhonebookContactCRUDTest):
 class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
     def test_that_editing_a_contact_works(self):
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
@@ -876,7 +881,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
         new_body = {'firstname': 'Foo', 'lastname': 'Bar', 'number': '5551236666'}
 
         result = self._crud.edit(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             contact['id'],
             new_body,
@@ -889,7 +894,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
 
     def test_that_the_id_cannot_be_modified(self):
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
@@ -898,7 +903,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
         new_body['id'] = new_uuid()
 
         result = self._crud.edit(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             contact['id'],
             new_body,
@@ -910,19 +915,19 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
 
     def test_that_duplicates_cannot_be_created(self):
         self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'Foo'},
         )
         contact_2 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'Bar'},
         )
 
         assert_that(
             calling(self._crud.edit).with_args(
-                self._tenant_uuid,
+                [self._tenant_uuid],
                 database.PhonebookKey(uuid=self._phonebook_uuid),
                 contact_2['id'],
                 {'id': new_uuid(), 'name': 'Foo'},
@@ -935,7 +940,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
             self._tenant_uuid, {'name': 'the other'}
         )
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
@@ -945,7 +950,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
         other_phonebook_uuid = other_phonebook['uuid']
         assert_that(
             calling(self._crud.edit).with_args(
-                self._tenant_uuid,
+                [self._tenant_uuid],
                 database.PhonebookKey(uuid=other_phonebook_uuid),
                 contact['id'],
                 new_body,
@@ -955,7 +960,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
 
     def test_that_the_tenant_must_match_the_id(self):
         contact = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             self._body,
         )
@@ -965,7 +970,7 @@ class TestPhonebookContactCRUDEdit(_BasePhonebookContactCRUDTest):
 
         assert_that(
             calling(self._crud.edit).with_args(
-                wrong_tenant_uuid,
+                [wrong_tenant_uuid],
                 database.PhonebookKey(uuid=self._phonebook_uuid),
                 contact['id'],
                 new_body,
@@ -978,24 +983,24 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
     def setUp(self):
         super().setUp()
         self._contact_1 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'one', 'foo': 'bar'},
-        )
+        )  # type: ignore
         self._contact_2 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'two', 'foo': 'bar'},
-        )
+        )  # type: ignore
         self._contact_3 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'three', 'foo': 'bar'},
-        )
+        )  # type: ignore
 
     def test_that_listing_contacts_works(self):
         result = self._crud.list(
-            self._tenant_uuid, database.PhonebookKey(uuid=self._phonebook_uuid)
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid)
         )
 
         assert_that(
@@ -1007,14 +1012,14 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
         wrong_tenant_uuid = new_uuid()
         assert_that(
             calling(self._crud.list).with_args(
-                wrong_tenant_uuid, database.PhonebookKey(uuid=self._phonebook_uuid)
+                [wrong_tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid)
             ),
             raises(exception.NoSuchPhonebook),
         )
 
     def test_that_the_list_can_be_filtered(self):
         result = self._crud.list(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             search='o',
         )
@@ -1026,31 +1031,31 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
     def setUp(self):
         super().setUp()
         self._contact_1 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'one', 'foo': 'bar'},
         )
         self._contact_2 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'two', 'foo': 'bar'},
         )
         self._contact_3 = self._crud.create(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'three', 'foo': 'bar'},
         )
 
     def test_that_counting_counts(self):
         result = self._crud.count(
-            self._tenant_uuid, database.PhonebookKey(uuid=self._phonebook_uuid)
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid)
         )
 
         assert_that(result, equal_to(3))
 
     def test_that_counting_is_filtered(self):
         result = self._crud.count(
-            self._tenant_uuid,
+            [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             search='o',
         )
@@ -1060,7 +1065,7 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
     def test_that_counting_from_another_tenant_return_0(self):
         assert_that(
             calling(self._crud.count).with_args(
-                new_uuid(), database.PhonebookKey(uuid=self._phonebook_uuid)
+                [new_uuid()], database.PhonebookKey(uuid=self._phonebook_uuid)
             ),
             raises(exception.NoSuchPhonebook),
         )
@@ -1366,13 +1371,15 @@ class TestPhonebookContactSearchEngine(_BaseTest):
             self.jimmie,
         ] = [
             self.phonebook_contact_crud.create(
-                self.tenant_uuid, database.PhonebookKey(uuid=self.phonebook_uuid), body
+                [self.tenant_uuid],
+                database.PhonebookKey(uuid=self.phonebook_uuid),
+                body,
             )
             for body in bodies
         ]
         self.engine = database.PhonebookContactSearchEngine(
             Session,
-            self.tenant_uuid,
+            [self.tenant_uuid],
             database.PhonebookKey(uuid=self.phonebook_uuid),
             searched_columns=['lastname'],
             first_match_columns=['number'],
@@ -1380,7 +1387,7 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
     def tearDown(self):
         self.phonebook_crud.delete(
-            self.tenant_uuid, database.PhonebookKey(uuid=self.phonebook_uuid)
+            [self.tenant_uuid], database.PhonebookKey(uuid=self.phonebook_uuid)
         )
         super().tearDown()
 
@@ -1397,7 +1404,7 @@ class TestPhonebookContactSearchEngine(_BaseTest):
     def test_that_no_searched_columns_does_not_search(self):
         engine = database.PhonebookContactSearchEngine(
             Session,
-            self.tenant_uuid,
+            [self.tenant_uuid],
             database.PhonebookKey(uuid=self.phonebook_uuid),
             first_match_columns=['number'],
         )
@@ -1420,7 +1427,7 @@ class TestPhonebookContactSearchEngine(_BaseTest):
     def test_that_listing_is_limited_to_the_current_phonebook_and_tenant(self):
         shire_phonebook = self.phonebook_crud.create('lotr', {'name': 'shire'})
         frodo = self.phonebook_contact_crud.create(
-            'lotr',
+            ['lotr'],
             database.PhonebookKey(uuid=shire_phonebook['uuid']),
             {'firstname': 'Frodo', 'lastname': 'Baggins'},
         )

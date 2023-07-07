@@ -5,8 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird import database
+from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
 from wazo_dird.exception import InvalidConfigError
 from wazo_dird.helpers import BaseBackendView
@@ -22,9 +21,12 @@ class PhonebookView(BaseBackendView):
     item_resource = http.PhonebookItem
 
 
-class Config(TypedDict, total=False):
+class _Config(TypedDict):
     name: str  # phonebook source name
     tenant_uuid: str
+
+
+class Config(_Config, total=False):
     phonebook_uuid: str
     phonebook_id: int
 
@@ -38,10 +40,11 @@ class PhonebookPlugin(BaseSourcePlugin):
     _source_name: str
     _search_engine: database.PhonebookContactSearchEngine
 
-    def __init__(self, *args, **kwargs):
-        self._crud: database.PhonebookCRUD = None
-        self._source_name: str = None
-        super().__init__(*args, **kwargs)
+    def __init__(self) -> None:
+        super().__init__()
+        self._crud = None  # type: ignore[assignment]
+        self._search_engine = None  # type: ignore[assignment]
+        self._source_name = None  # type: ignore[assignment]
 
     def load(self, dependencies: Dependencies):
         logger.debug('Loading phonebook source')
@@ -58,7 +61,11 @@ class PhonebookPlugin(BaseSourcePlugin):
         phonebook_key = self._get_phonebook_key(tenant_uuid, config)
 
         self._search_engine = database.PhonebookContactSearchEngine(
-            Session, tenant_uuid, phonebook_key, searched_columns, first_matched_columns
+            Session,
+            [tenant_uuid],
+            phonebook_key,
+            searched_columns,
+            first_matched_columns,
         )
 
         self._SourceResult = make_result_class(
@@ -96,14 +103,16 @@ class PhonebookPlugin(BaseSourcePlugin):
         if self._is_loaded.wait(timeout=1.0) is not True:
             logger.error('%s is not initialized', self._source_name)
 
-    def _get_phonebook_key(self, tenant_uuid, config) -> database.PhonebookKey:
+    def _get_phonebook_key(
+        self, tenant_uuid: str, config: Config
+    ) -> database.PhonebookKey:
         if 'phonebook_uuid' in config:
             return database.PhonebookKey(uuid=config['phonebook_uuid'])
         elif 'phonebook_id' in config:
             return database.PhonebookKey(id=config['phonebook_id'])
 
         phonebook_name = config['name']
-        phonebooks = self._crud.list(tenant_uuid, search=phonebook_name)
+        phonebooks = self._crud.list([tenant_uuid], search=phonebook_name)
         for phonebook in phonebooks:
             if phonebook['name'] == phonebook_name:
                 return database.PhonebookKey(uuid=phonebook['uuid'])
