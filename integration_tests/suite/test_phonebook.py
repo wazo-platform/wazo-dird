@@ -11,11 +11,16 @@ def generate_tenant_uuid():
     return str(uuid.uuid4())
 
 
+def raise_for_status(response):
+    response.raise_for_status()
+    return response
+
+
 class TestList(BasePhonebookTestCase):
     def test_unknown_tenant(self):
         invalid, *_ = self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
-        self.post_phonebook(valid_body, tenant=invalid.uuid).json()
+        raise_for_status(self.post_phonebook(valid_body, tenant=invalid.uuid)).json()
 
         self.set_tenants()
         result = self.list_phonebooks(tenant=generate_tenant_uuid())
@@ -24,7 +29,9 @@ class TestList(BasePhonebookTestCase):
     def test_valid(self):
         valid, *_ = self.set_tenants('valid')
         valid_body = {'name': 'foobar'}
-        phonebook_1 = self.post_phonebook(valid_body, tenant=valid.uuid).json()
+        phonebook_1 = raise_for_status(
+            self.post_phonebook(valid_body, tenant=valid.uuid)
+        ).json()
 
         result = self.list_phonebooks(tenant=valid.uuid)
         assert_that(
@@ -38,9 +45,15 @@ class TestList(BasePhonebookTestCase):
         valid_body_1 = {'name': 'a', 'description': 'c'}
         valid_body_2 = {'name': 'b', 'description': 'b'}
         valid_body_3 = {'name': 'c', 'description': 'a'}
-        phonebook_1 = self.post_phonebook(valid_body_1, tenant=pagination.uuid).json()
-        phonebook_2 = self.post_phonebook(valid_body_2, tenant=pagination.uuid).json()
-        phonebook_3 = self.post_phonebook(valid_body_3, tenant=pagination.uuid).json()
+        phonebook_1 = raise_for_status(
+            self.post_phonebook(valid_body_1, tenant=pagination.uuid)
+        ).json()
+        phonebook_2 = raise_for_status(
+            self.post_phonebook(valid_body_2, tenant=pagination.uuid)
+        ).json()
+        phonebook_3 = raise_for_status(
+            self.post_phonebook(valid_body_3, tenant=pagination.uuid)
+        ).json()
 
         def assert_matches(result, *phonebooks):
             assert_that(
@@ -136,7 +149,9 @@ class TestGet(BasePhonebookTestCase):
         valid, *_ = self.set_tenants('valid')
 
         valid_body = {'name': 'foobar'}
-        phonebook = self.post_phonebook(valid_body, tenant=valid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=valid.uuid)
+        ).json()
 
         self.set_tenants()
         result = self.get_phonebook(phonebook['uuid'], tenant=generate_tenant_uuid())
@@ -146,7 +161,9 @@ class TestGet(BasePhonebookTestCase):
         valid, *_ = self.set_tenants('valid')
 
         valid_body = {'name': 'foobaz'}
-        phonebook = self.post_phonebook(valid_body, tenant=valid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=valid.uuid)
+        ).json()
 
         result = self.get_phonebook(phonebook['uuid'], tenant=valid.uuid)
         assert_that(result.status_code, equal_to(200))
@@ -156,14 +173,16 @@ class TestGet(BasePhonebookTestCase):
         valid, *_ = self.set_tenants('valid')
 
         valid_body = {'name': 'delete me'}
-        phonebook = self.post_phonebook(valid_body, tenant=valid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=valid.uuid)
+        ).json()
 
         other, *_ = self.set_tenants('other')
         result = self.get_phonebook('other', phonebook['uuid'], tenant=other.uuid)
         assert_that(result.status_code, equal_to(404))
 
         valid, *_ = self.set_tenants('valid')
-        self.delete_phonebook(phonebook['uuid'], tenant=valid.uuid)
+        raise_for_status(self.delete_phonebook(phonebook['uuid'], tenant=valid.uuid))
         result = self.get_phonebook(phonebook['uuid'], tenant=valid.uuid)
         assert_that(result.status_code, equal_to(404))
 
@@ -172,7 +191,9 @@ class TestDelete(BasePhonebookTestCase):
     def test_unknown_tenant(self):
         invalid, *_ = self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
-        phonebook = self.post_phonebook(valid_body, tenant=invalid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=invalid.uuid)
+        ).json()
 
         self.set_tenants()
         result = self.delete_phonebook(phonebook['uuid'], tenant=generate_tenant_uuid())
@@ -181,14 +202,18 @@ class TestDelete(BasePhonebookTestCase):
     def test_valid(self):
         valid, *_ = self.set_tenants('valid')
         valid_body = {'name': 'foobaz'}
-        phonebook = self.post_phonebook(valid_body, tenant=valid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=valid.uuid)
+        ).json()
         result = self.delete_phonebook(phonebook['uuid'], tenant=valid.uuid)
         assert_that(result.status_code, equal_to(204))
 
     def test_unknown_phonebook(self):
         valid, *_ = self.set_tenants('valid')
         valid_body = {'name': 'foobaz'}
-        phonebook = self.post_phonebook(valid_body, tenant=valid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=valid.uuid)
+        ).json()
 
         other, *_ = self.set_tenants('other')
         result = self.delete_phonebook('other', phonebook['uuid'], tenant=other.uuid)
@@ -206,7 +231,9 @@ class TestPut(BasePhonebookTestCase):
     def test_unknown_tenant(self):
         invalid, *_ = self.set_tenants('invalid')
         valid_body = {'name': 'foobar'}
-        phonebook = self.post_phonebook(valid_body, tenant=invalid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=invalid.uuid)
+        ).json()
 
         self.set_tenants()
         result = self.put_phonebook(
@@ -217,7 +244,9 @@ class TestPut(BasePhonebookTestCase):
     def test_valid(self):
         valid, *_ = self.set_tenants('valid')
         valid_body = {'name': 'foobaz'}
-        phonebook = self.post_phonebook(valid_body, tenant=valid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=valid.uuid)
+        ).json()
 
         result = self.put_phonebook(
             phonebook['uuid'], {'name': 'new'}, tenant=valid.uuid
@@ -227,7 +256,9 @@ class TestPut(BasePhonebookTestCase):
     def test_unknown_phonebook(self):
         valid, *_ = self.set_tenants('valid')
         valid_body = {'name': 'delete me'}
-        phonebook = self.post_phonebook(valid_body, tenant=valid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=valid.uuid)
+        ).json()
 
         other, *_ = self.set_tenants('other')
         result = self.put_phonebook(
@@ -244,7 +275,9 @@ class TestPut(BasePhonebookTestCase):
     def test_invalid_bodies(self):
         invalid, *_ = self.set_tenants('invalid')
         valid_body = {'name': 'update me'}
-        phonebook = self.post_phonebook(valid_body, tenant=invalid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=invalid.uuid)
+        ).json()
         bodies = [
             {},
             {'description': 'abc'},
@@ -265,10 +298,12 @@ class TestPut(BasePhonebookTestCase):
     def test_duplicated(self):
         invalid, *_ = self.set_tenants('invalid')
         valid_body = {'name': 'duplicate me'}
-        self.post_phonebook(valid_body, tenant=invalid.uuid).json()
+        raise_for_status(self.post_phonebook(valid_body, tenant=invalid.uuid)).json()
 
         valid_body = {'name': 'duplicate me NOT'}
-        phonebook = self.post_phonebook(valid_body, tenant=invalid.uuid).json()
+        phonebook = raise_for_status(
+            self.post_phonebook(valid_body, tenant=invalid.uuid)
+        ).json()
 
         result = self.put_phonebook(
             phonebook['uuid'], {'name': 'duplicate me'}, tenant=invalid.uuid
@@ -280,21 +315,25 @@ class _BasePhonebookContactTestCase(BasePhonebookTestCase):
     def setUp(self):
         super().setUp()
         self.tenant_1, *_ = self.set_tenants('valid')
-        self.phonebook_1 = self.post_phonebook(
-            {'name': 'one'}, tenant=self.tenant_1.uuid
+        self.phonebook_1 = raise_for_status(
+            self.post_phonebook({'name': 'one'}, tenant=self.tenant_1.uuid)
         ).json()
 
         self.tenant_2, *_ = self.set_tenants('other')
-        self.phonebook_2 = self.post_phonebook(
-            {'name': 'two'}, tenant=self.tenant_2.uuid
+        self.phonebook_2 = raise_for_status(
+            self.post_phonebook({'name': 'two'}, tenant=self.tenant_2.uuid)
         ).json()
 
     def tearDown(self):
         self.set_tenants(self.tenant_1.name)
-        self.delete_phonebook(self.phonebook_1['uuid'], tenant=self.tenant_1.uuid)
+        raise_for_status(
+            self.delete_phonebook(self.phonebook_1['uuid'], tenant=self.tenant_1.uuid)
+        )
 
         self.set_tenants(self.tenant_2.name)
-        self.delete_phonebook(self.phonebook_2['uuid'], tenant=self.tenant_2.uuid)
+        raise_for_status(
+            self.delete_phonebook(self.phonebook_2['uuid'], tenant=self.tenant_2.uuid)
+        )
         super().tearDown()
 
 
@@ -302,8 +341,12 @@ class TestContactDelete(_BasePhonebookContactTestCase):
     def setUp(self):
         super().setUp()
         self.set_tenants(self.tenant_1.name)
-        self.contact = self.post_phonebook_contact(
-            self.phonebook_1['uuid'], {'firstname': 'Alice'}, tenant=self.tenant_1.uuid
+        self.contact = raise_for_status(
+            self.post_phonebook_contact(
+                self.phonebook_1['uuid'],
+                {'firstname': 'Alice'},
+                tenant=self.tenant_1.uuid,
+            )
         ).json()
         self.contact_uuid = self.contact['id']
 
@@ -338,8 +381,12 @@ class TestContactGet(_BasePhonebookContactTestCase):
     def setUp(self):
         super().setUp()
         self.set_tenants(self.tenant_1.name)
-        self.contact = self.post_phonebook_contact(
-            self.phonebook_1['uuid'], {'firstname': 'Alice'}, tenant=self.tenant_1.uuid
+        self.contact = raise_for_status(
+            self.post_phonebook_contact(
+                self.phonebook_1['uuid'],
+                {'firstname': 'Alice'},
+                tenant=self.tenant_1.uuid,
+            )
         ).json()
         self.contact_uuid = self.contact['id']
 
@@ -360,8 +407,10 @@ class TestContactGet(_BasePhonebookContactTestCase):
         res = self._get(self.tenant_1, self.phonebook_2['uuid'], self.contact_uuid)
         assert_that(res.status_code, equal_to(404), 'unknown phonebook')
 
-        self.delete_phonebook_contact(
-            self.phonebook_1['uuid'], self.contact_uuid, tenant=self.tenant_1.uuid
+        raise_for_status(
+            self.delete_phonebook_contact(
+                self.phonebook_1['uuid'], self.contact_uuid, tenant=self.tenant_1.uuid
+            )
         )
         res = self._get(self.tenant_1, self.phonebook_1['uuid'], self.contact_uuid)
         assert_that(res.status_code, equal_to(404), 'unknown contact')
@@ -392,17 +441,24 @@ class TestContactList(_BasePhonebookContactTestCase):
         body_1 = {'firstname': 'a', 'lastname': 'c'}
         body_2 = {'firstname': 'b', 'lastname': 'b'}
         body_3 = {'firstname': 'c', 'lastname': 'a'}
-        contact_1 = self.post_phonebook_contact(
-            phonebook_uuid, body_1, tenant=self.tenant_1.uuid
+        contact_1 = raise_for_status(
+            self.post_phonebook_contact(
+                phonebook_uuid, body_1, tenant=self.tenant_1.uuid
+            )
         ).json()
-        contact_2 = self.post_phonebook_contact(
-            phonebook_uuid, body_2, tenant=self.tenant_1.uuid
+        contact_2 = raise_for_status(
+            self.post_phonebook_contact(
+                phonebook_uuid, body_2, tenant=self.tenant_1.uuid
+            )
         ).json()
-        contact_3 = self.post_phonebook_contact(
-            phonebook_uuid, body_3, tenant=self.tenant_1.uuid
+        contact_3 = raise_for_status(
+            self.post_phonebook_contact(
+                phonebook_uuid, body_3, tenant=self.tenant_1.uuid
+            )
         ).json()
 
         def assert_matches(result, *contacts):
+            raise_for_status(result)
             assert_that(
                 result.json(),
                 has_entries(
@@ -490,8 +546,10 @@ class TestContactPost(_BasePhonebookContactTestCase):
         body = {'firstname': 'Alice'}
 
         self.set_tenants(self.tenant_1.name)
-        self.post_phonebook_contact(
-            self.phonebook_1['uuid'], body, tenant=self.tenant_1.uuid
+        raise_for_status(
+            self.post_phonebook_contact(
+                self.phonebook_1['uuid'], body, tenant=self.tenant_1.uuid
+            )
         )
         result = self.post_phonebook_contact(
             self.phonebook_1['uuid'], body, tenant=self.tenant_1.uuid
@@ -509,8 +567,12 @@ class TestContactPut(_BasePhonebookContactTestCase):
     def setUp(self):
         super().setUp()
         self.set_tenants(self.tenant_1.name)
-        self.contact = self.post_phonebook_contact(
-            self.phonebook_1['uuid'], {'firstname': 'Alice'}, tenant=self.tenant_1.uuid
+        self.contact = raise_for_status(
+            self.post_phonebook_contact(
+                self.phonebook_1['uuid'],
+                {'firstname': 'Alice'},
+                tenant=self.tenant_1.uuid,
+            )
         ).json()
         self.contact_uuid = self.contact['id']
 
@@ -539,8 +601,10 @@ class TestContactPut(_BasePhonebookContactTestCase):
         )
         assert_that(res.status_code, equal_to(404), 'unknown phonebook')
 
-        self.delete_phonebook_contact(
-            self.phonebook_1['uuid'], self.contact_uuid, tenant=self.tenant_1.uuid
+        raise_for_status(
+            self.delete_phonebook_contact(
+                self.phonebook_1['uuid'], self.contact_uuid, tenant=self.tenant_1.uuid
+            )
         )
         res = self._put(
             self.tenant_1, self.phonebook_1['uuid'], self.contact_uuid, body
