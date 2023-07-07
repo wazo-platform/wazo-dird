@@ -1,4 +1,5 @@
 from xivo.mallow_helpers import ListSchema
+
 from marshmallow import fields
 
 
@@ -17,6 +18,9 @@ class ContactListSchema(ListSchema):
         return project(self.load(args, **kwargs), ['search'])
 
 
+contact_list_schema = ContactListSchema()
+
+
 class PhonebookListSchema(ListSchema):
     searchable_columns = ['name', 'description']
     sort_columns = ['name', 'description']
@@ -26,3 +30,6 @@ class PhonebookListSchema(ListSchema):
 
     def count(self, args: dict, **kwargs) -> dict:
         return project(self.load(args, **kwargs), ['search'])
+
+
+phonebook_list_schema = PhonebookListSchema()

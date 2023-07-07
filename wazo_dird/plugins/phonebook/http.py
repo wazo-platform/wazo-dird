@@ -26,9 +26,10 @@ from wazo_dird.exception import (
     NoSuchTenant,
 )
 from wazo_dird.http import AuthResource
+from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService, PhonebookKey
 
-from .schemas import ContactListSchema, PhonebookListSchema
+from .schemas import contact_list_schema, phonebook_list_schema
 
 request: Request  # type: ignore[no-redef]
 
@@ -74,11 +75,11 @@ class PhonebookContactAll(_Resource):
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.create')
     @_default_error_route
     def post(self, phonebook_uuid: UUID):
-        tenant = Tenant.autodetect()
+        visible_tenants = get_tenant_uuids(recurse=False)
 
         return (
             self.phonebook_service.create_contact(
-                tenant.uuid,
+                visible_tenants,
                 PhonebookKey(uuid=str(phonebook_uuid)),
                 cast(dict, request.json),
             ),
@@ -88,16 +89,16 @@ class PhonebookContactAll(_Resource):
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.read')
     @_default_error_route
     def get(self, phonebook_uuid: UUID):
-        list_params: dict = ContactListSchema().load(request.args)  # type: ignore
-        tenant = Tenant.autodetect()
+        list_params: dict = contact_list_schema.load(request.args)  # type: ignore
+        visible_tenants = get_tenant_uuids(recurse=False)
 
         count = self.phonebook_service.count_contact(
-            tenant.uuid,
+            visible_tenants,
             PhonebookKey(uuid=str(phonebook_uuid)),
-            **ContactListSchema().count(request.args),
+            **contact_list_schema.count(request.args),
         )
         contacts = self.phonebook_service.list_contact(
-            tenant.uuid, PhonebookKey(uuid=str(phonebook_uuid)), **list_params
+            visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), **list_params
         )
 
         return {'items': contacts, 'total': count}, 200
@@ -115,13 +116,14 @@ class PhonebookAll(_Resource):
     @required_acl('dird.phonebooks.read')
     @_default_error_route
     def get(self):
-        tenant = Tenant.autodetect()
+        list_params = cast(dict, phonebook_list_schema.load(request.args))
+        count_params = cast(dict, phonebook_list_schema.count(request.args))
+        visible_tenants = get_tenant_uuids(recurse=list_params.pop('recurse'))
 
-        list_params = cast(dict, PhonebookListSchema().load(request.args))
-        count_params = cast(dict, PhonebookListSchema().count(request.args))
-
-        count = self.phonebook_service.count_phonebook(tenant.uuid, **count_params)
-        phonebooks = self.phonebook_service.list_phonebook(tenant.uuid, **list_params)
+        count = self.phonebook_service.count_phonebook(visible_tenants, **count_params)
+        phonebooks = self.phonebook_service.list_phonebook(
+            visible_tenants, **list_params
+        )
 
         return {'items': phonebooks, 'total': count}
 
@@ -142,7 +144,7 @@ class PhonebookContactImport(_Resource):
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.create')
     @_default_error_route
     def post(self, phonebook_uuid: UUID):
-        tenant = Tenant.autodetect()
+        visible_tenants = get_tenant_uuids(recurse=False)
 
         charset = request.mimetype_params.get('charset', 'utf-8')
         raw_data = cast(bytes, request.data)
@@ -162,7 +164,7 @@ class PhonebookContactImport(_Resource):
 
         to_add = [c for c in csv.DictReader(data)]
         created, failed = self.phonebook_service.import_contacts(
-            tenant.uuid, PhonebookKey(uuid=str(phonebook_uuid)), to_add
+            visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), to_add
         )
 
         return {'created': created, 'failed': failed}
@@ -181,11 +183,13 @@ class PhonebookContactOne(_Resource):
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.{contact_uuid}.read')
     @_default_error_route
     def get(self, phonebook_uuid: UUID, contact_uuid: UUID):
-        tenant = Tenant.autodetect()
+        visible_tenants = get_tenant_uuids(recurse=False)
 
         return (
             self.phonebook_service.get_contact(
-                tenant.uuid, PhonebookKey(uuid=str(phonebook_uuid)), str(contact_uuid)
+                visible_tenants,
+                PhonebookKey(uuid=str(phonebook_uuid)),
+                str(contact_uuid),
             ),
             200,
         )
@@ -193,21 +197,21 @@ class PhonebookContactOne(_Resource):
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.{contact_uuid}.delete')
     @_default_error_route
     def delete(self, phonebook_uuid: UUID, contact_uuid: UUID):
-        tenant = Tenant.autodetect()
+        visible_tenants = get_tenant_uuids(recurse=False)
 
         self.phonebook_service.delete_contact(
-            tenant.uuid, PhonebookKey(uuid=str(phonebook_uuid)), str(contact_uuid)
+            visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), str(contact_uuid)
         )
         return '', 204
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.{contact_uuid}.update')
     @_default_error_route
     def put(self, phonebook_uuid: UUID, contact_uuid: UUID):
-        tenant = Tenant.autodetect()
+        visible_tenants = get_tenant_uuids(recurse=False)
         body = cast(dict, request.json)
         return (
             self.phonebook_service.edit_contact(
-                tenant.uuid,
+                visible_tenants,
                 PhonebookKey(uuid=str(phonebook_uuid)),
                 str(contact_uuid),
                 body,
@@ -228,21 +232,21 @@ class PhonebookOne(_Resource):
     @required_acl('dird.phonebooks.{phonebook_uuid}.delete')
     @_default_error_route
     def delete(self, phonebook_uuid: UUID):
-        tenant = Tenant.autodetect()
+        visible_tenants = get_tenant_uuids(recurse=False)
 
         self.phonebook_service.delete_phonebook(
-            tenant.uuid, PhonebookKey(uuid=str(phonebook_uuid))
+            visible_tenants, PhonebookKey(uuid=str(phonebook_uuid))
         )
         return '', 204
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.read')
     @_default_error_route
     def get(self, phonebook_uuid: UUID):
-        tenant = Tenant.autodetect()
+        visible_tenants = get_tenant_uuids(recurse=False)
 
         return (
             self.phonebook_service.get_phonebook(
-                tenant.uuid, PhonebookKey(uuid=str(phonebook_uuid))
+                visible_tenants, PhonebookKey(uuid=str(phonebook_uuid))
             ),
             200,
         )
@@ -250,11 +254,11 @@ class PhonebookOne(_Resource):
     @required_acl('dird.phonebooks.{phonebook_uuid}.update')
     @_default_error_route
     def put(self, phonebook_uuid: UUID):
-        tenant = Tenant.autodetect()
+        visible_tenants = get_tenant_uuids(recurse=False)
         body = cast(dict, request.json)
         return (
             self.phonebook_service.edit_phonebook(
-                tenant.uuid,
+                visible_tenants,
                 PhonebookKey(uuid=str(phonebook_uuid)),
                 body,
             ),
