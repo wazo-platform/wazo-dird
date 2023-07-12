@@ -1,13 +1,18 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+from marshmallow import post_load
 from xivo.mallow import fields
 from xivo.mallow_helpers import ListSchema as _ListSchema
 from wazo_dird.schemas import BaseSourceSchema
 
 
 class SourceSchema(BaseSourceSchema):
-    pass
+    phonebook_uuid = fields.UUID(required=True)
+
+    @post_load
+    def stringify_uuid(self, data, **kwargs):
+        data.update(phonebook_uuid=str(data['phonebook_uuid']))
+        return data
 
 
 class ListSchema(_ListSchema):
