@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
+import logging
+from uuid import uuid4
 from hamcrest import (
     assert_that,
     calling,
@@ -14,8 +16,11 @@ from hamcrest import (
 )
 
 from unittest.mock import ANY
+import requests
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_test_helpers.hamcrest.raises import raises
+from wazo_dird_client import Client as _DirdClient
+from wazo_dird_client.commands.phonebook_source import Command
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
@@ -27,10 +32,20 @@ from .helpers.constants import (
     VALID_TOKEN_SUB_TENANT,
 )
 
+logger = logging.getLogger(__name__)
+
+
+class DirdClient(_DirdClient):
+    phonebook_source: Command
+
+
+def generate_phonebook_uuid():
+    return str(uuid4())
+
 
 class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
     asset = 'all_routes'
-    valid_body = {'name': 'main'}
+    valid_body = {'name': 'main', 'phonebook_uuid': generate_phonebook_uuid()}
 
     def assert_unknown_source_exception(self, source_uuid, exception):
         assert_that(exception.response.status_code, equal_to(404))
@@ -44,12 +59,17 @@ class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
         )
 
     @contextmanager
-    def source(self, client, *args, **kwargs):
-        source = client.phonebook_source.create(*args, **kwargs)
+    def source(self, client: DirdClient, *args, **kwargs):
         try:
-            yield source
+            _source = client.phonebook_source.create(*args, **kwargs)
+        except Exception as ex:
+            logger.exception("Error trying to create source: %s", ex.response.content)
+            print(ex.response.content)
+            raise
+        try:
+            yield _source
         finally:
-            self.client.phonebook_source.delete(source['uuid'])
+            client.phonebook_source.delete(_source['uuid'])
 
 
 class TestDelete(BasePhonebookCRUDTestCase):
@@ -174,7 +194,7 @@ class TestPost(BasePhonebookCRUDTestCase):
     def test_post(self):
         try:
             self.client.phonebook_source.create({})
-        except Exception as e:
+        except requests.exceptions.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(), has_entries(message=ANY, error_id='invalid-data')
@@ -228,6 +248,7 @@ class TestPut(BasePhonebookCRUDTestCase):
         super().setUp()
         self.new_body = {
             'name': 'new',
+            'phonebook_uuid': generate_phonebook_uuid(),
             'searched_columns': ['firstname'],
             'first_matched_columns': ['exten'],
             'format_columns': {'name': '{firstname} {lastname}'},
