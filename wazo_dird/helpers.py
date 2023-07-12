@@ -4,11 +4,14 @@
 import logging
 
 from collections import namedtuple
+from typing import TypedDict
 from flask import request
+from flask_restful import Api
 from xivo.tenant_flask_helpers import Tenant
 from wazo_dird import BaseViewPlugin
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
+from wazo_dird.plugins.source_service.plugin import _SourceService
 
 logger = logging.getLogger()
 
@@ -50,6 +53,8 @@ class RaiseStopper:
 
 
 class BaseService:
+    _service_name: str
+
     def __init__(self, config, source_manager, controller, *args, **kwargs):
         self._config = config
         self._source_manager = source_manager
@@ -80,8 +85,15 @@ class BaseService:
         return profile_config.get('services', {}).get(self._service_name, {})
 
 
+class AuthConfig(TypedDict):
+    host: str
+    backend: str
+    username: str
+    password: str
+
+
 class _BaseSourceResource(AuthResource):
-    def __init__(self, backend, service, auth_config):
+    def __init__(self, backend: str, service: _SourceService, auth_config: AuthConfig):
         self._service = service
         self._auth_config = auth_config
         self._backend = backend
@@ -123,8 +135,25 @@ class SourceItem(_BaseSourceResource):
         return '', 204
 
 
+class BackendViewConfig(TypedDict):
+    auth: AuthConfig
+
+
+class BackendViewServices(TypedDict):
+    source: _SourceService
+
+
+class BackendViewDependencies(TypedDict):
+    api: Api
+    config: BackendViewConfig
+    services: BackendViewServices
+
+
 class BaseBackendView(BaseViewPlugin):
     _required_members = ['backend', 'list_resource', 'item_resource']
+    backend: str
+    list_resource: type[SourceList]
+    item_resource: type[SourceItem]
 
     def __init__(self, *args, **kwargs):
         members = [getattr(self, name, None) for name in self._required_members]
@@ -134,7 +163,7 @@ class BaseBackendView(BaseViewPlugin):
 
         super().__init__(*args, **kwargs)
 
-    def load(self, dependencies):
+    def load(self, dependencies: BackendViewDependencies):
         api = dependencies['api']
         config = dependencies['config']
         service = dependencies['services']['source']

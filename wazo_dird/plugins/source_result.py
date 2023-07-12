@@ -1,8 +1,10 @@
 # Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
 import string
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +33,13 @@ class _NoErrorFormatter(string.Formatter):
 
 
 class _SourceResult:
-    _unique_column = None
-    backend = None
-    source = None
-    _format_columns = {}
+    _unique_column: str | None = None
+    backend: str
+    source: str
+    _format_columns: dict[str, str] = {}
+
+    fields: dict[str, Any | None]
+    relations: dict[str, Any | None]
 
     def __init__(
         self,
@@ -60,6 +65,7 @@ class _SourceResult:
         self._add_formatted_columns()
 
     def get_unique(self):
+        assert self._unique_column
         try:
             return str(self.fields[self._unique_column])
         except KeyError:
@@ -104,25 +110,24 @@ class _SourceResult:
 
 
 def make_result_class(
-    source_backend,
-    source_name,
-    unique_column=None,
-    format_columns=None,
-    is_deletable=False,
-    is_personal=False,
-):
-    if not unique_column:
-        unique_column = _SourceResult._unique_column
-    if not format_columns:
-        format_columns = _SourceResult._format_columns
+    source_backend: str,
+    source_name: str,
+    unique_column: str | None = None,
+    format_columns: dict[str, str] | None = None,
+    is_deletable: bool = False,
+    is_personal: bool = False,
+) -> type[_SourceResult]:
+    unique_column = unique_column or _SourceResult._unique_column
+    format_columns = format_columns or _SourceResult._format_columns
+    _is_deletable = is_deletable
+    _is_personal = is_personal
 
     class SourceResult(_SourceResult):
         source = source_name
         backend = source_backend
         _unique_column = unique_column
         _format_columns = format_columns
-
-    SourceResult.is_deletable = is_deletable
-    SourceResult.is_personal = is_personal
+        is_deletable = _is_deletable
+        is_personal = _is_personal
 
     return SourceResult

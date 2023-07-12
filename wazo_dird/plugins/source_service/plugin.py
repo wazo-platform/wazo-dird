@@ -1,23 +1,25 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
 
 from wazo_dird.database.helpers import Session
 
 from wazo_dird import BaseServicePlugin, database
+from wazo_dird.source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
 
 
 class SourceServicePlugin(BaseServicePlugin):
-    def load(self, dependencies):
+    def load(self, dependencies) -> _SourceService:
         source_manager = dependencies['source_manager']
         return _SourceService(database.SourceCRUD(Session), source_manager)
 
 
 class _SourceService:
-    def __init__(self, crud, source_manager):
+    def __init__(self, crud: database.SourceCRUD, source_manager: SourceManager):
         self._source_crud = crud
         self._source_manager = source_manager
 
