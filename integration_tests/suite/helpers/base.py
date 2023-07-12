@@ -9,7 +9,9 @@ import requests
 from hamcrest import assert_that, equal_to, has_entries
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from wazo_dird_client import Client as DirdClient
+from wazo_dird_client import Client as _DirdClient
+from wazo_dird_client.commands.phonebook_source import Command as PhonebookSourceCommand
+from wazo_dird_client.commands.status import StatusCommand
 from wazo_test_helpers import until
 from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_test_helpers.auth import AuthClient as MockAuthClient
@@ -41,6 +43,11 @@ from .constants import (
 from .wait_strategy import RestApiOkWaitStrategy
 
 START_TIMEOUT = int(os.environ.get('INTEGRATION_TEST_TIMEOUT', '30'))
+
+
+class DirdClient(_DirdClient):
+    phonebook_source: PhonebookSourceCommand
+    status: StatusCommand
 
 
 class DirdAssetRunningTestCase(AssetLaunchingTestCase):
@@ -148,7 +155,7 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
         super().tearDownClass()
 
     @classmethod
-    def make_dird(cls, token):
+    def make_dird(cls, token) -> DirdClient:
         return DirdClient(
             '127.0.0.1',
             cls.service_port(9489, 'dird'),
@@ -214,11 +221,11 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
         cls.configure_wazo_auth()
 
     @classmethod
-    def get_client(cls, token=VALID_TOKEN_MAIN_TENANT):
+    def get_client(cls, token=VALID_TOKEN_MAIN_TENANT) -> DirdClient:
         return DirdClient(cls.host, cls.port, token=token, prefix=None, https=False)
 
     @property
-    def client(self):
+    def client(self) -> DirdClient:
         return self.get_client()
 
     @classmethod
