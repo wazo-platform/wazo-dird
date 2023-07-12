@@ -98,11 +98,6 @@ class PhonebookPlugin(BaseSourcePlugin):
     def format_contacts(self, contacts):
         return [self._SourceResult(c) for c in contacts]
 
-    def _wait_until_loaded(self):
-        logger.debug('waiting until loaded')
-        if self._is_loaded.wait(timeout=1.0) is not True:
-            logger.error('%s is not initialized', self._source_name)
-
     def _get_phonebook_key(
         self, tenant_uuid: str, config: Config
     ) -> database.PhonebookKey:
