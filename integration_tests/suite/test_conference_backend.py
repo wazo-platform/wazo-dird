@@ -4,7 +4,7 @@
 from hamcrest import assert_that, contains, contains_inanyorder, empty, has_entries
 from unittest.mock import Mock
 
-from .base_dird_integration_test import BackendWrapper
+from .helpers.utils import BackendWrapper
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
 from .helpers.config import new_conference_config
 from .helpers.constants import MAIN_TENANT

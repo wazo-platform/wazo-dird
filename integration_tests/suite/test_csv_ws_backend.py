@@ -4,7 +4,7 @@
 from hamcrest import assert_that, contains, empty, has_entries
 
 from .helpers.base import DirdAssetRunningTestCase
-from .base_dird_integration_test import BackendWrapper
+from .helpers.utils import BackendWrapper
 
 
 class _BaseCSVWSBackend(DirdAssetRunningTestCase):

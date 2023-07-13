@@ -13,7 +13,7 @@ from hamcrest import assert_that, contains, contains_inanyorder, equal_to
 from wazo_dird import database
 from wazo_dird.database.queries.base import ContactInfo as _ContactInfo
 from .helpers.base import DBRunningTestCase
-from .base_dird_integration_test import BackendWrapper
+from .helpers.utils import BackendWrapper
 
 Session = None
 DB_URI = None
