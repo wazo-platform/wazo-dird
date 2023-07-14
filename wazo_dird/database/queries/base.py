@@ -1,9 +1,10 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import hashlib
 import json
-from typing import Iterator, Mapping, TypedDict, cast
+from typing import Iterator, Literal, Mapping, TypedDict, cast
 import unicodedata
 
 from contextlib import contextmanager
@@ -16,11 +17,11 @@ from wazo_dird.database import Tenant, User
 from .. import ContactFields
 
 
-def delete_user(session, user_uuid):
+def delete_user(session: BaseSession, user_uuid: str):
     session.query(User).filter(User.user_uuid == user_uuid).delete()
 
 
-def extract_constraint_name(error):
+def extract_constraint_name(error: exc.DBAPIError):
     try:
         return error.orig.diag.constraint_name
     except AttributeError:
@@ -54,13 +55,24 @@ def compute_contact_hash(contact_info: Mapping) -> str:
     return hashlib.sha1(string_representation).hexdigest()
 
 
+Direction = Literal['asc', 'desc']
+
+
+class Parameters(TypedDict):
+    direction: Direction
+    order: str | None
+    limit: int | None
+    offset: int
+    search: str | None
+
+
 class BaseDAO:
-    SORT_DIRECTIONS = {
+    SORT_DIRECTIONS: dict[Direction, None] = {
         'asc': None,
         'desc': None,
     }
 
-    DEFAULTS = {
+    DEFAULTS: Parameters = {
         'search': None,
         'order': None,
         'direction': 'asc',
@@ -71,7 +83,9 @@ class BaseDAO:
     def __init__(self, Session: scoped_session):
         self._Session = Session
 
-    def flush_or_raise(self, session, Exception_, *args, **kwargs):
+    def flush_or_raise(
+        self, session: BaseSession, Exception_: type[Exception], *args, **kwargs
+    ):
         try:
             session.flush()
         except exc.IntegrityError:
@@ -93,14 +107,14 @@ class BaseDAO:
         finally:
             self._Session.remove()
 
-    def _create_tenant(self, s, uuid):
+    def _create_tenant(self, s: BaseSession, uuid: str):
         s.add(Tenant(uuid=uuid))
         try:
             s.flush()
         except exc.IntegrityError:
             s.rollback()
 
-    def _get_dird_user(self, session, user_uuid):
+    def _get_dird_user(self, session: BaseSession, user_uuid: str):
         user = session.query(User).filter(User.user_uuid == user_uuid).first()
         if not user:
             user = User(user_uuid=user_uuid)
@@ -109,13 +123,20 @@ class BaseDAO:
 
         return user
 
-    def _generate_parameters(self, parameters):
+    def _generate_parameters(self, parameters: dict | None) -> Parameters:
         new_params = dict(self.DEFAULTS)
         if parameters:
             new_params.update(parameters)
-        return new_params
+        return cast(Parameters, new_params)
 
-    def _apply_search_params(self, rows, order, limit, offset, reverse):
+    def _apply_search_params(
+        self,
+        rows,
+        order: str | None,
+        limit: int | None,
+        offset: int,
+        reverse: bool,
+    ):
         if order:
             try:
                 rows = sorted(
@@ -130,7 +151,7 @@ class BaseDAO:
 
         return list(islice(rows, offset, offset + limit if limit else None))
 
-    def validate_parameters(self, parameters):
+    def validate_parameters(self, parameters: Parameters):
         if int(parameters['offset']) < 0:
             raise ValueError('offset must be positive number')
 
@@ -140,14 +161,16 @@ class BaseDAO:
         if parameters['direction'] not in self.SORT_DIRECTIONS.keys():
             raise ValueError('direction must be asc or desc')
 
-    def _extract_search_params(self, parameters):
-        parameters = self._generate_parameters(parameters)
-        self.validate_parameters(parameters)
+    def _extract_search_params(
+        self, parameters: dict | None
+    ) -> tuple[str | None, int | None, int, bool]:
+        _parameters = self._generate_parameters(parameters)
+        self.validate_parameters(_parameters)
 
-        order = parameters.pop('order', None)
-        limit = parameters.pop('limit', None)
+        order = _parameters.get('order', None)
+        limit = _parameters.get('limit', None)
         if limit is not None:
             limit = int(limit)
-        offset = int(parameters.pop('offset', 0))
-        reverse = not (parameters.pop('direction', 'asc') == 'asc')
+        offset = int(_parameters.get('offset', 0))
+        reverse = not (_parameters.get('direction', 'asc') == 'asc')
         return order, limit, offset, reverse

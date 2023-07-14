@@ -1,14 +1,16 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
-import builtins
 
+import builtins
 from collections import defaultdict
-from typing import Any, Literal, Tuple, TypedDict, cast
+from typing import Any, Tuple, TypedDict, cast
+
 from sqlalchemy import and_, distinct, func, or_, text
 from sqlalchemy.sql.expression import ColumnElement
 from sqlalchemy.orm import scoped_session, Session, Query
 
+from wazo_dird.database.queries.base import Direction
 from wazo_dird.exception import (
     DuplicatedContactException,
     DuplicatedPhonebookException,
