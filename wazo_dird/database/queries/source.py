@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TypedDict
 
 from sqlalchemy import and_, exc, text
+from sqlalchemy.orm import Query
 from wazo_dird.database.queries.base import Direction
 from wazo_dird.exception import DuplicatedSourceException, NoSuchSource
 from .base import BaseDAO
@@ -18,22 +19,34 @@ class SourceBody(TypedDict, total=False):
     format_columns: dict[str, str]
 
 
+class SourceInfo(TypedDict, total=False):
+    uuid: str
+    backend: str
+    name: str
+    tenant_uuid: str
+    searched_columns: list[str]
+    first_matched_columns: list[str]
+    format_columns: dict[str, str]
+
+
 class SourceCRUD(BaseDAO):
     _UNIQUE_CONSTRAINT_CODE = '23505'
 
-    def count(self, backend: str, visible_tenants: list[str], **list_params):
+    def count(self, backend: str, visible_tenants: list[str], **list_params) -> int:
         filter_ = self._list_filter(backend, visible_tenants, **list_params)
         with self.new_session() as s:
             return s.query(Source).filter(filter_).count()
 
-    def list_(self, backend: str, visible_tenants: list[str], **list_params):
+    def list_(
+        self, backend: str, visible_tenants: list[str], **list_params
+    ) -> list[SourceInfo]:
         filter_ = self._list_filter(backend, visible_tenants, **list_params)
         with self.new_session() as s:
             query = s.query(Source).filter(filter_)
             query = self._paginate(query, **list_params)
             return [self._from_db_format(row) for row in query.all()]
 
-    def create(self, backend: str, source_body: SourceBody):
+    def create(self, backend: str, source_body: SourceBody) -> SourceInfo:
         with self.new_session() as s:
             self._create_tenant(s, source_body['tenant_uuid'])
             source = self._to_db_format(backend, **source_body)
@@ -63,7 +76,7 @@ class SourceCRUD(BaseDAO):
         source_uuid: str,
         visible_tenants: list[str],
         body: SourceBody,
-    ):
+    ) -> SourceInfo:
         filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
             source = s.query(Source).filter(filter_).first()
@@ -71,7 +84,7 @@ class SourceCRUD(BaseDAO):
             if not source:
                 raise NoSuchSource(source_uuid)
 
-            self._update_to_db_format(source, **body)
+            source_attrs = self._update_to_db_format(source, **body)
             try:
                 s.flush()
             except exc.IntegrityError as e:
@@ -79,7 +92,11 @@ class SourceCRUD(BaseDAO):
                     raise DuplicatedSourceException(body['name'])
                 raise
 
-    def get(self, backend: str, source_uuid: str, visible_tenants: list[str]):
+            return source_attrs
+
+    def get(
+        self, backend: str, source_uuid: str, visible_tenants: list[str]
+    ) -> SourceInfo:
         filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
             source = s.query(Source).filter(filter_).first()
@@ -89,7 +106,7 @@ class SourceCRUD(BaseDAO):
 
             return self._from_db_format(source)
 
-    def get_by_uuid(self, uuid: str):
+    def get_by_uuid(self, uuid: str) -> SourceInfo:
         with self.new_session() as s:
             source = s.query(Source).filter(Source.uuid == uuid).first()
 
@@ -134,13 +151,13 @@ class SourceCRUD(BaseDAO):
 
     def _paginate(
         self,
-        query,
+        query: Query,
         limit: int | None = None,
         offset: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
         **ignored,
-    ):
+    ) -> Query:
         if order and direction:
             field = None
             if order == 'name':
@@ -174,7 +191,7 @@ class SourceCRUD(BaseDAO):
         first_matched_columns: list[str],
         format_columns: dict[str, str],
         **extra_fields,
-    ):
+    ) -> Source:
         source.name = name
         source.searched_columns = searched_columns
         source.first_matched_columns = first_matched_columns
@@ -183,8 +200,8 @@ class SourceCRUD(BaseDAO):
         return source
 
     @staticmethod
-    def _from_db_format(source: Source):
-        return dict(
+    def _from_db_format(source: Source) -> SourceInfo:
+        source_attrs = SourceInfo(
             uuid=source.uuid,
             backend=source.backend,
             name=source.name,
@@ -192,5 +209,7 @@ class SourceCRUD(BaseDAO):
             searched_columns=source.searched_columns,
             first_matched_columns=source.first_matched_columns,
             format_columns=source.format_columns,
-            **source.extra_fields or {},
         )
+        if source.extra_fields:
+            source_attrs.update(source.extra_fields)
+        return source_attrs
