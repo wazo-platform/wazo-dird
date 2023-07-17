@@ -2,16 +2,20 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-
 from collections import namedtuple
 from typing import TypedDict
+
 from flask import request
 from flask_restful import Api
 from xivo.tenant_flask_helpers import Tenant
-from wazo_dird import BaseViewPlugin
+
+from wazo_dird import BaseSourcePlugin
+from wazo_dird.controller import Controller
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
+from wazo_dird.plugins.base_plugins import BaseViewPlugin, SourceConfig
 from wazo_dird.plugins.source_service.plugin import _SourceService
+from wazo_dird.source_manager import SourceManager
 
 logger = logging.getLogger()
 
@@ -52,21 +56,39 @@ class RaiseStopper:
         return self.return_on_raise
 
 
+class ServiceConfig(TypedDict, total=False):
+    sources: list[SourceConfig]
+
+
+class ProfileConfig(TypedDict, total=False):
+    name: str
+    services: dict[str, ServiceConfig]
+
+
 class BaseService:
     _service_name: str
 
-    def __init__(self, config, source_manager, controller, *args, **kwargs):
+    def __init__(
+        self,
+        config: dict,
+        source_manager: SourceManager,
+        controller: Controller,
+        *args,
+        **kwargs,
+    ):
         self._config = config
         self._source_manager = source_manager
         self._controller = controller
 
-    def source_from_profile(self, profile_config):
+    def source_from_profile(
+        self, profile_config: ProfileConfig
+    ) -> list[BaseSourcePlugin]:
         service_config = profile_config.get('services', {}).get(self._service_name, {})
-        sources = service_config.get('sources', [])
+        source_configs = service_config.get('sources', [])
 
         result = []
-        for source in sources:
-            source = self._source_manager.get(source['uuid'])
+        for source_config in source_configs:
+            source = self._source_manager.get(source_config['uuid'])
             if not source:
                 continue
 
@@ -81,7 +103,7 @@ class BaseService:
 
         return result
 
-    def get_service_config(self, profile_config):
+    def get_service_config(self, profile_config: ProfileConfig) -> ServiceConfig:
         return profile_config.get('services', {}).get(self._service_name, {})
 
 
@@ -158,7 +180,10 @@ class BaseBackendView(BaseViewPlugin):
     def __init__(self, *args, **kwargs):
         members = [getattr(self, name, None) for name in self._required_members]
         if None in members:
-            msg = f'{self.__class__.__name__} should have the following members: {self._required_members}'
+            msg = (
+                f'{self.__class__.__name__} should have '
+                f'the following members: {self._required_members}'
+            )
             raise Exception(msg)
 
         super().__init__(*args, **kwargs)
