@@ -123,6 +123,21 @@ class PhonebookKey(TypedDict, total=False):
     uuid: str
 
 
+def deprecated_endpoint(endpoint_func):
+    @wraps(endpoint_func)
+    def wrapper(self, *args, **kwargs):
+        endpoint_name = endpoint_func.__name__
+        endpoint_context = self.__class__.__name__
+        logger.warning(
+            f"Endpoint {endpoint_context}.{endpoint_name} is deprecated. "
+            "This endpoint will be removed in a future release. "
+            "Please consider switching to an alternative endpoint."
+        )
+        return endpoint_func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class DeprecatedPhonebookContactAll(_Resource):
     error_code_map = {
         InvalidArgumentError: 400,
@@ -133,6 +148,7 @@ class DeprecatedPhonebookContactAll(_Resource):
         NoSuchTenant: 404,
     }
 
+    @deprecated_endpoint
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
     def post(self, tenant, phonebook_id):
@@ -145,6 +161,7 @@ class DeprecatedPhonebookContactAll(_Resource):
             201,
         )
 
+    @deprecated_endpoint
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
     @_default_error_route
     def get(self, tenant, phonebook_id):
@@ -174,6 +191,7 @@ class DeprecatedPhonebookAll(_Resource):
         NoSuchTenant: 404,
     }
 
+    @deprecated_endpoint
     @required_acl('dird.tenants.{tenant}.phonebooks.read')
     @_default_error_route
     def get(self, tenant):
@@ -190,6 +208,7 @@ class DeprecatedPhonebookAll(_Resource):
 
         return {'items': phonebooks, 'total': count}
 
+    @deprecated_endpoint
     @required_acl('dird.tenants.{tenant}.phonebooks.create')
     @_default_error_route
     def post(self, tenant):
@@ -206,6 +225,7 @@ class DeprecatedPhonebookAll(_Resource):
 class DeprecatedPhonebookContactImport(_Resource):
     error_code_map = {NoSuchTenant: 404, NoSuchPhonebook: 404}
 
+    @deprecated_endpoint
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
     def post(self, tenant, phonebook_id):
@@ -244,6 +264,7 @@ class DeprecatedPhonebookContactOne(_Resource):
         NoSuchTenant: 404,
     }
 
+    @deprecated_endpoint
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read'
     )
@@ -258,6 +279,7 @@ class DeprecatedPhonebookContactOne(_Resource):
             200,
         )
 
+    @deprecated_endpoint
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.delete'
     )
@@ -270,6 +292,7 @@ class DeprecatedPhonebookContactOne(_Resource):
         )
         return '', 204
 
+    @deprecated_endpoint
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.update'
     )
@@ -297,6 +320,7 @@ class DeprecatedPhonebookOne(_Resource):
         NoSuchTenant: 404,
     }
 
+    @deprecated_endpoint
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
     @_default_error_route
     def delete(self, tenant, phonebook_id):
@@ -307,6 +331,7 @@ class DeprecatedPhonebookOne(_Resource):
         )
         return '', 204
 
+    @deprecated_endpoint
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
     @_default_error_route
     def get(self, tenant, phonebook_id):
@@ -319,6 +344,7 @@ class DeprecatedPhonebookOne(_Resource):
             200,
         )
 
+    @deprecated_endpoint
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
     @_default_error_route
     def put(self, tenant, phonebook_id):

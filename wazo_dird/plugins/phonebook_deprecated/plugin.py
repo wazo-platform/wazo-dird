@@ -1,5 +1,7 @@
-# Copyright 2016-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+import logging
 
 from wazo_dird import BaseViewPlugin
 
@@ -11,11 +13,17 @@ from .http import (
     DeprecatedPhonebookOne,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class DeprecatedPhonebookViewPlugin(BaseViewPlugin):
     def load(self, dependencies=None):
         api = dependencies['api']
         args = (dependencies['services'].get('phonebook'), dependencies['auth_client'])
+
+        logger.warning(
+            "Loading deprecated phonebook view plugin. Expect plugin to be removed in a future version."
+        )
 
         api.add_resource(
             DeprecatedPhonebookContactAll,
