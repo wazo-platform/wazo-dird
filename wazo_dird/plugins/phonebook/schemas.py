@@ -1,10 +1,17 @@
-from xivo.mallow_helpers import ListSchema
+from __future__ import annotations
+
+from typing import Any, TypedDict, cast
 
 from marshmallow import fields
+from xivo.mallow_helpers import ListSchema
 
 
-def project(m: dict, keys: list[str], default=None) -> dict:
+def projection(m: dict[str, Any], keys: list[str], default=None) -> dict[str, Any]:
     return {k: m.get(k, default) for k in keys}
+
+
+class CountParams(TypedDict):
+    search: str | None
 
 
 class ContactListSchema(ListSchema):
@@ -14,8 +21,8 @@ class ContactListSchema(ListSchema):
 
     recurse = fields.Boolean(missing=False)
 
-    def count(self, args: dict, **kwargs) -> dict:
-        return project(self.load(args, **kwargs), ['search'])
+    def load_count(self, args: dict, **kwargs) -> CountParams:
+        return cast(CountParams, projection(self.load(args, **kwargs), ['search']))
 
 
 contact_list_schema = ContactListSchema()
@@ -28,8 +35,8 @@ class PhonebookListSchema(ListSchema):
 
     recurse = fields.Boolean(missing=False)
 
-    def count(self, args: dict, **kwargs) -> dict:
-        return project(self.load(args, **kwargs), ['search'])
+    def load_count(self, args: dict, **kwargs) -> CountParams:
+        return cast(CountParams, projection(self.load(args, **kwargs), ['search']))
 
 
 phonebook_list_schema = PhonebookListSchema()

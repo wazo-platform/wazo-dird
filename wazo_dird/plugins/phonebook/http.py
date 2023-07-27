@@ -95,7 +95,7 @@ class PhonebookContactAll(_Resource):
         count = self.phonebook_service.count_contact(
             visible_tenants,
             PhonebookKey(uuid=str(phonebook_uuid)),
-            **contact_list_schema.count(request.args),
+            **contact_list_schema.load_count(request.args),
         )
         contacts = self.phonebook_service.list_contact(
             visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), **list_params
@@ -117,7 +117,7 @@ class PhonebookAll(_Resource):
     @_default_error_route
     def get(self):
         list_params = cast(dict, phonebook_list_schema.load(request.args))
-        count_params = cast(dict, phonebook_list_schema.count(request.args))
+        count_params = phonebook_list_schema.load_count(request.args)
         visible_tenants = get_tenant_uuids(recurse=list_params.pop('recurse'))
 
         count = self.phonebook_service.count_phonebook(visible_tenants, **count_params)
@@ -125,7 +125,7 @@ class PhonebookAll(_Resource):
             visible_tenants, **list_params
         )
 
-        return {'items': phonebooks, 'total': count}
+        return {'items': phonebooks, 'total': count}, 200
 
     @required_acl('dird.phonebooks.create')
     @_default_error_route
