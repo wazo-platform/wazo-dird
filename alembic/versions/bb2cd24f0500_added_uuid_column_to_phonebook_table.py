@@ -99,7 +99,6 @@ def upgrade():
         sa.Column(
             'phonebook_uuid',
             postgresql.UUID(),
-            server_default=sa.text('uuid_generate_v4()'),
             nullable=True,
         ),
     )
