@@ -9,8 +9,8 @@ from unidecode import unidecode
 
 from wazo_dird import BaseServicePlugin, database
 from wazo_dird.database.helpers import Session
-from wazo_dird.database.queries.base import ContactInfo
-from wazo_dird.database.queries.phonebook import Direction, PhonebookDict, PhonebookKey
+from wazo_dird.database.queries.base import ContactInfo, Direction
+from wazo_dird.database.queries.phonebook import PhonebookDict, PhonebookKey
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class _PhonebookService:
         self._phonebook_crud: database.PhonebookCRUD = phonebook_crud
         self._contact_crud: database.PhonebookContactCRUD = contact_crud
 
-    def list_contact(
+    def list_contacts(
         self,
         visible_tenants: list[str],
         phonebook_key: PhonebookKey,
