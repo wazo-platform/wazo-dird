@@ -70,7 +70,8 @@ class _SourceResult:
             return str(self.fields[self._unique_column])
         except KeyError:
             logger.error(
-                '"%s" is not properly configured, the unique column "%s" is not part of the result',
+                '"%s" is not properly configured, the unique column "%s" '
+                'is not part of the result',
                 self.source,
                 self._unique_column,
             )
@@ -117,17 +118,21 @@ def make_result_class(
     is_deletable: bool = False,
     is_personal: bool = False,
 ) -> type[_SourceResult]:
-    unique_column = unique_column or _SourceResult._unique_column
-    format_columns = format_columns or _SourceResult._format_columns
-    _is_deletable = is_deletable
-    _is_personal = is_personal
+    unique_column = (
+        unique_column if unique_column is not None else _SourceResult._unique_column
+    )
+    format_columns = (
+        format_columns if format_columns is not None else _SourceResult._format_columns
+    )
+    is_deletable_ = is_deletable
+    is_personal_ = is_personal
 
     class SourceResult(_SourceResult):
         source = source_name
         backend = source_backend
         _unique_column = unique_column
-        _format_columns = format_columns
-        is_deletable = _is_deletable
-        is_personal = _is_personal
+        _format_columns = format_columns  # type: ignore
+        is_deletable = is_deletable_
+        is_personal = is_personal_
 
     return SourceResult
