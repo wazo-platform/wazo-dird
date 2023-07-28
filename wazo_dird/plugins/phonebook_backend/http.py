@@ -1,11 +1,21 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from typing import cast
+
+from flask import Request, request
 
 from wazo_dird.auth import required_acl
-from wazo_dird.helpers import SourceItem, SourceList
+from wazo_dird.database.queries.phonebook import PhonebookKey
+from wazo_dird.helpers import SourceConfig, SourceItem, SourceList
+from wazo_dird.http import AuthResource
+from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
+from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
+from wazo_dird.plugins.source_service.plugin import _SourceService
 
-from .schemas import list_schema, source_list_schema, source_schema
+from .schemas import contact_list_schema, list_schema, source_list_schema, source_schema
+
+request: Request  # type: ignore[no-redef]
 
 
 class PhonebookList(SourceList):
@@ -36,3 +46,47 @@ class PhonebookItem(SourceItem):
     @required_acl('dird.backends.phonebook.sources.{source_uuid}.update')
     def put(self, source_uuid):
         return super().put(source_uuid)
+
+
+class PhonebookSourceInfo(SourceConfig):
+    phonebook_uuid: str
+
+
+class PhonebookContactList(AuthResource):
+    BACKEND = 'phonebook'
+    _phonebook_service: _PhonebookService
+    _source_service: _SourceService
+
+    def __init__(
+        self, source_service: _SourceService, phonebook_service: _PhonebookService
+    ):
+        self._source_service = source_service
+        self._phonebook_service = phonebook_service
+
+    @required_acl('dird.backends.phonebook.sources.{source_uuid}.contacts.read')
+    def get(self, source_uuid):
+        visible_tenants = get_tenant_uuids(recurse=False)
+        list_params = contact_list_schema.load(request.args)
+
+        source_config = cast(
+            PhonebookSourceInfo,
+            self._source_service.get(self.BACKEND, source_uuid, visible_tenants),
+        )
+
+        # sources prior to WAZO-3267 might be missing 'phonebook_uuid' and will crash here
+        phonebook_key = PhonebookKey(uuid=source_config['phonebook_uuid'])
+
+        total_count = self._phonebook_service.count_contact(
+            visible_tenants, phonebook_key
+        )
+        filtered_count = self._phonebook_service.count_contact(
+            visible_tenants, phonebook_key, **list_params
+        )
+        contacts = self._phonebook_service.list_contacts(
+            visible_tenants=visible_tenants, phonebook_key=phonebook_key, **list_params
+        )
+
+        return (
+            {'filtered': filtered_count, 'items': contacts, 'total': total_count},
+            200,
+        )
