@@ -13,6 +13,7 @@ paths:
         - $ref: '#/parameters/Limit'
         - $ref: '#/parameters/Offset'
         - $ref: '#/parameters/search'
+        - $ref: '#/parameters/recurse'
       responses:
         '200':
           description: List of phonebooks
