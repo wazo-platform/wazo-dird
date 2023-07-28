@@ -131,15 +131,6 @@ def downgrade():
     )
     op.get_bind().execute(update_contact_phonebook_id())
 
-    op.create_foreign_key(
-        'dird_contact_phonebook_id_fkey',
-        'dird_contact',
-        'dird_phonebook',
-        ['phonebook_id'],
-        ['id'],
-        ondelete='CASCADE',
-    )
-    op.create_index('dird_contact__idx__phonebook_id', 'dird_contact', ['phonebook_id'])
     # remove foreign key to dird_phonebook uuid column
     op.drop_constraint(
         'dird_contact_phonebook_uuid_fkey', 'dird_contact', type_='foreignkey'
@@ -150,7 +141,23 @@ def downgrade():
     )
     op.drop_column('dird_contact', 'phonebook_uuid')
 
+    op.create_unique_constraint(
+        'dird_contact_hash_phonebook_id', 'dird_contact', ['phonebook_id', 'hash']
+    )
     # remove uuid primary key from dird_phonebook, replace with id column
+    op.drop_constraint('dird_phonebook_id', 'dird_phonebook', type_='unique')
+
     op.drop_constraint('dird_phonebook_pkey', 'dird_phonebook', type_='primary')
     op.create_primary_key('dird_phonebook_pkey', 'dird_phonebook', ['id'])
+
+    op.create_index('dird_contact__idx__phonebook_id', 'dird_contact', ['phonebook_id'])
+    op.create_foreign_key(
+        'dird_contact_phonebook_id_fkey',
+        'dird_contact',
+        'dird_phonebook',
+        ['phonebook_id'],
+        ['id'],
+        ondelete='CASCADE',
+    )
+
     op.drop_column('dird_phonebook', 'uuid')
