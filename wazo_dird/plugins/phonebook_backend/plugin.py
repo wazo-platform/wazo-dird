@@ -1,10 +1,11 @@
 # Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
+from typing import TypedDict
 
-from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird import database
+from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
 from wazo_dird.exception import InvalidConfigError
 from wazo_dird.helpers import BaseBackendView
@@ -20,13 +21,32 @@ class PhonebookView(BaseBackendView):
     item_resource = http.PhonebookItem
 
 
-class PhonebookPlugin(BaseSourcePlugin):
-    def __init__(self, *args, **kwargs):
-        self._crud = None
-        self._source_name = None
-        super().__init__(*args, **kwargs)
+class _Config(TypedDict):
+    name: str  # phonebook source name
+    tenant_uuid: str
 
-    def load(self, dependencies):
+
+class Config(_Config, total=False):
+    phonebook_uuid: str
+    phonebook_id: int
+
+
+class Dependencies(TypedDict):
+    config: Config
+
+
+class PhonebookPlugin(BaseSourcePlugin):
+    _crud: database.PhonebookCRUD
+    _source_name: str
+    _search_engine: database.PhonebookContactSearchEngine
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._crud = None  # type: ignore[assignment]
+        self._search_engine = None  # type: ignore[assignment]
+        self._source_name = None  # type: ignore[assignment]
+
+    def load(self, dependencies: Dependencies):
         logger.debug('Loading phonebook source')
         unique_column = 'id'
         config = dependencies['config']
@@ -38,10 +58,14 @@ class PhonebookPlugin(BaseSourcePlugin):
         self._crud = database.PhonebookCRUD(Session)
 
         tenant_uuid = config['tenant_uuid']
-        phonebook_id = self._get_phonebook_id(tenant_uuid, config)
+        phonebook_key = self._get_phonebook_key(tenant_uuid, config)
 
         self._search_engine = database.PhonebookContactSearchEngine(
-            Session, tenant_uuid, phonebook_id, searched_columns, first_matched_columns
+            Session,
+            [tenant_uuid],
+            phonebook_key,
+            searched_columns,
+            first_matched_columns,
         )
 
         self._SourceResult = make_result_class(
@@ -66,7 +90,7 @@ class PhonebookPlugin(BaseSourcePlugin):
             logger.debug('Found one matching contact.')
             return contact
 
-    def list(self, source_entry_ids, *args, **kwargs):
+    def list(self, source_entry_ids, args=None):
         logger.debug('Listing phonebook contacts')
         matching_contacts = self._search_engine.list_contacts(source_entry_ids)
         return self.format_contacts(matching_contacts)
@@ -79,15 +103,19 @@ class PhonebookPlugin(BaseSourcePlugin):
         if self._is_loaded.wait(timeout=1.0) is not True:
             logger.error('%s is not initialized', self._source_name)
 
-    def _get_phonebook_id(self, tenant_uuid, config):
-        if 'phonebook_id' in config:
-            return config['phonebook_id']
+    def _get_phonebook_key(
+        self, tenant_uuid: str, config: Config
+    ) -> database.PhonebookKey:
+        if 'phonebook_uuid' in config:
+            return database.PhonebookKey(uuid=config['phonebook_uuid'])
+        elif 'phonebook_id' in config:
+            return database.PhonebookKey(id=config['phonebook_id'])
 
         phonebook_name = config['name']
-        phonebooks = self._crud.list(tenant_uuid, search=phonebook_name)
+        phonebooks = self._crud.list([tenant_uuid], search=phonebook_name)
         for phonebook in phonebooks:
             if phonebook['name'] == phonebook_name:
-                return phonebook['id']
+                return database.PhonebookKey(uuid=phonebook['uuid'])
 
         raise InvalidConfigError(
             f'sources/{self._source_name}/phonebook_name',

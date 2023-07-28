@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from unittest.mock import Mock, patch
+from unittest.mock import sentinel as s
 
 from hamcrest import assert_that, equal_to
-from unittest.mock import Mock, patch, sentinel as s
 
 from ..plugin import PhonebookPlugin, make_result_class
 
@@ -18,19 +19,22 @@ class TestDirdPhonebook(unittest.TestCase):
         self.engine = self.source._search_engine = Mock()
 
     def test_that_the_id_is_used_if_supplied(self):
-        id_ = self.source._get_phonebook_id(s.tenant_uuid, {'phonebook_id': 42})
+        id_ = self.source._get_phonebook_key(s.tenant_uuid, {'phonebook_id': 42})
 
-        assert_that(id_, equal_to(42))
+        assert_that(id_, equal_to({'id': 42}))
 
     def test_with_an_existing_phonebook_by_name(self):
-        phonebooks = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
+        phonebooks = [
+            {'id': 1, 'uuid': 'some-uuid', 'name': 'foo'},
+            {'id': 2, 'uuid': 'some-other-uuid', 'name': 'bar'},
+        ]
 
         with patch.object(
             self.source, '_crud', Mock(list=Mock(return_value=phonebooks))
         ):
-            id_ = self.source._get_phonebook_id(s.tenant_uuid, {'name': 'bar'})
+            id_ = self.source._get_phonebook_key(s.tenant_uuid, {'name': 'bar'})
 
-        assert_that(id_, equal_to(2))
+        assert_that(id_, equal_to({'uuid': 'some-other-uuid'}))
 
     def test_that_find_first_returns_a_formated_result(self):
         raw_result = self.engine.find_first_contact.return_value = {

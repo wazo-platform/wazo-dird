@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from unittest.mock import Mock
+from unittest.mock import sentinel as s
 
 from hamcrest import (
     assert_that,
@@ -11,12 +13,13 @@ from hamcrest import (
     equal_to,
     raises,
 )
-from unittest.mock import Mock, sentinel as s
 
 from wazo_dird import database
+from wazo_dird.database.queries.phonebook import PhonebookKey
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
 
-from ..plugin import PhonebookServicePlugin as Plugin, _PhonebookService as Service
+from ..plugin import PhonebookServicePlugin as Plugin
+from ..plugin import _PhonebookService as Service
 
 
 class TestPhonebookServicePlugin(unittest.TestCase):
@@ -39,7 +42,7 @@ class _BasePhonebookServiceTest(unittest.TestCase):
 
 class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
     def test_list_phonebook(self):
-        result = self.service.list_phonebook(s.tenant_uuid)
+        result = self.service.list_phonebook([s.tenant_uuid])
 
         assert_that(result, equal_to(self.phonebook_crud.list.return_value))
 
@@ -52,10 +55,10 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
         assert_that(result, equal_to(self.phonebook_crud.create.return_value))
 
     def test_count_phonebook(self):
-        result = self.service.count_phonebook(s.tenant_uuid, param1=s.param1)
+        result = self.service.count_phonebook([s.tenant_uuid], param1=s.param1)
 
         self.phonebook_crud.count.assert_called_once_with(
-            s.tenant_uuid, param1=s.param1
+            [s.tenant_uuid], param1=s.param1
         )
         assert_that(result, equal_to(self.phonebook_crud.count.return_value))
 
@@ -71,10 +74,12 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
     def test_edit_phonebook(self):
         body = {'name': 'foobar'}
 
-        result = self.service.edit_phonebook(s.tenant_uuid, s.phonebook_id, body)
+        result = self.service.edit_phonebook(
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), body
+        )
 
         self.phonebook_crud.edit.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, body
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), body
         )
         assert_that(result, equal_to(self.phonebook_crud.edit.return_value))
 
@@ -83,61 +88,75 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
         for body in bodies:
             assert_that(
                 calling(self.service.edit_phonebook).with_args(
-                    s.tenant_uuid, s.phonebook_id, body
+                    [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), body
                 ),
                 raises(InvalidPhonebookException),
                 body,
             )
 
     def test_delete_phonebook(self):
-        self.service.delete_phonebook(s.tenant_uuid, s.phonebook_id)
+        self.service.delete_phonebook(
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid)
+        )
 
         self.phonebook_crud.delete.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid)
         )
 
     def test_get_phonebook(self):
-        result = self.service.get_phonebook(s.tenant_uuid, s.phonebook_id)
+        result = self.service.get_phonebook(
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid)
+        )
 
         assert_that(result, equal_to(self.phonebook_crud.get.return_value))
-        self.phonebook_crud.get.assert_called_once_with(s.tenant_uuid, s.phonebook_id)
+        self.phonebook_crud.get.assert_called_once_with(
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid)
+        )
 
 
 class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
     def test_count_contact(self):
-        result = self.service.count_contact(s.tenant_uuid, s.phonebook_id)
-
-        assert_that(result, equal_to(self.contact_crud.count.return_value))
-        self.contact_crud.count.assert_called_once_with(s.tenant_uuid, s.phonebook_id)
-
-    def test_count_contact_with_a_search_param(self):
         result = self.service.count_contact(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid)
         )
 
         assert_that(result, equal_to(self.contact_crud.count.return_value))
         self.contact_crud.count.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid)
+        )
+
+    def test_count_contact_with_a_search_param(self):
+        result = self.service.count_contact(
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
+        )
+
+        assert_that(result, equal_to(self.contact_crud.count.return_value))
+        self.contact_crud.count.assert_called_once_with(
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
 
     def test_create_contact(self):
         body = {'firstname': 'foobar'}
 
-        result = self.service.create_contact(s.tenant_uuid, s.phonebook_id, body)
+        result = self.service.create_contact(
+            s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), body
+        )
 
         assert_that(result, equal_to(self.contact_crud.create.return_value))
         self.contact_crud.create.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, body
+            s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), body
         )
 
     def test_that_the_id_field_should_be_ignored_on_create(self):
         result = self.service.create_contact(
-            s.tenant_uuid, s.phonebook_id, {'firstname': 'bob', 'id': s.uuid}
+            s.tenant_uuid,
+            PhonebookKey(uuid=s.phonebook_uuid),
+            {'firstname': 'bob', 'id': s.uuid},
         )
 
         assert_that(result, equal_to(self.contact_crud.create.return_value))
         self.contact_crud.create.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, {'firstname': 'bob'}
+            s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), {'firstname': 'bob'}
         )
 
     def test_that_create_contact_raises_for_invalid_input(self):
@@ -145,7 +164,7 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
         for body in invalid_bodies:
             assert_that(
                 calling(self.service.create_contact).with_args(
-                    s.tenant_uuid, s.phonebook_id, body
+                    s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), body
                 ),
                 raises(InvalidContactException),
                 body,
@@ -154,25 +173,28 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
     def test_edit_contact(self):
         body = {'firstname': 'Foobar'}
         result = self.service.edit_contact(
-            s.tenant_uuid, s.phonebook_id, s.contact_uuid, body
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), s.contact_uuid, body
         )
 
         assert_that(result, equal_to(self.contact_crud.edit.return_value))
         self.contact_crud.edit.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, s.contact_uuid, body
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), s.contact_uuid, body
         )
 
     def test_that_edit_contact_ignores_the_id_field(self):
         result = self.service.edit_contact(
-            s.tenant_uuid,
-            s.phonebook_id,
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
             s.contact_uuid,
             {'firstname': 'alice', 'id': s.uuid},
         )
 
         assert_that(result, equal_to(self.contact_crud.edit.return_value))
         self.contact_crud.edit.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, s.contact_uuid, {'firstname': 'alice'}
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
+            s.contact_uuid,
+            {'firstname': 'alice'},
         )
 
     def test_that_edit_contact_raises_for_invalid_input(self):
@@ -180,7 +202,10 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
         for body in invalid_bodies:
             assert_that(
                 calling(self.service.edit_contact).with_args(
-                    s.tenant_uuid, s.phonebook_id, s.contact_uuid, body
+                    [s.tenant_uuid],
+                    PhonebookKey(uuid=s.phonebook_uuid),
+                    s.contact_uuid,
+                    body,
                 ),
                 raises(InvalidContactException),
                 body,
@@ -188,20 +213,22 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
 
     def test_delete_contact(self):
         result = self.service.delete_contact(
-            s.tenant_uuid, s.phonebook_id, s.contact_uuid
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), s.contact_uuid
         )
 
         assert_that(result, equal_to(self.contact_crud.delete.return_value))
         self.contact_crud.delete.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, s.contact_uuid
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), s.contact_uuid
         )
 
     def test_get_contact(self):
-        result = self.service.get_contact(s.tenant_uuid, s.phonebook_id, s.contact_uuid)
+        result = self.service.get_contact(
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), s.contact_uuid
+        )
 
         assert_that(result, equal_to(self.contact_crud.get.return_value))
         self.contact_crud.get.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, s.contact_uuid
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), s.contact_uuid
         )
 
 
@@ -237,11 +264,11 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.return_value = self._contacts
 
         result = self.service.list_contact(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
 
         self.contact_crud.list.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
         assert_that(result, contains(*self._contacts))
 
@@ -249,11 +276,14 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.return_value = self._contacts
 
         result = self.service.list_contact(
-            s.tenant_uuid, s.phonebook_id, search=s.search, limit=2
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
+            search=s.search,
+            limit=2,
         )
 
         self.contact_crud.list.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
         assert_that(result, contains(self._manolo, self._annabelle))
 
@@ -261,11 +291,14 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.return_value = self._contacts
 
         result = self.service.list_contact(
-            s.tenant_uuid, s.phonebook_id, search=s.search, offset=3
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
+            search=s.search,
+            offset=3,
         )
 
         self.contact_crud.list.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
         assert_that(result, contains(self._antonin, self._simon))
 
@@ -273,11 +306,15 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.return_value = self._contacts
 
         result = self.service.list_contact(
-            s.tenant_uuid, s.phonebook_id, search=s.search, offset=1, limit=2
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
+            search=s.search,
+            offset=1,
+            limit=2,
         )
 
         self.contact_crud.list.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
         assert_that(result, contains(self._annabelle, self._gary_bob))
 
@@ -285,11 +322,14 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.return_value = self._contacts
 
         result = self.service.list_contact(
-            s.tenant_uuid, s.phonebook_id, search=s.search, order='firstname'
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
+            search=s.search,
+            order='firstname',
         )
 
         self.contact_crud.list.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
         assert_that(
             result,
@@ -306,15 +346,15 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.return_value = self._contacts
 
         result = self.service.list_contact(
-            s.tenant_uuid,
-            s.phonebook_id,
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
             order='number',
             direction='desc',
         )
 
         self.contact_crud.list.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
         assert_that(
             result,
@@ -331,15 +371,15 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.return_value = self._contacts
 
         result = self.service.list_contact(
-            s.tenant_uuid,
-            s.phonebook_id,
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
             order='firstname',
             direction='desc',
         )
 
         self.contact_crud.list.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
         assert_that(
             result,
@@ -356,8 +396,8 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.return_value = self._contacts
 
         result = self.service.list_contact(
-            s.tenant_uuid,
-            s.phonebook_id,
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
             order='lastname',
             direction='desc',
@@ -366,7 +406,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         )
 
         self.contact_crud.list.assert_called_once_with(
-            s.tenant_uuid, s.phonebook_id, search=s.search
+            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
         assert_that(result, contains(self._manolo, self._simon, self._gary_bob))
 
@@ -376,10 +416,10 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
         db_errors = [s.error_1, s.error_2]
         self.contact_crud.create_many.return_value = s.created, db_errors
 
-        invalids = [None, {}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
+        invalids = [{}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
         contacts = invalids + [{'firstname': 'Foo'}]
         created, errors = self.service.import_contacts(
-            s.tenant_uuid, s.phonebook_id, contacts
+            s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
         )
 
         assert_that(created, equal_to(s.created))

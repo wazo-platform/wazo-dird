@@ -62,6 +62,7 @@ _DEFAULT_CONFIG = {
             'personal_view': True,
             'phonebook_backend': True,
             'phonebook_view': True,
+            'phonebook_deprecated_view': True,
             'profile_sources_view': True,
             'profiles_view': True,
             'sources_view': True,

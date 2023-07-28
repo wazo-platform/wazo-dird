@@ -25,14 +25,14 @@ class NoSuchDisplay(APIException):
 
 
 class NoSuchFavorite(ValueError):
-    def __init__(self, contact_id):
-        message = f"No such favorite: {contact_id}"
+    def __init__(self, contact_uuid: str):
+        message = f"No such favorite: {contact_uuid}"
         super().__init__(message)
 
 
 class NoSuchPhonebook(ValueError):
-    def __init__(self, phonebook_id):
-        message = f'No such phonebook: {phonebook_id}'
+    def __init__(self, phonebook_key: dict):
+        message = f'No such phonebook: {phonebook_key}'
         super().__init__(message)
 
 

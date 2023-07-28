@@ -3,6 +3,7 @@
 
 import random
 import string
+from typing import cast
 import unittest
 
 from uuid import uuid4
@@ -10,6 +11,7 @@ from unittest.mock import Mock
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to
 
 from wazo_dird import database
+from wazo_dird.database.queries.base import ContactInfo as _ContactInfo
 from .helpers.base import DBRunningTestCase
 from .base_dird_integration_test import BackendWrapper
 
@@ -33,7 +35,7 @@ def teardown_module():
     DBStarter.tearDownClass()
 
 
-def _new_contact(firstname, lastname):
+def _new_contact(firstname, lastname) -> dict[str, str]:
     random_number = ''.join(random.choice(string.digits) for _ in range(10))
     return {'firstname': firstname, 'lastname': lastname, 'number': random_number}
 
@@ -47,7 +49,15 @@ contact_bodies = [
     _new_contact('Severus', 'Snape'),
     _new_contact('Ron', 'Weasley'),
 ]
-contacts = []
+
+
+class ContactInfo(_ContactInfo):
+    firstname: str
+    lastname: str
+    number: str
+
+
+contacts: list[ContactInfo] = []
 
 
 class TestPhonebookBackend(unittest.TestCase):
@@ -66,12 +76,20 @@ class TestPhonebookBackend(unittest.TestCase):
         self.phonebook = self.phonebook_crud.create(
             self.tenant_uuid, {'name': 'hogwarts'}
         )
-        contacts = [
-            self.phonebook_contact_crud.create(
-                self.tenant_uuid, self.phonebook['id'], c
-            )
-            for c in contact_bodies
-        ]
+        contacts = cast(
+            list[ContactInfo],
+            [
+                self.phonebook_contact_crud.create(
+                    [self.tenant_uuid],
+                    database.PhonebookKey(uuid=self.phonebook['uuid']),
+                    cast(dict, c),
+                )
+                for c in contact_bodies
+            ],
+        )
+        assert all(
+            {'number', 'firstname', 'lastname'} & fields.keys() for fields in contacts
+        )
         (
             self.dumbledore,
             self.hermione,
@@ -85,10 +103,11 @@ class TestPhonebookBackend(unittest.TestCase):
             'tenant_uuid': self.tenant_uuid,
             'name': 'hogwarts',
             'phonebook_id': self.phonebook['id'],
+            'phonebook_uuid': self.phonebook['uuid'],
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['number'],
         }
-        self.backend = self._load_backend(config)
+        self.backend: BackendWrapper = self._load_backend(config)
 
     def _load_backend(self, config):
         dependencies = {
@@ -99,7 +118,9 @@ class TestPhonebookBackend(unittest.TestCase):
         return BackendWrapper('phonebook', dependencies)
 
     def tearDown(self):
-        self.phonebook_crud.delete(self.tenant_uuid, self.phonebook['id'])
+        self.phonebook_crud.delete(
+            [self.tenant_uuid], database.PhonebookKey(uuid=self.phonebook['uuid'])
+        )
 
     def test_that_searching_for_grid_returns_agrid(self):
         result = self.backend.search('grid')

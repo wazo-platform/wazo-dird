@@ -3,11 +3,13 @@
 
 import hashlib
 import json
+from typing import Iterator, Mapping, TypedDict, cast
 import unicodedata
 
 from contextlib import contextmanager
 from itertools import islice
 from sqlalchemy import exc
+from sqlalchemy.orm import scoped_session, Session as BaseSession
 from wazo_dird.exception import DatabaseServiceUnavailable
 from wazo_dird.database import Tenant, User
 
@@ -25,7 +27,11 @@ def extract_constraint_name(error):
         return None
 
 
-def list_contacts_by_uuid(session, uuids):
+class ContactInfo(TypedDict, total=False):
+    id: str
+
+
+def list_contacts_by_uuid(session: BaseSession, uuids: list[str]) -> list[ContactInfo]:
     if not uuids:
         return []
 
@@ -38,10 +44,10 @@ def list_contacts_by_uuid(session, uuids):
         if uuid not in result:
             result[uuid] = {'id': uuid}
         result[uuid][contact_field.name] = contact_field.value
-    return list(result.values())
+    return cast(list[ContactInfo], list(result.values()))
 
 
-def compute_contact_hash(contact_info):
+def compute_contact_hash(contact_info: Mapping) -> str:
     d = dict(contact_info)
     d.pop('id', None)
     string_representation = json.dumps(d, sort_keys=True).encode('utf-8')
@@ -62,7 +68,7 @@ class BaseDAO:
         'offset': 0,
     }
 
-    def __init__(self, Session):
+    def __init__(self, Session: scoped_session):
         self._Session = Session
 
     def flush_or_raise(self, session, Exception_, *args, **kwargs):
@@ -73,7 +79,7 @@ class BaseDAO:
             raise Exception_(*args, **kwargs)
 
     @contextmanager
-    def new_session(self):
+    def new_session(self) -> Iterator[BaseSession]:
         session = self._Session()
         try:
             yield session
