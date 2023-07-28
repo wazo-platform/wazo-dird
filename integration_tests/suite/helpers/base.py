@@ -9,9 +9,7 @@ import requests
 from hamcrest import assert_that, equal_to, has_entries
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from wazo_dird_client import Client as _DirdClient
-from wazo_dird_client.commands.phonebook_source import Command as PhonebookSourceCommand
-from wazo_dird_client.commands.status import StatusCommand
+from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers import until
 from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_test_helpers.auth import AuthClient as MockAuthClient
@@ -43,11 +41,6 @@ from .constants import (
 from .wait_strategy import RestApiOkWaitStrategy
 
 START_TIMEOUT = int(os.environ.get('INTEGRATION_TEST_TIMEOUT', '30'))
-
-
-class DirdClient(_DirdClient):
-    phonebook_source: PhonebookSourceCommand
-    status: StatusCommand
 
 
 class DirdAssetRunningTestCase(AssetLaunchingTestCase):

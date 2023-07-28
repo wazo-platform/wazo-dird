@@ -1,9 +1,12 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from contextlib import contextmanager
 import logging
+from contextlib import contextmanager
+from unittest.mock import ANY
 from uuid import uuid4
+
+import requests
 from hamcrest import (
     assert_that,
     calling,
@@ -14,16 +17,11 @@ from hamcrest import (
     has_properties,
     not_,
 )
-
-from unittest.mock import ANY
-import requests
-from wazo_test_helpers.hamcrest.uuid_ import uuid_
+from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers.hamcrest.raises import raises
-from wazo_dird_client import Client as _DirdClient
-from wazo_dird_client.commands.phonebook_source import Command
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.base import BaseDirdIntegrationTest
-from .helpers.fixtures import http as fixtures
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
@@ -31,12 +29,9 @@ from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
+from .helpers.fixtures import http as fixtures
 
 logger = logging.getLogger(__name__)
-
-
-class DirdClient(_DirdClient):
-    phonebook_source: Command
 
 
 def generate_phonebook_uuid():
