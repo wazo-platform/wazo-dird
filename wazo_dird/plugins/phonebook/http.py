@@ -27,7 +27,7 @@ from wazo_dird.exception import (
 )
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
-from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService, PhonebookKey
+from wazo_dird.plugins.phonebook_service.plugin import PhonebookKey, _PhonebookService
 
 from .schemas import contact_list_schema, phonebook_list_schema
 
@@ -97,6 +97,7 @@ class PhonebookContactAll(_Resource):
             PhonebookKey(uuid=str(phonebook_uuid)),
             **contact_list_schema.load_count(request.args),
         )
+        list_params.pop("recurse")
         contacts = self.phonebook_service.list_contact(
             visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), **list_params
         )
