@@ -113,8 +113,12 @@ definitions:
     title: PhonebookSource
     allOf:
       - $ref: '#/definitions/Source'
+      - properties:
+        phonebook_uuid:
+          type: string
       - required:
-        - name
+          - name
+          - phonebook_uuid
   PhonebookSourceItems:
     title: PhonebookSourceItems
     allOf:
