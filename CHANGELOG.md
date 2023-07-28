@@ -1,19 +1,24 @@
 # Changelog
 
 ## 23.11
+
 * Added new phonebook endpoints:
-  * POST `/0.1/phonebooks'
-  * GET `/0.1/phonebooks'
-  * DELETE `/0.1/phonebooks/<phonebook_uuid>'
-  * GET `/0.1/phonebooks/<phonebook_uuid>'
-  * PUT `/0.1/phonebooks/<phonebook_uuid>'
-  * POST `/0.1/phonebooks/<phonebook_uuid>/contacts/import'
-  * POST `/0.1/phonebooks/<phonebook_uuid>/contacts'
-  * GET `/0.1/phonebooks/<phonebook_uuid>/contacts'
-  * DELETE `/0.1/phonebooks/<phonebook_uuid>/<phonebook_uuid>/contacts/<contact_id>'
-  * GET `/0.1/phonebooks/<phonebook_uuid>/<phonebook_uuid>/contacts/<contact_id>'
-  * PUT `/0.1/phonebooks/<phonebook_uuid>/<phonebook_uuid>/contacts/<contact_id>'
-* The existing phonebook API (using `/tenant/<tenant_name>/phonebook` as base url and `<phonebook_id>` as resource identifier) is being deprecated in favour of this new API and will be removed in a future release.
+
+  * POST `/0.1/phonebooks`
+  * GET `/0.1/phonebooks`
+  * DELETE `/0.1/phonebooks/<phonebook_uuid>`
+  * GET `/0.1/phonebooks/<phonebook_uuid>`
+  * PUT `/0.1/phonebooks/<phonebook_uuid>`
+  * POST `/0.1/phonebooks/<phonebook_uuid>/contacts/import`
+  * POST `/0.1/phonebooks/<phonebook_uuid>/contacts`
+  * GET `/0.1/phonebooks/<phonebook_uuid>/contacts`
+  * DELETE `/0.1/phonebooks/<phonebook_uuid>/<phonebook_uuid>/contacts/<contact_id>`
+  * GET `/0.1/phonebooks/<phonebook_uuid>/<phonebook_uuid>/contacts/<contact_id>`
+  * PUT `/0.1/phonebooks/<phonebook_uuid>/<phonebook_uuid>/contacts/<contact_id>`
+
+* The existing phonebook API (using `/tenant/<tenant_name>/phonebook` as base
+  url and `<phonebook_id>` as resource identifier) is being deprecated in favour
+  of this new API and will be removed in a future release.
 
 ## 23.01
 
