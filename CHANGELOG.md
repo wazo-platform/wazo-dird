@@ -16,9 +16,14 @@
   * GET `/0.1/phonebooks/<phonebook_uuid>/<phonebook_uuid>/contacts/<contact_id>`
   * PUT `/0.1/phonebooks/<phonebook_uuid>/<phonebook_uuid>/contacts/<contact_id>`
 
+* Phonebook resources created through the previous API now also have a `uuid` identity attribute which can be used through this new API.
+
 * The existing phonebook API (using `/tenant/<tenant_name>/phonebook` as base
   url and `<phonebook_id>` as resource identifier) is being deprecated in favour
   of this new API and will be removed in a future release.
+
+* Creating a source of type 'phonebook' through endpoint `POST /0.1/backends/phonebook/sources` now requires a `phonebook_uuid` attribute in the resource description, which should point to an existing phonebook(created through the `/0.1/phonebooks` API).
+  * phonebook sources previously created without a `phonebook_uuid` are now unsupported by further developments of the phonebook-related API feature, and should be updated with a valid `phonebook_uuid` attribute. A future release may include a database migration to remove `phonebook` sources missing that attribute.
 
 ## 23.01
 
