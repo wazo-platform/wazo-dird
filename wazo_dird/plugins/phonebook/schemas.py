@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, TypedDict, cast
+from typing import TypedDict, cast
 
 from marshmallow import fields
 from xivo.mallow_helpers import ListSchema
 
-
-def projection(m: dict[str, Any], keys: list[str], default=None) -> dict[str, Any]:
-    return {k: m.get(k, default) for k in keys}
+from wazo_dird.utils import projection
 
 
 class CountParams(TypedDict):
