@@ -2,26 +2,36 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
+from typing import Iterator, TypedDict
 from unittest.mock import ANY
 from uuid import uuid4
 
 import requests
 from hamcrest import (
+    all_of,
     assert_that,
     calling,
     contains,
     contains_inanyorder,
     equal_to,
     has_entries,
+    has_length,
     has_properties,
+    instance_of,
     not_,
+    only_contains,
 )
 from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
-from .helpers.base import BaseDirdIntegrationTest
+from wazo_dird.database.queries.phonebook import (
+    PhonebookContactCRUD,
+    PhonebookCRUD,
+    PhonebookKey,
+)
+
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
@@ -30,6 +40,7 @@ from .helpers.constants import (
     VALID_TOKEN_SUB_TENANT,
 )
 from .helpers.fixtures import http as fixtures
+from .helpers.phonebook import BasePhonebookTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +49,13 @@ def generate_phonebook_uuid():
     return str(uuid4())
 
 
-class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
+class PhonebookSource(TypedDict):
+    uuid: str
+    name: str
+    phonebook_uuid: str
+
+
+class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
     asset = 'all_routes'
     valid_body = {'name': 'main', 'phonebook_uuid': generate_phonebook_uuid()}
 
@@ -54,10 +71,10 @@ class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
         )
 
     @contextmanager
-    def source(self, client: DirdClient, *args, **kwargs):
+    def source(self, client: DirdClient, *args, **kwargs) -> Iterator[PhonebookSource]:
         try:
             _source = client.phonebook_source.create(*args, **kwargs)
-        except Exception as ex:
+        except requests.HTTPError as ex:
             logger.exception("Error trying to create source: %s", ex.response.content)
             print(ex.response.content)
             raise
@@ -270,7 +287,7 @@ class TestPut(BasePhonebookCRUDTestCase):
 
         try:
             self.client.phonebook_source.edit(foobar['uuid'], {})
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(), has_entries(message=ANY, error_id='invalid-data')
@@ -358,3 +375,163 @@ class TestGet(BasePhonebookCRUDTestCase):
             self.assert_unknown_source_exception(main['uuid'], e)
         else:
             self.fail('Should have raised')
+
+
+class TestGetContacts(BasePhonebookCRUDTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.phonebook_crud = PhonebookCRUD(cls.Session)
+        cls.contact_crud = PhonebookContactCRUD(cls.Session)
+        cls.stack = ExitStack()
+
+        cls.phonebook = cls.phonebook_crud.create(
+            MAIN_TENANT,
+            {'name': 'test-phonebook', 'description': 'some test phonebook'},
+        )
+        cls.stack.callback(
+            cls.phonebook_crud.delete, None, PhonebookKey(uuid=cls.phonebook['uuid'])
+        )
+        cls.contacts, errors = cls.contact_crud.create_many(
+            [MAIN_TENANT],
+            PhonebookKey(uuid=cls.phonebook['uuid']),
+            [
+                {
+                    'firstname': f'Contact {i}',
+                    'lastname': 'McContact',
+                    'number': str(1000000000 + i),
+                }
+                for i in range(5000)
+            ],
+        )
+        assert not errors
+
+    @classmethod
+    def tearDownClass(self):
+        self.stack.close()
+        super().tearDownClass()
+
+    def test_get_all(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+        ) as source:
+            response = client.session().get(
+                url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts"
+            )
+            response.raise_for_status()
+            body = response.json()
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=len(self.contacts),
+                    items=all_of(
+                        has_length(len(self.contacts)),
+                        only_contains(
+                            has_entries(
+                                firstname=instance_of(str),
+                                lastname=instance_of(str),
+                                number=instance_of(str),
+                                id=instance_of(str),
+                            )
+                        ),
+                    ),
+                ),
+            )
+
+    def test_get_paginated(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+        ) as source:
+            limit = 100
+            contact_ids: set[str] = set()
+            for i in range(5000 // 100):
+                logger.debug("request %d", i)
+                response = client.session().get(
+                    url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
+                    params={'limit': 100, 'offset': i * limit},
+                )
+                response.raise_for_status()
+                body = response.json()
+                assert_that(
+                    body,
+                    has_entries(
+                        total=len(self.contacts),
+                        filtered=len(self.contacts),
+                        items=all_of(
+                            has_length(100),
+                            only_contains(
+                                has_entries(
+                                    firstname=instance_of(str),
+                                    lastname=instance_of(str),
+                                    number=instance_of(str),
+                                    id=instance_of(str),
+                                )
+                            ),
+                        ),
+                    ),
+                )
+                contact_ids.update(contact['id'] for contact in body['items'])
+
+            assert_that(
+                contact_ids, equal_to(set(contact['id'] for contact in self.contacts))
+            )
+
+    def test_get_filtered(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+        ) as source:
+            response = client.session().get(
+                url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
+                params={'search': 'Contact 4'},
+            )
+            response.raise_for_status()
+            body = response.json()
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=1111,
+                    items=all_of(
+                        has_length(1111),
+                        only_contains(
+                            has_entries(
+                                firstname=instance_of(str),
+                                lastname=instance_of(str),
+                                number=instance_of(str),
+                                id=instance_of(str),
+                            )
+                        ),
+                    ),
+                ),
+            )
+            contact_ids = set(contact['id'] for contact in body['items'])
+
+            assert_that(
+                contact_ids,
+                equal_to(
+                    set(
+                        contact['id']
+                        for contact in self.contacts
+                        if 'Contact 4' in contact.get('firstname', '')
+                    )
+                ),
+            )
