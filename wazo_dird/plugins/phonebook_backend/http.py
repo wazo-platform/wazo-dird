@@ -1,12 +1,13 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+import logging
 from typing import cast
 
 from flask import Request, request
 
 from wazo_dird.auth import required_acl
 from wazo_dird.database.queries.phonebook import PhonebookKey
+from wazo_dird.exception import NoSuchPhonebook, NoSuchPhonebookAPIException
 from wazo_dird.helpers import SourceConfig, SourceItem, SourceList
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
@@ -16,6 +17,9 @@ from wazo_dird.plugins.source_service.plugin import _SourceService
 from .schemas import contact_list_schema, list_schema, source_list_schema, source_schema
 
 request: Request  # type: ignore[no-redef]
+
+
+logger = logging.getLogger(__name__)
 
 
 class PhonebookList(SourceList):
@@ -67,24 +71,56 @@ class PhonebookContactList(AuthResource):
     def get(self, source_uuid):
         visible_tenants = get_tenant_uuids(recurse=False)
         list_params = contact_list_schema.load(request.args)
-
+        count_params = contact_list_schema.load_count(request.args)
         source_config = cast(
             PhonebookSourceInfo,
-            self._source_service.get(self.BACKEND, source_uuid, visible_tenants),
+            self._source_service.get(self.BACKEND, str(source_uuid), visible_tenants),
         )
+        logger.debug("Found source (uuid=%s): %s", source_uuid, str(source_config))
 
         # sources prior to WAZO-3267 might be missing 'phonebook_uuid' and will crash here
         phonebook_key = PhonebookKey(uuid=source_config['phonebook_uuid'])
 
-        total_count = self._phonebook_service.count_contact(
-            visible_tenants, phonebook_key
-        )
-        filtered_count = self._phonebook_service.count_contact(
-            visible_tenants, phonebook_key, **list_params
-        )
-        contacts = self._phonebook_service.list_contacts(
-            visible_tenants=visible_tenants, phonebook_key=phonebook_key, **list_params
-        )
+        try:
+            total_count = self._phonebook_service.count_contact(
+                visible_tenants, phonebook_key
+            )
+            logger.debug(
+                "total count of contacts for phonebook (%s) and visible tenants %s: %d",
+                str(phonebook_key),
+                str(visible_tenants),
+                total_count,
+            )
+            filtered_count = self._phonebook_service.count_contact(
+                visible_tenants, phonebook_key, **count_params
+            )
+            logger.debug(
+                "filtered count of contacts for phonebook (%s) "
+                "and visible tenants %s with search params(%s): %d",
+                str(phonebook_key),
+                str(visible_tenants),
+                str(count_params),
+                filtered_count,
+            )
+            contacts = self._phonebook_service.list_contacts(
+                visible_tenants=visible_tenants,
+                phonebook_key=phonebook_key,
+                **list_params
+            )
+            logger.debug(
+                "Retrieved %d contacts for phonebook (%s) "
+                "and visible tenants %s with search params(%s)",
+                len(contacts),
+                str(phonebook_key),
+                str(visible_tenants),
+                str(list_params),
+            )
+        except NoSuchPhonebook as ex:
+            raise NoSuchPhonebookAPIException(
+                resource='phonebook-source-contacts',
+                visible_tenants=visible_tenants,
+                phonebook_key=dict(phonebook_key),
+            ) from ex
 
         return (
             {'filtered': filtered_count, 'items': contacts, 'total': total_count},
