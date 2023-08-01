@@ -17,7 +17,7 @@ from wazo_test_helpers import until
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
 from .helpers.config import new_wazo_users_config, new_wazo_users_multiple_wazo_config
 from .helpers.constants import MAIN_TENANT
-from .base_dird_integration_test import BackendWrapper
+from .helpers.utils import BackendWrapper
 
 
 class TestWazoUser(DirdAssetRunningTestCase):

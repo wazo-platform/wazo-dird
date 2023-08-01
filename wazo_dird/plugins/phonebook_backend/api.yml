@@ -45,6 +45,7 @@ paths:
                 - lastname
               format_columns:
                 displayname: '{firstname} {lastname}'
+              phonebook_uuid: 00000000-0000-4000-a000-000000000001
         '400':
           $ref: '#/responses/CreateError'
         '409':
@@ -113,8 +114,12 @@ definitions:
     title: PhonebookSource
     allOf:
       - $ref: '#/definitions/Source'
+      - properties:
+          phonebook_uuid:
+            type: string
       - required:
-        - name
+          - name
+          - phonebook_uuid
   PhonebookSourceItems:
     title: PhonebookSourceItems
     allOf:

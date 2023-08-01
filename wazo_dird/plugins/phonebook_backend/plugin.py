@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
+import builtins
 import logging
 from typing import TypedDict
 
@@ -9,6 +10,7 @@ from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
 from wazo_dird.exception import InvalidConfigError
 from wazo_dird.helpers import BaseBackendView
+from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import http
 
@@ -29,6 +31,9 @@ class _Config(TypedDict):
 class Config(_Config, total=False):
     phonebook_uuid: str
     phonebook_id: int
+    format_columns: dict[str, str]
+    searched_columns: list[str]
+    first_matched_columns: list[str]
 
 
 class Dependencies(TypedDict):
@@ -39,6 +44,7 @@ class PhonebookPlugin(BaseSourcePlugin):
     _crud: database.PhonebookCRUD
     _source_name: str
     _search_engine: database.PhonebookContactSearchEngine
+    _SourceResult: type[SourceResult]
 
     def __init__(self) -> None:
         super().__init__()
@@ -51,9 +57,9 @@ class PhonebookPlugin(BaseSourcePlugin):
         unique_column = 'id'
         config = dependencies['config']
         self._source_name = config['name']
-        format_columns = config.get(self.FORMAT_COLUMNS, {})
-        searched_columns = config.get(self.SEARCHED_COLUMNS)
-        first_matched_columns = config.get(self.FIRST_MATCHED_COLUMNS)
+        format_columns = config.get('format_columns', {})
+        searched_columns = config.get('searched_columns')
+        first_matched_columns = config.get('first_matched_columns')
 
         self._crud = database.PhonebookCRUD(Session)
 
@@ -74,14 +80,14 @@ class PhonebookPlugin(BaseSourcePlugin):
 
         logger.info('%s loaded', self._source_name)
 
-    def search(self, term, *args, **kwargs):
+    def search(self, term: str, args=None) -> list[SourceResult]:
         logger.debug('Searching phonebook contact with %s', term)
         matching_contacts = self._search_engine.find_contacts(term)
         return self.format_contacts(matching_contacts)
 
-    def first_match(self, term, *args, **kwargs):
-        logger.debug('First matching phonebook contacts with %s', term)
-        matching_contact = self._search_engine.find_first_contact(term)
+    def first_match(self, exten: str, args=None) -> SourceResult | None:
+        logger.debug('First matching phonebook contacts with %s', exten)
+        matching_contact = self._search_engine.find_first_contact(exten)
         if not matching_contact:
             logger.debug('Found no matching contact.')
             return None
@@ -89,19 +95,16 @@ class PhonebookPlugin(BaseSourcePlugin):
         for contact in self.format_contacts([matching_contact]):
             logger.debug('Found one matching contact.')
             return contact
+        else:
+            return None
 
-    def list(self, source_entry_ids, args=None):
+    def list(self, source_entry_ids: list[str], args=None) -> list[SourceResult]:
         logger.debug('Listing phonebook contacts')
         matching_contacts = self._search_engine.list_contacts(source_entry_ids)
         return self.format_contacts(matching_contacts)
 
-    def format_contacts(self, contacts):
+    def format_contacts(self, contacts) -> builtins.list[SourceResult]:
         return [self._SourceResult(c) for c in contacts]
-
-    def _wait_until_loaded(self):
-        logger.debug('waiting until loaded')
-        if self._is_loaded.wait(timeout=1.0) is not True:
-            logger.error('%s is not initialized', self._source_name)
 
     def _get_phonebook_key(
         self, tenant_uuid: str, config: Config

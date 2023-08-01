@@ -1,7 +1,10 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import abc
+
+from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 
 class BaseServicePlugin(metaclass=abc.ABCMeta):
@@ -59,7 +62,7 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def search(self, term, args=None):
+    def search(self, term: str, args=None) -> list[SourceResult]:
         """
         The search method should return a list of dict containing the search
         results.
@@ -74,7 +77,7 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def first_match(self, exten, args=None):
+    def first_match(self, exten: str, args=None) -> SourceResult | None:
         """
         The first_match method should return a dict containing the first matched
         result.
@@ -88,7 +91,7 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         added with a `__unique_id` header containing the unique key.
         """
 
-    def match_all(self, extens, args=None):
+    def match_all(self, extens: list[str], args=None) -> dict[str, SourceResult]:
         """
         The match_all method should return a dict with exten matched as key and
         a dict containing result as value.
@@ -108,7 +111,7 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
                 results[exten] = entry
         return results
 
-    def list(self, uids, args):
+    def list(self, uids: list[str], args) -> list[SourceResult]:
         """
         Returns a list of results based on the unique column for this backend.
         This function is not mandatory as some backends make it harder than

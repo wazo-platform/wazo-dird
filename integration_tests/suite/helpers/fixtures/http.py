@@ -1,10 +1,11 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 import random
-import requests
 import string
-
 from functools import wraps
+from uuid import uuid4
+
+import requests
 from mockserver import MockServerClient as BaseMockServerClient
 
 from ..constants import VALID_TOKEN_MAIN_TENANT
@@ -388,6 +389,7 @@ def personal_source(**source_args):
 
 def phonebook_source(**source_args):
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
+    source_args.setdefault('phonebook_uuid', str(uuid4()))
 
     def decorator(decorated):
         @wraps(decorated)

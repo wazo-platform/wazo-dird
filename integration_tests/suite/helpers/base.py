@@ -148,7 +148,7 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
         super().tearDownClass()
 
     @classmethod
-    def make_dird(cls, token):
+    def make_dird(cls, token) -> DirdClient:
         return DirdClient(
             '127.0.0.1',
             cls.service_port(9489, 'dird'),
@@ -214,11 +214,11 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
         cls.configure_wazo_auth()
 
     @classmethod
-    def get_client(cls, token=VALID_TOKEN_MAIN_TENANT):
+    def get_client(cls, token=VALID_TOKEN_MAIN_TENANT) -> DirdClient:
         return DirdClient(cls.host, cls.port, token=token, prefix=None, https=False)
 
     @property
-    def client(self):
+    def client(self) -> DirdClient:
         return self.get_client()
 
     @classmethod

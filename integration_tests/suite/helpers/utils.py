@@ -8,7 +8,7 @@ import requests
 from stevedore import DriverManager
 from wazo_dird import BaseSourcePlugin
 
-from .helpers.constants import ASSET_ROOT
+from .constants import ASSET_ROOT
 
 logger = logging.getLogger(__name__)
 
