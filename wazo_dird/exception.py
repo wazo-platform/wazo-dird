@@ -1,7 +1,9 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 from time import time
+
 from xivo.rest_api_helpers import APIException
 
 
@@ -31,9 +33,30 @@ class NoSuchFavorite(ValueError):
 
 
 class NoSuchPhonebook(ValueError):
-    def __init__(self, phonebook_key: dict):
-        message = f'No such phonebook: {phonebook_key}'
+    def __init__(self, phonebook_key: dict, tenants_in_scope: list[str] | None = None):
+        if tenants_in_scope is None:
+            message = f'No such phonebook: {phonebook_key}'
+        else:
+            message = (
+                f'No such phonebook in tenants {tenants_in_scope}: {phonebook_key}'
+            )
         super().__init__(message)
+
+
+class NoSuchPhonebookAPIException(APIException):
+    def __init__(
+        self, resource: str, visible_tenants: list[str], phonebook_key: dict
+    ) -> None:
+        super().__init__(
+            status_code=404,
+            message=f'Phonebook {phonebook_key} not found in tenants {visible_tenants}',
+            error_id='unknown-phonebook',
+            details={
+                'phonebook_key': phonebook_key,
+                'visible_tenants': visible_tenants,
+            },
+            resource=resource,
+        )
 
 
 class NoSuchProfile(OldAPIException):
