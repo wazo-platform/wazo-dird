@@ -1,13 +1,13 @@
 # Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import Column, ForeignKey, Integer, Sequence, schema, String, text, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, Integer, Sequence, String, Text, schema, text
+from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON, UUID
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON, UUID
+from sqlalchemy.orm import relationship
 
-Base: type = declarative_base()
+Base = declarative_base()
 
 UUID_LENGTH = 36
 
