@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+import time
 from contextlib import ExitStack, contextmanager
 from typing import Iterator, TypedDict
 from unittest.mock import ANY
@@ -16,6 +17,7 @@ from hamcrest import (
     contains_inanyorder,
     equal_to,
     has_entries,
+    has_item,
     has_length,
     has_properties,
     instance_of,
@@ -53,6 +55,20 @@ class PhonebookSource(TypedDict):
     uuid: str
     name: str
     phonebook_uuid: str
+
+
+@contextmanager
+def phonebook_source(client: DirdClient, *args, **kwargs) -> Iterator[PhonebookSource]:
+    try:
+        _source = client.phonebook_source.create(*args, **kwargs)
+    except requests.HTTPError as ex:
+        logger.exception("Error trying to create source: %s", ex.response.content)
+        print(ex.response.content)
+        raise
+    try:
+        yield _source
+    finally:
+        client.phonebook_source.delete(_source['uuid'])
 
 
 class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
@@ -535,3 +551,144 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                     )
                 ),
             )
+
+
+def timed(func, *args, **kwargs):
+    try:
+        start = time.time()
+        out = func(*args, **kwargs)
+    finally:
+        end = time.time()
+
+    return out, {'start': start, 'end': end, 'elapsed': end - start}
+
+
+class TestPluginLookup(BasePhonebookCRUDTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        client = cls.get_client()
+        cls.stack = ExitStack()
+        phonebook_crud = PhonebookCRUD(cls.Session)
+        contact_crud = PhonebookContactCRUD(cls.Session)
+
+        phonebook = phonebook_crud.create(
+            MAIN_TENANT,
+            {'name': 'test-phonebook', 'description': 'some test phonebook'},
+        )
+        cls.stack.callback(
+            phonebook_crud.delete, None, PhonebookKey(uuid=phonebook['uuid'])
+        )
+        cls.contacts, errors = contact_crud.create_many(
+            [MAIN_TENANT],
+            PhonebookKey(uuid=phonebook['uuid']),
+            [
+                {
+                    'firstname': f'Contact {i}',
+                    'lastname': 'McContact',
+                    'number': str(1000000000 + i),
+                }
+                for i in range(5000)
+            ],
+        )
+        assert not errors
+        assert len(cls.contacts) == 5000
+
+        source_body = {
+            # 'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
+            'first_matched_columns': ['number', 'firstname', 'lastname'],
+            'format_columns': {
+                'phone': '{number}',
+                'reverse': '{firstname} {lastname}',
+            },
+            'name': 'phonebook-lookup-test',
+            'searched_columns': ["firstname", "lastname", "number"],
+            'phonebook_uuid': phonebook['uuid'],
+        }
+
+        source = cls.stack.enter_context(phonebook_source(client, source_body))
+
+        display_body = {
+            'name': 'default',
+            'columns': [
+                {'title': 'firstname', 'field': 'firstname'},
+                {'title': 'lastname', 'field': 'lastname'},
+                {'title': 'number', 'field': 'number'},
+            ],
+        }
+        display = client.displays.create(display_body)
+
+        profile_body = {
+            'name': 'default',
+            'display': display,
+            'services': {
+                'lookup': {'sources': [source]},
+                'reverse': {'sources': [source]},
+                'favorites': {'sources': [source]},
+            },
+        }
+        profile = client.profiles.create(profile_body)
+
+        cls.source_uuid = source['uuid']
+        cls.source_name = source['name']
+        cls.display_uuid = display['uuid']
+        cls.profile_uuid = profile['uuid']
+        cls.stack.callback(client.displays.delete, cls.display_uuid)
+        cls.stack.callback(client.profiles.delete, cls.profile_uuid)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.stack.close()
+        super().tearDownClass()
+
+    def test_plugin_lookup(self):
+        result, timing = timed(
+            self.client.directories.lookup, term=' 5', profile='default'
+        )
+        expected_count = 111
+
+        assert_that(
+            result,
+            has_entries(
+                results=all_of(
+                    has_length(expected_count),
+                    has_item(
+                        has_entries(
+                            backend='phonebook',
+                            source=self.source_name,
+                            column_values=contains(
+                                'Contact 5',
+                                'McContact',
+                                '1000000005',
+                            ),
+                        )
+                    ),
+                ),
+            ),
+        )
+
+        # bound response time to a linear function of the number of contacts
+        assert_that(timing['elapsed'] < len(self.contacts) * 0.01)
+
+    def test_plugin_favorites(self):
+        response = self.client.directories.lookup(term=' 4', profile='default')
+        fave = response['results'][0]
+        source = fave['source']
+        id_ = fave['relations']['source_entry_id']
+
+        self.client.directories.new_favorite(source, id_)
+
+        result = self.client.directories.favorites(profile='default')
+        assert_that(
+            result,
+            has_entries(
+                results=contains(has_entries(column_values=fave['column_values']))
+            ),
+        )
+
+    def test_plugin_reverse(self):
+        response = self.client.directories.reverse(
+            exten='1000000005', profile='default', user_uuid='uuid-tenant-master'
+        )
+
+        assert_that(response, has_entries(display='Contact 5 McContact'))
