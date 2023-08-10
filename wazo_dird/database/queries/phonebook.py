@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import Any, Literal, Tuple, TypedDict, cast
 from sqlalchemy import and_, distinct, func, or_, text
 from sqlalchemy.sql.expression import ColumnElement
-from sqlalchemy.orm import scoped_session, Session
+from sqlalchemy.orm import scoped_session, Session, Query
 
 from wazo_dird.exception import (
     DuplicatedContactException,
@@ -47,7 +47,8 @@ def contact_phonebook_key_to_predicate(phonebook_key: PhonebookKey) -> ColumnEle
     return (
         Contact.phonebook_uuid == phonebook_key['uuid']
         if 'uuid' in phonebook_key
-        else Contact.phonebook_id == phonebook_key['id']
+        else Contact.phonebook_uuid
+        == Query(Phonebook.uuid).filter(Phonebook.id == phonebook_key['id']).subquery()
     )
 
 
