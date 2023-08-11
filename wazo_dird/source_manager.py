@@ -49,7 +49,8 @@ class SourceManager:
         self._source_service: SourceServiceProtocol | None = None
         self._source_lock = threading.Lock()
 
-    def get(self, source_uuid: str) -> BaseSourcePlugin | None:
+    def get(self, source_uuid):
+        assert self._source_service
         with self._source_lock:
             source = self._sources.get(source_uuid)
             if not source:
