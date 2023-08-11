@@ -21,6 +21,7 @@ from hamcrest import (
     has_items,
     not_,
     raises,
+    has_length,
 )
 from unittest.mock import ANY
 
@@ -692,6 +693,15 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
             raises(exception.DuplicatedContactException),
         )
 
+        assert_that(
+            calling(self._crud.create).with_args(
+                [self._tenant_uuid],
+                database.PhonebookKey(id=self._phonebook_id),
+                self._body,
+            ),
+            raises(exception.DuplicatedContactException),
+        )
+
     def test_that_duplicates_can_happen_in_different_phonebooks(self):
         phonebook_2 = self._phonebook_crud.create(self._tenant_uuid, {'name': 'second'})
 
@@ -740,6 +750,12 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
             ),
         )
         assert_that(errors, empty())
+
+        _, errors = self._crud.create_many(
+            [self._tenant_uuid], database.PhonebookKey(id=self._phonebook_id), body
+        )
+        assert_that(errors, has_length(len(body)))
+        assert_that(errors, contains_inanyorder(contact_1, contact_2, contact_3))
 
     def test_that_an_error_does_not_break_the_whole_import(self):
         contact_1 = self._new_contact('Foo', 'Bar', '5555551111')
@@ -1053,6 +1069,11 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
 
         assert_that(result, equal_to(3))
 
+        result = self._crud.count(
+            [self._tenant_uuid], database.PhonebookKey(id=self._phonebook_id)
+        )
+        assert_that(result, equal_to(3))
+
     def test_that_counting_is_filtered(self):
         result = self._crud.count(
             [self._tenant_uuid],
@@ -1062,10 +1083,24 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
 
         assert_that(result, equal_to(2))
 
+        result = self._crud.count(
+            [self._tenant_uuid],
+            database.PhonebookKey(id=self._phonebook_id),
+            search='o',
+        )
+
+        assert_that(result, equal_to(2))
+
     def test_that_counting_from_another_tenant_return_0(self):
         assert_that(
             calling(self._crud.count).with_args(
                 [new_uuid()], database.PhonebookKey(uuid=self._phonebook_uuid)
+            ),
+            raises(exception.NoSuchPhonebook),
+        )
+        assert_that(
+            calling(self._crud.count).with_args(
+                [new_uuid()], database.PhonebookKey(id=self._phonebook_id)
             ),
             raises(exception.NoSuchPhonebook),
         )
