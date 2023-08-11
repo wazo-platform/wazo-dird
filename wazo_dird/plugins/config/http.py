@@ -3,13 +3,14 @@
 
 from wazo_dird.auth import required_acl, required_master_tenant
 from wazo_dird.http import AuthResource
+from wazo_dird.plugins.config_service.plugin import Service as ConfigService
 
 
 class Config(AuthResource):
-    _config_service = None
+    _config_service: ConfigService
 
     @classmethod
-    def configure(cls, config_service):
+    def configure(cls, config_service: ConfigService):
         cls._config_service = config_service
 
     @required_master_tenant()
