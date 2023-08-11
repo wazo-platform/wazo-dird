@@ -8,9 +8,7 @@ from marshmallow import (
 )
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range, validate_string_dict
-from xivo.mallow_helpers import Schema
-
-BaseSchema = Schema
+from xivo.mallow_helpers import Schema as BaseSchema
 
 
 class VerifyCertificateField(fields.Field):
