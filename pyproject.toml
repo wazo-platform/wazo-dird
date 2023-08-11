@@ -17,3 +17,22 @@ ignore = [
     "E501", # line too long
     "W503", # line break before binary operator
 ]
+
+[tool.mypy]
+python_version = "3.10"
+
+show_error_codes = true
+explicit_package_bases = true
+check_untyped_defs = true
+warn_unused_configs = true
+follow_imports = "skip"
+ignore_missing_imports = true
+
+plugins = [
+    "sqlmypy"
+]
+exclude = [
+    "build",
+    "integration_tests/docker/broken-plugins/setup.py"
+]
+packages = ["wazo_dird"]
