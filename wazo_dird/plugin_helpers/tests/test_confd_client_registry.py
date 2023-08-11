@@ -43,6 +43,6 @@ class TestClientRegistry(TestCase):
 
     def test_set_tenant_without_key_file(self):
         config = deepcopy(SOURCE_CONFIG)
-        del config['auth']['key_file']
+        del config['auth']['key_file']  # type: ignore[attr-defined]
         self.registry.get(config)
         assert self.confd_client.tenant_uuid != SOURCE_CONFIG['tenant_uuid']
