@@ -60,7 +60,7 @@ class TestSourceSchema(TestCase):
             'key_file': '/var/lib/wazo-auth-keys/wazo-dird-wazo-backend-key.yml'
         }
         username_and_key_file = {'username': 'foo', 'key_file': 'bar'}
-        no_auth_info = {}
+        no_auth_info: dict = {}
 
         assert_that(
             calling(source_schema.load).with_args(
