@@ -4,7 +4,6 @@
 import csv
 import logging
 import time
-import traceback
 from functools import wraps
 from typing import TypedDict
 
@@ -111,7 +110,6 @@ def _default_error_route(f):
             return f(self_, *args, **kwargs)
         except tuple(self_.error_code_map.keys()) as e:
             logger.info('%s', e)
-            logger.debug('%s', traceback.format_exc())
             code = self_.error_code_map.get(e.__class__)
             return _make_error(str(e), code)
 
