@@ -13,6 +13,7 @@ from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_service.plugin import _SourceService
+from wazo_dird.utils import projection
 
 from .schemas import contact_list_schema, list_schema, source_list_schema, source_schema
 
@@ -20,6 +21,10 @@ request: Request  # type: ignore[no-redef]
 
 
 logger = logging.getLogger(__name__)
+
+
+def get_count_params(args: dict) -> dict:
+    return projection(args, ['search'])
 
 
 class PhonebookList(SourceList):
@@ -71,7 +76,7 @@ class PhonebookContactList(AuthResource):
     def get(self, source_uuid):
         visible_tenants = get_tenant_uuids(recurse=False)
         list_params = contact_list_schema.load(request.args)
-        count_params = contact_list_schema.load_count(request.args)
+        count_params = get_count_params(list_params)
         source_config = cast(
             PhonebookSourceInfo,
             self._source_service.get(self.BACKEND, str(source_uuid), visible_tenants),
