@@ -116,7 +116,9 @@ class PhonebookContactSearchEngine(BaseDAO):
 
         return ContactFields.contact_uuid.in_(contact_uuids)
 
-    def _new_search_filter(self, pattern, columns) -> bool | ColumnElement:
+    def _new_search_filter(
+        self, pattern: str, columns: list[str]
+    ) -> bool | ColumnElement:
         if not columns:
             return False
 
