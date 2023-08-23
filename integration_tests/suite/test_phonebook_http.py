@@ -668,7 +668,10 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         )
 
         # bound response time to a linear function of the number of contacts
-        assert_that(timing['elapsed'] < len(self.contacts) * 0.01)
+        max_time = min(len(self.contacts) * 0.01, 5)
+        assert (
+            timing['elapsed'] < max_time
+        ), f'Lookup took too long {timing["elapsed"]} max {max_time}'
 
     def test_plugin_favorites(self):
         response = self.client.directories.lookup(term=' 4', profile='default')
