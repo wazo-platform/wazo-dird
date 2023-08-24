@@ -553,14 +553,15 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
             )
 
 
-def timed(func, *args, **kwargs):
+@contextmanager
+def timed():
+    result = {}
+    start = time.time()
     try:
-        start = time.time()
-        out = func(*args, **kwargs)
+        yield result
     finally:
         end = time.time()
-
-    return out, {'start': start, 'end': end, 'elapsed': end - start}
+        result['elapsed'] = end - start
 
 
 class TestPluginLookup(BasePhonebookCRUDTestCase):
@@ -642,9 +643,9 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         super().tearDownClass()
 
     def test_plugin_lookup(self):
-        result, timing = timed(
-            self.client.directories.lookup, term=' 5', profile='default'
-        )
+        with timed() as timing:
+            result = self.client.directories.lookup(term=' 5', profile='default')
+
         expected_count = 111
 
         assert_that(
