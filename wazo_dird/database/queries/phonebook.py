@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import Any, Literal, Tuple, TypedDict, cast
 from sqlalchemy import and_, distinct, func, or_, text
 from sqlalchemy.sql.expression import ColumnElement
-from sqlalchemy.orm import scoped_session, Session
+from sqlalchemy.orm import scoped_session, Session, Query
 
 from wazo_dird.exception import (
     DuplicatedContactException,
@@ -16,8 +16,13 @@ from wazo_dird.exception import (
     NoSuchPhonebook,
 )
 
-from .base import BaseDAO, ContactInfo, compute_contact_hash, list_contacts_by_uuid
-from .. import Contact, ContactFields, Phonebook
+from wazo_dird.database import Contact, ContactFields, Phonebook
+from wazo_dird.database.queries.base import (
+    BaseDAO,
+    ContactInfo,
+    compute_contact_hash,
+    list_contacts_by_uuid,
+)
 
 
 class PhonebookKey(TypedDict, total=False):
@@ -39,15 +44,6 @@ def phonebook_key_to_predicate(phonebook_key: PhonebookKey) -> ColumnElement:
         Phonebook.uuid == phonebook_key['uuid']
         if 'uuid' in phonebook_key
         else Phonebook.id == phonebook_key['id']
-    )
-
-
-def contact_phonebook_key_to_predicate(phonebook_key: PhonebookKey) -> ColumnElement:
-    assert 'id' in phonebook_key or 'uuid' in phonebook_key
-    return (
-        Contact.phonebook_uuid == phonebook_key['uuid']
-        if 'uuid' in phonebook_key
-        else Contact.phonebook_id == phonebook_key['id']
     )
 
 
@@ -319,6 +315,19 @@ class PhonebookContactCRUD(BaseDAO):
                 raise NoSuchPhonebook(cast(dict, phonebook_key))
             return phonebook
 
+    def _build_phonebook_filter(self, phonebook_key: PhonebookKey):
+        assert 'id' in phonebook_key or 'uuid' in phonebook_key
+        return (
+            Contact.phonebook_uuid == phonebook_key['uuid']
+            if 'uuid' in phonebook_key
+            else (
+                Contact.phonebook_uuid
+                == Query(Phonebook.uuid)
+                .filter(Phonebook.id == phonebook_key['id'])
+                .subquery()
+            )
+        )
+
     def _list_contacts(
         self,
         s: Session,
@@ -326,7 +335,7 @@ class PhonebookContactCRUD(BaseDAO):
         phonebook_key: PhonebookKey,
         search: str | None,
     ):
-        phonebook_filter = contact_phonebook_key_to_predicate(phonebook_key)
+        phonebook_filter = self._build_phonebook_filter(phonebook_key)
         filter_ = and_(
             phonebook_filter,
             ContactFields.value.ilike(f'%{search}%') if search else True,
@@ -336,7 +345,7 @@ class PhonebookContactCRUD(BaseDAO):
     def _new_contact_filter(
         self, tenant_uuid: str, phonebook_key: PhonebookKey, contact_uuid: str
     ):
-        phonebook_filter = contact_phonebook_key_to_predicate(phonebook_key)
+        phonebook_filter = self._build_phonebook_filter(phonebook_key)
         return and_(
             Contact.uuid == contact_uuid,
             phonebook_filter,
