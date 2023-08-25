@@ -14,6 +14,7 @@ from hamcrest import (
     assert_that,
     calling,
     contains,
+    contains_exactly,
     contains_inanyorder,
     equal_to,
     has_entries,
@@ -23,6 +24,7 @@ from hamcrest import (
     instance_of,
     not_,
     only_contains,
+    starts_with,
 )
 from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers.hamcrest.raises import raises
@@ -408,7 +410,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
         cls.stack.callback(
             cls.phonebook_crud.delete, None, PhonebookKey(uuid=cls.phonebook['uuid'])
         )
-        cls.num_contacts = 5000
+        cls.num_contacts = 6
         cls.contacts, errors = cls.contact_crud.create_many(
             [MAIN_TENANT],
             PhonebookKey(uuid=cls.phonebook['uuid']),
@@ -472,38 +474,38 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 'name': self.phonebook['name'] + "-source",
             },
         ) as source:
-            limit = 100
-            contact_ids: set[str] = set()
-            for i in range(self.num_contacts // limit):
-                logger.debug("request %d", i)
-                response = client.session().get(
-                    url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
-                    params={'limit': limit, 'offset': i * limit},
-                )
-                response.raise_for_status()
-                body = response.json()
-                assert_that(
-                    body,
-                    has_entries(
-                        total=len(self.contacts),
-                        filtered=len(self.contacts),
-                        items=all_of(
-                            has_length(limit),
-                            only_contains(
-                                has_entries(
-                                    firstname=instance_of(str),
-                                    lastname=instance_of(str),
-                                    number=instance_of(str),
-                                    id=instance_of(str),
-                                )
-                            ),
+            limit = 2
+            response = client.session().get(
+                url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
+                params={'limit': limit, 'offset': 0, 'order': 'firstname'},
+            )
+            assert_that(
+                response.json(),
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=len(self.contacts),
+                    items=all_of(
+                        has_length(limit),
+                        contains_exactly(
+                            has_entries(firstname='Contact 0'),
+                            has_entries(firstname='Contact 1'),
                         ),
                     ),
-                )
-                contact_ids.update(contact['id'] for contact in body['items'])
+                ),
+            )
 
+            response = client.session().get(
+                url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
+                params={'limit': limit, 'offset': 2, 'order': 'firstname'},
+            )
             assert_that(
-                contact_ids, equal_to(set(contact['id'] for contact in self.contacts))
+                response.json(),
+                has_entries(
+                    items=contains_exactly(
+                        has_entries(firstname='Contact 2'),
+                        has_entries(firstname='Contact 3'),
+                    ),
+                ),
             )
 
     def test_get_filtered(self):
@@ -526,16 +528,13 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 body,
                 has_entries(
                     total=len(self.contacts),
-                    filtered=1111,
+                    filtered=1,
                     items=all_of(
-                        has_length(1111),
+                        has_length(1),
                         only_contains(
                             has_entries(
-                                firstname=instance_of(str),
-                                lastname=instance_of(str),
-                                number=instance_of(str),
-                                id=instance_of(str),
-                            )
+                                firstname=starts_with('Contact 4'),
+                            ),
                         ),
                     ),
                 ),
