@@ -408,6 +408,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
         cls.stack.callback(
             cls.phonebook_crud.delete, None, PhonebookKey(uuid=cls.phonebook['uuid'])
         )
+        cls.num_contacts = 5000
         cls.contacts, errors = cls.contact_crud.create_many(
             [MAIN_TENANT],
             PhonebookKey(uuid=cls.phonebook['uuid']),
@@ -417,7 +418,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                     'lastname': 'McContact',
                     'number': str(1000000000 + i),
                 }
-                for i in range(5000)
+                for i in range(cls.num_contacts)
             ],
         )
         assert not errors
@@ -473,7 +474,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
         ) as source:
             limit = 100
             contact_ids: set[str] = set()
-            for i in range(5000 // limit):
+            for i in range(self.num_contacts // limit):
                 logger.debug("request %d", i)
                 response = client.session().get(
                     url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
