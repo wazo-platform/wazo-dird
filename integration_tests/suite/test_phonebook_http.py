@@ -473,11 +473,11 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
         ) as source:
             limit = 100
             contact_ids: set[str] = set()
-            for i in range(5000 // 100):
+            for i in range(5000 // limit):
                 logger.debug("request %d", i)
                 response = client.session().get(
                     url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
-                    params={'limit': 100, 'offset': i * limit},
+                    params={'limit': limit, 'offset': i * limit},
                 )
                 response.raise_for_status()
                 body = response.json()
@@ -487,7 +487,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                         total=len(self.contacts),
                         filtered=len(self.contacts),
                         items=all_of(
-                            has_length(100),
+                            has_length(limit),
                             only_contains(
                                 has_entries(
                                     firstname=instance_of(str),
