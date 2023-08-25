@@ -24,6 +24,10 @@ paths:
         default: application/json
         required: false
         description: Format of the response body
+      - $ref: '#/parameters/order'
+      - $ref: '#/parameters/direction'
+      - $ref: '#/parameters/Limit'
+      - $ref: '#/parameters/Offset'
       responses:
         '200':
           description: A list of personal contacts
