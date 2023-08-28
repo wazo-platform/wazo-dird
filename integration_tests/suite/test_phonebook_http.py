@@ -463,6 +463,10 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                     ),
                 ),
             )
+            assert_that(
+                set(item['id'] for item in body['items']),
+                equal_to(set(contact['id'] for contact in self.contacts)),
+            )
 
     def test_get_paginated(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
@@ -485,7 +489,6 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                     total=len(self.contacts),
                     filtered=len(self.contacts),
                     items=all_of(
-                        has_length(limit),
                         contains_exactly(
                             has_entries(firstname='Contact 0'),
                             has_entries(firstname='Contact 1'),
@@ -498,8 +501,9 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
                 params={'limit': limit, 'offset': 2, 'order': 'firstname'},
             )
+            body = response.json()
             assert_that(
-                response.json(),
+                body,
                 has_entries(
                     items=contains_exactly(
                         has_entries(firstname='Contact 2'),
@@ -539,18 +543,6 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                     ),
                 ),
             )
-            contact_ids = set(contact['id'] for contact in body['items'])
-
-            assert_that(
-                contact_ids,
-                equal_to(
-                    set(
-                        contact['id']
-                        for contact in self.contacts
-                        if 'Contact 4' in contact.get('firstname', '')
-                    )
-                ),
-            )
 
 
 @contextmanager
@@ -565,6 +557,10 @@ def timed():
 
 
 class TestPluginLookup(BasePhonebookCRUDTestCase):
+    """
+    Test global lookup API with phonebook backend
+    """
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -580,6 +576,8 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         cls.stack.callback(
             phonebook_crud.delete, None, PhonebookKey(uuid=phonebook['uuid'])
         )
+
+        cls.contact_count = 5000
         cls.contacts, errors = contact_crud.create_many(
             [MAIN_TENANT],
             PhonebookKey(uuid=phonebook['uuid']),
@@ -589,11 +587,11 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
                     'lastname': 'McContact',
                     'number': str(1000000000 + i),
                 }
-                for i in range(5000)
+                for i in range(cls.contact_count)
             ],
         )
         assert not errors
-        assert len(cls.contacts) == 5000
+        assert len(cls.contacts) == cls.contact_count
 
         source_body = {
             # 'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
