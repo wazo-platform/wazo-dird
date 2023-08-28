@@ -38,9 +38,9 @@ class CountParams(TypedDict):
 
 
 class ContactListSchema(_ListSchema):
-    searchable_columns = ['firstname', 'lastname', 'name']
-    sort_columns = ['firstname', 'lastname', 'name']
-    default_sort_column = 'lastname'
+    searchable_columns = []
+    sort_columns = ['firstname', 'lastname', 'number']
+    default_sort_column = None
 
 
 contact_list_schema = ContactListSchema()
