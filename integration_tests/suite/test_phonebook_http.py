@@ -404,7 +404,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
         cls.stack = ExitStack()
 
         cls.phonebook = cls.phonebook_crud.create(
-            MAIN_TENANT,
+            SUB_TENANT,
             {'name': 'test-phonebook', 'description': 'some test phonebook'},
         )
         cls.stack.callback(
@@ -412,7 +412,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
         )
         cls.num_contacts = 6
         cls.contacts, errors = cls.contact_crud.create_many(
-            [MAIN_TENANT],
+            [SUB_TENANT],
             PhonebookKey(uuid=cls.phonebook['uuid']),
             [
                 {
@@ -439,10 +439,10 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 'phonebook_uuid': self.phonebook['uuid'],
                 'name': self.phonebook['name'] + "-source",
             },
+            tenant_uuid=SUB_TENANT,
         ) as source:
             body = client.backends.list_contacts_from_source(
-                backend='phonebook',
-                source_uuid=source['uuid'],
+                backend='phonebook', source_uuid=source['uuid'], tenant_uuid=SUB_TENANT
             )
             assert_that(
                 body,
@@ -476,6 +476,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 'phonebook_uuid': self.phonebook['uuid'],
                 'name': self.phonebook['name'] + "-source",
             },
+            tenant_uuid=SUB_TENANT,
         ) as source:
             limit = 2
             body = client.backends.list_contacts_from_source(
@@ -484,6 +485,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 limit=limit,
                 offset=0,
                 order='firstname',
+                tenant_uuid=SUB_TENANT,
             )
             assert_that(
                 body,
@@ -505,6 +507,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 limit=limit,
                 offset=limit,
                 order='firstname',
+                tenant_uuid=SUB_TENANT,
             )
             assert_that(
                 body,
@@ -525,11 +528,13 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 'phonebook_uuid': self.phonebook['uuid'],
                 'name': self.phonebook['name'] + "-source",
             },
+            tenant_uuid=SUB_TENANT,
         ) as source:
             body = client.backends.list_contacts_from_source(
                 backend='phonebook',
                 source_uuid=source['uuid'],
                 search='Contact 4',
+                tenant_uuid=SUB_TENANT,
             )
             assert_that(
                 body,
