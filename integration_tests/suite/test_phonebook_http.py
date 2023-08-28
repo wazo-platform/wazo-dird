@@ -440,11 +440,10 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 'name': self.phonebook['name'] + "-source",
             },
         ) as source:
-            response = client.session().get(
-                url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts"
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
             )
-            response.raise_for_status()
-            body = response.json()
             assert_that(
                 body,
                 has_entries(
@@ -479,12 +478,15 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
             },
         ) as source:
             limit = 2
-            response = client.session().get(
-                url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
-                params={'limit': limit, 'offset': 0, 'order': 'firstname'},
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                limit=limit,
+                offset=0,
+                order='firstname',
             )
             assert_that(
-                response.json(),
+                body,
                 has_entries(
                     total=len(self.contacts),
                     filtered=len(self.contacts),
@@ -497,11 +499,13 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 ),
             )
 
-            response = client.session().get(
-                url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
-                params={'limit': limit, 'offset': 2, 'order': 'firstname'},
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                limit=limit,
+                offset=limit,
+                order='firstname',
             )
-            body = response.json()
             assert_that(
                 body,
                 has_entries(
@@ -522,12 +526,11 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 'name': self.phonebook['name'] + "-source",
             },
         ) as source:
-            response = client.session().get(
-                url=f"{client.phonebook_source.base_url}/{source['uuid']}/contacts",
-                params={'search': 'Contact 4'},
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                search='Contact 4',
             )
-            response.raise_for_status()
-            body = response.json()
             assert_that(
                 body,
                 has_entries(
