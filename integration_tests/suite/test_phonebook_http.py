@@ -697,3 +697,136 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         )
 
         assert_that(response, has_entries(display='Contact 5 McContact'))
+
+
+class TestGetContactsLoad(BasePhonebookCRUDTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.phonebook_crud = PhonebookCRUD(cls.Session)
+        cls.contact_crud = PhonebookContactCRUD(cls.Session)
+        cls.stack = ExitStack()
+
+        # setup database with phonebook and contacts
+        cls.phonebook = cls.phonebook_crud.create(
+            MAIN_TENANT,
+            {'name': 'test-phonebook', 'description': 'some test phonebook'},
+        )
+        cls.stack.callback(
+            cls.phonebook_crud.delete, None, PhonebookKey(uuid=cls.phonebook['uuid'])
+        )
+
+        # create 5000 contacts in phonebook
+        cls.num_contacts = 5000
+        cls.contacts, errors = cls.contact_crud.create_many(
+            [MAIN_TENANT],
+            PhonebookKey(uuid=cls.phonebook['uuid']),
+            [
+                {
+                    'firstname': f'Contact {i}',
+                    'lastname': 'McContact',
+                    'number': str(1000000000 + i),
+                }
+                for i in range(cls.num_contacts)
+            ],
+        )
+        assert not errors
+
+    @classmethod
+    def tearDownClass(self):
+        self.stack.close()
+        super().tearDownClass()
+
+    def test_get_paginated(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+        ) as source:
+            limit = 100
+            contact_ids: set[str] = set()
+            for i in range(5000 // limit):
+                logger.debug("request %d", i)
+                with timed() as timing:
+                    body = client.backends.list_contacts_from_source(
+                        backend='phonebook',
+                        source_uuid=source['uuid'],
+                        limit=limit,
+                        offset=i * limit,
+                    )
+                assert_that(
+                    body,
+                    has_entries(
+                        total=len(self.contacts),
+                        filtered=len(self.contacts),
+                        items=all_of(
+                            has_length(100),
+                            only_contains(
+                                has_entries(
+                                    firstname=instance_of(str),
+                                    lastname=instance_of(str),
+                                    number=instance_of(str),
+                                    id=instance_of(str),
+                                )
+                            ),
+                        ),
+                    ),
+                )
+                assert timing['elapsed'] < min(limit * 0.01, 5)
+                contact_ids.update(contact['id'] for contact in body['items'])
+
+            assert_that(
+                contact_ids, equal_to(set(contact['id'] for contact in self.contacts))
+            )
+
+    def test_get_filtered(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+        ) as source:
+            with timed() as timing:
+                body = client.backends.list_contacts_from_source(
+                    backend='phonebook',
+                    source_uuid=source['uuid'],
+                    search='Contact 4',
+                )
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=1111,
+                    items=all_of(
+                        has_length(1111),
+                        only_contains(
+                            has_entries(
+                                firstname=instance_of(str),
+                                lastname=instance_of(str),
+                                number=instance_of(str),
+                                id=instance_of(str),
+                            )
+                        ),
+                    ),
+                ),
+            )
+            assert timing['elapsed'] < min(self.num_contacts * 0.01, 5)
+            contact_ids = set(contact['id'] for contact in body['items'])
+
+            assert_that(
+                contact_ids,
+                equal_to(
+                    set(
+                        contact['id']
+                        for contact in self.contacts
+                        if 'Contact 4' in contact.get('firstname', '')
+                    )
+                ),
+            )
