@@ -1,14 +1,95 @@
 # Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import argparse
+from typing import Literal, TypedDict, Union
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_file, read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
+
+class AuthConfig(TypedDict, total=False):
+    host: str
+    port: int
+    prefix: str | None
+    https: bool
+    key_file: str
+    username: str
+    password: str
+    master_tenant_uuid: str
+
+
+class EnabledPluginsConfig(TypedDict):
+    backends: dict[str, bool]
+    services: dict[str, bool]
+    views: dict[str, bool]
+
+
+class ServiceDiscoveryConfig(TypedDict):
+    enabled: bool
+    advertise_address: Literal['auto'] | str
+    advertise_port: int
+    advertise_address_interface: str
+    refresh_interval: int
+    retry_interval: int
+    ttl_interval: int
+    extra_tags: list[str]
+
+
+class CORSConfig(TypedDict):
+    enabled: bool
+    allow_headers: list[str]
+
+
+class RestAPIConfig(TypedDict):
+    listen: str
+    port: int
+    certificate: None  # Deprecated
+    private_key: None  # Deprecated
+    cors: CORSConfig
+    max_threads: int
+
+
+class BusConfig(TypedDict):
+    enabled: bool
+    username: str
+    password: str
+    host: str
+    port: int
+    exchange_name: str
+    exchange_type: str
+
+
+Scheme = Union[Literal['http'], Literal['https']]
+
+
+class ConsulConfig(TypedDict):
+    scheme: Scheme
+    port: int
+
+
+class Config(TypedDict, total=False):
+    uuid: str
+    auth: AuthConfig
+    config_file: str
+    db_uri: str
+    debug: bool
+    extra_config_files: str
+    enabled_plugins: EnabledPluginsConfig
+    log_level: str
+    log_filename: str
+    rest_api: RestAPIConfig
+    services: dict[str, dict]
+    user: str
+    bus: BusConfig
+    consul: ConsulConfig
+    service_discovery: ServiceDiscoveryConfig
+
+
 _DEFAULT_HTTPS_PORT = 9489
-_DEFAULT_CONFIG = {
+_DEFAULT_CONFIG: Config = {
     'auth': {
         'host': 'localhost',
         'port': 9497,

@@ -96,7 +96,7 @@ class PhonebookContactAll(_Resource):
             **contact_list_schema.load_count(request.args),
         )
         list_params.pop("recurse")
-        contacts = self.phonebook_service.list_contact(
+        contacts = self.phonebook_service.list_contacts(
             visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), **list_params
         )
 

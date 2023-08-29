@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 import abc
+from typing import TypedDict
 
+from wazo_auth_client import Client as AuthClient
+from xivo.token_renewer import TokenRenewer
+
+from wazo_dird.config import Config as MainConfig
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 
@@ -35,6 +40,23 @@ class BaseViewPlugin(metaclass=abc.ABCMeta):
         """
 
 
+class SourceConfig(TypedDict, total=False):
+    uuid: str
+    backend: str
+    name: str
+    tenant_uuid: str
+    searched_columns: list[str]
+    first_matched_columns: list[str]
+    format_columns: dict[str, str]
+
+
+class SourcePluginDependencies(TypedDict):
+    auth_client: AuthClient
+    config: SourceConfig
+    main_config: MainConfig
+    token_renewer: TokenRenewer
+
+
 class BaseSourcePlugin(metaclass=abc.ABCMeta):
     """
     A backend plugin in wazo should implement this base class implicitly or
@@ -48,8 +70,11 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
     FORMAT_COLUMNS = 'format_columns'
     UNIQUE_COLUMN = 'unique_column'  # This is the column that make an entry unique
 
+    name: str
+    backend: str
+
     @abc.abstractmethod
-    def load(self, args):
+    def load(self, args: SourcePluginDependencies):
         """
         The load function is responsible for setting up the source and acquiring
         any resources necessary.

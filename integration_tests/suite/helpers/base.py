@@ -7,7 +7,7 @@ from typing import ClassVar
 
 import requests
 from hamcrest import assert_that, equal_to, has_entries
-from sqlalchemy.engine import create_engine
+from sqlalchemy.engine import Engine, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers import until
@@ -49,6 +49,10 @@ class DirdAssetRunningTestCase(AssetLaunchingTestCase):
 
 
 class DBRunningTestCase(DirdAssetRunningTestCase):
+    Session: ClassVar[scoped_session]
+    db_uri: ClassVar[str]
+    engine: ClassVar[Engine]
+
     @classmethod
     def setup_db_session(cls):
         db_port = cls.service_port(5432, 'db')

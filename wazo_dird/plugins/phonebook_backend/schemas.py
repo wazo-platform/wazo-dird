@@ -1,8 +1,13 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+
+from typing import TypedDict
+
 from marshmallow import post_load
 from xivo.mallow import fields
 from xivo.mallow_helpers import ListSchema as _ListSchema
+
 from wazo_dird.schemas import BaseSourceSchema
 
 
@@ -26,3 +31,16 @@ class ListSchema(_ListSchema):
 source_list_schema = SourceSchema(many=True)
 source_schema = SourceSchema()
 list_schema = ListSchema()
+
+
+class CountParams(TypedDict):
+    search: str | None
+
+
+class ContactListSchema(_ListSchema):
+    searchable_columns = []
+    sort_columns = ['firstname', 'lastname', 'number']
+    default_sort_column = None
+
+
+contact_list_schema = ContactListSchema()

@@ -1,4 +1,4 @@
-# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -24,7 +24,7 @@ from ..plugin import _PhonebookService as Service
 
 class TestPhonebookServicePlugin(unittest.TestCase):
     def setUp(self):
-        self.args = {'config': {}}
+        self.args: dict = {'config': {}}
 
     def test_that_loading_without_a_proper_config_raises(self):
         plugin = Plugin()
@@ -263,7 +263,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_that_list_returns_the_db_result_when_no_pagination_or_sorting(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(
+        result = self.service.list_contacts(
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
 
@@ -275,7 +275,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_that_list_can_be_limited(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(
+        result = self.service.list_contacts(
             [s.tenant_uuid],
             PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
@@ -290,7 +290,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_that_list_can_have_an_offset(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(
+        result = self.service.list_contacts(
             [s.tenant_uuid],
             PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
@@ -305,7 +305,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_that_limit_and_offset_work_togeter(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(
+        result = self.service.list_contacts(
             [s.tenant_uuid],
             PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
@@ -321,7 +321,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_that_results_can_be_ordered(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(
+        result = self.service.list_contacts(
             [s.tenant_uuid],
             PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
@@ -345,7 +345,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_that_results_can_be_ordered_by_an_unknown_column_with_no_effect(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(
+        result = self.service.list_contacts(
             [s.tenant_uuid],
             PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
@@ -370,7 +370,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_that_the_direction_can_be_specified(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(
+        result = self.service.list_contacts(
             [s.tenant_uuid],
             PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
@@ -395,7 +395,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
     def test_all(self):
         self.contact_crud.list.return_value = self._contacts
 
-        result = self.service.list_contact(
+        result = self.service.list_contacts(
             [s.tenant_uuid],
             PhonebookKey(uuid=s.phonebook_uuid),
             search=s.search,
@@ -416,8 +416,8 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
         db_errors = [s.error_1, s.error_2]
         self.contact_crud.create_many.return_value = s.created, db_errors
 
-        invalids = [{}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
-        contacts = invalids + [{'firstname': 'Foo'}]
+        invalids: list[dict] = [{}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
+        contacts: list[dict] = invalids + [{'firstname': 'Foo'}]
         created, errors = self.service.import_contacts(
             s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
         )

@@ -2,26 +2,38 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-from contextlib import contextmanager
+import time
+from contextlib import ExitStack, contextmanager
+from typing import Iterator, TypedDict
 from unittest.mock import ANY
 from uuid import uuid4
 
 import requests
 from hamcrest import (
+    all_of,
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     equal_to,
     has_entries,
+    has_item,
+    has_length,
     has_properties,
+    instance_of,
     not_,
+    only_contains,
 )
 from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
-from .helpers.base import BaseDirdIntegrationTest
+from wazo_dird.database.queries.phonebook import (
+    PhonebookContactCRUD,
+    PhonebookCRUD,
+    PhonebookKey,
+)
+
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
@@ -30,6 +42,7 @@ from .helpers.constants import (
     VALID_TOKEN_SUB_TENANT,
 )
 from .helpers.fixtures import http as fixtures
+from .helpers.phonebook import BasePhonebookTestCase
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +51,27 @@ def generate_phonebook_uuid():
     return str(uuid4())
 
 
-class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
+class PhonebookSource(TypedDict):
+    uuid: str
+    name: str
+    phonebook_uuid: str
+
+
+@contextmanager
+def phonebook_source(client: DirdClient, *args, **kwargs) -> Iterator[PhonebookSource]:
+    try:
+        _source = client.phonebook_source.create(*args, **kwargs)
+    except requests.HTTPError as ex:
+        logger.exception("Error trying to create source: %s", ex.response.content)
+        print(ex.response.content)
+        raise
+    try:
+        yield _source
+    finally:
+        client.phonebook_source.delete(_source['uuid'])
+
+
+class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
     asset = 'all_routes'
     valid_body = {'name': 'main', 'phonebook_uuid': generate_phonebook_uuid()}
 
@@ -54,10 +87,10 @@ class BasePhonebookCRUDTestCase(BaseDirdIntegrationTest):
         )
 
     @contextmanager
-    def source(self, client: DirdClient, *args, **kwargs):
+    def source(self, client: DirdClient, *args, **kwargs) -> Iterator[PhonebookSource]:
         try:
             _source = client.phonebook_source.create(*args, **kwargs)
-        except Exception as ex:
+        except requests.HTTPError as ex:
             logger.exception("Error trying to create source: %s", ex.response.content)
             print(ex.response.content)
             raise
@@ -120,12 +153,12 @@ class TestList(BasePhonebookCRUDTestCase):
 
         assert_that(
             self.client.phonebook_source.list(name='abc'),
-            has_entries(items=contains(a), total=3, filtered=1),
+            has_entries(items=contains_exactly(a), total=3, filtered=1),
         )
 
         assert_that(
             self.client.phonebook_source.list(uuid=c['uuid']),
-            has_entries(items=contains(c), total=3, filtered=1),
+            has_entries(items=contains_exactly(c), total=3, filtered=1),
         )
 
         result = self.client.phonebook_source.list(search='b')
@@ -139,22 +172,22 @@ class TestList(BasePhonebookCRUDTestCase):
     def test_pagination(self, c, b, a):
         assert_that(
             self.client.phonebook_source.list(order='name'),
-            has_entries(items=contains(a, b, c), total=3, filtered=3),
+            has_entries(items=contains_exactly(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', direction='desc'),
-            has_entries(items=contains(c, b, a), total=3, filtered=3),
+            has_entries(items=contains_exactly(c, b, a), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', limit=2),
-            has_entries(items=contains(a, b), total=3, filtered=3),
+            has_entries(items=contains_exactly(a, b), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', offset=2),
-            has_entries(items=contains(c), total=3, filtered=3),
+            has_entries(items=contains_exactly(c), total=3, filtered=3),
         )
 
     @fixtures.phonebook_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
@@ -270,7 +303,7 @@ class TestPut(BasePhonebookCRUDTestCase):
 
         try:
             self.client.phonebook_source.edit(foobar['uuid'], {})
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(), has_entries(message=ANY, error_id='invalid-data')
@@ -358,3 +391,429 @@ class TestGet(BasePhonebookCRUDTestCase):
             self.assert_unknown_source_exception(main['uuid'], e)
         else:
             self.fail('Should have raised')
+
+
+class TestGetContacts(BasePhonebookCRUDTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.phonebook_crud = PhonebookCRUD(cls.Session)
+        cls.contact_crud = PhonebookContactCRUD(cls.Session)
+        cls.stack = ExitStack()
+
+        cls.phonebook = cls.phonebook_crud.create(
+            SUB_TENANT,
+            {'name': 'test-phonebook', 'description': 'some test phonebook'},
+        )
+        cls.stack.callback(
+            cls.phonebook_crud.delete, None, PhonebookKey(uuid=cls.phonebook['uuid'])
+        )
+        cls.num_contacts = 6
+        cls.contacts, errors = cls.contact_crud.create_many(
+            [SUB_TENANT],
+            PhonebookKey(uuid=cls.phonebook['uuid']),
+            [
+                {
+                    'firstname': f'Contact {i}',
+                    'lastname': 'McContact',
+                    'number': str(1000000000 + i),
+                }
+                for i in range(cls.num_contacts)
+            ],
+        )
+        assert not errors
+
+    @classmethod
+    def tearDownClass(self):
+        self.stack.close()
+        super().tearDownClass()
+
+    def test_get_all(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+            tenant_uuid=SUB_TENANT,
+        ) as source:
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook', source_uuid=source['uuid'], tenant_uuid=SUB_TENANT
+            )
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=len(self.contacts),
+                    items=all_of(
+                        has_length(len(self.contacts)),
+                        only_contains(
+                            has_entries(
+                                firstname=instance_of(str),
+                                lastname=instance_of(str),
+                                number=instance_of(str),
+                                id=instance_of(str),
+                            )
+                        ),
+                    ),
+                ),
+            )
+            assert_that(
+                set(item['id'] for item in body['items']),
+                equal_to(set(contact['id'] for contact in self.contacts)),
+            )
+
+    def test_get_paginated(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+            tenant_uuid=SUB_TENANT,
+        ) as source:
+            limit = 2
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                limit=limit,
+                offset=0,
+                order='firstname',
+                tenant_uuid=SUB_TENANT,
+            )
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=len(self.contacts),
+                    items=contains_exactly(
+                        has_entries(firstname='Contact 0'),
+                        has_entries(firstname='Contact 1'),
+                    ),
+                ),
+            )
+
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                limit=limit,
+                offset=limit,
+                order='firstname',
+                tenant_uuid=SUB_TENANT,
+            )
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=len(self.contacts),
+                    items=contains_exactly(
+                        has_entries(firstname='Contact 2'),
+                        has_entries(firstname='Contact 3'),
+                    ),
+                ),
+            )
+
+    def test_get_filtered(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+            tenant_uuid=SUB_TENANT,
+        ) as source:
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                search='Contact 4',
+                tenant_uuid=SUB_TENANT,
+            )
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=1,
+                    items=contains_exactly(
+                        has_entries(
+                            firstname='Contact 4',
+                        ),
+                    ),
+                ),
+            )
+
+
+@contextmanager
+def timed():
+    result = {}
+    start = time.time()
+    try:
+        yield result
+    finally:
+        end = time.time()
+        result['elapsed'] = end - start
+
+
+class TestPluginLookup(BasePhonebookCRUDTestCase):
+    """
+    Test global lookup API with phonebook backend
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        client = cls.get_client()
+        cls.stack = ExitStack()
+        phonebook_crud = PhonebookCRUD(cls.Session)
+        contact_crud = PhonebookContactCRUD(cls.Session)
+
+        phonebook = phonebook_crud.create(
+            MAIN_TENANT,
+            {'name': 'test-phonebook', 'description': 'some test phonebook'},
+        )
+        cls.stack.callback(
+            phonebook_crud.delete, None, PhonebookKey(uuid=phonebook['uuid'])
+        )
+
+        cls.contact_count = 5000
+        cls.contacts, errors = contact_crud.create_many(
+            [MAIN_TENANT],
+            PhonebookKey(uuid=phonebook['uuid']),
+            [
+                {
+                    'firstname': f'Contact {i}',
+                    'lastname': 'McContact',
+                    'number': str(1000000000 + i),
+                }
+                for i in range(cls.contact_count)
+            ],
+        )
+        assert not errors
+        assert len(cls.contacts) == cls.contact_count
+
+        source_body = {
+            'first_matched_columns': ['number', 'firstname', 'lastname'],
+            'format_columns': {
+                'phone': '{number}',
+                'reverse': '{firstname} {lastname}',
+            },
+            'name': 'phonebook-lookup-test',
+            'searched_columns': ["firstname", "lastname", "number"],
+            'phonebook_uuid': phonebook['uuid'],
+        }
+
+        source = cls.stack.enter_context(phonebook_source(client, source_body))
+
+        display_body = {
+            'name': 'default',
+            'columns': [
+                {'title': 'firstname', 'field': 'firstname'},
+                {'title': 'lastname', 'field': 'lastname'},
+                {'title': 'number', 'field': 'number'},
+            ],
+        }
+        display = client.displays.create(display_body)
+
+        profile_body = {
+            'name': 'default',
+            'display': display,
+            'services': {
+                'lookup': {'sources': [source]},
+                'reverse': {'sources': [source]},
+                'favorites': {'sources': [source]},
+            },
+        }
+        profile = client.profiles.create(profile_body)
+
+        cls.source_uuid = source['uuid']
+        cls.source_name = source['name']
+        cls.display_uuid = display['uuid']
+        cls.profile_uuid = profile['uuid']
+        cls.stack.callback(client.displays.delete, cls.display_uuid)
+        cls.stack.callback(client.profiles.delete, cls.profile_uuid)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.stack.close()
+        super().tearDownClass()
+
+    def test_plugin_lookup(self):
+        with timed() as timing:
+            result = self.client.directories.lookup(term=' 5', profile='default')
+
+        expected_count = 111
+
+        assert_that(
+            result,
+            has_entries(
+                results=all_of(
+                    has_length(expected_count),
+                    has_item(
+                        has_entries(
+                            backend='phonebook',
+                            source=self.source_name,
+                            column_values=contains_exactly(
+                                'Contact 5',
+                                'McContact',
+                                '1000000005',
+                            ),
+                        )
+                    ),
+                ),
+            ),
+        )
+
+        max_time = 2
+        assert (
+            timing['elapsed'] < max_time
+        ), f'Lookup took too long {timing["elapsed"]} max {max_time}'
+
+    def test_plugin_favorites(self):
+        response = self.client.directories.lookup(term=' 4', profile='default')
+        fave = response['results'][0]
+        source = fave['source']
+        id_ = fave['relations']['source_entry_id']
+
+        self.client.directories.new_favorite(source, id_)
+
+        result = self.client.directories.favorites(profile='default')
+        assert_that(
+            result,
+            has_entries(
+                results=contains_exactly(
+                    has_entries(column_values=fave['column_values'])
+                )
+            ),
+        )
+
+    def test_plugin_reverse(self):
+        response = self.client.directories.reverse(
+            exten='1000000005', profile='default', user_uuid='uuid-tenant-master'
+        )
+
+        assert_that(response, has_entries(display='Contact 5 McContact'))
+
+
+class TestGetContactsLoad(BasePhonebookCRUDTestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.phonebook_crud = PhonebookCRUD(cls.Session)
+        cls.contact_crud = PhonebookContactCRUD(cls.Session)
+        cls.stack = ExitStack()
+
+        # setup database with phonebook and contacts
+        cls.phonebook = cls.phonebook_crud.create(
+            MAIN_TENANT,
+            {'name': 'test-phonebook', 'description': 'some test phonebook'},
+        )
+        cls.stack.callback(
+            cls.phonebook_crud.delete, None, PhonebookKey(uuid=cls.phonebook['uuid'])
+        )
+
+        # create 5000 contacts in phonebook
+        cls.num_contacts = 5000
+        cls.contacts, errors = cls.contact_crud.create_many(
+            [MAIN_TENANT],
+            PhonebookKey(uuid=cls.phonebook['uuid']),
+            [
+                {
+                    'firstname': f'Contact {i}',
+                    'lastname': 'McContact',
+                    'number': str(1000000000 + i),
+                }
+                for i in range(cls.num_contacts)
+            ],
+        )
+        assert not errors
+
+    @classmethod
+    def tearDownClass(self):
+        self.stack.close()
+        super().tearDownClass()
+
+    def test_get_paginated(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+        ) as source:
+            limit = 100
+            for i in range(self.num_contacts // limit):
+                with timed() as timing:
+                    body = client.backends.list_contacts_from_source(
+                        backend='phonebook',
+                        source_uuid=source['uuid'],
+                        limit=limit,
+                        offset=i * limit,
+                    )
+                assert_that(
+                    body,
+                    has_entries(
+                        total=len(self.contacts),
+                        filtered=len(self.contacts),
+                        items=all_of(
+                            has_length(100),
+                            only_contains(
+                                has_entries(
+                                    firstname=instance_of(str),
+                                    lastname=instance_of(str),
+                                    number=instance_of(str),
+                                    id=instance_of(str),
+                                )
+                            ),
+                        ),
+                    ),
+                )
+                max_time = 2
+                assert (
+                    timing['elapsed'] < max_time
+                ), f'Get paginated took too long: {timing["elapsed"]} max {max_time}'
+
+    def test_get_filtered(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+
+        with self.source(
+            client,
+            {
+                'phonebook_uuid': self.phonebook['uuid'],
+                'name': self.phonebook['name'] + "-source",
+            },
+        ) as source:
+            with timed() as timing:
+                body = client.backends.list_contacts_from_source(
+                    backend='phonebook',
+                    source_uuid=source['uuid'],
+                    search='Contact 4',
+                )
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=1111,
+                    items=all_of(
+                        has_length(1111),
+                        only_contains(
+                            has_entries(
+                                firstname=instance_of(str),
+                                lastname=instance_of(str),
+                                number=instance_of(str),
+                                id=instance_of(str),
+                            )
+                        ),
+                    ),
+                ),
+            )
+            max_time = 2
+            assert (
+                timing['elapsed'] < max_time
+            ), f'Get filtered took too long: {timing["elapsed"]} max {max_time}'

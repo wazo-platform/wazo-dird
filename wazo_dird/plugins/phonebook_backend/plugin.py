@@ -9,7 +9,12 @@ from typing import TypedDict
 from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
 from wazo_dird.exception import InvalidConfigError
-from wazo_dird.helpers import BaseBackendView
+from wazo_dird.helpers import (
+    BackendViewDependencies,
+    BackendViewServices,
+    BaseBackendView,
+)
+from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import http
@@ -17,10 +22,32 @@ from . import http
 logger = logging.getLogger(__name__)
 
 
+class Services(BackendViewServices):
+    phonebook: _PhonebookService
+
+
+class PhonebookViewDependencies(BackendViewDependencies):
+    services: Services  # type: ignore[misc]
+
+
 class PhonebookView(BaseBackendView):
     backend = 'phonebook'
     list_resource = http.PhonebookList
     item_resource = http.PhonebookItem
+    contact_resource = http.PhonebookContactList
+
+    def load(self, dependencies: PhonebookViewDependencies):  # type: ignore[override]
+        super().load(dependencies)  # type: ignore[arg-type]
+        api = dependencies['api']
+        source_service = dependencies['services']['source']
+        phonebook_service = dependencies['services']['phonebook']
+        args = (source_service, phonebook_service)
+
+        api.add_resource(
+            self.contact_resource,
+            f'/backends/{self.backend}/sources/<source_uuid>/contacts',
+            resource_class_args=args,
+        )
 
 
 class _Config(TypedDict):

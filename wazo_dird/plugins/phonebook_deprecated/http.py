@@ -171,7 +171,7 @@ class DeprecatedPhonebookContactAll(_Resource):
             PhonebookKey(id=phonebook_id),
             **parser.count_params(),
         )
-        contacts = self.phonebook_service.list_contact(
+        contacts = self.phonebook_service.list_contacts(
             [matching_tenant['uuid']],
             PhonebookKey(id=phonebook_id),
             **parser.list_params(),

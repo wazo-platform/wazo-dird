@@ -18,14 +18,22 @@ from .http_server import CoreRestApi
 from .service_discovery import self_check
 from .source_manager import SourceManager
 from .database.helpers import init_db
+from .config import Config
 
 logger = logging.getLogger(__name__)
 
 
 class Controller:
-    def __init__(self, config):
+    config: Config
+    rest_api: CoreRestApi
+    bus: CoreBus
+    auth_client: AuthClient
+    token_renewer: TokenRenewer
+    status_aggregator: StatusAggregator
+
+    def __init__(self, config: Config):
         self.config = config
-        self._stopping_thread = None
+        self._stopping_thread: threading.Thread | None = None
         init_db(config['db_uri'], pool_size=config['rest_api']['max_threads'])
         self.rest_api = CoreRestApi(self.config)
         self.bus = CoreBus(config.get('uuid'), **config['bus'])
