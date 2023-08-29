@@ -13,7 +13,6 @@ from hamcrest import (
     all_of,
     assert_that,
     calling,
-    contains,
     contains_exactly,
     contains_inanyorder,
     equal_to,
@@ -155,12 +154,12 @@ class TestList(BasePhonebookCRUDTestCase):
 
         assert_that(
             self.client.phonebook_source.list(name='abc'),
-            has_entries(items=contains(a), total=3, filtered=1),
+            has_entries(items=contains_exactly(a), total=3, filtered=1),
         )
 
         assert_that(
             self.client.phonebook_source.list(uuid=c['uuid']),
-            has_entries(items=contains(c), total=3, filtered=1),
+            has_entries(items=contains_exactly(c), total=3, filtered=1),
         )
 
         result = self.client.phonebook_source.list(search='b')
@@ -174,22 +173,22 @@ class TestList(BasePhonebookCRUDTestCase):
     def test_pagination(self, c, b, a):
         assert_that(
             self.client.phonebook_source.list(order='name'),
-            has_entries(items=contains(a, b, c), total=3, filtered=3),
+            has_entries(items=contains_exactly(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', direction='desc'),
-            has_entries(items=contains(c, b, a), total=3, filtered=3),
+            has_entries(items=contains_exactly(c, b, a), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', limit=2),
-            has_entries(items=contains(a, b), total=3, filtered=3),
+            has_entries(items=contains_exactly(a, b), total=3, filtered=3),
         )
 
         assert_that(
             self.client.phonebook_source.list(order='name', offset=2),
-            has_entries(items=contains(c), total=3, filtered=3),
+            has_entries(items=contains_exactly(c), total=3, filtered=3),
         )
 
     @fixtures.phonebook_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
@@ -663,7 +662,7 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
                         has_entries(
                             backend='phonebook',
                             source=self.source_name,
-                            column_values=contains(
+                            column_values=contains_exactly(
                                 'Contact 5',
                                 'McContact',
                                 '1000000005',
@@ -692,7 +691,9 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         assert_that(
             result,
             has_entries(
-                results=contains(has_entries(column_values=fave['column_values']))
+                results=contains_exactly(
+                    has_entries(column_values=fave['column_values'])
+                )
             ),
         )
 
