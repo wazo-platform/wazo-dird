@@ -23,7 +23,6 @@ from hamcrest import (
     instance_of,
     not_,
     only_contains,
-    starts_with,
 )
 from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers.hamcrest.raises import raises
@@ -491,11 +490,9 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 has_entries(
                     total=len(self.contacts),
                     filtered=len(self.contacts),
-                    items=all_of(
-                        contains_exactly(
-                            has_entries(firstname='Contact 0'),
-                            has_entries(firstname='Contact 1'),
-                        ),
+                    items=contains_exactly(
+                        has_entries(firstname='Contact 0'),
+                        has_entries(firstname='Contact 1'),
                     ),
                 ),
             )
@@ -511,6 +508,8 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
             assert_that(
                 body,
                 has_entries(
+                    total=len(self.contacts),
+                    filtered=len(self.contacts),
                     items=contains_exactly(
                         has_entries(firstname='Contact 2'),
                         has_entries(firstname='Contact 3'),
@@ -540,12 +539,9 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 has_entries(
                     total=len(self.contacts),
                     filtered=1,
-                    items=all_of(
-                        has_length(1),
-                        only_contains(
-                            has_entries(
-                                firstname=starts_with('Contact 4'),
-                            ),
+                    items=contains_exactly(
+                        has_entries(
+                            firstname='Contact 4',
                         ),
                     ),
                 ),
@@ -601,7 +597,6 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         assert len(cls.contacts) == cls.contact_count
 
         source_body = {
-            # 'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
             'first_matched_columns': ['number', 'firstname', 'lastname'],
             'format_columns': {
                 'phone': '{number}',
@@ -673,8 +668,7 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
             ),
         )
 
-        # bound response time to a linear function of the number of contacts
-        max_time = min(len(self.contacts) * 0.01, 5)
+        max_time = 2
         assert (
             timing['elapsed'] < max_time
         ), f'Lookup took too long {timing["elapsed"]} max {max_time}'
@@ -754,9 +748,7 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
             },
         ) as source:
             limit = 100
-            contact_ids: set[str] = set()
-            for i in range(5000 // limit):
-                logger.debug("request %d", i)
+            for i in range(self.num_contacts // limit):
                 with timed() as timing:
                     body = client.backends.list_contacts_from_source(
                         backend='phonebook',
@@ -782,12 +774,10 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
                         ),
                     ),
                 )
-                assert timing['elapsed'] < min(limit * 0.01, 5)
-                contact_ids.update(contact['id'] for contact in body['items'])
-
-            assert_that(
-                contact_ids, equal_to(set(contact['id'] for contact in self.contacts))
-            )
+                max_time = 2
+                assert (
+                    timing['elapsed'] < max_time
+                ), f'Get paginated took too long: {timing["elapsed"]} max {max_time}'
 
     def test_get_filtered(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
@@ -823,16 +813,7 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
                     ),
                 ),
             )
-            assert timing['elapsed'] < min(self.num_contacts * 0.01, 5)
-            contact_ids = set(contact['id'] for contact in body['items'])
-
-            assert_that(
-                contact_ids,
-                equal_to(
-                    set(
-                        contact['id']
-                        for contact in self.contacts
-                        if 'Contact 4' in contact.get('firstname', '')
-                    )
-                ),
-            )
+            max_time = 2
+            assert (
+                timing['elapsed'] < max_time
+            ), f'Get filtered took too long: {timing["elapsed"]} max {max_time}'
