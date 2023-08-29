@@ -7,7 +7,11 @@ from flask import Request, request
 
 from wazo_dird.auth import required_acl
 from wazo_dird.database.queries.phonebook import PhonebookKey
-from wazo_dird.exception import NoSuchPhonebook, NoSuchPhonebookAPIException
+from wazo_dird.exception import (
+    InvalidConfigError,
+    NoSuchPhonebook,
+    NoSuchPhonebookAPIException,
+)
 from wazo_dird.helpers import SourceConfig, SourceItem, SourceList
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
@@ -84,7 +88,18 @@ class PhonebookContactList(AuthResource):
         logger.debug("Found source (uuid=%s): %s", source_uuid, str(source_config))
 
         # sources prior to WAZO-3267 might be missing 'phonebook_uuid' and will crash here
-        phonebook_key = PhonebookKey(uuid=source_config['phonebook_uuid'])
+        # see https://wazo-dev.atlassian.net/browse/WAZO-3357
+        try:
+            phonebook_key = PhonebookKey(uuid=source_config['phonebook_uuid'])
+        except KeyError:
+            logger.error(
+                'Source %s missing required phonebook_uuid. '
+                'Sources without a phonebook_uuid cannot be queried through this API.'
+            )
+            raise InvalidConfigError(
+                f'/backends/phonebook/{source_uuid}/contacts',
+                'phonebook source missing phonebook_uuid',
+            )
 
         try:
             total_count = self._phonebook_service.count_contact(
@@ -110,7 +125,7 @@ class PhonebookContactList(AuthResource):
             contacts = self._phonebook_service.list_contacts(
                 visible_tenants=visible_tenants,
                 phonebook_key=phonebook_key,
-                **list_params
+                **list_params,
             )
             logger.debug(
                 "Retrieved %d contacts for phonebook (%s) "
