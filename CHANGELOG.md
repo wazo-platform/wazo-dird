@@ -1,5 +1,10 @@
 # Changelog
 
+## 23.12
+
+* Added new endpoint to phonebook backend API:
+  * reading a contacts from a phonebook source: `GET /0.1/backends/phonebook/sources/<source_uuid>/contacts`
+
 ## 23.11
 
 * Added new phonebook endpoints:
