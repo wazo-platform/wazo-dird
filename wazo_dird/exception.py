@@ -44,6 +44,10 @@ class NoSuchPhonebook(ValueError):
 
 
 class NoSuchPhonebookAPIException(APIException):
+    """
+    API error when a phonebook identifier matches no phonebook in the tenant(s) in scope
+    """
+
     def __init__(
         self, resource: str, visible_tenants: list[str], phonebook_key: dict
     ) -> None:
