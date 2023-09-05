@@ -132,10 +132,16 @@ class SourceList(_BaseSourceResource):
 
         return {'total': total, 'filtered': filtered, 'items': items}
 
+    def _prepare_new_source(self, source_data: dict) -> dict:
+        return source_data
+
     def post(self):
         tenant = Tenant.autodetect()
         args = self.source_schema.load(request.get_json())
-        body = self._service.create(self._backend, tenant_uuid=tenant.uuid, **args)
+        source_data = self._prepare_new_source(args)
+        body = self._service.create(
+            self._backend, tenant_uuid=tenant.uuid, **source_data
+        )
         return self.source_schema.dump(body)
 
 
@@ -150,10 +156,14 @@ class SourceItem(_BaseSourceResource):
         body = self._service.get(self._backend, source_uuid, visible_tenants)
         return self.source_schema.dump(body)
 
+    def _prepare_source_update(self, source_data: dict) -> dict:
+        return source_data
+
     def put(self, source_uuid):
         visible_tenants = get_tenant_uuids(recurse=True)
         args = self.source_schema.load(request.get_json())
-        self._service.edit(self._backend, source_uuid, visible_tenants, args)
+        source_data = self._prepare_source_update(args)
+        self._service.edit(self._backend, source_uuid, visible_tenants, source_data)
         return '', 204
 
 
