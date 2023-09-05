@@ -6,7 +6,8 @@ from typing import cast
 from flask import Request, request
 
 from wazo_dird.auth import required_acl
-from wazo_dird.database.queries.phonebook import PhonebookKey
+from wazo_dird.config import AuthConfig
+from wazo_dird.database.queries.phonebook import PhonebookCRUD, PhonebookKey
 from wazo_dird.exception import (
     InvalidConfigError,
     NoSuchPhonebook,
@@ -31,14 +32,51 @@ def get_count_params(args: dict) -> dict:
     return projection(args, ['search'])
 
 
+class PhonebookSourceInfo(SourceConfig):
+    phonebook_uuid: str
+    phonebook_name: str
+    phonebook_description: str
+
+
 class PhonebookList(SourceList):
     list_schema = list_schema
     source_schema = source_schema
     source_list_schema = source_list_schema
 
+    def __init__(
+        self,
+        backend: str,
+        service: _SourceService,
+        auth_config: AuthConfig,
+        phonebook_dao: PhonebookCRUD,
+    ):
+        super().__init__(backend, service, auth_config)
+        self.phonebook_dao = phonebook_dao
+
     @required_acl('dird.backends.phonebook.sources.read')
     def get(self):
         return super().get()
+
+    def _prepare_new_source(self, source_data: dict) -> PhonebookSourceInfo:
+        assert 'phonebook_uuid' in source_data
+        tenants = get_tenant_uuids()
+        phonebook_key = PhonebookKey(uuid=source_data['phonebook_uuid'])
+        try:
+            phonebook = self.phonebook_dao.get(
+                visible_tenants=tenants,
+                phonebook_key=phonebook_key,
+            )
+        except NoSuchPhonebook:
+            raise NoSuchPhonebookAPIException(
+                resource='/backends/phonebook/sources',
+                visible_tenants=tenants,
+                phonebook_key=phonebook_key,
+            )
+        source_data.update(
+            phonebook_name=phonebook['name'],
+            phonebook_description=phonebook['description'],
+        )
+        return source_data
 
     @required_acl('dird.backends.phonebook.sources.create')
     def post(self):
@@ -48,6 +86,16 @@ class PhonebookList(SourceList):
 class PhonebookItem(SourceItem):
     source_schema = source_schema
 
+    def __init__(
+        self,
+        backend: str,
+        service: _SourceService,
+        auth_config: AuthConfig,
+        phonebook_dao: PhonebookCRUD,
+    ):
+        super().__init__(backend, service, auth_config)
+        self.phonebook_dao = phonebook_dao
+
     @required_acl('dird.backends.phonebook.sources.{source_uuid}.delete')
     def delete(self, source_uuid):
         return super().delete(source_uuid)
@@ -56,13 +104,31 @@ class PhonebookItem(SourceItem):
     def get(self, source_uuid):
         return super().get(source_uuid)
 
+    def _prepare_source_update(self, source_data: dict) -> PhonebookSourceInfo:
+        assert 'phonebook_uuid' in source_data
+        tenants = get_tenant_uuids()
+        phonebook_key = PhonebookKey(uuid=source_data['phonebook_uuid'])
+        try:
+            phonebook = self.phonebook_dao.get(
+                visible_tenants=tenants,
+                phonebook_key=phonebook_key,
+            )
+        except NoSuchPhonebook:
+            raise NoSuchPhonebookAPIException(
+                resource='/backends/phonebook/sources',
+                visible_tenants=tenants,
+                phonebook_key=phonebook_key,
+            )
+
+        source_data.update(
+            phonebook_name=phonebook['name'],
+            phonebook_description=phonebook['description'],
+        )
+        return source_data
+
     @required_acl('dird.backends.phonebook.sources.{source_uuid}.update')
     def put(self, source_uuid):
         return super().put(source_uuid)
-
-
-class PhonebookSourceInfo(SourceConfig):
-    phonebook_uuid: str
 
 
 class PhonebookContactList(AuthResource):

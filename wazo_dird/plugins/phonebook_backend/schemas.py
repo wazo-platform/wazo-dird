@@ -13,6 +13,8 @@ from wazo_dird.schemas import BaseSourceSchema
 
 class SourceSchema(BaseSourceSchema):
     phonebook_uuid = fields.UUID(required=True)
+    phonebook_name = fields.String(dump_only=True)
+    phonebook_description = fields.String(dump_only=True)
 
     @post_load
     def stringify_uuid(self, data, **kwargs):
