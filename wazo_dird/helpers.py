@@ -198,12 +198,16 @@ class BaseBackendView(BaseViewPlugin):
 
         super().__init__(*args, **kwargs)
 
-    def load(self, dependencies: BackendViewDependencies):
-        api = dependencies['api']
+    def _get_view_args(self, dependencies: BackendViewDependencies):
         config = dependencies['config']
         service = dependencies['services']['source']
 
-        args = (self.backend, service, config['auth'])
+        return (self.backend, service, config['auth'])
+
+    def load(self, dependencies: BackendViewDependencies):
+        api = dependencies['api']
+
+        args = self._get_view_args(dependencies)
 
         api.add_resource(
             self.list_resource,
