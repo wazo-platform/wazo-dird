@@ -8,6 +8,7 @@ from typing import TypedDict
 
 from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
+from wazo_dird.database.queries.phonebook import PhonebookCRUD
 from wazo_dird.exception import InvalidConfigError
 from wazo_dird.helpers import (
     BackendViewDependencies,
@@ -48,6 +49,12 @@ class PhonebookView(BaseBackendView):
             f'/backends/{self.backend}/sources/<source_uuid>/contacts',
             resource_class_args=args,
         )
+
+    def _get_view_args(self, dependencies: BackendViewDependencies):
+        config = dependencies['config']
+        source_service = dependencies['services']['source']
+        phonebook_dao = PhonebookCRUD(Session)
+        return (self.backend, source_service, config['auth'], phonebook_dao)
 
 
 class _Config(TypedDict):
