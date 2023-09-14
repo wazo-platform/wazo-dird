@@ -33,6 +33,7 @@ from wazo_dird.database.queries.phonebook import (
     PhonebookCRUD,
     PhonebookKey,
 )
+from wazo_dird.plugin_helpers import tenant
 
 from .helpers.constants import (
     MAIN_TENANT,
@@ -43,6 +44,7 @@ from .helpers.constants import (
 )
 from .helpers.fixtures import http as fixtures
 from .helpers.phonebook import BasePhonebookTestCase
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +65,6 @@ def phonebook_source(client: DirdClient, *args, **kwargs) -> Iterator[PhonebookS
         _source = client.phonebook_source.create(*args, **kwargs)
     except requests.HTTPError as ex:
         logger.exception("Error trying to create source: %s", ex.response.content)
-        print(ex.response.content)
         raise
     try:
         yield _source
@@ -71,9 +72,39 @@ def phonebook_source(client: DirdClient, *args, **kwargs) -> Iterator[PhonebookS
         client.phonebook_source.delete(_source['uuid'])
 
 
+@contextmanager
+def phonebook(
+    dao: PhonebookCRUD, tenant_uuid: str, body: dict
+) -> Iterator[PhonebookSource]:
+    try:
+        phonebook = dao.create(tenant_uuid, body)
+    except Exception as ex:
+        logger.exception("Error trying to create phonebook: %s", ex)
+        raise
+    try:
+        yield phonebook
+    finally:
+        dao.delete(None, PhonebookKey(uuid=phonebook['uuid']))
+
+
 class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
     asset = 'all_routes'
-    valid_body = {'name': 'main', 'phonebook_uuid': generate_phonebook_uuid()}
+
+    def setUp(self):
+        super().setUp()
+        self.phonebook_dao = PhonebookCRUD(self.Session)
+        self.phonebooks = [
+            self.phonebook_dao.create(
+                tenant_uuid=MAIN_TENANT,
+                phonebook_body={'name': 'main', 'description': 'test phonebook'},
+            )
+        ]
+        self.valid_body = {'name': 'main', 'phonebook_uuid': self.phonebooks[0]['uuid']}
+
+    def tearDown(self):
+        for pb in self.phonebooks:
+            self.phonebook_dao.delete(None, PhonebookKey(uuid=pb['uuid']))
+        return super().tearDown()
 
     def assert_unknown_source_exception(self, source_uuid, exception):
         assert_that(exception.response.status_code, equal_to(404))
@@ -86,22 +117,28 @@ class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
             ),
         )
 
-    @contextmanager
-    def source(self, client: DirdClient, *args, **kwargs) -> Iterator[PhonebookSource]:
-        try:
-            _source = client.phonebook_source.create(*args, **kwargs)
-        except requests.HTTPError as ex:
-            logger.exception("Error trying to create source: %s", ex.response.content)
-            print(ex.response.content)
-            raise
-        try:
-            yield _source
-        finally:
-            client.phonebook_source.delete(_source['uuid'])
+    def _get_phonebook(self, tenant_uuid=MAIN_TENANT, name=None):
+        if pbs := self.phonebook_dao.list(
+            tenant_uuid, search=(name or self.valid_body['name'])
+        ):
+            pb, *_ = pbs
+            assert pb['uuid'] in set(pb['uuid'] for pb in self.phonebooks)
+            return pb
+        else:
+            new_phonebook = self.phonebook_dao.create(
+                tenant_uuid=tenant_uuid,
+                phonebook_body={
+                    'name': name or self.valid_body['name'],
+                },
+            )
+            self.phonebooks.append(new_phonebook)
+            return new_phonebook
 
 
 class TestDelete(BasePhonebookCRUDTestCase):
-    @fixtures.phonebook_source(name='foobar')
+    @fixtures.phonebook_source(
+        name='foobar',
+    )
     def test_delete(self, foobar):
         assert_that(
             calling(self.client.phonebook_source.delete).with_args(foobar['uuid']),
@@ -122,8 +159,12 @@ class TestDelete(BasePhonebookCRUDTestCase):
         else:
             self.fail('Should have raised')
 
-    @fixtures.phonebook_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
-    @fixtures.phonebook_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.phonebook_source(
+        name='foomain', tenant_uuid=MAIN_TENANT, token=VALID_TOKEN_MAIN_TENANT
+    )
+    @fixtures.phonebook_source(
+        name='foosub', tenant_uuid=SUB_TENANT, token=VALID_TOKEN_SUB_TENANT
+    )
     def test_delete_multi_tenant(self, sub, main):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
@@ -190,9 +231,15 @@ class TestList(BasePhonebookCRUDTestCase):
             has_entries(items=contains_exactly(c), total=3, filtered=3),
         )
 
-    @fixtures.phonebook_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)
-    @fixtures.phonebook_source(name='bcd', token=VALID_TOKEN_MAIN_TENANT)
-    @fixtures.phonebook_source(name='cde', token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.phonebook_source(
+        name='abc', tenant_uuid=MAIN_TENANT, token=VALID_TOKEN_MAIN_TENANT
+    )
+    @fixtures.phonebook_source(
+        name='bcd', tenant_uuid=MAIN_TENANT, token=VALID_TOKEN_MAIN_TENANT
+    )
+    @fixtures.phonebook_source(
+        name='cde', tenant_uuid=SUB_TENANT, token=VALID_TOKEN_SUB_TENANT
+    )
     def test_multi_tenant(self, c, b, a):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
@@ -230,7 +277,35 @@ class TestPost(BasePhonebookCRUDTestCase):
         else:
             self.fail('Should have raised')
 
-        with self.source(self.client, self.valid_body):
+        try:
+            self.client.phonebook_source.create(
+                {'name': 'phonebook-source-without-phonebook'}
+            )
+        except requests.exceptions.HTTPError as e:
+            assert_that(e.response.status_code, equal_to(400))
+            assert_that(
+                e.response.json(), has_entries(message=ANY, error_id='invalid-data')
+            )
+        else:
+            self.fail('Should have raised')
+
+        try:
+            self.client.phonebook_source.create(
+                {
+                    'name': 'phonebook-source-with-invalid-phonebook',
+                    'phonebook_uuid': generate_phonebook_uuid(),
+                }
+            )
+        except requests.exceptions.HTTPError as e:
+            assert_that(e.response.status_code, equal_to(404))
+            assert_that(
+                e.response.json(),
+                has_entries(message=ANY, error_id='unknown-phonebook'),
+            )
+        else:
+            self.fail('Should have raised')
+
+        with phonebook_source(self.client, self.valid_body):
             assert_that(
                 calling(self.client.phonebook_source.create).with_args(self.valid_body),
                 raises(Exception).matching(
@@ -242,32 +317,39 @@ class TestPost(BasePhonebookCRUDTestCase):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
-        with self.source(main_tenant_client, self.valid_body) as result:
+        with phonebook_source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        with self.source(
-            main_tenant_client, self.valid_body, tenant_uuid=SUB_TENANT
-        ) as result:
-            assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
+        with phonebook(self.phonebook_dao, SUB_TENANT, {'name': 'sub'}) as pb:
+            with phonebook_source(
+                main_tenant_client,
+                dict(self.valid_body, phonebook_uuid=pb['uuid']),
+                tenant_uuid=SUB_TENANT,
+            ) as source:
+                assert_that(source, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
-        with self.source(sub_tenant_client, self.valid_body) as result:
-            assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
+            with phonebook_source(
+                sub_tenant_client, dict(self.valid_body, phonebook_uuid=pb['uuid'])
+            ) as source:
+                assert_that(source, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
-        assert_that(
-            calling(sub_tenant_client.phonebook_source.create).with_args(
-                self.valid_body, tenant_uuid=MAIN_TENANT
-            ),
-            raises(Exception).matching(
-                has_properties(response=has_properties(status_code=401))
-            ),
-        )
+            assert_that(
+                calling(sub_tenant_client.phonebook_source.create).with_args(
+                    self.valid_body, tenant_uuid=MAIN_TENANT
+                ),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=401))
+                ),
+            )
 
-        with self.source(main_tenant_client, self.valid_body):
+        with phonebook_source(main_tenant_client, self.valid_body):
             assert_that(
                 calling(sub_tenant_client.phonebook_source.create).with_args(
                     self.valid_body
                 ),
-                not_(raises(Exception)),
+                raises(Exception).matching(
+                    has_properties(response=has_properties(status_code=404))
+                ),
             )
 
 
@@ -276,7 +358,7 @@ class TestPut(BasePhonebookCRUDTestCase):
         super().setUp()
         self.new_body = {
             'name': 'new',
-            'phonebook_uuid': generate_phonebook_uuid(),
+            'phonebook_uuid': self.phonebooks[0]['uuid'],
             'searched_columns': ['firstname'],
             'first_matched_columns': ['exten'],
             'format_columns': {'name': '{firstname} {lastname}'},
@@ -331,8 +413,12 @@ class TestPut(BasePhonebookCRUDTestCase):
             ),
         )
 
-    @fixtures.phonebook_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
-    @fixtures.phonebook_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.phonebook_source(
+        name='foomain', tenant_uuid=MAIN_TENANT, token=VALID_TOKEN_MAIN_TENANT
+    )
+    @fixtures.phonebook_source(
+        name='foosub', tenant_uuid=SUB_TENANT, token=VALID_TOKEN_SUB_TENANT
+    )
     def test_put_multi_tenant(self, sub, main):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
@@ -349,7 +435,10 @@ class TestPut(BasePhonebookCRUDTestCase):
         )
 
         try:
-            sub_tenant_client.phonebook_source.edit(main['uuid'], self.new_body)
+            sub_tenant_client.phonebook_source.edit(
+                main['uuid'],
+                dict(self.new_body, phonebook_uuid=sub['phonebook_uuid']),
+            )
         except Exception as e:
             self.assert_unknown_source_exception(main['uuid'], e)
         else:
@@ -376,8 +465,12 @@ class TestGet(BasePhonebookCRUDTestCase):
         else:
             self.fail('Should have raised')
 
-    @fixtures.phonebook_source(name='foomain', token=VALID_TOKEN_MAIN_TENANT)
-    @fixtures.phonebook_source(name='foosub', token=VALID_TOKEN_SUB_TENANT)
+    @fixtures.phonebook_source(
+        name='foomain', tenant_uuid=MAIN_TENANT, token=VALID_TOKEN_MAIN_TENANT
+    )
+    @fixtures.phonebook_source(
+        name='foosub', tenant_uuid=SUB_TENANT, token=VALID_TOKEN_SUB_TENANT
+    )
     def test_get_multi_tenant(self, sub, main):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
@@ -431,7 +524,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
     def test_get_all(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
 
-        with self.source(
+        with phonebook_source(
             client,
             {
                 'phonebook_uuid': self.phonebook['uuid'],
@@ -468,7 +561,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
     def test_get_paginated(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
 
-        with self.source(
+        with phonebook_source(
             client,
             {
                 'phonebook_uuid': self.phonebook['uuid'],
@@ -520,7 +613,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
     def test_get_filtered(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
 
-        with self.source(
+        with phonebook_source(
             client,
             {
                 'phonebook_uuid': self.phonebook['uuid'],
@@ -740,7 +833,7 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
     def test_get_paginated(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
 
-        with self.source(
+        with phonebook_source(
             client,
             {
                 'phonebook_uuid': self.phonebook['uuid'],
@@ -782,7 +875,7 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
     def test_get_filtered(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
 
-        with self.source(
+        with phonebook_source(
             client,
             {
                 'phonebook_uuid': self.phonebook['uuid'],
