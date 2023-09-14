@@ -32,13 +32,15 @@ class SourceInfo(TypedDict, total=False):
 class SourceCRUD(BaseDAO):
     _UNIQUE_CONSTRAINT_CODE = '23505'
 
-    def count(self, backend: str, visible_tenants: list[str], **list_params) -> int:
+    def count(
+        self, backend: str, visible_tenants: list[str] | None, **list_params
+    ) -> int:
         filter_ = self._list_filter(backend, visible_tenants, **list_params)
         with self.new_session() as s:
             return s.query(Source).filter(filter_).count()
 
     def list_(
-        self, backend: str, visible_tenants: list[str], **list_params
+        self, backend: str, visible_tenants: list[str] | None, **list_params
     ) -> list[SourceInfo]:
         filter_ = self._list_filter(backend, visible_tenants, **list_params)
         with self.new_session() as s:
@@ -60,7 +62,7 @@ class SourceCRUD(BaseDAO):
 
             return self._from_db_format(source)
 
-    def delete(self, backend: str, source_uuid: str, visible_tenants: list[str]):
+    def delete(self, backend: str, source_uuid: str, visible_tenants: list[str] | None):
         filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
             nb_deleted = (
@@ -74,7 +76,7 @@ class SourceCRUD(BaseDAO):
         self,
         backend: str,
         source_uuid: str,
-        visible_tenants: list[str],
+        visible_tenants: list[str] | None,
         body: SourceBody,
     ) -> SourceInfo:
         filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
@@ -95,7 +97,7 @@ class SourceCRUD(BaseDAO):
             return source_attrs
 
     def get(
-        self, backend: str, source_uuid: str, visible_tenants: list[str]
+        self, backend: str, source_uuid: str, visible_tenants: list[str] | None
     ) -> SourceInfo:
         filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
@@ -118,7 +120,7 @@ class SourceCRUD(BaseDAO):
     def _list_filter(
         self,
         backend: str,
-        visible_tenants: list[str],
+        visible_tenants: list[str] | None,
         uuid: str | None = None,
         name: str | None = None,
         search: str | None = None,
@@ -140,7 +142,7 @@ class SourceCRUD(BaseDAO):
         return filter_
 
     def _multi_tenant_filter(
-        self, backend: str, source_uuid: str, visible_tenants: list[str]
+        self, backend: str, source_uuid: str, visible_tenants: list[str] | None
     ):
         filter_ = and_(Source.backend == backend, Source.uuid == source_uuid)
 
