@@ -40,12 +40,33 @@ class SourceCRUD(BaseDAO):
             return s.query(Source).filter(filter_).count()
 
     def list_(
-        self, backend: str, visible_tenants: list[str] | None, **list_params
+        self,
+        backend: str,
+        visible_tenants: list[str] | None,
+        uuid: str | None = None,
+        name: str | None = None,
+        search: str | None = None,
+        offset: int | None = None,
+        limit: int | None = None,
+        order: str | None = None,
+        direction: Direction | None = None,
+        extra_fields: dict[str, str] | None = None,
+        **list_params,
     ) -> list[SourceInfo]:
-        filter_ = self._list_filter(backend, visible_tenants, **list_params)
+        filter_ = self._list_filter(
+            backend=backend,
+            visible_tenants=visible_tenants,
+            uuid=uuid,
+            name=name,
+            search=search,
+            extra_fields=extra_fields,
+            **list_params,
+        )
         with self.new_session() as s:
             query = s.query(Source).filter(filter_)
-            query = self._paginate(query, **list_params)
+            query = self._paginate(
+                query, offset=offset, limit=limit, order=order, direction=direction
+            )
             return [self._from_db_format(row) for row in query.all()]
 
     def create(self, backend: str, source_body: SourceBody) -> SourceInfo:
@@ -124,6 +145,7 @@ class SourceCRUD(BaseDAO):
         uuid: str | None = None,
         name: str | None = None,
         search: str | None = None,
+        extra_fields: dict[str, str] | None = None,
         **list_params,
     ):
         filter_ = text('true')
@@ -138,6 +160,15 @@ class SourceCRUD(BaseDAO):
         if search is not None:
             pattern = f'%{search}%'
             filter_ = and_(filter_, Source.name.ilike(pattern))
+
+        if extra_fields:
+            filter_ = and_(
+                filter_,
+                *(
+                    Source.extra_fields[name].astext == value
+                    for name, value in extra_fields.items()
+                ),
+            )
 
         return filter_
 
