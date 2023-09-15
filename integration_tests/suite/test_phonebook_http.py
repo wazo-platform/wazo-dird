@@ -32,7 +32,7 @@ from wazo_dird.database.queries.phonebook import (
     PhonebookCRUD,
     PhonebookKey,
 )
-from wazo_dird.plugin_helpers import tenant
+from wazo_dird.exception import NoSuchPhonebook
 
 from .helpers.utils import new_uuid
 from .helpers.constants import (
@@ -99,7 +99,11 @@ class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
 
     def tearDown(self):
         for pb in self.phonebooks:
-            self.phonebook_dao.delete(None, PhonebookKey(uuid=pb['uuid']))
+            try:
+                self.phonebook_dao.delete(None, PhonebookKey(uuid=pb['uuid']))
+            except NoSuchPhonebook:
+                pass
+
         return super().tearDown()
 
     def assert_unknown_source_exception(self, source_uuid, exception):
@@ -154,6 +158,20 @@ class TestDelete(BasePhonebookCRUDTestCase):
             self.assert_unknown_source_exception(UNKNOWN_UUID, e)
         else:
             self.fail('Should have raised')
+
+    @fixtures.phonebook_source(
+        name='foobar',
+    )
+    def test_cascade_delete(self, foobar):
+        phonebook_uuid = foobar['phonebook_uuid']
+        # assert phonebook_uuid == next(ph['uuid'] for ph in self.phonebooks)
+        self.client.phonebook.delete(phonebook_uuid=phonebook_uuid)
+        assert_that(
+            calling(self.client.phonebook_source.get).with_args(foobar['uuid']),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
+        )
 
     @fixtures.phonebook_source(
         name='foomain', tenant_uuid=MAIN_TENANT, token=VALID_TOKEN_MAIN_TENANT
