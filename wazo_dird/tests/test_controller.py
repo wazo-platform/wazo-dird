@@ -60,7 +60,9 @@ class TestController(TestCase):
 
         Controller(config).run()
 
-        self.load_services.assert_called_once_with(config, s.enabled, ANY, ANY, ANY)
+        self.load_services.assert_called_once_with(
+            config, s.enabled, ANY, ANY, ANY, ANY
+        )
         self.unload_services.assert_called_once_with()
 
     def test_run_loads_views(self):
@@ -82,6 +84,7 @@ class TestController(TestCase):
             controller.auth_client,
             controller.status_aggregator,
             controller.rest_api,
+            controller._internal_pubsub,
         )
 
     def _create_config(self, **kwargs):
