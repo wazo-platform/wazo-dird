@@ -3,6 +3,9 @@
 
 import os
 import logging
+import random
+import string
+import uuid
 import requests
 
 from stevedore import DriverManager
@@ -55,3 +58,11 @@ class BackendWrapper(BaseSourcePlugin):
     def list(self, source_ids, *args, **kwargs):
         results = self._source.list(source_ids, *args, **kwargs)
         return [r.fields for r in results]
+
+
+def new_uuid() -> str:
+    return str(uuid.uuid4())
+
+
+def random_string(n: int) -> str:
+    return ''.join(random.choice(string.ascii_lowercase) for _ in range(n))

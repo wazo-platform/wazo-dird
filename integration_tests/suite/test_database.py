@@ -7,7 +7,6 @@ import unittest
 
 from collections import defaultdict
 from contextlib import closing, contextmanager
-from uuid import uuid4
 from hamcrest import (
     any_of,
     assert_that,
@@ -34,13 +33,10 @@ from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_dird.database.queries import base
 from .helpers.base import DBRunningTestCase
 from .helpers.fixtures import db as fixtures
+from .helpers.utils import new_uuid
 
 
 Session: scoped_session = None
-
-
-def new_uuid():
-    return str(uuid4())
 
 
 TENANT_UUID = new_uuid()

@@ -6,7 +6,6 @@ import time
 from contextlib import ExitStack, contextmanager
 from typing import Iterator, TypedDict
 from unittest.mock import ANY
-from uuid import uuid4
 
 import requests
 from hamcrest import (
@@ -35,6 +34,7 @@ from wazo_dird.database.queries.phonebook import (
 )
 from wazo_dird.plugin_helpers import tenant
 
+from .helpers.utils import new_uuid
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
@@ -47,10 +47,6 @@ from .helpers.phonebook import BasePhonebookTestCase
 
 
 logger = logging.getLogger(__name__)
-
-
-def generate_phonebook_uuid():
-    return str(uuid4())
 
 
 class PhonebookSource(TypedDict):
@@ -293,7 +289,7 @@ class TestPost(BasePhonebookCRUDTestCase):
             self.client.phonebook_source.create(
                 {
                     'name': 'phonebook-source-with-invalid-phonebook',
-                    'phonebook_uuid': generate_phonebook_uuid(),
+                    'phonebook_uuid': new_uuid(),
                 }
             )
         except requests.exceptions.HTTPError as e:

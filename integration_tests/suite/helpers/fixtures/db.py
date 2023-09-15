@@ -1,26 +1,16 @@
 # Copyright 2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import uuid
-import random
-import string
-
 from functools import wraps
 
 from wazo_dird import exception
 
-
-def _new_uuid():
-    return str(uuid.uuid4())
-
-
-def _random_string(n):
-    return ''.join(random.choice(string.ascii_lowercase) for _ in range(n))
+from ..utils import new_uuid, random_string
 
 
 def display(**display_args):
-    display_args.setdefault('name', _random_string(16))
-    display_args.setdefault('tenant_uuid', _new_uuid())
+    display_args.setdefault('name', random_string(16))
+    display_args.setdefault('tenant_uuid', new_uuid())
     display_args.setdefault('columns', [])
 
     def decorator(decorated):
@@ -42,8 +32,8 @@ def display(**display_args):
 
 
 def profile(**profile_args):
-    profile_args.setdefault('name', _random_string(10))
-    profile_args.setdefault('tenant_uuid', _new_uuid())
+    profile_args.setdefault('name', random_string(10))
+    profile_args.setdefault('tenant_uuid', new_uuid())
     profile_args.setdefault('services', {})
     profile_args.setdefault('display', None)
 
@@ -67,8 +57,8 @@ def profile(**profile_args):
 
 def source(**source_args):
     source_args.setdefault('backend', 'csv')
-    source_args.setdefault('tenant_uuid', _new_uuid())
-    source_args.setdefault('name', _random_string(10))
+    source_args.setdefault('tenant_uuid', new_uuid())
+    source_args.setdefault('name', random_string(10))
     source_args.setdefault('searched_columns', [])
     source_args.setdefault('first_matched_columns', [])
     source_args.setdefault('format_columns', {})
