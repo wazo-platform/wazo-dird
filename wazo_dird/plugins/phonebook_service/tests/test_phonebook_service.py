@@ -17,6 +17,7 @@ from hamcrest import (
 from wazo_dird import database
 from wazo_dird.database.queries.phonebook import PhonebookKey
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
+from xivo.pubsub import Pubsub
 
 from ..plugin import PhonebookServicePlugin as Plugin
 from ..plugin import _PhonebookService as Service
@@ -24,7 +25,7 @@ from ..plugin import _PhonebookService as Service
 
 class TestPhonebookServicePlugin(unittest.TestCase):
     def setUp(self):
-        self.args: dict = {'config': {}}
+        self.args: dict = {'config': {}, 'internal_pubsub': Mock()}
 
     def test_that_loading_without_a_proper_config_raises(self):
         plugin = Plugin()
@@ -37,7 +38,8 @@ class _BasePhonebookServiceTest(unittest.TestCase):
     def setUp(self):
         self.phonebook_crud = Mock(database.PhonebookCRUD)
         self.contact_crud = Mock(database.PhonebookContactCRUD)
-        self.service = Service(self.phonebook_crud, self.contact_crud)
+        self.pubsub = Mock(spec=Pubsub)
+        self.service = Service(self.phonebook_crud, self.contact_crud, self.pubsub)
 
 
 class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
@@ -102,6 +104,7 @@ class TestPhonebookPhonebookAPI(_BasePhonebookServiceTest):
         self.phonebook_crud.delete.assert_called_once_with(
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid)
         )
+        assert self.pubsub.mock_calls
 
     def test_get_phonebook(self):
         result = self.service.get_phonebook(

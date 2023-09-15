@@ -12,6 +12,7 @@ from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.base import ContactInfo, Direction
 from wazo_dird.database.queries.phonebook import PhonebookDict, PhonebookKey
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
+from xivo.pubsub import Pubsub
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +38,20 @@ class PhonebookServicePlugin(BaseServicePlugin):
         return _PhonebookService(
             database.PhonebookCRUD(Session),
             database.PhonebookContactCRUD(Session),
+            args['internal_pubsub'],
         )
 
 
 class _PhonebookService:
-    def __init__(self, phonebook_crud, contact_crud):
+    def __init__(
+        self,
+        phonebook_crud: database.PhonebookCRUD,
+        contact_crud: database.PhonebookContactCRUD,
+        pubsub: Pubsub,
+    ):
         self._phonebook_crud: database.PhonebookCRUD = phonebook_crud
         self._contact_crud: database.PhonebookContactCRUD = contact_crud
+        self._pubsub: Pubsub = pubsub
 
     def list_contacts(
         self,
@@ -139,7 +147,8 @@ class _PhonebookService:
         return self._contact_crud.delete(visible_tenants, phonebook_key, contact_uuid)
 
     def delete_phonebook(self, visible_tenants: list[str], phonebook_key: PhonebookKey):
-        return self._phonebook_crud.delete(visible_tenants, phonebook_key)
+        self._phonebook_crud.delete(visible_tenants, phonebook_key)
+        self._pubsub.publish('phonebook.deleted', phonebook_key['uuid'])
 
     def get_contact(
         self, visible_tenants: list[str], phonebook_key: PhonebookKey, contact_uuid: str
