@@ -9,15 +9,17 @@ from typing import TypedDict
 from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.phonebook import PhonebookCRUD
-from wazo_dird.exception import InvalidConfigError
+from wazo_dird.exception import InvalidConfigError, NoSuchPhonebook, NoSuchSource
 from wazo_dird.helpers import (
     BackendViewDependencies,
     BackendViewServices,
     BaseBackendView,
 )
+from wazo_dird.plugins.base_plugins import SourceConfig as BaseSourceConfig
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
-
+from wazo_dird.plugins.source_service.plugin import _SourceService
+from xivo.pubsub import Pubsub
 from . import http
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,7 @@ class PhonebookView(BaseBackendView):
         api = dependencies['api']
         source_service = dependencies['services']['source']
         phonebook_service = dependencies['services']['phonebook']
+        pubsub: Pubsub = dependencies['internal_pubsub']
         args = (source_service, phonebook_service)
 
         api.add_resource(
@@ -50,6 +53,29 @@ class PhonebookView(BaseBackendView):
             resource_class_args=args,
         )
 
+        def on_phonebook_delete_cascade(phonebook_uuid: str):
+            sources = source_service.list_(
+                backend='phonebook',
+                visible_tenants=None,
+                extra_fields={'phonebook_uuid': phonebook_uuid},
+            )
+            for source in sources:
+                logger.info(
+                    'phonebook %s deleted, deleting associated source %s',
+                    phonebook_uuid,
+                    source['uuid'],
+                )
+                try:
+                    source_service.delete(
+                        backend='phonebook',
+                        source_uuid=source['uuid'],
+                        visible_tenants=None,
+                    )
+                except NoSuchSource:
+                    logger.info('source %s already deleted', source['uuid'])
+
+        pubsub.subscribe('phonebook.deleted', on_phonebook_delete_cascade)
+
     def _get_view_args(self, dependencies: BackendViewDependencies):
         config = dependencies['config']
         source_service = dependencies['services']['source']
@@ -57,17 +83,8 @@ class PhonebookView(BaseBackendView):
         return (self.backend, source_service, config['auth'], phonebook_dao)
 
 
-class _Config(TypedDict):
-    name: str  # phonebook source name
-    tenant_uuid: str
-
-
-class Config(_Config, total=False):
+class Config(BaseSourceConfig, total=False):
     phonebook_uuid: str
-    phonebook_id: int
-    format_columns: dict[str, str]
-    searched_columns: list[str]
-    first_matched_columns: list[str]
 
 
 class Dependencies(TypedDict):
@@ -79,6 +96,7 @@ class PhonebookPlugin(BaseSourcePlugin):
     _source_name: str
     _search_engine: database.PhonebookContactSearchEngine
     _SourceResult: type[SourceResult]
+    _source_service: _SourceService
 
     def __init__(self) -> None:
         super().__init__()
@@ -96,9 +114,47 @@ class PhonebookPlugin(BaseSourcePlugin):
         first_matched_columns = config.get('first_matched_columns')
 
         self._crud = database.PhonebookCRUD(Session)
+        self._source_service: _SourceService = dependencies['services']['source']
 
         tenant_uuid = config['tenant_uuid']
         phonebook_key = self._get_phonebook_key(tenant_uuid, config)
+
+        # check if phonebook still exists, cleanup source if not
+        try:
+            phonebook = self._crud.get(
+                visible_tenants=[tenant_uuid], phonebook_key=phonebook_key
+            )
+        except NoSuchPhonebook:
+            logger.info(
+                'Phonebook source plugin loaded but phonebook missing(source_uuid=%s, phonebook_uuid=%s). Cleaning up obsolete source.',
+                config['uuid'],
+                config['phonebook_uuid'],
+            )
+            try:
+                self._source_service.delete(
+                    backend='phonebook',
+                    source_uuid=config['uuid'],
+                    visible_tenants=[tenant_uuid],
+                )
+            except NoSuchSource:
+                pass
+            else:
+                logger.info(
+                    'Phonebook source (source_uuid=%s) deleted.', config['uuid']
+                )
+
+            raise InvalidConfigError(
+                f'sources/{self._source_name}/phonebook',
+                f'missing phonebook {phonebook_key}',
+            )
+        else:
+            logger.debug(
+                'Found phonebook (uuid=%s, name=%s) for source (source_uuid=%s, name=%s)',
+                phonebook['uuid'],
+                phonebook['name'],
+                config['uuid'],
+                config['name'],
+            )
 
         self._search_engine = database.PhonebookContactSearchEngine(
             Session,
@@ -145,16 +201,14 @@ class PhonebookPlugin(BaseSourcePlugin):
     ) -> database.PhonebookKey:
         if 'phonebook_uuid' in config:
             return database.PhonebookKey(uuid=config['phonebook_uuid'])
-        elif 'phonebook_id' in config:
-            return database.PhonebookKey(id=config['phonebook_id'])
+        else:
+            phonebook_name = config['name']
+            phonebooks = self._crud.list([tenant_uuid], search=phonebook_name)
+            for phonebook in phonebooks:
+                if phonebook['name'] == phonebook_name:
+                    return database.PhonebookKey(uuid=phonebook['uuid'])
 
-        phonebook_name = config['name']
-        phonebooks = self._crud.list([tenant_uuid], search=phonebook_name)
-        for phonebook in phonebooks:
-            if phonebook['name'] == phonebook_name:
-                return database.PhonebookKey(uuid=phonebook['uuid'])
-
-        raise InvalidConfigError(
-            f'sources/{self._source_name}/phonebook_name',
-            f'unknown phonebook {phonebook_name}',
-        )
+            raise InvalidConfigError(
+                f'sources/{self._source_name}/phonebook_name',
+                f'unknown phonebook {phonebook_name}',
+            )
