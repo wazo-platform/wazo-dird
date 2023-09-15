@@ -1,20 +1,49 @@
 # Copyright 2014-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
 
 from functools import partial
+from typing import TYPE_CHECKING, Any, TypedDict
 from stevedore import NamedExtensionManager
 from xivo import plugin_helpers
+
+if TYPE_CHECKING:
+    from wazo_dird.config import Config
+    from flask_restful import Api
+    from wazo_auth_client import Client as AuthClient
+    from xivo.status import StatusAggregator
+    from wazo_dird.bus import CoreBus
+    from wazo_dird.helpers import BaseService
+    from wazo_dird.http_server import CoreRestApi
+    from wazo_dird.source_manager import SourceManager
+    from flask import Flask
+    from wazo_dird.controller import Controller
+
 
 logger = logging.getLogger(__name__)
 services_extension_manager = None
 views_extension_manager = None
 
 
-def load_services(config, enabled_services, source_manager, bus, controller):
+class ServiceDependencies(TypedDict):
+    config: Config
+    source_manager: SourceManager
+    bus: CoreBus
+    controller: Controller
+    auth_client: AuthClient
+
+
+def load_services(
+    config: Config,
+    enabled_services: dict[str, bool],
+    source_manager: SourceManager,
+    bus: CoreBus,
+    controller: Controller,
+):
     global services_extension_manager
-    dependencies = {
+    dependencies: ServiceDependencies = {
         'config': config,
         'source_manager': source_manager,
         'bus': bus,
@@ -43,11 +72,25 @@ def unload_views():
         views_extension_manager.map(unload_view)
 
 
+class ViewDependencies(TypedDict):
+    config: Config
+    services: dict
+    auth_client: AuthClient
+    api: Api
+    flask_app: Flask
+    status_aggregator: StatusAggregator
+
+
 def load_views(
-    config, enabled_views, services, auth_client, status_aggregator, rest_api
+    config: Config,
+    enabled_views: dict[str, bool],
+    services: dict[str, BaseService],
+    auth_client: AuthClient,
+    status_aggregator: StatusAggregator,
+    rest_api: CoreRestApi,
 ):
     global views_extension_manager
-    dependencies = {
+    dependencies: ViewDependencies = {
         'config': config,
         'services': services,
         'auth_client': auth_client,
@@ -61,7 +104,7 @@ def load_views(
     return views
 
 
-def _load_plugins(namespace, names, dependencies):
+def _load_plugins(namespace: str, names: dict[str, bool], dependencies: dict[str, Any]):
     names = plugin_helpers.enabled_names(names)
     logger.debug('Enabled plugins: %s', names)
     if not names:
