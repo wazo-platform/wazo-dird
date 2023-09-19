@@ -41,7 +41,6 @@ def upgrade():
     for row in op.get_bind().execute(query):
         phonebooks[str(row.uuid)] = str(row.tenant_uuid)
 
-
     query = sa.select(
         [
             source_table.c.uuid,

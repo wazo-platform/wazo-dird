@@ -119,7 +119,6 @@ class PhonebookPlugin(BaseSourcePlugin):
         tenant_uuid = config['tenant_uuid']
         phonebook_key = self._get_phonebook_key(tenant_uuid, config)
 
-        # check if phonebook still exists, cleanup source if not
         try:
             phonebook = self._crud.get(
                 visible_tenants=[tenant_uuid], phonebook_key=phonebook_key
@@ -129,23 +128,6 @@ class PhonebookPlugin(BaseSourcePlugin):
                 'Phonebook source plugin loaded but phonebook missing(source_uuid=%s, phonebook_uuid=%s). Cleaning up obsolete source.',
                 config['uuid'],
                 config['phonebook_uuid'],
-            )
-            try:
-                self._source_service.delete(
-                    backend='phonebook',
-                    source_uuid=config['uuid'],
-                    visible_tenants=[tenant_uuid],
-                )
-            except NoSuchSource:
-                pass
-            else:
-                logger.info(
-                    'Phonebook source (source_uuid=%s) deleted.', config['uuid']
-                )
-
-            raise InvalidConfigError(
-                f'sources/{self._source_name}/phonebook',
-                f'missing phonebook {phonebook_key}',
             )
         else:
             logger.debug(
