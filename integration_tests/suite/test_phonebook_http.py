@@ -117,23 +117,6 @@ class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
             ),
         )
 
-    def _get_phonebook(self, tenant_uuid=MAIN_TENANT, name=None):
-        if pbs := self.phonebook_dao.list(
-            tenant_uuid, search=(name or self.valid_body['name'])
-        ):
-            pb, *_ = pbs
-            assert pb['uuid'] in set(pb['uuid'] for pb in self.phonebooks)
-            return pb
-        else:
-            new_phonebook = self.phonebook_dao.create(
-                tenant_uuid=tenant_uuid,
-                phonebook_body={
-                    'name': name or self.valid_body['name'],
-                },
-            )
-            self.phonebooks.append(new_phonebook)
-            return new_phonebook
-
 
 class TestDelete(BasePhonebookCRUDTestCase):
     @fixtures.phonebook_source(
