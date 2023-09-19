@@ -149,7 +149,6 @@ class SourceCRUDTest(_BaseTest):
     def test_list_sources_by_extra_fields(self, *sources):
         a_value_sources = [s for s in sources if s['weird_attribute'] == 'a-value']
         b_value_sources = [s for s in sources if s['weird_attribute'] == 'b-value']
-        # with closing(Session()) as s:
         listed_sources = self.source_crud.list_(
             backend='whatever',
             visible_tenants=None,

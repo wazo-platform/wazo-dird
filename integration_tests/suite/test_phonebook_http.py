@@ -164,7 +164,6 @@ class TestDelete(BasePhonebookCRUDTestCase):
     )
     def test_cascade_delete(self, foobar):
         phonebook_uuid = foobar['phonebook_uuid']
-        # assert phonebook_uuid == next(ph['uuid'] for ph in self.phonebooks)
         self.client.phonebook.delete(phonebook_uuid=phonebook_uuid)
         assert_that(
             calling(self.client.phonebook_source.get).with_args(foobar['uuid']),
