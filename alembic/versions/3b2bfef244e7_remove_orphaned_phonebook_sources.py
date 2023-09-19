@@ -24,7 +24,7 @@ source_table = sa.table(
     sa.column('uuid'),
     sa.column('extra_fields'),
     sa.column('tenant_uuid'),
-    sa.column('backend')
+    sa.column('backend'),
 )
 
 
@@ -65,9 +65,7 @@ def upgrade():
         elif source_details['tenant_uuid'] != phonebooks[phonebook_uuid]:
             to_delete.add(source_uuid)
 
-    query = source_table.delete().where(
-        source_table.c.uuid.in_(to_delete)
-    )
+    query = source_table.delete().where(source_table.c.uuid.in_(to_delete))
     op.get_bind().execute(query)
 
 

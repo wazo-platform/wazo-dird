@@ -31,7 +31,7 @@ def upgrade():
             postgresql.UUID(as_uuid=False),
             sa.ForeignKey('dird_phonebook.uuid', ondelete='CASCADE'),
             nullable=True,
-        )
+        ),
     )
     query = sa.select(
         [
@@ -45,9 +45,13 @@ def upgrade():
         phonebook_uuid_map[row.uuid] = row.extra_fields['phonebook_uuid']
 
     for source_uuid, phonebook_uuid in phonebook_uuid_map.items():
-        query = source_table.update().where(
-            source_table.c.uuid == source_uuid,
-        ).values(phonebook_uuid=phonebook_uuid)
+        query = (
+            source_table.update()
+            .where(
+                source_table.c.uuid == source_uuid,
+            )
+            .values(phonebook_uuid=phonebook_uuid)
+        )
         op.get_bind().execute(query)
 
 

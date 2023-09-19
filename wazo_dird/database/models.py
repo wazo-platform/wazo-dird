@@ -248,7 +248,9 @@ class Source(Base):
     format_columns = Column(HSTORE)
     extra_fields = Column(JSON)
     backend = Column(Text(), nullable=False)
-    phonebook_uuid = Column(UUID, ForeignKey('dird_phonebook.uuid'), ondelete='CASCADE', nullable=True)
+    phonebook_uuid = Column(
+        UUID, ForeignKey('dird_phonebook.uuid'), ondelete='CASCADE', nullable=True
+    )
 
 
 class Tenant(Base):
