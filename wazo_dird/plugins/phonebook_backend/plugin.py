@@ -9,7 +9,7 @@ from typing import TypedDict
 from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.phonebook import PhonebookCRUD
-from wazo_dird.exception import InvalidConfigError, NoSuchPhonebook, NoSuchSource
+from wazo_dird.exception import InvalidConfigError, NoSuchPhonebook
 from wazo_dird.helpers import (
     BackendViewDependencies,
     BackendViewServices,
@@ -19,7 +19,6 @@ from wazo_dird.plugins.base_plugins import SourceConfig as BaseSourceConfig
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 from wazo_dird.plugins.source_service.plugin import _SourceService
-from xivo.pubsub import Pubsub
 from . import http
 
 logger = logging.getLogger(__name__)
@@ -44,7 +43,6 @@ class PhonebookView(BaseBackendView):
         api = dependencies['api']
         source_service = dependencies['services']['source']
         phonebook_service = dependencies['services']['phonebook']
-        pubsub: Pubsub = dependencies['internal_pubsub']
         args = (source_service, phonebook_service)
 
         api.add_resource(
@@ -52,29 +50,6 @@ class PhonebookView(BaseBackendView):
             f'/backends/{self.backend}/sources/<source_uuid>/contacts',
             resource_class_args=args,
         )
-
-        def on_phonebook_delete_cascade(phonebook_uuid: str):
-            sources = source_service.list_(
-                backend='phonebook',
-                visible_tenants=None,
-                extra_fields={'phonebook_uuid': phonebook_uuid},
-            )
-            for source in sources:
-                logger.info(
-                    'phonebook %s deleted, deleting associated source %s',
-                    phonebook_uuid,
-                    source['uuid'],
-                )
-                try:
-                    source_service.delete(
-                        backend='phonebook',
-                        source_uuid=source['uuid'],
-                        visible_tenants=None,
-                    )
-                except NoSuchSource:
-                    logger.info('source %s already deleted', source['uuid'])
-
-        pubsub.subscribe('phonebook.deleted', on_phonebook_delete_cascade)
 
     def _get_view_args(self, dependencies: BackendViewDependencies):
         config = dependencies['config']
