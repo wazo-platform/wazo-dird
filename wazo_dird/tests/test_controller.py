@@ -84,7 +84,6 @@ class TestController(TestCase):
             controller.auth_client,
             controller.status_aggregator,
             controller.rest_api,
-            controller._internal_pubsub,
         )
 
     def _create_config(self, **kwargs):

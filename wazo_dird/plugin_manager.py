@@ -1,4 +1,4 @@
-# Copyright 2014-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from wazo_dird.source_manager import SourceManager
     from flask import Flask
     from wazo_dird.controller import Controller
-    from xivo.pubsub import Pubsub
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,6 @@ class ServiceDependencies(TypedDict):
     bus: CoreBus
     controller: Controller
     auth_client: AuthClient
-    internal_pubsub: Pubsub
 
 
 def load_services(
@@ -43,7 +41,6 @@ def load_services(
     source_manager: SourceManager,
     bus: CoreBus,
     controller: Controller,
-    internal_pubsub: Pubsub,
 ):
     global services_extension_manager
     dependencies: ServiceDependencies = {
@@ -52,7 +49,6 @@ def load_services(
         'bus': bus,
         'controller': controller,
         'auth_client': controller.auth_client,
-        'internal_pubsub': internal_pubsub,
     }
 
     services_extension_manager, services = _load_plugins(
@@ -83,7 +79,6 @@ class ViewDependencies(TypedDict):
     api: Api
     flask_app: Flask
     status_aggregator: StatusAggregator
-    internal_pubsub: Pubsub
 
 
 def load_views(
@@ -93,7 +88,6 @@ def load_views(
     auth_client: AuthClient,
     status_aggregator: StatusAggregator,
     rest_api: CoreRestApi,
-    internal_pubsub: Pubsub,
 ):
     global views_extension_manager
     dependencies: ViewDependencies = {
@@ -103,7 +97,6 @@ def load_views(
         'api': rest_api.api,
         'flask_app': rest_api.app,
         'status_aggregator': status_aggregator,
-        'internal_pubsub': internal_pubsub,
     }
     views_extension_manager, views = _load_plugins(
         'wazo_dird.views', enabled_views, dependencies

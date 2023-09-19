@@ -11,7 +11,6 @@ from wazo_auth_client import Client as AuthClient
 from xivo.consul_helpers import ServiceCatalogRegistration
 from xivo.status import StatusAggregator
 from xivo.token_renewer import TokenRenewer
-from xivo.pubsub import Pubsub
 from . import auth
 from . import plugin_manager
 from .bus import CoreBus
@@ -62,7 +61,6 @@ class Controller:
             self.auth_client,
             self.token_renewer,
         )
-        self._internal_pubsub = Pubsub()
 
     def run(self):
         signal.signal(signal.SIGTERM, partial(_signal_handler, self))
@@ -73,7 +71,6 @@ class Controller:
             self._source_manager,
             self.bus,
             self,
-            self._internal_pubsub,
         )
         plugin_manager.load_views(
             self.config,
@@ -82,7 +79,6 @@ class Controller:
             self.auth_client,
             self.status_aggregator,
             self.rest_api,
-            self._internal_pubsub,
         )
         self._source_manager.set_source_service(self.services['source'])
         self.status_aggregator.add_provider(self.bus.provide_status)
