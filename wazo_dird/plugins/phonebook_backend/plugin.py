@@ -18,7 +18,6 @@ from wazo_dird.helpers import (
 from wazo_dird.plugins.base_plugins import SourceConfig as BaseSourceConfig
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
-from wazo_dird.plugins.source_service.plugin import _SourceService
 from . import http
 
 logger = logging.getLogger(__name__)
@@ -71,7 +70,6 @@ class PhonebookPlugin(BaseSourcePlugin):
     _source_name: str
     _search_engine: database.PhonebookContactSearchEngine
     _SourceResult: type[SourceResult]
-    _source_service: _SourceService
 
     def __init__(self) -> None:
         super().__init__()
@@ -81,6 +79,9 @@ class PhonebookPlugin(BaseSourcePlugin):
 
     def load(self, dependencies: Dependencies):
         logger.debug('Loading phonebook source')
+
+        self._crud = database.PhonebookCRUD(Session)
+
         unique_column = 'id'
         config = dependencies['config']
         self._source_name = config['name']
@@ -88,30 +89,9 @@ class PhonebookPlugin(BaseSourcePlugin):
         searched_columns = config.get('searched_columns')
         first_matched_columns = config.get('first_matched_columns')
 
-        self._crud = database.PhonebookCRUD(Session)
-        self._source_service: _SourceService = dependencies['services']['source']
-
         tenant_uuid = config['tenant_uuid']
-        phonebook_key = self._get_phonebook_key(tenant_uuid, config)
 
-        try:
-            phonebook = self._crud.get(
-                visible_tenants=[tenant_uuid], phonebook_key=phonebook_key
-            )
-        except NoSuchPhonebook:
-            logger.info(
-                'Phonebook source plugin loaded but phonebook missing(source_uuid=%s, phonebook_uuid=%s). Cleaning up obsolete source.',
-                config['uuid'],
-                config['phonebook_uuid'],
-            )
-        else:
-            logger.debug(
-                'Found phonebook (uuid=%s, name=%s) for source (source_uuid=%s, name=%s)',
-                phonebook['uuid'],
-                phonebook['name'],
-                config['uuid'],
-                config['name'],
-            )
+        phonebook_key = self._get_phonebook_key(tenant_uuid, config)
 
         self._search_engine = database.PhonebookContactSearchEngine(
             Session,
