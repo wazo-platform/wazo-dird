@@ -333,16 +333,16 @@ class TestPost(BasePhonebookCRUDTestCase):
         with phonebook_source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        with phonebook(self.phonebook_dao, SUB_TENANT, {'name': 'sub'}) as phonebook:
+        with phonebook(self.phonebook_dao, SUB_TENANT, {'name': 'sub'}) as phonebook_sub:
             with phonebook_source(
                 main_tenant_client,
-                dict(self.valid_body, phonebook_uuid=phonebook['uuid']),
+                dict(self.valid_body, phonebook_uuid=phonebook_sub['uuid']),
                 tenant_uuid=SUB_TENANT,
             ) as source:
                 assert_that(source, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
             with phonebook_source(
-                sub_tenant_client, dict(self.valid_body, phonebook_uuid=phonebook['uuid'])
+                sub_tenant_client, dict(self.valid_body, phonebook_uuid=phonebook_sub['uuid'])
             ) as source:
                 assert_that(source, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
