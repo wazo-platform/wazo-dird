@@ -388,6 +388,13 @@ def personal_source(**source_args):
     return decorator
 
 
+def phonebook_autocreate_generator(self, *args, **kwargs):
+    return getattr(self, '_get_phonebook', PhonebookCRUD(Session()).create)(
+        tenant_uuid=kwargs.get('tenant_uuid', MAIN_TENANT),
+        name=kwargs.get('name', random_string()),
+    )
+
+
 def phonebook_source(**source_args):
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
 
@@ -396,10 +403,10 @@ def phonebook_source(**source_args):
         def wrapper(self, *args, **kwargs):
             client = self.get_client(source_args['token'])
             if 'phonebook_uuid' not in source_args:
-                phonebook = client.phonebook.create(
-                    phonebook_body={'name': kwargs.get('name', random_string())},
-                    tenant_uuid=kwargs.get('tenant_uuid', MAIN_TENANT),
+                phonebook_generator = source_args.pop(
+                    'phonebook_generator', phonebook_autocreate_generator
                 )
+                phonebook = phonebook_generator(self, *args, **kwargs, **source_args)
                 source_args['phonebook_uuid'] = phonebook['uuid']
 
             source = client.phonebook_source.create(source_args)
