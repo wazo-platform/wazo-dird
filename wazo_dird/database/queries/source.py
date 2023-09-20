@@ -217,6 +217,7 @@ class SourceCRUD(BaseDAO):
         source.searched_columns = searched_columns
         source.first_matched_columns = first_matched_columns
         source.format_columns = format_columns
+        source.phonebook_uuid = extra_fields.pop('phonebook_uuid', None)
         source.extra_fields = extra_fields
         return source
 
@@ -231,6 +232,8 @@ class SourceCRUD(BaseDAO):
             first_matched_columns=source.first_matched_columns,
             format_columns=source.format_columns,
         )
+        if source.phonebook_uuid:
+            source_attrs['phonebook_uuid'] = source.phonebook_uuid
         if source.extra_fields:
             source_attrs.update(source.extra_fields)
         return source_attrs
