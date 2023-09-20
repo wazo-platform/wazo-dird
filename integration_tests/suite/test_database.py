@@ -141,34 +141,6 @@ class _BaseTest(unittest.TestCase):
         return list(contacts.values())
 
 
-class SourceCRUDTest(_BaseTest):
-    @fixtures.source(backend='whatever', name='extra1', weird_attribute='a-value')
-    @fixtures.source(backend='whatever', name='extra2', weird_attribute='a-value')
-    @fixtures.source(backend='whatever', name='extra3', weird_attribute='b-value')
-    @fixtures.source(backend='whatever', name='extra4', weird_attribute='b-value')
-    def test_list_sources_by_extra_fields(self, *sources):
-        a_value_sources = [s for s in sources if s['weird_attribute'] == 'a-value']
-        b_value_sources = [s for s in sources if s['weird_attribute'] == 'b-value']
-        listed_sources = self.source_crud.list_(
-            backend='whatever',
-            visible_tenants=None,
-            extra_fields=dict(weird_attribute='a-value'),
-        )
-        assert_that(
-            listed_sources,
-            contains_inanyorder(*a_value_sources),
-        )
-        listed_sources = self.source_crud.list_(
-            backend='whatever',
-            visible_tenants=None,
-            extra_fields=dict(weird_attribute='b-value'),
-        )
-        assert_that(
-            listed_sources,
-            contains_inanyorder(*b_value_sources),
-        )
-
-
 class _BasePhonebookCRUDTest(_BaseTest):
     def setUp(self):
         super().setUp()

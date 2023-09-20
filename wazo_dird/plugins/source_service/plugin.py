@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -61,7 +61,6 @@ class _SourceService:
         limit: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
-        extra_fields: dict[str, str] | None = None,
         **list_params,
     ):
         return self._source_crud.list_(
@@ -74,6 +73,5 @@ class _SourceService:
             limit=limit,
             order=order,
             direction=direction,
-            extra_fields=extra_fields,
             **list_params,
         )

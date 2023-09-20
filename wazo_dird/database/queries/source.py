@@ -50,7 +50,6 @@ class SourceCRUD(BaseDAO):
         limit: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
-        extra_fields: dict[str, str] | None = None,
         **list_params,
     ) -> list[SourceInfo]:
         filter_ = self._list_filter(
@@ -59,7 +58,6 @@ class SourceCRUD(BaseDAO):
             uuid=uuid,
             name=name,
             search=search,
-            extra_fields=extra_fields,
             **list_params,
         )
         with self.new_session() as s:
@@ -145,7 +143,6 @@ class SourceCRUD(BaseDAO):
         uuid: str | None = None,
         name: str | None = None,
         search: str | None = None,
-        extra_fields: dict[str, str] | None = None,
         **list_params,
     ):
         filter_ = text('true')
@@ -160,15 +157,6 @@ class SourceCRUD(BaseDAO):
         if search is not None:
             pattern = f'%{search}%'
             filter_ = and_(filter_, Source.name.ilike(pattern))
-
-        if extra_fields:
-            filter_ = and_(
-                filter_,
-                *(
-                    Source.extra_fields[name].astext == value
-                    for name, value in extra_fields.items()
-                ),
-            )
 
         return filter_
 
