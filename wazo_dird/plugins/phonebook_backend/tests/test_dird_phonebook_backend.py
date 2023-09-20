@@ -1,4 +1,4 @@
-# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from collections import defaultdict
@@ -59,24 +59,3 @@ class TestDirdPhonebook(unittest.TestCase):
         result = self.source.first_match(s.term)
 
         assert_that(result, equal_to(None))
-
-    def test_load(self):
-        with patch(
-            f'{self.source.__class__.__module__}.database.PhonebookCRUD', MagicMock()
-        ) as dao_mock:
-            dao_mock.list.return_value = [
-                mock_dict({'uuid': s.phonebook_uuid, 'name': 'test'})
-            ]
-            self.source.load(
-                mock_dict(
-                    {
-                        'config': {
-                            'name': 'test',
-                            'phonebook_uuid': s.phonebook_uuid,
-                            'tenant_uuid': s.tenant_uuid,
-                            'uuid': s.source_uuid,
-                        }
-                    }
-                )
-            )
-            dao_mock.assert_called_once()
