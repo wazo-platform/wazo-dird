@@ -98,9 +98,9 @@ class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
         self.valid_body = {'name': 'main', 'phonebook_uuid': self.phonebooks[0]['uuid']}
 
     def tearDown(self):
-        for pb in self.phonebooks:
+        for phonebook in self.phonebooks:
             try:
-                self.phonebook_dao.delete(None, PhonebookKey(uuid=pb['uuid']))
+                self.phonebook_dao.delete(None, PhonebookKey(uuid=phonebook['uuid']))
             except NoSuchPhonebook:
                 pass
 
@@ -116,6 +116,23 @@ class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
                 details=has_entries(uuid=source_uuid),
             ),
         )
+
+    def _get_phonebook(self, tenant_uuid=MAIN_TENANT, name=None):
+        if phonebooks := self.phonebook_dao.list(
+            tenant_uuid, search=(name or self.valid_body['name'])
+        ):
+            phonebook, *_ = phonebooks
+            assert phonebook['uuid'] in set(phonebook['uuid'] for phonebook in self.phonebooks)
+            return phonebook
+        else:
+            new_phonebook = self.phonebook_dao.create(
+                tenant_uuid=tenant_uuid,
+                phonebook_body={
+                    'name': name or self.valid_body['name'],
+                },
+            )
+            self.phonebooks.append(new_phonebook)
+            return new_phonebook
 
 
 class TestDelete(BasePhonebookCRUDTestCase):
@@ -316,16 +333,16 @@ class TestPost(BasePhonebookCRUDTestCase):
         with phonebook_source(main_tenant_client, self.valid_body) as result:
             assert_that(result, has_entries(uuid=uuid_(), tenant_uuid=MAIN_TENANT))
 
-        with phonebook(self.phonebook_dao, SUB_TENANT, {'name': 'sub'}) as pb:
+        with phonebook(self.phonebook_dao, SUB_TENANT, {'name': 'sub'}) as phonebook:
             with phonebook_source(
                 main_tenant_client,
-                dict(self.valid_body, phonebook_uuid=pb['uuid']),
+                dict(self.valid_body, phonebook_uuid=phonebook['uuid']),
                 tenant_uuid=SUB_TENANT,
             ) as source:
                 assert_that(source, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
             with phonebook_source(
-                sub_tenant_client, dict(self.valid_body, phonebook_uuid=pb['uuid'])
+                sub_tenant_client, dict(self.valid_body, phonebook_uuid=phonebook['uuid'])
             ) as source:
                 assert_that(source, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
 
