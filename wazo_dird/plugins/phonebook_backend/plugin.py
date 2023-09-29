@@ -9,7 +9,7 @@ from typing import TypedDict
 from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.phonebook import PhonebookCRUD
-from wazo_dird.exception import InvalidConfigError, NoSuchPhonebook
+from wazo_dird.exception import InvalidConfigError
 from wazo_dird.helpers import (
     BackendViewDependencies,
     BackendViewServices,
