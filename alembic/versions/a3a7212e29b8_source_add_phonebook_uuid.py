@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = 'a3a7212e29b8'
-down_revision = '3b2bfef244e7'
+down_revision = 'bb2cd24f0500'
 
 source_table = sa.table(
     'dird_source',
@@ -20,6 +20,12 @@ source_table = sa.table(
     sa.column('extra_fields'),
     sa.column('backend'),
     sa.column('phonebook_uuid'),
+)
+phonebook_table = sa.table(
+    'dird_phonebook',
+    sa.column('uuid'),
+    sa.column('name'),
+    sa.column('id'),
 )
 
 
@@ -33,27 +39,82 @@ def upgrade():
             nullable=True,
         ),
     )
-    query = sa.select(
+    phonebook_sources_query = sa.select(
         [
             source_table.c.uuid,
             source_table.c.extra_fields,
         ]
     ).where(source_table.c.backend == 'phonebook')
-
+    phonebooks_query = sa.select(
+        [
+            phonebook_table.c.uuid,
+            phonebook_table.c.name,
+            phonebook_table.c.id,
+        ]
+    )
+    phonebooks = list(op.get_bind().execute(phonebooks_query))
+    phonebook_by_name = {p.name: p for p in phonebooks}
+    phonebook_by_id = {p.id: p for p in phonebooks}
     phonebook_uuid_map = {}
-    for row in op.get_bind().execute(query):
-        phonebook_uuid_map[row.uuid] = row.extra_fields['phonebook_uuid']
+    for row in op.get_bind().execute(phonebook_sources_query):
+        if 'phonebook_uuid' in row.extra_fields:
+            phonebook_uuid_map[row.uuid] = row.extra_fields['phonebook_uuid']
+        elif 'phonebook_id' in row.extra_fields:
+            phonebook_id = row.extra_fields['phonebook_id']
+            try:
+                phonebook = phonebook_by_id[phonebook_id]
+                phonebook_uuid_map[row.uuid] = phonebook.uuid
+            except KeyError:
+                print(
+                    'phonebook(id={phonebook_id}) not found for source {row.uuid}. Future migration might delete it.'
+                )
+                continue
+        else:
+            try:
+                phonebook = phonebook_by_name[row.name]
+                phonebook_uuid_map[row.uuid] = phonebook.uuid
+            except KeyError:
+                print(
+                    f'could not map source {row.uuid} to a phonebook. Future migration might delete it.'
+                )
+                continue
 
-    for source_uuid, phonebook_uuid in phonebook_uuid_map.items():
-        query = (
+    print('source to phonebook: ', phonebook_uuid_map)
+    if phonebook_uuid_map:
+        phonebook_sources_update = (
             source_table.update()
             .where(
-                source_table.c.uuid == source_uuid,
+                source_table.c.uuid == sa.bindparam('_source_uuid'),
             )
-            .values(phonebook_uuid=phonebook_uuid)
+            .values(
+                phonebook_uuid=sa.bindparam('_phonebook_uuid'),
+                extra_fields=(
+                    sa.cast(source_table.c.extra_fields, postgresql.JSONB)
+                    - 'phonebook_uuid'
+                ),
+            )
         )
-        op.get_bind().execute(query)
+        op.get_bind().execute(
+            phonebook_sources_update,
+            [
+                {'_source_uuid': uuid, '_phonebook_uuid': phonebook_uuid}
+                for uuid, phonebook_uuid in phonebook_uuid_map.items()
+            ],
+        )
 
 
 def downgrade():
+    op.get_bind().execute(
+        source_table.update()
+        .where(
+            source_table.c.phonebook_uuid.isnot(None),
+        )
+        .values(
+            extra_fields=sa.func.jsonb_set(
+                sa.cast(source_table.c.extra_fields, postgresql.JSONB),
+                ['phonebook_uuid'],
+                sa.cast(str(source_table.c.phonebook_uuid), postgresql.JSONB),
+            )
+        )
+    )
     op.drop_column('dird_source', 'phonebook_uuid')

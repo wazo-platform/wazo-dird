@@ -1,8 +1,7 @@
-"""remove-orphaned-phonebook-sources
+"""remove orphaned phonebook sources
 
 Revision ID: 3b2bfef244e7
 Revises: bb2cd24f0500
-
 """
 
 from alembic import op
@@ -11,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '3b2bfef244e7'
-down_revision = 'bb2cd24f0500'
+down_revision = 'a3a7212e29b8'
 
 phonebook_table = sa.table(
     'dird_phonebook',
@@ -25,48 +24,19 @@ source_table = sa.table(
     sa.column('extra_fields'),
     sa.column('tenant_uuid'),
     sa.column('backend'),
+    sa.column('phonebook_uuid'),
 )
 
 
 def upgrade():
-    phonebooks = {}
-    sources = {}
-
-    query = sa.select(
-        [
-            phonebook_table.c.uuid,
-            phonebook_table.c.tenant_uuid,
-        ]
+    query = source_table.delete().where(
+        sa.and_(
+            source_table.c.backend == 'phonebook',
+            source_table.c.phonebook_uuid.is_(None),
+        )
     )
-    for row in op.get_bind().execute(query):
-        phonebooks[str(row.uuid)] = str(row.tenant_uuid)
-
-    query = sa.select(
-        [
-            source_table.c.uuid,
-            source_table.c.extra_fields,
-            source_table.c.tenant_uuid,
-        ]
-    ).where(source_table.c.backend == 'phonebook')
-    for row in op.get_bind().execute(query):
-        phonebook_uuid = str(row.extra_fields.get('phonebook_uuid'))
-        sources[row.uuid] = {
-            'tenant_uuid': str(row.tenant_uuid),
-            'phonebook_uuid': phonebook_uuid,
-        }
-
-    to_delete = set()
-    for source_uuid, source_details in sources.items():
-        phonebook_uuid = source_details['phonebook_uuid']
-        if not phonebook_uuid:
-            to_delete.add(source_uuid)
-        elif phonebook_uuid not in phonebooks:
-            to_delete.add(source_uuid)
-        elif source_details['tenant_uuid'] != phonebooks[phonebook_uuid]:
-            to_delete.add(source_uuid)
-
-    query = source_table.delete().where(source_table.c.uuid.in_(to_delete))
-    op.get_bind().execute(query)
+    result = op.get_bind().execute(query)
+    print("rows deleted:", result.rowcount)
 
 
 def downgrade():
