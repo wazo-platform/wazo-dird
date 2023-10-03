@@ -30,6 +30,7 @@ from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_dird.database.queries.phonebook import (
     PhonebookContactCRUD,
     PhonebookCRUD,
+    PhonebookDict,
     PhonebookKey,
 )
 from wazo_dird.exception import NoSuchPhonebook
@@ -71,7 +72,7 @@ def phonebook_source(client: DirdClient, *args, **kwargs) -> Iterator[PhonebookS
 @contextmanager
 def phonebook(
     dao: PhonebookCRUD, tenant_uuid: str, body: dict
-) -> Iterator[PhonebookSource]:
+) -> Iterator[PhonebookDict]:
     try:
         phonebook = dao.create(tenant_uuid, body)
     except Exception as ex:
@@ -360,6 +361,7 @@ class TestPost(BasePhonebookCRUDTestCase):
                 ),
             )
 
+        # cannot create source referencing phonebook outside tenant
         with phonebook_source(main_tenant_client, self.valid_body):
             assert_that(
                 calling(sub_tenant_client.phonebook_source.create).with_args(
@@ -441,9 +443,10 @@ class TestPut(BasePhonebookCRUDTestCase):
         main_tenant_client = self.get_client(VALID_TOKEN_MAIN_TENANT)
         sub_tenant_client = self.get_client(VALID_TOKEN_SUB_TENANT)
 
+        # sources from separate tenants do not conflict
         assert_that(
             calling(sub_tenant_client.phonebook_source.edit).with_args(
-                main['uuid'], sub
+                sub['uuid'], dict(sub, name=main['name'])
             ),
             not_(
                 raises(Exception).matching(
@@ -451,23 +454,25 @@ class TestPut(BasePhonebookCRUDTestCase):
                 )
             ),
         )
-
+        # cannot edit sources from parent tenant
         try:
             sub_tenant_client.phonebook_source.edit(
                 main['uuid'],
-                dict(self.new_body, phonebook_uuid=sub['phonebook_uuid']),
+                self.new_body,
             )
         except Exception as e:
             self.assert_unknown_source_exception(main['uuid'], e)
         else:
             self.fail('Should have raised')
 
-        assert_that(
-            calling(main_tenant_client.phonebook_source.edit).with_args(
-                sub['uuid'], self.new_body
-            ),
-            not_(raises(Exception)),
-        )
+        # main tenant can update sub tenant sources to point to sub tenant phonebooks
+        with phonebook(self.phonebook_dao, SUB_TENANT, {'name': 'sub'}) as sub_pb:
+            assert_that(
+                calling(main_tenant_client.phonebook_source.edit).with_args(
+                    sub['uuid'], dict(self.new_body, phonebook_uuid=sub_pb['uuid'])
+                ),
+                not_(raises(Exception)),
+            )
 
 
 class TestGet(BasePhonebookCRUDTestCase):
