@@ -10,6 +10,7 @@ from wazo_dird.config import AuthConfig
 from wazo_dird.database.queries.phonebook import PhonebookCRUD, PhonebookKey
 from wazo_dird.exception import (
     InvalidConfigError,
+    InvalidSourceConfigError,
     NoSuchPhonebook,
     NoSuchPhonebookAPIException,
 )
@@ -57,26 +58,17 @@ class PhonebookList(SourceList):
     def get(self):
         return super().get()
 
-    def _prepare_new_source(self, source_data: dict) -> PhonebookSourceInfo:
-        assert 'phonebook_uuid' in source_data
-        tenants = get_tenant_uuids()
-        phonebook_key = PhonebookKey(uuid=source_data['phonebook_uuid'])
+    def _create_new_source(self, source_data: dict, tenant_uuid: str) -> dict:
         try:
-            phonebook = self.phonebook_dao.get(
-                visible_tenants=tenants,
-                phonebook_key=phonebook_key,
-            )
-        except NoSuchPhonebook:
-            raise NoSuchPhonebookAPIException(
-                resource='/backends/phonebook/sources',
-                visible_tenants=tenants,
-                phonebook_key=phonebook_key,
-            )
-        source_data.update(
-            phonebook_name=phonebook['name'],
-            phonebook_description=phonebook['description'],
-        )
-        return source_data
+            return super()._create_new_source(source_data, tenant_uuid)
+        except InvalidSourceConfigError as ex:
+            if 'pgerror' in ex.details and 'phonebook_uuid' in ex.details['pgerror']:
+                raise NoSuchPhonebookAPIException(
+                    resource='/backends/phonebook/sources',
+                    visible_tenants=[tenant_uuid],
+                    phonebook_key=PhonebookKey(uuid=source_data['phonebook_uuid']),
+                )
+            raise
 
     @required_acl('dird.backends.phonebook.sources.create')
     def post(self):
@@ -104,27 +96,19 @@ class PhonebookItem(SourceItem):
     def get(self, source_uuid):
         return super().get(source_uuid)
 
-    def _prepare_source_update(self, source_data: dict) -> PhonebookSourceInfo:
-        assert 'phonebook_uuid' in source_data
-        tenants = get_tenant_uuids()
-        phonebook_key = PhonebookKey(uuid=source_data['phonebook_uuid'])
+    def _edit_source(
+        self, source_uuid: str, visible_tenants: list[str], source_data: dict
+    ):
         try:
-            phonebook = self.phonebook_dao.get(
-                visible_tenants=tenants,
-                phonebook_key=phonebook_key,
-            )
-        except NoSuchPhonebook:
-            raise NoSuchPhonebookAPIException(
-                resource='/backends/phonebook/sources',
-                visible_tenants=tenants,
-                phonebook_key=phonebook_key,
-            )
-
-        source_data.update(
-            phonebook_name=phonebook['name'],
-            phonebook_description=phonebook['description'],
-        )
-        return source_data
+            return super()._edit_source(source_uuid, visible_tenants, source_data)
+        except InvalidSourceConfigError as ex:
+            if 'pgerror' in ex.details and 'phonebook_uuid' in ex.details['pgerror']:
+                raise NoSuchPhonebookAPIException(
+                    resource='/backends/phonebook/sources',
+                    visible_tenants=visible_tenants,
+                    phonebook_key=PhonebookKey(uuid=source_data['phonebook_uuid']),
+                )
+            raise
 
     @required_acl('dird.backends.phonebook.sources.{source_uuid}.update')
     def put(self, source_uuid):
@@ -153,8 +137,6 @@ class PhonebookContactList(AuthResource):
         )
         logger.debug("Found source (uuid=%s): %s", source_uuid, str(source_config))
 
-        # sources prior to WAZO-3267 might be missing 'phonebook_uuid' and will crash here
-        # see https://wazo-dev.atlassian.net/browse/WAZO-3357
         try:
             phonebook_key = PhonebookKey(uuid=source_config['phonebook_uuid'])
         except KeyError:

@@ -11,6 +11,7 @@ from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import BaseSourcePlugin
 from wazo_dird.controller import Controller
+from wazo_dird.exception import InvalidSourceConfigAPIError, InvalidSourceConfigError
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 from wazo_dird.plugins.base_plugins import BaseViewPlugin, SourceConfig
@@ -135,14 +136,22 @@ class SourceList(_BaseSourceResource):
     def _prepare_new_source(self, source_data: dict) -> dict:
         return source_data
 
+    def _create_new_source(self, source_data: dict, tenant_uuid: str) -> dict:
+        body = self._service.create(
+            self._backend, tenant_uuid=tenant_uuid, **source_data
+        )
+        return body
+
     def post(self):
         tenant = Tenant.autodetect()
         args = self.source_schema.load(request.get_json())
         source_data = self._prepare_new_source(args)
-        body = self._service.create(
-            self._backend, tenant_uuid=tenant.uuid, **source_data
-        )
-        return self.source_schema.dump(body)
+        try:
+            body = self._create_new_source(source_data, tenant.uuid)
+        except InvalidSourceConfigError as ex:
+            raise InvalidSourceConfigAPIError(ex.source_info)
+        else:
+            return self.source_schema.dump(body)
 
 
 class SourceItem(_BaseSourceResource):
@@ -159,12 +168,24 @@ class SourceItem(_BaseSourceResource):
     def _prepare_source_update(self, source_data: dict) -> dict:
         return source_data
 
+    def _edit_source(
+        self, source_uuid: str, visible_tenants: list[str], source_data: dict
+    ):
+        body = self._service.edit(
+            self._backend, source_uuid, visible_tenants, source_data
+        )
+        return body
+
     def put(self, source_uuid):
         visible_tenants = get_tenant_uuids(recurse=True)
         args = self.source_schema.load(request.get_json())
         source_data = self._prepare_source_update(args)
-        self._service.edit(self._backend, source_uuid, visible_tenants, source_data)
-        return '', 204
+        try:
+            self._edit_source(source_uuid, visible_tenants, source_data)
+        except InvalidSourceConfigError as ex:
+            raise InvalidSourceConfigAPIError(ex.source_info)
+        else:
+            return '', 204
 
 
 class BackendViewConfig(TypedDict):

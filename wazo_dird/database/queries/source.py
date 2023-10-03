@@ -4,11 +4,16 @@ from __future__ import annotations
 from typing import TypedDict
 
 from sqlalchemy import and_, exc, text
-from sqlalchemy.orm import Query
+from sqlalchemy.orm import Query, Session
 from wazo_dird.database.queries.base import Direction
-from wazo_dird.exception import DuplicatedSourceException, NoSuchSource
+from wazo_dird.exception import (
+    DuplicatedSourceException,
+    InvalidSourceConfigError,
+    NoSuchSource,
+)
 from .base import BaseDAO
 from .. import Source
+from psycopg2.errorcodes import UNIQUE_VIOLATION, FOREIGN_KEY_VIOLATION
 
 
 class SourceBody(TypedDict, total=False):
@@ -27,6 +32,21 @@ class SourceInfo(TypedDict, total=False):
     searched_columns: list[str]
     first_matched_columns: list[str]
     format_columns: dict[str, str]
+
+
+def flush_and_handle(s: Session, context: dict):
+    try:
+        s.flush()
+    except exc.IntegrityError as e:
+        if e.orig.pgcode == UNIQUE_VIOLATION:
+            raise DuplicatedSourceException(context['name'])
+        elif e.orig.pgcode == FOREIGN_KEY_VIOLATION:
+            raise InvalidSourceConfigError(
+                source_info=context,
+                details_fmt=f'Foreign key violation: {e.orig}',
+                details={'pgcode': e.orig.pgcode, 'pgerror': e.orig.pgerror},
+            )
+        raise
 
 
 class SourceCRUD(BaseDAO):
@@ -72,14 +92,10 @@ class SourceCRUD(BaseDAO):
             self._create_tenant(s, source_body['tenant_uuid'])
             source = self._to_db_format(backend, **source_body)
             s.add(source)
-            try:
-                s.flush()
-            except exc.IntegrityError as e:
-                if e.orig.pgcode == self._UNIQUE_CONSTRAINT_CODE:
-                    raise DuplicatedSourceException(source_body['name'])
-                raise
+            flush_and_handle(s, dict(source_body, backend=backend))
+            source_info = self._from_db_format(source)
 
-            return self._from_db_format(source)
+            return source_info
 
     def delete(self, backend: str, source_uuid: str, visible_tenants: list[str] | None):
         filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
@@ -106,14 +122,11 @@ class SourceCRUD(BaseDAO):
                 raise NoSuchSource(source_uuid)
 
             source_attrs = self._update_to_db_format(source, **body)
-            try:
-                s.flush()
-            except exc.IntegrityError as e:
-                if e.orig.pgcode == self._UNIQUE_CONSTRAINT_CODE:
-                    raise DuplicatedSourceException(body['name'])
-                raise
 
-            return source_attrs
+            flush_and_handle(s, dict(body, backend=backend, source_uuid=source_uuid))
+            source_info = self._from_db_format(source_attrs)
+
+            return source_info
 
     def get(
         self, backend: str, source_uuid: str, visible_tenants: list[str] | None
@@ -234,6 +247,8 @@ class SourceCRUD(BaseDAO):
         )
         if source.phonebook_uuid:
             source_attrs['phonebook_uuid'] = source.phonebook_uuid
+            source_attrs['phonebook_name'] = source.phonebook.name
+            source_attrs['phonebook_description'] = source.phonebook.description
         if source.extra_fields:
             source_attrs.update(source.extra_fields)
         return source_attrs
