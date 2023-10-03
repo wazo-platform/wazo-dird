@@ -20,12 +20,14 @@ source_table = sa.table(
     sa.column('extra_fields'),
     sa.column('backend'),
     sa.column('phonebook_uuid'),
+    sa.column('tenant_uuid'),
 )
 phonebook_table = sa.table(
     'dird_phonebook',
     sa.column('uuid'),
     sa.column('name'),
     sa.column('id'),
+    sa.column('tenant_uuid'),
 )
 
 
@@ -38,6 +40,19 @@ def upgrade():
             sa.ForeignKey('dird_phonebook.uuid', ondelete='CASCADE'),
             nullable=True,
         ),
+    )
+    op.create_unique_constraint(
+        'dird_phonebook_tenant_uuid_idx',
+        'dird_phonebook',
+        ['uuid', 'tenant_uuid'],
+    )
+    op.create_foreign_key(
+        'dird_source_phonebook_fkey',
+        'dird_source',
+        'dird_phonebook',
+        ['phonebook_uuid', 'tenant_uuid'],
+        ['uuid', 'tenant_uuid'],
+        ondelete='CASCADE',
     )
     phonebook_sources_query = sa.select(
         [
@@ -116,5 +131,9 @@ def downgrade():
                 sa.cast(str(source_table.c.phonebook_uuid), postgresql.JSONB),
             )
         )
+    )
+    op.drop_constraint('dird_source_phonebook_fkey', 'dird_source', type_='foreignkey')
+    op.drop_constraint(
+        'dird_phonebook_tenant_uuid_idx', 'dird_phonebook', type_='unique'
     )
     op.drop_column('dird_source', 'phonebook_uuid')
