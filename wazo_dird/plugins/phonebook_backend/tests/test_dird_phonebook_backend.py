@@ -1,18 +1,13 @@
 # Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from collections import defaultdict
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 from unittest.mock import sentinel as s
 
 from hamcrest import assert_that, equal_to
 
 from ..plugin import PhonebookPlugin, make_result_class
-
-
-def mock_dict(prototype):
-    return defaultdict(MagicMock, prototype)
 
 
 class TestDirdPhonebook(unittest.TestCase):
