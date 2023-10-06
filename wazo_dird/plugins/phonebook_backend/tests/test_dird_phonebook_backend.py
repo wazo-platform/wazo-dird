@@ -7,6 +7,8 @@ from unittest.mock import sentinel as s
 
 from hamcrest import assert_that, equal_to
 
+from wazo_dird.exception import InvalidConfigError
+
 from ..plugin import PhonebookPlugin, make_result_class
 
 
@@ -17,6 +19,24 @@ class TestDirdPhonebook(unittest.TestCase):
             'test', 'id', {}
         )
         self.engine = self.source._search_engine = Mock()
+
+    def test_load_with_phonebook_uuid(self):
+        self.source.load(
+            {
+                'config': {
+                    'name': 'test-load',
+                    'tenant_uuid': '123',
+                    'phonebook_uuid': '456',
+                }
+            }
+        )
+
+    def test_load_with_no_phonebook_uuid(self):
+        with patch(f'{PhonebookPlugin.__module__}.Session'):
+            with self.assertRaises(InvalidConfigError):
+                self.source.load(
+                    {'config': {'name': 'test-load', 'tenant_uuid': '123'}}
+                )
 
     def test_that_the_id_is_used_if_supplied(self):
         id_ = self.source._get_phonebook_key(
