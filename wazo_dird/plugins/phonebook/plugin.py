@@ -7,6 +7,7 @@ from typing import TypedDict
 from flask_restful import Api
 
 from wazo_dird import BaseViewPlugin
+from wazo_dird.plugin_manager import ViewDependencies
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 
 from .http import (
@@ -22,7 +23,7 @@ class Services(TypedDict):
     phonebook: _PhonebookService
 
 
-class Dependencies(TypedDict):
+class Dependencies(ViewDependencies):
     api: Api
     services: Services
 

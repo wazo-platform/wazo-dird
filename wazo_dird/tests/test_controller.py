@@ -60,7 +60,13 @@ class TestController(TestCase):
 
         Controller(config).run()
 
-        self.load_services.assert_called_once_with(config, s.enabled, ANY, ANY, ANY)
+        self.load_services.assert_called_once_with(
+            config,
+            s.enabled,
+            ANY,
+            ANY,
+            ANY,
+        )
         self.unload_services.assert_called_once_with()
 
     def test_run_loads_views(self):

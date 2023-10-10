@@ -8,15 +8,16 @@ from typing import TypedDict
 
 from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
+from wazo_dird.database.queries.phonebook import PhonebookCRUD
 from wazo_dird.exception import InvalidConfigError
 from wazo_dird.helpers import (
     BackendViewDependencies,
     BackendViewServices,
     BaseBackendView,
 )
+from wazo_dird.plugins.base_plugins import SourceConfig as BaseSourceConfig
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
-
 from . import http
 
 logger = logging.getLogger(__name__)
@@ -49,18 +50,15 @@ class PhonebookView(BaseBackendView):
             resource_class_args=args,
         )
 
+    def _get_view_args(self, dependencies: BackendViewDependencies):
+        config = dependencies['config']
+        source_service = dependencies['services']['source']
+        phonebook_dao = PhonebookCRUD(Session)
+        return (self.backend, source_service, config['auth'], phonebook_dao)
 
-class _Config(TypedDict):
-    name: str  # phonebook source name
-    tenant_uuid: str
 
-
-class Config(_Config, total=False):
+class Config(BaseSourceConfig, total=False):
     phonebook_uuid: str
-    phonebook_id: int
-    format_columns: dict[str, str]
-    searched_columns: list[str]
-    first_matched_columns: list[str]
 
 
 class Dependencies(TypedDict):
@@ -81,6 +79,9 @@ class PhonebookPlugin(BaseSourcePlugin):
 
     def load(self, dependencies: Dependencies):
         logger.debug('Loading phonebook source')
+
+        self._crud = database.PhonebookCRUD(Session)
+
         unique_column = 'id'
         config = dependencies['config']
         self._source_name = config['name']
@@ -88,9 +89,8 @@ class PhonebookPlugin(BaseSourcePlugin):
         searched_columns = config.get('searched_columns')
         first_matched_columns = config.get('first_matched_columns')
 
-        self._crud = database.PhonebookCRUD(Session)
-
         tenant_uuid = config['tenant_uuid']
+
         phonebook_key = self._get_phonebook_key(tenant_uuid, config)
 
         self._search_engine = database.PhonebookContactSearchEngine(
@@ -138,16 +138,14 @@ class PhonebookPlugin(BaseSourcePlugin):
     ) -> database.PhonebookKey:
         if 'phonebook_uuid' in config:
             return database.PhonebookKey(uuid=config['phonebook_uuid'])
-        elif 'phonebook_id' in config:
-            return database.PhonebookKey(id=config['phonebook_id'])
+        else:
+            phonebook_name = config['name']
+            phonebooks = self._crud.list([tenant_uuid], search=phonebook_name)
+            for phonebook in phonebooks:
+                if phonebook['name'] == phonebook_name:
+                    return database.PhonebookKey(uuid=phonebook['uuid'])
 
-        phonebook_name = config['name']
-        phonebooks = self._crud.list([tenant_uuid], search=phonebook_name)
-        for phonebook in phonebooks:
-            if phonebook['name'] == phonebook_name:
-                return database.PhonebookKey(uuid=phonebook['uuid'])
-
-        raise InvalidConfigError(
-            f'sources/{self._source_name}/phonebook_name',
-            f'unknown phonebook {phonebook_name}',
-        )
+            raise InvalidConfigError(
+                f'sources/{self._source_name}/phonebook_name',
+                f'unknown phonebook {phonebook_name}',
+            )

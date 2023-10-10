@@ -9,7 +9,7 @@ from xivo.status import Status
 
 from werkzeug.local import LocalProxy as Proxy
 from .http_server import app
-from .exception import MatserTenantNotInitiatedException
+from .exception import MasterTenantNotInitiatedException
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def get_master_tenant_uuid():
 
     tenant_uuid = app.config['auth'].get('master_tenant_uuid')
     if not tenant_uuid:
-        raise MatserTenantNotInitiatedException()
+        raise MasterTenantNotInitiatedException()
 
     return tenant_uuid
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 23.14
+* Field `phonebook_uuid` of phonebook sources is now validated to depend on a valid phonebook
+* Phonebook sources are now deleted along with the phonebook they depend upon
+* Existing phonebook sources that cannot be resolved to a valid phonebook are deleted.
+
 ## 23.12
 
 * Added new endpoint to phonebook backend API:

@@ -152,9 +152,32 @@ class InvalidArgumentError(Exception):
 
 class InvalidConfigError(Exception):
     def __init__(self, location_path, msg):
-        super().__init__(location_path, msg)
+        super().__init__(f'{location_path}: {msg}')
         self.location_path = location_path
         self.msg = msg
+
+
+class InvalidSourceConfigError(InvalidConfigError):
+    def __init__(self, source_info: dict, details: dict = None, details_fmt: str = ''):
+        assert 'backend' in source_info, repr(source_info)
+        super().__init__(
+            location_path=f'/backends/{source_info["backend"]}/sources',
+            msg=(
+                f'Invalid config for source(name={source_info["name"]})'
+                + (f': {details_fmt.format_map(details or {})}' if details_fmt else '')
+            ),
+        )
+        self.source_info = source_info
+        self.details = details
+
+
+class InvalidSourceConfigAPIError(APIException):
+    def __init__(self, source_info: dict, details: dict = None) -> None:
+        details = details or {}
+        details.update(source_info=source_info)
+        super().__init__(
+            400, 'Invalid source config', 'invalid-source-config', details, 'sources'
+        )
 
 
 class InvalidPhonebookException(Exception):
@@ -186,7 +209,7 @@ class WazoConfdError(APIException):
         )
 
 
-class MatserTenantNotInitiatedException(APIException):
+class MasterTenantNotInitiatedException(APIException):
     def __init__(self):
         error_message = 'wazo-dird master tenant is not initiated'
         super().__init__(503, error_message, 'matser-tenant-not-initiated')

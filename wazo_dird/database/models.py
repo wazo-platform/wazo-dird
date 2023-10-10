@@ -109,6 +109,7 @@ class Phonebook(Base):
     __tablename__ = 'dird_phonebook'
     __table_args__ = (
         schema.UniqueConstraint('name', 'tenant_uuid'),
+        schema.UniqueConstraint('uuid', 'tenant_uuid'),
         schema.UniqueConstraint('id'),
         schema.CheckConstraint("name != ''"),
         schema.Index('dird_phonebook__idx__tenant_uuid', 'tenant_uuid'),
@@ -236,6 +237,12 @@ class Source(Base):
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
         schema.UniqueConstraint('name', 'tenant_uuid'),
         schema.Index('dird_source__idx__tenant_uuid', 'tenant_uuid'),
+        schema.ForeignKeyConstraint(
+            ('phonebook_uuid', 'tenant_uuid'),
+            ('dird_phonebook.uuid', 'dird_phonebook.tenant_uuid'),
+            name='dird_source_phonebook_fkey',
+            ondelete='CASCADE',
+        ),
     )
 
     uuid = Column(
@@ -248,6 +255,13 @@ class Source(Base):
     format_columns = Column(HSTORE)
     extra_fields = Column(JSON)
     backend = Column(Text(), nullable=False)
+    phonebook_uuid = Column(
+        UUID, ForeignKey('dird_phonebook.uuid', ondelete='CASCADE'), nullable=True
+    )
+
+    phonebook = relationship(
+        lambda: Phonebook, foreign_keys=[phonebook_uuid], lazy='joined'
+    )
 
 
 class Tenant(Base):

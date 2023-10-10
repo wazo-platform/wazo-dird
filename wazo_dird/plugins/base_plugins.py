@@ -9,6 +9,7 @@ from wazo_auth_client import Client as AuthClient
 from xivo.token_renewer import TokenRenewer
 
 from wazo_dird.config import Config as MainConfig
+from wazo_dird.plugin_manager import ServiceDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 
@@ -19,7 +20,7 @@ class BaseServicePlugin(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def load(self, args):
+    def load(self, args: ServiceDependencies):
         """
         Bootstraps the plugin instance. The flask app, bus connection and other
         handles will be passed through the args dictionary

@@ -3,12 +3,13 @@
 import random
 import string
 from functools import wraps
-from uuid import uuid4
 
 import requests
 from mockserver import MockServerClient as BaseMockServerClient
+from wazo_dird.database.helpers import Session
 
-from ..constants import VALID_TOKEN_MAIN_TENANT
+from wazo_dird.database.queries.phonebook import PhonebookCRUD
+from ..constants import MAIN_TENANT, VALID_TOKEN_MAIN_TENANT
 
 
 class UnVerifiedMockServerClient(BaseMockServerClient):
@@ -387,14 +388,27 @@ def personal_source(**source_args):
     return decorator
 
 
+def phonebook_autocreate_generator(self, *args, **kwargs):
+    return getattr(self, '_get_phonebook', PhonebookCRUD(Session()).create)(
+        tenant_uuid=kwargs.get('tenant_uuid', MAIN_TENANT),
+        name=kwargs.get('name', random_string()),
+    )
+
+
 def phonebook_source(**source_args):
     source_args.setdefault('token', VALID_TOKEN_MAIN_TENANT)
-    source_args.setdefault('phonebook_uuid', str(uuid4()))
 
     def decorator(decorated):
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
             client = self.get_client(source_args['token'])
+            if 'phonebook_uuid' not in source_args:
+                phonebook_generator = source_args.pop(
+                    'phonebook_generator', phonebook_autocreate_generator
+                )
+                phonebook = phonebook_generator(self, *args, **kwargs, **source_args)
+                source_args['phonebook_uuid'] = phonebook['uuid']
+
             source = client.phonebook_source.create(source_args)
             try:
                 result = decorated(self, source, *args, **kwargs)

@@ -41,7 +41,11 @@ class PhonebookServicePlugin(BaseServicePlugin):
 
 
 class _PhonebookService:
-    def __init__(self, phonebook_crud, contact_crud):
+    def __init__(
+        self,
+        phonebook_crud: database.PhonebookCRUD,
+        contact_crud: database.PhonebookContactCRUD,
+    ):
         self._phonebook_crud: database.PhonebookCRUD = phonebook_crud
         self._contact_crud: database.PhonebookContactCRUD = contact_crud
 
@@ -139,7 +143,7 @@ class _PhonebookService:
         return self._contact_crud.delete(visible_tenants, phonebook_key, contact_uuid)
 
     def delete_phonebook(self, visible_tenants: list[str], phonebook_key: PhonebookKey):
-        return self._phonebook_crud.delete(visible_tenants, phonebook_key)
+        self._phonebook_crud.delete(visible_tenants, phonebook_key)
 
     def get_contact(
         self, visible_tenants: list[str], phonebook_key: PhonebookKey, contact_uuid: str

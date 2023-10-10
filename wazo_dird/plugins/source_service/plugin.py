@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from typing import cast
 from wazo_dird.database.helpers import Session
 
 from wazo_dird import BaseServicePlugin, database
+from wazo_dird.database.queries.base import Direction
 from wazo_dird.database.queries.source import SourceBody, SourceInfo
 from wazo_dird.source_manager import SourceManager
 
@@ -49,5 +50,28 @@ class _SourceService:
     def get_by_uuid(self, uuid: str) -> SourceInfo:
         return self._source_crud.get_by_uuid(uuid)
 
-    def list_(self, backend: str, visible_tenants: list[str], **list_params):
-        return self._source_crud.list_(backend, visible_tenants, **list_params)
+    def list_(
+        self,
+        backend: str,
+        visible_tenants: list[str],
+        uuid: str | None = None,
+        name: str | None = None,
+        search: str | None = None,
+        offset: int | None = None,
+        limit: int | None = None,
+        order: str | None = None,
+        direction: Direction | None = None,
+        **list_params,
+    ):
+        return self._source_crud.list_(
+            backend,
+            visible_tenants,
+            uuid=uuid,
+            name=name,
+            search=search,
+            offset=offset,
+            limit=limit,
+            order=order,
+            direction=direction,
+            **list_params,
+        )
