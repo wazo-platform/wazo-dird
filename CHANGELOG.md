@@ -1,9 +1,9 @@
 # Changelog
 
 ## 23.14
-* Field `phonebook_uuid` of phonebook sources is now validated to point to a valid phonebook,
-  and the phonebook source is now deleted along with the phonebook it points to(delete cascade)
-* database migrations now ensures existing phonebook sources refer to a valid phonebook using the `phonebook_uuid` configuration attribute. Existing sources using a `phonebook_id` attribute or those with a `name` matching that of an existing phonebook are updated with a `phonebook_uuid` attribute corresponding to that phonebook's `uuid`. Those phonebook sources that cannot be resolved to a valid phonebook are deleted.
+* Field `phonebook_uuid` of phonebook sources is now validated to depend on a valid phonebook
+* Phonebook sources are now deleted along with the phonebook they depend upon
+* Existing phonebook sources that cannot be resolved to a valid phonebook are deleted.
 
 ## 23.12
 
