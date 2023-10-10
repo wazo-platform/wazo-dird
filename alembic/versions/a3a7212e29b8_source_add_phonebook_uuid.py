@@ -17,6 +17,7 @@ down_revision = 'bb2cd24f0500'
 source_table = sa.table(
     'dird_source',
     sa.column('uuid'),
+    sa.column('name'),
     sa.column('extra_fields'),
     sa.column('backend'),
     sa.column('phonebook_uuid'),
@@ -57,6 +58,7 @@ def upgrade():
     phonebook_sources_query = sa.select(
         [
             source_table.c.uuid,
+            source_table.c.name,
             source_table.c.extra_fields,
         ]
     ).where(source_table.c.backend == 'phonebook')
@@ -128,7 +130,7 @@ def downgrade():
             extra_fields=sa.func.jsonb_set(
                 sa.cast(source_table.c.extra_fields, postgresql.JSONB),
                 ['phonebook_uuid'],
-                sa.cast(str(source_table.c.phonebook_uuid), postgresql.JSONB),
+                sa.func.to_jsonb(source_table.c.phonebook_uuid),
             )
         )
     )
