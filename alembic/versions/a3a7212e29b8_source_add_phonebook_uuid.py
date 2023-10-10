@@ -96,7 +96,6 @@ def upgrade():
                 )
                 continue
 
-    print('source to phonebook: ', phonebook_uuid_map)
     if phonebook_uuid_map:
         phonebook_sources_update = (
             source_table.update()

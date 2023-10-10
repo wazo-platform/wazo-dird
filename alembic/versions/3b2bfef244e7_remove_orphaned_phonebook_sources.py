@@ -12,11 +12,6 @@ import sqlalchemy as sa
 revision = '3b2bfef244e7'
 down_revision = 'a3a7212e29b8'
 
-phonebook_table = sa.table(
-    'dird_phonebook',
-    sa.column('uuid'),
-    sa.column('tenant_uuid'),
-)
 
 source_table = sa.table(
     'dird_source',
@@ -35,8 +30,7 @@ def upgrade():
             source_table.c.phonebook_uuid.is_(None),
         )
     )
-    result = op.get_bind().execute(query)
-    print("rows deleted:", result.rowcount)
+    op.get_bind().execute(query)
 
 
 def downgrade():
