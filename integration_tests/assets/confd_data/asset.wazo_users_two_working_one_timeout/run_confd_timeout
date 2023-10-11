@@ -30,39 +30,39 @@ app = Flask(__name__)
 @app.route("/1.1/infos")
 def infos():
     time.sleep(timeout)
-    return jsonify({
-        "uuid": "6fa459ea-ee8a-3ca4-894e-db77e1europe"
-    })
+    return jsonify({"uuid": "6fa459ea-ee8a-3ca4-894e-db77e1europe"})
 
 
 @app.route("/1.1/users")
 def users():
     time.sleep(timeout)
-    return jsonify({
-        "total": 2,
-        "items": [
-            {
-                "id": 42,
-                "line_id": 3,
-                "agent_id": 2,
-                "firstname": "Bob",
-                "lastname": "Dylan",
-                "exten": "1632",
-                "email": "bob@dylan.com",
-                "mobile_phone_number": "0634321243"
-            },
-            {
-                "id": 100,
-                "line_id": 42,
-                "agent_id": None,
-                "firstname": "Charles",
-                "lastname": "European",
-                "exten": "9012",
-                "email": "",
-                "mobile_phone_number": ""
-            }
-        ]
-    })
+    return jsonify(
+        {
+            "total": 2,
+            "items": [
+                {
+                    "id": 42,
+                    "line_id": 3,
+                    "agent_id": 2,
+                    "firstname": "Bob",
+                    "lastname": "Dylan",
+                    "exten": "1632",
+                    "email": "bob@dylan.com",
+                    "mobile_phone_number": "0634321243",
+                },
+                {
+                    "id": 100,
+                    "line_id": 42,
+                    "agent_id": None,
+                    "firstname": "Charles",
+                    "lastname": "European",
+                    "exten": "9012",
+                    "email": "",
+                    "mobile_phone_number": "",
+                },
+            ],
+        }
+    )
 
 
 if __name__ == "__main__":
