@@ -75,7 +75,16 @@ def upgrade():
     phonebook_uuid_map = {}
     for row in op.get_bind().execute(phonebook_sources_query):
         if 'phonebook_uuid' in row.extra_fields:
-            phonebook_uuid_map[row.uuid] = row.extra_fields['phonebook_uuid']
+            phonebook_uuid = str(row.extra_fields['phonebook_uuid'])
+            phonebook = next(
+                (p for p in phonebooks if str(p.uuid) == phonebook_uuid), None
+            )
+            if phonebook:
+                phonebook_uuid_map[row.uuid] = row.extra_fields['phonebook_uuid']
+            else:
+                print(
+                    f'phonebook(uuid={phonebook_uuid}) not found for source {row.uuid}. Future migration might delete it.'
+                )
         elif 'phonebook_id' in row.extra_fields:
             phonebook_id = row.extra_fields['phonebook_id']
             try:
@@ -83,7 +92,7 @@ def upgrade():
                 phonebook_uuid_map[row.uuid] = phonebook.uuid
             except KeyError:
                 print(
-                    'phonebook(id={phonebook_id}) not found for source {row.uuid}. Future migration might delete it.'
+                    f'phonebook(id={phonebook_id}) not found for source {row.uuid}. Future migration might delete it.'
                 )
                 continue
         else:
