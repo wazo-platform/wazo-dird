@@ -83,7 +83,7 @@ def upgrade():
                 phonebook_uuid_map[row.uuid] = row.extra_fields['phonebook_uuid']
             else:
                 print(
-                    'phonebook(uuid={phonebook_uuid}) not found for source {row.uuid}. Future migration might delete it.'
+                    f'phonebook(uuid={phonebook_uuid}) not found for source {row.uuid}. Future migration might delete it.'
                 )
         elif 'phonebook_id' in row.extra_fields:
             phonebook_id = row.extra_fields['phonebook_id']
@@ -92,7 +92,7 @@ def upgrade():
                 phonebook_uuid_map[row.uuid] = phonebook.uuid
             except KeyError:
                 print(
-                    'phonebook(id={phonebook_id}) not found for source {row.uuid}. Future migration might delete it.'
+                    f'phonebook(id={phonebook_id}) not found for source {row.uuid}. Future migration might delete it.'
                 )
                 continue
         else:
