@@ -154,6 +154,10 @@ definitions:
       - properties:
           phonebook_uuid:
             type: string
+          phonebook_name:
+            type: string
+          phonebook_description:
+            type: string
       - required:
           - name
           - phonebook_uuid
