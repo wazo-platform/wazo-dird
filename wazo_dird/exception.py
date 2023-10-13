@@ -158,7 +158,9 @@ class InvalidConfigError(Exception):
 
 
 class InvalidSourceConfigError(InvalidConfigError):
-    def __init__(self, source_info: dict, details: dict = None, details_fmt: str = ''):
+    def __init__(
+        self, source_info: dict, details: dict | None = None, details_fmt: str = ''
+    ):
         assert 'backend' in source_info, repr(source_info)
         super().__init__(
             location_path=f'/backends/{source_info["backend"]}/sources',
@@ -172,7 +174,7 @@ class InvalidSourceConfigError(InvalidConfigError):
 
 
 class InvalidSourceConfigAPIError(APIException):
-    def __init__(self, source_info: dict, details: dict = None) -> None:
+    def __init__(self, source_info: dict, details: dict | None = None) -> None:
         details = details or {}
         details.update(source_info=source_info)
         super().__init__(
