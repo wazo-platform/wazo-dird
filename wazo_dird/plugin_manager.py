@@ -43,7 +43,7 @@ def load_services(
     controller: Controller,
 ):
     global services_extension_manager
-    dependencies: ServiceDependencies = {
+    dependencies = {
         'config': config,
         'source_manager': source_manager,
         'bus': bus,
@@ -90,7 +90,7 @@ def load_views(
     rest_api: CoreRestApi,
 ):
     global views_extension_manager
-    dependencies: ViewDependencies = {
+    dependencies = {
         'config': config,
         'services': services,
         'auth_client': auth_client,
