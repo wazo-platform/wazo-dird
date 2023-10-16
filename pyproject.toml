@@ -1,0 +1,19 @@
+[tool.black]
+skip-string-normalization = true
+
+[tool.flake8]
+show-source = true
+max-line-length = 99
+application-import-names = "wazo_dird"
+exclude = [
+    "build",
+    ".tox",
+    ".eggs",
+    "integration_tests/assets/scripts"
+]
+
+ignore = [
+    "E203", # whitespace before ':' warnings
+    "E501", # line too long
+    "W503", # line break before binary operator
+]
