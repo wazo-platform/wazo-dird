@@ -40,7 +40,7 @@ class CountParams(TypedDict):
 
 
 class ContactListSchema(_ListSchema):
-    searchable_columns = []
+    searchable_columns: list[str] = []
     sort_columns = ['firstname', 'lastname', 'number']
     default_sort_column = None
 

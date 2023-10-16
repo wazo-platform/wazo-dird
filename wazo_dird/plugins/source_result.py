@@ -37,6 +37,8 @@ class _SourceResult:
     backend: str
     source: str
     _format_columns: dict[str, str] = {}
+    is_deletable: bool
+    is_personal: bool
 
     fields: dict[str, Any | None]
     relations: dict[str, Any | None]

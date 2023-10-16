@@ -1,8 +1,10 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import itertools
 import logging
+from typing import TypedDict
 import uuid
 
 import requests
@@ -132,10 +134,19 @@ def get_microsoft_access_token(user_uuid, wazo_token, **auth_config):
         logger.error('Error occured while connecting to wazo-auth, error :%s', e)
 
 
-def get_first_email(contact_information):
-    return next(iter(contact_information.get('emailAddresses') or []), {}).get(
-        'address'
+class EmailAddress(TypedDict, total=False):
+    address: str
+
+
+class ContactInformation(TypedDict, total=False):
+    emailAddresses: list[EmailAddress]
+
+
+def get_first_email(contact_information: ContactInformation) -> str | None:
+    first_email: EmailAddress = next(
+        iter(contact_information.get('emailAddresses') or ()), {}
     )
+    return first_email.get('address')
 
 
 def aggregate_numbers(contact):

@@ -5,6 +5,7 @@ import csv
 import io
 import logging
 import re
+from typing import ClassVar
 
 from flask import request
 from flask import Response
@@ -16,6 +17,7 @@ from xivo.rest_api_helpers import APIException
 from wazo_dird import auth
 from wazo_dird.auth import required_acl
 from wazo_dird.http import LegacyAuthResource
+from wazo_dird.plugins.personal_service.plugin import _PersonalService
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +39,10 @@ def _get_calling_user_uuid():
 
 
 class PersonalAll(LegacyAuthResource):
-    personal_service = None
+    personal_service: ClassVar[_PersonalService]
 
     @classmethod
-    def configure(cls, personal_service):
+    def configure(cls, personal_service: _PersonalService):
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.create')
@@ -119,10 +121,10 @@ class PersonalAll(LegacyAuthResource):
 
 
 class PersonalOne(LegacyAuthResource):
-    personal_service = None
+    personal_service: ClassVar[_PersonalService]
 
     @classmethod
-    def configure(cls, personal_service):
+    def configure(cls, personal_service: _PersonalService):
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.{contact_id}.read')
@@ -170,10 +172,10 @@ class PersonalOne(LegacyAuthResource):
 
 
 class PersonalImport(LegacyAuthResource):
-    personal_service = None
+    personal_service: ClassVar[_PersonalService]
 
     @classmethod
-    def configure(cls, personal_service):
+    def configure(cls, personal_service: _PersonalService):
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.import.create')
