@@ -52,7 +52,7 @@ class TestWazoUser(DirdAssetRunningTestCase):
             'type': 'wazo',
             'tenant_uuid': MAIN_TENANT,
             'name': 'wazo_america',
-            'searched_columns': ['firstname', 'lastname'],
+            'searched_columns': ['firstname', 'lastname', 'full_name'],
             'first_matched_columns': ['exten'],
             'auth': {
                 'host': '127.0.0.1',
@@ -75,9 +75,11 @@ class TestWazoUser(DirdAssetRunningTestCase):
         }
 
     def test_that_the_lookup_returns_the_expected_result(self):
-        results = self.backend.search('dyl')
+        search_terms = ['dyl', 'bob', 'bob ', 'bob dyl', ' dyl']
+        for term in search_terms:
+            results = self.backend.search(term)
 
-        assert_that(results, contains(has_entries(**self._dylan)))
+            assert_that(results, contains(has_entries(**self._dylan)))
 
     def test_that_the_reverse_lookup_returns_the_expected_result(self):
         result = self.backend.first('1000')
