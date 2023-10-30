@@ -39,6 +39,18 @@
              "voicemail_number": "1234"
         },
         {
+             "id": 43,
+             "uuid": "696914c3-3698-42ef-9ee6-8efe30982f9d",
+             "line_id": 4,
+             "agent_id": null,
+             "firstname": "Pablo Ruiz",
+             "lastname": "Picasso",
+             "exten": "1001",
+             "email": "pablo.ruiz.picasso@example.org",
+             "mobile_phone_number": "",
+             "voicemail_number": "1235"
+        },
+        {
              "id": 100,
              "uuid": "9dfa2706-cd85-4130-82be-c54cc15e8410",
              "line_id": null,
