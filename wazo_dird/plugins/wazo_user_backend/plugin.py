@@ -82,6 +82,12 @@ class WazoUserPlugin(BaseSourcePlugin):
             for column in self._searched_columns:
                 column_value = entry.fields.get(column) or ''
                 clean_column_value = unidecode(str(column_value).lower())
+                logger.debug(
+                    'entry\'s cleaned value for search column %s: %r',
+                    column,
+                    clean_column_value,
+                )
+
                 if clean_term in clean_column_value:
                     return True
             return False
@@ -194,8 +200,13 @@ class WazoUserPlugin(BaseSourcePlugin):
         return (user for user in users['items'])
 
     def _source_result_from_entry(self, entry, uuid):
+        fields = {key: entry.get(key) for key in self._valid_keys}
+        firstname = fields['firstname'] or ''
+        lastname = fields['lastname'] or ''
+        fullname = ' '.join(fragment for fragment in (firstname, lastname) if fragment)
+        fields['full_name'] = fullname
         return self._SourceResult(
-            {key: entry.get(key) for key in self._valid_keys},
+            fields,
             xivo_id=uuid,
             agent_id=entry['agent_id'],
             user_id=entry['id'],

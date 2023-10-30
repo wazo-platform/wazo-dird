@@ -34,7 +34,7 @@ DEFAULT_ARGS = {
         'confd': CONFD_CONFIG,
         'auth': AUTH_CONFIG,
         'name': 'my_test_xivo',
-        'searched_columns': ['firstname', 'lastname'],
+        'searched_columns': ['firstname', 'lastname', 'full_name'],
     }
 }
 UUID = 'my-xivo-uuid'
@@ -52,9 +52,9 @@ CONFD_USER_1 = {
     "agent_id": 42,
     "exten": '666',
     "firstname": "Louis-Jean",
+    "lastname": "",
     "id": 226,
     'uuid': UUID_1,
-    "lastname": "",
     "line_id": 123,
     'userfield': None,
     'description': None,
@@ -73,6 +73,7 @@ SOURCE_1 = SourceResult(
         'exten': '666',
         'firstname': 'Louis-Jean',
         'lastname': '',
+        'full_name': "Louis-Jean",
         'userfield': None,
         'description': None,
         'email': 'louis-jean@aucun.com',
@@ -111,6 +112,7 @@ SOURCE_2 = SourceResult(
         'exten': '1234',
         'firstname': 'Paul',
         'lastname': 'àccent',
+        'full_name': 'Paul àccent',
         'email': '',
         'mobile_phone_number': '',
         'userfield': '555',
@@ -152,15 +154,17 @@ class TestWazoUserBackendSearch(_BaseTest):
         assert_that(result, empty())
 
     def test_search_on_included_column(self):
-        self._source._searched_columns = ['firstname', 'lastname']
+        self._source._searched_columns = ['firstname', 'lastname', 'full_name']
 
-        result = self._source.search(term='paul')
+        search_terms = ['paul', 'paul ', 'paul àccent', 'Paul À']
+        for term in search_terms:
+            result = self._source.search(term=term)
 
-        self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='paul'
-        )
+            self._confd_client.users.list.assert_called_with(
+                recurse=True, view='directory', search=term
+            )
 
-        assert_that(result, contains(SOURCE_2))
+            assert_that(result, contains(SOURCE_2))
 
     def test_that_search_uses_extra_search_params(self):
         config = dict(DEFAULT_ARGS)
