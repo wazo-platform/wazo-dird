@@ -94,6 +94,7 @@ class TestLDAP(BaseDirdIntegrationTest):
         Contact('Bob', 'Barker', '1002', 'Lyon'),
         Contact('Connor', 'Manson', '1003', 'QC'),
         Contact('François', 'Hollande', '1004', 'QC'),
+        Contact('Isaac', 'Asimov', '11 22 33 44', 'QC'),
     ]
     entry_uuids = []
 
@@ -124,6 +125,21 @@ class TestLDAP(BaseDirdIntegrationTest):
             contains('Alice', 'Wonderland', '1001'),
         )
 
+    def test_lookup_on_telephone_number_with_spaces(self):
+        result = self.lookup('11 22 33 44', 'default')
+
+        assert_that(
+            result['results'][0]['column_values'],
+            contains('Isaac', 'Asimov', '11 22 33 44'),
+        )
+
+        result = self.lookup('11223344', 'default')
+
+        assert_that(
+            result['results'][0]['column_values'],
+            contains('Isaac', 'Asimov', '11 22 33 44'),
+        )
+
     def test_lookup_with_non_ascii_characters(self):
         result = self.lookup('ç', 'default')
 
@@ -136,6 +152,15 @@ class TestLDAP(BaseDirdIntegrationTest):
         result = self.reverse('1001', 'default', VALID_UUID)
 
         assert_that(result['display'], equal_to('Alice Wonderland'))
+
+    def test_reverse_lookup_with_spaces(self):
+        result = self.reverse('11 22 33 44', 'default', VALID_UUID)
+
+        assert_that(result['display'], equal_to('Isaac Asimov'))
+
+        result = self.reverse('11223344', 'default', VALID_UUID)
+
+        assert_that(result['display'], equal_to('Isaac Asimov'))
 
     def test_no_result(self):
         result = self.lookup('frack', 'default')
