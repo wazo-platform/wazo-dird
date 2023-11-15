@@ -59,6 +59,7 @@ class _LookupService(helpers.BaseService):
         args = args or {}
         futures = []
         sources = self.source_from_profile(profile_config)
+        logger.debug('lookup sources: %s', [source.name for source in sources])
         for source in sources:
             args['token'] = token
             args['user_uuid'] = user_uuid
@@ -74,6 +75,11 @@ class _LookupService(helpers.BaseService):
         done, _ = wait(futures, **params)
         results = []
         for future in done:
+            logger.debug(
+                'lookup completed for source %s with %d results',
+                future.name,
+                sum(1 for _ in future.result()),
+            )
             for result in future.result():
                 results.append(result)
         return results

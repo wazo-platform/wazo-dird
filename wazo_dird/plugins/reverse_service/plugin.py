@@ -118,6 +118,7 @@ class _ReverseService(helpers.BaseService):
 
         try:
             for future in as_completed(futures, **params):
+                logger.debug('reverse lookup completed for source %s', future.name)
                 if future.result() is not None:
                     for other_future in futures:
                         other_future.cancel()
@@ -126,6 +127,11 @@ class _ReverseService(helpers.BaseService):
             logger.info('Timeout on reverse lookup for exten: %s', exten)
 
     def _async_reverse(self, source, exten, args):
+        logger.debug(
+            'Starting reverse lookup operation on source %s with search term %s',
+            source.name,
+            exten,
+        )
         raise_stopper = helpers.RaiseStopper(return_on_raise=None)
         future = self._executor.submit(
             raise_stopper.execute, source.first_match, exten, args

@@ -37,17 +37,28 @@ class LDAPPlugin(BaseSourcePlugin):
         )
         self._ldap_client = self.ldap_factory.new_ldap_client(self._ldap_config)
         self._ldap_client.set_up()
+        logger.debug(
+            'Loaded LDAP plugin for LDAP server %s with base DN %s',
+            self._ldap_config.ldap_uri(),
+            self._ldap_config.ldap_base_dn(),
+        )
 
     def unload(self):
         self._ldap_client.close()
 
     def search(self, term, args=None):
         filter_str = self._ldap_config.build_search_filter(term)
+        logger.debug(
+            'Searching ldap source for term %s with filter %s', term, filter_str
+        )
 
         return self._search_and_format(filter_str)
 
     def first_match(self, term, args=None):
         filter_str = self._ldap_config.build_first_match_filter(term)
+        logger.debug(
+            'Searching ldap source for term %s with filter %s', term, filter_str
+        )
 
         return self._first_match_and_format(filter_str)
 
