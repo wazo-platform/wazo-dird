@@ -72,7 +72,7 @@ def upgrade():
         ]
     )
     phonebooks = list(op.get_bind().execute(phonebooks_query))
-    phonebook_by_name = {(p.name, p.tenant_uuid): p for p in phonebooks}
+    phonebook_by_name = {(p.name, str(p.tenant_uuid)): p for p in phonebooks}
     phonebook_by_id = {p.id: p for p in phonebooks}
     phonebook_uuid_map = {}
     for row in op.get_bind().execute(phonebook_sources_query):
@@ -99,7 +99,7 @@ def upgrade():
                 continue
         else:
             try:
-                phonebook = phonebook_by_name[(row.name, row.tenant_uuid)]
+                phonebook = phonebook_by_name[(row.name, str(row.tenant_uuid))]
                 phonebook_uuid_map[row.uuid] = phonebook.uuid
             except KeyError:
                 print(
