@@ -60,6 +60,7 @@ def upgrade():
             source_table.c.uuid,
             source_table.c.name,
             source_table.c.extra_fields,
+            source_table.c.tenant_uuid,
         ]
     ).where(source_table.c.backend == 'phonebook')
     phonebooks_query = sa.select(
@@ -67,10 +68,11 @@ def upgrade():
             phonebook_table.c.uuid,
             phonebook_table.c.name,
             phonebook_table.c.id,
+            phonebook_table.c.tenant_uuid,
         ]
     )
     phonebooks = list(op.get_bind().execute(phonebooks_query))
-    phonebook_by_name = {p.name: p for p in phonebooks}
+    phonebook_by_name = {(p.name, str(p.tenant_uuid)): p for p in phonebooks}
     phonebook_by_id = {p.id: p for p in phonebooks}
     phonebook_uuid_map = {}
     for row in op.get_bind().execute(phonebook_sources_query):
@@ -97,7 +99,7 @@ def upgrade():
                 continue
         else:
             try:
-                phonebook = phonebook_by_name[row.name]
+                phonebook = phonebook_by_name[(row.name, str(row.tenant_uuid))]
                 phonebook_uuid_map[row.uuid] = phonebook.uuid
             except KeyError:
                 print(
