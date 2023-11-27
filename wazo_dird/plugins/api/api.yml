@@ -315,6 +315,8 @@ definitions:
     properties:
       id:
         type: integer
+      uuid:
+        type: string
       name:
         type: string
       description:
