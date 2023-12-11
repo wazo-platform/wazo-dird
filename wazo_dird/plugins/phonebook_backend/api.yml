@@ -65,7 +65,7 @@ paths:
         - $ref: '#/parameters/tenantuuid'
         - name: body
           in: body
-          description: The display configuration body
+          description: The phonebook source configuration body
           required: true
           schema:
             $ref: '#/definitions/PhonebookSource'
@@ -152,6 +152,8 @@ definitions:
     allOf:
       - $ref: '#/definitions/Source'
       - properties:
+          name:
+            readOnly: true
           phonebook_uuid:
             type: string
           phonebook_name:
@@ -159,7 +161,6 @@ definitions:
           phonebook_description:
             type: string
       - required:
-          - name
           - phonebook_uuid
   PhonebookSourceItems:
     title: PhonebookSourceItems
