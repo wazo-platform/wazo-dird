@@ -7,8 +7,9 @@ Revises: 3966fb49ce71
 
 import json
 
-from alembic import op
 from sqlalchemy import sql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '69698e576ad7'

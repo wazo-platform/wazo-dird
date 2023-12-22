@@ -3,14 +3,14 @@
 
 import os
 import unittest
-import yaml
 
+import yaml
 from hamcrest import assert_that, contains, contains_inanyorder, has_entries
 
 from .helpers.base import BaseDirdIntegrationTest, CSVWithMultipleDisplayTestCase
 from .helpers.config import new_csv_with_pipes_config
 from .helpers.constants import VALID_UUID
-from .helpers.utils import absolute_file_name, BackendWrapper
+from .helpers.utils import BackendWrapper, absolute_file_name
 
 
 class _BaseCSVFileTestCase(unittest.TestCase):

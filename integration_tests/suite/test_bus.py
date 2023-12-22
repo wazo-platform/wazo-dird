@@ -1,9 +1,9 @@
 # Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from wazo_test_helpers.bus import BusClient
+from hamcrest import assert_that, has_entries, has_entry, has_item
 from wazo_test_helpers import until
-from hamcrest import assert_that, has_item, has_entries, has_entry
+from wazo_test_helpers.bus import BusClient
 
 from .helpers.base import BaseDirdIntegrationTest
 

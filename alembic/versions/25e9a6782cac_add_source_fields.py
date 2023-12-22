@@ -5,9 +5,10 @@ Revises: 9a38ab587987
 
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '25e9a6782cac'

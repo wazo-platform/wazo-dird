@@ -6,13 +6,11 @@ import logging
 import uuid
 
 import requests
-
 from wazo_auth_client import Client as Auth
 
 from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
-
 
 logger = logging.getLogger(__name__)
 

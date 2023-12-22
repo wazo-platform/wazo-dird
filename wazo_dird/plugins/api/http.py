@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-import yaml
 
-from pkg_resources import resource_string, iter_entry_points
+import yaml
 from flask import make_response
+from pkg_resources import iter_entry_points, resource_string
 from xivo.chain_map import ChainMap
 from xivo.http_helpers import reverse_proxy_fix_api_spec
 

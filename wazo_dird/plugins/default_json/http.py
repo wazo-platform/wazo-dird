@@ -1,8 +1,7 @@
-# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-
 from time import time
 
 from flask import request
@@ -11,15 +10,15 @@ from requests.exceptions import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
+from wazo_dird.auth import required_acl
 from wazo_dird.exception import (
-    OldAPIException,
-    NoSuchUser,
     NoSuchProfile,
     NoSuchProfileAPIException,
+    NoSuchUser,
+    OldAPIException,
 )
 from wazo_dird.helpers import DisplayAwareResource
-from wazo_dird.auth import required_acl
-from wazo_dird.http import LegacyAuthResource, AuthResource
+from wazo_dird.http import AuthResource, LegacyAuthResource
 
 logger = logging.getLogger(__name__)
 

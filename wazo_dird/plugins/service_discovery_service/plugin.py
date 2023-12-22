@@ -8,9 +8,9 @@ from uuid import UUID
 
 import yaml
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
-
 from xivo.consul_helpers import ServiceFinder
 from xivo_bus.resources.services.event import ServiceRegisteredEvent
+
 from wazo_dird import BaseServicePlugin
 
 logger = logging.getLogger(__name__)

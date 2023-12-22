@@ -5,10 +5,10 @@ Revises: 3b2bfef244e7
 
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'a3a7212e29b8'

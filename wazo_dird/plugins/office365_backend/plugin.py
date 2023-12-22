@@ -6,9 +6,9 @@ import logging
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
 
-from .http import MicrosoftItem, MicrosoftList, MicrosoftContactList
-from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
 from . import services
+from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
+from .http import MicrosoftContactList, MicrosoftItem, MicrosoftList
 
 logger = logging.getLogger(__name__)
 

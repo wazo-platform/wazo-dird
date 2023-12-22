@@ -5,16 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable
 
 import requests
-
 from graphql_server.flask import GraphQLView
-
-from wazo_dird import BaseViewPlugin
-from wazo_dird import http_server
 from xivo.auth_verifier import (
     AuthServerUnreachable,
     Unauthorized,
     extract_token_id_from_header,
 )
+
+from wazo_dird import BaseViewPlugin, http_server
 
 from .exceptions import graphql_error_from_api_exception
 from .resolver import Resolver
@@ -22,7 +20,9 @@ from .schema import make_schema
 
 if TYPE_CHECKING:
     from wazo_auth_client.client import AuthClient
+
     from wazo_dird.plugins.source_result import _SourceResult
+
     from .resolver import ResolveInfo
 
 

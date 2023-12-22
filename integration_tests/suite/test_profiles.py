@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
-from requests import HTTPError
 
 from hamcrest import (
     assert_that,
@@ -15,11 +14,12 @@ from hamcrest import (
     has_properties,
     not_,
 )
+from requests import HTTPError
 from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
-from .helpers.config import new_multi_source_profile
 from .helpers.base import BaseDirdIntegrationTest
+from .helpers.config import new_multi_source_profile
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,

@@ -5,10 +5,10 @@ Revises: 4cf41a847a26
 
 """
 
-from alembic import op
-
+from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.schema import Column
-from sqlalchemy import ForeignKey, String, Text, Integer
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '2caf42314e25'

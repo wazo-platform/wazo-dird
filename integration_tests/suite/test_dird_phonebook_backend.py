@@ -3,15 +3,16 @@
 
 import random
 import string
-from typing import cast
 import unittest
-
-from uuid import uuid4
+from typing import cast
 from unittest.mock import Mock
+from uuid import uuid4
+
 from hamcrest import assert_that, contains, contains_inanyorder, equal_to
 
 from wazo_dird import database
 from wazo_dird.database.queries.base import ContactInfo as _ContactInfo
+
 from .helpers.base import DBRunningTestCase
 from .helpers.utils import BackendWrapper
 

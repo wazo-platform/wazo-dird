@@ -1,6 +1,8 @@
 # Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from contextlib import contextmanager
+
 from hamcrest import (
     any_of,
     assert_that,
@@ -12,13 +14,13 @@ from hamcrest import (
     has_key,
     not_,
 )
-from contextlib import contextmanager
 from wazo_dird_client import Client as DirdClient
-from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from wazo_test_helpers.auth import AuthClient as MockAuthClient
+from wazo_test_helpers.auth import MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_csv_with_multiple_displays_config, new_wazo_users_config
-from .helpers.constants import VALID_TOKEN, VALID_TOKEN_NO_ACL, MAIN_TENANT
+from .helpers.constants import MAIN_TENANT, VALID_TOKEN, VALID_TOKEN_NO_ACL
 
 
 class TestGraphQL(BaseDirdIntegrationTest):

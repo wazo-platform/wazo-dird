@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, has_properties
-
 from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import BaseDirdIntegrationTest

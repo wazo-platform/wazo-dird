@@ -6,8 +6,8 @@ import logging
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
 
-from .exceptions import GoogleTokenNotFoundException
 from . import services
+from .exceptions import GoogleTokenNotFoundException
 from .http import GoogleContactList, GoogleItem, GoogleList
 
 logger = logging.getLogger(__name__)

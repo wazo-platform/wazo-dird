@@ -1,24 +1,24 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import ldap
 import os
 import unittest
 import uuid
+from unittest.mock import ANY, Mock, call, sentinel
 
-from hamcrest import assert_that
-from hamcrest import contains_inanyorder
+import ldap
+from hamcrest import assert_that, contains_inanyorder
 from ldap.ldapobject import LDAPObject
-from unittest.mock import Mock, ANY, sentinel, call
+
 from wazo_dird.plugins.base_plugins import BaseSourcePlugin
 from wazo_dird.plugins.source_result import make_result_class
 
 from ..plugin import (
-    _LDAPConfig,
-    _LDAPResultFormatter,
-    _LDAPClient,
     LDAPPlugin,
+    _LDAPClient,
+    _LDAPConfig,
     _LDAPFactory,
+    _LDAPResultFormatter,
 )
 
 

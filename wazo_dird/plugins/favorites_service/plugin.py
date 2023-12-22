@@ -2,16 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-
 from collections import defaultdict, namedtuple
+from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
 
-from concurrent.futures import ALL_COMPLETED
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import wait
-from wazo_dird import BaseServicePlugin, helpers
-from wazo_dird import database, exception
-from wazo_dird.database.helpers import Session
 from xivo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
+
+from wazo_dird import BaseServicePlugin, database, exception, helpers
+from wazo_dird.database.helpers import Session
 
 logger = logging.getLogger(__name__)
 

@@ -1,15 +1,13 @@
-# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from unittest.mock import sentinel
 
 from hamcrest import assert_that, equal_to, has_entries, is_, none
-from unittest.mock import sentinel
-from wazo_dird.plugins.source_result import (
-    _NoErrorFormatter as Formatter,
-    _SourceResult,
-    make_result_class,
-)
+
+from wazo_dird.plugins.source_result import _NoErrorFormatter as Formatter
+from wazo_dird.plugins.source_result import _SourceResult, make_result_class
 
 
 class TestSourceResult(unittest.TestCase):

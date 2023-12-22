@@ -12,7 +12,7 @@ xivo-dird (12.22~20120914.180644.1b6b0ae) xivo-dev; urgency=low
 
 xivo-dird (1.2.11~20120617.202346.5e41943-1) squeeze-xivo-skaro-dev; urgency=low
 
-  * fix version 
+  * fix version
 
  -- Nicolas HICHER (atarakt) <nhicher@proformatique.com>  Wed, 20 Jun 2012 14:51:35 -0400
 

@@ -2,19 +2,21 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
+
 from hamcrest import (
     any_of,
     assert_that,
     contains,
     contains_inanyorder,
     equal_to,
-    has_entry,
     has_entries,
+    has_entry,
     has_item,
 )
-from wazo_test_helpers.bus import BusClient
 from wazo_test_helpers import until
-from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from wazo_test_helpers.auth import AuthClient as MockAuthClient
+from wazo_test_helpers.auth import MockUserToken
+from wazo_test_helpers.bus import BusClient
 
 from .helpers.base import (
     BaseDirdIntegrationTest,

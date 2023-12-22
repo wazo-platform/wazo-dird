@@ -2,16 +2,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_properties
-
 from wazo_test_helpers.hamcrest.raises import raises
+
 from .helpers.base import BaseDirdIntegrationTest
-from .helpers.fixtures import http as fixtures
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
+from .helpers.fixtures import http as fixtures
 
 
 class TestList(BaseDirdIntegrationTest):

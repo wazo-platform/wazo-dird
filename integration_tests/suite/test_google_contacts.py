@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
-
 from wazo_test_helpers.auth import AuthClient as AuthMock
 from wazo_test_helpers.hamcrest.raises import raises
 
+from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
     HTTP_404,
     SUB_TENANT,
@@ -13,9 +13,7 @@ from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
-from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
-
 
 MARIO_INFO = {
     "resourceName": "people/c4084048990019506721",

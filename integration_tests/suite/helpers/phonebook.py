@@ -1,6 +1,6 @@
+import uuid
 from types import SimpleNamespace
 from typing import Protocol
-import uuid
 
 from .base import BaseDirdIntegrationTest
 from .constants import MAIN_TENANT, VALID_TOKEN_MAIN_TENANT

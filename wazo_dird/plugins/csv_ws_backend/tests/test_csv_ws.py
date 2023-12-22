@@ -1,11 +1,11 @@
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
-
-from hamcrest import assert_that, is_, empty
 from unittest.mock import patch
 from unittest.mock import sentinel as s
+
+from hamcrest import assert_that, empty, is_
 
 from ..plugin import CSVWSPlugin
 

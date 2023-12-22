@@ -5,11 +5,12 @@ from __future__ import annotations
 import builtins
 import logging
 from collections import defaultdict
-from typing import Any, Tuple, TypedDict, cast
+from typing import Any, TypedDict, cast
 
 from sqlalchemy import and_, distinct, func, or_, text
-from sqlalchemy.orm import Query, scoped_session
+from sqlalchemy.orm import Query
 from sqlalchemy.orm import Session as BaseSession
+from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.expression import ColumnElement
 
 from wazo_dird.database.queries.base import Direction
@@ -187,7 +188,7 @@ class PhonebookContactCRUD(BaseDAO):
         visible_tenants: list[str] | None,
         phonebook_key: PhonebookKey,
         body: list[dict],
-    ) -> Tuple[list[ContactInfo], list[dict]]:
+    ) -> tuple[list[ContactInfo], list[dict]]:
         created = []
         errors = []
         with self.new_session() as s:

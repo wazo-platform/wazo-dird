@@ -2,12 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
 
-from concurrent.futures import ALL_COMPLETED
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import wait
-from wazo_dird import BaseServicePlugin
-from wazo_dird import helpers
+from wazo_dird import BaseServicePlugin, helpers
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,10 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import ldap
 import time
-
 from collections import namedtuple
-from ldap.modlist import addModlist
+
+import ldap
 from hamcrest import (
     assert_that,
     contains,
@@ -14,16 +13,16 @@ from hamcrest import (
     equal_to,
     has_entry,
 )
+from ldap.modlist import addModlist
 
 from .helpers.base import BaseDirdIntegrationTest
-from .helpers.constants import VALID_UUID
 from .helpers.config import (
     new_ldap_city_config,
     new_ldap_config,
     new_ldap_service_down_config,
     new_ldap_service_innactive_config,
 )
-
+from .helpers.constants import VALID_UUID
 
 Contact = namedtuple('Contact', ['firstname', 'lastname', 'number', 'city'])
 

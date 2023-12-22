@@ -1,17 +1,12 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    contains,
-    contains_inanyorder,
-    has_entries,
-    has_item,
-)
+from hamcrest import assert_that, contains, contains_inanyorder, has_entries, has_item
 from wazo_test_helpers import until
-from wazo_test_helpers.hamcrest.uuid_ import uuid_
+from wazo_test_helpers.auth import AuthClient as MockAuthClient
+from wazo_test_helpers.auth import MockUserToken
 from wazo_test_helpers.bus import BusClient
-from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import SUB_TENANT

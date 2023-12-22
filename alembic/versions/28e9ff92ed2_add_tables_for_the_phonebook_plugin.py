@@ -5,9 +5,6 @@ Revises: 2caf42314e25
 
 """
 
-from alembic import op
-
-from sqlalchemy.schema import Column
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
@@ -16,6 +13,9 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.schema import Column
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '28e9ff92ed2'

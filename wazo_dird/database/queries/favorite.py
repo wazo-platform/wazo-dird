@@ -1,10 +1,11 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_
 from sqlalchemy.orm.session import make_transient
 
 from wazo_dird.exception import DuplicatedFavoriteException, NoSuchFavorite
+
 from .. import Favorite, Source
 from .base import BaseDAO
 

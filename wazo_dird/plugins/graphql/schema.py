@@ -17,6 +17,7 @@ from graphene import (
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.source_result import _SourceResult
+
     from .resolver import ResolveInfo
 
 

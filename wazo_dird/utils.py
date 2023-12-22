@@ -1,4 +1,5 @@
-from typing import Mapping, TypeVar
+from collections.abc import Mapping
+from typing import TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from pkg_resources import iter_entry_points
+
 from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 

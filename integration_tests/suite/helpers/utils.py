@@ -1,14 +1,15 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os
 import logging
+import os
 import random
 import string
 import uuid
-import requests
 
+import requests
 from stevedore import DriverManager
+
 from wazo_dird import BaseSourcePlugin
 
 from .constants import ASSET_ROOT

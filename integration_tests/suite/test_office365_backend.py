@@ -1,8 +1,9 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import requests
+from unittest.mock import Mock
 
+import requests
 from hamcrest import (
     assert_that,
     calling,
@@ -15,17 +16,14 @@ from hamcrest import (
     is_,
     not_,
 )
-from unittest.mock import Mock
 from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers.auth import AuthClient as AuthMock
 from wazo_test_helpers.hamcrest.raises import raises
-from .helpers.utils import BackendWrapper
+
 from .helpers.base import DirdAssetRunningTestCase
-from .helpers.constants import (
-    UNKNOWN_TENANT,
-    VALID_TOKEN_MAIN_TENANT,
-)
+from .helpers.constants import UNKNOWN_TENANT, VALID_TOKEN_MAIN_TENANT
 from .helpers.fixtures import http as fixtures
+from .helpers.utils import BackendWrapper
 
 requests.packages.urllib3.disable_warnings()
 

@@ -1,12 +1,14 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from unidecode import unidecode
 from sqlalchemy import and_, distinct, text
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
+from unidecode import unidecode
+
 from wazo_dird.exception import DuplicatedContactException, NoSuchContact
-from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
+
 from .. import Contact, ContactFields, User
+from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
 
 
 class unaccent(ReturnTypeFromArgs):

@@ -9,10 +9,10 @@ from hamcrest import (
     has_entries,
     has_item,
 )
-
 from wazo_test_helpers.auth import AuthClient as AuthMock
 from wazo_test_helpers.hamcrest.raises import raises
 
+from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
     HTTP_404,
     SUB_TENANT,
@@ -20,9 +20,7 @@ from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
-from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
-
 
 OFFICE365_CONTACT_LIST = {
     "value": [

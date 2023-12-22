@@ -9,7 +9,6 @@ from hamcrest import (
     has_properties,
     not_,
 )
-
 from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 

@@ -5,9 +5,10 @@ Revises: None
 
 """
 
-from alembic import op
-from sqlalchemy.schema import Column
 from sqlalchemy import String, text
+from sqlalchemy.schema import Column
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'b0df0bc0ce37'

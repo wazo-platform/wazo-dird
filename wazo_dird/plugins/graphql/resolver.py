@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from flask import request
+
 from wazo_dird import auth
 from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
 
@@ -13,8 +14,10 @@ from .exceptions import graphql_error_from_api_exception
 
 if TYPE_CHECKING:
     from typing import TypedDict
-    from wazo_dird.plugins.source_result import _SourceResult
+
     from graphql import GraphQLResolveInfo
+
+    from wazo_dird.plugins.source_result import _SourceResult
 
     class ContextDict(TypedDict):
         resolver: Resolver

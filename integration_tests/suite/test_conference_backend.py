@@ -1,13 +1,14 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, contains, contains_inanyorder, empty, has_entries
 from unittest.mock import Mock
 
-from .helpers.utils import BackendWrapper
+from hamcrest import assert_that, contains, contains_inanyorder, empty, has_entries
+
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
 from .helpers.config import new_conference_config
 from .helpers.constants import MAIN_TENANT
+from .helpers.utils import BackendWrapper
 
 
 class TestConferencePlugin(DirdAssetRunningTestCase):

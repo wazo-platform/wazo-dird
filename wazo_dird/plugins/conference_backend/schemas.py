@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import pre_dump
-
 from xivo.mallow import fields
 from xivo.mallow_helpers import ListSchema as _ListSchema
+
 from wazo_dird.schemas import (
     AuthConfigSchema,
     BaseSchema,
