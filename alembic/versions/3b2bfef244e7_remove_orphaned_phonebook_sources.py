@@ -4,9 +4,9 @@ Revision ID: 3b2bfef244e7
 Revises: bb2cd24f0500
 """
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '3b2bfef244e7'

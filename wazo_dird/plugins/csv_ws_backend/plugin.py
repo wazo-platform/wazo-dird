@@ -3,11 +3,11 @@
 
 import csv
 import logging
-import requests
 
+import requests
 from requests import RequestException
-from wazo_dird import BaseSourcePlugin
-from wazo_dird import make_result_class
+
+from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
 
 from . import http

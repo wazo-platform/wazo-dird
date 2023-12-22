@@ -7,7 +7,6 @@ from wazo_dird import BaseViewPlugin
 
 from .http import Config
 
-
 logger = logging.getLogger(__name__)
 
 

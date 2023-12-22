@@ -1,9 +1,7 @@
-# Copyright 2014-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from wazo_dird import BaseSourcePlugin
-from wazo_dird import make_result_class
-
+from wazo_dird import BaseSourcePlugin, make_result_class
 
 DESC = (
     'It works but this wazo-dird installation is still using the default configuration'

@@ -3,23 +3,24 @@
 from __future__ import annotations
 
 import logging
-
 from functools import partial
 from typing import TYPE_CHECKING, Any, TypedDict
+
 from stevedore import NamedExtensionManager
 from xivo import plugin_helpers
 
 if TYPE_CHECKING:
-    from wazo_dird.config import Config
+    from flask import Flask
     from flask_restful import Api
     from wazo_auth_client import Client as AuthClient
     from xivo.status import StatusAggregator
+
     from wazo_dird.bus import CoreBus
+    from wazo_dird.config import Config
+    from wazo_dird.controller import Controller
     from wazo_dird.helpers import BaseService
     from wazo_dird.http_server import CoreRestApi
     from wazo_dird.source_manager import SourceManager
-    from flask import Flask
-    from wazo_dird.controller import Controller
 
 
 logger = logging.getLogger(__name__)

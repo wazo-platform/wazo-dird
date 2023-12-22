@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, equal_to
+
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import VALID_TOKEN_MAIN_TENANT
 

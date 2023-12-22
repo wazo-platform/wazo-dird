@@ -1,27 +1,19 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    has_key,
-    calling,
-    has_properties,
-)
-from wazo_test_helpers import until
+from hamcrest import assert_that, calling, has_key, has_properties
 from wazo_dird_client.exceptions import DirdError
+from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises
 
-from .helpers.wait_strategy import EverythingOkWaitStrategy
-from .helpers.base import (
-    BaseDirdIntegrationTest,
-    START_TIMEOUT,
-)
+from .helpers.base import START_TIMEOUT, BaseDirdIntegrationTest
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
+from .helpers.wait_strategy import EverythingOkWaitStrategy
 
 
 class TestConfig(BaseDirdIntegrationTest):

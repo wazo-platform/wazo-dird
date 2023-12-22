@@ -1,8 +1,9 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import requests
 from contextlib import contextmanager
+
+import requests
 from hamcrest import (
     assert_that,
     calling,
@@ -13,10 +14,10 @@ from hamcrest import (
     has_properties,
     not_,
 )
-from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
+
 from .helpers.base import BaseDirdIntegrationTest
-from .helpers.fixtures import http as fixtures
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
@@ -24,6 +25,7 @@ from .helpers.constants import (
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
 )
+from .helpers.fixtures import http as fixtures
 
 
 class BaseDisplayTestCase(BaseDirdIntegrationTest):

@@ -1,21 +1,14 @@
-# Copyright 2014-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
-
-from hamcrest import (
-    assert_that,
-    contains,
-    empty,
-    equal_to,
-    has_entries,
-    is_,
-    none,
-)
 from unittest.mock import Mock, call, patch
+
+from hamcrest import assert_that, contains, empty, equal_to, has_entries, is_, none
 from requests import RequestException
 
 from wazo_dird import make_result_class
+
 from ..plugin import WazoUserPlugin
 
 TENANT_UUID = '02153e33-4b59-4a9f-8cd1-7e917b306e1d'

@@ -1,11 +1,11 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
 
 from hamcrest import assert_that, equal_to
 
-from wazo_dird.helpers import DisplayColumn, DisplayAwareResource
+from wazo_dird.helpers import DisplayAwareResource, DisplayColumn
 
 make_display = DisplayAwareResource._make_display
 

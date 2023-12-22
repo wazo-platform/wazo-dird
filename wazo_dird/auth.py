@@ -1,15 +1,15 @@
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
-from xivo.auth_verifier import required_tenant, required_acl, no_auth
 from wazo_auth_client import Client
+from werkzeug.local import LocalProxy as Proxy
+from xivo.auth_verifier import no_auth, required_acl, required_tenant
 from xivo.status import Status
 
-from werkzeug.local import LocalProxy as Proxy
-from .http_server import app
 from .exception import MasterTenantNotInitiatedException
+from .http_server import app
 
 logger = logging.getLogger(__name__)
 

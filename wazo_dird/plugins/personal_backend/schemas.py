@@ -3,6 +3,7 @@
 
 from xivo.mallow import fields
 from xivo.mallow_helpers import ListSchema as _ListSchema
+
 from wazo_dird.schemas import BaseSourceSchema
 
 

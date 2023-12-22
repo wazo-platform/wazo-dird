@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_, func, text
+
 from wazo_dird.database import schemas
 from wazo_dird.exception import NoSuchDisplay
-from .base import BaseDAO
+
 from .. import Display, DisplayColumn
+from .base import BaseDAO
 
 
 class DisplayCRUD(BaseDAO):

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
+from unittest.mock import ANY
 
 from hamcrest import (
     assert_that,
@@ -12,9 +13,8 @@ from hamcrest import (
     has_entries,
     not_,
 )
-from unittest.mock import ANY
-from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
@@ -22,11 +22,11 @@ from .helpers.constants import (
     HTTP_401,
     HTTP_404,
     HTTP_409,
+    MAIN_TENANT,
+    SUB_TENANT,
     UNKNOWN_UUID,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
-    MAIN_TENANT,
-    SUB_TENANT,
 )
 from .helpers.fixtures import http as fixtures
 

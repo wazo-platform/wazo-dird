@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from setuptools import setup
-from setuptools import find_packages
+from setuptools import find_packages, setup
 
 setup(
     name='wazo-dird-broken-plugins',

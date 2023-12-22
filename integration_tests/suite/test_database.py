@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
-from typing import Any
 import unittest
-
 from collections import defaultdict
 from contextlib import closing, contextmanager
+from typing import Any
+from unittest.mock import ANY
+
 from hamcrest import (
     any_of,
     assert_that,
@@ -18,23 +19,20 @@ from hamcrest import (
     has_entries,
     has_item,
     has_items,
+    has_length,
     not_,
     raises,
-    has_length,
 )
-from unittest.mock import ANY
-
-from sqlalchemy import and_, func, exc
+from sqlalchemy import and_, exc, func
 from sqlalchemy.orm import scoped_session
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from wazo_dird import database, exception
-
-from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_dird.database.queries import base
+
 from .helpers.base import DBRunningTestCase
 from .helpers.fixtures import db as fixtures
 from .helpers.utils import new_uuid
-
 
 Session: scoped_session = None
 

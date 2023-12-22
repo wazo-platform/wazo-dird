@@ -2,13 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+
 import requests
 import yaml
-
-from openapi_spec_validator import validate_spec, openapi_v2_spec_validator
+from openapi_spec_validator import openapi_v2_spec_validator, validate_spec
 
 from .helpers.base import DirdAssetRunningTestCase
-
 
 logger = logging.getLogger('openapi_spec_validator')
 logger.setLevel(logging.INFO)

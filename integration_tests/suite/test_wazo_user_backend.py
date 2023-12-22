@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import Mock
+
 from hamcrest import (
     assert_that,
     contains,
@@ -11,7 +12,6 @@ from hamcrest import (
     has_entries,
     has_entry,
 )
-
 from wazo_test_helpers import until
 
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase

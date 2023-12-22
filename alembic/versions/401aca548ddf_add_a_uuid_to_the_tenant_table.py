@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 """add a uuid to the tenant table
 
@@ -8,8 +8,10 @@ Revises: 1e0397088fa7
 """
 
 from uuid import uuid4
-from alembic import op
+
 import sqlalchemy as sa
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '401aca548ddf'

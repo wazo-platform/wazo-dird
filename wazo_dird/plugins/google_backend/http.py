@@ -4,10 +4,11 @@
 import logging
 
 from flask import request
+from xivo.tenant_flask_helpers import Tenant, token
+
 from wazo_dird.auth import required_acl
 from wazo_dird.helpers import SourceItem, SourceList
 from wazo_dird.http import AuthResource
-from xivo.tenant_flask_helpers import Tenant, token
 
 from .schemas import contact_list_schema, list_schema, source_list_schema, source_schema
 from .services import GoogleService, get_google_access_token

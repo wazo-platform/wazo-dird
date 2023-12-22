@@ -8,8 +8,8 @@ from hamcrest import (
     contains,
     contains_inanyorder,
     equal_to,
-    has_entry,
     has_entries,
+    has_entry,
 )
 
 from .helpers.base import BaseDirdIntegrationTest

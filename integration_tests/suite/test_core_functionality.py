@@ -9,8 +9,8 @@ from hamcrest import (
     contains_inanyorder,
     contains_string,
     equal_to,
-    has_length,
     has_entries,
+    has_length,
 )
 
 from .helpers.base import (
@@ -19,9 +19,7 @@ from .helpers.base import (
     HalfBrokenTestCase,
 )
 from .helpers.config import new_multiple_sources_config
-
 from .helpers.constants import VALID_TOKEN_MAIN_TENANT, VALID_UUID
-
 
 EMPTY_RELATIONS = {
     'xivo_id': None,

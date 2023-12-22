@@ -1,4 +1,4 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 """add a source uuid
 
@@ -7,11 +7,12 @@ Revises: a3d1fa16da32
 
 """
 
-from alembic import op
+from uuid import uuid4
+
 import sqlalchemy as sa
 from sqlalchemy import sql
 
-from uuid import uuid4
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '9a38ab587987'

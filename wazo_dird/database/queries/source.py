@@ -1,19 +1,22 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+
 from typing import TypedDict
 
+from psycopg2.errorcodes import FOREIGN_KEY_VIOLATION, UNIQUE_VIOLATION
 from sqlalchemy import and_, exc, text
 from sqlalchemy.orm import Query, Session
+
 from wazo_dird.database.queries.base import Direction
 from wazo_dird.exception import (
     DuplicatedSourceException,
     InvalidSourceConfigError,
     NoSuchSource,
 )
-from .base import BaseDAO
+
 from .. import Source
-from psycopg2.errorcodes import UNIQUE_VIOLATION, FOREIGN_KEY_VIOLATION
+from .base import BaseDAO
 
 
 class SourceBody(TypedDict, total=False):

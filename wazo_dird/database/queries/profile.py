@@ -3,11 +3,11 @@
 
 from sqlalchemy import and_, exc, func, text
 
-from wazo_dird.database import schemas
 from wazo_dird import exception
+from wazo_dird.database import schemas
 
-from .base import BaseDAO, extract_constraint_name
 from .. import Profile, ProfileService, ProfileServiceSource, Service
+from .base import BaseDAO, extract_constraint_name
 
 
 class ProfileCRUD(BaseDAO):

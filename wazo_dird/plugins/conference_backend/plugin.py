@@ -3,8 +3,8 @@
 
 import logging
 
-from unidecode import unidecode
 from requests import HTTPError
+from unidecode import unidecode
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView

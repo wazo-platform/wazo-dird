@@ -1,13 +1,11 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from unittest import TestCase
-
-from unittest.mock import Mock, patch
 from copy import deepcopy
+from unittest import TestCase
+from unittest.mock import Mock, patch
 
 from ..confd_client_registry import _Registry
-
 
 SOURCE_CONFIG = {
     'uuid': '9d3f8211-1217-4461-9d0e-ce5e6ddedf2f',

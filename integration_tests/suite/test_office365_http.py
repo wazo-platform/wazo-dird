@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
+from unittest.mock import ANY
+
 from hamcrest import (
     assert_that,
     calling,
@@ -12,10 +14,8 @@ from hamcrest import (
     has_properties,
     not_,
 )
-from unittest.mock import ANY
-
-from wazo_test_helpers.hamcrest.uuid_ import uuid_
 from wazo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (

@@ -1,10 +1,9 @@
-# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_dird import BaseViewPlugin
 
-from . import http
-from . import service
+from . import http, service
 
 
 class BackendsViewPlugin(BaseViewPlugin):

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
+from unittest.mock import ANY
 
 from hamcrest import (
     all_of,
@@ -20,23 +21,22 @@ from hamcrest import (
     none,
     not_,
 )
-from unittest.mock import ANY
+from wazo_auth_client import Client as AuthClient
 from wazo_test_helpers import until
-from wazo_test_helpers.auth import AuthClient as MockAuthClient, MockUserToken
+from wazo_test_helpers.auth import AuthClient as MockAuthClient
+from wazo_test_helpers.auth import MockUserToken
 from wazo_test_helpers.bus import BusClient
 
-from wazo_auth_client import Client as AuthClient
-
+from .helpers.base import BaseDirdIntegrationTest, PersonalOnlyTestCase
 from .helpers.constants import (
     MAIN_TENANT,
     MAIN_USER_UUID,
-    VALID_UUID,
-    VALID_UUID_1,
-    VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_1,
     VALID_TOKEN_2,
+    VALID_TOKEN_MAIN_TENANT,
+    VALID_UUID,
+    VALID_UUID_1,
 )
-from .helpers.base import BaseDirdIntegrationTest, PersonalOnlyTestCase
 
 
 class TestListPersonal(PersonalOnlyTestCase):

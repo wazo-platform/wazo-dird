@@ -4,15 +4,18 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Iterator, Literal, Mapping, TypedDict, cast
 import unicodedata
-
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from itertools import islice
+from typing import Literal, TypedDict, cast
+
 from sqlalchemy import exc
-from sqlalchemy.orm import scoped_session, Session as BaseSession
-from wazo_dird.exception import DatabaseServiceUnavailable
+from sqlalchemy.orm import Session as BaseSession
+from sqlalchemy.orm import scoped_session
+
 from wazo_dird.database import Tenant, User
+from wazo_dird.exception import DatabaseServiceUnavailable
 
 from .. import ContactFields
 

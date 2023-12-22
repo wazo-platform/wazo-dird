@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
-
-from unittest.mock import ANY, Mock, patch, sentinel as s
+from unittest.mock import ANY, Mock, patch
+from unittest.mock import sentinel as s
 
 from wazo_dird.controller import Controller
 

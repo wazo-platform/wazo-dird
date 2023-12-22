@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 from typing import cast
 
-from wazo_dird.database.helpers import Session
-
 from wazo_dird import BaseServicePlugin, database
+from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.base import Direction
 from wazo_dird.database.queries.source import SourceBody, SourceInfo
 from wazo_dird.source_manager import SourceManager

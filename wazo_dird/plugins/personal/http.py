@@ -5,12 +5,10 @@ import csv
 import io
 import logging
 import re
-
-from flask import request
-from flask import Response
-from flask_restful import reqparse
 from time import time
 
+from flask import Response, request
+from flask_restful import reqparse
 from xivo.rest_api_helpers import APIException
 
 from wazo_dird import auth

@@ -1,10 +1,9 @@
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
 
-from hamcrest import assert_that
-from hamcrest import equal_to
+from hamcrest import assert_that, equal_to
 
 from wazo_dird.helpers import RaiseStopper
 

@@ -3,8 +3,9 @@
 
 import logging
 import time
+from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
-from typing import Iterator, TypedDict
+from typing import TypedDict
 from unittest.mock import ANY
 
 import requests
@@ -35,7 +36,6 @@ from wazo_dird.database.queries.phonebook import (
 )
 from wazo_dird.exception import NoSuchPhonebook
 
-from .helpers.utils import new_uuid
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
@@ -45,7 +45,7 @@ from .helpers.constants import (
 )
 from .helpers.fixtures import http as fixtures
 from .helpers.phonebook import BasePhonebookTestCase
-
+from .helpers.utils import new_uuid
 
 logger = logging.getLogger(__name__)
 
@@ -123,9 +123,9 @@ class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
             tenant_uuid, search=(name or self.valid_body['name'])
         ):
             phonebook, *_ = phonebooks
-            assert phonebook['uuid'] in set(
+            assert phonebook['uuid'] in {
                 phonebook['uuid'] for phonebook in self.phonebooks
-            )
+            }
             return phonebook
         else:
             new_phonebook = self.phonebook_dao.create(
@@ -577,8 +577,8 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                 ),
             )
             assert_that(
-                set(item['id'] for item in body['items']),
-                equal_to(set(contact['id'] for contact in self.contacts)),
+                {item['id'] for item in body['items']},
+                equal_to({contact['id'] for contact in self.contacts}),
             )
 
     def test_get_paginated(self):

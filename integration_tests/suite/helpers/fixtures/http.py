@@ -6,9 +6,10 @@ from functools import wraps
 
 import requests
 from mockserver import MockServerClient as BaseMockServerClient
-from wazo_dird.database.helpers import Session
 
+from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.phonebook import PhonebookCRUD
+
 from ..constants import MAIN_TENANT, VALID_TOKEN_MAIN_TENANT
 
 

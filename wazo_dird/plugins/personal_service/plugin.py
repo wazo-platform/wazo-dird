@@ -3,8 +3,7 @@
 
 import logging
 
-from wazo_dird import BaseServicePlugin
-from wazo_dird import database, exception
+from wazo_dird import BaseServicePlugin, database, exception
 from wazo_dird.database.helpers import Session
 
 logger = logging.getLogger(__name__)

@@ -18,6 +18,7 @@ from wazo_dird.helpers import (
 from wazo_dird.plugins.base_plugins import SourceConfig as BaseSourceConfig
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
+
 from . import http
 
 logger = logging.getLogger(__name__)

@@ -1,23 +1,25 @@
-# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from unittest.mock import ANY, Mock, call
+from unittest.mock import sentinel as s
 from uuid import uuid4
 
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import contains_inanyorder
-from hamcrest import has_entries
-from hamcrest import has_entry
-from hamcrest import has_item
-from hamcrest import not_
-from unittest.mock import ANY, call, Mock, sentinel as s
+from hamcrest import (
+    assert_that,
+    contains,
+    contains_inanyorder,
+    has_entries,
+    has_entry,
+    has_item,
+    not_,
+)
 
-from wazo_dird.helpers import DisplayColumn
 from wazo_dird import make_result_class
+from wazo_dird.helpers import DisplayColumn
 from wazo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
-from ..plugin import JsonViewPlugin
 from ..http import (
     FavoritesRead,
     FavoritesWrite,
@@ -26,6 +28,7 @@ from ..http import (
     Personal,
     _ResultFormatter,
 )
+from ..plugin import JsonViewPlugin
 
 UUID1 = str(uuid4())
 UUID2 = str(uuid4())
