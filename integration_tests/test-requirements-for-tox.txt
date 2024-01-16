@@ -1,7 +1,7 @@
 -r ../requirements.txt
 
 https://github.com/wazo-platform/mockserver-client-python/archive/5.6.X.zip
-https://github.com/wazo-platform/xivo-bus/archive/master.zip
+https://github.com/wazo-platform/wazo-bus/archive/master.zip
 https://github.com/wazo-platform/wazo-test-helpers/archive/master.zip
 https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 
