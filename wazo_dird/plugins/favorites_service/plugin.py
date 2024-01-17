@@ -1,11 +1,11 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 from collections import defaultdict, namedtuple
 from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
 
-from xivo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
+from wazo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
 
 from wazo_dird import BaseServicePlugin, database, exception, helpers
 from wazo_dird.database.helpers import Session

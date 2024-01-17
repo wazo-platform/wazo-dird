@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -8,8 +8,8 @@ from uuid import UUID
 
 import yaml
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
+from wazo_bus.resources.services.event import ServiceRegisteredEvent
 from xivo.consul_helpers import ServiceFinder
-from xivo_bus.resources.services.event import ServiceRegisteredEvent
 
 from wazo_dird import BaseServicePlugin
 

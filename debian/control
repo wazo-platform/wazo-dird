@@ -33,7 +33,7 @@ Depends: ${python3:Depends},
          wazo-confd-client-python3,
          wazo-dbms,
          wazo-uuid,
-         xivo-bus-python3,
+         wazo-bus-python3,
          xivo-lib-python-python3
 Provides: xivo-dird
 Replaces: xivo-dird
