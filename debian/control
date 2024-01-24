@@ -35,9 +35,6 @@ Depends: ${python3:Depends},
          wazo-uuid,
          wazo-bus-python3,
          xivo-lib-python-python3
-Provides: xivo-dird
-Replaces: xivo-dird
-Conflicts: xivo-dird
 Description: Wazo PBX's directory server
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.

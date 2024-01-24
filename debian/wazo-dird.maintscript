@@ -1,3 +1,0 @@
-# see: dh_installdeb(1)
-
-mv_conffile /etc/xivo-dird/config.yml /etc/wazo-dird/config.yml 18.05
