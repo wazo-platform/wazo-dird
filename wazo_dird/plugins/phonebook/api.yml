@@ -158,12 +158,12 @@ paths:
           description: The attributes of the contact
           required: true
           schema:
-            $ref: '#/definitions/ContactBodySample'
+            $ref: '#/definitions/PhonebookContact'
       responses:
         '201':
           description: The new contact
           schema:
-            $ref: '#/definitions/Contact'
+            $ref: '#/definitions/PhonebookContact'
         '400':
           $ref: '#/responses/InvalidParameters'
         '409':

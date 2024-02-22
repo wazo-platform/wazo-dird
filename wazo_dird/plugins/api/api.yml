@@ -272,10 +272,13 @@ definitions:
     properties:
       id:
         type: string
+        readOnly: true
       firstname:
         type: string
       lastname:
         type: string
+    additionalProperties:
+      type: string
   PhonebookContactList:
     type: array
     items:
