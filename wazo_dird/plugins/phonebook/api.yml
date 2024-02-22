@@ -196,11 +196,15 @@ paths:
           required: true
           schema:
             type: string
+            example: |
+              firstname,lastname,phone_number,extension
+              John,Doe,+33 6 00 00 00 00,5001
+              Jane,Doe,+33 6 00 00 00 01,5002
       responses:
         '201':
           description: At least one contact has been created.
           schema:
-            $ref: '#/definitions/ContactImportResponse'
+            $ref: '#/definitions/PhonebookContactImportResponse'
         '400':
           description: Input could not be decoded, and no contacts were created.
           schema:
@@ -242,7 +246,7 @@ paths:
           description: The modified attributes of the contact
           required: true
           schema:
-            $ref: '#/definitions/ContactBodySample'
+            $ref: '#/definitions/PhonebookContactBodySample'
       responses:
         '204':
           description: Contact updated

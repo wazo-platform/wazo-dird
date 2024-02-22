@@ -283,14 +283,14 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/PhonebookContact'
-  ContactBodySample:
+  PhonebookContactBodySample:
     description: Those are only example attributes. The API accepts any arbitrary attributes.
     properties:
       firstname:
         type: string
       lastname:
         type: string
-  ContactImportResponse:
+  PhonebookContactImportResponse:
     properties:
       created:
         $ref: '#/definitions/PhonebookContactList'
