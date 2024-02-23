@@ -290,14 +290,21 @@ definitions:
         type: string
       lastname:
         type: string
-  PhonebookContactImportResponse:
+  ContactImportResponse:
     properties:
       created:
-        $ref: '#/definitions/PhonebookContactList'
+        type: array
+        items:
+          type: object
       failed:
         type: array
         items:
           $ref: '#/definitions/ContactImportFailure'
+  PhonebookContactImportResponse:
+    $ref: '#/definitions/ContactImportResponse'
+    properties:
+      created:
+        $ref: '#/definitions/PhonebookContactList'
   ContactImportFailure:
     properties:
       line:
