@@ -272,10 +272,13 @@ definitions:
     properties:
       id:
         type: string
+        readOnly: true
       firstname:
         type: string
       lastname:
         type: string
+    additionalProperties:
+      type: string
   PhonebookContactList:
     type: array
     items:
@@ -290,11 +293,18 @@ definitions:
   ContactImportResponse:
     properties:
       created:
-        $ref: '#/definitions/PhonebookContactList'
+        type: array
+        items:
+          type: object
       failed:
         type: array
         items:
           $ref: '#/definitions/ContactImportFailure'
+  PhonebookContactImportResponse:
+    $ref: '#/definitions/ContactImportResponse'
+    properties:
+      created:
+        $ref: '#/definitions/PhonebookContactList'
   ContactImportFailure:
     properties:
       line:
