@@ -156,10 +156,13 @@ definitions:
             readOnly: true
           phonebook_uuid:
             type: string
+            readOnly: true
           phonebook_name:
             type: string
+            readOnly: true
           phonebook_description:
             type: string
+            readOnly: true
       - required:
           - phonebook_uuid
   PhonebookSourceItems:
