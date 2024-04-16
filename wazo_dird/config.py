@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -98,7 +98,7 @@ _DEFAULT_CONFIG: Config = {
         'key_file': '',
     },
     'config_file': '/etc/wazo-dird/config.yml',
-    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
+    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-dird',
     'debug': False,
     'extra_config_files': '/etc/wazo-dird/conf.d/',
     'enabled_plugins': {

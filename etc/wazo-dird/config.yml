@@ -8,7 +8,7 @@ extra_config_files: /etc/wazo-dird/conf.d/
 source_config_dir: /etc/wazo-dird/sources.d
 
 # Database use for the storage of personal contacts and favorites
-db_uri: postgresql://asterisk:proformatique@localhost/asterisk
+db_uri: postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-dird
 
 # REST API server
 rest_api:
