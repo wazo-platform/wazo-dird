@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -108,9 +108,9 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
                 ),
             )
 
-            self._run_cmd('docker-compose kill dird')
-            self._run_cmd('docker-compose rm -f dird')
-            self._run_cmd('docker-compose run --rm sync')
+            self._run_cmd('docker compose kill dird')
+            self._run_cmd('docker compose rm -f dird')
+            self._run_cmd('docker compose run --rm sync')
 
             result = self.favorites('default', token=self.token_1)
 

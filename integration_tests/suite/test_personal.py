@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -226,9 +226,9 @@ class TestPersonalPersistence(PersonalOnlyTestCase):
 
         assert_that(result_before['items'], contains(has_key('id')))
 
-        self._run_cmd('docker-compose kill dird')
-        self._run_cmd('docker-compose rm -f dird')
-        self._run_cmd('docker-compose run --rm sync')
+        self._run_cmd('docker compose kill dird')
+        self._run_cmd('docker compose rm -f dird')
+        self._run_cmd('docker compose run --rm sync')
 
         result_after = self.list_personal()
 
