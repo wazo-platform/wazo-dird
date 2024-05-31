@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -36,9 +36,13 @@ def teardown_module():
     DBStarter.tearDownClass()
 
 
-def _new_contact(firstname, lastname) -> dict[str, str]:
+def _new_contact(firstname, lastname, phone_prefix='') -> dict[str, str]:
     random_number = ''.join(random.choice(string.digits) for _ in range(10))
-    return {'firstname': firstname, 'lastname': lastname, 'number': random_number}
+    return {
+        'firstname': firstname,
+        'lastname': lastname,
+        'number': phone_prefix + random_number,
+    }
 
 
 contact_bodies = [
@@ -144,3 +148,86 @@ class TestPhonebookBackend(unittest.TestCase):
         )
 
         assert_that(result, contains_inanyorder(self.hermione, self.harry, self.ron))
+
+
+class TestPhonebookBackendReverseLookup(unittest.TestCase):
+    contact_bodies = [
+        _new_contact('Paul', 'Artreides', '30'),
+        _new_contact('Leto', 'Artreides', '32'),
+        _new_contact('Lady', 'Jessica', '90'),
+        _new_contact('Thufir', 'Hawat', '1'),
+        _new_contact('Gurney', 'Halleck', '33'),
+        _new_contact('Duncan', 'Idaho', '44'),
+        _new_contact('Wellington', 'Yueh', '49'),
+    ]
+
+    def setUp(self):
+        self.tenant_uuid = str(uuid4())
+        self.tenant = 'herbert'
+        self.auth_client = Mock()
+        self.auth_client.tenants.list.return_value = {
+            'items': [{'uuid': self.tenant_uuid}]
+        }
+        self.token_renewer = Mock()
+        self.phonebook_crud = database.PhonebookCRUD(Session)
+        self.phonebook_contact_crud = database.PhonebookContactCRUD(Session)
+
+        self.phonebook = self.phonebook_crud.create(
+            self.tenant_uuid, {'name': 'caladan'}
+        )
+        self.contacts = cast(
+            list[ContactInfo],
+            [
+                self.phonebook_contact_crud.create(
+                    [self.tenant_uuid],
+                    database.PhonebookKey(uuid=self.phonebook['uuid']),
+                    cast(dict, c),
+                )
+                for c in self.contact_bodies
+            ],
+        )
+        assert all(
+            {'number', 'firstname', 'lastname'} & fields.keys()
+            for fields in self.contacts
+        )
+        (
+            self.paul,
+            self.leto,
+            self.jessica,
+            self.thufir,
+            self.gurney,
+            self.duncan,
+            self.wellington,
+        ) = self.contacts
+        config = {
+            'tenant_uuid': self.tenant_uuid,
+            'name': 'caladan',
+            'phonebook_id': self.phonebook['id'],
+            'phonebook_uuid': self.phonebook['uuid'],
+            'searched_columns': ['firstname', 'lastname'],
+            'first_matched_columns': ['number'],
+        }
+        self.backend: BackendWrapper = self._load_backend(config)
+
+    def _load_backend(self, config):
+        dependencies = {
+            'config': config,
+            'auth_client': self.auth_client,
+            'token_renewer': self.token_renewer,
+        }
+        return BackendWrapper('phonebook', dependencies)
+
+    def tearDown(self):
+        self.phonebook_crud.delete(
+            [self.tenant_uuid], database.PhonebookKey(uuid=self.phonebook['uuid'])
+        )
+
+    def test_that_first_match_returns_a_contact(self):
+        result = self.backend.first(self.paul['number'])
+
+        assert_that(result, equal_to(self.paul))
+
+    def test_that_first_match_without_country_returns_a_contact(self):
+        result = self.backend.first(self.paul['number'][2:])
+
+        assert_that(result, equal_to(self.paul))
