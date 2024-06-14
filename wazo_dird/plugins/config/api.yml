@@ -11,6 +11,24 @@ paths:
       responses:
         '200':
           description: A JSON representation of the current configuration.
+    patch:
+      produces:
+        - application/json
+      summary: Update the current configuration.
+      description: |
+        **Required ACL:** `dird.config.update`
+        Changes are not persistent across service restart.
+      operationId: patchConfig
+      tags:
+        - config
+      parameters:
+        - $ref: "#/parameters/ConfigPatch"
+      responses:
+        '200':
+          description: The updated configuration of the service
+        '400':
+          description: The given configuration is invalid
+
   /services:
     get:
       operationId: list_services
@@ -61,6 +79,16 @@ parameters:
     description: The offset defines the offsets the start by the number specified
     default: 0
     required: false
+  ConfigPatch:
+    name: ConfigPatch
+    in: body
+    required: true
+    description: See https://en.wikipedia.org/wiki/JSON_Patch.
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/ConfigPatchItem'
+
 responses:
   CreateError:
     description: An error occurred when creating the resource
@@ -120,3 +148,14 @@ definitions:
           - items
           - total
           - filtered
+  ConfigPatchItem:
+    properties:
+      op:
+        type: string
+        description: "Patch operation. Supported operations: `replace`."
+      path:
+        type: string
+        description: "JSON path to operate on. Supported paths: `/debug`."
+      value:
+        type: object
+        description: "The new value for the operation. Type of value is dependent of `path`"
