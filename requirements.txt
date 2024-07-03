@@ -12,6 +12,7 @@ flask==1.1.2
 graphene==3.2.1
 itsdangerous==1.1.0  # from flask
 jinja2==2.11.3  # from flask
+jsonpatch==1.21
 kombu==5.0.2
 markupsafe==1.1.1 # from jinja
 marshmallow==3.10.0

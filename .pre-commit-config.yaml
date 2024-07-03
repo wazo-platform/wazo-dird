@@ -10,6 +10,18 @@ repos:
     rev: 23.9.1
     hooks:
       - id: black
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.6.1
+    hooks:
+      - id: mypy
+        exclude : "integration_tests/docker"
+        language_version: "3.10"
+        additional_dependencies:
+          - "types-requests"
+          - "types-pyyaml"
+          - "wazo_auth_client@https://github.com/wazo-platform/wazo-auth-client/archive/master.zip"
+          - "xivo@https://github.com/wazo-platform/xivo-lib-python/archive/master.zip"
+          - "wazo_bus@https://github.com/wazo-platform/wazo-bus/archive/master.zip"
 # Automatically update to modern python (as modern as allowed by your Python version)
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.0

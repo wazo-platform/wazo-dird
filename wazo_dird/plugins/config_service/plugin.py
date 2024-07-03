@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+import threading
 
 from wazo_bus.resources.auth.events import TenantCreatedEvent
 
@@ -140,6 +141,10 @@ class ConfigServicePlugin(BaseServicePlugin):
 
 
 class Service:
+    # Changing root logger log-level requires application-wide lock.
+    # This lock will be shared across all instances.
+    _lock = threading.Lock()
+
     def __init__(self, config, bus, controller):
         self._bus = bus
         self._config = config
@@ -147,8 +152,27 @@ class Service:
 
         self._bus.subscribe(TenantCreatedEvent.name, self._on_new_tenant_event)
 
-    def get_current_config(self):
+    def get_config(self):
         return self._config
+
+    def update_config(self, config: dict) -> None:
+        with self._lock:
+            self._update_debug(config['debug'])
+            self._config['debug'] = config['debug']
+
+    def _update_debug(self, debug: bool) -> None:
+        if debug:
+            self._enable_debug()
+        else:
+            self._disable_debug()
+
+    def _enable_debug(self) -> None:
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.DEBUG)
+
+    def _disable_debug(self) -> None:
+        root_logger = logging.getLogger()
+        root_logger.setLevel(self._config['log_level'])
 
     def _on_new_tenant_event(self, tenant):
         name = tenant['name']
