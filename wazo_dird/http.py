@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -7,11 +7,11 @@ from functools import wraps
 
 from flask_restful import Resource
 from xivo import mallow_helpers, rest_api_helpers
-from xivo.auth_verifier import AuthVerifier
+from xivo.flask.auth_verifier import AuthVerifierFlask
 
 logger = logging.getLogger(__name__)
 
-auth_verifier = AuthVerifier()
+auth_verifier = AuthVerifierFlask()
 
 
 def handle_api_exception(func):
