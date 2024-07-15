@@ -1,4 +1,4 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -6,11 +6,8 @@ from typing import TYPE_CHECKING, Any, Callable
 
 import requests
 from graphql_server.flask import GraphQLView
-from xivo.auth_verifier import (
-    AuthServerUnreachable,
-    Unauthorized,
-    extract_token_id_from_header,
-)
+from xivo.auth_verifier import AuthServerUnreachable, Unauthorized
+from xivo.flask.headers import extract_token_id_from_header
 
 from wazo_dird import BaseViewPlugin, http_server
 
