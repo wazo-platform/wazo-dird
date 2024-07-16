@@ -1,4 +1,4 @@
-# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, equal_to, has_entry, has_key, has_properties
@@ -6,7 +6,7 @@ from wazo_dird_client.exceptions import DirdError
 from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises
 
-from .helpers.base import START_TIMEOUT, BaseDirdIntegrationTest
+from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
     MAIN_TENANT,
     SUB_TENANT,
@@ -39,15 +39,10 @@ class TestConfig(BaseDirdIntegrationTest):
             raises(DirdError).matching(has_properties(status_code=401)),
         )
 
-    def test_restrict_when_auth_service_is_down(self):
-        self.stop_service('dird')
-        self.stop_service('auth')
-        self.start_service('dird')
-        dird = self.make_dird(VALID_TOKEN_MAIN_TENANT)
-
+    def test_restrict_when_service_token_not_initialized(self):
         def _returns_503():
             assert_that(
-                calling(dird.config.get).with_args(MAIN_TENANT),
+                calling(self.dird.config.get).with_args(MAIN_TENANT),
                 raises(DirdError).matching(
                     has_properties(
                         status_code=503,
@@ -56,21 +51,9 @@ class TestConfig(BaseDirdIntegrationTest):
                 ),
             )
 
-        until.assert_(_returns_503, tries=10)
-
-        self.start_service('auth')
-        auth = self.make_mock_auth()
-        until.true(auth.is_up, timeout=START_TIMEOUT)
-        self.configure_wazo_auth()
-
-        def _not_return_503():
-            try:
-                response = dird.config.get(MAIN_TENANT)
-                assert_that(response, has_key('debug'))
-            except Exception as e:
-                raise AssertionError(e)
-
-        until.assert_(_not_return_503, tries=10)
+        config = {'auth': {'username': 'invalid-service'}}
+        with self.dird_with_config(config):
+            until.assert_(_returns_503, timeout=10)
 
     def test_update_config(self) -> None:
         debug_true_config = [

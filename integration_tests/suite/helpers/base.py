@@ -1,11 +1,15 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
+import random
+import string
+from collections.abc import Generator
 from contextlib import contextmanager
 from typing import ClassVar
 
 import requests
+import yaml
 from hamcrest import assert_that, equal_to, has_entries
 from sqlalchemy.engine import Engine, create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -15,6 +19,7 @@ from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_test_helpers.auth import AuthClient as MockAuthClient
 from wazo_test_helpers.auth import MockCredentials, MockUserToken
 from wazo_test_helpers.db import DBUserClient
+from wazo_test_helpers.filesystem import FileSystemClient
 
 from wazo_dird import database
 
@@ -85,6 +90,30 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
         cls.setup_db_session()
         database = DBUserClient(cls.db_uri)
         until.true(database.is_up, timeout=5, message='Postgres did not come back up')
+
+    @classmethod
+    def restart_dird(cls):
+        cls.restart_service('dird')
+        cls.dird = cls.make_dird(VALID_TOKEN_MAIN_TENANT)
+
+    @classmethod
+    @contextmanager
+    def dird_with_config(cls, config: dict) -> Generator[None, None, None]:
+        filesystem = FileSystemClient(
+            execute=cls.docker_exec,
+            service_name='dird',
+            root=True,
+        )
+        name = ''.join(random.choice(string.ascii_lowercase) for _ in range(6))
+        config_file = f'/etc/wazo-dird/conf.d/10-{name}.yml'
+        content = yaml.dump(config)
+        try:
+            with filesystem.file_(config_file, content=content):
+                cls.restart_dird()
+                yield
+        finally:
+            cls.restart_dird()
+            cls.wait_strategy.wait(cls.dird)
 
 
 class RequestUtilMixin:
