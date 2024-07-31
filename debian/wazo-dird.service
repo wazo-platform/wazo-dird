@@ -8,6 +8,7 @@ StartLimitIntervalSec=150
 ExecStart=/usr/bin/wazo-dird --user www-data
 Restart=on-failure
 RestartSec=5
+SyslogIdentifier=wazo-dird
 
 [Install]
 WantedBy=multi-user.target
