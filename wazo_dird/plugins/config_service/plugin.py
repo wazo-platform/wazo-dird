@@ -3,6 +3,7 @@
 
 import logging
 import threading
+from typing import Any
 
 from wazo_bus.resources.auth.events import TenantCreatedEvent
 
@@ -140,6 +141,9 @@ class ConfigServicePlugin(BaseServicePlugin):
         return Service(config, bus, controller)
 
 
+ConfigValue = dict[str, Any]
+
+
 class Service:
     # Changing root logger log-level requires application-wide lock.
     # This lock will be shared across all instances.
@@ -147,12 +151,12 @@ class Service:
 
     def __init__(self, config, bus, controller):
         self._bus = bus
-        self._config = config
+        self._config: ConfigValue = config
         self._controller = controller
 
         self._bus.subscribe(TenantCreatedEvent.name, self._on_new_tenant_event)
 
-    def get_config(self):
+    def get_config(self) -> ConfigValue:
         return self._config
 
     def update_config(self, config: dict) -> None:
