@@ -14,8 +14,11 @@ repos:
     rev: v1.6.1
     hooks:
       - id: mypy
-        exclude : "integration_tests/docker"
+        exclude : "integration_tests/docker|bin"
         language_version: "3.10"
+        args: [
+          "--python-executable=.tox/py39/bin/python"
+        ]
         additional_dependencies:
           - "types-requests"
           - "types-pyyaml"
