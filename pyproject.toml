@@ -31,5 +31,9 @@ ignore_missing_imports = true
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = ["wazo_dird.plugins.config.*"]
+module = [
+    "wazo_dird.plugins.config.*",
+    "wazo_dird.auth"
+]
 ignore_errors = false
+ignore_missing_imports = false
