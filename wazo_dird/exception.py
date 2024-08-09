@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -210,6 +210,6 @@ class WazoConfdError(APIException):
 
 
 class MasterTenantNotInitiatedException(APIException):
-    def __init__(self):
+    def __init__(self) -> None:
         error_message = 'wazo-dird master tenant is not initiated'
         super().__init__(503, error_message, 'matser-tenant-not-initiated')

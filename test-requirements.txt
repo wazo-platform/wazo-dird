@@ -1,2 +1,5 @@
 pyhamcrest
 pytest
+types-requests
+types-pyyaml
+types-flask
