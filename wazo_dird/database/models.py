@@ -1,11 +1,11 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import Column, ForeignKey, Integer, Sequence, String, Text, schema, text
 from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON, UUID
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 
 Base = declarative_base()
 
@@ -262,6 +262,21 @@ class Source(Base):
     phonebook = relationship(
         lambda: Phonebook, foreign_keys=[phonebook_uuid], lazy='joined'
     )
+
+    @validates('name')
+    def ensure_phonebook_name(self, key, value):
+        assert key == 'name'
+        if not self.backend == 'phonebook':
+            return value
+        else:
+            assert self.phonebook_uuid and self.phonebook
+            if self.phonebook.name == value:
+                return value
+            else:
+                raise ValueError(
+                    f'Source name {value} does not correspond to underlying '
+                    f'phonebook name {self.phonebook.name}'
+                )
 
 
 class Tenant(Base):
