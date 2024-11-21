@@ -11,7 +11,7 @@ flask-restful==0.3.8
 flask==1.1.2
 graphene==3.2.1
 itsdangerous==1.1.0  # from flask
-jinja2==2.11.3  # from flask
+jinja2==3.1.4  # from flask
 jsonpatch==1.21
 kombu==5.0.2
 markupsafe==1.1.1 # from jinja
