@@ -156,8 +156,10 @@ definitions:
             type: string
           phonebook_name:
             type: string
+            readOnly: true
           phonebook_description:
             type: string
+            readOnly: true
       - required:
           - name
           - phonebook_uuid
