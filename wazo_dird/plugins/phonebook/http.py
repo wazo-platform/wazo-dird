@@ -162,7 +162,14 @@ class PhonebookContactImport(_Resource):
         if duplicates:
             return _make_error(f'duplicate columns: {duplicates}', 400)
 
-        to_add = [c for c in csv.DictReader(data)]
+        try:
+            to_add = [c for c in csv.DictReader(data)]
+        except csv.Error as e:
+            return _make_error(f'invalid contact import file: {str(e)}', 400)
+
+        if not to_add:
+            return _make_error('empty contact import file', 400)
+
         created, failed = self.phonebook_service.import_contacts(
             visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), to_add
         )
