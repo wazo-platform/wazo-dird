@@ -112,7 +112,7 @@ class NoSuchTenant(ValueError):
 
 
 class DuplicatedContactException(Exception):
-    _msg = 'Duplicating contact'
+    _msg = 'Duplicate contact'
 
     def __init__(self):
         super().__init__(self._msg)
