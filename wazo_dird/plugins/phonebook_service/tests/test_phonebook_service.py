@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -10,7 +10,9 @@ from hamcrest import (
     calling,
     contains,
     contains_inanyorder,
+    contains_string,
     equal_to,
+    has_entries,
     raises,
 )
 
@@ -414,7 +416,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
     def test_import_with_invalid_contacts(self):
         db_errors = [s.error_1, s.error_2]
-        self.contact_crud.create_many.return_value = s.created, db_errors
+        self.contact_crud.create_many.return_value = [s.created], db_errors
 
         invalids: list[dict] = [{}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
         contacts: list[dict] = invalids + [{'firstname': 'Foo'}]
@@ -422,5 +424,38 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
             s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
         )
 
-        assert_that(created, equal_to(s.created))
-        assert_that(errors, contains_inanyorder(*db_errors + invalids))
+        assert_that(created, equal_to([s.created]))
+        assert_that(
+            errors,
+            contains_inanyorder(
+                *db_errors,
+                has_entries(
+                    contact=invalids[0],
+                    message=contains_string('empty'),
+                ),
+                has_entries(
+                    contact=invalids[1],
+                    message=contains_string('empty key'),
+                ),
+                has_entries(
+                    contact=invalids[2],
+                    message=contains_string('null key'),
+                )
+            ),
+        )
+
+    def test_import_with_duplicate_contacts(self):
+        db_errors = [s.error_1]
+        self.contact_crud.create_many.return_value = [s.created], db_errors
+
+        contacts: list[dict] = [
+            {'firstname': 'Foo'},
+            {'firstname': 'Foo'},
+            {'firstname': 'Bar'},
+        ]
+        created, errors = self.service.import_contacts(
+            s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
+        )
+
+        assert_that(created, equal_to([s.created]))
+        assert_that(errors, contains_inanyorder(*db_errors))
