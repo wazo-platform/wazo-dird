@@ -142,6 +142,12 @@ def contact_search_filter(search):
     return search_filter
 
 
+class ContactEntryError(TypedDict):
+    contact: dict | None
+    message: str
+    details: dict[str, Any]
+
+
 class PhonebookContactCRUD(BaseDAO):
     def count(
         self,
@@ -190,7 +196,7 @@ class PhonebookContactCRUD(BaseDAO):
         visible_tenants: list[str] | None,
         phonebook_key: PhonebookKey,
         body: list[dict],
-    ) -> tuple[list[ContactInfo], list[dict]]:
+    ) -> tuple[list[ContactInfo], list[ContactEntryError]]:
         created = []
         errors = []
         with self.new_session() as s:
@@ -204,8 +210,20 @@ class PhonebookContactCRUD(BaseDAO):
                         contact_body,
                     )
                     created.append(contact)
-                except Exception:
-                    errors.append(contact_body)
+                except ContactCreationError as ex:
+                    logger.debug(
+                        'Failed to create contact %s in phonebook %s',
+                        contact_body,
+                        phonebook_key,
+                        stack_info=True,
+                    )
+                    errors.append(
+                        ContactEntryError(
+                            contact=contact_body,
+                            message=str(ex),
+                            details=ex.details,
+                        )
+                    )
         return created, errors
 
     def _create_one(
