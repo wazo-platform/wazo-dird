@@ -118,6 +118,12 @@ class DuplicatedContactException(Exception):
         super().__init__(self._msg)
 
 
+class ContactCreationError(Exception):
+    def __init__(self, msg: str, details=None):
+        super().__init__(msg)
+        self.details = details or {}
+
+
 class DuplicatedFavoriteException(Exception):
     pass
 

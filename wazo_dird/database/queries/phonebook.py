@@ -16,6 +16,7 @@ from sqlalchemy.sql.expression import ColumnElement
 
 from wazo_dird.database.queries.base import Direction
 from wazo_dird.exception import (
+    ContactCreationError,
     DuplicatedContactException,
     DuplicatedPhonebookException,
     NoSuchContact,
@@ -220,7 +221,16 @@ class PhonebookContactCRUD(BaseDAO):
             hash=hash_,
         )
         session.add(contact)
-        self.flush_or_raise(session, DuplicatedContactException)
+        self.flush_or_raise(
+            session,
+            ContactCreationError,
+            "Bad or duplicate contact",
+            {
+                'contact_hash': hash_,
+                'phonebook': phonebook_key,
+                'tenant': {'uuid': tenant_uuid},
+            },
+        )
         self._add_fields_to_contact(session, contact.uuid, contact_body)
         return cast(ContactInfo, contact_body)
 
