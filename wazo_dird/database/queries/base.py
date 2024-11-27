@@ -92,9 +92,9 @@ class BaseDAO:
     ):
         try:
             session.flush()
-        except exc.IntegrityError:
+        except exc.IntegrityError as ex:
             session.rollback()
-            raise Exception_(*args, **kwargs)
+            raise Exception_(*args, **kwargs) from ex
 
     @contextmanager
     def new_session(self) -> Iterator[BaseSession]:
