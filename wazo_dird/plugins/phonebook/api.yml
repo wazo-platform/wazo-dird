@@ -206,7 +206,7 @@ paths:
           schema:
             $ref: '#/definitions/PhonebookContactImportResponse'
         '400':
-          description: Input could not be decoded, and no contacts were created.
+          description: Bad input, no contacts were created.
           schema:
             $ref: '#/definitions/Error'
         '503':
