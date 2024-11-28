@@ -139,7 +139,7 @@ paths:
         '200':
           description: A list of contacts
           schema:
-            $ref: '#/definitions/PhonebookContactList'
+            $ref: '#/responses/PhonebookContactListResponse'
         '400':
           $ref: '#/responses/InvalidParameters'
         '503':
@@ -289,6 +289,17 @@ responses:
     description: The tenant is not a valid ascii alphanumeric string
     schema:
       $ref: '#/definitions/Error'
+  PhonebookContactListResponse:
+    description: A list of contacts
+    schema:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: The total number of contacts
+        items:
+          $ref: '#/definitions/PhonebookContactList'
+
 parameters:
   PhonebookUUID:
     name: phonebook_uuid
