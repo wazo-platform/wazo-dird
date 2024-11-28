@@ -11,7 +11,11 @@ from unidecode import unidecode
 from wazo_dird import BaseServicePlugin, database
 from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.base import ContactInfo, Direction
-from wazo_dird.database.queries.phonebook import PhonebookDict, PhonebookKey
+from wazo_dird.database.queries.phonebook import (
+    ContactEntryError,
+    PhonebookDict,
+    PhonebookKey,
+)
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
 
 logger = logging.getLogger(__name__)
@@ -161,19 +165,30 @@ class _PhonebookService:
         visible_tenants: list[str],
         phonebook_key: PhonebookKey,
         contacts: list[dict],
-    ) -> tuple[list[ContactInfo], list[dict]]:
+    ) -> tuple[list[ContactInfo], list[ContactEntryError]]:
+        logger.debug(
+            'Processing import of %d contacts in phonebook %s',
+            len(contacts),
+            phonebook_key,
+        )
         to_add, errors = [], []
-        for contact in contacts:
+        for i, contact in enumerate(contacts):
             try:
                 to_add.append(self._validate_contact(contact))
-            except InvalidContactException:
-                errors.append(contact)
+            except InvalidContactException as ex:
+                errors.append(
+                    ContactEntryError(
+                        contact=contact,
+                        message=str(ex),
+                        details={'entry_index': i},
+                    )
+                )
 
         created, failed = self._contact_crud.create_many(
             visible_tenants, phonebook_key, to_add
         )
 
-        return created, failed + errors
+        return created, errors + failed
 
     @staticmethod
     def _validate_contact(body):
