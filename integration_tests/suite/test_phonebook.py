@@ -747,3 +747,17 @@ Bob,B
                 ),
             ),
         )
+
+        contacts = self.list_phonebook_contacts(
+            self.phonebook_1['uuid'], tenant=self.tenant_1.uuid
+        ).json()
+        assert_that(
+            contacts,
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname='B'),
+                ),
+                total=2,
+            ),
+        )
