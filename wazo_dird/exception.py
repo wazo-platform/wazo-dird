@@ -124,6 +124,12 @@ class ContactCreationError(Exception):
         self.details = details or {}
 
 
+class ContactUpdateError(Exception):
+    def __init__(self, msg: str, details=None):
+        super().__init__(msg)
+        self.details = details or {}
+
+
 class DuplicatedFavoriteException(Exception):
     pass
 
@@ -133,6 +139,18 @@ class DuplicatedPhonebookException(Exception):
 
     def __init__(self):
         super().__init__(self._msg)
+
+
+class PhonebookCreationError(Exception):
+    def __init__(self, msg: str, details=None):
+        super().__init__(msg)
+        self.details = details or {}
+
+
+class PhonebookUpdateError(Exception):
+    def __init__(self, msg: str, details=None):
+        super().__init__(msg)
+        self.details = details or {}
 
 
 class DuplicatedProfileException(APIException):

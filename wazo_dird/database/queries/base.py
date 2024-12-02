@@ -9,7 +9,7 @@ import unicodedata
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from itertools import islice
-from typing import Literal, TypedDict, cast
+from typing import Callable, Literal, TypedDict, cast
 
 from sqlalchemy import exc
 from sqlalchemy.orm import Session as BaseSession
@@ -88,13 +88,14 @@ class BaseDAO:
         self._Session = Session
 
     def flush_or_raise(
-        self, session: BaseSession, Exception_: type[Exception], *args, **kwargs
+        self,
+        session: BaseSession,
+        exc_handler: Callable[[exc.IntegrityError], Exception],
     ):
         try:
             session.flush()
         except exc.IntegrityError as ex:
-            session.rollback()
-            raise Exception_(*args, **kwargs) from ex
+            raise exc_handler(ex) from ex
 
     @contextmanager
     def new_session(self) -> Iterator[BaseSession]:
