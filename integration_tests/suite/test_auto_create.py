@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains, contains_inanyorder, has_entries, has_item
@@ -187,15 +187,29 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                 result,
                 has_entries(
                     column_headers=contains(
-                        'Nom', 'Numéro', 'Mobile', 'Boîte vocale', 'Favoris', 'E-mail'
+                        'Nom',
+                        'Prénom',
+                        'Nom de famille',
+                        'Numéro',
+                        'Mobile',
+                        'Boîte vocale',
+                        'Favoris',
+                        'E-mail',
                     ),
                     column_types=contains(
-                        'name', 'number', 'number', 'voicemail', 'favorite', 'email'
+                        'name',
+                        'firstname',
+                        'lastname',
+                        'number',
+                        'number',
+                        'voicemail',
+                        'favorite',
+                        'email',
                     ),
                     results=contains_inanyorder(
                         has_entries(
                             column_values=contains(
-                                'Alice', '1234', None, None, False, None
+                                'Alice', 'Alice', None, '1234', None, None, False, None
                             )
                         )
                     ),
