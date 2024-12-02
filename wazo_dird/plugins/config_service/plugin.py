@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_DISPLAY_COLUMNS = [
     {'field': 'name', 'title': 'Nom', 'type': 'name'},
+    {'field': 'firstname', 'title': 'Prénom', 'type': 'firstname'},
+    {'field': 'lastname', 'title': 'Nom de famille', 'type': 'lastname'},
     {
         'field': 'phone',
         'title': "Num\xE9ro",
