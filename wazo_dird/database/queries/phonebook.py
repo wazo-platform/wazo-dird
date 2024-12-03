@@ -263,8 +263,8 @@ class PhonebookContactCRUD(BaseDAO):
             session,
             map_contact_creation_integrity_error,
         )
-        self._add_fields_to_contact(session, contact.uuid, contact_body)
-        return cast(ContactInfo, contact_body)
+        self._set_contact_fields(session, contact, contact_body)
+        return cast(ContactInfo, contact.fields_dict)
 
     def delete(
         self,
@@ -309,12 +309,9 @@ class PhonebookContactCRUD(BaseDAO):
             )
             contact.hash = hash_
             self.flush_or_raise(s, map_contact_edit_integrity_error)
-            s.query(ContactFields).filter(
-                ContactFields.contact_uuid == contact_uuid
-            ).delete()
-            self._add_fields_to_contact(s, contact.uuid, contact_body)
-
-        return cast(ContactInfo, contact_body)
+            s.add(contact)
+            self._set_contact_fields(s, contact, contact_body)
+            return cast(ContactInfo, contact.fields_dict)
 
     def get(
         self,
@@ -354,12 +351,14 @@ class PhonebookContactCRUD(BaseDAO):
 
         return cast(list[ContactInfo], list(result.values()))
 
-    def _add_fields_to_contact(
-        self, s: BaseSession, contact_uuid: str, contact_body: dict
-    ):
-        contact_body['id'] = contact_uuid
-        for name, value in contact_body.items():
-            s.add(ContactFields(name=name, value=value, contact_uuid=contact_uuid))
+    def _set_contact_fields(self, s: BaseSession, contact: Contact, contact_body: dict):
+        contact.fields = [
+            ContactFields(name=name, value=value, contact_uuid=contact.uuid)
+            for name, value in contact_body.items()
+        ] + [
+            ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid)
+            for name, value in contact_body.items()
+        ]
 
     def _get_contact(
         self,
