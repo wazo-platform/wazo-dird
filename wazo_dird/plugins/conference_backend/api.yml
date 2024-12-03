@@ -54,7 +54,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
   /backends/conference/sources/{source_uuid}:
     get:
       operationId: get_a_conference_source
@@ -99,7 +99,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
     delete:
       operationId: delete_conference_source
       summary: Delete a `conference` source configuration
@@ -142,15 +142,15 @@ paths:
         '401':
           description: Unauthorized
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '404':
           description: No such source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           description: Another service is unavailable (e.g. wazo-auth, wazo-confd, ...)
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
 definitions:
   ConferenceContact:
     properties:

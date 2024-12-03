@@ -50,7 +50,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
   /backends/personal/sources/{source_uuid}:
     get:
       operationId: get_a_personal_source
@@ -93,7 +93,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
     delete:
       operationId: delete_personal_source
       summary: Delete a `personal` source configuration

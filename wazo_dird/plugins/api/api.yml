@@ -42,27 +42,27 @@ responses:
   InvalidParameters:
     description: Invalid parameters
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   ProfileInvalid:
     description: The profile does not exist
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   AnotherServiceUnavailable:
     description: Another service is unavailable (e.g. wazo-auth, postgresql, ...)
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   LimitOffsetInvalid:
     description: The limit or offset should be positive
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   DuplicateFavorite:
     description: The contact has already been favorited
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   DuplicateContact:
     description: This contact already exists
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
 parameters:
   ContactID:
     name: contact_id
@@ -179,7 +179,7 @@ parameters:
     description: The user UUID of the user doing that query
     required: true
 definitions:
-  Error:
+  LegacyError:
     title: Error
     description: Error message for the client
     properties:

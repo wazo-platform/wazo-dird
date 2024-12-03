@@ -53,7 +53,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
   /backends/csv/sources/{source_uuid}:
     get:
       operationId: get_a_csv_source
@@ -96,7 +96,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
     delete:
       operationId: delete_csv_source
       summary: Delete a `csv` source configuration
