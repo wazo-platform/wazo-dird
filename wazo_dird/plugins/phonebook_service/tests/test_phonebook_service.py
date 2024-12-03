@@ -415,7 +415,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 
 class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
     def test_import_with_invalid_contacts(self):
-        db_errors = [s.error_1, s.error_2]
+        db_errors = []
         self.contact_crud.create_many.return_value = [s.created], db_errors
 
         invalids: list[dict] = [{}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
@@ -423,6 +423,7 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
         created, errors = self.service.import_contacts(
             s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
         )
+        assert len(created) + len(errors) == len(contacts)
 
         assert_that(created, equal_to([s.created]))
         assert_that(
@@ -430,23 +431,26 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
             contains_inanyorder(
                 *db_errors,
                 has_entries(
-                    contact=invalids[0],
-                    message=contains_string('empty'),
+                    contact=invalids[0], message=contains_string('empty'), index=0
                 ),
                 has_entries(
-                    contact=invalids[1],
-                    message=contains_string('empty key'),
+                    contact=invalids[1], message=contains_string('empty key'), index=1
                 ),
                 has_entries(
-                    contact=invalids[2],
-                    message=contains_string('null key'),
+                    contact=invalids[2], message=contains_string('null key'), index=2
                 )
             ),
         )
 
-    def test_import_with_duplicate_contacts(self):
-        db_errors = [s.error_1]
-        self.contact_crud.create_many.return_value = [s.created], db_errors
+    def test_import_with_database_error(self):
+        db_errors = [
+            {
+                'index': 1,
+                'contact': s.contact_1,
+                'message': s.message_1,
+            }
+        ]
+        self.contact_crud.create_many.return_value = [s.created1, s.created2], db_errors
 
         contacts: list[dict] = [
             {'firstname': 'Foo'},
@@ -456,6 +460,44 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
         created, errors = self.service.import_contacts(
             s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
         )
+        assert len(created) + len(errors) == len(contacts)
 
-        assert_that(created, equal_to([s.created]))
-        assert_that(errors, contains_inanyorder(*db_errors))
+        assert_that(created, equal_to([s.created1, s.created2]))
+        assert_that(
+            errors,
+            contains_inanyorder(
+                has_entries(contact=s.contact_1, message=s.message_1, index=1)
+            ),
+        )
+
+    def test_import_with_database_error_and_validation_error(self):
+        contacts: list[dict] = [
+            {'firstname': 'Foo'},
+            {'': 'Foo'},
+            {'firstname': 'Bar'},
+        ]
+
+        db_errors = [
+            {
+                'index': 1,
+                'contact': contacts[2],
+                'message': s.message_1,
+            }
+        ]
+        self.contact_crud.create_many.return_value = [s.created1], db_errors
+
+        created, errors = self.service.import_contacts(
+            s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
+        )
+        assert len(created) + len(errors) == len(contacts)
+
+        assert_that(created, equal_to([s.created1]))
+        assert_that(
+            errors,
+            contains_inanyorder(
+                has_entries(
+                    contact=contacts[1], message=contains_string('empty key'), index=1
+                ),
+                has_entries(contact=contacts[2], message=s.message_1, index=2),
+            ),
+        )

@@ -174,21 +174,24 @@ class _PhonebookService:
         to_add, errors = [], []
         for i, contact in enumerate(contacts):
             try:
-                to_add.append(self._validate_contact(contact))
+                to_add.append((i, self._validate_contact(contact)))
             except InvalidContactException as ex:
                 errors.append(
                     ContactEntryError(
                         contact=contact,
                         message=str(ex),
-                        details={'entry_index': i},
+                        index=i,
                     )
                 )
+        if errors:
+            return [], errors
 
         created, failed = self._contact_crud.create_many(
-            visible_tenants, phonebook_key, to_add
+            visible_tenants, phonebook_key, [contact for _, contact in to_add]
         )
 
-        return created, errors + failed
+        errors += failed
+        return created, errors
 
     @staticmethod
     def _validate_contact(body):
