@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
@@ -14,6 +14,7 @@ from hamcrest import (
     calling,
     contains,
     contains_inanyorder,
+    contains_string,
     empty,
     equal_to,
     has_entries,
@@ -749,23 +750,50 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
             [self._tenant_uuid], database.PhonebookKey(id=self._phonebook_id), body
         )
         assert_that(errors, has_length(len(body)))
-        assert_that(errors, contains_inanyorder(contact_1, contact_2, contact_3))
+        assert_that(
+            errors,
+            contains_inanyorder(
+                has_entries(
+                    contact=has_entries(contact_1),
+                    message=contains_string('Duplicate'),
+                    index=0,
+                ),
+                has_entries(
+                    contact=has_entries(contact_2),
+                    message=contains_string('Duplicate'),
+                    index=1,
+                ),
+                has_entries(
+                    contact=has_entries(contact_3),
+                    message=contains_string('Duplicate'),
+                    index=2,
+                ),
+            ),
+        )
 
-    def test_that_an_error_does_not_break_the_whole_import(self):
+    def test_errors_flagged_no_created(self):
         contact_1 = self._new_contact('Foo', 'Bar', '5555551111')
         contact_2 = self._new_contact('Foo', 'Bar', '5555551111')
         contact_3 = self._new_contact('Bob', 'BBB', '5555553333')
-        body = [contact_1, contact_2, contact_3]
+        contact_4 = self._new_contact('Bob', 'BBB', '5555553333')
+        body = [contact_1, contact_2, contact_3, contact_4]
 
         created, errors = self._crud.create_many(
             [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid), body
         )
 
+        assert_that(created, empty())
         assert_that(
-            created,
-            contains_inanyorder(has_entries(**contact_1), has_entries(**contact_3)),
+            errors,
+            contains_inanyorder(
+                has_entries(
+                    contact=contact_2, index=1, message=contains_string('Duplicate')
+                ),
+                has_entries(
+                    contact=contact_4, index=3, message=contains_string('Duplicate')
+                ),
+            ),
         )
-        assert_that(errors, contains_inanyorder(has_entries(**contact_2)))
 
     @staticmethod
     def _new_contact(firstname, lastname, number):

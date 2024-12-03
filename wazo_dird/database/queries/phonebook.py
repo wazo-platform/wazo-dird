@@ -149,7 +149,7 @@ def contact_search_filter(search):
 class ContactEntryError(TypedDict):
     contact: dict | None
     message: str
-    details: dict[str, Any]
+    index: int
 
 
 class PhonebookContactCRUD(BaseDAO):
@@ -203,31 +203,40 @@ class PhonebookContactCRUD(BaseDAO):
     ) -> tuple[list[ContactInfo], list[ContactEntryError]]:
         created = []
         errors = []
+        good = []
         with self.new_session() as s:
             phonebook = self._get_phonebook(s, visible_tenants, phonebook_key)
-            for contact_body in body:
+            tenant_uuid = phonebook.tenant_uuid
+            for i, contact_body in enumerate(body):
                 try:
-                    contact = self._create_one(
-                        s,
-                        phonebook.tenant_uuid,
-                        PhonebookKey(uuid=phonebook.uuid),
-                        contact_body,
-                    )
-                    created.append(contact)
-                except ContactCreationError as ex:
+                    with s.begin_nested():
+                        contact = self._create_one(
+                            s,
+                            tenant_uuid,
+                            PhonebookKey(uuid=phonebook.uuid),
+                            contact_body,
+                        )
+                    good.append(contact)
+                except (ContactCreationError, DuplicatedContactException) as ex:
                     logger.debug(
-                        'Failed to create contact %s in phonebook %s',
+                        'Failed to create contact %s in phonebook %s: %s <: %s',
                         contact_body,
                         phonebook_key,
+                        str(ex),
                         stack_info=True,
                     )
                     errors.append(
                         ContactEntryError(
                             contact=contact_body,
                             message=str(ex),
-                            details=ex.details,
+                            index=i,
                         )
                     )
+            # no partial success; all or nothing
+            if not errors:
+                created.extend(good)
+            else:
+                s.rollback()
         return created, errors
 
     def _create_one(
