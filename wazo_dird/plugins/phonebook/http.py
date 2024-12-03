@@ -24,6 +24,7 @@ from wazo_dird.exception import (
     NoSuchContact,
     NoSuchPhonebook,
     NoSuchTenant,
+    PhonebookContactImportAPIError,
 )
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
@@ -152,7 +153,12 @@ class PhonebookContactImport(_Resource):
             data = raw_data.decode(charset).split('\n')
         except LookupError as e:
             if 'unknown encoding:' in str(e):
-                return _make_error(str(e), 400)
+                return PhonebookContactImportAPIError(
+                    message=f'bad input encoding: {str(e)}',
+                    error_id='phonebook-contact-import-bad-encoding',
+                    status_code=400,
+                    details={'error': str(e), 'charset': charset},
+                )
             else:
                 raise
 
@@ -160,19 +166,41 @@ class PhonebookContactImport(_Resource):
         fields = next(reader)
         duplicates = list({f for f in fields if fields.count(f) > 1})
         if duplicates:
-            return _make_error(f'duplicate columns: {duplicates}', 400)
+            raise PhonebookContactImportAPIError(
+                message=f'duplicate columns: {duplicates}',
+                error_id='phonebook-contact-import-duplicate-columns',
+                status_code=400,
+                details={'duplicates': duplicates},
+            )
 
         try:
             to_add = [c for c in csv.DictReader(data)]
         except csv.Error as e:
-            return _make_error(f'invalid contact import file: {str(e)}', 400)
+            raise PhonebookContactImportAPIError(
+                message=f'invalid contact import file: {str(e)}',
+                error_id='phonebook-contact-import-invalid-file',
+                status_code=400,
+                details={'error': str(e)},
+            )
 
         if not to_add:
-            return _make_error('empty contact import file', 400)
+            raise PhonebookContactImportAPIError(
+                message='empty contact import file',
+                error_id='phonebook-contact-import-empty-file',
+                status_code=400,
+            )
 
         created, failed = self.phonebook_service.import_contacts(
             visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), to_add
         )
+        if not created:
+            # TODO return error response
+            raise PhonebookContactImportAPIError(
+                message='failed to create contacts',
+                error_id='phonebook-contact-import-bad-contacts',
+                status_code=400,
+                details={'errors': failed},
+            )
 
         return {'created': created, 'failed': failed}
 

@@ -60,6 +60,19 @@ class NoSuchPhonebookAPIException(APIException):
         )
 
 
+class PhonebookContactImportAPIError(APIException):
+    def __init__(
+        self, message: str, error_id: str, details: dict | None = None, status_code=400
+    ):
+        super().__init__(
+            status_code=status_code,
+            message=message,
+            error_id=error_id,
+            details=details,
+            resource='contacts',
+        )
+
+
 class NoSuchProfile(OldAPIException):
     def __init__(self, profile):
         self.profile = profile
