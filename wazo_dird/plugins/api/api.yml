@@ -180,7 +180,7 @@ parameters:
     required: true
 definitions:
   LegacyError:
-    title: Error
+    title: LegacyError
     description: Error message for the client
     properties:
       timestamp:
@@ -197,6 +197,27 @@ definitions:
       status_code:
         description: HTTP status code
         type: integer
+  Error:
+    title: Error
+    description: Error message for the client
+    properties:
+      timestamp:
+        description: Time at which the error occured, as a unix timestamp
+        type: number
+        format: timestamp
+      message:
+        description: Human readable explanation of the error
+        type: string
+      error_id:
+        description: a identifier for the type of error
+        type: string
+      details:
+        description: additional attributes specific to the error type and instance
+        type: object
+        additionalProperties: true
+      resource:
+        description: an identifier for the resource type concerned by the error
+        type: string
   Header:
     properties:
       column_headers:
