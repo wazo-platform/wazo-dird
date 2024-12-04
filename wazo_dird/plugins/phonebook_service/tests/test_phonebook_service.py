@@ -416,16 +416,17 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
     def test_import_with_invalid_contacts(self):
         db_errors = []
-        self.contact_crud.create_many.return_value = [s.created], db_errors
+        self.contact_crud.create_many.return_value = [], db_errors
 
         invalids: list[dict] = [{}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]
         contacts: list[dict] = invalids + [{'firstname': 'Foo'}]
         created, errors = self.service.import_contacts(
             s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
         )
-        assert len(created) + len(errors) == len(contacts)
 
-        assert_that(created, equal_to([s.created]))
+        assert_that(created, equal_to([]))
+        self.contact_crud.create_many.assert_not_called()
+
         assert_that(
             errors,
             contains_inanyorder(
@@ -461,6 +462,7 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
             s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
         )
         assert len(created) + len(errors) == len(contacts)
+        self.contact_crud.create_many.assert_called_once()
 
         assert_that(created, equal_to([s.created1, s.created2]))
         assert_that(
@@ -489,15 +491,14 @@ class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
         created, errors = self.service.import_contacts(
             s.tenant_uuid, PhonebookKey(uuid=s.phonebook_uuid), contacts
         )
-        assert len(created) + len(errors) == len(contacts)
+        self.contact_crud.create_many.assert_not_called()
 
-        assert_that(created, equal_to([s.created1]))
+        assert_that(created, equal_to([]))
         assert_that(
             errors,
             contains_inanyorder(
                 has_entries(
                     contact=contacts[1], message=contains_string('empty key'), index=1
                 ),
-                has_entries(contact=contacts[2], message=s.message_1, index=2),
             ),
         )
