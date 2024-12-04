@@ -9,6 +9,7 @@ from hamcrest import (
     contains,
     contains_inanyorder,
     contains_string,
+    empty,
     equal_to,
     has_entries,
     instance_of,
@@ -637,7 +638,7 @@ class TestContactImport(_BasePhonebookContactTestCase):
         self.body = '''\
 firstname,lastname
 Alice,A
-Bob,B
+Bob,
 '''
 
     def import_(self, tenant, phonebook_uuid, body):
@@ -656,13 +657,23 @@ Bob,B
         result = self.import_(self.tenant_1, self.phonebook_1['uuid'], self.body)
         assert_that(result.status_code, equal_to(200))
         assert_that(
+            result.json(),
+            has_entries(
+                created=contains_inanyorder(
+                    has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname=''),
+                ),
+                failed=empty(),
+            ),
+        )
+        assert_that(
             self.list_phonebook_contacts(
                 self.phonebook_1['uuid'], tenant=self.tenant_1.uuid
             ).json(),
             has_entries(
                 items=contains_inanyorder(
                     has_entries(firstname='Alice', lastname='A'),
-                    has_entries(firstname='Bob', lastname='B'),
+                    has_entries(firstname='Bob', lastname=''),
                 ),
                 total=2,
             ),
@@ -693,20 +704,21 @@ Bob,B
             ]
         )
         result = self.import_(self.tenant_1, self.phonebook_1['uuid'], body)
-        assert_that(result.status_code, equal_to(200))
+        assert_that(result.status_code, equal_to(400))
         assert_that(
             result.json(),
             has_entries(
-                created=contains_inanyorder(
-                    has_entries(firstname='Alice', lastname='A'),
-                    has_entries(firstname='Bob', lastname=''),
-                ),
-                failed=contains_inanyorder(
-                    has_entries(
-                        contact=has_entries(firstname='', lastname='', null=['', '']),
-                        message=contains_string('null key'),
-                        details=has_entries(entry_index=instance_of(int)),
-                    ),
+                error_id='phonebook-contact-import-bad-contacts',
+                details=has_entries(
+                    errors=contains_inanyorder(
+                        has_entries(
+                            contact=has_entries(
+                                firstname='', lastname='', null=['', '']
+                            ),
+                            message=contains_string('null key'),
+                            index=instance_of(int),
+                        ),
+                    )
                 ),
             ),
         )
@@ -716,34 +728,38 @@ Bob,B
                 self.phonebook_1['uuid'], tenant=self.tenant_1.uuid
             ).json(),
             has_entries(
-                items=contains_inanyorder(
-                    has_entries(firstname='Alice', lastname='A'),
-                    has_entries(firstname='Bob', lastname=''),
-                ),
-                total=2,
+                items=empty(),
+                total=0,
             ),
         )
 
-    def test_post_with_duplicates(self):
+    def test_post_with_conflicts(self):
         self.set_tenants(self.tenant_1.name)
+
+        self.post_phonebook_contact(
+            self.phonebook_1['uuid'],
+            {'firstname': 'Alice', 'lastname': 'A'},
+            tenant=self.tenant_1.uuid,
+        )
+
         result = self.import_(
             self.tenant_1,
             self.phonebook_1['uuid'],
-            '\n'.join(['firstname,lastname', 'Alice,A', 'Alice,A', 'Bob,B']),
+            '\n'.join(['firstname,lastname', 'Alice,A', 'Bob,B']),
         )
-        assert_that(result.status_code, equal_to(200))
+        assert_that(result.status_code, equal_to(400))
         assert_that(
             result.json(),
             has_entries(
-                created=contains_inanyorder(
-                    has_entries(firstname='Alice', lastname='A'),
-                    has_entries(firstname='Bob', lastname='B'),
-                ),
-                failed=contains_inanyorder(
-                    has_entries(
-                        contact=has_entries(firstname='Alice', lastname='A'),
-                        message=contains_string('duplicate'),
-                    ),
+                error_id='phonebook-contact-import-bad-contacts',
+                details=has_entries(
+                    errors=contains_inanyorder(
+                        has_entries(
+                            contact=has_entries(firstname='Alice', lastname='A'),
+                            message=contains_string('Duplicate'),
+                            index=0,
+                        ),
+                    )
                 ),
             ),
         )
@@ -756,8 +772,42 @@ Bob,B
             has_entries(
                 items=contains_inanyorder(
                     has_entries(firstname='Alice', lastname='A'),
-                    has_entries(firstname='Bob', lastname='B'),
                 ),
-                total=2,
+                total=1,
+            ),
+        )
+
+    def test_post_with_duplicates_in_input(self):
+        self.set_tenants(self.tenant_1.name)
+        result = self.import_(
+            self.tenant_1,
+            self.phonebook_1['uuid'],
+            '\n'.join(['firstname,lastname', 'Alice,A', 'Alice,A', 'Bob,B']),
+        )
+        assert_that(result.status_code, equal_to(400))
+        assert_that(
+            result.json(),
+            has_entries(
+                error_id='phonebook-contact-import-bad-contacts',
+                details=has_entries(
+                    errors=contains_inanyorder(
+                        has_entries(
+                            contact=has_entries(firstname='Alice', lastname='A'),
+                            message=contains_string('Duplicate'),
+                            index=1,
+                        ),
+                    )
+                ),
+            ),
+        )
+
+        contacts = self.list_phonebook_contacts(
+            self.phonebook_1['uuid'], tenant=self.tenant_1.uuid
+        ).json()
+        assert_that(
+            contacts,
+            has_entries(
+                items=empty(),
+                total=0,
             ),
         )
