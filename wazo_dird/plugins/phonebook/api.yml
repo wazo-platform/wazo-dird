@@ -208,7 +208,7 @@ paths:
         '400':
           description: Bad input, no contacts were created.
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/PhonebookContactImportError'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
   /phonebooks/{phonebook_uuid}/contacts/{contact_id}:
@@ -307,3 +307,31 @@ parameters:
     required: true
     in: path
     description: The phonebook's UUID
+
+definitions:
+  PhonebookContactImportError:
+    description: Error(s) during contact import
+    schema:
+      allOf:
+        - $ref: '#/definitions/Error'
+        - type: object
+          properties:
+          details:
+            type: object
+            properties:
+              errors:
+                description: A list of errors concerning separate contact entries
+                type: array
+                items:
+                  type: object
+                  properties:
+                    contact:
+                      description: The contact entry as parsed from the request csv input
+                      type: object
+                      additionalProperties: true
+                    message:
+                      type: string
+                      description: Human readable description of the error
+                    index:
+                      type: integer
+                      description: the zero-based index of the contact entry in the request csv input(excluding the header)
