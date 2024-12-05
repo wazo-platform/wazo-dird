@@ -201,7 +201,6 @@ class PhonebookContactCRUD(BaseDAO):
         phonebook_key: PhonebookKey,
         body: list[dict],
     ) -> tuple[list[ContactInfo], list[ContactEntryError]]:
-        created = []
         errors = []
         good = []
         with self.new_session() as s:
@@ -240,11 +239,14 @@ class PhonebookContactCRUD(BaseDAO):
                             index=i,
                         )
                     )
-            # no partial success; all or nothing
-            if not errors:
-                created.extend(good)
-            else:
-                s.rollback()
+            if errors:
+                raise ContactCreationError(
+                    msg='Failed to create contacts',
+                    details={
+                        'errors': errors,
+                    },
+                )
+            created = good
         return created, errors
 
     def _create_one(
