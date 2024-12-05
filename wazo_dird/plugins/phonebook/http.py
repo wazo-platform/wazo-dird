@@ -149,6 +149,7 @@ class PhonebookContactImport(_Resource):
 
         charset = request.mimetype_params.get('charset', 'utf-8')
         raw_data = cast(bytes, request.data)
+        logger.debug('len(raw_data)=%d', len(raw_data))
         try:
             data = raw_data.decode(charset).split('\n')
         except LookupError as e:
@@ -188,13 +189,13 @@ class PhonebookContactImport(_Resource):
                 message='empty contact import file',
                 error_id='phonebook-contact-import-empty-file',
                 status_code=400,
+                details={'line_count': len(data), 'byte_count': len(raw_data)},
             )
 
         created, failed = self.phonebook_service.import_contacts(
             visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), to_add
         )
         if not created:
-            # TODO return error response
             raise PhonebookContactImportAPIError(
                 message='failed to create contacts',
                 error_id='phonebook-contact-import-bad-contacts',
