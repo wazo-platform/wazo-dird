@@ -30,15 +30,15 @@ paths:
         '401':
           description: Unauthorized
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '404':
           description: No such source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           description: Another service is unavailable (e.g. wazo-auth, google, ...)
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
 
   /backends/google/sources:
     get:
@@ -115,7 +115,7 @@ paths:
         '409':
           description: Source already exists
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
   /backends/google/sources/{source_uuid}:
     get:
       operationId: get_a_google_source
@@ -160,7 +160,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
     delete:
       operationId: delete_google_source
       summary: Delete a `google` source configuration

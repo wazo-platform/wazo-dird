@@ -49,7 +49,7 @@ paths:
         '404':
           description: Tenant does not exist
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '409':
           $ref: '#/responses/DuplicatePhonebook'
         '503':
@@ -74,7 +74,7 @@ paths:
         '404':
           description: Phonebook or Tenant does not exist
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
     put:
@@ -100,7 +100,7 @@ paths:
         '404':
           description: Phonebook does not exist
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '409':
           $ref: '#/responses/DuplicatePhonebook'
         '503':
@@ -122,7 +122,7 @@ paths:
         '404':
           description: Phonebook does not exist
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
   /tenants/{tenant}/phonebooks/{phonebook_id}/contacts:
@@ -209,7 +209,7 @@ paths:
         '400':
           description: Input could not be decoded, and no contacts were created.
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
   /tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_id}:
@@ -231,7 +231,7 @@ paths:
         '404':
           description: The contact or the phonebook does not exist
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
     put:
@@ -258,7 +258,7 @@ paths:
         '404':
           description: The contact or the phonebook does not exist
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '409':
           $ref: '#/responses/DuplicateContact'
         '503':
@@ -281,18 +281,18 @@ paths:
         '404':
           description: The contact or the phonebook does not exist
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
 responses:
   DuplicatePhonebook:
     description: This phonebook already exists
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   InvalidTenant:
     description: The tenant is not a valid ascii alphanumeric string
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
 parameters:
   PhonebookID:
     name: phonebook_id

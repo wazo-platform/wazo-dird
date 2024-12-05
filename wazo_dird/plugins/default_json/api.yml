@@ -147,7 +147,7 @@ paths:
         '404':
           description: Favorite does not exist
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
       parameters:

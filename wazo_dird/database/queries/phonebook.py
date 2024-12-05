@@ -8,7 +8,8 @@ import logging
 from collections import defaultdict
 from typing import Any, TypedDict, cast
 
-from sqlalchemy import and_, distinct, func, or_, text
+from psycopg2 import errorcodes
+from sqlalchemy import and_, distinct, exc, func, or_, text
 from sqlalchemy.orm import Query
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import scoped_session
@@ -16,10 +17,14 @@ from sqlalchemy.sql.expression import ColumnElement
 
 from wazo_dird.database.queries.base import Direction
 from wazo_dird.exception import (
+    ContactCreationError,
+    ContactUpdateError,
     DuplicatedContactException,
     DuplicatedPhonebookException,
     NoSuchContact,
     NoSuchPhonebook,
+    PhonebookCreationError,
+    PhonebookUpdateError,
 )
 
 from .. import Contact, ContactFields, Phonebook
@@ -141,6 +146,12 @@ def contact_search_filter(search):
     return search_filter
 
 
+class ContactEntryError(TypedDict):
+    contact: dict | None
+    message: str
+    index: int
+
+
 class PhonebookContactCRUD(BaseDAO):
     def count(
         self,
@@ -189,22 +200,53 @@ class PhonebookContactCRUD(BaseDAO):
         visible_tenants: list[str] | None,
         phonebook_key: PhonebookKey,
         body: list[dict],
-    ) -> tuple[list[ContactInfo], list[dict]]:
-        created = []
+    ) -> tuple[list[ContactInfo], list[ContactEntryError]]:
         errors = []
+        good = []
         with self.new_session() as s:
             phonebook = self._get_phonebook(s, visible_tenants, phonebook_key)
-            for contact_body in body:
+            tenant_uuid = phonebook.tenant_uuid
+            for i, contact_body in enumerate(body):
                 try:
-                    contact = self._create_one(
-                        s,
-                        phonebook.tenant_uuid,
-                        PhonebookKey(uuid=phonebook.uuid),
+                    with s.begin_nested():
+                        contact = self._create_one(
+                            s,
+                            tenant_uuid,
+                            PhonebookKey(uuid=phonebook.uuid),
+                            contact_body,
+                        )
+                    good.append(contact)
+                except DuplicatedContactException:
+                    logger.debug(
+                        'Ignoring duplicate contact entry (index=%d) in phonebook %s: %s',
+                        i,
+                        phonebook_key,
                         contact_body,
                     )
-                    created.append(contact)
-                except Exception:
-                    errors.append(contact_body)
+                    continue
+                except ContactCreationError as ex:
+                    logger.debug(
+                        'Failed to create contact %s in phonebook %s: %s <: %s',
+                        contact_body,
+                        phonebook_key,
+                        str(ex),
+                        stack_info=True,
+                    )
+                    errors.append(
+                        ContactEntryError(
+                            contact=contact_body,
+                            message=str(ex),
+                            index=i,
+                        )
+                    )
+            if errors:
+                raise ContactCreationError(
+                    msg='Failed to create contacts',
+                    details={
+                        'errors': errors,
+                    },
+                )
+            created = good
         return created, errors
 
     def _create_one(
@@ -215,14 +257,37 @@ class PhonebookContactCRUD(BaseDAO):
         contact_body: dict,
     ) -> ContactInfo:
         hash_ = compute_contact_hash(contact_body)
+
+        def map_contact_creation_integrity_error(exc: exc.IntegrityError) -> Exception:
+            pg_error = exc.orig.pgerror
+            pg_code = exc.orig.pgcode
+            if pg_code == errorcodes.UNIQUE_VIOLATION:
+                return DuplicatedContactException()
+            else:
+                return ContactCreationError(
+                    msg=pg_error,
+                    details={
+                        'hash': hash_,
+                        'tenant_uuid': tenant_uuid,
+                        'phonebook_key': phonebook_key,
+                    },
+                )
+
         contact = Contact(
             phonebook=self._get_phonebook(session, [tenant_uuid], phonebook_key),
             hash=hash_,
         )
         session.add(contact)
-        self.flush_or_raise(session, DuplicatedContactException)
-        self._add_fields_to_contact(session, contact.uuid, contact_body)
-        return cast(ContactInfo, contact_body)
+        self.flush_or_raise(
+            session,
+            map_contact_creation_integrity_error,
+        )
+        self._set_contact_fields(session, contact, contact_body)
+        self.flush_or_raise(
+            session,
+            map_contact_creation_integrity_error,
+        )
+        return cast(ContactInfo, contact.fields_dict)
 
     def delete(
         self,
@@ -248,6 +313,15 @@ class PhonebookContactCRUD(BaseDAO):
         contact_body: dict,
     ) -> ContactInfo:
         hash_ = compute_contact_hash(contact_body)
+
+        def map_contact_edit_integrity_error(exc):
+            pg_error = exc.orig.pgerror
+            pg_code = exc.orig.pgcode
+            if pg_code == errorcodes.UNIQUE_VIOLATION:
+                return DuplicatedContactException()
+            else:
+                return ContactUpdateError(msg=pg_error, details={'hash': hash_})
+
         with self.new_session() as s:
             phonebook = self._get_phonebook(s, visible_tenants, phonebook_key)
             contact = self._get_contact(
@@ -257,13 +331,10 @@ class PhonebookContactCRUD(BaseDAO):
                 contact_uuid,
             )
             contact.hash = hash_
-            self.flush_or_raise(s, DuplicatedContactException)
-            s.query(ContactFields).filter(
-                ContactFields.contact_uuid == contact_uuid
-            ).delete()
-            self._add_fields_to_contact(s, contact.uuid, contact_body)
-
-        return cast(ContactInfo, contact_body)
+            self.flush_or_raise(s, map_contact_edit_integrity_error)
+            s.add(contact)
+            self._set_contact_fields(s, contact, contact_body)
+            return cast(ContactInfo, contact.fields_dict)
 
     def get(
         self,
@@ -303,12 +374,15 @@ class PhonebookContactCRUD(BaseDAO):
 
         return cast(list[ContactInfo], list(result.values()))
 
-    def _add_fields_to_contact(
-        self, s: BaseSession, contact_uuid: str, contact_body: dict
-    ):
-        contact_body['id'] = contact_uuid
-        for name, value in contact_body.items():
-            s.add(ContactFields(name=name, value=value, contact_uuid=contact_uuid))
+    def _set_contact_fields(self, s: BaseSession, contact: Contact, contact_body: dict):
+        assert contact.uuid
+        contact.fields = [
+            ContactFields(name=name, value=value, contact_uuid=contact.uuid)
+            for name, value in contact_body.items()
+        ] + [
+            ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid)
+            for name, value in contact_body.items()
+        ]
 
     def _get_contact(
         self,
@@ -445,11 +519,23 @@ class PhonebookCRUD(BaseDAO):
             return self._count_by_tenant(s, visible_tenants, search)
 
     def create(self, tenant_uuid: str, phonebook_body: dict) -> PhonebookDict:
+        def map_phonebook_creation_integrity_error(
+            exc: exc.IntegrityError,
+        ) -> Exception:
+            pg_error = exc.orig.pgerror
+            pg_code = exc.orig.pgcode
+            if pg_code == errorcodes.UNIQUE_VIOLATION:
+                return DuplicatedPhonebookException()
+            else:
+                return PhonebookCreationError(
+                    msg=pg_error, details={'tenant_uuid': tenant_uuid}
+                )
+
         with self.new_session() as s:
             self._create_tenant(s, tenant_uuid)
             phonebook = Phonebook(tenant_uuid=tenant_uuid, **phonebook_body)
             s.add(phonebook)
-            self.flush_or_raise(s, DuplicatedPhonebookException)
+            self.flush_or_raise(s, map_phonebook_creation_integrity_error)
 
             return self._phonebook_to_dict(phonebook)
 
@@ -464,6 +550,14 @@ class PhonebookCRUD(BaseDAO):
         phonebook_key: PhonebookKey,
         phonebook_body: dict,
     ) -> PhonebookDict:
+        def map_phonebook_update_integrity_error(exc: exc.IntegrityError) -> Exception:
+            pg_error = exc.orig.pgerror
+            pg_code = exc.orig.pgcode
+            if pg_code == errorcodes.UNIQUE_VIOLATION:
+                return DuplicatedPhonebookException()
+            else:
+                return PhonebookUpdateError(msg=pg_error)
+
         with self.new_session() as s:
             phonebook = self._get_by_tenant_and_id(s, visible_tenants, phonebook_key)
             for attribute_name, value in phonebook_body.items():
@@ -472,7 +566,7 @@ class PhonebookCRUD(BaseDAO):
                         f'{phonebook.__class__.__name__} has no attribute {attribute_name}'
                     )
                 setattr(phonebook, attribute_name, value)
-            self.flush_or_raise(s, DuplicatedPhonebookException)
+            self.flush_or_raise(s, map_phonebook_update_integrity_error)
             return self._phonebook_to_dict(phonebook)
 
     def get(

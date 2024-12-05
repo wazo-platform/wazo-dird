@@ -26,15 +26,15 @@ paths:
         '401':
           description: Unauthorized
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '404':
           description: No such source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
         '503':
           description: Another service is unavailable (e.g. wazo-auth, ...)
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
 
   /backends/phonebook/sources:
     get:
@@ -88,7 +88,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
   /backends/phonebook/sources/{source_uuid}:
     get:
       operationId: get_a_phonebook_source
@@ -131,7 +131,7 @@ paths:
         '409':
           description: Duplicate Source
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/LegacyError'
     delete:
       operationId: delete_phonebook_source
       summary: Delete a `phonebook` source configuration
