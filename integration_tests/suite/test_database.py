@@ -14,13 +14,11 @@ from hamcrest import (
     calling,
     contains,
     contains_inanyorder,
-    contains_string,
     empty,
     equal_to,
     has_entries,
     has_item,
     has_items,
-    has_length,
     not_,
     raises,
 )
@@ -746,54 +744,12 @@ class TestPhonebookContactImport(_BasePhonebookContactCRUDTest):
         )
         assert_that(errors, empty())
 
-        _, errors = self._crud.create_many(
+        created, errors = self._crud.create_many(
             [self._tenant_uuid], database.PhonebookKey(id=self._phonebook_id), body
         )
-        assert_that(errors, has_length(len(body)))
-        assert_that(
-            errors,
-            contains_inanyorder(
-                has_entries(
-                    contact=has_entries(contact_1),
-                    message=contains_string('Duplicate'),
-                    index=0,
-                ),
-                has_entries(
-                    contact=has_entries(contact_2),
-                    message=contains_string('Duplicate'),
-                    index=1,
-                ),
-                has_entries(
-                    contact=has_entries(contact_3),
-                    message=contains_string('Duplicate'),
-                    index=2,
-                ),
-            ),
-        )
-
-    def test_errors_flagged_no_created(self):
-        contact_1 = self._new_contact('Foo', 'Bar', '5555551111')
-        contact_2 = self._new_contact('Foo', 'Bar', '5555551111')
-        contact_3 = self._new_contact('Bob', 'BBB', '5555553333')
-        contact_4 = self._new_contact('Bob', 'BBB', '5555553333')
-        body = [contact_1, contact_2, contact_3, contact_4]
-
-        created, errors = self._crud.create_many(
-            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid), body
-        )
-
+        # duplicates are ignored and do not generate errors
+        assert_that(errors, empty())
         assert_that(created, empty())
-        assert_that(
-            errors,
-            contains_inanyorder(
-                has_entries(
-                    contact=contact_2, index=1, message=contains_string('Duplicate')
-                ),
-                has_entries(
-                    contact=contact_4, index=3, message=contains_string('Duplicate')
-                ),
-            ),
-        )
 
     @staticmethod
     def _new_contact(firstname, lastname, number):

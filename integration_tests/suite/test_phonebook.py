@@ -747,20 +747,14 @@ Bob,
             self.phonebook_1['uuid'],
             '\n'.join(['firstname,lastname', 'Alice,A', 'Bob,B']),
         )
-        assert_that(result.status_code, equal_to(400))
+        assert_that(result.status_code, equal_to(200))
         assert_that(
             result.json(),
             has_entries(
-                error_id='phonebook-contact-import-bad-contacts',
-                details=has_entries(
-                    errors=contains_inanyorder(
-                        has_entries(
-                            contact=has_entries(firstname='Alice', lastname='A'),
-                            message=contains_string('Duplicate'),
-                            index=0,
-                        ),
-                    )
+                created=contains_inanyorder(
+                    has_entries(firstname='Bob', lastname='B'),
                 ),
+                failed=empty(),
             ),
         )
 
@@ -772,8 +766,9 @@ Bob,
             has_entries(
                 items=contains_inanyorder(
                     has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname='B'),
                 ),
-                total=1,
+                total=2,
             ),
         )
 
@@ -784,20 +779,14 @@ Bob,
             self.phonebook_1['uuid'],
             '\n'.join(['firstname,lastname', 'Alice,A', 'Alice,A', 'Bob,B']),
         )
-        assert_that(result.status_code, equal_to(400))
+        assert_that(result.status_code, equal_to(200))
         assert_that(
             result.json(),
             has_entries(
-                error_id='phonebook-contact-import-bad-contacts',
-                details=has_entries(
-                    errors=contains_inanyorder(
-                        has_entries(
-                            contact=has_entries(firstname='Alice', lastname='A'),
-                            message=contains_string('Duplicate'),
-                            index=1,
-                        ),
-                    )
-                ),
+                created=contains_inanyorder(
+                    has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname='B'),
+                )
             ),
         )
 
@@ -807,7 +796,10 @@ Bob,
         assert_that(
             contacts,
             has_entries(
-                items=empty(),
-                total=0,
+                items=contains_inanyorder(
+                    has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname='B'),
+                ),
+                total=2,
             ),
         )

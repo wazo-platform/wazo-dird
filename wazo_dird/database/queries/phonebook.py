@@ -217,7 +217,15 @@ class PhonebookContactCRUD(BaseDAO):
                             contact_body,
                         )
                     good.append(contact)
-                except (ContactCreationError, DuplicatedContactException) as ex:
+                except DuplicatedContactException:
+                    logger.debug(
+                        'Ignoring duplicate contact entry (index=%d) in phonebook %s: %s',
+                        i,
+                        phonebook_key,
+                        contact_body,
+                    )
+                    continue
+                except ContactCreationError as ex:
                     logger.debug(
                         'Failed to create contact %s in phonebook %s: %s <: %s',
                         contact_body,
@@ -273,6 +281,10 @@ class PhonebookContactCRUD(BaseDAO):
             map_contact_creation_integrity_error,
         )
         self._set_contact_fields(session, contact, contact_body)
+        self.flush_or_raise(
+            session,
+            map_contact_creation_integrity_error,
+        )
         return cast(ContactInfo, contact.fields_dict)
 
     def delete(
@@ -361,6 +373,7 @@ class PhonebookContactCRUD(BaseDAO):
         return cast(list[ContactInfo], list(result.values()))
 
     def _set_contact_fields(self, s: BaseSession, contact: Contact, contact_body: dict):
+        assert contact.uuid
         contact.fields = [
             ContactFields(name=name, value=value, contact_uuid=contact.uuid)
             for name, value in contact_body.items()
