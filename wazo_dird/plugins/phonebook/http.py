@@ -153,7 +153,7 @@ class PhonebookContactImport(_Resource):
             data = raw_data.decode(charset).split('\n')
         except LookupError as e:
             if 'unknown encoding:' in str(e):
-                return PhonebookContactImportAPIError(
+                raise PhonebookContactImportAPIError(
                     message=f'bad input encoding: {str(e)}',
                     error_id='phonebook-contact-import-bad-encoding',
                     status_code=400,
@@ -162,8 +162,8 @@ class PhonebookContactImport(_Resource):
             else:
                 raise
 
-        reader = csv.reader(data)
-        fields = next(reader)
+        reader = csv.DictReader(data)
+        fields = reader.fieldnames
         duplicates = list({f for f in fields if fields.count(f) > 1})
         if duplicates:
             raise PhonebookContactImportAPIError(
@@ -174,7 +174,7 @@ class PhonebookContactImport(_Resource):
             )
 
         try:
-            to_add = [c for c in csv.DictReader(data)]
+            to_add = [c for c in reader]
         except csv.Error as e:
             raise PhonebookContactImportAPIError(
                 message=f'invalid contact import file: {str(e)}',
