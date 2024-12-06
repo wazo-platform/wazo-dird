@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -344,13 +344,23 @@ class TestPost(BasePhonebookCRUDTestCase):
                 dict(self.valid_body, phonebook_uuid=phonebook_sub['uuid']),
                 tenant_uuid=SUB_TENANT,
             ) as source:
-                assert_that(source, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
+                assert_that(
+                    source,
+                    has_entries(
+                        uuid=uuid_(), tenant_uuid=SUB_TENANT, name=phonebook_sub['name']
+                    ),
+                )
 
             with phonebook_source(
                 sub_tenant_client,
                 dict(self.valid_body, phonebook_uuid=phonebook_sub['uuid']),
             ) as source:
-                assert_that(source, has_entries(uuid=uuid_(), tenant_uuid=SUB_TENANT))
+                assert_that(
+                    source,
+                    has_entries(
+                        uuid=uuid_(), tenant_uuid=SUB_TENANT, name=phonebook_sub['name']
+                    ),
+                )
 
             assert_that(
                 calling(sub_tenant_client.phonebook_source.create).with_args(
@@ -362,15 +372,14 @@ class TestPost(BasePhonebookCRUDTestCase):
             )
 
         # cannot create source referencing phonebook outside tenant
-        with phonebook_source(main_tenant_client, self.valid_body):
-            assert_that(
-                calling(sub_tenant_client.phonebook_source.create).with_args(
-                    self.valid_body
-                ),
-                raises(Exception).matching(
-                    has_properties(response=has_properties(status_code=404))
-                ),
-            )
+        assert_that(
+            calling(sub_tenant_client.phonebook_source.create).with_args(
+                self.valid_body
+            ),
+            raises(Exception).matching(
+                has_properties(response=has_properties(status_code=404))
+            ),
+        )
 
 
 class TestPut(BasePhonebookCRUDTestCase):
@@ -386,7 +395,9 @@ class TestPut(BasePhonebookCRUDTestCase):
 
     @fixtures.phonebook_source(name='foobar')
     @fixtures.phonebook_source(name='other')
-    def test_put(self, foobar, other):
+    def test_put(self, other, foobar):
+        assert other['name'] == 'other'
+        assert foobar['name'] == 'foobar'
         assert_that(
             calling(self.client.phonebook_source.edit).with_args(foobar['uuid'], other),
             raises(Exception).matching(
@@ -413,6 +424,7 @@ class TestPut(BasePhonebookCRUDTestCase):
         else:
             self.fail('Should have raised')
 
+        # changing the underlying phonebook
         assert_that(
             calling(self.client.phonebook_source.edit).with_args(
                 foobar['uuid'], self.new_body
@@ -426,7 +438,8 @@ class TestPut(BasePhonebookCRUDTestCase):
             has_entries(
                 uuid=foobar['uuid'],
                 tenant_uuid=foobar['tenant_uuid'],
-                name='new',
+                name=self.phonebooks[0]['name'],
+                phonebook_uuid=self.new_body['phonebook_uuid'],
                 searched_columns=['firstname'],
                 first_matched_columns=['exten'],
                 format_columns={'name': '{firstname} {lastname}'},
