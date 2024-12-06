@@ -62,14 +62,12 @@ class PhonebookList(SourceList):
     def _create_new_source(self, source_data: dict, tenant_uuid: str) -> dict:
         try:
             return super()._create_new_source(source_data, tenant_uuid)
-        except InvalidSourceConfigError as ex:
-            if 'pgerror' in ex.details and 'phonebook_uuid' in ex.details['pgerror']:
-                raise NoSuchPhonebookAPIException(
-                    resource='/backends/phonebook/sources',
-                    visible_tenants=[tenant_uuid],
-                    phonebook_key=PhonebookKey(uuid=source_data['phonebook_uuid']),
-                )
-            raise
+        except NoSuchPhonebook as ex:
+            raise NoSuchPhonebookAPIException(
+                resource='/backends/phonebook/sources',
+                visible_tenants=[tenant_uuid],
+                phonebook_key=PhonebookKey(uuid=source_data['phonebook_uuid']),
+            ) from ex
 
     @required_acl('dird.backends.phonebook.sources.create')
     def post(self):
