@@ -226,7 +226,9 @@ class SourceCRUD(BaseDAO):
         tenant_uuid: str,
         new_fields: dict[str, Any],
     ):
-        source = Source(backend=backend, tenant_uuid=tenant_uuid)
+        source = Source(
+            backend=backend, tenant_uuid=tenant_uuid, uuid=new_fields.pop('uuid', None)
+        )
         if backend == 'phonebook':
             assert 'phonebook_uuid' in new_fields
             phonebook_uuid = new_fields.pop('phonebook_uuid', None)
