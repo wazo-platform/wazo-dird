@@ -86,7 +86,6 @@ class PhonebookPlugin(BaseSourcePlugin):
 
         unique_column = 'id'
         config = dependencies['config']
-        self._source_name = config['name']
         format_columns = config.get('format_columns', {})
         searched_columns = config.get('searched_columns')
         first_matched_columns = config.get('first_matched_columns')
@@ -94,6 +93,13 @@ class PhonebookPlugin(BaseSourcePlugin):
         tenant_uuid = config['tenant_uuid']
 
         phonebook_key = self._get_phonebook_key(tenant_uuid, config)
+        phonebook = self._crud.get([tenant_uuid], phonebook_key)
+
+        if 'name' in config:
+            logger.debug(
+                '\'name\' setting deprecated for phonebook source backend, source will assume name of underlying phonebook'
+            )
+        self._source_name = phonebook['name']
 
         self._search_engine = database.PhonebookContactSearchEngine(
             Session,
@@ -107,7 +113,7 @@ class PhonebookPlugin(BaseSourcePlugin):
             'phonebook', self._source_name, unique_column, format_columns
         )
 
-        logger.info('%s loaded', self._source_name)
+        logger.info('phonebook source %s loaded', self._source_name)
 
     def search(self, term: str, args=None) -> list[SourceResult]:
         logger.debug('Searching phonebook contact with %s', term)
