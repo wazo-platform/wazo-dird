@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -102,8 +102,6 @@ class TestPhonebookBackend(unittest.TestCase):
         ) = contacts
         config = {
             'tenant_uuid': self.tenant_uuid,
-            'name': 'hogwarts',
-            'phonebook_id': self.phonebook['id'],
             'phonebook_uuid': self.phonebook['uuid'],
             'searched_columns': ['firstname', 'lastname'],
             'first_matched_columns': ['number'],
