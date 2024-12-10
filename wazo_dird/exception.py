@@ -201,7 +201,7 @@ class InvalidSourceConfigError(InvalidConfigError):
         super().__init__(
             location_path=f'/backends/{source_info["backend"]}/sources',
             msg=(
-                f'Invalid config for source(name={source_info["name"]})'
+                f'Invalid config for source(name={source_info.get("name")})'
                 + (f': {details_fmt.format_map(details or {})}' if details_fmt else '')
             ),
         )
