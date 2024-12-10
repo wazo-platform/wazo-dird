@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from psycopg2.errorcodes import FOREIGN_KEY_VIOLATION, UNIQUE_VIOLATION
 from sqlalchemy import and_, exc, text
@@ -13,10 +13,11 @@ from wazo_dird.database.queries.base import Direction
 from wazo_dird.exception import (
     DuplicatedSourceException,
     InvalidSourceConfigError,
+    NoSuchPhonebook,
     NoSuchSource,
 )
 
-from .. import Source
+from .. import Phonebook, PhonebookKey, Source
 from .base import BaseDAO
 
 
@@ -94,7 +95,10 @@ class SourceCRUD(BaseDAO):
     def create(self, backend: str, source_body: SourceBody) -> SourceInfo:
         with self.new_session() as s:
             self._create_tenant(s, source_body['tenant_uuid'])
-            source = self._to_db_format(backend, **source_body)
+            tenant_uuid = source_body.pop('tenant_uuid')
+            source = self._create_new_source(
+                s, backend=backend, tenant_uuid=tenant_uuid, new_fields=source_body
+            )
             s.add(source)
             flush_and_handle(s, dict(source_body, backend=backend))
             source_info = self._from_db_format(source)
@@ -125,7 +129,7 @@ class SourceCRUD(BaseDAO):
             if not source:
                 raise NoSuchSource(source_uuid)
 
-            source_attrs = self._update_to_db_format(source, **body)
+            source_attrs = self._update_source(s, source, body)
 
             flush_and_handle(s, dict(body, backend=backend, source_uuid=source_uuid))
             source_info = self._from_db_format(source_attrs)
@@ -215,26 +219,62 @@ class SourceCRUD(BaseDAO):
 
         return query
 
-    def _to_db_format(
-        self, backend: str, tenant_uuid: str, uuid: str | None = None, *args, **kwargs
+    def _create_new_source(
+        self,
+        session: Session,
+        backend: str,
+        tenant_uuid: str,
+        new_fields: dict[str, Any],
     ):
-        source = Source(uuid=uuid, backend=backend, tenant_uuid=tenant_uuid)
-        return self._update_to_db_format(source, *args, **kwargs)
+        source = Source(
+            backend=backend, tenant_uuid=tenant_uuid, uuid=new_fields.pop('uuid', None)
+        )
+        if backend == 'phonebook':
+            assert 'phonebook_uuid' in new_fields
+            phonebook_uuid = new_fields.pop('phonebook_uuid', None)
+            phonebook = session.query(Phonebook).get(phonebook_uuid)
+            if not phonebook or phonebook.tenant_uuid != tenant_uuid:
+                raise NoSuchPhonebook(
+                    phonebook_key=PhonebookKey(uuid=phonebook_uuid),
+                    tenants_in_scope=[tenant_uuid],
+                )
+            source.phonebook = phonebook
+            source.phonebook_uuid = phonebook_uuid
+        return self._update_to_db_format(source, **new_fields)
+
+    def _update_source(
+        self, session: Session, source: Source, updated_fields: dict[str, Any]
+    ):
+        if source.backend == 'phonebook':
+            if phonebook_uuid := updated_fields.pop('phonebook_uuid', None):
+                phonebook = session.query(Phonebook).get(phonebook_uuid)
+                if not phonebook or phonebook.tenant_uuid != source.tenant_uuid:
+                    raise NoSuchPhonebook(
+                        phonebook_key=PhonebookKey(uuid=phonebook_uuid),
+                        tenants_in_scope=[source.tenant_uuid],
+                    )
+                source.phonebook = phonebook
+                source.phonebook_uuid = phonebook_uuid
+        return self._update_to_db_format(source, **updated_fields)
 
     @staticmethod
     def _update_to_db_format(
         source: Source,
-        name: str,
         searched_columns: list[str],
         first_matched_columns: list[str],
         format_columns: dict[str, str],
+        name=None,
         **extra_fields,
     ) -> Source:
-        source.name = name
+        if source.backend == 'phonebook':
+            assert source.phonebook
+            assert source.phonebook_uuid
+        else:
+            assert name
+            source.name = name
         source.searched_columns = searched_columns
         source.first_matched_columns = first_matched_columns
         source.format_columns = format_columns
-        source.phonebook_uuid = extra_fields.pop('phonebook_uuid', None)
         source.extra_fields = extra_fields
         return source
 
