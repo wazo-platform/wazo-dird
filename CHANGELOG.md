@@ -1,5 +1,10 @@
 # Changelog
 
+## 24.17
+* `/0.1/backends/phonebook/sources`
+  * `name` field is now read-only, and always reflect the underlying `phonebook` name;
+    `name` field provided in `POST /0.1/backends/phonebook/sources` and `PUT /0.1/backends/phonebook/sources` requests are now ignored, and may result in an error in the future
+
 ## 23.14
 * Field `phonebook_uuid` of phonebook sources is now validated to depend on a valid phonebook
 * Phonebook sources are now deleted along with the phonebook they depend upon
