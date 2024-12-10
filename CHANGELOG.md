@@ -1,13 +1,19 @@
 # Changelog
 
 ## 24.17
-- Changes to phonebook contact import API `POST /0.1/phonebooks/<uuid:phonebook_uuid>/contacts/import`
-  - conflicting entries from imported contacts are now ignored and will not result in any error
-  - any errors found in the contact import data will abort the import and result in a 400 error response
-  - format of error responses changed, refer to API reference for details
-  - successful response status code changed from 200 to 201, in concordance with the (previously incorrect) openapi specification
+
+* `/0.1/backends/phonebook/sources`
+  * `name` field is now read-only, and always reflect the underlying `phonebook` name;
+    `name` field provided in `POST /0.1/backends/phonebook/sources` and `PUT /0.1/backends/phonebook/sources` requests are now ignored, and may result in an error in the future
+
+* Changes to phonebook contact import API `POST /0.1/phonebooks/<uuid:phonebook_uuid>/contacts/import`
+  * conflicting entries from imported contacts are now ignored and will not result in any error
+  * any errors found in the contact import data will abort the import and result in a 400 error response
+  * format of error responses changed, refer to API reference for details
+  * successful response status code changed from 200 to 201, in concordance with the (previously incorrect) openapi specification
 
 ## 23.14
+
 * Field `phonebook_uuid` of phonebook sources is now validated to depend on a valid phonebook
 * Phonebook sources are now deleted along with the phonebook they depend upon
 * Existing phonebook sources that cannot be resolved to a valid phonebook are deleted.
