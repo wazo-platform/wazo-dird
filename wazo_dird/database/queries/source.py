@@ -232,13 +232,13 @@ class SourceCRUD(BaseDAO):
         if backend == 'phonebook':
             assert 'phonebook_uuid' in new_fields
             phonebook_uuid = new_fields.pop('phonebook_uuid', None)
-            source.phonebook = session.query(Phonebook).get(phonebook_uuid)
-            if not source.phonebook:
+            phonebook = session.query(Phonebook).get(phonebook_uuid)
+            if not phonebook or phonebook.tenant_uuid != tenant_uuid:
                 raise NoSuchPhonebook(
                     phonebook_key=PhonebookKey(uuid=phonebook_uuid),
                     tenants_in_scope=[tenant_uuid],
                 )
-            new_fields['name'] = source.phonebook.name
+            source.phonebook = phonebook
             source.phonebook_uuid = phonebook_uuid
         return self._update_to_db_format(source, **new_fields)
 
@@ -247,30 +247,31 @@ class SourceCRUD(BaseDAO):
     ):
         if source.backend == 'phonebook':
             if phonebook_uuid := updated_fields.pop('phonebook_uuid', None):
-                source.phonebook = session.query(Phonebook).get(phonebook_uuid)
-                if not source.phonebook:
+                phonebook = session.query(Phonebook).get(phonebook_uuid)
+                if not phonebook or phonebook.tenant_uuid != source.tenant_uuid:
                     raise NoSuchPhonebook(
                         phonebook_key=PhonebookKey(uuid=phonebook_uuid),
                         tenants_in_scope=[source.tenant_uuid],
                     )
-                updated_fields['name'] = source.phonebook.name
+                source.phonebook = phonebook
                 source.phonebook_uuid = phonebook_uuid
-
         return self._update_to_db_format(source, **updated_fields)
 
     @staticmethod
     def _update_to_db_format(
         source: Source,
-        name: str,
         searched_columns: list[str],
         first_matched_columns: list[str],
         format_columns: dict[str, str],
+        name=None,
         **extra_fields,
     ) -> Source:
         if source.backend == 'phonebook':
             assert source.phonebook
             assert source.phonebook_uuid
-        source.name = name
+        else:
+            assert name
+            source.name = name
         source.searched_columns = searched_columns
         source.first_matched_columns = first_matched_columns
         source.format_columns = format_columns

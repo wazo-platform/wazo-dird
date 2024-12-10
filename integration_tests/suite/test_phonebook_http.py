@@ -321,11 +321,15 @@ class TestPost(BasePhonebookCRUDTestCase):
         else:
             self.fail('Should have raised')
 
-        with phonebook_source(self.client, self.valid_body):
+        with phonebook_source(self.client, self.valid_body) as phonebook_source1:
+            # a different phonebook source using the same underlying phonebook
+            phonebook_source2 = self.client.phonebook_source.create(self.valid_body)
             assert_that(
-                calling(self.client.phonebook_source.create).with_args(self.valid_body),
-                raises(Exception).matching(
-                    has_properties(response=has_properties(status_code=409))
+                phonebook_source2,
+                has_entries(
+                    uuid=not_(phonebook_source1['uuid']),
+                    tenant_uuid=MAIN_TENANT,
+                    name=self.valid_body['name'],
                 ),
             )
 
@@ -398,11 +402,10 @@ class TestPut(BasePhonebookCRUDTestCase):
     def test_put(self, other, foobar):
         assert other['name'] == 'other'
         assert foobar['name'] == 'foobar'
+
         assert_that(
             calling(self.client.phonebook_source.edit).with_args(foobar['uuid'], other),
-            raises(Exception).matching(
-                has_properties(response=has_properties(status_code=409))
-            ),
+            not_(raises(Exception)),
         )
 
         assert_that(
