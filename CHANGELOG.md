@@ -1,5 +1,11 @@
 # Changelog
 
+## 24.17
+- Changes to phonebook contact import API `POST /0.1/phonebooks/<uuid:phonebook_uuid>/contacts/import`
+  - conflicting entries from imported contacts are now ignored and will not result in any error
+  - any errors found in the contact import data will abort the import and result in a 400 error response
+  - format of error responses changed, refer to API reference for details
+
 ## 23.14
 * Field `phonebook_uuid` of phonebook sources is now validated to depend on a valid phonebook
 * Phonebook sources are now deleted along with the phonebook they depend upon
