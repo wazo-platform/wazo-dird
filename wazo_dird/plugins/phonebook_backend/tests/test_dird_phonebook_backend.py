@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -21,15 +21,16 @@ class TestDirdPhonebook(unittest.TestCase):
         self.engine = self.source._search_engine = Mock()
 
     def test_load_with_phonebook_uuid(self):
-        self.source.load(
-            {
-                'config': {
-                    'name': 'test-load',
-                    'tenant_uuid': '123',
-                    'phonebook_uuid': '456',
+        with patch(f'{PhonebookPlugin.__module__}.Session'):
+            self.source.load(
+                {
+                    'config': {
+                        'name': 'test-load',
+                        'tenant_uuid': '123',
+                        'phonebook_uuid': '456',
+                    }
                 }
-            }
-        )
+            )
 
     def test_load_with_no_phonebook_uuid(self):
         with patch(f'{PhonebookPlugin.__module__}.Session'):
