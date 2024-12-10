@@ -19,6 +19,7 @@ dird_source_table = sa.sql.table(
     sa.sql.column('first_matched_columns'),
     sa.sql.column('format_columns'),
     sa.sql.column('backend'),
+    sa.sql.column('name'),
 )
 phonebook_table = sa.table(
     'dird_phonebook',
