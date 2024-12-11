@@ -214,7 +214,8 @@ definitions:
       details:
         description: additional attributes specific to the error type and instance
         type: object
-        additionalProperties: true
+        additionalProperties:
+          type: ["string", "boolean", "number", "object", "array"]
       resource:
         description: an identifier for the resource type concerned by the error
         type: string

@@ -311,11 +311,10 @@ parameters:
 definitions:
   PhonebookContactImportError:
     description: Error(s) during contact import
-    schema:
-      allOf:
-        - $ref: '#/definitions/Error'
-        - type: object
-          properties:
+    allOf:
+      - $ref: '#/definitions/Error'
+      - type: object
+        properties:
           details:
             type: object
             properties:
@@ -328,7 +327,8 @@ definitions:
                     contact:
                       description: The contact entry as parsed from the request csv input
                       type: object
-                      additionalProperties: true
+                      additionalProperties:
+                        type: string
                     message:
                       type: string
                       description: Human readable description of the error
