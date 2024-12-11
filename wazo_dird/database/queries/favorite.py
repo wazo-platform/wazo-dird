@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_
@@ -19,7 +19,7 @@ class FavoriteCRUD(BaseDAO):
                 source_uuid=source.uuid, contact_id=contact_id, user_uuid=user.user_uuid
             )
             s.add(favorite)
-            self.flush_or_raise(s, DuplicatedFavoriteException)
+            self.flush_or_raise(s, lambda exc: DuplicatedFavoriteException())
             make_transient(favorite)
             return favorite
 

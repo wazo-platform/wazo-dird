@@ -42,27 +42,27 @@ responses:
   InvalidParameters:
     description: Invalid parameters
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   ProfileInvalid:
     description: The profile does not exist
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   AnotherServiceUnavailable:
     description: Another service is unavailable (e.g. wazo-auth, postgresql, ...)
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   LimitOffsetInvalid:
     description: The limit or offset should be positive
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   DuplicateFavorite:
     description: The contact has already been favorited
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
   DuplicateContact:
     description: This contact already exists
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/LegacyError'
 parameters:
   ContactID:
     name: contact_id
@@ -179,8 +179,8 @@ parameters:
     description: The user UUID of the user doing that query
     required: true
 definitions:
-  Error:
-    title: Error
+  LegacyError:
+    title: LegacyError
     description: Error message for the client
     properties:
       timestamp:
@@ -197,6 +197,28 @@ definitions:
       status_code:
         description: HTTP status code
         type: integer
+  Error:
+    title: Error
+    description: Error message for the client
+    properties:
+      timestamp:
+        description: Time at which the error occured, as a unix timestamp
+        type: number
+        format: timestamp
+      message:
+        description: Human readable explanation of the error
+        type: string
+      error_id:
+        description: a identifier for the type of error
+        type: string
+      details:
+        description: additional attributes specific to the error type and instance
+        type: object
+        additionalProperties:
+          type: ["string", "boolean", "number", "object", "array"]
+      resource:
+        description: an identifier for the resource type concerned by the error
+        type: string
   Header:
     properties:
       column_headers:

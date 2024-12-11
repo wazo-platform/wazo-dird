@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import Column, ForeignKey, Integer, Sequence, String, Text, schema, text
@@ -37,6 +37,17 @@ class Contact(Base):
     hash = Column(String(40), nullable=False)
 
     phonebook = relationship(lambda: Phonebook, foreign_keys=[phonebook_uuid])
+
+    fields = relationship(
+        lambda: ContactFields,
+        lazy='subquery',
+        passive_deletes=True,
+        cascade='all, delete-orphan',
+    )
+
+    @property
+    def fields_dict(self):
+        return {field.name: field.value for field in self.fields}
 
 
 class ContactFields(Base):
