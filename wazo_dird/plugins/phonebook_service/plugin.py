@@ -190,8 +190,7 @@ class _PhonebookService:
             visible_tenants, phonebook_key, [contact for _, contact in to_add]
         )
 
-        errors += failed
-        return created, errors
+        return created, failed
 
     @staticmethod
     def _validate_contact(body):
