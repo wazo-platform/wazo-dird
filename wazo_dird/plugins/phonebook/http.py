@@ -195,7 +195,7 @@ class PhonebookContactImport(_Resource):
         created, failed = self.phonebook_service.import_contacts(
             visible_tenants, PhonebookKey(uuid=str(phonebook_uuid)), to_add
         )
-        if not created:
+        if failed:
             raise PhonebookContactImportAPIError(
                 message='failed to create contacts',
                 error_id='phonebook-contact-import-bad-contacts',

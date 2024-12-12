@@ -803,3 +803,69 @@ Bob,
                 total=2,
             ),
         )
+
+    def test_import_twice(self):
+        self.set_tenants(self.tenant_1.name)
+
+        data = '\n'.join(
+            ['firstname,lastname', 'Alice,A', 'Alice,A', 'Bob,B', 'Charlie,C']
+        )
+        result = self.import_(self.tenant_1, self.phonebook_1['uuid'], data)
+        assert_that(result.status_code, equal_to(201))
+        assert_that(
+            result.json(),
+            has_entries(
+                created=contains_inanyorder(
+                    has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname='B'),
+                    has_entries(firstname='Charlie', lastname='C'),
+                ),
+                failed=empty(),
+            ),
+        )
+
+        contacts = self.list_phonebook_contacts(
+            self.phonebook_1['uuid'], tenant=self.tenant_1.uuid
+        ).json()
+        assert_that(
+            contacts,
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname='B'),
+                    has_entries(firstname='Charlie', lastname='C'),
+                ),
+                total=3,
+            ),
+        )
+
+        result = self.import_(
+            self.tenant_1,
+            self.phonebook_1['uuid'],
+            data,
+        )
+        assert_that(result.status_code, equal_to(201))
+        # no errors, no new contacts
+        assert_that(
+            result.json(),
+            has_entries(
+                created=empty(),
+                failed=empty(),
+            ),
+        )
+
+        # existing contacts unchanged
+        contacts = self.list_phonebook_contacts(
+            self.phonebook_1['uuid'], tenant=self.tenant_1.uuid
+        ).json()
+        assert_that(
+            contacts,
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(firstname='Alice', lastname='A'),
+                    has_entries(firstname='Bob', lastname='B'),
+                    has_entries(firstname='Charlie', lastname='C'),
+                ),
+                total=3,
+            ),
+        )
