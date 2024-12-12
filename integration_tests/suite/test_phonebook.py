@@ -655,7 +655,7 @@ Bob,
     def test_post(self):
         self.set_tenants(self.tenant_1.name)
         result = self.import_(self.tenant_1, self.phonebook_1['uuid'], self.body)
-        assert_that(result.status_code, equal_to(200))
+        assert_that(result.status_code, equal_to(201))
         assert_that(
             result.json(),
             has_entries(
@@ -747,7 +747,7 @@ Bob,
             self.phonebook_1['uuid'],
             '\n'.join(['firstname,lastname', 'Alice,A', 'Bob,B']),
         )
-        assert_that(result.status_code, equal_to(200))
+        assert_that(result.status_code, equal_to(201))
         assert_that(
             result.json(),
             has_entries(
@@ -779,7 +779,7 @@ Bob,
             self.phonebook_1['uuid'],
             '\n'.join(['firstname,lastname', 'Alice,A', 'Alice,A', 'Bob,B']),
         )
-        assert_that(result.status_code, equal_to(200))
+        assert_that(result.status_code, equal_to(201))
         assert_that(
             result.json(),
             has_entries(

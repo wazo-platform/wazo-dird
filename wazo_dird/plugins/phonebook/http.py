@@ -203,7 +203,7 @@ class PhonebookContactImport(_Resource):
                 details={'errors': failed},
             )
 
-        return {'created': created, 'failed': failed}
+        return {'created': created, 'failed': failed}, 201
 
 
 class PhonebookContactOne(_Resource):
