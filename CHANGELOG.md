@@ -5,6 +5,7 @@
   - conflicting entries from imported contacts are now ignored and will not result in any error
   - any errors found in the contact import data will abort the import and result in a 400 error response
   - format of error responses changed, refer to API reference for details
+  - successful response status code changed from 200 to 201, in concordance with the (previously incorrect) openapi specification
 
 ## 23.14
 * Field `phonebook_uuid` of phonebook sources is now validated to depend on a valid phonebook
