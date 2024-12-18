@@ -7,6 +7,7 @@ import threading
 from functools import partial
 
 from wazo_auth_client import Client as AuthClient
+from wazo_confd_client import Client as ConfdClient
 from xivo.consul_helpers import ServiceCatalogRegistration
 from xivo.status import StatusAggregator
 from xivo.token_renewer import TokenRenewer
@@ -38,12 +39,14 @@ class Controller:
         self.bus = CoreBus(config.get('uuid'), **config['bus'])
         auth.set_auth_config(self.config['auth'])
         self.auth_client = AuthClient(**self.config['auth'])
+        self.confd_client = ConfdClient(**self.config['confd'])
         self.token_renewer = TokenRenewer(self.auth_client)
         if not self.config['auth'].get('master_tenant_uuid'):
             self.token_renewer.subscribe_to_next_token_details_change(
                 auth.init_master_tenant
             )
         self.token_renewer.subscribe_to_token_change(self.auth_client.set_token)
+        self.token_renewer.subscribe_to_token_change(self.confd_client.set_token)
         self.status_aggregator = StatusAggregator()
         self.status_aggregator.add_provider(auth.provide_status)
         self._service_registration_params = [
