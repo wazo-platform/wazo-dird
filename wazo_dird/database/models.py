@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import Column, ForeignKey, Integer, Sequence, String, Text, schema, text
@@ -270,6 +270,7 @@ class Tenant(Base):
     uuid = Column(
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
     )
+    country = Column(String(2))
 
 
 class User(Base):
