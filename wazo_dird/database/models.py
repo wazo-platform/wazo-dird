@@ -1,11 +1,26 @@
 # Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import Column, ForeignKey, Integer, Sequence, String, Text, schema, text
+import logging
+
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Integer,
+    Sequence,
+    String,
+    Text,
+    schema,
+    sql,
+    text,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON, UUID
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
+
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -259,7 +274,9 @@ class Source(Base):
     uuid = Column(
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
     )
-    name = Column(Text(), nullable=False)
+    _name = Column(
+        'name', Text(), server_default=text('uuid_generate_v4()'), nullable=False
+    )
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
     searched_columns = Column(ARRAY(Text))
     first_matched_columns = Column(ARRAY(Text))
@@ -273,6 +290,38 @@ class Source(Base):
     phonebook = relationship(
         lambda: Phonebook, foreign_keys=[phonebook_uuid], lazy='joined'
     )
+
+    @hybrid_property
+    def name(self):
+        if self.backend == 'phonebook':
+            return self.phonebook.name
+        else:
+            return self._name
+
+    @name.setter
+    def name(self, value):
+        if self.backend == 'phonebook':
+            logger.debug(
+                'value %s ignored when setting name on source(uuid=%s) with backend phonebook',
+                value,
+                self.uuid,
+            )
+        else:
+            self._name = value
+
+    @name.expression
+    def name(cls):
+        return sql.case(
+            [
+                (
+                    cls.backend == 'phonebook',
+                    sql.select([Phonebook.name])
+                    .where(Phonebook.uuid == cls.phonebook_uuid)
+                    .as_scalar(),
+                ),
+            ],
+            else_=cls._name,
+        )
 
 
 class Tenant(Base):

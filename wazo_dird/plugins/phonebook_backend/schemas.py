@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TypedDict
 
 from marshmallow import post_load
-from xivo.mallow import fields
+from xivo.mallow import fields, validate
 from xivo.mallow_helpers import ListSchema as _ListSchema
 
 from wazo_dird.schemas import BaseSourceSchema
@@ -16,6 +16,7 @@ class SourceSchema(BaseSourceSchema):
     phonebook_uuid = fields.UUID(required=True)
     phonebook_name = fields.String(dump_only=True)
     phonebook_description = fields.String(dump_only=True)
+    name = fields.String(validate=validate.Length(min=1, max=512), dump_only=True)
 
     @post_load
     def stringify_uuid(self, data, **kwargs):
