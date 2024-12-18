@@ -98,6 +98,12 @@ _DEFAULT_CONFIG: Config = {
         'https': False,
         'key_file': '',
     },
+    'confd': {
+        'host': 'localhost',
+        'port': 9486,
+        'prefix': None,
+        'https': False,
+    },
     'config_file': '/etc/wazo-dird/config.yml',
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-dird',
     'debug': False,
