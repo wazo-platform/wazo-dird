@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.mallow import fields
@@ -10,7 +10,7 @@ from wazo_dird.schemas import BaseAuthConfigSchema, BaseSourceSchema
 class SourceSchema(BaseSourceSchema):
     auth = fields.Nested(
         BaseAuthConfigSchema,
-        missing=lambda: BaseAuthConfigSchema().load({}),
+        load_default=lambda: BaseAuthConfigSchema().load({}),
     )
 
 
@@ -19,7 +19,7 @@ class ListSchema(_ListSchema):
     sort_columns = ['name']
     default_sort_column = 'name'
 
-    recurse = fields.Boolean(missing=False)
+    recurse = fields.Boolean(load_default=False)
 
 
 class ContactListSchema(_ListSchema):
