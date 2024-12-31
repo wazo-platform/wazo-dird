@@ -29,7 +29,7 @@ class ListSchema(_ListSchema):
     sort_columns = ['name']
     default_sort_column = 'name'
 
-    recurse = fields.Boolean(missing=False)
+    recurse = fields.Boolean(load_default=False)
 
 
 source_list_schema = SourceSchema(many=True)

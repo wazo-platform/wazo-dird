@@ -17,7 +17,7 @@ class ContactListSchema(ListSchema):
     sort_columns = ['firstname', 'lastname', 'name']
     default_sort_column = 'name'
 
-    recurse = fields.Boolean(missing=False)
+    recurse = fields.Boolean(load_default=False)
 
     def load_count(self, args: dict, **kwargs) -> CountParams:
         return cast(CountParams, projection(self.load(args, **kwargs), ['search']))
@@ -31,7 +31,7 @@ class PhonebookListSchema(ListSchema):
     sort_columns = ['name', 'description']
     default_sort_column = 'name'
 
-    recurse = fields.Boolean(missing=False)
+    recurse = fields.Boolean(load_default=False)
 
     def load_count(self, args: dict, **kwargs) -> CountParams:
         return cast(CountParams, projection(self.load(args, **kwargs), ['search']))
