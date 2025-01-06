@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import exceptions, utils, validates_schema
@@ -28,31 +28,31 @@ class BaseSourceSchema(BaseSchema):
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
     first_matched_columns = fields.List(
-        fields.String(validate=Length(min=1, max=128)), missing=[]
+        fields.String(validate=Length(min=1, max=128)), load_default=[]
     )
     searched_columns = fields.List(
-        fields.String(validate=Length(min=1, max=128)), missing=[]
+        fields.String(validate=Length(min=1, max=128)), load_default=[]
     )
-    format_columns = fields.Dict(validate=validate_string_dict, missing={})
+    format_columns = fields.Dict(validate=validate_string_dict, load_default={})
 
 
 class ConfdConfigSchema(BaseSchema):
-    host = fields.String(validate=Length(min=1, max=1024), missing='localhost')
-    port = fields.Integer(validate=Range(min=1, max=65535), missing=443)
-    https = fields.Boolean(missing=True)
-    verify_certificate = VerifyCertificateField(missing=True)
-    prefix = fields.String(allow_none=True, missing='/api/confd')
-    version = fields.String(validate=Length(min=1, max=16), missing='1.1')
+    host = fields.String(validate=Length(min=1, max=1024), load_default='localhost')
+    port = fields.Integer(validate=Range(min=1, max=65535), load_default=443)
+    https = fields.Boolean(load_default=True)
+    verify_certificate = VerifyCertificateField(load_default=True)
+    prefix = fields.String(allow_none=True, load_default='/api/confd')
+    version = fields.String(validate=Length(min=1, max=16), load_default='1.1')
     timeout = fields.Float(validate=Range(min=0, max=3660))
 
 
 class BaseAuthConfigSchema(BaseSchema):
-    host = fields.String(validate=Length(min=1, max=1024), missing='localhost')
-    port = fields.Integer(validate=Range(min=1, max=65535), missing=443)
-    https = fields.Boolean(missing=True)
-    verify_certificate = VerifyCertificateField(missing=True)
-    prefix = fields.String(allow_none=True, missing='/api/auth')
-    version = fields.String(validate=Length(min=1, max=16), missing='0.1')
+    host = fields.String(validate=Length(min=1, max=1024), load_default='localhost')
+    port = fields.Integer(validate=Range(min=1, max=65535), load_default=443)
+    https = fields.Boolean(load_default=True)
+    verify_certificate = VerifyCertificateField(load_default=True)
+    prefix = fields.String(allow_none=True, load_default='/api/auth')
+    version = fields.String(validate=Length(min=1, max=16), load_default='0.1')
     timeout = fields.Float(validate=Range(min=0, max=3660))
 
 

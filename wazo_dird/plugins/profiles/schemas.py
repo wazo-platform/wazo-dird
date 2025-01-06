@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.mallow import fields
@@ -13,8 +13,8 @@ class ResourceSchema(BaseSchema):
 
 
 class ServiceConfigSchema(BaseSchema):
-    sources = fields.Nested(ResourceSchema, many=True, missing=[])
-    options = fields.Dict(missing={})
+    sources = fields.Nested(ResourceSchema, many=True, load_default=[])
+    options = fields.Dict(load_default={})
 
 
 class ServiceDictSchema(fields.Nested):
@@ -50,7 +50,7 @@ class ListSchema(_ListSchema):
     sort_columns = ['name']
     default_sort_column = 'name'
 
-    recurse = fields.Boolean(missing=False)
+    recurse = fields.Boolean(load_default=False)
 
 
 list_schema = ListSchema()
