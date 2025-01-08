@@ -64,6 +64,16 @@ class Controller:
             self.token_renewer,
         )
 
+    def _set_tenant_country(self):
+        tenants = self.confd_client.tenants.list(recurse=True)['items']
+        logger.critical('AFDEBUG: tenants = %s', tenants)
+        localizations = []
+
+        for tenant in tenants:
+            # This is not what should be done... we must set the localization for the tenants
+            # in the style of "create or update"
+            localizations.append(self.confd_client.localization.get(tenant_uuid=tenant['uuid']))
+
     def run(self):
         signal.signal(signal.SIGTERM, partial(_signal_handler, self))
         signal.signal(signal.SIGINT, partial(_signal_handler, self))
@@ -86,6 +96,8 @@ class Controller:
         self.status_aggregator.add_provider(self.bus.provide_status)
 
         with self.token_renewer:
+            self._set_tenant_country()
+
             with self.bus:
                 with ServiceCatalogRegistration(*self._service_registration_params):
                     try:

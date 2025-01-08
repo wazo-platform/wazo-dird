@@ -5,6 +5,7 @@ import logging
 import threading
 
 from wazo_bus.resources.auth.events import TenantCreatedEvent
+from wazo_bus.resources.localization.event import LocalizationEditedEvent
 
 from wazo_dird import BaseServicePlugin
 
@@ -151,6 +152,7 @@ class Service:
         self._controller = controller
 
         self._bus.subscribe(TenantCreatedEvent.name, self._on_new_tenant_event)
+        self._bus.subscribe(LocalizationEditedEvent.name, self._on_localization_edited_event)
 
     def get_config(self):
         return self._config
@@ -180,6 +182,11 @@ class Service:
         sources = self._auto_create_sources(uuid, name)
         display = self._auto_create_display(uuid, name)
         self._auto_create_profile(uuid, name, display, sources)
+
+    def _on_localization_edited_event(self, localization):
+        tenant_uuid = localization['tenant_uuid']
+        country = localization['country']
+        
 
     def _add_source(self, backend, body):
         source_service = self._controller.services.get('source')
