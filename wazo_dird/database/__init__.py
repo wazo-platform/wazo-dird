@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from .models import (
@@ -29,6 +29,7 @@ from .queries.phonebook import (
 )
 from .queries.profile import ProfileCRUD
 from .queries.source import SourceCRUD
+from .queries.tenant import TenantCRUD
 
 __all__ = [
     'Base',
@@ -54,6 +55,7 @@ __all__ = [
     'Source',
     'SourceCRUD',
     'Tenant',
+    'TenantCRUD',
     'User',
     'PhonebookKey',
 ]
