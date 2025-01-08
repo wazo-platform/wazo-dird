@@ -79,7 +79,7 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
     put:
       summary: Modify an existing phonebook
-      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.edit`'
+      description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.update`'
       deprecated: true
       tags:
         - phonebook
