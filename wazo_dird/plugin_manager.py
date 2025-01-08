@@ -1,4 +1,4 @@
-# Copyright 2014-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -51,6 +51,7 @@ def load_services(
         'bus': bus,
         'controller': controller,
         'auth_client': controller.auth_client,
+        'confd_client': controller.confd_client,
     }
 
     services_extension_manager, services = _load_plugins(
