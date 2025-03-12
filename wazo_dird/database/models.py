@@ -330,6 +330,7 @@ class Tenant(Base):
     uuid = Column(
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
     )
+    country = Column(String(2))
 
 
 class User(Base):

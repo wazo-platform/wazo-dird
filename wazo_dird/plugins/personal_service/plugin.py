@@ -43,7 +43,9 @@ class _PersonalService:
             ValueError.__init__(self, message)
             self.errors = errors
 
-    def __init__(self, config, source_manager, crud, controller):
+    def __init__(
+        self, config, source_manager, crud: database.PersonalContactCRUD, controller
+    ):
         self._crud = crud
         self._config = config
         self._source_manager = source_manager
