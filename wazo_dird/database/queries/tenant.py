@@ -20,30 +20,30 @@ class TenantCRUD(BaseDAO):
 
     def create_or_edit(self, tenant_uuid, tenant_body) -> TenantDict:
         with self.new_session() as s:
-            tenant = None
             try:
-                tenant = self.get(tenant_uuid) | tenant_body
-                tenant = self._to_db_format(tenant)
-                self.update(tenant)
+                tenant = self._get(s, tenant_uuid)
+                tenant.country = tenant_body['country']
             except NoSuchTenant:
-                tenant = Tenant(uuid=tenant_uuid, **tenant_body)
-                s.add(tenant)
+                tenant = Tenant(uuid=tenant_uuid, country=tenant_body['country'])
             finally:
+                s.add(tenant)
                 s.flush()
                 return self._from_db_format(tenant)
 
     def get(self, tenant_uuid: str) -> TenantDict:
         with self.new_session() as s:
-            tenant = s.query(Tenant).filter(Tenant.uuid == tenant_uuid).first()
-            if not tenant:
-                raise NoSuchTenant(tenant_uuid)
-            return self._from_db_format(tenant)
+            try:
+                tenant = self._get(s, tenant_uuid)
+            except NoSuchTenant:
+                raise
+            else:
+                return self._from_db_format(tenant)
 
-    def update(self, tenant: Tenant) -> None:
-        with self.new_session() as s:
-            s.update(Tenant).where(Tenant.uuid == tenant.uuid).values(
-                **self._from_db_format(tenant)
-            )
+    def _get(self, session, tenant_uuid) -> Tenant:
+        tenant = session.query(Tenant).filter(Tenant.uuid == tenant_uuid).first()
+        if not tenant:
+            raise NoSuchTenant(tenant_uuid)
+        return tenant
 
     @staticmethod
     def _from_db_format(tenant: Tenant) -> TenantDict:
