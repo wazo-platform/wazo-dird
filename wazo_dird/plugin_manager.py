@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from flask import Flask
     from flask_restful import Api
     from wazo_auth_client import Client as AuthClient
+    from wazo_confd_client import Client as ConfdClient
     from xivo.status import StatusAggregator
 
     from wazo_dird.bus import CoreBus
@@ -35,6 +36,7 @@ class ServiceDependencies(TypedDict):
     bus: CoreBus
     controller: Controller
     auth_client: AuthClient
+    confd_client: ConfdClient
 
 
 def load_services(
@@ -51,6 +53,7 @@ def load_services(
         'bus': bus,
         'controller': controller,
         'auth_client': controller.auth_client,
+        'confd_client': controller.confd_client,
     }
 
     services_extension_manager, services = _load_plugins(

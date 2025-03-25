@@ -5,8 +5,11 @@ import logging
 import threading
 
 from wazo_bus.resources.auth.events import TenantCreatedEvent
+from wazo_bus.resources.localization.event import LocalizationEditedEvent
 
-from wazo_dird import BaseServicePlugin
+from wazo_dird import BaseServicePlugin, database
+from wazo_dird.database.helpers import Session
+from wazo_dird.database.queries.tenant import TenantCRUD
 
 logger = logging.getLogger(__name__)
 
@@ -138,8 +141,10 @@ class ConfigServicePlugin(BaseServicePlugin):
         bus = dependencies['bus']
         config = dependencies['config']
         controller = dependencies['controller']
-
-        return Service(config, bus, controller)
+        confd_client = dependencies['confd_client']
+        return Service(
+            config, bus, controller, database.TenantCRUD(Session), confd_client
+        )
 
 
 class Service:
@@ -147,12 +152,17 @@ class Service:
     # This lock will be shared across all instances.
     _lock = threading.Lock()
 
-    def __init__(self, config, bus, controller):
+    def __init__(self, config, bus, controller, tenant_crud: TenantCRUD, confd_client):
         self._bus = bus
         self._config = config
         self._controller = controller
+        self._tenant_crud = tenant_crud
+        self._confd_client = confd_client
 
         self._bus.subscribe(TenantCreatedEvent.name, self._on_new_tenant_event)
+        self._bus.subscribe(
+            LocalizationEditedEvent.name, self._on_localization_edited_event
+        )
 
     def get_config(self):
         return self._config
@@ -182,6 +192,12 @@ class Service:
         sources = self._auto_create_sources(uuid, name)
         display = self._auto_create_display(uuid, name)
         self._auto_create_profile(uuid, name, display, sources)
+
+    def _on_localization_edited_event(self, localization):
+        logger.info('Localization_event received: %s', localization)
+        tenant_uuid = localization['tenant_uuid']
+        country = localization['country']
+        self._tenant_crud.create_or_edit(tenant_uuid, {'country': country})
 
     def _add_source(self, backend, body):
         source_service = self._controller.services.get('source')
