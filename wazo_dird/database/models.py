@@ -335,6 +335,9 @@ class Tenant(Base):
 
 class User(Base):
     __tablename__ = 'dird_user'
+    __table_args__ = (
+        schema.Index('dird_user__idx__tenant_uuid', 'tenant_uuid'),
+    )
 
     user_uuid = Column(String(UUID_LENGTH), primary_key=True)
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))

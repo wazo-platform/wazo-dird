@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -119,10 +119,13 @@ class BaseDAO:
         except exc.IntegrityError:
             s.rollback()
 
-    def _get_dird_user(self, session: BaseSession, user_uuid: str):
+    def _get_dird_user(self, session: BaseSession, tenant_uuid: str, user_uuid: str):
         user = session.query(User).filter(User.user_uuid == user_uuid).first()
+        tenant = session.query(Tenant).filter(Tenant.uuid == tenant_uuid).first()
+        if not tenant:
+            self._create_tenant(session, tenant_uuid)
         if not user:
-            user = User(user_uuid=user_uuid)
+            user = User(user_uuid=user_uuid, tenant_uuid=tenant_uuid)
             session.add(user)
             session.flush()
 

@@ -152,7 +152,7 @@ class _FavoritesService(helpers.BaseService):
             raise self.NoSuchSourceException(source_name)
 
         backend = source['backend']
-        self._crud.create(user_uuid, backend, source_name, contact_id)
+        self._crud.create(user_uuid, tenant_uuid, backend, source_name, contact_id)
         event = FavoriteAddedEvent(
             source_name, contact_id, self._xivo_uuid, tenant_uuid, user_uuid
         )
