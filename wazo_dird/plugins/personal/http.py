@@ -48,7 +48,9 @@ class PersonalAll(LegacyAuthResource):
         tenant_uuid = Tenant.autodetect().uuid
         contact = request.json
         try:
-            contact = self.personal_service.create_contact(contact, user_uuid, tenant_uuid)
+            contact = self.personal_service.create_contact(
+                contact, user_uuid, tenant_uuid
+            )
             return contact, 201
         except self.personal_service.InvalidPersonalContact as e:
             error = {'reason': e.errors, 'timestamp': [time()], 'status_code': 400}

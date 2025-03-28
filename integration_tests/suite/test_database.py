@@ -51,7 +51,11 @@ def with_user_uuid(f):
         user_uuid = new_uuid()
         user = database.User(user_uuid=user_uuid, tenant_uuid=TENANT_UUID)
         with closing(Session()) as session:
-            tenant = session.query(database.Tenant).filter(database.Tenant.uuid == TENANT_UUID).first()
+            tenant = (
+                session.query(database.Tenant)
+                .filter(database.Tenant.uuid == TENANT_UUID)
+                .first()
+            )
             if not tenant:
                 tenant = database.Tenant(uuid=TENANT_UUID)
                 session.add(tenant)
@@ -1107,7 +1111,9 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     def test_that_create_personal_contact_creates_with_existing_owner(self, user_uuid):
-        result = self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_1)
+        result = self._crud.create_personal_contact(
+            TENANT_UUID, user_uuid, self.contact_1
+        )
         assert_that(result, equal_to(expected(self.contact_1)))
 
         contact_list = self._crud.list_personal_contacts(user_uuid)
@@ -1125,9 +1131,9 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     def test_that_personal_contacts_remain_unique(self, user_uuid):
-        contact_1_uuid = self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_1)[
-            'id'
-        ]
+        contact_1_uuid = self._crud.create_personal_contact(
+            TENANT_UUID, user_uuid, self.contact_1
+        )['id']
         self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_2)['id']
 
         assert_that(
@@ -1247,7 +1253,9 @@ class TestFavoriteCrud(_BaseTest):
         contact_id = 'the-contact-id'
         backend = 'backend'
 
-        favorite = self._crud.create(user_uuid, TENANT_UUID, backend, source_name, contact_id)
+        favorite = self._crud.create(
+            user_uuid, TENANT_UUID, backend, source_name, contact_id
+        )
 
         assert_that(favorite.user_uuid, equal_to(user_uuid))
         assert_that(favorite.contact_id, equal_to(contact_id))
@@ -1316,7 +1324,9 @@ class TestFavoriteCrud(_BaseTest):
             raises(exception.NoSuchFavorite),
         )
 
-        assert_that(self._favorite_exists(TENANT_UUID, user_2, 'source', 'the-contact-id'))
+        assert_that(
+            self._favorite_exists(TENANT_UUID, user_2, 'source', 'the-contact-id')
+        )
 
     @fixtures.source(backend='backend', name='source')
     @with_user_uuid
@@ -1348,7 +1358,8 @@ class TestFavoriteCrud(_BaseTest):
                         database.User.user_uuid == user_uuid,
                         database.User.tenant_uuid == tenant_uuid,
                     )
-                ).scalar()
+                )
+                .scalar()
             )
 
         return user_uuid is not None

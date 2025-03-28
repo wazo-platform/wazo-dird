@@ -111,7 +111,9 @@ class PersonalContactCRUD(BaseDAO):
 
     def create_personal_contacts(self, tenant_uuid, user_uuid, contact_infos):
         with self.new_session() as s:
-            return self._create_personal_contacts(s, tenant_uuid, user_uuid, contact_infos)
+            return self._create_personal_contacts(
+                s, tenant_uuid, user_uuid, contact_infos
+            )
 
     def _create_personal_contacts(
         self, session, tenant_uuid, user_uuid, contact_infos, fail_on_duplicate=False
@@ -165,7 +167,9 @@ class PersonalContactCRUD(BaseDAO):
                 s.rollback()
                 raise DuplicatedContactException()
             contact_info['id'] = contact_id
-            for contact in self._create_personal_contacts(s, tenant_uuid, user_uuid, [contact_info]):
+            for contact in self._create_personal_contacts(
+                s, tenant_uuid, user_uuid, [contact_info]
+            ):
                 return contact
 
     def get_personal_contact(self, user_uuid, contact_uuid):
