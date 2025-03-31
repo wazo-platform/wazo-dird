@@ -59,6 +59,7 @@ def with_user_uuid(f):
             if not tenant:
                 tenant = database.Tenant(uuid=TENANT_UUID)
                 session.add(tenant)
+                session.flush()
             session.add(user)
             session.commit()
             result = f(self, user_uuid, *args, **kwargs)
