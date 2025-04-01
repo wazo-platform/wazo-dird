@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
@@ -1810,3 +1810,18 @@ class TestProfileCRUD(_BaseTest):
             ),
             not_(raises(Exception)),
         )
+
+
+class TestTenantCRUD(_BaseTest):
+    def setUp(self):
+        super().setUp()
+        self._crud = database.TenantCRUD(Session)
+
+    def test_create(self):
+        tenant_uuid = new_uuid()
+
+        result = self._crud.create(tenant_uuid=tenant_uuid)
+        assert result == {'uuid': tenant_uuid, 'country': None}
+
+        result = self._crud.create(tenant_uuid=tenant_uuid, country='CA')
+        assert result == {'uuid': tenant_uuid, 'country': 'CA'}
