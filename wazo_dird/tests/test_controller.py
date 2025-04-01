@@ -94,6 +94,7 @@ class TestController(TestCase):
         config = dict(kwargs)
         config.setdefault('bus', {'enabled': False})
         config.setdefault('auth', {'host': 'localhost'})
+        config.setdefault('confd', {'host': 'localhost'})
         config.setdefault('enabled_plugins', {})
         config['enabled_plugins'].setdefault('backends', {})
         config['enabled_plugins'].setdefault('services', {})

@@ -12,7 +12,11 @@ from ..plugin import Service
 
 class TestConfigService(unittest.TestCase):
     def test_that_get_config_returns_the_config(self):
-        service = Service(s.original_config, Mock(), s.controller)
+        tenant_crud = None
+        confd_client = None
+        service = Service(
+            s.original_config, Mock(), s.controller, tenant_crud, confd_client
+        )
 
         config = service.get_config()
 

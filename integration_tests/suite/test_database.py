@@ -1817,11 +1817,9 @@ class TestTenantCRUD(_BaseTest):
         super().setUp()
         self._crud = database.TenantCRUD(Session)
 
-    def test_create(self):
-        tenant_uuid = new_uuid()
+    def test_create_and_update(self):
+        result = self._crud.create(tenant_uuid=TENANT_UUID)
+        assert result == {'uuid': TENANT_UUID, 'country': None}
 
-        result = self._crud.create(tenant_uuid=tenant_uuid)
-        assert result == {'uuid': tenant_uuid, 'country': None}
-
-        result = self._crud.create(tenant_uuid=tenant_uuid, country='CA')
-        assert result == {'uuid': tenant_uuid, 'country': 'CA'}
+        result = self._crud.create(tenant_uuid=TENANT_UUID, country='CA')
+        assert result == {'uuid': TENANT_UUID, 'country': 'CA'}
