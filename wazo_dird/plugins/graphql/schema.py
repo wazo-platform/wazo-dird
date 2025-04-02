@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from graphene import (
@@ -21,8 +20,6 @@ if TYPE_CHECKING:
     from wazo_dird.plugins.source_result import _SourceResult
 
     from .resolver import ResolveInfo
-
-logger = logging.getLogger(__name__)
 
 
 class ContactInterface(Interface):
@@ -129,6 +126,7 @@ class User(ObjectType):
         ),
     )
     uuid = Field(String)
+    tenant_uuid = Field(String)
 
     def resolve_contacts(parent, info, **args):
         return info.context['resolver'].get_user_contacts(parent, info, **args)
@@ -140,7 +138,7 @@ class User(ObjectType):
 class Query(ObjectType):
     hello = Field(String, description='Return "world"')
     me = Field(UserMe, description='The user linked to the authentication token')
-    user = Field(User, uuid=String())
+    user = Field(User, uuid=String(), tenant_uuid=String())
 
     def resolve_hello(root, info: ResolveInfo):
         return info.context['resolver'].hello(root, info)
@@ -148,9 +146,8 @@ class Query(ObjectType):
     def resolve_me(root, info: ResolveInfo):
         return info.context['resolver'].get_user_me(root, info)
 
-    def resolve_user(root, info: ResolveInfo, uuid: str):
-        logger.info('resolving user %s', uuid)
-        return info.context['resolver'].get_user_by_uuid(root, info, uuid)
+    def resolve_user(root, info: ResolveInfo, uuid: str, tenant_uuid: str):
+        return info.context['resolver'].get_user_by_uuid(root, info, uuid, tenant_uuid)
 
 
 def make_schema() -> Schema:

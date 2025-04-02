@@ -55,9 +55,14 @@ class Resolver:
         return info.context['user_uuid']
 
     def get_user_by_uuid(
-        self, root: _SourceResult, info: ResolveInfo, user_uuid: str, **args: Any
+        self,
+        root: _SourceResult,
+        info: ResolveInfo,
+        user_uuid: str,
+        tenant_uuid: str,
+        **args: Any,
     ):
-        info.context['tenant_uuid'] = '82f60c78-fc94-4936-b3fb-7b276c69df9d'
+        info.context['tenant_uuid'] = tenant_uuid
         info.context['user_uuid'] = user_uuid
         info.context['token_id'] = request.headers['X-Auth-Token']
         return {}
