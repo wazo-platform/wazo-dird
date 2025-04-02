@@ -49,13 +49,25 @@ def with_user_uuid(f):
     @functools.wraps(f)
     def wrapped(self, *args, **kwargs):
         user_uuid = new_uuid()
-        user = database.User(user_uuid=user_uuid)
+        user = database.User(user_uuid=user_uuid, tenant_uuid=TENANT_UUID)
         with closing(Session()) as session:
+            tenant = (
+                session.query(database.Tenant)
+                .filter(database.Tenant.uuid == TENANT_UUID)
+                .first()
+            )
+            if not tenant:
+                tenant = database.Tenant(uuid=TENANT_UUID)
+                session.add(tenant)
+                session.flush()
             session.add(user)
             session.commit()
             result = f(self, user_uuid, *args, **kwargs)
             session.query(database.User).filter(
                 database.User.user_uuid == user_uuid
+            ).delete()
+            session.query(database.Tenant).filter(
+                database.Tenant.uuid == TENANT_UUID
             ).delete()
             session.commit()
         return result
@@ -1092,7 +1104,7 @@ class TestContactCRUD(_BaseTest):
     def test_that_create_personal_contact_creates_a_contact_and_the_owner(self):
         owner = new_uuid()
 
-        result = self._crud.create_personal_contact(owner, self.contact_1)
+        result = self._crud.create_personal_contact(TENANT_UUID, owner, self.contact_1)
         assert_that(result, equal_to(expected(self.contact_1)))
 
         contact_list = self._crud.list_personal_contacts(owner)
@@ -1100,7 +1112,9 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     def test_that_create_personal_contact_creates_with_existing_owner(self, user_uuid):
-        result = self._crud.create_personal_contact(user_uuid, self.contact_1)
+        result = self._crud.create_personal_contact(
+            TENANT_UUID, user_uuid, self.contact_1
+        )
         assert_that(result, equal_to(expected(self.contact_1)))
 
         contact_list = self._crud.list_personal_contacts(user_uuid)
@@ -1108,24 +1122,24 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     def test_that_personal_contacts_are_unique(self, user_uuid):
-        self._crud.create_personal_contact(user_uuid, self.contact_1)
+        self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_1)
         assert_that(
             calling(self._crud.create_personal_contact).with_args(
-                user_uuid, self.contact_1
+                TENANT_UUID, user_uuid, self.contact_1
             ),
             raises(exception.DuplicatedContactException),
         )
 
     @with_user_uuid
     def test_that_personal_contacts_remain_unique(self, user_uuid):
-        contact_1_uuid = self._crud.create_personal_contact(user_uuid, self.contact_1)[
-            'id'
-        ]
-        self._crud.create_personal_contact(user_uuid, self.contact_2)['id']
+        contact_1_uuid = self._crud.create_personal_contact(
+            TENANT_UUID, user_uuid, self.contact_1
+        )['id']
+        self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_2)['id']
 
         assert_that(
             calling(self._crud.edit_personal_contact).with_args(
-                user_uuid, contact_1_uuid, self.contact_2
+                TENANT_UUID, user_uuid, contact_1_uuid, self.contact_2
             ),
             raises(exception.DuplicatedContactException),
         )
@@ -1141,10 +1155,10 @@ class TestContactCRUD(_BaseTest):
         self, user_uuid_1, user_uuid_2
     ):
         contact_1_uuid = self._crud.create_personal_contact(
-            user_uuid_1, self.contact_1
+            TENANT_UUID, user_uuid_1, self.contact_1
         )['id']
         contact_2_uuid = self._crud.create_personal_contact(
-            user_uuid_2, self.contact_1
+            TENANT_UUID, user_uuid_2, self.contact_1
         )['id']
 
         assert_that(contact_1_uuid, not_(equal_to(contact_2_uuid)))
@@ -1240,22 +1254,26 @@ class TestFavoriteCrud(_BaseTest):
         contact_id = 'the-contact-id'
         backend = 'backend'
 
-        favorite = self._crud.create(user_uuid, backend, source_name, contact_id)
+        favorite = self._crud.create(
+            user_uuid, TENANT_UUID, backend, source_name, contact_id
+        )
 
         assert_that(favorite.user_uuid, equal_to(user_uuid))
         assert_that(favorite.contact_id, equal_to(contact_id))
 
-        assert_that(self._user_exists(user_uuid))
-        assert_that(self._favorite_exists(user_uuid, source_name, contact_id))
+        assert_that(self._user_exists(TENANT_UUID, user_uuid))
+        assert_that(
+            self._favorite_exists(TENANT_UUID, user_uuid, source_name, contact_id)
+        )
 
     @with_user_uuid
     @fixtures.source(backend='backend', name='source')
     def test_that_creating_the_same_favorite_raises(self, source, user_uuid):
         source, contact_id, backend = 'source', 'the-contact-id', 'backend'
-        self._crud.create(user_uuid, backend, source, contact_id)
+        self._crud.create(user_uuid, TENANT_UUID, backend, source, contact_id)
         assert_that(
             calling(self._crud.create).with_args(
-                user_uuid, backend, source, contact_id
+                user_uuid, TENANT_UUID, backend, source, contact_id
             ),
             raises(exception.DuplicatedFavoriteException),
         )
@@ -1268,11 +1286,11 @@ class TestFavoriteCrud(_BaseTest):
     def test_get(self, source_3, source_2, source_1, user_1, user_2):
         backend = source_1['backend']
 
-        self._crud.create(user_1, backend, 's1', '1')
-        self._crud.create(user_1, backend, 's2', '1')
-        self._crud.create(user_1, backend, 's1', '42')
-        self._crud.create(user_2, backend, 's1', '42')
-        self._crud.create(user_2, backend, 's3', '1')
+        self._crud.create(user_1, TENANT_UUID, backend, 's1', '1')
+        self._crud.create(user_1, TENANT_UUID, backend, 's2', '1')
+        self._crud.create(user_1, TENANT_UUID, backend, 's1', '42')
+        self._crud.create(user_2, TENANT_UUID, backend, 's1', '42')
+        self._crud.create(user_2, TENANT_UUID, backend, 's3', '1')
 
         fav_1 = self._crud.get(user_1)
         fav_2 = self._crud.get(user_2)
@@ -1284,12 +1302,12 @@ class TestFavoriteCrud(_BaseTest):
     @with_user_uuid
     def test_that_delete_removes_a_favorite(self, user_uuid, source):
         backend = 'backend'
-        self._crud.create(user_uuid, backend, 'source', 'the-contact-id')
+        self._crud.create(user_uuid, TENANT_UUID, backend, 'source', 'the-contact-id')
 
         self._crud.delete(user_uuid, 'source', 'the-contact-id')
 
         assert_that(
-            self._favorite_exists(user_uuid, 'source', 'the-contact-id'),
+            self._favorite_exists(TENANT_UUID, user_uuid, 'source', 'the-contact-id'),
             equal_to(False),
         )
 
@@ -1300,14 +1318,16 @@ class TestFavoriteCrud(_BaseTest):
         self, user_1, user_2, source
     ):
         backend = 'backend'
-        self._crud.create(user_2, backend, 'source', 'the-contact-id')
+        self._crud.create(user_2, TENANT_UUID, backend, 'source', 'the-contact-id')
 
         assert_that(
             calling(self._crud.delete).with_args(user_1, 'source', 'the-contact-id'),
             raises(exception.NoSuchFavorite),
         )
 
-        assert_that(self._favorite_exists(user_2, 'source', 'the-contact-id'))
+        assert_that(
+            self._favorite_exists(TENANT_UUID, user_2, 'source', 'the-contact-id')
+        )
 
     @fixtures.source(backend='backend', name='source')
     @with_user_uuid
@@ -1321,7 +1341,7 @@ class TestFavoriteCrud(_BaseTest):
     @with_user_uuid
     def test_that_delete_from_an_unknown_source_raises(self, user_uuid, source):
         backend = 'backend'
-        self._crud.create(user_uuid, backend, 'source', 'the-contact-id')
+        self._crud.create(user_uuid, TENANT_UUID, backend, 'source', 'the-contact-id')
 
         assert_that(
             calling(self._crud.delete).with_args(
@@ -1330,17 +1350,22 @@ class TestFavoriteCrud(_BaseTest):
             raises(exception.NoSuchFavorite),
         )
 
-    def _user_exists(self, user_uuid):
+    def _user_exists(self, tenant_uuid, user_uuid):
         with closing(Session()) as session:
             user_uuid = (
                 session.query(database.User.user_uuid)
-                .filter(database.User.user_uuid == user_uuid)
+                .filter(
+                    and_(
+                        database.User.user_uuid == user_uuid,
+                        database.User.tenant_uuid == tenant_uuid,
+                    )
+                )
                 .scalar()
             )
 
         return user_uuid is not None
 
-    def _favorite_exists(self, user_uuid, source_name, contact_id):
+    def _favorite_exists(self, tenant_uuid, user_uuid, source_name, contact_id):
         with closing(Session()) as session:
             favorite = (
                 session.query(database.Favorite)
@@ -1349,6 +1374,7 @@ class TestFavoriteCrud(_BaseTest):
                 .filter(
                     and_(
                         database.User.user_uuid == user_uuid,
+                        database.User.tenant_uuid == tenant_uuid,
                         database.Source.name == source_name,
                         database.Favorite.contact_id == contact_id,
                     )

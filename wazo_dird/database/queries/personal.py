@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_, distinct, text
@@ -102,22 +102,24 @@ class PersonalContactCRUD(BaseDAO):
                 list_contacts_by_uuid(s, contact_uuids), order, limit, offset, reverse
             )
 
-    def create_personal_contact(self, user_uuid, contact_info):
+    def create_personal_contact(self, tenant_uuid, user_uuid, contact_info):
         with self.new_session() as s:
             for contact in self._create_personal_contacts(
-                s, user_uuid, [contact_info], fail_on_duplicate=True
+                s, tenant_uuid, user_uuid, [contact_info], fail_on_duplicate=True
             ):
                 return contact
 
-    def create_personal_contacts(self, user_uuid, contact_infos):
+    def create_personal_contacts(self, tenant_uuid, user_uuid, contact_infos):
         with self.new_session() as s:
-            return self._create_personal_contacts(s, user_uuid, contact_infos)
+            return self._create_personal_contacts(
+                s, tenant_uuid, user_uuid, contact_infos
+            )
 
     def _create_personal_contacts(
-        self, session, user_uuid, contact_infos, fail_on_duplicate=False
+        self, session, tenant_uuid, user_uuid, contact_infos, fail_on_duplicate=False
     ):
         hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
-        user = self._get_dird_user(session, user_uuid)
+        user = self._get_dird_user(session, tenant_uuid, user_uuid)
         existing_hashes_and_id = self._find_existing_contact_by_hash(
             session, user_uuid, list(hash_and_contact.keys())
         )
@@ -157,7 +159,7 @@ class PersonalContactCRUD(BaseDAO):
         pairs = session.query(Contact.hash, Contact.uuid).filter(filter_)
         return {p.hash: p.uuid for p in pairs.all()}
 
-    def edit_personal_contact(self, user_uuid, contact_id, contact_info):
+    def edit_personal_contact(self, tenant_uuid, user_uuid, contact_id, contact_info):
         with self.new_session() as s:
             self._delete_personal_contact(s, user_uuid, contact_id)
             hash_ = compute_contact_hash(contact_info)
@@ -165,7 +167,9 @@ class PersonalContactCRUD(BaseDAO):
                 s.rollback()
                 raise DuplicatedContactException()
             contact_info['id'] = contact_id
-            for contact in self._create_personal_contacts(s, user_uuid, [contact_info]):
+            for contact in self._create_personal_contacts(
+                s, tenant_uuid, user_uuid, [contact_info]
+            ):
                 return contact
 
     def get_personal_contact(self, user_uuid, contact_uuid):

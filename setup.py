@@ -16,7 +16,10 @@ setup(
     zip_safe=False,
     package_data={'wazo_dird.plugins': ['*/api.yml']},
     entry_points={
-        'console_scripts': ['wazo-dird=wazo_dird.main:main'],
+        'console_scripts': [
+            'wazo-dird=wazo_dird.main:main',
+            'wazo-dird-user-sync=wazo_dird.user_sync:main',
+        ],
         'wazo_dird.services': [
             'cleanup = wazo_dird.plugins.cleanup_service.plugin:StorageCleanupServicePlugin',
             'config = wazo_dird.plugins.config_service.plugin:ConfigServicePlugin',

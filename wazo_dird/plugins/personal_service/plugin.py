@@ -43,17 +43,19 @@ class _PersonalService:
             ValueError.__init__(self, message)
             self.errors = errors
 
-    def __init__(self, config, source_manager, crud, controller):
+    def __init__(
+        self, config, source_manager, crud: database.PersonalContactCRUD, controller
+    ):
         self._crud = crud
         self._config = config
         self._source_manager = source_manager
         self._controller = controller
 
-    def create_contact(self, contact_infos, user_uuid):
+    def create_contact(self, contact_infos, user_uuid, tenant_uuid):
         self.validate_contact(contact_infos)
-        return self._crud.create_personal_contact(user_uuid, contact_infos)
+        return self._crud.create_personal_contact(tenant_uuid, user_uuid, contact_infos)
 
-    def create_contacts(self, contact_infos, user_uuid):
+    def create_contacts(self, contact_infos, user_uuid, tenant_uuid):
         errors = []
         to_add = []
         existing_contact_uuids = {
@@ -74,14 +76,19 @@ class _PersonalService:
             except PersonalImportError as e:
                 errors.append({'errors': [str(e)], 'line': contact_infos.line_num})
 
-        return (self._crud.create_personal_contacts(user_uuid, to_add), errors)
+        return (
+            self._crud.create_personal_contacts(tenant_uuid, user_uuid, to_add),
+            errors,
+        )
 
     def get_contact(self, contact_id, user_uuid):
         return self._crud.get_personal_contact(user_uuid, contact_id)
 
-    def edit_contact(self, contact_id, contact_infos, user_uuid):
+    def edit_contact(self, contact_id, contact_infos, user_uuid, tenant_uuid):
         self.validate_contact(contact_infos)
-        return self._crud.edit_personal_contact(user_uuid, contact_id, contact_infos)
+        return self._crud.edit_personal_contact(
+            tenant_uuid, user_uuid, contact_id, contact_infos
+        )
 
     def remove_contact(self, contact_id, user_uuid):
         self._crud.delete_personal_contact(user_uuid, contact_id)

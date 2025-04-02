@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_
@@ -11,9 +11,9 @@ from .base import BaseDAO
 
 
 class FavoriteCRUD(BaseDAO):
-    def create(self, user_uuid, backend, source_name, contact_id):
+    def create(self, user_uuid, tenant_uuid, backend, source_name, contact_id):
         with self.new_session() as s:
-            user = self._get_dird_user(s, user_uuid)
+            user = self._get_dird_user(s, tenant_uuid, user_uuid)
             source = self._get_source(s, backend, source_name)
             favorite = Favorite(
                 source_uuid=source.uuid, contact_id=contact_id, user_uuid=user.user_uuid

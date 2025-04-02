@@ -10,6 +10,7 @@ from time import time
 from flask import Response, request
 from flask_restful import reqparse
 from xivo.rest_api_helpers import APIException
+from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
 from wazo_dird.auth import required_acl
@@ -44,9 +45,12 @@ class PersonalAll(LegacyAuthResource):
     @required_acl('dird.personal.create')
     def post(self):
         user_uuid = _get_calling_user_uuid()
+        tenant_uuid = Tenant.autodetect().uuid
         contact = request.json
         try:
-            contact = self.personal_service.create_contact(contact, user_uuid)
+            contact = self.personal_service.create_contact(
+                contact, user_uuid, tenant_uuid
+            )
             return contact, 201
         except self.personal_service.InvalidPersonalContact as e:
             error = {'reason': e.errors, 'timestamp': [time()], 'status_code': 400}
@@ -136,10 +140,11 @@ class PersonalOne(LegacyAuthResource):
     @required_acl('dird.personal.{contact_id}.update')
     def put(self, contact_id):
         user_uuid = _get_calling_user_uuid()
+        tenant_uuid = Tenant.autodetect().uuid
         new_contact = request.json
         try:
             contact = self.personal_service.edit_contact(
-                contact_id, new_contact, user_uuid
+                contact_id, new_contact, user_uuid, tenant_uuid
             )
             return contact, 200
         except self.personal_service.NoSuchContact as e:
@@ -177,6 +182,7 @@ class PersonalImport(LegacyAuthResource):
     @required_acl('dird.personal.import.create')
     def post(self):
         user_uuid = _get_calling_user_uuid()
+        tenant_uuid = Tenant.autodetect().uuid
 
         charset = request.mimetype_params.get('charset', 'utf-8')
         try:
@@ -185,7 +191,7 @@ class PersonalImport(LegacyAuthResource):
             error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 400}
             return error, 400
 
-        created, errors = self._mass_import(csv_document, user_uuid)
+        created, errors = self._mass_import(csv_document, user_uuid, tenant_uuid)
 
         if not created:
             error = {
@@ -198,6 +204,6 @@ class PersonalImport(LegacyAuthResource):
         result = {'created': created, 'failed': errors}
         return result, 201
 
-    def _mass_import(self, csv_document, user_uuid):
+    def _mass_import(self, csv_document, user_uuid, tenant_uuid):
         reader = csv.DictReader(csv_document.split('\n'))
-        return self.personal_service.create_contacts(reader, user_uuid)
+        return self.personal_service.create_contacts(reader, user_uuid, tenant_uuid)
