@@ -28,8 +28,12 @@ def sync_user(data: dict) -> None:
     )
     if not tenant:
         tenant = database.Tenant(uuid=data['tenant_uuid'])
-        session.add(tenant)
-        session.flush()
+
+    if country := data.get('country'):
+        tenant.country = country
+
+    session.add(tenant)
+    session.flush()
 
     user = (
         session.query(database.User)
@@ -38,6 +42,7 @@ def sync_user(data: dict) -> None:
     )
     if not user:
         user = database.User(user_uuid=data['uuid'])
+
     user.tenant_uuid = data['tenant_uuid']
     session.add(user)
     session.flush()
