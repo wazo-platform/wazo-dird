@@ -36,5 +36,5 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_column(user_table_name, 'tenant_uuid')
     op.drop_index(f'{user_table_name}__idx__tenant_uuid')
+    op.drop_column(user_table_name, 'tenant_uuid')
