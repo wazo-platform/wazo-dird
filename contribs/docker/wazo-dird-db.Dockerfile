@@ -7,6 +7,7 @@ ENV ALEMBIC_DB_URI=postgresql://wazo-dird:Secr7t@localhost/wazo-dird
 
 RUN true \
     && python3 setup.py install \
+    && pip install phonenumbers==8.12.1\
     && pg_start \
     && su postgres -c "psql -c \"CREATE ROLE \\"'"'"wazo-dird\\"'"'" LOGIN PASSWORD 'Secr7t';\"" \
     && su postgres -c "psql -c 'CREATE DATABASE \"wazo-dird\" WITH OWNER \"wazo-dird\";'" \
