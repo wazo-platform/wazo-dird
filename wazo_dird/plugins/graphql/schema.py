@@ -1,8 +1,9 @@
-# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from graphene import (
@@ -20,6 +21,8 @@ if TYPE_CHECKING:
     from wazo_dird.plugins.source_result import _SourceResult
 
     from .resolver import ResolveInfo
+
+logger = logging.getLogger(__name__)
 
 
 class ContactInterface(Interface):
@@ -114,15 +117,40 @@ class UserMe(ObjectType):
         return info.context['resolver'].get_user_me_uuid(parent, info, **args)
 
 
+class User(ObjectType):
+    contacts = relay.ConnectionField(
+        ContactConnection,
+        extens=List(
+            String,
+            description='Return only contacts having exactly one of the given extens',
+        ),
+        profile=String(
+            description='Name of the profile defining where contacts are searched',
+        ),
+    )
+    uuid = Field(String)
+
+    def resolve_contacts(parent, info, **args):
+        return info.context['resolver'].get_user_contacts(parent, info, **args)
+
+    def resolve_uuid(parent, info, **args):
+        return info.context['resolver'].get_user_me_uuid(parent, info, **args)
+
+
 class Query(ObjectType):
     hello = Field(String, description='Return "world"')
     me = Field(UserMe, description='The user linked to the authentication token')
+    user = Field(User, uuid=String())
 
     def resolve_hello(root, info: ResolveInfo):
         return info.context['resolver'].hello(root, info)
 
     def resolve_me(root, info: ResolveInfo):
         return info.context['resolver'].get_user_me(root, info)
+
+    def resolve_user(root, info: ResolveInfo, uuid: str):
+        logger.info('resolving user %s', uuid)
+        return info.context['resolver'].get_user_by_uuid(root, info, uuid)
 
 
 def make_schema() -> Schema:
