@@ -1,4 +1,4 @@
-# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -53,6 +53,19 @@ class Resolver:
         self, root: _SourceResult, info: ResolveInfo, **args: Any
     ) -> str:
         return info.context['user_uuid']
+
+    def get_user_by_uuid(
+        self,
+        root: _SourceResult,
+        info: ResolveInfo,
+        user_uuid: str,
+        tenant_uuid: str,
+        **args: Any,
+    ):
+        info.context['tenant_uuid'] = tenant_uuid
+        info.context['user_uuid'] = user_uuid
+        info.context['token_id'] = request.headers['X-Auth-Token']
+        return {}
 
     def get_user_contacts(
         self, root: _SourceResult, info: ResolveInfo, **args: Any
