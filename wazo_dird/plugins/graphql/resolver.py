@@ -5,8 +5,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flask import request
-
 from wazo_dird import auth
 from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
 
@@ -41,12 +39,9 @@ class Resolver:
     def get_user_me(
         self, root: _SourceResult, info: ResolveInfo, **args: Any
     ) -> dict[str, Any]:
-        token = request.headers['X-Auth-Token']
-        token_info = auth.client().token.get(token)
+        token_info = auth.client().token.get(info.context['token_id'])
         metadata = token_info['metadata']
-        info.context['token_id'] = token
         info.context['user_uuid'] = metadata['uuid']
-        info.context['tenant_uuid'] = metadata['tenant_uuid']
         return {}
 
     def get_user_me_uuid(
@@ -59,12 +54,9 @@ class Resolver:
         root: _SourceResult,
         info: ResolveInfo,
         user_uuid: str,
-        tenant_uuid: str,
         **args: Any,
     ):
-        info.context['tenant_uuid'] = tenant_uuid
         info.context['user_uuid'] = user_uuid
-        info.context['token_id'] = request.headers['X-Auth-Token']
         return {}
 
     def get_user_contacts(
