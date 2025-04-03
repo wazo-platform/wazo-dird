@@ -162,33 +162,6 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(response['data']['user']['uuid'], equal_to(user_uuid))
 
-    def test_multiple_reverse_lookup_by_user(self):
-        query = {
-            'query': '''
-            {
-                user(uuid: "my-user-uuid") {
-                    contacts(profile: "default", extens: ["5555555555", "5555551234"]) {
-                        edges {
-                            node {
-                                wazoReverse
-                            }
-                        }
-                    }
-                }
-            }
-            ''',
-        }
-
-        response = self.dird.graphql.query(query)
-
-        assert_that(
-            response['data']['me']['contacts']['edges'],
-            contains(
-                has_entry('node', has_entries({'firstname': 'Alice'})),
-                has_entry('node', has_entries({'firstname': 'Bob'})),
-            ),
-        )
-
     def test_multiple_reverse_lookup(self):
         query = {
             'query': '''
