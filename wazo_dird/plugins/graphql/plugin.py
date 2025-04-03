@@ -7,9 +7,10 @@ from typing import TYPE_CHECKING, Any, Callable
 
 import requests
 from graphql_server.flask import GraphQLView
+from wazo_auth_client.exceptions import MissingPermissionsTokenException
 from xivo.auth_verifier import AuthServerUnreachable, Unauthorized
 from xivo.flask.headers import extract_token_id_from_header
-from xivo.tenant_flask_helpers import Tenant
+from xivo.tenant_helpers import Tenant
 
 from wazo_dird import BaseViewPlugin, http_server
 
@@ -36,7 +37,7 @@ class AuthorizationMiddleware:
     def _is_authorized(self, info: ResolveInfo, token_id: str) -> bool:
         root_field = info.field_name
         required_acl = f'dird.graphql.{root_field}'
-        tenant = Tenant.autodetect()
+        tenant = Tenant.autodetect(self._auth_client)
         try:
             token_is_valid = self._auth_client.token.check(
                 token_id,
@@ -44,6 +45,8 @@ class AuthorizationMiddleware:
                 tenant=tenant.uuid,
             )
             info.context['tenant_uuid'] = tenant.uuid
+        except MissingPermissionsTokenException:
+            return False
         except requests.RequestException as e:
             host = self._auth_config['host']
             port = self._auth_config['port']

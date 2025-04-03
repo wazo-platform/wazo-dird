@@ -104,7 +104,13 @@ class TestGraphQL(BaseDirdIntegrationTest):
         assert response == {'data': {'me': {'userUuid': 'my-user-uuid'}}}
 
         # Valid token
-        self.dird.set_token(VALID_TOKEN)
+        token = MockUserToken.some_token(
+            user_uuid='my-user-uuid',
+            metadata={'tenant_uuid': MAIN_TENANT},
+            acl=['dird.graphql.hello'],
+        )
+        self.auth.set_token(token)
+        self.dird.set_token(token.token_id)
         query = {'query': '{ hello }'}
         response = self.dird.graphql.query(query)
         assert response == {'data': {'hello': 'world'}}
