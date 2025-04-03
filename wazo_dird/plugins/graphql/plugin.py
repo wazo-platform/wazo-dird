@@ -40,6 +40,10 @@ class AuthorizationMiddleware:
         required_acl = f'dird.graphql.{root_field}'
         try:
             tenant = Tenant.autodetect(self._auth_client)
+        except AuthServerUnreachable as e:
+            host = self._auth_config['host']
+            port = self._auth_config['port']
+            raise graphql_error_from_api_exception(AuthServerUnreachable(host, port, e))
         except APIException:
             return False
 
