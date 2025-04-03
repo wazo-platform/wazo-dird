@@ -137,7 +137,7 @@ class User(ObjectType):
 class Query(ObjectType):
     hello = Field(String, description='Return "world"')
     me = Field(UserMe, description='The user linked to the authentication token')
-    user = Field(User, uuid=String())
+    user = Field(User, uuid=String(), description='The user to use for this query')
 
     def resolve_hello(root, info: ResolveInfo):
         return info.context['resolver'].hello(root, info)
