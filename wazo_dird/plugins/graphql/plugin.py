@@ -8,10 +8,8 @@ from typing import TYPE_CHECKING, Any, Callable
 import requests
 from graphql_server.flask import GraphQLView
 from xivo.auth_verifier import AuthServerUnreachable, Unauthorized
-from xivo.flask.headers import (
-    extract_tenant_id_from_header,
-    extract_token_id_from_header,
-)
+from xivo.flask.headers import extract_token_id_from_header
+from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import BaseViewPlugin, http_server
 
@@ -38,14 +36,14 @@ class AuthorizationMiddleware:
     def _is_authorized(self, info: ResolveInfo, token_id: str) -> bool:
         root_field = info.field_name
         required_acl = f'dird.graphql.{root_field}'
-        tenant_uuid = extract_tenant_id_from_header()
+        tenant = Tenant.autodetect()
         try:
             token_is_valid = self._auth_client.token.check(
                 token_id,
                 required_acl,
-                tenant=tenant_uuid,
+                tenant=tenant.uuid,
             )
-            info.context['tenant_uuid'] = tenant_uuid
+            info.context['tenant_uuid'] = tenant.uuid
         except requests.RequestException as e:
             host = self._auth_config['host']
             port = self._auth_config['port']
@@ -67,8 +65,8 @@ class AuthorizationMiddleware:
             return next(root, info, **args)
 
         token_id = extract_token_id_from_header()
-        info.context['token_id'] = token_id
         if self._is_authorized(info, token_id):
+            info.context['token_id'] = token_id
             return next(root, info, **args)
 
         raise graphql_error_from_api_exception(Unauthorized(token_id))
