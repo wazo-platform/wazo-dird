@@ -137,6 +137,25 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(response['data']['me']['userUuid'], equal_to('my-user-uuid'))
 
+    def test_user_uuid(self):
+        # use a sprecific uuid instead of "me"
+
+        user_uuid = 'my-user-uuid'
+        query = {
+            'query': '''
+            query GetUuidFromUser($uuid: String!) {
+                 user(uuid: $uuid) {
+                     uuid
+                 }
+            }
+            ''',
+            'variables': {'uuid': user_uuid},
+        }
+
+        response = self.dird.graphql.query(query)
+
+        assert_that(response['data']['user']['uuid'], equal_to(user_uuid))
+
     def test_multiple_reverse_lookup_by_user(self):
         query = {
             'query': '''
