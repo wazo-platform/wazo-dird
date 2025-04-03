@@ -189,6 +189,33 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ),
         )
 
+    def test_multiple_reverse_lookup_user(self):
+        query = {
+            'query': '''
+            {
+                user(uuid: "my-user-uuid") {
+                    contacts(profile: "default", extens: ["5555555555", "5555551234"]) {
+                        edges {
+                            node {
+                                firstname
+                            }
+                        }
+                    }
+                }
+            }
+            ''',
+        }
+
+        response = self.dird.graphql.query(query)
+
+        assert_that(
+            response['data']['user']['contacts']['edges'],
+            contains(
+                has_entry('node', has_entries({'firstname': 'Alice'})),
+                has_entry('node', has_entries({'firstname': 'Bob'})),
+            ),
+        )
+
     def test_multiple_reverse_lookup_wrong_profile(self):
         query = {
             'query': '''
@@ -221,7 +248,39 @@ class TestGraphQL(BaseDirdIntegrationTest):
             ),
         )
 
-    def test_multiple_reverse_lookup_with_one_error(self):
+    def test_multiple_reverse_lookup_wrong_profile_user(self):
+        query = {
+            'query': '''
+            {
+                user(uuid: "my-user-uuid") {
+                    contacts(profile: "wrong", extens: ["5555555555", "5555551234"]) {
+                        edges {
+                            node {
+                                firstname
+                            }
+                        }
+                    }
+                }
+            }
+            ''',
+        }
+
+        response = self.dird.graphql.query(query)
+
+        assert_that(
+            response['errors'],
+            contains(
+                has_entries(
+                    {
+                        'path': ['user', 'contacts'],
+                        'message': contains_string('profile'),
+                        'extensions': has_entry('error_id', 'unknown-profile'),
+                    }
+                )
+            ),
+        )
+
+    def test_multiple_reverse_lookup_with_one_not_found(self):
         query = {
             'query': '''
             {
@@ -242,6 +301,34 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['data']['me']['contacts']['edges'],
+            contains(
+                has_entry('node', has_entries({'firstname': 'Alice'})),
+                has_entry('node', None),
+                has_entry('node', has_entries({'firstname': 'Bob'})),
+            ),
+        )
+
+    def test_multiple_reverse_lookup_with_one_not_found_user(self):
+        query = {
+            'query': '''
+            {
+                user(uuid: "my-user-uuid") {
+                    contacts(profile: "default", extens: ["5555555555", "999", "5555551234"]) {
+                        edges {
+                            node {
+                                firstname
+                            }
+                        }
+                    }
+                }
+            }
+            ''',
+        }
+
+        response = self.dird.graphql.query(query)
+
+        assert_that(
+            response['data']['user']['contacts']['edges'],
             contains(
                 has_entry('node', has_entries({'firstname': 'Alice'})),
                 has_entry('node', None),
