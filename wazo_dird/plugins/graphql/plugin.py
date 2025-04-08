@@ -43,7 +43,9 @@ class AuthorizationMiddleware:
         except AuthServerUnreachable as e:
             host = self._auth_config['host']
             port = self._auth_config['port']
-            raise graphql_error_from_api_exception(AuthServerUnreachable(host, port, e))
+            raise graphql_error_from_api_exception(
+                AuthServerUnreachable(host, port, e)
+            ) from e
         except APIException:
             return False
 
@@ -59,7 +61,9 @@ class AuthorizationMiddleware:
         except requests.RequestException as e:
             host = self._auth_config['host']
             port = self._auth_config['port']
-            raise graphql_error_from_api_exception(AuthServerUnreachable(host, port, e))
+            raise graphql_error_from_api_exception(
+                AuthServerUnreachable(host, port, e)
+            ) from e
 
         return token_is_valid
 
