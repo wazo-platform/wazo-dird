@@ -46,8 +46,10 @@ class AuthorizationMiddleware:
             raise graphql_error_from_api_exception(
                 AuthServerUnreachable(host, port, e)
             ) from e
-        except APIException:
-            return False
+        except APIException as e:
+            if e.status_code // 100 == 4:
+                return False
+            raise
 
         try:
             token_is_valid = self._auth_client.token.check(
