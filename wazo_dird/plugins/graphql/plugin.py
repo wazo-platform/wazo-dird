@@ -1,4 +1,4 @@
-# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -7,8 +7,11 @@ from typing import TYPE_CHECKING, Any, Callable
 
 import requests
 from graphql_server.flask import GraphQLView
+from wazo_auth_client.exceptions import MissingPermissionsTokenException
 from xivo.auth_verifier import AuthServerUnreachable, Unauthorized
 from xivo.flask.headers import extract_token_id_from_header
+from xivo.rest_api_helpers import APIException
+from xivo.tenant_helpers import Tenant
 
 from wazo_dird import BaseViewPlugin, http_server
 
@@ -36,11 +39,33 @@ class AuthorizationMiddleware:
         root_field = info.field_name
         required_acl = f'dird.graphql.{root_field}'
         try:
-            token_is_valid = self._auth_client.token.is_valid(token_id, required_acl)
+            tenant = Tenant.autodetect(self._auth_client)
+        except AuthServerUnreachable as e:
+            host = self._auth_config['host']
+            port = self._auth_config['port']
+            raise graphql_error_from_api_exception(
+                AuthServerUnreachable(host, port, e)
+            ) from e
+        except APIException as e:
+            if e.status_code // 100 == 4:
+                return False
+            raise
+
+        try:
+            token_is_valid = self._auth_client.token.check(
+                token_id,
+                required_acl,
+                tenant=tenant.uuid,
+            )
+            info.context['tenant_uuid'] = tenant.uuid
+        except MissingPermissionsTokenException:
+            return False
         except requests.RequestException as e:
             host = self._auth_config['host']
             port = self._auth_config['port']
-            raise graphql_error_from_api_exception(AuthServerUnreachable(host, port, e))
+            raise graphql_error_from_api_exception(
+                AuthServerUnreachable(host, port, e)
+            ) from e
 
         return token_is_valid
 
@@ -59,6 +84,7 @@ class AuthorizationMiddleware:
 
         token_id = extract_token_id_from_header()
         if self._is_authorized(info, token_id):
+            info.context['token_id'] = token_id
             return next(root, info, **args)
 
         raise graphql_error_from_api_exception(Unauthorized(token_id))
