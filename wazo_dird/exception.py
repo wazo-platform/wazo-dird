@@ -248,6 +248,6 @@ class WazoConfdError(APIException):
 
 
 class MasterTenantNotInitiatedException(APIException):
-    def __init__(self):
+    def __init__(self) -> None:
         error_message = 'wazo-dird master tenant is not initiated'
         super().__init__(503, error_message, 'matser-tenant-not-initiated')
