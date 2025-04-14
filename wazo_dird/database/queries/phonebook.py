@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from sqlalchemy.orm import Query
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.expression import ColumnElement
+from xivo.reverse_lookup import format_phone_number_e164
 
 from wazo_dird.database.queries.base import Direction
 from wazo_dird.exception import (
@@ -28,7 +29,13 @@ from wazo_dird.exception import (
 )
 
 from .. import Contact, ContactFields, Phonebook
-from .base import BaseDAO, ContactInfo, compute_contact_hash, list_contacts_by_uuid
+from .base import (
+    BaseDAO,
+    ContactInfo,
+    compute_contact_hash,
+    get_tenant,
+    list_contacts_by_uuid,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -256,6 +263,12 @@ class PhonebookContactCRUD(BaseDAO):
         phonebook_key: PhonebookKey,
         contact_body: dict,
     ) -> ContactInfo:
+        current_tenant = get_tenant(session, tenant_uuid)
+        formatted_number = format_phone_number_e164(
+            contact_body['number'], current_tenant.country
+        )
+        if formatted_number:
+            contact_body['formatted_number'] = formatted_number
         hash_ = compute_contact_hash(contact_body)
 
         def map_contact_creation_integrity_error(exc: exc.IntegrityError) -> Exception:
@@ -312,6 +325,15 @@ class PhonebookContactCRUD(BaseDAO):
         contact_uuid: str,
         contact_body: dict,
     ) -> ContactInfo:
+        with self.new_session() as s:
+            phonebook = self._get_phonebook(s, visible_tenants, phonebook_key)
+            current_tenant = get_tenant(s, phonebook.tenant_uuid)
+            formatted_number = format_phone_number_e164(
+                contact_body['number'], current_tenant.country
+            )
+            if formatted_number:
+                contact_body['formatted_number'] = formatted_number
+
         hash_ = compute_contact_hash(contact_body)
 
         def map_contact_edit_integrity_error(exc):
