@@ -92,9 +92,17 @@ class Display(Base):
     tenant_uuid = Column(
         String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE')
     )
-    name = Column(Text(), nullable=False)
+    _name = Column('name', Text(), nullable=False)
 
     columns = relationship('DisplayColumn', viewonly=True)
+
+    @hybrid_property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value.replace('/', '_')
 
 
 class DisplayColumn(Base):
@@ -307,7 +315,7 @@ class Source(Base):
                 self.uuid,
             )
         else:
-            self._name = value
+            self._name = value.replace('/', '_')
 
     @name.expression
     def name(cls):
