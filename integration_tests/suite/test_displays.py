@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -249,6 +249,23 @@ class TestPost(BaseDisplayTestCase):
                             default=None,
                         ),
                     ),
+                ),
+            )
+
+    def test_slash_in_name(self):
+        body = {
+            'name': 'display/test',
+            'columns': [
+                {'field': 'fn', 'title': 'Firstname', 'default': ''},
+            ],
+        }
+        with self.create(self.client, body) as display:
+            assert_that(
+                display,
+                has_entries(
+                    uuid=uuid_(),
+                    tenant_uuid=MAIN_TENANT,
+                    name='display_test',
                 ),
             )
 

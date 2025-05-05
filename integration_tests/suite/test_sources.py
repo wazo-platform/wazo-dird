@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_properties
@@ -16,6 +16,14 @@ from .helpers.fixtures import http as fixtures
 
 class TestList(BaseDirdIntegrationTest):
     asset = 'all_routes'
+
+    @fixtures.csv_source(name='ab/cd')
+    def test_create_with_slash(self, abcd):
+        result = self.client.sources.list(name='ab_cd')
+        print(result)
+        self.assert_list_result(
+            result, contains(self._source_to_dict('csv', **abcd)), total=1, filtered=1
+        )
 
     @fixtures.ldap_source(name='abc')
     @fixtures.personal_source(name='bcd')
