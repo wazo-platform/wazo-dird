@@ -145,6 +145,22 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
             ),
         )
 
+    def test_favorite_source_name_supports_slash(self):
+        with self.favorite('my_csv/slash', '1', token=self.token_1), self.favorite(
+            'my_csv/slash', '2', token=self.token_1
+        ):
+            result = self.favorites('default', token=self.token_1)
+
+        assert_that(
+            result['results'],
+            contains_inanyorder(
+                has_entry(
+                    'column_values', contains('Alice', 'AAA', '5555555555', True)
+                ),
+                has_entry('column_values', contains('Bob', 'BBB', '5555551234', True)),
+            ),
+        )
+
 
 class TestRemovingFavoriteAlreadyInexistant(CSVWithMultipleDisplayTestCase):
     def test_that_removing_an_inexisting_favorite_returns_404(self):

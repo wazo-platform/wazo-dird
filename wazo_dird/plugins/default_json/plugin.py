@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -15,7 +15,7 @@ class JsonViewPlugin(BaseViewPlugin):
     uuid_lookup_url = '/directories/lookup/<profile>/<user_uuid>'
     reverse_url = '/directories/reverse/<profile>/<user_uuid>'
     favorites_read_url = '/directories/favorites/<profile>'
-    favorites_write_url = '/directories/favorites/<directory>/<contact>'
+    favorites_write_url = '/directories/favorites/<path:directory>/<contact>'
     personal_url = '/directories/personal/<profile>'
 
     def load(self, dependencies):
