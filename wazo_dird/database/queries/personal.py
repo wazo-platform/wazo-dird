@@ -4,11 +4,18 @@
 from sqlalchemy import and_, distinct, text
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from unidecode import unidecode
+from xivo.reverse_lookup import format_phone_number_e164
 
 from wazo_dird.exception import DuplicatedContactException, NoSuchContact
 
 from .. import Contact, ContactFields, User
-from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
+from .base import (
+    BaseDAO,
+    compute_contact_hash,
+    get_tenant,
+    get_user,
+    list_contacts_by_uuid,
+)
 
 
 class unaccent(ReturnTypeFromArgs):
@@ -118,6 +125,13 @@ class PersonalContactCRUD(BaseDAO):
     def _create_personal_contacts(
         self, session, tenant_uuid, user_uuid, contact_infos, fail_on_duplicate=False
     ):
+        user = get_user(session, user_uuid)
+        user_tenant = get_tenant(session, user.tenant_uuid)
+        formatted_number = format_phone_number_e164(
+            contact_infos[0]['number'], user_tenant.country
+        )
+        if formatted_number:
+            contact_infos[0]['formatted_number'] = formatted_number
         hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
         user = self._get_dird_user(session, tenant_uuid, user_uuid)
         existing_hashes_and_id = self._find_existing_contact_by_hash(
@@ -162,6 +176,13 @@ class PersonalContactCRUD(BaseDAO):
     def edit_personal_contact(self, tenant_uuid, user_uuid, contact_id, contact_info):
         with self.new_session() as s:
             self._delete_personal_contact(s, user_uuid, contact_id)
+            user = get_user(s, user_uuid)
+            user_tenant = get_tenant(s, user.tenant_uuid)
+            formatted_number = format_phone_number_e164(
+                contact_info['number'], user_tenant.country
+            )
+            if formatted_number:
+                contact_info['formatted_number'] = formatted_number
             hash_ = compute_contact_hash(contact_info)
             if self._find_existing_contact_by_hash(s, user_uuid, [hash_]):
                 s.rollback()

@@ -25,6 +25,14 @@ def delete_user(session: BaseSession, user_uuid: str):
     session.query(User).filter(User.user_uuid == user_uuid).delete()
 
 
+def get_user(session: BaseSession, user_uuid: str) -> User:
+    return session.query(User).filter(User.user_uuid == user_uuid).first()
+
+
+def get_tenant(session: BaseSession, tenant_uuid: str) -> Tenant:
+    return session.query(Tenant).filter(Tenant.uuid == tenant_uuid).first()
+
+
 def extract_constraint_name(error: exc.DBAPIError):
     try:
         return error.orig.diag.constraint_name
