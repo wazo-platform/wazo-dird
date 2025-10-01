@@ -13,17 +13,17 @@ services:
     volumes:
       - "./etc/wazo-dird/conf.d/20-bus-disabled.yml:/etc/wazo-dird/conf.d/20-bus-disabled.yml"
   america:
-    image: python:3.9-slim-bullseye
+    image: python:3.11-slim-bookworm
     volumes:
       - "./confd_data/asset.wazo_users_multiple_wazo:/tmp"
     command: "/tmp/run_confd america"
   europe:
-    image: python:3.9-slim-bullseye
+    image: python:3.11-slim-bookworm
     volumes:
       - "./confd_data/asset.wazo_users_multiple_wazo:/tmp"
     command: "/tmp/run_confd europe"
   asia:
-    image: python:3.9-slim-bullseye
+    image: python:3.11-slim-bookworm
     volumes:
       - "./confd_data/asset.wazo_users_multiple_wazo:/tmp"
     command: "/tmp/run_confd asia"

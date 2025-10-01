@@ -1,4 +1,4 @@
-FROM python:3.9-slim-bullseye AS compile-image
+FROM python:3.11-slim-bookworm AS compile-image
 LABEL maintainer="Wazo Maintainers <dev@wazo.community>"
 
 RUN python3 -m venv /opt/venv
@@ -13,7 +13,7 @@ WORKDIR /usr/src/wazo-dird
 RUN pip3 install -r requirements.txt
 RUN python3 setup.py install
 
-FROM python:3.9-slim-bullseye AS build-image
+FROM python:3.11-slim-bookworm AS build-image
 COPY --from=compile-image /opt/venv /opt/venv
 
 COPY ./etc/wazo-dird /etc/wazo-dird
