@@ -1,7 +1,7 @@
 # Copyright 2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from typing import TypedDict, Union
+from typing import TypedDict
 
 from wazo_dird.exception import NoSuchTenant
 
@@ -11,7 +11,7 @@ from .base import BaseDAO
 
 class TenantDict(TypedDict, total=False):
     uuid: str
-    country: Union[str, None]
+    country: str | None
 
 
 class TenantCRUD(BaseDAO):
