@@ -6,10 +6,10 @@ from __future__ import annotations
 import hashlib
 import json
 import unicodedata
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from itertools import islice
-from typing import Callable, Literal, TypedDict, cast
+from typing import Literal, TypedDict, cast
 
 from sqlalchemy import exc
 from sqlalchemy.orm import Session as BaseSession
