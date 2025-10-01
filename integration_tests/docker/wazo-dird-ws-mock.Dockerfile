@@ -1,4 +1,4 @@
-FROM python:3.9-slim-bullseye AS compile-image
+FROM python:3.11-slim-bookworm AS compile-image
 LABEL maintainer="Wazo Maintainers <dev@wazo.community>"
 
 RUN pip install flask

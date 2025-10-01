@@ -16,9 +16,9 @@ services:
     volumes:
       - "../..:/usr/src/wazo-dird"
       - "./etc/wazo-dird/conf.d/50-default.yml:/etc/wazo-dird/conf.d/50-default.yml"
-      # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/opt/venv/lib/python3.9/site-packages/xivo"
-      # - "${LOCAL_GIT_REPOS}/wazo-auth-client/wazo_auth_client:/opt/venv/lib/python3.9/site-packages/wazo_auth_client"
-      # - "${LOCAL_GIT_REPOS}/wazo-bus/wazo_bus:/opt/venv/lib/python3.9/site-packages/wazo_bus"
+      # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/opt/venv/lib/python3.11/site-packages/xivo"
+      # - "${LOCAL_GIT_REPOS}/wazo-auth-client/wazo_auth_client:/opt/venv/lib/python3.11/site-packages/wazo_auth_client"
+      # - "${LOCAL_GIT_REPOS}/wazo-bus/wazo_bus:/opt/venv/lib/python3.11/site-packages/wazo_bus"
 
   db:
     image: wazoplatform/wazo-dird-db:local
