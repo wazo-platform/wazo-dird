@@ -317,7 +317,7 @@ class Source(Base):
                     cls.backend == 'phonebook',
                     sql.select([Phonebook.name])
                     .where(Phonebook.uuid == cls.phonebook_uuid)
-                    .as_scalar(),
+                    .scalar_subquery(),
                 ),
             ],
             else_=cls._name,
