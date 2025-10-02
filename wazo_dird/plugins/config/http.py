@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from flask import request
 from jsonpatch import JsonPatch
 
@@ -28,6 +30,6 @@ class Config(AuthResource):
     def patch(self) -> tuple[dict, int]:
         config_patch = config_patch_schema.load(request.get_json(), many=True)
         config = self._config_service.get_config()
-        patched_config = JsonPatch(config_patch).apply(config)
+        patched_config = cast(dict, JsonPatch(config_patch).apply(config))
         self._config_service.update_config(patched_config)
         return dict(self._config_service.get_config()), 200
