@@ -19,7 +19,7 @@ COPY --from=compile-image /opt/venv /opt/venv
 COPY ./etc/wazo-dird /etc/wazo-dird
 RUN true \
     && apt-get -q update \
-    && apt-get -yq install libldap-2.4-2 \
+    && apt-get -yq install libldap-2.5-0 \
     && mkdir -p /etc/wazo-dird/conf.d \
     && mkdir -p /etc/wazo-dird/templates.d \
     && install -o www-data -g www-data /dev/null /var/log/wazo-dird.log
