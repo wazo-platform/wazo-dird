@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -120,7 +120,7 @@ class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
 
     def _get_phonebook(self, tenant_uuid=MAIN_TENANT, name=None):
         if phonebooks := self.phonebook_dao.list(
-            tenant_uuid, search=(name or self.valid_body['name'])
+            [tenant_uuid], search=(name or self.valid_body['name'])
         ):
             phonebook, *_ = phonebooks
             assert phonebook['uuid'] in {
