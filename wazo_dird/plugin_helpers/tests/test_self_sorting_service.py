@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -9,7 +9,7 @@ from ..self_sorting_service import SelfSortingServiceMixin as Service
 
 
 class TestOffice365Service(unittest.TestCase):
-    def test_sort(self):
+    def test_sort(self) -> None:
         a = {
             'firstname': 'a',
             'lastname': 'z',

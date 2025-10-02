@@ -1,7 +1,8 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from copy import deepcopy
+from typing import Any
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
@@ -24,7 +25,7 @@ SOURCE_CONFIG = {
     Mock(return_value={'service_id': 'serv_id', 'service_key': 'serv_key'}),
 )
 class TestClientRegistry(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.registry = _Registry()
         self.confd_client = (
             patch('wazo_dird.plugin_helpers.confd_client_registry.ConfdClient')
@@ -32,15 +33,15 @@ class TestClientRegistry(TestCase):
             .return_value
         )
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.registry.unregister_all()
 
-    def test_set_tenant_with_key_file(self):
+    def test_set_tenant_with_key_file(self) -> None:
         self.registry.get(SOURCE_CONFIG)
         assert self.confd_client.tenant_uuid == SOURCE_CONFIG['tenant_uuid']
 
-    def test_set_tenant_without_key_file(self):
-        config = deepcopy(SOURCE_CONFIG)
+    def test_set_tenant_without_key_file(self) -> None:
+        config: dict[str, Any] = deepcopy(SOURCE_CONFIG)
         del config['auth']['key_file']
         self.registry.get(config)
         assert self.confd_client.tenant_uuid != SOURCE_CONFIG['tenant_uuid']

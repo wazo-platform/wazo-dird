@@ -24,6 +24,19 @@ py_version = 39
 
 
 [tool.mypy]
+python_version = "3.10"
+
+show_error_codes = true
+check_untyped_defs = true
+warn_unused_configs = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+warn_unused_ignores = true
+strict_equality = true
+extra_checks = true
+no_warn_no_return = true
+
 ignore_errors = true
 
 [[tool.mypy.overrides]]
@@ -37,34 +50,3 @@ module = [
     "wazo_dird.plugin_helpers.*"
 ]
 ignore_errors = false
-
-# TODO: remove this once those libraries are typed
-[[tool.mypy.overrides]]
-module = [
-    "wazo_auth_client.*"
-]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [
-    "wazo_confd_client.*"
-]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [
-    "hamcrest.*"
-]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [
-    "marshmallow.*"
-]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [
-    "jsonpatch.*"
-]
-ignore_missing_imports = true
