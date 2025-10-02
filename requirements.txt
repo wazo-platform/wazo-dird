@@ -6,7 +6,7 @@ https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 alembic==1.8.1
 cheroot==9.0.0
 flask-cors==3.0.10
-graphql-server[flask]==3.0.0b5
+graphql-server[flask]==3.0.0b7
 flask-restful==0.3.9
 flask==2.2.2
 graphene==3.2.1
