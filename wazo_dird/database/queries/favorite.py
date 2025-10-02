@@ -25,9 +25,10 @@ class FavoriteCRUD(BaseDAO):
 
     def delete(self, user_uuid, source_name, contact_id):
         with self.new_session() as s:
-            matching_source_uuids = (
-                s.query(Source.uuid).filter(Source.name == source_name).all()
-            )
+            matching_source_uuids = [
+                row.uuid
+                for row in s.query(Source.uuid).filter(Source.name == source_name).all()
+            ]
             if not matching_source_uuids:
                 raise NoSuchFavorite((source_name, contact_id))
 
