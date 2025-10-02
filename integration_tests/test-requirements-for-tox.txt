@@ -13,7 +13,7 @@ sh
 
 # for database tests
 psycopg2-binary
-sqlalchemy==1.3.22
+sqlalchemy==1.4.46
 unidecode
 cheroot
 kombu
@@ -21,9 +21,7 @@ stevedore
 flask-cors
 flask-restful
 flask
-itsdangerous  # from flask
-jinja2  # from flask
-markupsafe # from jinja
+jinja2
 marshmallow
 werkzeug
 https://github.com/wazo-platform/wazo-lib-rest-client/archive/master.zip
