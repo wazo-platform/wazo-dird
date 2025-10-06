@@ -1,7 +1,9 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from collections.abc import Callable
+from typing import TypeVar
 
 from wazo_auth_client import Client
 from werkzeug.local import LocalProxy as Proxy
@@ -29,7 +31,11 @@ def client():
     return auth_client
 
 
-def required_master_tenant():
+F = TypeVar('F', bound=Callable)
+Decorator = Callable[[F], F]
+
+
+def required_master_tenant() -> Decorator:
     return required_tenant(master_tenant_uuid)
 
 

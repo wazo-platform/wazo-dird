@@ -1,13 +1,17 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import threading
+from typing import Any
 
+from wazo_auth_client import Client as ConfdClient
 from wazo_bus.resources.auth.events import TenantCreatedEvent
 from wazo_bus.resources.localization.event import LocalizationEditedEvent
 
 from wazo_dird import BaseServicePlugin, database
+from wazo_dird.bus import BusConsumer
+from wazo_dird.controller import Controller
 from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.tenant import TenantCRUD
 
@@ -147,12 +151,22 @@ class ConfigServicePlugin(BaseServicePlugin):
         )
 
 
+Config = dict[str, Any]
+
+
 class Service:
     # Changing root logger log-level requires application-wide lock.
     # This lock will be shared across all instances.
     _lock = threading.Lock()
 
-    def __init__(self, config, bus, controller, tenant_crud: TenantCRUD, confd_client):
+    def __init__(
+        self,
+        config: Config,
+        bus: BusConsumer,
+        controller: Controller,
+        tenant_crud: TenantCRUD,
+        confd_client: ConfdClient,
+    ):
         self._bus = bus
         self._config = config
         self._controller = controller
@@ -164,10 +178,10 @@ class Service:
             LocalizationEditedEvent.name, self._on_localization_edited_event
         )
 
-    def get_config(self):
+    def get_config(self) -> Config:
         return self._config
 
-    def update_config(self, config: dict) -> None:
+    def update_config(self, config: Config) -> None:
         with self._lock:
             self._update_debug(config['debug'])
             self._config['debug'] = config['debug']

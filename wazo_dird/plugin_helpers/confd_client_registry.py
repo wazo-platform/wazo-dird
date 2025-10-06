@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -16,11 +16,11 @@ RegisteredClient = namedtuple('RegisteredClient', ['client', 'token_renewer'])
 
 
 class _Registry:
-    def __init__(self):
-        self._clients = {}
-        self._clients_lock = Lock()
+    def __init__(self) -> None:
+        self._clients: dict[str, RegisteredClient] = {}
+        self._clients_lock: Lock = Lock()
 
-    def get(self, source_config):
+    def get(self, source_config: dict) -> ConfdClient:
         source_uuid = source_config['uuid']
 
         with self._clients_lock:
@@ -29,13 +29,13 @@ class _Registry:
 
             return self._clients[source_uuid].client
 
-    def unregister_all(self):
+    def unregister_all(self) -> None:
         with self._clients_lock:
             for _, renewer in self._clients.values():
                 renewer.stop()
             self._clients = {}
 
-    def _add_client(self, source_config):
+    def _add_client(self, source_config: dict) -> None:
         logger.debug('Instantiating a new confd client for %s', source_config['uuid'])
         confd_config = source_config['confd']
 
