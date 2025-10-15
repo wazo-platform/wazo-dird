@@ -6,7 +6,7 @@ services:
     environment:
       TARGETS: "confd:9486 auth:9497"
   confd:
-    image: python:3.9-slim-bullseye
+    image: python:3.11-slim-bookworm
     volumes:
       - "./confd_data/asset.wazo_users:/tmp"
     ports:

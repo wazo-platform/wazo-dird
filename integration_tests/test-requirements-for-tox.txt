@@ -1,32 +1,11 @@
 -r ../requirements.txt
 
 https://github.com/wazo-platform/mockserver-client-python/archive/5.6.X.zip
-https://github.com/wazo-platform/wazo-bus/archive/master.zip
+https://github.com/wazo-platform/wazo-dird-client/archive/master.zip
 https://github.com/wazo-platform/wazo-test-helpers/archive/master.zip
-https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 
 openapi-spec-validator<0.6.0  # dependency conflict on requests version (>2.31.0) with wazo clients (=2.25.1)
 pyhamcrest
 pytest
 python-ldap
 sh
-
-# for database tests
-psycopg2-binary
-sqlalchemy==1.3.22
-unidecode
-cheroot
-kombu
-stevedore
-flask-cors
-flask-restful
-flask
-itsdangerous  # from flask
-jinja2  # from flask
-markupsafe # from jinja
-marshmallow
-werkzeug
-https://github.com/wazo-platform/wazo-lib-rest-client/archive/master.zip
-https://github.com/wazo-platform/wazo-auth-client/archive/master.zip
-https://github.com/wazo-platform/wazo-confd-client/archive/master.zip
-https://github.com/wazo-platform/wazo-dird-client/archive/master.zip
