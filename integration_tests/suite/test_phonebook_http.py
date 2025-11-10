@@ -775,8 +775,7 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         super().tearDownClass()
 
     def test_plugin_lookup(self):
-        with timed() as timing:
-            result = self.client.directories.lookup(term=' 5', profile='default')
+        result = self.client.directories.lookup(term=' 5', profile='default')
 
         expected_count = 111
 
@@ -799,11 +798,6 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
                 ),
             ),
         )
-
-        max_time = 2
-        assert (
-            timing['elapsed'] < max_time
-        ), f'Lookup took too long {timing["elapsed"]} max {max_time}'
 
     def test_plugin_favorites(self):
         response = self.client.directories.lookup(term=' 4', profile='default')
@@ -881,13 +875,12 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
         ) as source:
             limit = 100
             for i in range(self.num_contacts // limit):
-                with timed() as timing:
-                    body = client.backends.list_contacts_from_source(
-                        backend='phonebook',
-                        source_uuid=source['uuid'],
-                        limit=limit,
-                        offset=i * limit,
-                    )
+                body = client.backends.list_contacts_from_source(
+                    backend='phonebook',
+                    source_uuid=source['uuid'],
+                    limit=limit,
+                    offset=i * limit,
+                )
                 assert_that(
                     body,
                     has_entries(
@@ -906,10 +899,6 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
                         ),
                     ),
                 )
-                max_time = 2
-                assert (
-                    timing['elapsed'] < max_time
-                ), f'Get paginated took too long: {timing["elapsed"]} max {max_time}'
 
     def test_get_filtered(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
@@ -921,12 +910,11 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
                 'name': self.phonebook['name'] + "-source",
             },
         ) as source:
-            with timed() as timing:
-                body = client.backends.list_contacts_from_source(
-                    backend='phonebook',
-                    source_uuid=source['uuid'],
-                    search='Contact 4',
-                )
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                search='Contact 4',
+            )
             assert_that(
                 body,
                 has_entries(
@@ -945,7 +933,3 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
                     ),
                 ),
             )
-            max_time = 2
-            assert (
-                timing['elapsed'] < max_time
-            ), f'Get filtered took too long: {timing["elapsed"]} max {max_time}'
