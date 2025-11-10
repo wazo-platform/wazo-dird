@@ -23,7 +23,7 @@ CREATE TABLE public.dird_contact (
     uuid character varying(38) DEFAULT public.uuid_generate_v4() NOT NULL,
     user_uuid character varying(36),
     hash character varying(40) NOT NULL,
-    phonebook_id integer
+    phonebook_uuid uuid
 );
 
 -- Name: dird_contact_fields; Type: TABLE; Schema: public; Owner: -
@@ -84,6 +84,7 @@ CREATE TABLE public.dird_phonebook (
     name character varying(255) NOT NULL,
     description text,
     tenant_uuid character varying(36) NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     CONSTRAINT dird_phonebook_name_check CHECK (((name)::text <> ''::text))
 );
 
@@ -140,26 +141,29 @@ CREATE TABLE public.dird_service (
 -- Name: dird_source; Type: TABLE; Schema: public; Owner: -
 
 CREATE TABLE public.dird_source (
-    name text NOT NULL,
+    name text DEFAULT public.uuid_generate_v4() NOT NULL,
     uuid character varying(36) DEFAULT public.uuid_generate_v4() NOT NULL,
     tenant_uuid character varying(36),
     searched_columns text[],
     first_matched_columns text[],
     format_columns public.hstore,
     extra_fields json,
-    backend text NOT NULL
+    backend text NOT NULL,
+    phonebook_uuid uuid
 );
 
 -- Name: dird_tenant; Type: TABLE; Schema: public; Owner: -
 
 CREATE TABLE public.dird_tenant (
-    uuid character varying(36) DEFAULT public.uuid_generate_v4() NOT NULL
+    uuid character varying(36) DEFAULT public.uuid_generate_v4() NOT NULL,
+    country character varying(2)
 );
 
 -- Name: dird_user; Type: TABLE; Schema: public; Owner: -
 
 CREATE TABLE public.dird_user (
-    user_uuid character varying(36) NOT NULL
+    user_uuid character varying(36) NOT NULL,
+    tenant_uuid character varying(36)
 );
 
 -- Name: dird_contact_fields id; Type: DEFAULT; Schema: public; Owner: -
@@ -209,10 +213,10 @@ SELECT pg_catalog.setval('public.dird_phonebook_id_seq', 1, false);
 ALTER TABLE ONLY public.dird_contact_fields
     ADD CONSTRAINT dird_contact_fields_pkey PRIMARY KEY (id);
 
--- Name: dird_contact dird_contact_hash_phonebook_id; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: dird_contact dird_contact_hash_phonebook_uuid; Type: CONSTRAINT; Schema: public; Owner: -
 
 ALTER TABLE ONLY public.dird_contact
-    ADD CONSTRAINT dird_contact_hash_phonebook_id UNIQUE (hash, phonebook_id);
+    ADD CONSTRAINT dird_contact_hash_phonebook_uuid UNIQUE (phonebook_uuid, hash);
 
 -- Name: dird_contact dird_contact_hash_user_uuid; Type: CONSTRAINT; Schema: public; Owner: -
 
@@ -244,6 +248,11 @@ ALTER TABLE ONLY public.dird_display
 ALTER TABLE ONLY public.dird_favorite
     ADD CONSTRAINT dird_favorite_pkey PRIMARY KEY (source_uuid, contact_id, user_uuid);
 
+-- Name: dird_phonebook dird_phonebook_id; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY public.dird_phonebook
+    ADD CONSTRAINT dird_phonebook_id UNIQUE (id);
+
 -- Name: dird_phonebook dird_phonebook_name_tenant_uuid; Type: CONSTRAINT; Schema: public; Owner: -
 
 ALTER TABLE ONLY public.dird_phonebook
@@ -252,7 +261,12 @@ ALTER TABLE ONLY public.dird_phonebook
 -- Name: dird_phonebook dird_phonebook_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 
 ALTER TABLE ONLY public.dird_phonebook
-    ADD CONSTRAINT dird_phonebook_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT dird_phonebook_pkey PRIMARY KEY (uuid);
+
+-- Name: dird_phonebook dird_phonebook_tenant_uuid_idx; Type: CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY public.dird_phonebook
+    ADD CONSTRAINT dird_phonebook_tenant_uuid_idx UNIQUE (uuid, tenant_uuid);
 
 -- Name: dird_profile dird_profile_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 
@@ -314,6 +328,58 @@ ALTER TABLE ONLY public.dird_tenant
 ALTER TABLE ONLY public.dird_user
     ADD CONSTRAINT dird_user_pkey PRIMARY KEY (user_uuid);
 
+-- Name: dird_contact__idx__phonebook_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_contact__idx__phonebook_uuid ON public.dird_contact USING btree (phonebook_uuid);
+
+-- Name: dird_contact__idx__user_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_contact__idx__user_uuid ON public.dird_contact USING btree (user_uuid);
+
+-- Name: dird_contact_fields__idx__contact_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_contact_fields__idx__contact_uuid ON public.dird_contact_fields USING btree (contact_uuid);
+
+-- Name: dird_display__idx__tenant_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_display__idx__tenant_uuid ON public.dird_display USING btree (tenant_uuid);
+
+-- Name: dird_phonebook__idx__tenant_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_phonebook__idx__tenant_uuid ON public.dird_phonebook USING btree (tenant_uuid);
+
+-- Name: dird_profile__idx__display_tenant_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_profile__idx__display_tenant_uuid ON public.dird_profile USING btree (display_tenant_uuid);
+
+-- Name: dird_profile__idx__display_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_profile__idx__display_uuid ON public.dird_profile USING btree (display_uuid);
+
+-- Name: dird_profile__idx__tenant_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_profile__idx__tenant_uuid ON public.dird_profile USING btree (tenant_uuid);
+
+-- Name: dird_profile_service__idx__profile_tenant_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_profile_service__idx__profile_tenant_uuid ON public.dird_profile_service USING btree (profile_tenant_uuid);
+
+-- Name: dird_profile_service__idx__profile_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_profile_service__idx__profile_uuid ON public.dird_profile_service USING btree (profile_uuid);
+
+-- Name: dird_profile_service__idx__service_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_profile_service__idx__service_uuid ON public.dird_profile_service USING btree (service_uuid);
+
+-- Name: dird_source__idx__tenant_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_source__idx__tenant_uuid ON public.dird_source USING btree (tenant_uuid);
+
+-- Name: dird_user__idx__tenant_uuid; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX dird_user__idx__tenant_uuid ON public.dird_user USING btree (tenant_uuid);
+
 -- Name: ix_dird_contact_fields_name; Type: INDEX; Schema: public; Owner: -
 
 CREATE INDEX ix_dird_contact_fields_name ON public.dird_contact_fields USING btree (name);
@@ -327,10 +393,10 @@ CREATE INDEX ix_dird_contact_fields_value ON public.dird_contact_fields USING bt
 ALTER TABLE ONLY public.dird_contact_fields
     ADD CONSTRAINT dird_contact_fields_contact_uuid_fkey FOREIGN KEY (contact_uuid) REFERENCES public.dird_contact(uuid) ON DELETE CASCADE;
 
--- Name: dird_contact dird_contact_phonebook_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: dird_contact dird_contact_phonebook_uuid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 
 ALTER TABLE ONLY public.dird_contact
-    ADD CONSTRAINT dird_contact_phonebook_id_fkey FOREIGN KEY (phonebook_id) REFERENCES public.dird_phonebook(id) ON DELETE CASCADE;
+    ADD CONSTRAINT dird_contact_phonebook_uuid_fkey FOREIGN KEY (phonebook_uuid) REFERENCES public.dird_phonebook(uuid) ON DELETE CASCADE;
 
 -- Name: dird_contact dird_contact_user_uuid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 
@@ -392,9 +458,24 @@ ALTER TABLE ONLY public.dird_profile_service_source
 ALTER TABLE ONLY public.dird_profile
     ADD CONSTRAINT dird_profile_tenant_uuid_fkey FOREIGN KEY (tenant_uuid) REFERENCES public.dird_tenant(uuid) ON DELETE CASCADE;
 
+-- Name: dird_source dird_source_phonebook_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY public.dird_source
+    ADD CONSTRAINT dird_source_phonebook_fkey FOREIGN KEY (phonebook_uuid, tenant_uuid) REFERENCES public.dird_phonebook(uuid, tenant_uuid) ON DELETE CASCADE;
+
+-- Name: dird_source dird_source_phonebook_uuid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY public.dird_source
+    ADD CONSTRAINT dird_source_phonebook_uuid_fkey FOREIGN KEY (phonebook_uuid) REFERENCES public.dird_phonebook(uuid) ON DELETE CASCADE;
+
 -- Name: dird_source dird_source_tenant_uuid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 
 ALTER TABLE ONLY public.dird_source
     ADD CONSTRAINT dird_source_tenant_uuid_fkey FOREIGN KEY (tenant_uuid) REFERENCES public.dird_tenant(uuid);
+
+-- Name: dird_user dird_user_tenant_uuid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+
+ALTER TABLE ONLY public.dird_user
+    ADD CONSTRAINT dird_user_tenant_uuid_fkey FOREIGN KEY (tenant_uuid) REFERENCES public.dird_tenant(uuid) ON DELETE CASCADE;
 
 -- PostgreSQL database dump complete
