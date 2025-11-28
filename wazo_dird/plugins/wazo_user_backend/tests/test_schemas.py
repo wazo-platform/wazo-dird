@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -88,7 +88,7 @@ class TestSourceSchema(TestCase):
         )
 
     def test_verify_certificate(self):
-        cert_filename = '/usr/share/xivo-certs/server.crt'
+        cert_filename = '/usr/share/wazo-certs/server.crt'
         verify_true = {'verify_certificate': True, 'key_file': '/not/important'}
         verify_false = {'verify_certificate': False, 'key_file': '/not/important'}
         verify_file = {
