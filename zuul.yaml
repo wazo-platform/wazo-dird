@@ -6,6 +6,9 @@
     wazo-check:
       jobs:
         - dird-tox-integration
+        - wazo-tox-molecule-bookworm
+        - wazo-tox-integration-py311
+        - wazo-tox-py311
     wazo-gate:
       jobs:
         - dird-tox-integration
