@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from graphql import Undefined
+
 from wazo_dird import auth
 from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
 
@@ -65,16 +67,20 @@ class Resolver:
         user_uuid = info.context['user_uuid']
         tenant_uuid = info.context['tenant_uuid']
         token_id = info.context['token_id']
-        profile = args['profile']
+        profile = args.get('profile')
+        if profile is None or profile is Undefined:
+            raise graphql_error_from_api_exception(NoSuchProfileAPIException(None))
+
         try:
             profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
         except NoSuchProfile as e:
             raise graphql_error_from_api_exception(NoSuchProfileAPIException(e.profile))
 
-        if args.get('extens'):
+        extens = args.get('extens')
+        if extens and extens is not Undefined:
             return self.reverse_service.reverse_many(
                 profile_config,
-                args['extens'],
+                extens,
                 profile,
                 user_uuid=user_uuid,
                 token=token_id,
