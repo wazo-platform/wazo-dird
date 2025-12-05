@@ -1,10 +1,10 @@
-# Copyright 2014-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
 
 import argparse
-from typing import Literal, TypedDict, Union
+from typing import Literal, TypedDict
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_file, read_config_file_hierarchy
@@ -63,7 +63,7 @@ class BusConfig(TypedDict):
     exchange_type: str
 
 
-Scheme = Union[Literal['http'], Literal['https']]
+Scheme = Literal['http', 'https']
 
 
 class ConsulConfig(TypedDict):
