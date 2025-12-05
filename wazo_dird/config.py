@@ -63,7 +63,7 @@ class BusConfig(TypedDict):
     exchange_type: str
 
 
-Scheme = Literal['http'] | Literal['https']
+Scheme = Literal['http', 'https']
 
 
 class ConsulConfig(TypedDict):
