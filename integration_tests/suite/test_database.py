@@ -82,8 +82,8 @@ class DBStarter(DBRunningTestCase):
 def setup_module():
     global Session
     DBStarter.setUpClass()
-    database.Base.metadata.drop_all()
-    database.Base.metadata.create_all()
+    database.Base.metadata.drop_all(bind=DBStarter.engine)
+    database.Base.metadata.create_all(bind=DBStarter.engine)
     Session = DBStarter.Session
 
 

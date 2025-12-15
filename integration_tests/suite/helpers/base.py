@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -69,17 +69,15 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.setup_db_session()
-        database.Base.metadata.bind = cls.engine
-        database.Base.metadata.reflect()
-        database.Base.metadata.create_all()
+        database.Base.metadata.reflect(bind=cls.engine)
+        database.Base.metadata.create_all(bind=cls.engine)
 
     @classmethod
     def tearDownClass(cls):
         try:
-            database.Base.metadata.drop_all()
+            database.Base.metadata.drop_all(bind=cls.engine)
         except Exception:
             pass
-        database.Base.metadata.bind = None
         cls.engine.dispose()
         super().tearDownClass()
 
