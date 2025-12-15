@@ -13,6 +13,8 @@ services:
     image: wazo-dird-test
     ports:
       - "9489"
+    environment:
+      SQLALCHEMY_WARN_20: "1"
     volumes:
       - "../..:/usr/src/wazo-dird"
       - "./etc/wazo-dird/conf.d/50-default.yml:/etc/wazo-dird/conf.d/50-default.yml"
