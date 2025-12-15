@@ -1,9 +1,15 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
 
-from hamcrest import assert_that, contains, contains_inanyorder, empty, has_entries
+from hamcrest import (
+    assert_that,
+    contains_exactly,
+    contains_inanyorder,
+    empty,
+    has_entries,
+)
 
 from ..schemas import contact_list_schema
 
@@ -71,13 +77,13 @@ class TestContactSchema(TestCase):
                     id=3,
                     name='minimal',
                     extensions=empty(),
-                    incalls=contains(has_entries(exten='4001')),
+                    incalls=contains_exactly(has_entries(exten='4001')),
                 ),
                 has_entries(
                     id=1,
                     name='test',
-                    extensions=contains(has_entries(exten='4001')),
-                    incalls=contains(has_entries(exten='1009')),
+                    extensions=contains_exactly(has_entries(exten='4001')),
+                    incalls=contains_exactly(has_entries(exten='1009')),
                 ),
             ),
         )

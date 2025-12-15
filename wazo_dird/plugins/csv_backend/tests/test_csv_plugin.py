@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -9,7 +9,7 @@ import unittest
 
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     empty,
     equal_to,
@@ -72,7 +72,7 @@ class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
 
         results = self.source.search('ice')
 
-        assert_that(results, contains(SourceResult(alice)))
+        assert_that(results, contains_exactly(SourceResult(alice)))
 
 
 class TestCsvDirectorySource(BaseCSVTestDirectory):
@@ -103,7 +103,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         result = self.source.search('foo')
 
-        assert_that(result, contains())
+        assert_that(result, contains_exactly())
 
     def test_load_invalid_file_does_not_crash(self):
         config = {
@@ -115,7 +115,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         result = self.source.search('foo')
 
-        assert_that(result, contains())
+        assert_that(result, contains_exactly())
 
     def test_load_file(self):
         config = {'file': self.fname, 'name': self.name}
@@ -138,7 +138,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         results = self.source.search('ice')
 
-        assert_that(results, contains(self.alice_result))
+        assert_that(results, contains_exactly(self.alice_result))
 
     def test_search_not_search_column(self):
         config = {
@@ -151,7 +151,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         results = self.source.search('ice')
 
-        assert_that(results, contains())
+        assert_that(results, contains_exactly())
 
     def test_search_missing_column(self):
         config = {
@@ -173,7 +173,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         results = self.source.search('ice')
 
-        assert_that(results, contains())
+        assert_that(results, contains_exactly())
 
     def test_search_with_unique_defined(self):
         config = {
@@ -187,7 +187,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         results = self.source.search('ice')
 
-        assert_that(results, contains(self.alice_result))
+        assert_that(results, contains_exactly(self.alice_result))
 
     def test_search_with_unique_missing(self):
         config = {
@@ -201,7 +201,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         results = self.source.search('ice')
 
-        assert_that(results, contains(has_properties(fields=alice)))
+        assert_that(results, contains_exactly(has_properties(fields=alice)))
 
     def test_first_match(self):
         config = {
@@ -252,7 +252,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         results = self.source.list(['1', '3'])
 
-        assert_that(results, contains())
+        assert_that(results, contains_exactly())
 
     def test_list_with_unique_column_but_empty_uids(self):
         config = {'file': self.fname, 'unique_column': 'clientno', 'name': self.name}
@@ -261,7 +261,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         results = self.source.list([])
 
-        assert_that(results, contains())
+        assert_that(results, contains_exactly())
 
     def test_list_with_unique_column(self):
         config = {'file': self.fname, 'unique_column': 'clientno', 'name': self.name}
@@ -270,7 +270,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         results = self.source.list(['1', '3'])
 
-        assert_that(results, contains(self.alice_result, self.charles_result))
+        assert_that(results, contains_exactly(self.alice_result, self.charles_result))
 
     def test_row_to_dict(self):
         keys = ['one', 'two', 'three']

@@ -1,9 +1,15 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
 
-from hamcrest import assert_that, contains, contains_inanyorder, has_entries, has_items
+from hamcrest import (
+    assert_that,
+    contains_exactly,
+    contains_inanyorder,
+    has_entries,
+    has_items,
+)
 
 from .. import services
 
@@ -158,7 +164,7 @@ class TestGoogleContactFormatter(unittest.TestCase):
         assert_that(
             formatted_contact,
             has_entries(
-                emails=contains(
+                emails=contains_exactly(
                     has_entries(address='luigi_bros@caramail.com', label='Old'),
                     has_entries(address='luigi2@example.com', label='New'),
                 ),
@@ -171,7 +177,7 @@ class TestGoogleContactFormatter(unittest.TestCase):
         assert_that(
             formatted_contact,
             has_entries(
-                organizations=contains(
+                organizations=contains_exactly(
                     has_entries(name='Mushroom Kingdom', title='Plumber'),
                 ),
             ),
@@ -183,7 +189,7 @@ class TestGoogleContactFormatter(unittest.TestCase):
         assert_that(
             formatted_contact,
             has_entries(
-                addresses=contains(
+                addresses=contains_exactly(
                     has_entries(
                         address='1600 Pennsylvania Avenue NW\\nWashington, DC 20500\\nUS',
                         label='work',

@@ -1,9 +1,9 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
 
-from hamcrest import assert_that, contains, equal_to
+from hamcrest import assert_that, contains_exactly, equal_to
 
 from wazo_dird import make_result_class
 
@@ -36,7 +36,7 @@ class TestSampleBackend(unittest.TestCase):
         self.source.load({})
         results = self.source.search('anything')
 
-        assert_that(results, contains(only_result))
+        assert_that(results, contains_exactly(only_result))
 
     def test_first_match(self):
         SourceResult = make_result_class('sample_backend', 'sample_directory', 'id')
