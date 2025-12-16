@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -347,7 +347,13 @@ class PhonebookContactCRUD(BaseDAO):
             filter_ = self._new_contact_filter(
                 phonebook.tenant_uuid, PhonebookKey(uuid=phonebook.uuid), contact_uuid
             )
-            fields = s.query(ContactFields).join(Contact).filter(filter_).all()
+            fields = (
+                s.query(ContactFields)
+                .join(Contact)
+                .join(Phonebook, Contact.phonebook_uuid == Phonebook.uuid)
+                .filter(filter_)
+                .all()
+            )
             if not fields:
                 raise NoSuchContact(contact_uuid)
             contact_info = {field.name: field.value for field in fields}
