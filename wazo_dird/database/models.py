@@ -311,14 +311,12 @@ class Source(Base):
     @name.expression
     def name(cls):
         return sql.case(
-            [
-                (
-                    cls.backend == 'phonebook',
-                    sql.select([Phonebook.name])
-                    .where(Phonebook.uuid == cls.phonebook_uuid)
-                    .scalar_subquery(),
-                ),
-            ],
+            (
+                cls.backend == 'phonebook',
+                sql.select(Phonebook.name)
+                .where(Phonebook.uuid == cls.phonebook_uuid)
+                .scalar_subquery(),
+            ),
             else_=cls._name,
         )
 
