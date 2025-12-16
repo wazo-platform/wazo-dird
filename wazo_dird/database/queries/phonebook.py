@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import Any, TypedDict, cast
 
 from psycopg2 import errorcodes
-from sqlalchemy import and_, distinct, exc, func, or_, text
+from sqlalchemy import and_, distinct, exc, func, or_, select, text
 from sqlalchemy.orm import Query
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import scoped_session
@@ -135,10 +135,9 @@ class PhonebookContactSearchEngine(BaseDAO):
 def contact_search_filter(search):
     search_filter = (
         Contact.uuid.in_(
-            Query(ContactFields.contact_uuid)
+            select(ContactFields.contact_uuid)
             .join(Contact)
             .filter(ContactFields.value.ilike(f'%{search}%'))
-            .subquery()
         )
         if search
         else True
