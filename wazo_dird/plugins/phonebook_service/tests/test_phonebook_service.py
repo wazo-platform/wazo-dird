@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -8,7 +8,7 @@ from unittest.mock import sentinel as s
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     contains_string,
     equal_to,
@@ -272,7 +272,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.assert_called_once_with(
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
-        assert_that(result, contains(*self._contacts))
+        assert_that(result, contains_exactly(*self._contacts))
 
     def test_that_list_can_be_limited(self):
         self.contact_crud.list.return_value = self._contacts
@@ -287,7 +287,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.assert_called_once_with(
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
-        assert_that(result, contains(self._manolo, self._annabelle))
+        assert_that(result, contains_exactly(self._manolo, self._annabelle))
 
     def test_that_list_can_have_an_offset(self):
         self.contact_crud.list.return_value = self._contacts
@@ -302,7 +302,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.assert_called_once_with(
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
-        assert_that(result, contains(self._antonin, self._simon))
+        assert_that(result, contains_exactly(self._antonin, self._simon))
 
     def test_that_limit_and_offset_work_togeter(self):
         self.contact_crud.list.return_value = self._contacts
@@ -318,7 +318,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.assert_called_once_with(
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
-        assert_that(result, contains(self._annabelle, self._gary_bob))
+        assert_that(result, contains_exactly(self._annabelle, self._gary_bob))
 
     def test_that_results_can_be_ordered(self):
         self.contact_crud.list.return_value = self._contacts
@@ -335,7 +335,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         )
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 self._annabelle,
                 self._antonin,
                 self._gary_bob,
@@ -385,7 +385,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         )
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 self._simon,
                 self._manolo,
                 self._gary_bob,
@@ -410,7 +410,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
         self.contact_crud.list.assert_called_once_with(
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
-        assert_that(result, contains(self._manolo, self._simon, self._gary_bob))
+        assert_that(result, contains_exactly(self._manolo, self._simon, self._gary_bob))
 
 
 class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):

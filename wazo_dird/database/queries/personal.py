@@ -12,7 +12,7 @@ from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
 
 
 class unaccent(ReturnTypeFromArgs):
-    pass
+    inherit_cache = True
 
 
 class PersonalContactSearchEngine(BaseDAO):

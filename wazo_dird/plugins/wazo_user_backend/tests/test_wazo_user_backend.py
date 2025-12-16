@@ -1,10 +1,18 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
 from unittest.mock import Mock, call, patch
 
-from hamcrest import assert_that, contains, empty, equal_to, has_entries, is_, none
+from hamcrest import (
+    assert_that,
+    contains_exactly,
+    empty,
+    equal_to,
+    has_entries,
+    is_,
+    none,
+)
 from requests import RequestException
 
 from wazo_dird import make_result_class
@@ -157,7 +165,7 @@ class TestWazoUserBackendSearch(_BaseTest):
                 recurse=True, view='directory', search=term
             )
 
-            assert_that(result, contains(SOURCE_2))
+            assert_that(result, contains_exactly(SOURCE_2))
 
     def test_that_search_uses_extra_search_params(self):
         config = dict(DEFAULT_ARGS)
@@ -182,7 +190,7 @@ class TestWazoUserBackendSearch(_BaseTest):
             recurse=True, view='directory', search='accent'
         )
 
-        assert_that(result, contains(SOURCE_2))
+        assert_that(result, contains_exactly(SOURCE_2))
 
     def test_search_with_wrong_accent(self):
         self._source._searched_columns = ['firstname', 'lastname']
@@ -193,7 +201,7 @@ class TestWazoUserBackendSearch(_BaseTest):
             recurse=True, view='directory', search='accént'
         )
 
-        assert_that(result, contains(SOURCE_2))
+        assert_that(result, contains_exactly(SOURCE_2))
 
     def test_first_match(self):
         self._source._first_matched_columns = ['exten']
@@ -272,7 +280,7 @@ class TestWazoUserBackendSearch(_BaseTest):
             recurse=True, view='directory'
         )
 
-        assert_that(result, contains(SOURCE_1))
+        assert_that(result, contains_exactly(SOURCE_1))
 
     def test_list_with_empty_list(self):
         result = self._source.list(unique_ids=[])
@@ -281,7 +289,7 @@ class TestWazoUserBackendSearch(_BaseTest):
             recurse=True, view='directory'
         )
 
-        assert_that(result, contains())
+        assert_that(result, contains_exactly())
 
     def test_fetch_entries_when_client_does_not_return_list(self):
         self._confd_client.users.list.side_effect = RequestException()

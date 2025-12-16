@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     has_entries,
     has_entry,
@@ -342,10 +342,12 @@ class TestFormatResult(unittest.TestCase):
                 'results',
                 contains_inanyorder(
                     has_entry(
-                        'column_values', contains('Alice', 'AAA', '5555555555', False)
+                        'column_values',
+                        contains_exactly('Alice', 'AAA', '5555555555', False),
                     ),
                     has_entry(
-                        'column_values', contains('Bob', 'BBB', '5555556666', True)
+                        'column_values',
+                        contains_exactly('Bob', 'BBB', '5555556666', True),
                     ),
                 ),
             ),
@@ -413,13 +415,16 @@ class TestFormatResult(unittest.TestCase):
                 'results',
                 contains_inanyorder(
                     has_entry(
-                        'column_values', contains('Alice', 'AAA', '5555555555', False)
+                        'column_values',
+                        contains_exactly('Alice', 'AAA', '5555555555', False),
                     ),
                     has_entry(
-                        'column_values', contains('Bob', 'BBB', '5555556666', False)
+                        'column_values',
+                        contains_exactly('Bob', 'BBB', '5555556666', False),
                     ),
                     has_entry(
-                        'column_values', contains('Charlie', 'CCC', '5555557777', True)
+                        'column_values',
+                        contains_exactly('Charlie', 'CCC', '5555557777', True),
                     ),
                 ),
             ),

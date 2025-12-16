@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -9,7 +9,7 @@ from collections import defaultdict
 from typing import Any, TypedDict, cast
 
 from psycopg2 import errorcodes
-from sqlalchemy import and_, distinct, exc, func, or_, text
+from sqlalchemy import and_, distinct, exc, func, or_, select, text
 from sqlalchemy.orm import Query
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import scoped_session
@@ -135,10 +135,9 @@ class PhonebookContactSearchEngine(BaseDAO):
 def contact_search_filter(search):
     search_filter = (
         Contact.uuid.in_(
-            Query(ContactFields.contact_uuid)
+            select(ContactFields.contact_uuid)
             .join(Contact)
             .filter(ContactFields.value.ilike(f'%{search}%'))
-            .subquery()
         )
         if search
         else True
@@ -347,7 +346,13 @@ class PhonebookContactCRUD(BaseDAO):
             filter_ = self._new_contact_filter(
                 phonebook.tenant_uuid, PhonebookKey(uuid=phonebook.uuid), contact_uuid
             )
-            fields = s.query(ContactFields).join(Contact).filter(filter_).all()
+            fields = (
+                s.query(ContactFields)
+                .join(Contact)
+                .join(Phonebook, Contact.phonebook_uuid == Phonebook.uuid)
+                .filter(filter_)
+                .all()
+            )
             if not fields:
                 raise NoSuchContact(contact_uuid)
             contact_info = {field.name: field.value for field in fields}

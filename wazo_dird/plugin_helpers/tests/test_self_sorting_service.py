@@ -3,7 +3,7 @@
 
 import unittest
 
-from hamcrest import assert_that, contains
+from hamcrest import assert_that, contains_exactly
 
 from ..self_sorting_service import SelfSortingServiceMixin as Service
 
@@ -27,13 +27,13 @@ class TestOffice365Service(unittest.TestCase):
         }
 
         result = Service.sort([b, c, a])
-        assert_that(result, contains(b, c, a))
+        assert_that(result, contains_exactly(b, c, a))
 
         result = Service.sort([b, c, a], order='firstname')
-        assert_that(result, contains(a, b, c))
+        assert_that(result, contains_exactly(a, b, c))
 
         result = Service.sort([b, c, a], order='lastname')
-        assert_that(result, contains(b, a, c))
+        assert_that(result, contains_exactly(b, a, c))
 
         result = Service.sort([a, b, c], order='firstname', direction='desc')
-        assert_that(result, contains(c, b, a))
+        assert_that(result, contains_exactly(c, b, a))
