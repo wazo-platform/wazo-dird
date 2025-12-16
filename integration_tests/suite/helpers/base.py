@@ -11,8 +11,8 @@ from typing import ClassVar
 import requests
 import yaml
 from hamcrest import assert_that, equal_to, has_entries
-from sqlalchemy.engine import Engine, create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import scoped_session
 from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers import until
 from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
@@ -22,6 +22,7 @@ from wazo_test_helpers.db import DBUserClient
 from wazo_test_helpers.filesystem import FileSystemClient
 
 from wazo_dird import database
+from wazo_dird.database.helpers import Session, init_db
 
 from .config import (
     Config,
@@ -62,8 +63,8 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
     def setup_db_session(cls):
         db_port = cls.service_port(5432, 'db')
         cls.db_uri = DB_URI_FMT.format(port=db_port)
-        cls.engine = create_engine(cls.db_uri, pool_pre_ping=True)
-        cls.Session = scoped_session(sessionmaker(bind=cls.engine))
+        cls.engine = init_db(cls.db_uri, echo=True)
+        cls.Session = Session
 
     @classmethod
     def setUpClass(cls):
