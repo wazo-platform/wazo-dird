@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -35,7 +35,7 @@ class Profiles(_BaseResource):
     @required_acl('dird.profiles.create')
     def post(self):
         tenant = Tenant.autodetect()
-        args = profile_schema.load(request.get_json())
+        args = profile_schema.load(request.get_json(force=True))
         body = self._profile_service.create(tenant_uuid=tenant.uuid, **args)
         return profile_schema.dump(body), 201
 
@@ -56,7 +56,7 @@ class Profile(_BaseResource):
     @required_acl('dird.profiles.{profile_uuid}.update')
     def put(self, profile_uuid):
         visible_tenants = get_tenant_uuids(recurse=True)
-        args = profile_schema.load(request.get_json())
+        args = profile_schema.load(request.get_json(force=True))
         self._profile_service.edit(
             profile_uuid, visible_tenants=visible_tenants, **args
         )

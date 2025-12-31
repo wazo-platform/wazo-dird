@@ -1,4 +1,4 @@
-# Copyright 2019-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -35,7 +35,7 @@ class Displays(_BaseResource):
     @required_acl('dird.displays.create')
     def post(self):
         tenant = Tenant.autodetect()
-        args = display_schema.load(request.get_json())
+        args = display_schema.load(request.get_json(force=True))
         body = self._display_service.create(tenant_uuid=tenant.uuid, **args)
         return display_schema.dump(body), 201
 
@@ -56,7 +56,7 @@ class Display(_BaseResource):
     @required_acl('dird.displays.{display_uuid}.update')
     def put(self, display_uuid):
         visible_tenants = get_tenant_uuids(recurse=True)
-        args = display_schema.load(request.get_json())
+        args = display_schema.load(request.get_json(force=True))
         self._display_service.edit(
             display_uuid, visible_tenants=visible_tenants, **args
         )
