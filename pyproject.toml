@@ -41,6 +41,11 @@ no_warn_no_return = true
 
 ignore_errors = true
 
+exclude = [
+    "build",
+    "integration_tests/docker",
+]
+
 [[tool.mypy.overrides]]
 module = [
     "wazo_dird.plugins.config.*",
@@ -52,3 +57,11 @@ module = [
     "wazo_dird.plugin_helpers.*"
 ]
 ignore_errors = false
+
+# TODO: remove when py.typed markers are added to those libraries
+[[tool.mypy.overrides]]
+module = [
+    "wazo_auth_client",
+    "wazo_confd_client",
+]
+ignore_missing_imports = true
