@@ -38,12 +38,18 @@ warn_unused_ignores = true
 strict_equality = true
 extra_checks = true
 no_warn_no_return = true
+scripts_are_modules = true
 
 ignore_errors = true
 
+explicit_package_bases = true
+
+exclude_gitignore = true
+
+# Exclude setup.py files
+# to avoid Duplicate module errors
 exclude = [
-    "build",
-    "integration_tests/docker",
+    "setup\\.py$",
 ]
 
 [[tool.mypy.overrides]]
