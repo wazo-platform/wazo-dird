@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -153,6 +153,13 @@ class TestPost(BasePhonebookTestCase):
         for body in bodies:
             result = self.post_phonebook(body, tenant=invalid.uuid)
             assert_that(result.status_code, equal_to(400), body)
+
+    def test_that_empty_body_for_post_phonebook_returns_400(self):
+        self.assert_empty_body_returns_400(
+            [
+                ('post', 'phonebooks'),
+            ]
+        )
 
 
 class TestGet(BasePhonebookTestCase):
@@ -320,6 +327,18 @@ class TestPut(BasePhonebookTestCase):
             phonebook['uuid'], {'name': 'duplicate me'}, tenant=invalid.uuid
         )
         assert_that(result.status_code, equal_to(409))
+
+    def test_that_empty_body_for_put_phonebook_returns_400(self):
+        valid, *_ = self.set_tenants('valid')
+        phonebook = raise_for_status(
+            self.post_phonebook({'name': 'test-empty-body'}, tenant=valid.uuid)
+        ).json()
+
+        self.assert_empty_body_returns_400(
+            [
+                ('put', f'phonebooks/{phonebook["uuid"]}'),
+            ]
+        )
 
 
 class _BasePhonebookContactTestCase(BasePhonebookTestCase):
@@ -573,6 +592,14 @@ class TestContactPost(_BasePhonebookContactTestCase):
         )
         assert_that(result.status_code, equal_to(201))
 
+    def test_that_empty_body_for_post_phonebook_contact_returns_400(self):
+        self.set_tenants(self.tenant_1.name)
+        self.assert_empty_body_returns_400(
+            [
+                ('post', f'phonebooks/{self.phonebook_1["uuid"]}/contacts'),
+            ]
+        )
+
 
 class TestContactPut(_BasePhonebookContactTestCase):
     def setUp(self):
@@ -630,6 +657,17 @@ class TestContactPut(_BasePhonebookContactTestCase):
             self.tenant_1, self.phonebook_1['uuid'], self.contact_uuid, body
         )
         assert_that(res.json(), has_entries(id=self.contact_uuid, firstname='Bob'))
+
+    def test_that_empty_body_for_put_phonebook_contact_returns_400(self):
+        self.set_tenants(self.tenant_1.name)
+        self.assert_empty_body_returns_400(
+            [
+                (
+                    'put',
+                    f'phonebooks/{self.phonebook_1["uuid"]}/contacts/{self.contact_uuid}',
+                ),
+            ]
+        )
 
 
 class TestContactImport(_BasePhonebookContactTestCase):
