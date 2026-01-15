@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -81,7 +81,7 @@ class PhonebookContactAll(_Resource):
             self.phonebook_service.create_contact(
                 visible_tenants,
                 PhonebookKey(uuid=str(phonebook_uuid)),
-                cast(dict, request.json),
+                cast(dict, request.get_json(force=True)),
             ),
             201,
         )
@@ -132,7 +132,7 @@ class PhonebookAll(_Resource):
     @_default_error_route
     def post(self):
         tenant = Tenant.autodetect()
-        body = cast(dict, request.json)
+        body = cast(dict, request.get_json(force=True))
         return (
             self.phonebook_service.create_phonebook(tenant.uuid, body),
             201,
@@ -244,7 +244,7 @@ class PhonebookContactOne(_Resource):
     @_default_error_route
     def put(self, phonebook_uuid: UUID, contact_uuid: UUID):
         visible_tenants = get_tenant_uuids(recurse=False)
-        body = cast(dict, request.json)
+        body = cast(dict, request.get_json(force=True))
         return (
             self.phonebook_service.edit_contact(
                 visible_tenants,
@@ -291,7 +291,7 @@ class PhonebookOne(_Resource):
     @_default_error_route
     def put(self, phonebook_uuid: UUID):
         visible_tenants = get_tenant_uuids(recurse=False)
-        body = cast(dict, request.json)
+        body = cast(dict, request.get_json(force=True))
         return (
             self.phonebook_service.edit_phonebook(
                 visible_tenants,
