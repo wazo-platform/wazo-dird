@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import ANY
@@ -122,6 +122,14 @@ class TestPost(BaseDeprecatedPhonebookTestCase):
         for body in bodies:
             result = self.post_phonebook('invalid', body)
             assert_that(result.status_code, equal_to(400), body)
+
+    def test_that_empty_body_for_post_phonebook_returns_400(self):
+        self.set_tenants('empty_body')
+        self.assert_empty_body_returns_400(
+            [
+                ('post', 'tenants/empty_body/phonebooks'),
+            ]
+        )
 
 
 class TestGet(BaseDeprecatedPhonebookTestCase):
@@ -256,6 +264,18 @@ class TestPut(BaseDeprecatedPhonebookTestCase):
             'invalid', phonebook['id'], {'name': 'duplicate me'}
         )
         assert_that(result.status_code, equal_to(409))
+
+    def test_that_empty_body_for_put_phonebook_returns_400(self):
+        self.set_tenants('empty_body')
+        phonebook = self.post_phonebook(
+            'empty_body', {'name': 'test-empty-body'}
+        ).json()
+
+        self.assert_empty_body_returns_400(
+            [
+                ('put', f'tenants/empty_body/phonebooks/{phonebook["id"]}'),
+            ]
+        )
 
 
 class _BasePhonebookContactTestCase(BaseDeprecatedPhonebookTestCase):
@@ -444,6 +464,17 @@ class TestContactPost(_BasePhonebookContactTestCase):
         )
         assert_that(result.status_code, equal_to(201))
 
+    def test_that_empty_body_for_post_phonebook_contact_returns_400(self):
+        self.set_tenants(self.tenant_1)
+        self.assert_empty_body_returns_400(
+            [
+                (
+                    'post',
+                    f'tenants/{self.tenant_1}/phonebooks/{self.phonebook_1["id"]}/contacts',
+                ),
+            ]
+        )
+
 
 class TestContactPut(_BasePhonebookContactTestCase):
     def setUp(self):
@@ -480,6 +511,17 @@ class TestContactPut(_BasePhonebookContactTestCase):
         self.set_tenants(self.tenant_1)
         res = self._put(self.tenant_1, self.phonebook_1['id'], self.contact_id, body)
         assert_that(res.json(), has_entries(id=self.contact_id, firstname='Bob'))
+
+    def test_that_empty_body_for_put_phonebook_contact_returns_400(self):
+        self.set_tenants(self.tenant_1)
+        self.assert_empty_body_returns_400(
+            [
+                (
+                    'put',
+                    f'tenants/{self.tenant_1}/phonebooks/{self.phonebook_1["id"]}/contacts/{self.contact_id}',
+                ),
+            ]
+        )
 
     def _put(self, tenant, phonebook_id, contact_id, body):
         return self.put_phonebook_contact(tenant, phonebook_id, contact_id, body)

@@ -1,4 +1,4 @@
-# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -156,6 +156,13 @@ class TestAddPersonal(PersonalOnlyTestCase):
         assert_that(
             result['items'],
             has_item(has_entries({'%': '%', '?': '?', '#': '#', '%': '%'})),
+        )
+
+    def test_that_empty_body_for_post_personal_returns_400(self):
+        self.assert_empty_body_returns_400(
+            [
+                ('post', 'personal'),
+            ]
         )
 
 
@@ -497,6 +504,14 @@ class TestEditPersonal(PersonalOnlyTestCase):
                 {'id': ANY, 'firstname': 'Paul', 'lastname': 'Narvidon'},
             ),
         )
+
+    def test_that_empty_body_for_put_personal_returns_400(self):
+        with self.personal({'firstname': 'Test'}) as contact:
+            self.assert_empty_body_returns_400(
+                [
+                    ('put', f'personal/{contact["id"]}'),
+                ]
+            )
 
 
 class TestEditInvalidPersonal(PersonalOnlyTestCase):

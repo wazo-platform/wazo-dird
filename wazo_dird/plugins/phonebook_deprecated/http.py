@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -154,7 +154,9 @@ class DeprecatedPhonebookContactAll(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
             self.phonebook_service.create_contact(
-                [matching_tenant['uuid']], PhonebookKey(id=phonebook_id), request.json
+                [matching_tenant['uuid']],
+                PhonebookKey(id=phonebook_id),
+                request.get_json(force=True),
             ),
             201,
         )
@@ -214,7 +216,7 @@ class DeprecatedPhonebookAll(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
             self.phonebook_service.create_phonebook(
-                matching_tenant['uuid'], request.json
+                matching_tenant['uuid'], request.get_json(force=True)
             ),
             201,
         )
@@ -303,7 +305,7 @@ class DeprecatedPhonebookContactOne(_Resource):
                 [matching_tenant['uuid']],
                 PhonebookKey(id=phonebook_id),
                 contact_uuid,
-                request.json,
+                request.get_json(force=True),
             ),
             200,
         )
@@ -350,7 +352,9 @@ class DeprecatedPhonebookOne(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
             self.phonebook_service.edit_phonebook(
-                [matching_tenant['uuid']], PhonebookKey(id=phonebook_id), request.json
+                [matching_tenant['uuid']],
+                PhonebookKey(id=phonebook_id),
+                request.get_json(force=True),
             ),
             200,
         )

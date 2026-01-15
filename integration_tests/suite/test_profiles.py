@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -436,6 +436,9 @@ class TestPost(BaseProfileTestCase):
         }
         with self.profile(main_tenant_client, body, tenant_uuid=SUB_TENANT) as profile:
             assert_that(profile, has_entries(tenant_uuid=SUB_TENANT))
+
+    def test_that_empty_body_for_post_profiles_returns_400(self):
+        self.assert_empty_body_returns_400([('post', 'profiles')])
 
     def assert_invalid_body(self, body):
         try:

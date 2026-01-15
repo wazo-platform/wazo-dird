@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -46,7 +46,7 @@ class PersonalAll(LegacyAuthResource):
     def post(self):
         user_uuid = _get_calling_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
-        contact = request.json
+        contact = request.get_json(force=True)
         try:
             contact = self.personal_service.create_contact(
                 contact, user_uuid, tenant_uuid
@@ -141,7 +141,7 @@ class PersonalOne(LegacyAuthResource):
     def put(self, contact_id):
         user_uuid = _get_calling_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
-        new_contact = request.json
+        new_contact = request.get_json(force=True)
         try:
             contact = self.personal_service.edit_contact(
                 contact_id, new_contact, user_uuid, tenant_uuid

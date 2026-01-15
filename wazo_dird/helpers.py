@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -144,7 +144,7 @@ class SourceList(_BaseSourceResource):
 
     def post(self):
         tenant = Tenant.autodetect()
-        args = self.source_schema.load(request.get_json())
+        args = self.source_schema.load(request.get_json(force=True))
         source_data = self._prepare_new_source(args)
         try:
             body = self._create_new_source(source_data, tenant.uuid)
@@ -178,7 +178,7 @@ class SourceItem(_BaseSourceResource):
 
     def put(self, source_uuid):
         visible_tenants = get_tenant_uuids(recurse=True)
-        args = self.source_schema.load(request.get_json())
+        args = self.source_schema.load(request.get_json(force=True))
         source_data = self._prepare_source_update(args)
         try:
             self._edit_source(source_uuid, visible_tenants, source_data)
