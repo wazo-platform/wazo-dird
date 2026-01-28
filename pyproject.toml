@@ -49,7 +49,7 @@ exclude_gitignore = true
 # Exclude setup.py files
 # to avoid Duplicate module errors
 exclude = [
-    "setup\\.py$",
+    "integration_tests/docker/broken-plugins/setup.py",
 ]
 
 [[tool.mypy.overrides]]
