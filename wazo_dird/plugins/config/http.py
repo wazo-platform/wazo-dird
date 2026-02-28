@@ -7,6 +7,7 @@ from typing import cast
 
 from flask import request
 from jsonpatch import JsonPatch
+from marshmallow import ValidationError
 
 from wazo_dird.auth import required_acl, required_master_tenant
 from wazo_dird.http import AuthResource
@@ -28,7 +29,10 @@ class Config(AuthResource):
     @required_master_tenant()
     @required_acl('dird.config.update')
     def patch(self) -> tuple[dict, int]:
-        config_patch = config_patch_schema.load(request.get_json(force=True), many=True)
+        body = request.get_json(force=True)
+        if not isinstance(body, list):
+            raise ValidationError('Request body must be a JSON list')
+        config_patch = config_patch_schema.load(body, many=True)
         config = self._config_service.get_config()
         patched_config = cast(dict, JsonPatch(config_patch).apply(config))
         self._config_service.update_config(patched_config)
