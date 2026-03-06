@@ -148,7 +148,7 @@ class BaseDAO:
         insensitive: bool,
     ):
         def _get_sort_key(row: ContactInfo):
-            text = row[order]
+            text = row[order] or ''
             if insensitive:
                 text = text.casefold()
             normalized = unicodedata.normalize('NFKD', text)
