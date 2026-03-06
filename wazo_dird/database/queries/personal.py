@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_, distinct, text
@@ -93,13 +93,14 @@ class PersonalContactCRUD(BaseDAO):
         if user_uuid:
             filter_ = and_(filter_, Contact.user_uuid == user_uuid)
 
-        order, limit, offset, reverse = self._extract_search_params(search_params)
+        order, limit, offset, reverse = self._extract_pagination_params(search_params)
 
         with self.new_session() as s:
             query = s.query(distinct(Contact.uuid)).filter(filter_)
             contact_uuids = [uuid for (uuid,) in query.all()]
-            return self._apply_search_params(
-                list_contacts_by_uuid(s, contact_uuids), order, limit, offset, reverse
+            contacts = list_contacts_by_uuid(s, contact_uuids)
+            return self._apply_pagination_params(
+                contacts, order, limit, offset, reverse
             )
 
     def create_personal_contact(self, tenant_uuid, user_uuid, contact_info):

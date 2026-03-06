@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -137,7 +137,7 @@ class BaseDAO:
             new_params.update(parameters)
         return cast(Parameters, new_params)
 
-    def _apply_search_params(
+    def _apply_pagination_params(
         self,
         rows,
         order: str | None,
@@ -145,19 +145,20 @@ class BaseDAO:
         offset: int,
         reverse: bool,
     ):
+        def _get_sort_key(row):
+            normalized = unicodedata.normalize('NFKD', row[order])
+            return normalized
+
         if order:
             try:
-                rows = sorted(
-                    rows,
-                    key=lambda x: unicodedata.normalize('NFKD', x[order]),
-                    reverse=reverse,
-                )
+                rows = sorted(rows, key=_get_sort_key, reverse=reverse)
             except KeyError:
                 raise ValueError(f"order: column '{order}' was not found")
         elif reverse:
-            rows = reversed(rows)
+            rows.reverse()
 
-        return list(islice(rows, offset, offset + limit if limit else None))
+        end = offset + limit if limit else None
+        return list(islice(rows, offset, end))
 
     def validate_parameters(self, parameters: Parameters):
         if int(parameters['offset']) < 0:
@@ -169,7 +170,7 @@ class BaseDAO:
         if parameters['direction'] not in self.SORT_DIRECTIONS.keys():
             raise ValueError('direction must be asc or desc')
 
-    def _extract_search_params(
+    def _extract_pagination_params(
         self, parameters: dict | None
     ) -> tuple[str | None, int | None, int, bool]:
         _parameters = self._generate_parameters(parameters)
