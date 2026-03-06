@@ -46,7 +46,8 @@ from .constants import (
 )
 from .wait_strategy import RestApiOkWaitStrategy
 
-START_TIMEOUT = int(os.environ.get('INTEGRATION_TEST_TIMEOUT', '30'))
+START_TIMEOUT = int(os.getenv('INTEGRATION_TEST_TIMEOUT', '30'))
+DB_ECHO = os.getenv('DB_ECHO', '').lower() in ['true', '1']
 
 
 class DirdAssetRunningTestCase(AssetLaunchingTestCase):
@@ -63,7 +64,7 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
     def setup_db_session(cls):
         db_port = cls.service_port(5432, 'db')
         cls.db_uri = DB_URI_FMT.format(port=db_port)
-        cls.engine = init_db(cls.db_uri, echo=True)
+        cls.engine = init_db(cls.db_uri, echo=DB_ECHO)
         cls.Session = Session
 
     @classmethod
