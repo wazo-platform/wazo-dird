@@ -93,14 +93,20 @@ class PersonalContactCRUD(BaseDAO):
         if user_uuid:
             filter_ = and_(filter_, Contact.user_uuid == user_uuid)
 
-        order, limit, offset, reverse = self._extract_pagination_params(search_params)
+        (
+            order,
+            limit,
+            offset,
+            reverse,
+            _,
+        ) = self._extract_pagination_params(search_params)
 
         with self.new_session() as s:
             query = s.query(distinct(Contact.uuid)).filter(filter_)
             contact_uuids = [uuid for (uuid,) in query.all()]
             contacts = list_contacts_by_uuid(s, contact_uuids)
             return self._apply_pagination_params(
-                contacts, order, limit, offset, reverse
+                contacts, order, limit, offset, reverse, insensitive=True
             )
 
     def create_personal_contact(self, tenant_uuid, user_uuid, contact_info):

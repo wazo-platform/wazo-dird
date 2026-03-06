@@ -67,6 +67,7 @@ class Parameters(TypedDict):
     limit: int | None
     offset: int
     search: str | None
+    order_insensitive: list[str]
 
 
 class BaseDAO:
@@ -81,6 +82,7 @@ class BaseDAO:
         'direction': 'asc',
         'limit': None,
         'offset': 0,
+        'order_insensitive': [],
     }
 
     def __init__(self, Session: scoped_session):
@@ -143,9 +145,13 @@ class BaseDAO:
         limit: int | None,
         offset: int,
         reverse: bool,
+        insensitive: bool,
     ):
-        def _get_sort_key(row):
-            normalized = unicodedata.normalize('NFKD', row[order])
+        def _get_sort_key(row: ContactInfo):
+            text = row[order]
+            if insensitive:
+                text = text.casefold()
+            normalized = unicodedata.normalize('NFKD', text)
             return normalized
 
         if order:
@@ -170,7 +176,7 @@ class BaseDAO:
 
     def _extract_pagination_params(
         self, parameters: dict | None
-    ) -> tuple[str | None, int | None, int, bool]:
+    ) -> tuple[str | None, int | None, int, bool, bool]:
         _parameters = self._generate_parameters(parameters)
         self.validate_parameters(_parameters)
 
@@ -180,4 +186,6 @@ class BaseDAO:
             limit = int(limit)
         offset = int(_parameters.get('offset', 0))
         reverse = not (_parameters.get('direction', 'asc') == 'asc')
-        return order, limit, offset, reverse
+        order_insensitive = _parameters.get('order_insensitive', [])
+        insensitive = order in order_insensitive
+        return order, limit, offset, reverse, insensitive
