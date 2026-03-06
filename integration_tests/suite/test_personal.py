@@ -572,6 +572,7 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         self.post_personal({'firstname': 'Céline'})
         self.post_personal({'firstname': 'Ãlberto'})
         self.post_personal({'firstname': 'Bob'})
+        self.post_personal({'firstname': 'bib'})
 
     def test_that_search_ordered_returns_right_order(self):
         result = self.list_personal(order='firstname')
@@ -580,6 +581,7 @@ class TestSearchPersonal(PersonalOnlyTestCase):
             contains(
                 has_entry('firstname', 'Alice'),
                 has_entry('firstname', 'Ãlberto'),
+                has_entry('firstname', 'bib'),
                 has_entry('firstname', 'Bob'),
                 has_entry('firstname', 'Céline'),
                 has_entry('firstname', 'Etienne'),
@@ -593,6 +595,7 @@ class TestSearchPersonal(PersonalOnlyTestCase):
                 has_entry('firstname', 'Etienne'),
                 has_entry('firstname', 'Céline'),
                 has_entry('firstname', 'Bob'),
+                has_entry('firstname', 'bib'),
                 has_entry('firstname', 'Ãlberto'),
                 has_entry('firstname', 'Alice'),
             ),
