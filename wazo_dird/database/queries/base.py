@@ -8,7 +8,6 @@ import json
 import unicodedata
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
-from itertools import islice
 from typing import Literal, TypedDict, cast
 
 from sqlalchemy import exc
@@ -139,7 +138,7 @@ class BaseDAO:
 
     def _apply_pagination_params(
         self,
-        rows,
+        rows: list[ContactInfo],
         order: str | None,
         limit: int | None,
         offset: int,
@@ -157,8 +156,7 @@ class BaseDAO:
         elif reverse:
             rows.reverse()
 
-        end = offset + limit if limit else None
-        return list(islice(rows, offset, end))
+        return rows[offset : offset + limit if limit else None]
 
     def validate_parameters(self, parameters: Parameters):
         if int(parameters['offset']) < 0:
