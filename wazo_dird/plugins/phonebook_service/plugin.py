@@ -91,7 +91,11 @@ class _PhonebookService:
     ) -> list[PhonebookDict]:
         return self._phonebook_crud.list(
             visible_tenants,
-            **params,
+            order=params.get('order'),
+            direction=params.get('direction'),
+            limit=params.get('limit'),
+            offset=params.get('offset'),
+            search=params.get('search'),
         )
 
     def count_contact(
