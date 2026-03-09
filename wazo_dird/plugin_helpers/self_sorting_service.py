@@ -1,5 +1,6 @@
-# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 from __future__ import annotations
 
 from sys import maxunicode
@@ -15,6 +16,7 @@ class SelfSortingServiceMixin:
         contacts: list[dict],
         order: str | None = None,
         direction: str | None = None,
+        order_insensitive: bool = False,
         **_: Any,  # TODO: remove this parameter
     ) -> list[dict]:
         if not order:
@@ -24,6 +26,12 @@ class SelfSortingServiceMixin:
 
         def get_value(contact: dict) -> str:
             value = contact.get(order)
-            return value or ALMOST_LAST_STRING
+            if not value:
+                return ALMOST_LAST_STRING
+
+            if order_insensitive and isinstance(value, str):
+                value = value.casefold()
+
+            return value
 
         return sorted(contacts, key=get_value, reverse=reverse)
