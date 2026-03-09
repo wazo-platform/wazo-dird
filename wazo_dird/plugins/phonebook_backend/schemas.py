@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -45,6 +45,7 @@ class ContactListSchema(_ListSchema):
     searchable_columns = []
     sort_columns = ['firstname', 'lastname', 'number']
     default_sort_column = None
+    sort_insensitive_columns = ['firstname', 'lastname']
 
 
 contact_list_schema = ContactListSchema()

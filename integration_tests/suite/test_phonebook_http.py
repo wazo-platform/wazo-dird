@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -678,6 +678,64 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
                     ),
                 ),
             )
+
+    def test_get_sort_by_case_insensitive(self):
+        client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+        phonebook = self.phonebook_crud.create(
+            MAIN_TENANT,
+            {'name': 'test_get_sort_by_case_insensitive'},
+        )
+        _, errors = self.contact_crud.create_many(
+            None,
+            PhonebookKey(uuid=phonebook['uuid']),
+            [
+                {'firstname': 'aa bb'},
+                {'firstname': 'ba bb'},
+                {'firstname': 'Bb bb'},
+            ],
+        )
+        assert not errors
+
+        config = {
+            'phonebook_uuid': phonebook['uuid'],
+            'name': phonebook['name'] + "-source",
+        }
+        with phonebook_source(client, config) as source:
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                order='firstname',
+                direction='asc',
+            )
+            assert_that(
+                body,
+                has_entries(
+                    items=contains_exactly(
+                        has_entries(firstname='aa bb'),
+                        has_entries(firstname='ba bb'),
+                        has_entries(firstname='Bb bb'),
+                    ),
+                ),
+            )
+
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                order='firstname',
+                direction='desc',
+            )
+            assert_that(
+                body,
+                has_entries(
+                    items=contains_exactly(
+                        has_entries(firstname='Bb bb'),
+                        has_entries(firstname='ba bb'),
+                        has_entries(firstname='aa bb'),
+                    ),
+                ),
+            )
+
+        self.phonebook_crud.delete(None, PhonebookKey(uuid=phonebook['uuid']))
 
 
 @contextmanager
