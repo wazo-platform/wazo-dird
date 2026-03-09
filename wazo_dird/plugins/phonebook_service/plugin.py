@@ -62,6 +62,7 @@ class _PhonebookService:
         offset: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
+        order_insensitive: bool = False,
         **params,
     ) -> list[ContactInfo]:
         results = self._contact_crud.list(
@@ -72,6 +73,8 @@ class _PhonebookService:
 
         def get_sort(row: ContactInfo):
             text = str(row.get(order, ''))  # type: ignore[typeddict-item]
+            if order_insensitive:
+                text = text.casefold()
             return unidecode(text)
 
         if order:
