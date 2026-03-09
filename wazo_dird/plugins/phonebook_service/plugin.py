@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -69,13 +69,14 @@ class _PhonebookService:
             phonebook_key,
             **params,
         )
+
+        def get_sort(row: ContactInfo):
+            text = str(row.get(order, ''))  # type: ignore[typeddict-item]
+            return unidecode(text)
+
         if order:
             reverse = direction == 'desc'
-            results = sorted(
-                results,
-                key=lambda x: unidecode(str(x.get(order, ''))),
-                reverse=reverse,  # type: ignore[typeddict-item]
-            )
+            results = sorted(results, key=get_sort, reverse=reverse)
         if offset:
             results = results[offset:]
         if limit:
