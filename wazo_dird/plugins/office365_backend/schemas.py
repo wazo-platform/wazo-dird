@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.mallow import fields
@@ -30,6 +30,7 @@ class ListSchema(_ListSchema):
 class ContactListSchema(_ListSchema):
     searchable_columns = ['displayName', 'givenName', 'surname']
     sort_columns = ['displayName', 'givenName', 'surname']
+    sort_insensitive_columns = ['displayName', 'givenName', 'surname']
     default_sort_column = 'displayName'
 
 
