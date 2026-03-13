@@ -6,6 +6,7 @@ from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from unidecode import unidecode
 
 from wazo_dird.exception import DuplicatedContactException, NoSuchContact
+from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 from .. import Contact, ContactFields, User
 from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
@@ -93,21 +94,19 @@ class PersonalContactCRUD(BaseDAO):
         if user_uuid:
             filter_ = and_(filter_, Contact.user_uuid == user_uuid)
 
-        (
-            order,
-            limit,
-            offset,
-            reverse,
-            _,
-        ) = self._extract_pagination_params(search_params)
+        order, limit, offset, direction = self._extract_pagination_params(search_params)
 
         with self.new_session() as s:
             query = s.query(distinct(Contact.uuid)).filter(filter_)
             contact_uuids = [uuid for (uuid,) in query.all()]
             contacts = list_contacts_by_uuid(s, contact_uuids)
-            return self._apply_pagination_params(
-                contacts, order, limit, offset, reverse, insensitive=True
-            )
+
+        if order and contacts and not any(order in contact for contact in contacts):
+            raise ValueError(f"order: column '{order}' was not found")
+        contacts = SelfSortingServiceMixin.sort(
+            contacts, order=order, direction=direction, order_insensitive=True
+        )
+        return contacts[offset : offset + limit if limit else None]
 
     def create_personal_contact(self, tenant_uuid, user_uuid, contact_info):
         with self.new_session() as s:

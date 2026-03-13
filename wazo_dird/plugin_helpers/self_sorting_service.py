@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import unicodedata
 from sys import maxunicode
 from typing import Any
 
@@ -29,8 +30,10 @@ class SelfSortingServiceMixin:
             if not value:
                 return ALMOST_LAST_STRING
 
-            if order_insensitive and isinstance(value, str):
-                value = value.casefold()
+            if isinstance(value, str):
+                if order_insensitive:
+                    value = value.casefold()
+                value = unicodedata.normalize('NFKD', value)
 
             return value
 

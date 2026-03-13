@@ -176,7 +176,7 @@ class BaseDAO:
 
     def _extract_pagination_params(
         self, parameters: dict | None
-    ) -> tuple[str | None, int | None, int, bool, bool]:
+    ) -> tuple[str | None, int | None, int, Direction]:
         _parameters = self._generate_parameters(parameters)
         self.validate_parameters(_parameters)
 
@@ -185,7 +185,5 @@ class BaseDAO:
         if limit is not None:
             limit = int(limit)
         offset = int(_parameters.get('offset', 0))
-        reverse = not (_parameters.get('direction', 'asc') == 'asc')
-        order_insensitive = _parameters.get('order_insensitive', [])
-        insensitive = order in order_insensitive
-        return order, limit, offset, reverse, insensitive
+        direction = _parameters.get('direction', 'asc')
+        return order, limit, offset, direction
