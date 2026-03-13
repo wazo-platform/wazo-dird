@@ -6,7 +6,6 @@ from __future__ import annotations
 import logging
 
 from marshmallow import Schema, ValidationError, fields, pre_load, validate
-from unidecode import unidecode
 
 from wazo_dird import BaseServicePlugin, database
 from wazo_dird.database.helpers import Session
@@ -17,6 +16,7 @@ from wazo_dird.database.queries.phonebook import (
     PhonebookKey,
 )
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
+from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
 
 logger = logging.getLogger(__name__)
 
@@ -70,21 +70,14 @@ class _PhonebookService:
             phonebook_key,
             **params,
         )
-
-        def get_sort(row: ContactInfo):
-            text = str(row.get(order, ''))  # type: ignore[typeddict-item]
-            if order_insensitive:
-                text = text.casefold()
-            return unidecode(text)
-
-        if order:
-            reverse = direction == 'desc'
-            results = sorted(results, key=get_sort, reverse=reverse)
-        if offset:
-            results = results[offset:]
-        if limit:
-            results = results[:limit]
-        return results
+        results = SelfSortingServiceMixin.sort(
+            results,
+            order=order,
+            direction=direction,
+            order_insensitive=order_insensitive,
+        )
+        start = offset or 0
+        return results[start : start + limit if limit else None]
 
     def list_phonebook(
         self, visible_tenants: list[str], **params
