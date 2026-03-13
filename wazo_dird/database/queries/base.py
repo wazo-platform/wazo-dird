@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import unicodedata
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from typing import Literal, TypedDict, cast
@@ -67,7 +66,6 @@ class Parameters(TypedDict):
     limit: int | None
     offset: int
     search: str | None
-    order_insensitive: list[str]
 
 
 class BaseDAO:
@@ -82,7 +80,6 @@ class BaseDAO:
         'direction': 'asc',
         'limit': None,
         'offset': 0,
-        'order_insensitive': [],
     }
 
     def __init__(self, Session: scoped_session):
@@ -137,32 +134,6 @@ class BaseDAO:
         if parameters:
             new_params.update(parameters)
         return cast(Parameters, new_params)
-
-    def _apply_pagination_params(
-        self,
-        rows: list[ContactInfo],
-        order: str | None,
-        limit: int | None,
-        offset: int,
-        reverse: bool,
-        insensitive: bool,
-    ):
-        def _get_sort_key(row: ContactInfo):
-            text = row[order] or ''
-            if insensitive:
-                text = text.casefold()
-            normalized = unicodedata.normalize('NFKD', text)
-            return normalized
-
-        if order:
-            try:
-                rows = sorted(rows, key=_get_sort_key, reverse=reverse)
-            except KeyError:
-                raise ValueError(f"order: column '{order}' was not found")
-        elif reverse:
-            rows.reverse()
-
-        return rows[offset : offset + limit if limit else None]
 
     def validate_parameters(self, parameters: Parameters):
         if int(parameters['offset']) < 0:
