@@ -6,7 +6,7 @@ from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from unidecode import unidecode
 
 from wazo_dird.exception import DuplicatedContactException, NoSuchContact
-from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
+from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 from .. import Contact, ContactFields, User
 from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
@@ -103,7 +103,7 @@ class PersonalContactCRUD(BaseDAO):
 
         if order and contacts and not any(order in contact for contact in contacts):
             raise ValueError(f"order: column '{order}' was not found")
-        contacts = SelfSortingServiceMixin.sort(
+        contacts = sort_contacts(
             contacts, order=order, direction=direction, order_insensitive=True
         )
         return contacts[offset : offset + limit if limit else None]

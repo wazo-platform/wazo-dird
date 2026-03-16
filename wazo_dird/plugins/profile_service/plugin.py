@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -6,7 +6,7 @@ from itertools import islice
 
 from wazo_dird import BaseServicePlugin, database, exception
 from wazo_dird.database.helpers import Session
-from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
+from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class ProfileServicePlugin(BaseServicePlugin):
         return _ProfileService(database.ProfileCRUD(Session), controller)
 
 
-class _ProfileService(SelfSortingServiceMixin):
+class _ProfileService:
     def __init__(self, crud, controller):
         self._profile_crud = crud
         self._controller = controller
@@ -65,7 +65,7 @@ class _ProfileService(SelfSortingServiceMixin):
         total = len(sources)
         sources = self._filter_sources(sources, **list_params)
         filtered = len(sources)
-        sorted_sources = self.sort(sources, **list_params)
+        sorted_sources = sort_contacts(sources, **list_params)
         paginated_sources = self._paginate(sorted_sources, **list_params)
 
         return total, filtered, paginated_sources

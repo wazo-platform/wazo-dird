@@ -3,10 +3,10 @@
 
 from importlib.metadata import entry_points
 
-from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
+from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 
-class BackendService(SelfSortingServiceMixin):
+class BackendService:
     _backend_entry_points = 'wazo_dird.backends'
 
     def __init__(self, config):
@@ -26,7 +26,7 @@ class BackendService(SelfSortingServiceMixin):
 
     def list_(self, **kwargs):
         matches = self._filter_matches(self._backends, **kwargs)
-        filtered = self.sort(matches, **kwargs)
+        filtered = sort_contacts(matches, **kwargs)
         paginated = self._paginate(filtered, **kwargs)
         return paginated
 

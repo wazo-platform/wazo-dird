@@ -16,7 +16,7 @@ from wazo_dird.database.queries.phonebook import (
     PhonebookKey,
 )
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
-from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
+from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class _PhonebookService:
             phonebook_key,
             **params,
         )
-        results = SelfSortingServiceMixin.sort(
+        results = sort_contacts(
             results,
             order=order,
             direction=direction,
