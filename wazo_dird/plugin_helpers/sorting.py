@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
-import unicodedata
 from sys import maxunicode
 from typing import Any
+
+from unidecode import unidecode
 
 MAX_CHAR: str = chr(maxunicode)
 ALMOST_LAST_STRING: str = MAX_CHAR * 16
@@ -31,7 +32,7 @@ def sort_contacts(
         if isinstance(value, str):
             if order_insensitive:
                 value = value.casefold()
-            value = unicodedata.normalize('NFKD', value)
+            value = unidecode(value)
 
         return value
 

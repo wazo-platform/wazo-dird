@@ -579,8 +579,8 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         assert_that(
             result['items'],
             contains(
-                has_entry('firstname', 'Alice'),
                 has_entry('firstname', 'Ãlberto'),
+                has_entry('firstname', 'Alice'),
                 has_entry('firstname', 'bib'),
                 has_entry('firstname', 'Bob'),
                 has_entry('firstname', 'Céline'),
@@ -596,8 +596,8 @@ class TestSearchPersonal(PersonalOnlyTestCase):
                 has_entry('firstname', 'Céline'),
                 has_entry('firstname', 'Bob'),
                 has_entry('firstname', 'bib'),
-                has_entry('firstname', 'Ãlberto'),
                 has_entry('firstname', 'Alice'),
+                has_entry('firstname', 'Ãlberto'),
             ),
         )
 
@@ -625,7 +625,7 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         assert_that(
             result['items'],
             contains(
-                has_entry('firstname', 'Alice'),
                 has_entry('firstname', 'Ãlberto'),
+                has_entry('firstname', 'Alice'),
             ),
         )
