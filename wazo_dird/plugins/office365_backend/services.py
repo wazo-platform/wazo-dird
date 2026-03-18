@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import itertools
@@ -8,7 +8,7 @@ import uuid
 import requests
 from wazo_auth_client import Client as Auth
 
-from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
+from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 from .exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
 
@@ -18,14 +18,14 @@ MULTI_PHONE_FIELDS = ('businessPhones', 'homePhones')
 SINGLE_PHONE_FIELDS = ('mobilePhone',)
 
 
-class Office365Service(SelfSortingServiceMixin):
+class Office365Service:
     USER_AGENT = 'wazo_ua/1.0'
 
     def get_contacts(self, microsoft_token, url, **list_params):
         count = self._get_total_contacts(microsoft_token, url)
         contacts = list(self._fetch(microsoft_token, url, count))
         total_contacts = len(contacts)
-        sorted_contacts = self.sort(contacts, **list_params)
+        sorted_contacts = sort_contacts(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total_contacts
 

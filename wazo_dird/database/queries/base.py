@@ -1,14 +1,12 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
 
 import hashlib
 import json
-import unicodedata
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
-from itertools import islice
 from typing import Literal, TypedDict, cast
 
 from sqlalchemy import exc
@@ -137,28 +135,6 @@ class BaseDAO:
             new_params.update(parameters)
         return cast(Parameters, new_params)
 
-    def _apply_search_params(
-        self,
-        rows,
-        order: str | None,
-        limit: int | None,
-        offset: int,
-        reverse: bool,
-    ):
-        if order:
-            try:
-                rows = sorted(
-                    rows,
-                    key=lambda x: unicodedata.normalize('NFKD', x[order]),
-                    reverse=reverse,
-                )
-            except KeyError:
-                raise ValueError(f"order: column '{order}' was not found")
-        elif reverse:
-            rows = reversed(rows)
-
-        return list(islice(rows, offset, offset + limit if limit else None))
-
     def validate_parameters(self, parameters: Parameters):
         if int(parameters['offset']) < 0:
             raise ValueError('offset must be positive number')
@@ -169,9 +145,9 @@ class BaseDAO:
         if parameters['direction'] not in self.SORT_DIRECTIONS.keys():
             raise ValueError('direction must be asc or desc')
 
-    def _extract_search_params(
+    def _extract_pagination_params(
         self, parameters: dict | None
-    ) -> tuple[str | None, int | None, int, bool]:
+    ) -> tuple[str | None, int | None, int, Direction]:
         _parameters = self._generate_parameters(parameters)
         self.validate_parameters(_parameters)
 
@@ -180,5 +156,5 @@ class BaseDAO:
         if limit is not None:
             limit = int(limit)
         offset = int(_parameters.get('offset', 0))
-        reverse = not (_parameters.get('direction', 'asc') == 'asc')
-        return order, limit, offset, reverse
+        direction = _parameters.get('direction', 'asc')
+        return order, limit, offset, direction

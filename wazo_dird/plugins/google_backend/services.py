@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -6,14 +6,14 @@ import logging
 import requests
 from wazo_auth_client import Client as Auth
 
-from wazo_dird.plugin_helpers.self_sorting_service import SelfSortingServiceMixin
+from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 from .exceptions import GoogleTokenNotFoundException
 
 logger = logging.getLogger(__name__)
 
 
-class GoogleService(SelfSortingServiceMixin):
+class GoogleService:
     USER_AGENT = 'wazo_ua/1.0'
 
     people_url = 'https://people.googleapis.com/v1/people/me/connections'
@@ -33,7 +33,7 @@ class GoogleService(SelfSortingServiceMixin):
     def get_contacts(self, google_token, **list_params):
         contacts = list(self._fetch(google_token, term=list_params.get('search')))
         total = len(contacts)
-        sorted_contacts = self.sort(contacts, **list_params)
+        sorted_contacts = sort_contacts(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total
 

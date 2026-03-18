@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -6,7 +6,6 @@ from __future__ import annotations
 import logging
 
 from marshmallow import Schema, ValidationError, fields, pre_load, validate
-from unidecode import unidecode
 
 from wazo_dird import BaseServicePlugin, database
 from wazo_dird.database.helpers import Session
@@ -17,6 +16,7 @@ from wazo_dird.database.queries.phonebook import (
     PhonebookKey,
 )
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
+from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,7 @@ class _PhonebookService:
         offset: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
+        order_insensitive: bool = False,
         **params,
     ) -> list[ContactInfo]:
         results = self._contact_crud.list(
@@ -69,25 +70,25 @@ class _PhonebookService:
             phonebook_key,
             **params,
         )
-        if order:
-            reverse = direction == 'desc'
-            results = sorted(
-                results,
-                key=lambda x: unidecode(str(x.get(order, ''))),
-                reverse=reverse,  # type: ignore[typeddict-item]
-            )
-        if offset:
-            results = results[offset:]
-        if limit:
-            results = results[:limit]
-        return results
+        results = sort_contacts(
+            results,
+            order=order,
+            direction=direction,
+            order_insensitive=order_insensitive,
+        )
+        start = offset or 0
+        return results[start : start + limit if limit else None]
 
     def list_phonebook(
         self, visible_tenants: list[str], **params
     ) -> list[PhonebookDict]:
         return self._phonebook_crud.list(
             visible_tenants,
-            **params,
+            order=params.get('order'),
+            direction=params.get('direction'),
+            limit=params.get('limit'),
+            offset=params.get('offset'),
+            search=params.get('search'),
         )
 
     def count_contact(

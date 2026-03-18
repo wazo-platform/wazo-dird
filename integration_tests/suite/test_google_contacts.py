@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
@@ -221,6 +221,16 @@ GOOGLE_SEARCH_LIST = {
     "totalItems": 2,
 }
 
+AA_INFO = {"names": [{"displayName": "aa bb"}]}
+BA_INFO = {"names": [{"displayName": "ba bb"}]}
+BB_INFO = {"names": [{"displayName": "BB bb"}]}
+
+GOOGLE_CONTACT_LIST_FOR_PAGINATION = {
+    "connections": [AA_INFO, BA_INFO, BB_INFO],
+    "totalPeople": 3,
+    "totalItems": 3,
+}
+
 
 class BaseGoogleAssetTestCase(BaseDirdIntegrationTest):
     GOOGLE_EXTERNAL_AUTH = {
@@ -329,29 +339,30 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             ),
         )
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST_FOR_PAGINATION, GOOGLE_SEARCH_LIST)
     def test_pagination(self, google_api):
-        mario = has_entries(name='Mario Bros')
-        luigi = has_entries(name='Luigi Bros')
+        aa = has_entries(name='aa bb')
+        ba = has_entries(name='ba bb')
+        bb = has_entries(name='BB bb')
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name'),
-            has_entries(items=contains(luigi, mario)),
+            has_entries(items=contains(aa, ba, bb)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', direction='desc'),
-            has_entries(items=contains(mario, luigi)),
+            has_entries(items=contains(bb, ba, aa)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', limit=1),
-            has_entries(items=contains(luigi)),
+            has_entries(items=contains(aa)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', offset=1),
-            has_entries(items=contains(mario)),
+            has_entries(items=contains(ba, bb)),
         )
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)

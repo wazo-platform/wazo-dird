@@ -1,4 +1,4 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -42,6 +42,14 @@ OFFICE365_CONTACT_LIST = {
             "businessPhones": ['5555555555'],
             "emailAddresses": [{"address": "lbros@wazoquebec.onmicrosoft.com"}],
         },
+    ]
+}
+
+OFFICE365_CONTACT_LIST_FOR_PAGINATION = {
+    "value": [
+        {"displayName": "aa bb"},
+        {"displayName": "ba bb"},
+        {"displayName": "BB bb"},
     ]
 }
 
@@ -224,29 +232,30 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
             ),
         )
 
-    @fixtures.office365_result(OFFICE365_CONTACT_LIST)
+    @fixtures.office365_result(OFFICE365_CONTACT_LIST_FOR_PAGINATION)
     def test_pagination(self, office365_api):
-        mario = has_entries(displayName='Mario Bros')
-        luigi = has_entries(displayName='Luigi Bros')
+        aa = has_entries(displayName='aa bb')
+        ba = has_entries(displayName='ba bb')
+        bb = has_entries(displayName='BB bb')
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name'),
-            has_entries(items=contains(luigi, mario)),
+            has_entries(items=contains(aa, ba, bb)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', direction='desc'),
-            has_entries(items=contains(mario, luigi)),
+            has_entries(items=contains(bb, ba, aa)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', limit=1),
-            has_entries(items=contains(luigi)),
+            has_entries(items=contains(aa)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', offset=1),
-            has_entries(items=contains(mario)),
+            has_entries(items=contains(ba, bb)),
         )
 
     @fixtures.office365_result(OFFICE365_CONTACT_LIST)

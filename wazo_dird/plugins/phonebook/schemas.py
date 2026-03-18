@@ -16,6 +16,7 @@ class ContactListSchema(ListSchema):
     searchable_columns = ['uuid', 'name']
     sort_columns = ['firstname', 'lastname', 'name']
     default_sort_column = 'name'
+    sort_insensitive_columns = ['firstname', 'lastname', 'name']
 
     recurse = fields.Boolean(load_default=False)
 

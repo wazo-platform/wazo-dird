@@ -468,9 +468,9 @@ class TestContactList(_BasePhonebookContactTestCase):
         self.set_tenants(self.tenant_1.name)
         phonebook_uuid = self.phonebook_1['uuid']
 
-        body_1 = {'firstname': 'a', 'lastname': 'c'}
-        body_2 = {'firstname': 'b', 'lastname': 'b'}
-        body_3 = {'firstname': 'c', 'lastname': 'a'}
+        body_1 = {'firstname': 'aa', 'lastname': 'Bb'}
+        body_2 = {'firstname': 'ba', 'lastname': 'ba'}
+        body_3 = {'firstname': 'Bb', 'lastname': 'aa'}
         contact_1 = raise_for_status(
             self.post_phonebook_contact(
                 phonebook_uuid, body_1, tenant=self.tenant_1.uuid
@@ -493,7 +493,7 @@ class TestContactList(_BasePhonebookContactTestCase):
                 result.json(),
                 has_entries(
                     items=contains(*[has_entries(**contact) for contact in contacts]),
-                    total=3,
+                    total=equal_to(3),
                 ),
             )
 
