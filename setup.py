@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from setuptools import find_packages, setup
@@ -18,7 +18,6 @@ setup(
     entry_points={
         'console_scripts': [
             'wazo-dird=wazo_dird.main:main',
-            'wazo-dird-user-sync=wazo_dird.user_sync:main',
         ],
         'wazo_dird.services': [
             'cleanup = wazo_dird.plugins.cleanup_service.plugin:StorageCleanupServicePlugin',
