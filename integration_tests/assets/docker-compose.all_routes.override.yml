@@ -15,6 +15,6 @@ services:
       - "./tmp/data/asset.all_routes.test.csv:/tmp/data/test.csv"
       - "./tmp/data/asset.all_routes.test_no_email.csv:/tmp/data/test_no_email.csv"
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3
     ports:
       - "5672"
