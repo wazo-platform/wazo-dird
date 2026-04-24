@@ -9,6 +9,6 @@ services:
       TARGETS: "dird:9489 auth:9497 db:5432 rabbitmq:5672"
 
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3
     ports:
       - "5672"
