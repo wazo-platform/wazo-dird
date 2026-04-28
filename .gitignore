@@ -6,7 +6,7 @@
 .coverage
 .eggs
 .tox
-build/*
+build
 cover/
 coverage.xml
 pylint.txt
