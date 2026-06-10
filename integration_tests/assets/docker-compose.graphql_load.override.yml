@@ -1,0 +1,21 @@
+services:
+  sync:
+    image: wazoplatform/wait
+    depends_on:
+      - auth
+      - dird
+      - db
+      - rabbitmq
+    environment:
+      TARGETS: "dird:9489 auth:9497 db:5432 rabbitmq:5672"
+      TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
+  db:
+    # Log all statements with execution time — enables timing analysis of
+    # sequential first_match() DB round-trips during reverse lookup load tests.
+    command:
+      - -c
+      - log_min_duration_statement=0
+  rabbitmq:
+    image: rabbitmq:3
+    ports:
+      - "5672"

@@ -32,7 +32,7 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
     Timing is logged for performance baseline; tests gate on correctness only.
     """
 
-    asset = 'all_routes'
+    asset = 'graphql_load'
     config_factory = new_null_config
 
     @classmethod
