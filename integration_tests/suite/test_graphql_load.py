@@ -7,6 +7,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 
+from wazo_dird_client import Client as DirdClient
+
 from wazo_dird.database.queries.phonebook import (
     PhonebookContactCRUD,
     PhonebookCRUD,
@@ -38,6 +40,14 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
+        cls.dird = DirdClient(
+            cls.host,
+            cls.port,
+            prefix=None,
+            https=False,
+            token=VALID_TOKEN_MAIN_TENANT,
+            timeout=120,
+        )
         cls.stack = ExitStack()
 
         phonebook_crud = PhonebookCRUD(cls.Session)
@@ -172,7 +182,14 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
         num_extens = 20
 
         def run_query(user_idx: int) -> tuple[float, dict]:
-            client = self.get_client(VALID_TOKEN_MAIN_TENANT)
+            client = DirdClient(
+                self.host,
+                self.port,
+                prefix=None,
+                https=False,
+                token=VALID_TOKEN_MAIN_TENANT,
+                timeout=120,
+            )
             # Each user queries a distinct non-overlapping slice of the phonebook
             offset = (user_idx * num_extens * 50) % _CONTACT_COUNT
             extens = [
