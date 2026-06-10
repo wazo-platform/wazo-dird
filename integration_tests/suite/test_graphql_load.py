@@ -70,22 +70,30 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
 
         client = cls.get_client(VALID_TOKEN_MAIN_TENANT)
 
-        source = client.phonebook_source.create(
-            {
-                'name': 'graphql-load-test-source',
-                'phonebook_uuid': phonebook['uuid'],
-                'searched_columns': [
-                    'firstname',
-                    'lastname',
-                    'number',
-                    'mobile',
-                    'email',
-                ],
-                'first_matched_columns': ['number', 'mobile'],
-                'format_columns': {'reverse': '{firstname} {lastname}'},
-            }
-        )
-        cls.stack.callback(client.phonebook_source.delete, source['uuid'])
+        # Create 8 sources pointing to the same phonebook, matching production
+        # fan-out (Google, O365, wazo-users + multiple phonebooks).
+        # Each request submits one future per source to the shared 10-worker
+        # ThreadPoolExecutor in _ReverseService — the key bottleneck.
+        _NUM_SOURCES = 8
+        sources = []
+        for i in range(_NUM_SOURCES):
+            source = client.phonebook_source.create(
+                {
+                    'name': f'graphql-load-test-source-{i}',
+                    'phonebook_uuid': phonebook['uuid'],
+                    'searched_columns': [
+                        'firstname',
+                        'lastname',
+                        'number',
+                        'mobile',
+                        'email',
+                    ],
+                    'first_matched_columns': ['number', 'mobile'],
+                    'format_columns': {'reverse': '{firstname} {lastname}'},
+                }
+            )
+            cls.stack.callback(client.phonebook_source.delete, source['uuid'])
+            sources.append(source)
 
         display = client.displays.create(
             {
@@ -105,7 +113,7 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
             {
                 'name': 'default',
                 'display': display,
-                'services': {'reverse': {'sources': [source]}},
+                'services': {'reverse': {'sources': sources}},
             }
         )
         cls.stack.callback(client.profiles.delete, profile['uuid'])
@@ -154,17 +162,21 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
         missing = [extens[i] for i, e in enumerate(edges) if e['node'] is None]
         assert not missing, f'Extens not found in phonebook: {missing}'
 
-    def test_concurrent_20_users_15_extens(self) -> None:
-        """20 concurrent GraphQL requests, 15 extensions each, against 25k contacts."""
-        num_users = 20
-        num_extens = 15
+    def test_concurrent_50_users_20_extens(self) -> None:
+        """50 concurrent GraphQL requests, 20 extensions each, against 25k contacts.
+
+        50 users × 8 sources = 400 futures competing for the 10-worker
+        ThreadPoolExecutor in _ReverseService, reproducing production queuing.
+        """
+        num_users = 50
+        num_extens = 20
 
         def run_query(user_idx: int) -> tuple[float, dict]:
             client = self.get_client(VALID_TOKEN_MAIN_TENANT)
             # Each user queries a distinct non-overlapping slice of the phonebook
-            offset = (user_idx * num_extens * 80) % _CONTACT_COUNT
+            offset = (user_idx * num_extens * 50) % _CONTACT_COUNT
             extens = [
-                str(_NUMBER_BASE + (offset + j * 80) % _CONTACT_COUNT)
+                str(_NUMBER_BASE + (offset + j * 50) % _CONTACT_COUNT)
                 for j in range(num_extens)
             ]
             t0 = time.monotonic()
@@ -176,9 +188,9 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
 
         times = sorted(t for t, _ in results)
         p50 = times[num_users // 2]
-        p95 = times[max(0, int(num_users * 0.95) - 1)]
+        p95 = times[int(num_users * 0.95) - 1]
         logger.info(
-            'load[concurrent %d users, %d extens / 25k contacts]: '
+            'load[concurrent %d users, %d extens, 8 sources / 25k contacts]: '
             'min=%.2fs p50=%.2fs p95=%.2fs max=%.2fs',
             num_users,
             num_extens,
