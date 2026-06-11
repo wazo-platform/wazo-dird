@@ -68,7 +68,7 @@ class _ReverseService(helpers.BaseService):
 
         params = {}
         service_config = self.get_service_config(profile_config)
-        timeout = service_config.get('timeout')
+        timeout = service_config.get('timeout', 1)
         if timeout:
             params['timeout'] = timeout
 
@@ -113,7 +113,7 @@ class _ReverseService(helpers.BaseService):
 
         params = {}
         service_config = self.get_service_config(profile_config)
-        timeout = service_config.get('timeout')
+        timeout = service_config.get('timeout', 1)
         if timeout:
             params['timeout'] = timeout
 
