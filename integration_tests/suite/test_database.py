@@ -1585,6 +1585,41 @@ class TestPersonalContactSearchEngine(_BaseTest):
         assert_that(result, empty())
 
     @with_user_uuid
+    def test_find_contacts_for_extens_returns_matched(self, user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            Session, first_match_columns=['number']
+        )
+        self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
+
+        result = engine.find_contacts_for_extens(
+            user_uuid, ['5555551111', '0000000000']
+        )
+
+        assert_that(result, has_key('5555551111'))
+        assert_that(result, not_(has_key('0000000000')))
+
+    @with_user_uuid
+    def test_find_contacts_for_extens_empty_returns_empty(self, user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            Session, first_match_columns=['number']
+        )
+        assert_that(engine.find_contacts_for_extens(user_uuid, []), equal_to({}))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_find_contacts_for_extens_isolated_per_user(self, uuid_1, uuid_2):
+        engine = database.PersonalContactSearchEngine(
+            Session, first_match_columns=['number']
+        )
+        self._insert_personal_contacts(uuid_1, self.contact_1)
+        self._insert_personal_contacts(uuid_2, self.contact_2)
+
+        result = engine.find_contacts_for_extens(uuid_1, ['5555551111', '5555550001'])
+
+        assert_that(result, has_key('5555551111'))
+        assert_that(result, not_(has_key('5555550001')))
+
+    @with_user_uuid
     def test_that_searching_for_a_contact_returns_its_fields(self, user_uuid):
         engine = database.PersonalContactSearchEngine(
             Session, searched_columns=['firstname']

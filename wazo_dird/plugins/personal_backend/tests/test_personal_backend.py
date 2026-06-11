@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from typing import cast
@@ -82,3 +82,20 @@ class TestPersonalBackend(TestCase):
             SOME_UUID, '555'
         )
         assert_that(result, equal_to(None))
+
+    def test_match_all_returns_formatted_results(self):
+        raw = {'id': '1', 'number': '555', 'firstname': 'Foo'}
+        self._search_engine.find_contacts_for_extens.return_value = {'555': raw}
+
+        result = self._source.match_all(['555'], {'user_uuid': SOME_UUID})
+
+        self._search_engine.find_contacts_for_extens.assert_called_once_with(
+            SOME_UUID, ['555']
+        )
+        assert_that(len(result), equal_to(1))
+
+    def test_match_all_returns_empty_without_user_uuid(self):
+        result = self._source.match_all(['555'], {})
+
+        assert_that(result, equal_to({}))
+        self._search_engine.find_contacts_for_extens.assert_not_called()
