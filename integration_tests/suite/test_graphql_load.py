@@ -3,10 +3,12 @@
 
 import json
 import logging
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 
+import pytest
 from wazo_dird_client import Client as DirdClient
 
 from wazo_dird.database.queries.phonebook import (
@@ -20,6 +22,13 @@ from .helpers.config import new_null_config
 from .helpers.constants import MAIN_TENANT, VALID_TOKEN_MAIN_TENANT
 
 logger = logging.getLogger(__name__)
+
+pytestmark = [
+    pytest.mark.load,
+    pytest.mark.skipif(
+        not os.getenv('WAZO_LOAD_TESTS'), reason='set WAZO_LOAD_TESTS=1 to run'
+    ),
+]
 
 _CONTACT_COUNT = 25_000
 _NUMBER_BASE = 1_000_000_000

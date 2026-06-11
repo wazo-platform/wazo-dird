@@ -22,8 +22,9 @@ ignore = [
 profile = "black"
 py_version = 311
 
-[tool.pytest]
+[tool.pytest.ini_options]
 testpaths = ["wazo_dird"]
+markers = ["load: load/performance tests, excluded from CI by default"]
 
 [tool.mypy]
 python_version = "3.10"
