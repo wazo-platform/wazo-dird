@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import and_, distinct, text
@@ -8,7 +8,7 @@ from unidecode import unidecode
 from wazo_dird.exception import DuplicatedContactException, NoSuchContact
 
 from .. import Contact, ContactFields, User
-from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
+from .base import BaseDAO, ContactInfo, compute_contact_hash, list_contacts_by_uuid
 
 
 class unaccent(ReturnTypeFromArgs):
@@ -24,6 +24,47 @@ class PersonalContactSearchEngine(BaseDAO):
     def find_first_personal_contact(self, user_uuid, term):
         filter_ = self._new_strict_filter(user_uuid, term, self._first_match_columns)
         return self._find_personal_contacts_with_filter(filter_, limit=1)
+
+    def find_contacts_for_extens(
+        self, user_uuid: str, extens: list[str]
+    ) -> dict[str, ContactInfo]:
+        """Batch reverse lookup: returns {exten: contact} for all matched extens."""
+        if not extens or not self._first_match_columns:
+            return {}
+
+        normalized = {unidecode(e): e for e in extens}
+        filter_ = and_(
+            User.user_uuid == user_uuid,
+            unaccent(ContactFields.value).in_(list(normalized)),
+            ContactFields.name.in_(self._first_match_columns),
+        )
+        with self.new_session() as s:
+            rows = (
+                s.query(ContactFields.value, ContactFields.contact_uuid)
+                .join(Contact)
+                .join(User)
+                .filter(filter_)
+                .distinct()
+                .all()
+            )
+            if not rows:
+                return {}
+
+            exten_to_uuid: dict[str, str] = {}
+            for value, uuid in rows:
+                key = unidecode(value)
+                if key not in exten_to_uuid:
+                    exten_to_uuid[key] = uuid
+
+            contacts_by_uuid = {
+                c['id']: c
+                for c in list_contacts_by_uuid(s, list(set(exten_to_uuid.values())))
+            }
+            return {
+                normalized[key]: contacts_by_uuid[uuid]
+                for key, uuid in exten_to_uuid.items()
+                if uuid in contacts_by_uuid and key in normalized
+            }
 
     def find_personal_contacts(self, user_uuid, term):
         filter_ = self._new_search_filter(user_uuid, term, self._searched_columns)
