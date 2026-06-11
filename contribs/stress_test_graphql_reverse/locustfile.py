@@ -47,6 +47,8 @@ class GraphQLReverseLookupUser(FastHttpUser):
     """
 
     wait_time = between(0.5, 3.0)
+    network_timeout = 10
+    connection_timeout = 10
 
     @task
     def reverse_lookup(self) -> None:
@@ -76,9 +78,10 @@ class GraphQLReverseLookupUser(FastHttpUser):
             headers=headers,
             json={'query': query},
             catch_response=True,
-            timeout=_P95_THRESHOLD_MS / 1000,
         ) as response:
-            if response.status_code >= 500:
+            if not response.status_code:
+                response.failure('timeout or connection error')
+            elif response.status_code >= 500:
                 response.failure(response.text)
             elif response.status_code >= 400:
                 response.failure(f'{response.status_code}: {response.text[:200]}')
