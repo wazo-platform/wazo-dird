@@ -136,6 +136,9 @@ class PhonebookPlugin(BaseSourcePlugin):
     def match_all(self, extens: list[str], args=None) -> dict[str, SourceResult]:
         logger.debug('Batch matching phonebook contacts for %d extens', len(extens))
         contacts = self._search_engine.find_contacts_for_extens(extens)
+        logger.debug(
+            'matched %d phonebook contacts for %d extens', len(contacts), len(extens)
+        )
         return {
             exten: self.format_contacts([contact])[0]
             for exten, contact in contacts.items()
