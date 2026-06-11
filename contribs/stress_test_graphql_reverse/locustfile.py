@@ -79,8 +79,8 @@ class GraphQLReverseLookupUser(FastHttpUser):
             json={'query': query},
             catch_response=True,
         ) as response:
-            if response.error:
-                response.failure(response.error)
+            if not response.status_code:
+                response.failure('timeout or connection error')
             elif response.status_code >= 500:
                 response.failure(response.text)
             elif response.status_code >= 400:
