@@ -227,3 +227,8 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
             assert (
                 len(edges) == num_extens
             ), f'Expected {num_extens} results, got {len(edges)}'
+
+        assert p95 < 4.0, (
+            f'p95 latency {p95:.2f}s exceeds 4s — executor pool likely undersized '
+            f'(check reverse_service.executor_workers config)'
+        )

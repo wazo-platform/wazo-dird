@@ -1,4 +1,4 @@
-# Copyright 2014-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -71,6 +71,10 @@ class ConsulConfig(TypedDict):
     port: int
 
 
+class ReverseServiceConfig(TypedDict, total=False):
+    executor_workers: int
+
+
 class Config(TypedDict, total=False):
     uuid: str
     auth: AuthConfig
@@ -82,6 +86,7 @@ class Config(TypedDict, total=False):
     log_level: str
     log_filename: str
     rest_api: RestAPIConfig
+    reverse_service: ReverseServiceConfig
     services: dict[str, dict]
     user: str
     bus: BusConfig

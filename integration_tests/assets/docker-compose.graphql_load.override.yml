@@ -9,6 +9,9 @@ services:
     environment:
       TARGETS: "dird:9489 auth:9497 db:5432 rabbitmq:5672"
       TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
+  dird:
+    volumes:
+      - "./etc/wazo-dird/conf.d/asset.graphql_load.yml:/etc/wazo-dird/conf.d/20-config.yml"
   db:
     # Log all statements with execution time — enables timing analysis of
     # sequential first_match() DB round-trips during reverse lookup load tests.
