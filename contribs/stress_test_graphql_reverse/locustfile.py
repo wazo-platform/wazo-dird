@@ -51,10 +51,7 @@ class GraphQLReverseLookupUser(FastHttpUser):
     @task
     def reverse_lookup(self) -> None:
         n_extens = random.randint(0, 35)
-        if n_extens == 0:
-            return
-
-        indices = random.sample(range(_PHONEBOOK_COUNT), n_extens)
+        indices = random.sample(range(_PHONEBOOK_COUNT), n_extens) if n_extens else []
         # Mix number and mobile fields to exercise both first_matched_columns
         extens = [
             str(_NUMBER_BASE + i) if random.random() < 0.5 else str(_MOBILE_BASE + i)
