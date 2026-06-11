@@ -25,7 +25,6 @@ import json
 import logging
 import os
 import random
-import time
 
 from locust import FastHttpUser, between, events, task
 from locust.env import Environment
@@ -71,16 +70,14 @@ class GraphQLReverseLookupUser(FastHttpUser):
         if _TENANT:
             headers['Wazo-Tenant'] = _TENANT
 
-        t0 = time.monotonic()
         with self.client.post(
             '/0.1/graphql',
             name='graphql_reverse_lookup',
             headers=headers,
             json={'query': query},
             catch_response=True,
-            timeout=30,
+            timeout=_P95_THRESHOLD_MS / 1000,
         ) as response:
-            elapsed_ms = (time.monotonic() - t0) * 1000
             if response.status_code >= 500:
                 response.failure(response.text)
             elif response.status_code >= 400:
@@ -89,10 +86,6 @@ class GraphQLReverseLookupUser(FastHttpUser):
                 body = response.json()
                 if 'errors' in body:
                     response.failure(str(body['errors'])[:200])
-                elif elapsed_ms > _P95_THRESHOLD_MS:
-                    response.failure(
-                        f'too slow: {elapsed_ms:.0f}ms > {_P95_THRESHOLD_MS}ms'
-                    )
                 else:
                     response.success()
 
