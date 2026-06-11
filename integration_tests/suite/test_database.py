@@ -1,4 +1,4 @@
-# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
@@ -19,6 +19,7 @@ from hamcrest import (
     has_entries,
     has_item,
     has_items,
+    has_key,
     not_,
     raises,
 )
@@ -1455,6 +1456,28 @@ class TestPhonebookContactSearchEngine(_BaseTest):
         result = self.engine.find_first_contact('5551111111')
 
         assert_that(result, any_of(self.mia, self.marcellus))
+
+    def test_find_contacts_for_extens_returns_all_matched(self):
+        result = self.engine.find_contacts_for_extens(['5552222222', '5553333333'])
+
+        assert_that(
+            result, has_entries({'5552222222': self.vincent, '5553333333': self.jules})
+        )
+
+    def test_find_contacts_for_extens_partial_match(self):
+        result = self.engine.find_contacts_for_extens(['5552222222', '0000000000'])
+
+        assert_that(result, has_entries({'5552222222': self.vincent}))
+        assert_that(result, not_(has_key('0000000000')))
+
+    def test_find_contacts_for_extens_empty_list(self):
+        assert_that(self.engine.find_contacts_for_extens([]), equal_to({}))
+
+    def test_find_contacts_for_extens_duplicate_number_returns_one(self):
+        result = self.engine.find_contacts_for_extens(['5551111111'])
+
+        assert_that(result, has_key('5551111111'))
+        assert_that(result['5551111111'], any_of(self.mia, self.marcellus))
 
     def test_that_listing_contacts_works(self):
         result = self.engine.list_contacts(

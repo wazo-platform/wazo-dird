@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -83,6 +83,60 @@ class PhonebookContactSearchEngine(BaseDAO):
                 return contact
             else:
                 return None
+
+    def find_contacts_for_extens(self, extens: list[str]) -> dict[str, ContactInfo]:
+        """Batch reverse lookup: returns {exten: contact} for all matched extens.
+
+        Uses two queries total regardless of len(extens), vs the 2×N queries
+        that sequential find_first_contact() calls would require.
+        Uses exact (case-sensitive) matching; ilike semantics of find_first_contact
+        are irrelevant for phone-number lookups.
+        """
+        if not extens or not self._first_match_columns:
+            return {}
+
+        filter_ = and_(
+            ContactFields.value.in_(extens),
+            ContactFields.name.in_(self._first_match_columns),
+        )
+        phonebook_filter = phonebook_key_to_filter(self._phonebook_key)
+        if self._visible_tenants is None:
+            combined = and_(filter_, phonebook_filter)
+        elif not self._visible_tenants:
+            return {}
+        else:
+            combined = and_(
+                filter_,
+                phonebook_filter,
+                Phonebook.tenant_uuid.in_(self._visible_tenants),
+            )
+
+        with self.new_session() as s:
+            rows = (
+                s.query(ContactFields.value, ContactFields.contact_uuid)
+                .join(Contact)
+                .join(Phonebook)
+                .filter(combined)
+                .distinct()
+                .all()
+            )
+            if not rows:
+                return {}
+
+            exten_to_uuid: dict[str, str] = {}
+            for value, uuid in rows:
+                if value not in exten_to_uuid:
+                    exten_to_uuid[value] = uuid
+
+            contacts_by_uuid = {
+                c['id']: c
+                for c in list_contacts_by_uuid(s, list(set(exten_to_uuid.values())))
+            }
+            return {
+                exten: contacts_by_uuid[uuid]
+                for exten, uuid in exten_to_uuid.items()
+                if uuid in contacts_by_uuid
+            }
 
     def list_contacts(self, contact_uuids: list[str]) -> list[ContactInfo]:
         filter_ = self._new_list_filter(contact_uuids)
