@@ -46,7 +46,7 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
             prefix=None,
             https=False,
             token=VALID_TOKEN_MAIN_TENANT,
-            timeout=120,
+            timeout=10,
         )
         cls.stack = ExitStack()
 
@@ -171,6 +171,7 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
         assert len(edges) == 20, f'Expected 20 results, got {len(edges)}'
         missing = [extens[i] for i, e in enumerate(edges) if e['node'] is None]
         assert not missing, f'Extens not found in phonebook: {missing}'
+        assert elapsed < 1.0, f'Single request {elapsed:.2f}s exceeds 1s'
 
     def test_concurrent_50_users_20_extens(self) -> None:
         """50 concurrent GraphQL requests, 20 extensions each, against 25k contacts.
@@ -228,7 +229,4 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
                 len(edges) == num_extens
             ), f'Expected {num_extens} results, got {len(edges)}'
 
-        assert p95 < 4.0, (
-            f'p95 latency {p95:.2f}s exceeds 4s — executor pool likely undersized '
-            f'(check reverse_service.executor_workers config)'
-        )
+        assert p95 < 4.0, f'p95 latency {p95:.2f}s exceeds 4s'
