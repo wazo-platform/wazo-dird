@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -132,6 +132,14 @@ class PhonebookPlugin(BaseSourcePlugin):
             return contact
         else:
             return None
+
+    def match_all(self, extens: list[str], args=None) -> dict[str, SourceResult]:
+        logger.debug('Batch matching phonebook contacts for %d extens', len(extens))
+        contacts = self._search_engine.find_contacts_for_extens(extens)
+        return {
+            exten: self.format_contacts([contact])[0]
+            for exten, contact in contacts.items()
+        }
 
     def list(self, source_entry_ids: list[str], args=None) -> list[SourceResult]:
         logger.debug('Listing phonebook contacts')
