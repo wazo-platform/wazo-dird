@@ -106,7 +106,7 @@ class GraphQLReverseLookupUser(FastHttpUser):
             headers['Wazo-Tenant'] = _TENANT
 
         with self.client.post(
-            '/0.1/graphql',
+            '/api/dird/0.1/graphql',
             name='graphql_reverse_lookup',
             headers=headers,
             json={'query': query},

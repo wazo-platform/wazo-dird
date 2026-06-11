@@ -43,6 +43,9 @@ class _ReverseService(helpers.BaseService):
         max_workers = self._config.get('reverse_service', {}).get(
             'executor_workers', http_threads
         )
+        logger.info(
+            'Initializing reverse lookup threadpool with %d workers', max_workers
+        )
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
 
     def stop(self):
