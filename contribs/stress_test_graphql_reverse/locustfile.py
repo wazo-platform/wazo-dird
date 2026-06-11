@@ -70,6 +70,15 @@ def _create_token(host: str) -> str:
     return data['data']['token']
 
 
+def _delete_token(host: str, token: str) -> None:
+    auth_host = os.getenv('WAZO_AUTH_HOST', f'{host}/api/auth')
+    req = urllib.request.Request(f'{auth_host}/0.1/token/{token}', method='DELETE')
+    try:
+        urllib.request.urlopen(req, context=_SSL_CTX).close()
+    except urllib.error.URLError as e:
+        logging.warning('failed to delete token: %s', e)
+
+
 class GraphQLReverseLookupUser(FastHttpUser):
     """
     Simulates one application instance resolving call-history entries via
@@ -82,6 +91,11 @@ class GraphQLReverseLookupUser(FastHttpUser):
 
     def on_start(self) -> None:
         self.token = _create_token(self.host)
+
+    def on_stop(self) -> None:
+        if getattr(self, 'token', None):
+            _delete_token(self.host, self.token)
+            self.token = None
 
     @task
     def reverse_lookup(self) -> None:
