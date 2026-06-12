@@ -83,19 +83,11 @@ class GraphQLReverseLookupUser(FastHttpUser):
     """
     Simulates one application instance resolving call-history entries via
     GraphQL reverse lookup.  Each task picks 0-35 extensions drawn from the
-    synthetic phonebook. Each virtual user authenticates independently on
-    start and holds a 10-minute token.
+    synthetic phonebook. All virtual users share a single token created at
+    test_start, so authentication latency is excluded from the stats.
     """
 
     wait_time = between(0.5, 3.0)
-
-    def on_start(self) -> None:
-        self.token = _create_token(self.host)
-
-    def on_stop(self) -> None:
-        if getattr(self, 'token', None):
-            _delete_token(self.host, self.token)
-            self.token = None
 
     @task
     def reverse_lookup(self) -> None:
@@ -115,7 +107,7 @@ class GraphQLReverseLookupUser(FastHttpUser):
             + ') { edges { node { firstname lastname wazoReverse } } } } }'
         )
 
-        headers = {'X-Auth-Token': self.token, 'Content-Type': 'application/json'}
+        headers = {'X-Auth-Token': _TOKEN, 'Content-Type': 'application/json'}
         if _TENANT:
             headers['Wazo-Tenant'] = _TENANT
 
@@ -138,14 +130,25 @@ class GraphQLReverseLookupUser(FastHttpUser):
                     response.success()
 
 
+_TOKEN = ''
+
+
 @events.test_start.add_listener
 def on_test_start(environment: Environment, **kw: dict) -> None:
+    global _TOKEN
+    _TOKEN = _create_token(environment.host)
     logging.info(
         'target: %s  profile: %s  phonebook: %d contacts',
         environment.host,
         _PROFILE,
         _PHONEBOOK_COUNT,
     )
+
+
+@events.test_stop.add_listener
+def on_test_stop(environment: Environment, **kw: dict) -> None:
+    if _TOKEN:
+        _delete_token(environment.host, _TOKEN)
 
 
 @events.quitting.add_listener
