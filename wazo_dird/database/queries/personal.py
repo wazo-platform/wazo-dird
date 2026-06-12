@@ -47,10 +47,9 @@ class PersonalContactSearchEngine(BaseDAO):
         if not extens or not self._first_match_columns:
             return {}
 
-        normalized = {unidecode(e): e for e in extens}
         filter_ = and_(
             User.user_uuid == user_uuid,
-            unaccent(ContactFields.value).in_(list(normalized)),
+            ContactFields.value.in_(extens),
             ContactFields.name.in_(self._first_match_columns),
         )
         with self.new_session() as s:
@@ -67,18 +66,17 @@ class PersonalContactSearchEngine(BaseDAO):
 
             exten_to_uuid: dict[str, str] = {}
             for value, uuid in rows:
-                key = unidecode(value)
-                if key not in exten_to_uuid:
-                    exten_to_uuid[key] = uuid
+                if value not in exten_to_uuid:
+                    exten_to_uuid[value] = uuid
 
             contacts_by_uuid = {
                 c['id']: c
                 for c in list_contacts_by_uuid(s, list(set(exten_to_uuid.values())))
             }
             return {
-                normalized[key]: contacts_by_uuid[uuid]
-                for key, uuid in exten_to_uuid.items()
-                if uuid in contacts_by_uuid and key in normalized
+                exten: contacts_by_uuid[uuid]
+                for exten, uuid in exten_to_uuid.items()
+                if uuid in contacts_by_uuid
             }
 
     def find_personal_contacts(self, user_uuid: str, term: str) -> list[ContactInfo]:
@@ -143,9 +141,11 @@ class PersonalContactSearchEngine(BaseDAO):
         if not columns:
             return False
 
+        # no normalization, assuming phone number-like values
+        # enable efficient index usage
         return and_(
             User.user_uuid == user_uuid,
-            unaccent(ContactFields.value) == unidecode(term),
+            ContactFields.value == term,
             ContactFields.name.in_(columns),
         )
 
