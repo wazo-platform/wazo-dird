@@ -85,13 +85,6 @@ class PhonebookContactSearchEngine(BaseDAO):
                 return None
 
     def find_contacts_for_extens(self, extens: list[str]) -> dict[str, ContactInfo]:
-        """Batch reverse lookup: returns {exten: contact} for all matched extens.
-
-        Uses two queries total regardless of len(extens), vs the 2×N queries
-        that sequential find_first_contact() calls would require.
-        Uses exact (case-sensitive) matching; ilike semantics of find_first_contact
-        are irrelevant for phone-number lookups.
-        """
         if not extens or not self._first_match_columns:
             return {}
 
