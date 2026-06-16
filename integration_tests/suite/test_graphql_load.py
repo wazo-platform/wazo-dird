@@ -239,6 +239,8 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
             assert (
                 len(edges) == num_extens
             ), f'Expected {num_extens} results, got {len(edges)}'
+            null_nodes = [i for i, e in enumerate(edges) if e['node'] is None]
+            assert not null_nodes, f'Null nodes at indices {null_nodes} (timeout?)'
 
         assert p95 < 4.0, f'p95 latency {p95:.2f}s exceeds 4s'
 
@@ -429,5 +431,7 @@ class TestGraphQLReverseLookupPersonalLoad(BaseDirdIntegrationTest):
             assert (
                 len(edges) == num_extens
             ), f'Expected {num_extens} results, got {len(edges)}'
+            null_nodes = [i for i, e in enumerate(edges) if e['node'] is None]
+            assert not null_nodes, f'Null nodes at indices {null_nodes} (timeout?)'
 
         assert p95 < 4.0, f'p95 latency {p95:.2f}s exceeds 4s'
