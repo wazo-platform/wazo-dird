@@ -102,3 +102,27 @@ class TestReverseTimeout(unittest.TestCase):
         service.reverse_many(_PROFILE_WITH_TOPLEVEL_TIMEOUT, ['1234'], 'test')
 
         mock_as_completed.assert_called_once_with([], timeout=1)
+
+    @patch('wazo_dird.plugins.reverse_service.plugin.as_completed')
+    def test_reverse_cancels_pending_on_timeout(self, mock_as_completed):
+        mock_as_completed.side_effect = TimeoutError
+        future = Mock()
+        future.done.return_value = False
+        service, _ = _make_service_with_source()
+        service._executor.submit = Mock(return_value=future)
+
+        service.reverse(_PROFILE_WITH_SOURCE, '1234', 'test')
+
+        future.cancel.assert_called_once()
+
+    @patch('wazo_dird.plugins.reverse_service.plugin.as_completed')
+    def test_reverse_many_cancels_pending_on_timeout(self, mock_as_completed):
+        mock_as_completed.side_effect = TimeoutError
+        future = Mock()
+        future.done.return_value = False
+        service, _ = _make_service_with_source()
+        service._executor.submit = Mock(return_value=future)
+
+        service.reverse_many(_PROFILE_WITH_SOURCE, ['1234'], 'test')
+
+        future.cancel.assert_called_once()
