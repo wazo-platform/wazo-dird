@@ -1,4 +1,4 @@
-#\!/usr/bin/env bash
+#!/usr/bin/env bash
 # Create a synthetic phonebook with N contacts for load/performance testing.
 # Matches the schema used by integration_tests/suite/test_graphql_load.py.
 #
