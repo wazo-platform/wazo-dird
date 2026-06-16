@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -64,7 +64,7 @@ class _ReverseService(helpers.BaseService):
 
         params = {}
         service_config = self.get_service_config(profile_config)
-        timeout = service_config.get('timeout')
+        timeout = service_config.get('options', {}).get('timeout', 1)
         if timeout:
             params['timeout'] = timeout
 
@@ -109,7 +109,7 @@ class _ReverseService(helpers.BaseService):
 
         params = {}
         service_config = self.get_service_config(profile_config)
-        timeout = service_config.get('timeout')
+        timeout = service_config.get('options', {}).get('timeout', 1)
         if timeout:
             params['timeout'] = timeout
 
