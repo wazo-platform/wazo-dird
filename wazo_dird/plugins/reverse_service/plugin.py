@@ -1,19 +1,25 @@
 # Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import logging
-from concurrent.futures import ThreadPoolExecutor, TimeoutError, as_completed
+from __future__ import annotations
 
-from wazo_dird import BaseServicePlugin, helpers
+import logging
+from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError, as_completed
+from typing import Any
+
+from wazo_dird import BaseServicePlugin, BaseSourcePlugin, helpers
+from wazo_dird.helpers import ProfileConfig
+from wazo_dird.plugin_manager import ServiceDependencies
+from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 logger = logging.getLogger(__name__)
 
 
 class ReverseServicePlugin(BaseServicePlugin):
-    def __init__(self):
-        self._service = None
+    def __init__(self) -> None:
+        self._service: _ReverseService | None = None
 
-    def load(self, dependencies):
+    def load(self, dependencies: ServiceDependencies) -> _ReverseService:
         try:
             self._service = _ReverseService(
                 dependencies['config'],
@@ -28,7 +34,7 @@ class ReverseServicePlugin(BaseServicePlugin):
             )
             raise ValueError(msg)
 
-    def unload(self):
+    def unload(self) -> None:
         if self._service:
             self._service.stop()
             self._service = None
@@ -37,16 +43,22 @@ class ReverseServicePlugin(BaseServicePlugin):
 class _ReverseService(helpers.BaseService):
     _service_name = 'reverse'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._executor = ThreadPoolExecutor(max_workers=10)
 
-    def stop(self):
+    def stop(self) -> None:
         self._executor.shutdown()
 
     def reverse_many(
-        self, profile_config, extens, profile, args=None, user_uuid=None, token=None
-    ):
+        self,
+        profile_config: ProfileConfig,
+        extens: list[str],
+        profile: str,
+        args: dict[str, Any] | None = None,
+        user_uuid: str | None = None,
+        token: str | None = None,
+    ) -> list[SourceResult | None]:
         args = args or {}
         futures = []
         sources = self.source_from_profile(profile_config)
@@ -63,9 +75,14 @@ class _ReverseService(helpers.BaseService):
             futures.append(self._async_reverse_many(source, extens, args))
 
         service_config = self.get_service_config(profile_config)
-        timeout = (service_config.get('options') or {}).get('timeout') or 1
+        timeout: float | None = (service_config.get('options') or {}).get(
+            'timeout'
+        ) or 1
+        configured_timeout = service_config.get('timeout')
+        if configured_timeout and isinstance(configured_timeout, (int, float)):
+            timeout = configured_timeout
 
-        results = {exten: None for exten in extens}
+        results: dict[str, SourceResult | None] = {exten: None for exten in extens}
         try:
             for future in as_completed(futures, timeout=timeout):
                 if result := future.result():
@@ -99,17 +116,27 @@ class _ReverseService(helpers.BaseService):
             )
         return [value for value in results.values()]
 
-    def _async_reverse_many(self, source, extens, args):
-        raise_stopper = helpers.RaiseStopper(return_on_raise=None)
+    def _async_reverse_many(
+        self, source: BaseSourcePlugin, extens: list[str], args: dict[str, Any]
+    ) -> Future[dict[str, SourceResult] | None]:
+        raise_stopper: helpers.RaiseStopper[
+            dict[str, SourceResult] | None
+        ] = helpers.RaiseStopper(return_on_raise=None)
         future = self._executor.submit(
             raise_stopper.execute, source.match_all, extens, args
         )
-        future.name = source.name
+        setattr(future, 'name', source.name)
         return future
 
     def reverse(
-        self, profile_config, exten, profile, args=None, user_uuid=None, token=None
-    ):
+        self,
+        profile_config: ProfileConfig,
+        exten: str,
+        profile: str,
+        args: dict[str, Any] | None = None,
+        user_uuid: str | None = None,
+        token: str | None = None,
+    ) -> SourceResult | None:
         args = args or {}
         futures = []
         sources = self.source_from_profile(profile_config)
@@ -126,7 +153,13 @@ class _ReverseService(helpers.BaseService):
             futures.append(self._async_reverse(source, exten, args))
 
         service_config = self.get_service_config(profile_config)
-        timeout = (service_config.get('options') or {}).get('timeout') or 1
+        timeout: float | None = (service_config.get('options') or {}).get(
+            'timeout'
+        ) or 1
+
+        configured_timeout = service_config.get('timeout')
+        if configured_timeout and isinstance(configured_timeout, (int, float)):
+            timeout = configured_timeout
 
         try:
             for future in as_completed(futures, timeout=timeout):
@@ -146,10 +179,14 @@ class _ReverseService(helpers.BaseService):
                 'cancelled %d/%d reverse lookup tasks', cancelled_futures, len(futures)
             )
 
-    def _async_reverse(self, source, exten, args):
-        raise_stopper = helpers.RaiseStopper(return_on_raise=None)
+    def _async_reverse(
+        self, source: BaseSourcePlugin, exten: str, args: dict[str, Any]
+    ) -> Future[SourceResult | None]:
+        raise_stopper: helpers.RaiseStopper[SourceResult | None] = helpers.RaiseStopper(
+            return_on_raise=None
+        )
         future = self._executor.submit(
             raise_stopper.execute, source.first_match, exten, args
         )
-        future.name = source.name
+        setattr(future, 'name', source.name)
         return future
