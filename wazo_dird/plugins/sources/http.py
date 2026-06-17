@@ -1,6 +1,10 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from flask import request
 
 from wazo_dird.auth import required_acl
@@ -9,13 +13,16 @@ from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 
 from .schemas import list_schema, source_list_schema
 
+if TYPE_CHECKING:
+    from wazo_dird.plugins.source_service.plugin import _SourceService
+
 
 class Sources(AuthResource):
-    def __init__(self, source_service):
+    def __init__(self, source_service: _SourceService) -> None:
         self._source_service = source_service
 
     @required_acl('dird.sources.read')
-    def get(self):
+    def get(self) -> dict[str, Any]:
         list_params = list_schema.load(request.args)
         visible_tenants = get_tenant_uuids(recurse=list_params['recurse'])
         backend = list_params.pop('backend', None)
