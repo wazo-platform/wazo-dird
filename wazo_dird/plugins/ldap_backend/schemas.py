@@ -26,7 +26,7 @@ class SourceSchema(BaseSourceSchema):
     )
 
 
-class ListSchema(_ListSchema):
+class ListSchema(_ListSchema):  # type: ignore[misc]
     searchable_columns = ['uuid', 'name', 'ldap_uri', 'ldap_base_dn', 'ldap_username']
     sort_columns = ['name', 'ldap_uri', 'ldap_base_dn', 'ldap_username']
     default_sort_column = 'name'

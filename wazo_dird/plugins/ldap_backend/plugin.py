@@ -1,21 +1,39 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import itertools
 import logging
 import re
 import threading
 import uuid
+from collections.abc import Callable
+from typing import Any, cast
 
 import ldap
 from ldap.filter import escape_filter_chars
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
+from wazo_dird.plugins.base_plugins import SourceConfig, SourcePluginDependencies
+from wazo_dird.plugins.source_result import _SourceResult
 
 from . import http
 
 logger = logging.getLogger(__name__)
+
+
+class LDAPSourceConfig(SourceConfig, total=False):
+    ldap_uri: str
+    ldap_base_dn: str
+    ldap_username: str | None
+    ldap_password: str | None
+    ldap_custom_filter: str | None
+    ldap_network_timeout: float
+    ldap_timeout: float
+    unique_column: str | None
+    unique_column_format: str
 
 
 class LDAPView(BaseBackendView):
@@ -25,34 +43,41 @@ class LDAPView(BaseBackendView):
 
 
 class LDAPPlugin(BaseSourcePlugin):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.ldap_factory = _LDAPFactory()
         self._lock = threading.Lock()
 
-    def load(self, args):
-        self._ldap_config = self.ldap_factory.new_ldap_config(args['config'])
+    def load(self, args: SourcePluginDependencies) -> None:
+        config = cast(LDAPSourceConfig, args['config'])
+        self._ldap_config = self.ldap_factory.new_ldap_config(config)
         self._ldap_result_formatter = self.ldap_factory.new_ldap_result_formatter(
             self._ldap_config
         )
         self._ldap_client = self.ldap_factory.new_ldap_client(self._ldap_config)
         self._ldap_client.set_up()
 
-    def unload(self):
+    def unload(self) -> None:
         self._ldap_client.close()
 
-    def search(self, term, args=None):
+    def search(
+        self, term: str, args: dict[str, Any] | None = None
+    ) -> list[_SourceResult]:
         filter_str = self._ldap_config.build_search_filter(term)
 
         return self._search_and_format(filter_str)
 
-    def first_match(self, term, args=None):
+    def first_match(
+        self, term: str, args: dict[str, Any] | None = None
+    ) -> _SourceResult | None:
         filter_str = self._ldap_config.build_first_match_filter(term)
 
         return self._first_match_and_format(filter_str)
 
-    def match_all(self, extens, args=None):
-        results = {}
+    def match_all(
+        self, extens: list[str], args: dict[str, Any] | None = None
+    ) -> dict[str, _SourceResult]:
+        results: dict[str, _SourceResult] = {}
         columns = self._ldap_config.first_matched_columns()
         logger.debug('Looking for columns (%s) with (%s)', columns, extens)
         filter_str = self._ldap_config.build_match_all_filter(extens)
@@ -67,24 +92,13 @@ class LDAPPlugin(BaseSourcePlugin):
             logger.debug('Found no match')
         return results
 
-    def list(self, uids, args=None):
-        # XXX what is the character encoding used in uids ?
-        if not self._ldap_config.unique_column():
-            return []
-        if not uids:
-            return []
-
-        filter_str = self._ldap_config.build_list_filter(uids)
-
-        return self._search_and_format(filter_str)
-
-    def _search_and_format(self, filter_str):
+    def _search_and_format(self, filter_str: str | None) -> list[_SourceResult]:
         with self._lock:
             raw_results = self._ldap_client.search(filter_str)
 
         return self._ldap_result_formatter.format(raw_results)
 
-    def _first_match_and_format(self, filter_str):
+    def _first_match_and_format(self, filter_str: str | None) -> _SourceResult | None:
         with self._lock:
             raw_results = self._ldap_client.search(filter_str, 1)
 
@@ -96,7 +110,7 @@ class LDAPPlugin(BaseSourcePlugin):
             return None
         return self._ldap_result_formatter.format_one_result(attrs)
 
-    def _match_all_and_format(self, filter_str):
+    def _match_all_and_format(self, filter_str: str | None) -> list[_SourceResult]:
         with self._lock:
             raw_results = self._ldap_client.search(filter_str)
 
@@ -108,15 +122,30 @@ class LDAPPlugin(BaseSourcePlugin):
             results.append(contact)
         return results
 
+    def list(
+        self, uids: list[str], args: dict[str, Any] | None = None
+    ) -> list[_SourceResult]:
+        # XXX what is the character encoding used in uids ?
+        if not self._ldap_config.unique_column():
+            return []
+        if not uids:
+            return []
+
+        filter_str = self._ldap_config.build_list_filter(uids)
+
+        return self._search_and_format(filter_str)
+
 
 class _LDAPFactory:
-    def new_ldap_config(self, config):
+    def new_ldap_config(self, config: LDAPSourceConfig) -> _LDAPConfig:
         return _LDAPConfig(config)
 
-    def new_ldap_client(self, ldap_config):
+    def new_ldap_client(self, ldap_config: _LDAPConfig) -> _LDAPClient:
         return _LDAPClient(ldap_config)
 
-    def new_ldap_result_formatter(self, ldap_config):
+    def new_ldap_result_formatter(
+        self, ldap_config: _LDAPConfig
+    ) -> _LDAPResultFormatter:
         return _LDAPResultFormatter(ldap_config)
 
 
@@ -126,10 +155,8 @@ class _LDAPConfig:
     DEFAULT_LDAP_NETWORK_TIMEOUT = 0.3
     DEFAULT_LDAP_TIMEOUT = 1.0
 
-    def __init__(self, config):
-        if not config.get('ldap_custom_filter') and not config.get(
-            BaseSourcePlugin.SEARCHED_COLUMNS
-        ):
+    def __init__(self, config: LDAPSourceConfig):
+        if not config.get('ldap_custom_filter') and not config.get('searched_columns'):
             raise LookupError(
                 "%s need a searched_columns OR "
                 "ldap_custom_filter in it's configuration" % config.get('name')
@@ -137,46 +164,46 @@ class _LDAPConfig:
 
         self._config = config
 
-    def has_binary_uuid(self):
+    def has_binary_uuid(self) -> bool:
         return self._config.get('unique_column_format', 'string') == 'binary_uuid'
 
-    def name(self):
+    def name(self) -> str:
         return self._config['name']
 
-    def unique_column(self):
-        return self._config.get(BaseSourcePlugin.UNIQUE_COLUMN)
+    def unique_column(self) -> str | None:
+        return self._config.get('unique_column')
 
-    def format_columns(self):
-        return self._config.get(BaseSourcePlugin.FORMAT_COLUMNS)
+    def format_columns(self) -> dict[str, str] | None:
+        return self._config.get('format_columns')
 
-    def first_matched_columns(self):
-        return self._config.get(BaseSourcePlugin.FIRST_MATCHED_COLUMNS, [])
+    def first_matched_columns(self) -> list[str]:
+        return self._config.get('first_matched_columns', [])
 
-    def searched_columns(self):
-        return self._config.get(BaseSourcePlugin.SEARCHED_COLUMNS, [])
+    def searched_columns(self) -> list[str]:
+        return self._config.get('searched_columns', [])
 
-    def ldap_uri(self):
+    def ldap_uri(self) -> str:
         return self._config['ldap_uri']
 
-    def ldap_base_dn(self):
+    def ldap_base_dn(self) -> str:
         return self._config['ldap_base_dn']
 
-    def ldap_username(self):
+    def ldap_username(self) -> str | None:
         return self._config.get('ldap_username', self.DEFAULT_LDAP_USERNAME)
 
-    def ldap_password(self):
+    def ldap_password(self) -> str | None:
         return self._config.get('ldap_password', self.DEFAULT_LDAP_PASSWORD)
 
-    def ldap_network_timeout(self):
+    def ldap_network_timeout(self) -> float:
         return self._config.get(
             'ldap_network_timeout', self.DEFAULT_LDAP_NETWORK_TIMEOUT
         )
 
-    def ldap_timeout(self):
+    def ldap_timeout(self) -> float:
         return self._config.get('ldap_timeout', self.DEFAULT_LDAP_TIMEOUT)
 
-    def attributes(self):
-        format_columns = self._config.get(BaseSourcePlugin.FORMAT_COLUMNS)
+    def attributes(self) -> list[str] | None:
+        format_columns = self._config.get('format_columns')
         if not format_columns:
             return None
 
@@ -184,13 +211,13 @@ class _LDAPConfig:
         for column in format_columns.values():
             fields = re.findall(r'{(\w+)}', column)
             attributes.extend(fields)
-        unique_column = self._config.get(BaseSourcePlugin.UNIQUE_COLUMN)
+        unique_column = self._config.get('unique_column')
         if unique_column and unique_column not in attributes:
             attributes.append(unique_column)
 
         return attributes
 
-    def build_search_filter(self, term):
+    def build_search_filter(self, term: str) -> str | None:
         term_escaped = escape_filter_chars(term)
         ldap_custom_filter = self._config.get('ldap_custom_filter')
         searched_columns = self.searched_columns()
@@ -209,7 +236,7 @@ class _LDAPConfig:
             return self._build_search_filter_from_searched_columns(term_escaped)
         return None
 
-    def build_first_match_filter(self, term):
+    def build_first_match_filter(self, term: str) -> str | None:
         term_escaped = escape_filter_chars(term)
         ldap_custom_filter = self._config.get('ldap_custom_filter')
         first_matched_columns = self.first_matched_columns()
@@ -230,7 +257,7 @@ class _LDAPConfig:
             )
         return None
 
-    def build_match_all_filter(self, terms):
+    def build_match_all_filter(self, terms: list[str]) -> str | None:
         filters = []
         for term in terms:
             filter_ = self.build_first_match_filter(term)
@@ -239,82 +266,92 @@ class _LDAPConfig:
         return self._build_filter_from_list(filters)
 
     def _build_filter_from_custom_and_generated_filter(
-        self, custom_filter, generated_filter
-    ):
+        self, custom_filter: str, generated_filter: str
+    ) -> str:
         return '(&{custom}{generated})'.format(
             custom=custom_filter, generated=generated_filter
         )
 
-    def _build_search_filter_from_custom_filter(self, term_escaped):
-        return self._config['ldap_custom_filter'].replace('%Q', term_escaped)
+    def _build_search_filter_from_custom_filter(self, term_escaped: str) -> str:
+        custom_filter = self._config['ldap_custom_filter']
+        assert custom_filter is not None
+        return custom_filter.replace('%Q', term_escaped)
 
-    def _build_search_filter_from_searched_columns(self, term_escaped):
+    def _build_search_filter_from_searched_columns(self, term_escaped: str) -> str:
         list_ = list(f'({attr}=*{term_escaped}*)' for attr in self.searched_columns())
         return self._build_filter_from_list(list_)
 
-    def _build_exact_search_filter_from_first_matched_columns(self, term_escaped):
+    def _build_exact_search_filter_from_first_matched_columns(
+        self, term_escaped: str
+    ) -> str:
         list_ = list(
             f'({attr}={term_escaped})' for attr in self.first_matched_columns()
         )
         return self._build_filter_from_list(list_)
 
-    def _build_filter_from_list(self, list_):
+    def _build_filter_from_list(self, list_: list[str]) -> str:
         if len(list_) == 1:
             return list_[0]
         else:
             return '(|%s)' % ''.join(list_)
 
-    def build_list_filter(self, uids):
+    def build_list_filter(self, uids: list[str]) -> str | None:
         if not uids:
             return None
 
-        unique_column = self._config[BaseSourcePlugin.UNIQUE_COLUMN]
+        unique_column = self._config['unique_column']
 
         list_ = []
         for uid in self._convert_uids(uids):
             list_.append(f'({unique_column}={uid})')
         return self._build_filter_from_list(list_)
 
-    def _convert_uids(self, uids):
+    def _convert_uids(self, uids: list[str]) -> list[str]:
         if self.has_binary_uuid():
             return [self._convert_binary_uid(uid) for uid in uids]
         return uids
 
-    def _convert_binary_uid(self, uid):
-        uid = uuid.UUID(uid).hex
+    def _convert_binary_uid(self, uid: str) -> str:
+        hex_uid = uuid.UUID(uid).hex
         return ''.join(
-            c for byte in zip(itertools.repeat('\\'), uid[::2], uid[1::2]) for c in byte
+            c
+            for byte in zip(itertools.repeat('\\'), hex_uid[::2], hex_uid[1::2])
+            for c in byte
         )
 
 
 class _LDAPClient:
-    def __init__(self, ldap_config, ldap_obj_factory=ldap.initialize):
+    def __init__(
+        self,
+        ldap_config: _LDAPConfig,
+        ldap_obj_factory: Callable[..., Any] = ldap.initialize,
+    ):
         self._ldap_config = ldap_config
         self._ldap_obj_factory = ldap_obj_factory
-        self._ldap_obj = None
+        self._ldap_obj: Any = None
         self._name = self._ldap_config.name()
         self._base_dn = self._ldap_config.ldap_base_dn()
         self._attributes = self._ldap_config.attributes()
 
-    def close(self):
+    def close(self) -> None:
         if self._is_set_up():
             self._tear_down()
 
-    def set_up(self):
+    def set_up(self) -> None:
         # This is an optional method. The main interest is that it will raise an exception
         # if the ldap_obj can't be initialized properly. This can be useful if you want to
         # fail early.
         if not self._is_set_up():
             self._set_up()
 
-    def _is_set_up(self):
+    def _is_set_up(self) -> bool:
         return self._ldap_obj is not None
 
-    def _set_up(self):
+    def _set_up(self) -> None:
         self._ldap_obj = self._new_ldap_obj()
         self._bind()
 
-    def _new_ldap_obj(self):
+    def _new_ldap_obj(self) -> Any:
         ldap_obj = self._ldap_obj_factory(self._ldap_config.ldap_uri())
         ldap_obj.set_option(ldap.OPT_REFERRALS, 0)
         ldap_obj.set_option(
@@ -323,7 +360,7 @@ class _LDAPClient:
         ldap_obj.set_option(ldap.OPT_TIMEOUT, self._ldap_config.ldap_timeout())
         return ldap_obj
 
-    def _bind(self):
+    def _bind(self) -> None:
         try:
             self._ldap_obj.simple_bind_s(
                 self._ldap_config.ldap_username(), self._ldap_config.ldap_password()
@@ -332,11 +369,11 @@ class _LDAPClient:
             logger.error('LDAP "%s": bind error: %r', self._name, e)
             self._tear_down()
 
-    def _tear_down(self):
+    def _tear_down(self) -> None:
         self._ldap_obj.unbind_s()
         self._ldap_obj = None
 
-    def search(self, filter_str, limit=-1):
+    def search(self, filter_str: str | None, limit: int = -1) -> Any:
         if self._is_set_up():
             retry = True
         else:
@@ -354,7 +391,7 @@ class _LDAPClient:
 
         return results
 
-    def _search(self, filter_str, limit):
+    def _search(self, filter_str: str | None, limit: int) -> Any:
         results = []
 
         try:
@@ -385,7 +422,7 @@ class _LDAPClient:
 
 
 class _LDAPResultFormatter:
-    def __init__(self, ldap_config):
+    def __init__(self, ldap_config: _LDAPConfig):
         self._unique_column = ldap_config.unique_column()
         self._bin_uuid = ldap_config.has_binary_uuid()
         self._SourceResult = make_result_class(
@@ -395,7 +432,7 @@ class _LDAPResultFormatter:
             ldap_config.format_columns(),
         )
 
-    def format(self, raw_results):
+    def format(self, raw_results: Any) -> list[_SourceResult]:
         results = []
         for dn, attrs in raw_results:
             if not dn:
@@ -404,7 +441,7 @@ class _LDAPResultFormatter:
 
         return results
 
-    def format_one_result(self, attrs):
+    def format_one_result(self, attrs: Any) -> _SourceResult:
         fields = {}
         for name, values in attrs.items():
             value = values[0]
