@@ -1,18 +1,37 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import csv
 import logging
+from collections.abc import Iterator
+from typing import Any
 
 import requests
 from requests import RequestException
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
+from wazo_dird.plugins.base_plugins import SourceConfig, SourcePluginDependencies
+from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import http
 
 logger = logging.getLogger(__name__)
+
+
+class Config(SourceConfig, total=False):
+    list_url: str
+    lookup_url: str
+    unique_column: str
+    timeout: float
+    delimiter: str
+    verify_certificate: bool | str
+
+
+class Dependencies(SourcePluginDependencies):
+    config: Config  # type: ignore[misc]
 
 
 class CSVWSView(BaseBackendView):
@@ -22,30 +41,31 @@ class CSVWSView(BaseBackendView):
 
 
 class CSVWSPlugin(BaseSourcePlugin):
-    def load(self, config):
+    def load(self, config: Dependencies) -> None:  # type: ignore[override]
         logger.debug('Loading with %s', config)
 
-        self._name = config['config']['name']
-        self._list_url = config['config'].get('list_url')
-        self._lookup_url = config['config']['lookup_url']
-        self._first_matched_columns = config['config'].get(
-            self.FIRST_MATCHED_COLUMNS, []
-        )
-        self._searched_columns = config['config'].get(self.SEARCHED_COLUMNS, [])
-        self._unique_column = config['config'].get(self.UNIQUE_COLUMN)
-        backend = config['config'].get('backend', '')
+        source_config = config['config']
+        self._name = source_config['name']
+        self._list_url = source_config.get('list_url')
+        self._lookup_url = source_config['lookup_url']
+        self._first_matched_columns = source_config.get('first_matched_columns', [])
+        self._searched_columns = source_config.get('searched_columns', [])
+        self._unique_column = source_config.get('unique_column')
+        backend = source_config.get('backend', '')
         self._SourceResult = make_result_class(
             backend,
-            config['config']['name'],
+            source_config['name'],
             self._unique_column,
-            config['config'].get(self.FORMAT_COLUMNS, {}),
+            source_config.get('format_columns', {}),
         )
-        self._timeout = config['config'].get('timeout', 10)
-        self._delimiter = config['config'].get('delimiter', ',')
-        self._verify_certificate = config['config'].get('verify_certificate', True)
+        self._timeout = source_config.get('timeout', 10)
+        self._delimiter = source_config.get('delimiter', ',')
+        self._verify_certificate = source_config.get('verify_certificate', True)
         self._reader = _CSVReader(self._delimiter)
 
-    def search(self, term, args=None):
+    def search(
+        self, term: str, args: dict[str, Any] | None = None
+    ) -> list[SourceResult]:
         logger.debug('Searching CSV WS `%s` with `%s`', self._name, term)
         url = self._lookup_url
         params = {column: term for column in self._searched_columns}
@@ -71,7 +91,9 @@ class CSVWSPlugin(BaseSourcePlugin):
             if result
         ]
 
-    def first_match(self, term, args=None):
+    def first_match(
+        self, term: str, args: dict[str, Any] | None = None
+    ) -> SourceResult | None:
         logger.debug('First matching CSV WS `%s` with `%s`', self._name, term)
         url = self._lookup_url
         params = {column: term for column in self._first_matched_columns}
@@ -97,11 +119,14 @@ class CSVWSPlugin(BaseSourcePlugin):
                     return self._SourceResult(result)
         return None
 
-    def list(self, source_entry_ids, args=None):
+    def list(
+        self, source_entry_ids: list[str], args: dict[str, Any] | None = None
+    ) -> list[SourceResult]:
         logger.debug(
             'Listing contacts %s from CSV WS `%s`', source_entry_ids, self._name
         )
-        if not (self._unique_column and self._list_url):
+        unique_column = self._unique_column
+        if not (unique_column and self._list_url):
             return []
 
         try:
@@ -118,21 +143,21 @@ class CSVWSPlugin(BaseSourcePlugin):
         return [
             self._SourceResult(result)
             for result in self._reader.from_text(response.text)
-            if result.get(self._unique_column) in source_entry_ids
+            if result.get(unique_column) in source_entry_ids
         ]
 
 
 class _CSVReader:
-    def __init__(self, delimiter):
+    def __init__(self, delimiter: str) -> None:
         self._delimiter = delimiter
 
-    def from_text(self, raw):
+    def from_text(self, raw: str) -> Iterator[dict[str, str]]:
         reader = unicode_csv_reader(raw, delimiter=self._delimiter)
         headers = next(reader)
         for result in reader:
             yield dict(zip(headers, result))
 
 
-def unicode_csv_reader(unicode_data, **kwargs):
+def unicode_csv_reader(unicode_data: str, **kwargs: Any) -> Iterator[list[str]]:
     csv_reader = csv.reader(unicode_data.split('\n'), **kwargs)
     yield from csv_reader
