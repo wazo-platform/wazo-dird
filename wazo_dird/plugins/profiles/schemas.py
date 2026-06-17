@@ -1,8 +1,9 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from marshmallow import RAISE
 from xivo.mallow import fields
-from xivo.mallow.validate import Length
+from xivo.mallow.validate import Length, Range
 from xivo.mallow_helpers import ListSchema as _ListSchema
 
 from wazo_dird.schemas import BaseSchema
@@ -12,9 +13,18 @@ class ResourceSchema(BaseSchema):
     uuid = fields.UUID(required=True)
 
 
+class ServiceOptionsSchema(BaseSchema):
+    class Meta(BaseSchema.Meta):
+        unknown = RAISE
+
+    timeout = fields.Float(
+        load_default=None, allow_none=True, validate=Range(min=0, min_inclusive=False)
+    )
+
+
 class ServiceConfigSchema(BaseSchema):
     sources = fields.Nested(ResourceSchema, many=True, load_default=[])
-    options = fields.Dict(load_default={})
+    options = fields.Nested(ServiceOptionsSchema, load_default={})
 
 
 class ServiceDictSchema(fields.Nested):
