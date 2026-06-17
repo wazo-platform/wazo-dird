@@ -51,6 +51,14 @@ class _ReverseService(helpers.BaseService):
     def stop(self):
         self._executor.shutdown()
 
+    @staticmethod
+    def _cancel_pending(futures: list) -> None:
+        pending = [f for f in futures if not f.done()]
+        cancelled = sum(1 for f in pending if f.cancel())
+        logger.debug(
+            'Cancelled %d/%d pending reverse lookup tasks', cancelled, len(pending)
+        )
+
     def reverse_many(
         self, profile_config, extens, profile, args=None, user_uuid=None, token=None
     ):
@@ -81,32 +89,14 @@ class _ReverseService(helpers.BaseService):
                 if result := future.result():
                     results.update(result)
                     if all(result is not None for result in results.values()):
-                        pending_futures = [
-                            future for future in futures if not future.done()
-                        ]
-                        cancelled_futures = sum(
-                            1 for future in pending_futures if future.cancel()
-                        )
-                        logger.debug(
-                            'Cancelled %d/%d pending reverse lookup tasks',
-                            cancelled_futures,
-                            len(pending_futures),
-                        )
+                        self._cancel_pending(futures)
                         break
         except TimeoutError:
             logger.warning(
                 'Timeout on reverse many lookup, returning partial results (extens=%s)',
                 extens,
             )
-            cancelled_futures = 0
-            for future in futures:
-                if not future.done() and future.cancel():
-                    cancelled_futures += 1
-            logger.debug(
-                'Timeout: cancelled %d/%d reverse lookup tasks',
-                cancelled_futures,
-                len(futures),
-            )
+            self._cancel_pending(futures)
         return [value for value in results.values()]
 
     def _async_reverse_many(self, source, extens, args):
@@ -144,20 +134,11 @@ class _ReverseService(helpers.BaseService):
         try:
             for future in as_completed(futures, **params):
                 if result := future.result():
-                    pending_futures = [f for f in futures if not f.done()]
-                    cancelled_futures = sum(1 for f in pending_futures if f.cancel())
-                    logger.debug(
-                        'Cancelled %d/%d pending reverse lookup tasks',
-                        cancelled_futures,
-                        len(pending_futures),
-                    )
+                    self._cancel_pending(futures)
                     return result
         except TimeoutError:
             logger.warning('Timeout on reverse lookup for exten: %s', exten)
-            cancelled_futures = sum(1 for f in futures if not f.done() and f.cancel())
-            logger.debug(
-                'cancelled %d/%d reverse lookup tasks', cancelled_futures, len(futures)
-            )
+            self._cancel_pending(futures)
 
     def _async_reverse(self, source, exten, args):
         raise_stopper = helpers.RaiseStopper(return_on_raise=None)
