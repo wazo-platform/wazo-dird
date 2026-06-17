@@ -1,7 +1,6 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import json
 import logging
 import os
 import time
@@ -36,15 +35,33 @@ _PERSONAL_CONTACT_COUNT = 1_000
 _NUMBER_BASE = 1_000_000_000
 _MOBILE_BASE = 33_600_000_000
 
+_DISPLAY_COLUMNS = [
+    {'title': 'Firstname', 'field': 'firstname'},
+    {'title': 'Lastname', 'field': 'lastname'},
+    {'title': 'Number', 'field': 'number'},
+    {'title': 'Mobile', 'field': 'mobile'},
+    {'title': 'Email', 'field': 'email'},
+]
 
-class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
-    """
-    Load scenario reproducing Cultura production conditions:
-    25k-contact phonebook, GraphQL reverse lookup with 15-20 extensions.
 
-    Timing is logged for performance baseline; tests gate on correctness only.
-    """
+def _graphql_query(profile: str, extens: list[str]) -> dict:
+    return {
+        'query': '''
+            query($profile: String, $extens: [String]) {
+                me {
+                    contacts(profile: $profile, extens: $extens) {
+                        edges {
+                            node { firstname lastname wazoReverse }
+                        }
+                    }
+                }
+            }
+        ''',
+        'variables': {'profile': profile, 'extens': extens},
+    }
 
+
+class _GraphQLLoadBase(BaseDirdIntegrationTest):
     asset = 'graphql_load'
     config_factory = new_null_config
 
@@ -60,6 +77,24 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
             timeout=10,
         )
         cls.stack = ExitStack()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.stack.close()
+        super().tearDownClass()
+
+
+class TestGraphQLReverseLookupLoad(_GraphQLLoadBase):
+    """
+    Load scenario reproducing Cultura production conditions:
+    25k-contact phonebook, GraphQL reverse lookup with 15-20 extensions.
+
+    Timing is logged for performance baseline; tests gate on correctness only.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
 
         phonebook_crud = PhonebookCRUD(cls.Session)
         contact_crud = PhonebookContactCRUD(cls.Session)
@@ -117,16 +152,7 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
             sources.append(source)
 
         display = client.displays.create(
-            {
-                'name': 'graphql-load-test-display',
-                'columns': [
-                    {'title': 'Firstname', 'field': 'firstname'},
-                    {'title': 'Lastname', 'field': 'lastname'},
-                    {'title': 'Number', 'field': 'number'},
-                    {'title': 'Mobile', 'field': 'mobile'},
-                    {'title': 'Email', 'field': 'email'},
-                ],
-            }
+            {'name': 'graphql-load-test-display', 'columns': _DISPLAY_COLUMNS}
         )
         cls.stack.callback(client.displays.delete, display['uuid'])
 
@@ -139,40 +165,13 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
         )
         cls.stack.callback(client.profiles.delete, profile['uuid'])
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        cls.stack.close()
-        super().tearDownClass()
-
-    @staticmethod
-    def _graphql_query(extens: list[str]) -> dict:
-        return {
-            'query': '''
-            {
-                me {
-                    contacts(profile: "default", extens: $extens) {
-                        edges {
-                            node {
-                                firstname
-                                lastname
-                                wazoReverse
-                            }
-                        }
-                    }
-                }
-            }
-            '''.replace(
-                '$extens', json.dumps(extens)
-            ),
-        }
-
     def test_single_request_20_extens(self) -> None:
         """Single GraphQL reverse lookup: 20 extensions against 25k-contact phonebook."""
         step = _CONTACT_COUNT // 20
         extens = [str(_NUMBER_BASE + i * step) for i in range(20)]
 
         t0 = time.monotonic()
-        response = self.dird.graphql.query(self._graphql_query(extens))
+        response = self.dird.graphql.query(_graphql_query('default', extens))
         elapsed = time.monotonic() - t0
 
         logger.info('load[single]: 20 extens / 25k contacts → %.2fs', elapsed)
@@ -209,7 +208,7 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
                 for j in range(num_extens)
             ]
             t0 = time.monotonic()
-            response = client.graphql.query(self._graphql_query(extens))
+            response = client.graphql.query(_graphql_query('default', extens))
             return time.monotonic() - t0, response
 
         with ThreadPoolExecutor(max_workers=num_users) as pool:
@@ -245,28 +244,16 @@ class TestGraphQLReverseLookupLoad(BaseDirdIntegrationTest):
         assert p95 < 4.0, f'p95 latency {p95:.2f}s exceeds 4s'
 
 
-class TestGraphQLReverseLookupPersonalLoad(BaseDirdIntegrationTest):
+class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
     """
     Load scenario for the personal backend: a single user with 1k personal
     contacts firing concurrent reverse lookups. Reproduces the worst-case for
     the personal backend (one user with many contacts, many in-flight calls).
     """
 
-    asset = 'graphql_load'
-    config_factory = new_null_config
-
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        cls.dird = DirdClient(
-            cls.host,
-            cls.port,
-            prefix=None,
-            https=False,
-            token=VALID_TOKEN_MAIN_TENANT,
-            timeout=10,
-        )
-        cls.stack = ExitStack()
 
         personal_crud = PersonalContactCRUD(cls.Session)
         contacts = personal_crud.create_personal_contacts(
@@ -309,16 +296,7 @@ class TestGraphQLReverseLookupPersonalLoad(BaseDirdIntegrationTest):
         cls.stack.callback(client.personal_source.delete, source['uuid'])
 
         display = client.displays.create(
-            {
-                'name': 'graphql-load-test-personal-display',
-                'columns': [
-                    {'title': 'Firstname', 'field': 'firstname'},
-                    {'title': 'Lastname', 'field': 'lastname'},
-                    {'title': 'Number', 'field': 'number'},
-                    {'title': 'Mobile', 'field': 'mobile'},
-                    {'title': 'Email', 'field': 'email'},
-                ],
-            }
+            {'name': 'graphql-load-test-personal-display', 'columns': _DISPLAY_COLUMNS}
         )
         cls.stack.callback(client.displays.delete, display['uuid'])
 
@@ -331,40 +309,13 @@ class TestGraphQLReverseLookupPersonalLoad(BaseDirdIntegrationTest):
         )
         cls.stack.callback(client.profiles.delete, profile['uuid'])
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        cls.stack.close()
-        super().tearDownClass()
-
-    @staticmethod
-    def _graphql_query(extens: list[str]) -> dict:
-        return {
-            'query': '''
-            {
-                me {
-                    contacts(profile: "personal", extens: $extens) {
-                        edges {
-                            node {
-                                firstname
-                                lastname
-                                wazoReverse
-                            }
-                        }
-                    }
-                }
-            }
-            '''.replace(
-                '$extens', json.dumps(extens)
-            ),
-        }
-
     def test_single_request_20_extens(self) -> None:
         """Single GraphQL reverse lookup: 20 extensions against 1k personal contacts."""
         step = _PERSONAL_CONTACT_COUNT // 20
         extens = [str(_NUMBER_BASE + i * step) for i in range(20)]
 
         t0 = time.monotonic()
-        response = self.dird.graphql.query(self._graphql_query(extens))
+        response = self.dird.graphql.query(_graphql_query('personal', extens))
         elapsed = time.monotonic() - t0
 
         logger.info('load[single, personal]: 20 extens / 1k contacts → %.2fs', elapsed)
@@ -401,7 +352,7 @@ class TestGraphQLReverseLookupPersonalLoad(BaseDirdIntegrationTest):
                 for j in range(num_extens)
             ]
             t0 = time.monotonic()
-            response = client.graphql.query(self._graphql_query(extens))
+            response = client.graphql.query(_graphql_query('personal', extens))
             return time.monotonic() - t0, response
 
         with ThreadPoolExecutor(max_workers=num_users) as pool:
