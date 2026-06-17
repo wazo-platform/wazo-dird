@@ -1,10 +1,13 @@
 # Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import logging
 import signal
 import threading
 from functools import partial
+from types import FrameType
 
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
@@ -64,7 +67,7 @@ class Controller:
             self.token_renewer,
         )
 
-    def run(self):
+    def run(self) -> None:
         signal.signal(signal.SIGTERM, partial(_signal_handler, self))
         signal.signal(signal.SIGINT, partial(_signal_handler, self))
         self.services = plugin_manager.load_services(
@@ -97,11 +100,13 @@ class Controller:
                         if self._stopping_thread:
                             self._stopping_thread.join()
 
-    def stop(self, reason):
+    def stop(self, reason: str) -> None:
         logger.warning('Stopping wazo-dird: %s', reason)
         self._stopping_thread = threading.Thread(target=self.rest_api.stop, name=reason)
         self._stopping_thread.start()
 
 
-def _signal_handler(controller, signum, frame):
+def _signal_handler(
+    controller: Controller, signum: int, frame: FrameType | None
+) -> None:
     controller.stop(reason=signal.Signals(signum).name)

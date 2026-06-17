@@ -1,8 +1,13 @@
 # Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import logging
 import sys
+from collections.abc import Sequence
+from types import TracebackType
+from typing import Any
 
 from xivo import xivo_logging
 from xivo.config_helper import UUIDNotFound, set_xivo_uuid
@@ -16,37 +21,42 @@ logger = logging.getLogger(__name__)
 
 class _PreConfigLogger:
     class FlushableBuffer:
-        def __init__(self):
-            self._msg = []
+        def __init__(self) -> None:
+            self._msg: list[tuple[int, object, tuple[object, ...], dict[str, Any]]] = []
 
-        def debug(self, msg, *args, **kwargs):
+        def debug(self, msg: object, *args: object, **kwargs: Any) -> None:
             self._msg.append((logging.DEBUG, msg, args, kwargs))
 
-        def info(self, msg, *args, **kwargs):
+        def info(self, msg: object, *args: object, **kwargs: Any) -> None:
             self._msg.append((logging.INFO, msg, args, kwargs))
 
-        def warning(self, msg, *args, **kwargs):
+        def warning(self, msg: object, *args: object, **kwargs: Any) -> None:
             self._msg.append((logging.WARNING, msg, args, kwargs))
 
-        def error(self, msg, *args, **kwargs):
+        def error(self, msg: object, *args: object, **kwargs: Any) -> None:
             self._msg.append((logging.ERROR, msg, args, kwargs))
 
-        def critical(self, msg, *args, **kwargs):
+        def critical(self, msg: object, *args: object, **kwargs: Any) -> None:
             self._msg.append((logging.CRITICAL, msg, args, kwargs))
 
-        def flush(self):
+        def flush(self) -> None:
             for level, msg, args, kwargs in self._msg:
                 logger.log(level, msg, *args, **kwargs)
 
-    def __enter__(self):
+    def __enter__(self) -> _PreConfigLogger.FlushableBuffer:
         self._logger = self.FlushableBuffer()
         return self._logger
 
-    def __exit__(self, _type, _value, _tb):
+    def __exit__(
+        self,
+        _type: type[BaseException] | None,
+        _value: BaseException | None,
+        _tb: TracebackType | None,
+    ) -> None:
         self._logger.flush()
 
 
-def main(argv=None):
+def main(argv: Sequence[str] | None = None) -> None:
     argv = argv or sys.argv[1:]
     with _PreConfigLogger() as logger:
         logger.debug('Starting wazo-dird')

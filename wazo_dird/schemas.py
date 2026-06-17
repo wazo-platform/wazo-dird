@@ -1,16 +1,34 @@
 # Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any, cast
+
 from marshmallow import exceptions, utils, validates_schema
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range, validate_string_dict
-from xivo.mallow_helpers import Schema
+from xivo.mallow_helpers import Schema as BaseSchema
 
-BaseSchema = Schema
+__all__ = [
+    'AuthConfigSchema',
+    'BaseAuthConfigSchema',
+    'BaseSchema',
+    'BaseSourceSchema',
+    'ConfdConfigSchema',
+    'VerifyCertificateField',
+]
 
 
-class VerifyCertificateField(fields.Field):
-    def _deserialize(self, value, attr, data, **kwargs):
+class VerifyCertificateField(fields.Field):  # type: ignore[misc]
+    def _deserialize(
+        self,
+        value: Any,
+        attr: str | None,
+        data: Mapping[str, Any] | None,
+        **kwargs: Any,
+    ) -> bool | str | None:
         if value in (True, 'true', 'True'):
             return True
 
@@ -18,12 +36,12 @@ class VerifyCertificateField(fields.Field):
             return False
 
         try:
-            return utils.ensure_text_type(value)
+            return cast('str', utils.ensure_text_type(value))
         except UnicodeDecodeError:
             self.make_error('invalid_utf8')
 
 
-class BaseSourceSchema(BaseSchema):
+class BaseSourceSchema(BaseSchema):  # type: ignore[misc]
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
@@ -36,7 +54,7 @@ class BaseSourceSchema(BaseSchema):
     format_columns = fields.Dict(validate=validate_string_dict, load_default={})
 
 
-class ConfdConfigSchema(BaseSchema):
+class ConfdConfigSchema(BaseSchema):  # type: ignore[misc]
     host = fields.String(validate=Length(min=1, max=1024), load_default='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), load_default=443)
     https = fields.Boolean(load_default=True)
@@ -46,7 +64,7 @@ class ConfdConfigSchema(BaseSchema):
     timeout = fields.Float(validate=Range(min=0, max=3660))
 
 
-class BaseAuthConfigSchema(BaseSchema):
+class BaseAuthConfigSchema(BaseSchema):  # type: ignore[misc]
     host = fields.String(validate=Length(min=1, max=1024), load_default='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), load_default=443)
     https = fields.Boolean(load_default=True)
@@ -61,8 +79,8 @@ class AuthConfigSchema(BaseAuthConfigSchema):
     username = fields.String(validate=Length(min=1, max=512), allow_none=True)
     password = fields.String(validate=Length(min=1, max=512), allow_none=True)
 
-    @validates_schema
-    def validate_auth_info(self, data, **kwargs):
+    @validates_schema  # type: ignore[untyped-decorator]
+    def validate_auth_info(self, data: dict[str, Any], **kwargs: Any) -> None:
         key_file = data.get('key_file')
         username = data.get('username')
 

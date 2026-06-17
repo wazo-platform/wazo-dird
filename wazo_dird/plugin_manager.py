@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from functools import partial
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from stevedore import NamedExtensionManager
+from stevedore.extension import Extension
 from xivo import plugin_helpers
 
 if TYPE_CHECKING:
@@ -26,8 +28,8 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-services_extension_manager = None
-views_extension_manager = None
+services_extension_manager: NamedExtensionManager | None = None
+views_extension_manager: NamedExtensionManager | None = None
 
 
 class ServiceDependencies(TypedDict):
@@ -45,7 +47,7 @@ def load_services(
     source_manager: SourceManager,
     bus: CoreBus,
     controller: Controller,
-):
+) -> dict[str, Any]:
     global services_extension_manager
     dependencies: ServiceDependencies = {
         'config': config,
@@ -56,19 +58,19 @@ def load_services(
         'confd_client': controller.confd_client,
     }
 
-    services_extension_manager, services = _load_plugins(
-        'wazo_dird.services', enabled_services, dependencies
-    )
+    loaded = _load_plugins('wazo_dird.services', enabled_services, dependencies)
+    assert loaded is not None
+    services_extension_manager, services = loaded
     return services
 
 
-def unload_services():
+def unload_services() -> None:
     if services_extension_manager:
         services_extension_manager.map_method('unload')
 
 
-def unload_views():
-    def unload_view(ext, *args, **kwargs):
+def unload_views() -> None:
+    def unload_view(ext: Extension, *args: Any, **kwargs: Any) -> None:
         if hasattr(ext.obj, 'unload'):
             logger.info('unloading view: %s', ext.name)
             ext.obj.unload()
@@ -79,7 +81,7 @@ def unload_views():
 
 class ViewDependencies(TypedDict):
     config: Config
-    services: dict
+    services: dict[str, BaseService]
     auth_client: AuthClient
     api: Api
     flask_app: Flask
@@ -93,7 +95,7 @@ def load_views(
     auth_client: AuthClient,
     status_aggregator: StatusAggregator,
     rest_api: CoreRestApi,
-):
+) -> dict[str, Any]:
     global views_extension_manager
     dependencies: ViewDependencies = {
         'config': config,
@@ -103,30 +105,34 @@ def load_views(
         'flask_app': rest_api.app,
         'status_aggregator': status_aggregator,
     }
-    views_extension_manager, views = _load_plugins(
-        'wazo_dird.views', enabled_views, dependencies
-    )
+    loaded = _load_plugins('wazo_dird.views', enabled_views, dependencies)
+    assert loaded is not None
+    views_extension_manager, views = loaded
     return views
 
 
-def _load_plugins(namespace: str, names: dict[str, bool], dependencies: dict[str, Any]):
-    names = plugin_helpers.enabled_names(names)
-    logger.debug('Enabled plugins: %s', names)
-    if not names:
+def _load_plugins(
+    namespace: str, names: dict[str, bool], dependencies: Mapping[str, Any]
+) -> tuple[NamedExtensionManager, dict[str, Any]] | None:
+    enabled = plugin_helpers.enabled_names(names)
+    logger.debug('Enabled plugins: %s', enabled)
+    if not enabled:
         logger.info('no enabled plugins')
-        return
+        return None
 
     on_missing_entrypoints = partial(plugin_helpers.on_missing_entrypoints, namespace)
     manager = NamedExtensionManager(
         namespace,
-        names,
+        enabled,
         name_order=True,
         on_load_failure_callback=plugin_helpers.on_load_failure,
         on_missing_entrypoints_callback=on_missing_entrypoints,
         invoke_on_load=True,
     )
 
-    def _load_plugin(ext, *args, **kwargs):
+    def _load_plugin(
+        ext: Extension, *args: Any, **kwargs: Any
+    ) -> tuple[str, plugin_helpers.Plugin]:
         return ext.name, plugin_helpers.load_plugin(ext, *args, **kwargs)
 
     return manager, dict(manager.map(_load_plugin, dependencies))

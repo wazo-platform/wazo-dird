@@ -5,7 +5,9 @@ K = TypeVar("K")
 V = TypeVar("V")
 
 
-def projection(m: Mapping[K, V], keys: list[K], default=None) -> dict[K, V]:
+def projection(
+    m: Mapping[K, V], keys: list[K], default: V | None = None
+) -> dict[K, V | None]:
     """
     Extract a subset of key:value pairs from a mapping into a new dictionary.
     >>> projection({'a': 1, 'b': 2}, ['a'])

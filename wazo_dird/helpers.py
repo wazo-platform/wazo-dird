@@ -3,7 +3,8 @@
 
 import logging
 from collections import namedtuple
-from typing import TypedDict
+from collections.abc import Callable
+from typing import Any, Generic, TypedDict, TypeVar
 
 from flask import request
 from flask_restful import Api
@@ -11,6 +12,7 @@ from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import BaseSourcePlugin
 from wazo_dird.controller import Controller
+from wazo_dird.database.queries.source import SourceBody, SourceInfo
 from wazo_dird.exception import InvalidSourceConfigAPIError, InvalidSourceConfigError
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
@@ -18,21 +20,25 @@ from wazo_dird.plugins.base_plugins import BaseViewPlugin, SourceConfig
 from wazo_dird.plugins.source_service.plugin import _SourceService
 from wazo_dird.source_manager import SourceManager
 
+T = TypeVar('T')
+
 logger = logging.getLogger()
 
 DisplayColumn = namedtuple('DisplayColumn', ['title', 'type', 'default', 'field'])
 
 
 class DisplayAwareResource:
-    def build_display(self, profile_config):
+    def build_display(
+        self, profile_config: dict[str, Any]
+    ) -> list[DisplayColumn] | None:
         display = profile_config.get('display', {})
         return self._make_display(display)
 
     @staticmethod
-    def _make_display(display):
+    def _make_display(display: dict[str, Any]) -> list[DisplayColumn] | None:
         columns = display.get('columns')
         if not columns:
-            return
+            return None
 
         return [
             DisplayColumn(
@@ -45,11 +51,11 @@ class DisplayAwareResource:
         ]
 
 
-class RaiseStopper:
-    def __init__(self, return_on_raise):
+class RaiseStopper(Generic[T]):
+    def __init__(self, return_on_raise: T):
         self.return_on_raise = return_on_raise
 
-    def execute(self, function, *args, **kwargs):
+    def execute(self, function: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         try:
             return function(*args, **kwargs)
         except Exception:
@@ -71,12 +77,12 @@ class BaseService:
 
     def __init__(
         self,
-        config: dict,
+        config: dict[str, Any],
         source_manager: SourceManager,
         controller: Controller,
-        *args,
-        **kwargs,
-    ):
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         self._config = config
         self._source_manager = source_manager
         self._controller = controller
@@ -123,7 +129,7 @@ class _BaseSourceResource(AuthResource):
 
 
 class SourceList(_BaseSourceResource):
-    def get(self):
+    def get(self) -> dict[str, Any]:
         list_params = self.list_schema.load(request.args)
         visible_tenants = get_tenant_uuids(recurse=list_params['recurse'])
         sources = self._service.list_(self._backend, visible_tenants, **list_params)
@@ -133,16 +139,18 @@ class SourceList(_BaseSourceResource):
 
         return {'total': total, 'filtered': filtered, 'items': items}
 
-    def _prepare_new_source(self, source_data: dict) -> dict:
+    def _prepare_new_source(self, source_data: SourceBody) -> SourceBody:
         return source_data
 
-    def _create_new_source(self, source_data: dict, tenant_uuid: str) -> dict:
+    def _create_new_source(
+        self, source_data: SourceBody, tenant_uuid: str
+    ) -> SourceInfo:
         body = self._service.create(
             self._backend, tenant_uuid=tenant_uuid, **source_data
         )
         return body
 
-    def post(self):
+    def post(self) -> dict[str, Any]:
         tenant = Tenant.autodetect()
         args = self.source_schema.load(request.get_json(force=True))
         source_data = self._prepare_new_source(args)
@@ -151,32 +159,34 @@ class SourceList(_BaseSourceResource):
         except InvalidSourceConfigError as ex:
             raise InvalidSourceConfigAPIError(ex.source_info)
         else:
-            return self.source_schema.dump(body)
+            result: dict[str, Any] = self.source_schema.dump(body)
+            return result
 
 
 class SourceItem(_BaseSourceResource):
-    def delete(self, source_uuid):
+    def delete(self, source_uuid: str) -> tuple[str, int]:
         visible_tenants = get_tenant_uuids(recurse=True)
         self._service.delete(self._backend, source_uuid, visible_tenants)
         return '', 204
 
-    def get(self, source_uuid):
+    def get(self, source_uuid: str) -> dict[str, Any]:
         visible_tenants = get_tenant_uuids(recurse=True)
         body = self._service.get(self._backend, source_uuid, visible_tenants)
-        return self.source_schema.dump(body)
+        result: dict[str, Any] = self.source_schema.dump(body)
+        return result
 
-    def _prepare_source_update(self, source_data: dict) -> dict:
+    def _prepare_source_update(self, source_data: SourceBody) -> SourceBody:
         return source_data
 
     def _edit_source(
-        self, source_uuid: str, visible_tenants: list[str], source_data: dict
-    ):
+        self, source_uuid: str, visible_tenants: list[str], source_data: SourceBody
+    ) -> SourceInfo:
         body = self._service.edit(
             self._backend, source_uuid, visible_tenants, source_data
         )
         return body
 
-    def put(self, source_uuid):
+    def put(self, source_uuid: str) -> tuple[str, int]:
         visible_tenants = get_tenant_uuids(recurse=True)
         args = self.source_schema.load(request.get_json(force=True))
         source_data = self._prepare_source_update(args)
@@ -208,7 +218,7 @@ class BaseBackendView(BaseViewPlugin):
     list_resource: type[SourceList]
     item_resource: type[SourceItem]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         members = [getattr(self, name, None) for name in self._required_members]
         if None in members:
             msg = (
@@ -219,13 +229,15 @@ class BaseBackendView(BaseViewPlugin):
 
         super().__init__(*args, **kwargs)
 
-    def _get_view_args(self, dependencies: BackendViewDependencies):
+    def _get_view_args(
+        self, dependencies: BackendViewDependencies
+    ) -> tuple[str, _SourceService, AuthConfig]:
         config = dependencies['config']
         service = dependencies['services']['source']
 
         return (self.backend, service, config['auth'])
 
-    def load(self, dependencies: BackendViewDependencies):
+    def load(self, dependencies: BackendViewDependencies) -> None:  # type: ignore[override]
         api = dependencies['api']
 
         args = self._get_view_args(dependencies)
