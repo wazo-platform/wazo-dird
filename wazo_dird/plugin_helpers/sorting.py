@@ -13,18 +13,18 @@ ALMOST_LAST_STRING: str = MAX_CHAR * 16
 
 
 def sort_contacts(
-    contacts: list[dict],
+    contacts: list[dict[str, Any]],
     order: str | None = None,
     direction: str | None = None,
     order_insensitive: bool = False,
     **_: Any,  # TODO: remove this parameter
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     if not order:
         return contacts
 
     reverse = direction == "desc"
 
-    def get_value(contact: dict) -> str:
+    def get_value(contact: dict[str, Any]) -> str:
         value = contact.get(order)
         if not value:
             return ALMOST_LAST_STRING
@@ -32,8 +32,9 @@ def sort_contacts(
         if isinstance(value, str):
             if order_insensitive:
                 value = value.casefold()
-            value = unidecode(value)
+            decoded: str = unidecode(value)
+            return decoded
 
-        return value
+        return str(value)
 
     return sorted(contacts, key=get_value, reverse=reverse)
