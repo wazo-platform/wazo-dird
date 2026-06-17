@@ -5,13 +5,16 @@ from __future__ import annotations
 
 import logging
 import string
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 class _NoErrorFormatter(string.Formatter):
-    def format(self, format_string, *args, **kwargs):
+    def format(  # type: ignore[override]
+        self, format_string: str, *args: Any, **kwargs: Any
+    ) -> str | None:
         try:
             return super().format(format_string, *args, **kwargs).strip()
         except Exception as e:
@@ -23,7 +26,9 @@ class _NoErrorFormatter(string.Formatter):
             )
             return None
 
-    def get_value(self, key, args, kwargs):
+    def get_value(
+        self, key: int | str, args: Sequence[Any], kwargs: Mapping[str, Any]
+    ) -> Any:
         if isinstance(key, str):
             value = kwargs.get(key)
             if value is None:
@@ -44,13 +49,13 @@ class _SourceResult:
 
     def __init__(
         self,
-        fields,
-        xivo_id=None,
-        agent_id=None,
-        user_id=None,
-        user_uuid=None,
-        endpoint_id=None,
-    ):
+        fields: Mapping[str, Any],
+        xivo_id: str | None = None,
+        agent_id: int | None = None,
+        user_id: int | None = None,
+        user_uuid: str | None = None,
+        endpoint_id: int | None = None,
+    ) -> None:
         self._formatter = _NoErrorFormatter()
         self.fields = dict(fields)
         source_entry_id = self.get_unique() if self._unique_column else None
@@ -65,7 +70,7 @@ class _SourceResult:
 
         self._add_formatted_columns()
 
-    def get_unique(self):
+    def get_unique(self) -> str | None:
         assert self._unique_column
         try:
             return str(self.fields[self._unique_column])
@@ -78,22 +83,24 @@ class _SourceResult:
             )
         return None
 
-    def source_entry_id(self):
+    def source_entry_id(self) -> Any | None:
         return self.relations['source_entry_id']
 
-    def _add_formatted_columns(self):
+    def _add_formatted_columns(self) -> None:
         for column, format_string in self._format_columns.items():
             value = self._formatter.format(format_string, **self.fields) or None
             self.fields[column] = value
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, _SourceResult):
+            return NotImplemented
         return (
             self.source == other.source
             and self.fields == other.fields
             and self.relations == other.relations
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
     def __repr__(self) -> str:
