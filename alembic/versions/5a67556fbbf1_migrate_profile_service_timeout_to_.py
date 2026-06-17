@@ -28,9 +28,10 @@ def upgrade():
         if not isinstance(config, dict) or 'timeout' not in config:
             continue
         top_level_timeout = config.pop('timeout')
-        options = config.setdefault('options', {})
+        options = config.get('options') or {}
         if 'timeout' not in options:
             options['timeout'] = top_level_timeout
+        config['options'] = options
         conn.execute(
             sa.update(_table).where(_table.c.uuid == row.uuid).values(config=config)
         )

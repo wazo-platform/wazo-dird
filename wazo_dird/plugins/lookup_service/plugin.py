@@ -64,7 +64,7 @@ class _LookupService(helpers.BaseService):
 
         params = {'return_when': ALL_COMPLETED}
         service_config = self.get_service_config(profile_config)
-        timeout = service_config.get('options', {}).get('timeout')
+        timeout = (service_config.get('options') or {}).get('timeout')
         if timeout:
             params['timeout'] = timeout
 

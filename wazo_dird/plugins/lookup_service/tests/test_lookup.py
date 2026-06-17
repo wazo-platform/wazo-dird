@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch, sentinel
 
 from hamcrest import assert_that, equal_to, none, not_
 
-from ..plugin import LookupServicePlugin
+from ..plugin import LookupServicePlugin, _LookupService
 
 
 class TestLookupServicePlugin(unittest.TestCase):
@@ -75,3 +75,24 @@ class TestLookupServicePlugin(unittest.TestCase):
         plugin.unload()
 
         MockedLookupService.return_value.stop.assert_called_once_with()
+
+
+def _make_lookup_service() -> _LookupService:
+    source_manager = Mock()
+    source_manager.get.return_value = None
+    return _LookupService(config={}, source_manager=source_manager, controller=Mock())
+
+
+class TestLookupNullOptions(unittest.TestCase):
+    @patch('wazo_dird.plugins.lookup_service.plugin.wait')
+    def test_null_options_does_not_crash(self, mock_wait):
+        mock_wait.return_value = ([], [])
+        service = _make_lookup_service()
+        profile = {
+            'name': 'test',
+            'services': {'lookup': {'sources': [], 'options': None}},
+        }
+
+        service.lookup(profile, 'tenant', 'alice', 'user-uuid')
+
+        mock_wait.assert_called_once()
