@@ -29,6 +29,16 @@ _PROFILE_WITH_TOPLEVEL_TIMEOUT = {
     'services': {'reverse': {'sources': [], 'timeout': 0.5}},
 }
 
+_PROFILE_WITH_NULL_OPTIONS = {
+    'name': 'test',
+    'services': {'reverse': {'sources': [], 'options': None}},
+}
+
+_PROFILE_WITH_ZERO_TIMEOUT = {
+    'name': 'test',
+    'services': {'reverse': {'sources': [], 'options': {'timeout': 0}}},
+}
+
 
 def _make_service() -> _ReverseService:
     source_manager = Mock()
@@ -100,6 +110,42 @@ class TestReverseTimeout(unittest.TestCase):
         service = _make_service()
 
         service.reverse_many(_PROFILE_WITH_TOPLEVEL_TIMEOUT, ['1234'], 'test')
+
+        mock_as_completed.assert_called_once_with([], timeout=1)
+
+    @patch('wazo_dird.plugins.reverse_service.plugin.as_completed')
+    def test_reverse_null_options_uses_default_timeout(self, mock_as_completed):
+        mock_as_completed.return_value = iter([])
+        service = _make_service()
+
+        service.reverse(_PROFILE_WITH_NULL_OPTIONS, '1234', 'test')
+
+        mock_as_completed.assert_called_once_with([], timeout=1)
+
+    @patch('wazo_dird.plugins.reverse_service.plugin.as_completed')
+    def test_reverse_many_null_options_uses_default_timeout(self, mock_as_completed):
+        mock_as_completed.return_value = iter([])
+        service = _make_service()
+
+        service.reverse_many(_PROFILE_WITH_NULL_OPTIONS, ['1234'], 'test')
+
+        mock_as_completed.assert_called_once_with([], timeout=1)
+
+    @patch('wazo_dird.plugins.reverse_service.plugin.as_completed')
+    def test_reverse_zero_timeout_uses_default(self, mock_as_completed):
+        mock_as_completed.return_value = iter([])
+        service = _make_service()
+
+        service.reverse(_PROFILE_WITH_ZERO_TIMEOUT, '1234', 'test')
+
+        mock_as_completed.assert_called_once_with([], timeout=1)
+
+    @patch('wazo_dird.plugins.reverse_service.plugin.as_completed')
+    def test_reverse_many_zero_timeout_uses_default(self, mock_as_completed):
+        mock_as_completed.return_value = iter([])
+        service = _make_service()
+
+        service.reverse_many(_PROFILE_WITH_ZERO_TIMEOUT, ['1234'], 'test')
 
         mock_as_completed.assert_called_once_with([], timeout=1)
 

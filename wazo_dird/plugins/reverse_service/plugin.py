@@ -62,15 +62,12 @@ class _ReverseService(helpers.BaseService):
             args['xivo_user_uuid'] = user_uuid
             futures.append(self._async_reverse_many(source, extens, args))
 
-        params = {}
         service_config = self.get_service_config(profile_config)
-        timeout = service_config.get('options', {}).get('timeout', 1)
-        if timeout:
-            params['timeout'] = timeout
+        timeout = (service_config.get('options') or {}).get('timeout') or 1
 
         results = {exten: None for exten in extens}
         try:
-            for future in as_completed(futures, **params):
+            for future in as_completed(futures, timeout=timeout):
                 if result := future.result():
                     results.update(result)
                     if all(result is not None for result in results.values()):
@@ -128,14 +125,11 @@ class _ReverseService(helpers.BaseService):
             args['xivo_user_uuid'] = user_uuid
             futures.append(self._async_reverse(source, exten, args))
 
-        params = {}
         service_config = self.get_service_config(profile_config)
-        timeout = service_config.get('options', {}).get('timeout', 1)
-        if timeout:
-            params['timeout'] = timeout
+        timeout = (service_config.get('options') or {}).get('timeout') or 1
 
         try:
-            for future in as_completed(futures, **params):
+            for future in as_completed(futures, timeout=timeout):
                 if result := future.result():
                     pending_futures = [f for f in futures if not f.done()]
                     cancelled_futures = sum(1 for f in pending_futures if f.cancel())
