@@ -1,6 +1,10 @@
 # Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Any
+
 from marshmallow import pre_dump
 from xivo.mallow import fields
 from xivo.mallow_helpers import ListSchema as _ListSchema
@@ -13,19 +17,19 @@ from wazo_dird.schemas import (
 )
 
 
-class ExtensionSchema(BaseSchema):
+class ExtensionSchema(BaseSchema):  # type: ignore[misc]
     context = fields.String()
     exten = fields.String()
 
 
-class ContactSchema(BaseSchema):
+class ContactSchema(BaseSchema):  # type: ignore[misc]
     id = fields.Integer()
     name = fields.String()
     extensions = fields.Nested(ExtensionSchema, many=True)
     incalls = fields.Nested(ExtensionSchema, many=True)
 
-    @pre_dump
-    def unpack_extensions(self, data, **kwargs):
+    @pre_dump  # type: ignore[untyped-decorator]
+    def unpack_extensions(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         extension_schema = ExtensionSchema(many=True)
         incalls = []
 
@@ -40,7 +44,7 @@ class ContactSchema(BaseSchema):
         return data
 
 
-class ContactListSchema(_ListSchema):
+class ContactListSchema(_ListSchema):  # type: ignore[misc]
     searchable_columns = ['id', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'
@@ -48,7 +52,7 @@ class ContactListSchema(_ListSchema):
     recurse = fields.Boolean(load_default=False)
 
 
-class ListSchema(_ListSchema):
+class ListSchema(_ListSchema):  # type: ignore[misc]
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'
