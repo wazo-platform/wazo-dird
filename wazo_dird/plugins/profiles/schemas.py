@@ -23,6 +23,9 @@ class ServiceOptionsSchema(BaseSchema):
 
 
 class ServiceConfigSchema(BaseSchema):
+    class Meta(BaseSchema.Meta):
+        unknown = RAISE
+
     sources = fields.Nested(ResourceSchema, many=True, load_default=[])
     options = fields.Nested(ServiceOptionsSchema, load_default={})
 
