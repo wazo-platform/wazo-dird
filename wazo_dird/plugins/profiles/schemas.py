@@ -1,6 +1,10 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Any
+
 from marshmallow import RAISE
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range
@@ -9,7 +13,7 @@ from xivo.mallow_helpers import ListSchema as _ListSchema
 from wazo_dird.schemas import BaseSchema
 
 
-class ResourceSchema(BaseSchema):
+class ResourceSchema(BaseSchema):  # type: ignore[misc]
     uuid = fields.UUID(required=True)
 
 
@@ -22,7 +26,7 @@ class ServiceOptionsSchema(BaseSchema):
     )
 
 
-class ServiceConfigSchema(BaseSchema):
+class ServiceConfigSchema(BaseSchema):  # type: ignore[misc]
     class Meta(BaseSchema.Meta):
         unknown = RAISE
 
@@ -30,27 +34,36 @@ class ServiceConfigSchema(BaseSchema):
     options = fields.Nested(ServiceOptionsSchema, load_default={})
 
 
-class ServiceDictSchema(fields.Nested):
-    def _serialize(self, nested_obj, attr, obj, **kwargs):
+class ServiceDictSchema(fields.Nested):  # type: ignore[misc]
+    def _serialize(
+        self, nested_obj: Any, attr: str | None, obj: Any, **kwargs: Any
+    ) -> dict[str, Any] | None:
         if nested_obj is None:
             return None
 
-        result = {}
+        result: dict[str, Any] = {}
         for service_name, service_config in nested_obj.items():
             result[service_name] = ServiceConfigSchema().dump(service_config)
         return result
 
-    def _deserialize(self, nested_obj, attr, obj, **kwargs):
+    def _deserialize(
+        self,
+        nested_obj: Any,
+        attr: str | None,
+        obj: Any,
+        partial: bool | tuple[str, ...] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any] | None:
         if nested_obj is None:
             return None
 
-        result = {}
+        result: dict[str, Any] = {}
         for service_name, service_config in nested_obj.items():
             result[service_name] = ServiceConfigSchema().load(service_config)
         return result
 
 
-class ProfileSchema(BaseSchema):
+class ProfileSchema(BaseSchema):  # type: ignore[misc]
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
@@ -58,7 +71,7 @@ class ProfileSchema(BaseSchema):
     services = ServiceDictSchema(BaseSchema, required=True)
 
 
-class ListSchema(_ListSchema):
+class ListSchema(_ListSchema):  # type: ignore[misc]
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'
