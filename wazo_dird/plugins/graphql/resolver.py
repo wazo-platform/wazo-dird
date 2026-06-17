@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from graphql import Undefined
 
@@ -18,6 +18,9 @@ if TYPE_CHECKING:
 
     from graphql import GraphQLResolveInfo
 
+    from wazo_dird.helpers import ProfileConfig
+    from wazo_dird.plugins.profile_service.plugin import _ProfileService
+    from wazo_dird.plugins.reverse_service.plugin import _ReverseService
     from wazo_dird.plugins.source_result import _SourceResult
 
     class ContextDict(TypedDict):
@@ -26,12 +29,16 @@ if TYPE_CHECKING:
         user_uuid: str
         tenant_uuid: str
 
-    class ResolveInfo(GraphQLResolveInfo):
+    class ResolveInfo(GraphQLResolveInfo):  # type: ignore[misc]
         context: ContextDict
 
 
 class Resolver:
-    def __init__(self, profile_service, reverse_service):
+    def __init__(
+        self,
+        profile_service: _ProfileService,
+        reverse_service: _ReverseService,
+    ) -> None:
         self.profile_service = profile_service
         self.reverse_service = reverse_service
 
@@ -57,13 +64,13 @@ class Resolver:
         info: ResolveInfo,
         user_uuid: str,
         **args: Any,
-    ):
+    ) -> dict[str, Any]:
         info.context['user_uuid'] = user_uuid
         return {}
 
     def get_user_contacts(
         self, root: _SourceResult, info: ResolveInfo, **args: Any
-    ) -> list[Any]:
+    ) -> list[_SourceResult | None]:
         user_uuid = info.context['user_uuid']
         tenant_uuid = info.context['tenant_uuid']
         token_id = info.context['token_id']
@@ -72,7 +79,10 @@ class Resolver:
             raise graphql_error_from_api_exception(NoSuchProfileAPIException(None))
 
         try:
-            profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
+            profile_config = cast(
+                'ProfileConfig',
+                self.profile_service.get_by_name(tenant_uuid, profile),
+            )
         except NoSuchProfile as e:
             raise graphql_error_from_api_exception(NoSuchProfileAPIException(e.profile))
 
@@ -94,29 +104,37 @@ class Resolver:
             return schema.WazoContact
         return schema.Contact
 
-    def get_contact_field(self, contact: _SourceResult, info: ResolveInfo, **args: Any):
+    def get_contact_field(
+        self, contact: _SourceResult, info: ResolveInfo, **args: Any
+    ) -> Any:
         return contact.fields.get(info.field_name)
 
     def get_contact_related_field(
         self, contact: _SourceResult, info: ResolveInfo, **args: Any
-    ):
+    ) -> Any:
         return contact.relations.get(info.field_name.replace('Id', '_id'))
 
     def get_contact_user_uuid(
         self, contact: _SourceResult, info: ResolveInfo, **args: Any
-    ):
+    ) -> Any:
         return contact.relations['user_uuid']
 
-    def get_reverse_field(self, contact: _SourceResult, info: ResolveInfo, **args: Any):
+    def get_reverse_field(
+        self, contact: _SourceResult, info: ResolveInfo, **args: Any
+    ) -> Any:
         return contact.fields['reverse']
 
     def get_source_entry_id(
         self, contact: _SourceResult, info: ResolveInfo, **args: Any
-    ):
+    ) -> Any:
         return None if contact.source_entry_id is None else contact.source_entry_id()
 
-    def get_source_name(self, contact: _SourceResult, info: ResolveInfo, **args: Any):
+    def get_source_name(
+        self, contact: _SourceResult, info: ResolveInfo, **args: Any
+    ) -> str:
         return contact.source
 
-    def get_backend(self, contact: _SourceResult, info: ResolveInfo, **args: Any):
+    def get_backend(
+        self, contact: _SourceResult, info: ResolveInfo, **args: Any
+    ) -> str:
         return contact.backend
