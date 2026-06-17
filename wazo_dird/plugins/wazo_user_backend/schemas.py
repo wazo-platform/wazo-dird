@@ -21,7 +21,7 @@ class SourceSchema(BaseSourceSchema):
     )
 
 
-class ListSchema(_ListSchema):
+class ListSchema(_ListSchema):  # type: ignore[misc]
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'
@@ -29,7 +29,7 @@ class ListSchema(_ListSchema):
     recurse = fields.Boolean(load_default=False)
 
 
-class ContactListSchema(_ListSchema):
+class ContactListSchema(_ListSchema):  # type: ignore[misc]
     searchable_columns = ['uuid', 'firstname', 'lastname']
     sort_columns = ['firstname', 'lastname']
     default_sort_column = 'firstname'
@@ -38,7 +38,7 @@ class ContactListSchema(_ListSchema):
     uuid = fields.String()
 
 
-class ContactSchema(BaseSchema):
+class ContactSchema(BaseSchema):  # type: ignore[misc]
     id = fields.Integer()
     uuid = fields.String()
     firstname = fields.String()
