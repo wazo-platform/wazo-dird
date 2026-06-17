@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
+from typing import Any
+
 from wazo_dird.auth import required_acl
 from wazo_dird.helpers import SourceItem, SourceList
 
@@ -14,11 +16,11 @@ class CSVList(SourceList):
     source_list_schema = source_list_schema
 
     @required_acl('dird.backends.csv.sources.read')
-    def get(self):
+    def get(self) -> dict[str, Any]:
         return super().get()
 
     @required_acl('dird.backends.csv.sources.create')
-    def post(self):
+    def post(self) -> dict[str, Any]:
         return super().post()
 
 
@@ -26,13 +28,13 @@ class CSVItem(SourceItem):
     source_schema = source_schema
 
     @required_acl('dird.backends.csv.sources.{source_uuid}.delete')
-    def delete(self, source_uuid):
+    def delete(self, source_uuid: str) -> tuple[str, int]:
         return super().delete(source_uuid)
 
     @required_acl('dird.backends.csv.sources.{source_uuid}.read')
-    def get(self, source_uuid):
+    def get(self, source_uuid: str) -> dict[str, Any]:
         return super().get(source_uuid)
 
     @required_acl('dird.backends.csv.sources.{source_uuid}.update')
-    def put(self, source_uuid):
+    def put(self, source_uuid: str) -> tuple[str, int]:
         return super().put(source_uuid)
