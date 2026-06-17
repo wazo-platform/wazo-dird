@@ -1,9 +1,12 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import itertools
 import logging
 import uuid
+from typing import Any
 
 import requests
 from wazo_auth_client import Client as Auth
@@ -21,7 +24,9 @@ SINGLE_PHONE_FIELDS = ('mobilePhone',)
 class Office365Service:
     USER_AGENT = 'wazo_ua/1.0'
 
-    def get_contacts(self, microsoft_token, url, **list_params):
+    def get_contacts(
+        self, microsoft_token: str, url: str, **list_params: Any
+    ) -> tuple[list[dict[str, Any]], int]:
         count = self._get_total_contacts(microsoft_token, url)
         contacts = list(self._fetch(microsoft_token, url, count))
         total_contacts = len(contacts)
@@ -29,7 +34,9 @@ class Office365Service:
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total_contacts
 
-    def _fetch(self, microsoft_token, url, count):
+    def _fetch(
+        self, microsoft_token: str, url: str, count: int
+    ) -> list[dict[str, Any]]:
         if not count:
             return []
 
@@ -47,7 +54,12 @@ class Office365Service:
 
         return contacts
 
-    def _fetch_response(self, url, headers, params=None):
+    def _fetch_response(
+        self,
+        url: str,
+        headers: dict[str, str],
+        params: dict[str, Any] | None = None,
+    ) -> requests.Response:
         try:
             response = requests.get(url, headers=headers, params=params)
             if response.status_code == 200:
@@ -64,17 +76,24 @@ class Office365Service:
             logger.error(f'An error occured while fetching data from Microsoft {url}')
             raise UnexpectedEndpointException(endpoint=url)
 
-    def _extract_contacts(self, data):
-        return data.get('value', [])
+    def _extract_contacts(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+        contacts: list[dict[str, Any]] = data.get('value', [])
+        return contacts
 
-    def _get_total_contacts(self, microsoft_token, url):
+    def _get_total_contacts(self, microsoft_token: str, url: str) -> int:
         headers = self.headers(microsoft_token)
         response = self._fetch_response(url, headers, {'$count': 'true'})
-        count = response.json().get('@odata.count', 0)
+        count: int = response.json().get('@odata.count', 0)
         logger.debug(f'Microsoft contacts number: {count}')
         return count
 
-    def _paginate(self, contacts, limit=None, offset=None, **_):
+    def _paginate(
+        self,
+        contacts: list[dict[str, Any]],
+        limit: int | None = None,
+        offset: int | None = None,
+        **_: Any,
+    ) -> list[dict[str, Any]]:
         if limit is None and offset is None:
             return contacts
 
@@ -88,7 +107,7 @@ class Office365Service:
 
         return end[:limit]
 
-    def headers(self, microsoft_token):
+    def headers(self, microsoft_token: str) -> dict[str, str]:
         return {
             'User-Agent': self.USER_AGENT,
             'Authorization': f'Bearer {microsoft_token}',
@@ -98,10 +117,15 @@ class Office365Service:
         }
 
 
-def get_microsoft_access_token(user_uuid, wazo_token, **auth_config):
+def get_microsoft_access_token(
+    user_uuid: str, wazo_token: str, **auth_config: Any
+) -> str | None:
     try:
         auth = Auth(token=wazo_token, **auth_config)
-        return auth.external.get('microsoft', user_uuid).get('access_token')
+        access_token: str | None = auth.external.get('microsoft', user_uuid).get(
+            'access_token'
+        )
+        return access_token
     except requests.HTTPError as e:
         if e.response.status_code == 404:
             if 'unknown-external-auth-type' in e.response.text:
@@ -130,14 +154,17 @@ def get_microsoft_access_token(user_uuid, wazo_token, **auth_config):
         logger.error('Error occured while connecting to wazo-auth, error :%s', e)
 
 
-def get_first_email(contact_information):
-    return next(iter(contact_information.get('emailAddresses') or []), {}).get(
-        'address'
+def get_first_email(contact_information: dict[str, Any]) -> str | None:
+    email_addresses: list[dict[str, Any]] = (
+        contact_information.get('emailAddresses') or []
     )
+    first_email: dict[str, Any] = next(iter(email_addresses), {})
+    email: str | None = first_email.get('address')
+    return email
 
 
-def aggregate_numbers(contact):
-    all_numbers = []
+def aggregate_numbers(contact: dict[str, Any]) -> list[str]:
+    all_numbers: list[str] = []
     for field in SINGLE_PHONE_FIELDS:
         field_value = contact.get(field)
         if field_value:
@@ -148,8 +175,8 @@ def aggregate_numbers(contact):
     return all_numbers
 
 
-def get_numbers_except_label(contact):
-    numbers_by_phonetype = {}
+def get_numbers_except_label(contact: dict[str, Any]) -> dict[str, list[str]]:
+    numbers_by_phonetype: dict[str, list[str]] = {}
     for phone_field in MULTI_PHONE_FIELDS:
         numbers_by_phonetype[phone_field] = contact.get(phone_field) or []
 
@@ -160,7 +187,7 @@ def get_numbers_except_label(contact):
         else:
             numbers_by_phonetype[phone_field] = [phone_number]
 
-    numbers_except_phonetype = {}
+    numbers_except_phonetype: dict[str, list[str]] = {}
     for phone_field in numbers_by_phonetype:
         candidates = dict(numbers_by_phonetype)
         candidates.pop(phone_field, None)
