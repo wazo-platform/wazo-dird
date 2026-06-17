@@ -69,11 +69,7 @@ def build_exten_contact_map(
             and value not in exten_to_uuid
         ):
             exten_to_uuid[value] = contact_uuid
-    return {
-        exten: contacts[uuid]
-        for exten, uuid in exten_to_uuid.items()
-        if uuid in contacts
-    }
+    return {exten: contacts[uuid] for exten, uuid in exten_to_uuid.items()}
 
 
 def compute_contact_hash(contact_info: Mapping) -> str:
