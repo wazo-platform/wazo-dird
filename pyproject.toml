@@ -27,42 +27,21 @@ testpaths = ["wazo_dird"]
 
 [tool.mypy]
 python_version = "3.11"
+strict = true
 
 show_error_codes = true
-check_untyped_defs = true
-warn_unused_configs = true
-disallow_untyped_calls = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-warn_unused_ignores = true
-strict_equality = true
-extra_checks = true
-no_warn_no_return = true
+no_warn_no_return = true      # NOT in strict; strict would leave warn_no_return on
 scripts_are_modules = true
-
-ignore_errors = true
 
 explicit_package_bases = true
 
 exclude_gitignore = true
 
-# Exclude setup.py files
-# to avoid Duplicate module errors
+# Exclude the broken-plugins fixture's setup.py: it shares the module name
+# "setup" with the root setup.py and causes a Duplicate module error
 exclude = [
-    "setup\\.py$",
+    "integration_tests/docker/broken-plugins/setup\\.py$",
 ]
-
-[[tool.mypy.overrides]]
-module = [
-    "wazo_dird.plugins.config.*",
-]
-ignore_errors = false
-
-[[tool.mypy.overrides]]
-module = [
-    "wazo_dird.plugin_helpers.*"
-]
-ignore_errors = false
 
 # TODO: remove when py.typed markers are added to those libraries
 [[tool.mypy.overrides]]

@@ -14,7 +14,7 @@ repos:
     rev: v1.19.1
     hooks:
       - id: mypy
-        exclude : "integration_tests/docker"
+        exclude: '^(integration_tests/|alembic/|wazo_dird/(.*/)?tests/)'
         language_version: "3.11"
         additional_dependencies:
           - "types-requests"
