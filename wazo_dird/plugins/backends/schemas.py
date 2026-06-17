@@ -4,7 +4,7 @@
 from xivo.mallow_helpers import ListSchema as _ListSchema
 
 
-class ListSchema(_ListSchema):
+class ListSchema(_ListSchema):  # type: ignore[misc]
     searchable_columns = ['name']
     sort_columns = ['name']
     default_sort_column = 'name'
