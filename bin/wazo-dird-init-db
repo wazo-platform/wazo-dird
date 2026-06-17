@@ -11,7 +11,7 @@ from xivo import db_helper
 from xivo.user_rights import change_user
 
 
-def _parse_cli_args(args):
+def _parse_cli_args(args: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--user',
@@ -51,7 +51,7 @@ def _parse_cli_args(args):
     return parser.parse_args(args)
 
 
-def main():
+def main() -> None:
     args = _parse_cli_args(sys.argv[1:])
 
     if args.user:
