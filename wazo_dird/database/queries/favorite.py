@@ -1,7 +1,12 @@
 # Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Any
+
 from sqlalchemy import and_
+from sqlalchemy.orm.session import Session as BaseSession
 from sqlalchemy.orm.session import make_transient
 
 from wazo_dird.exception import DuplicatedFavoriteException, NoSuchFavorite
@@ -11,7 +16,14 @@ from .base import BaseDAO
 
 
 class FavoriteCRUD(BaseDAO):
-    def create(self, user_uuid, tenant_uuid, backend, source_name, contact_id):
+    def create(
+        self,
+        user_uuid: str,
+        tenant_uuid: str,
+        backend: str,
+        source_name: str,
+        contact_id: str,
+    ) -> Favorite:
         with self.new_session() as s:
             user = self._get_dird_user(s, tenant_uuid, user_uuid)
             source = self._get_source(s, backend, source_name)
@@ -23,11 +35,11 @@ class FavoriteCRUD(BaseDAO):
             make_transient(favorite)
             return favorite
 
-    def delete(self, user_uuid, source_name, contact_id):
+    def delete(self, user_uuid: str, source_name: str, contact_id: str) -> None:
         with self.new_session() as s:
+            name_filter = Source.name == source_name  # type: ignore[comparison-overlap]
             matching_source_uuids = [
-                row.uuid
-                for row in s.query(Source.uuid).filter(Source.name == source_name).all()
+                row.uuid for row in s.query(Source.uuid).filter(name_filter).all()
             ]
             if not matching_source_uuids:
                 raise NoSuchFavorite((source_name, contact_id))
@@ -46,7 +58,7 @@ class FavoriteCRUD(BaseDAO):
         if not deleted:
             raise NoSuchFavorite((source_name, contact_id))
 
-    def get(self, user_uuid):
+    def get(self, user_uuid: str) -> list[tuple[str, str]]:
         with self.new_session() as s:
             favorites = (
                 s.query(Favorite.contact_id, Source.name)
@@ -55,10 +67,11 @@ class FavoriteCRUD(BaseDAO):
             )
             return [(f.name, f.contact_id) for f in favorites.all()]
 
-    def _get_source(self, session, backend, source_name):
+    def _get_source(self, session: BaseSession, backend: str, source_name: str) -> Any:
+        name_filter = Source.name == source_name  # type: ignore[comparison-overlap]
         source = (
             session.query(Source)
-            .filter(and_(Source.name == source_name, Source.backend == backend))
+            .filter(and_(name_filter, Source.backend == backend))
             .first()
         )
 

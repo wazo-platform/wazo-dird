@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from typing import Any
 
 from sqlalchemy import (
     Column,
@@ -21,12 +22,12 @@ from sqlalchemy.orm import declarative_base, relationship
 
 logger = logging.getLogger(__name__)
 
-Base = declarative_base()
+Base: Any = declarative_base()
 
 UUID_LENGTH = 36
 
 
-class Contact(Base):
+class Contact(Base):  # type: ignore[misc]
     __tablename__ = 'dird_contact'
     __table_args__ = (
         schema.UniqueConstraint('user_uuid', 'hash'),
@@ -60,11 +61,11 @@ class Contact(Base):
     )
 
     @property
-    def fields_dict(self):
+    def fields_dict(self) -> dict[str, Any]:
         return {field.name: field.value for field in self.fields}
 
 
-class ContactFields(Base):
+class ContactFields(Base):  # type: ignore[misc]
     __tablename__ = 'dird_contact_fields'
     __table_args__ = (
         schema.Index('dird_contact_fields__idx__contact_uuid', 'contact_uuid'),
@@ -78,7 +79,7 @@ class ContactFields(Base):
     )
 
 
-class Display(Base):
+class Display(Base):  # type: ignore[misc]
     __tablename__ = 'dird_display'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
@@ -96,7 +97,7 @@ class Display(Base):
     columns = relationship('DisplayColumn', viewonly=True)
 
 
-class DisplayColumn(Base):
+class DisplayColumn(Base):  # type: ignore[misc]
     __tablename__ = 'dird_display_column'
 
     uuid = Column(
@@ -114,7 +115,7 @@ class DisplayColumn(Base):
     display = relationship('Display')
 
 
-class Favorite(Base):
+class Favorite(Base):  # type: ignore[misc]
     __tablename__ = 'dird_favorite'
 
     source_uuid = Column(
@@ -130,7 +131,7 @@ class Favorite(Base):
     )
 
 
-class Phonebook(Base):
+class Phonebook(Base):  # type: ignore[misc]
     __tablename__ = 'dird_phonebook'
     __table_args__ = (
         schema.UniqueConstraint('name', 'tenant_uuid'),
@@ -151,7 +152,7 @@ class Phonebook(Base):
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
 
 
-class Profile(Base):
+class Profile(Base):  # type: ignore[misc]
     __tablename__ = 'dird_profile'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
@@ -182,7 +183,7 @@ class Profile(Base):
     services = relationship('ProfileService')
 
 
-class ProfileServiceSource(Base):
+class ProfileServiceSource(Base):  # type: ignore[misc]
     __tablename__ = 'dird_profile_service_source'
     __table_args__ = (
         schema.ForeignKeyConstraint(
@@ -208,7 +209,7 @@ class ProfileServiceSource(Base):
     sources = relationship('Source')
 
 
-class ProfileService(Base):
+class ProfileService(Base):  # type: ignore[misc]
     __tablename__ = 'dird_profile_service'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'profile_tenant_uuid'),
@@ -247,7 +248,7 @@ class ProfileService(Base):
     sources = association_proxy('profile_service_sources', 'sources')
 
 
-class Service(Base):
+class Service(Base):  # type: ignore[misc]
     __tablename__ = 'dird_service'
 
     uuid = Column(
@@ -256,7 +257,7 @@ class Service(Base):
     name = Column(Text(), unique=True, nullable=False)
 
 
-class Source(Base):
+class Source(Base):  # type: ignore[misc]
     __tablename__ = 'dird_source'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
@@ -297,7 +298,7 @@ class Source(Base):
         else:
             return self._name
 
-    @name.setter
+    @name.setter  # type: ignore[no-redef]
     def name(self, value):
         if self.backend == 'phonebook':
             logger.debug(
@@ -308,7 +309,7 @@ class Source(Base):
         else:
             self._name = value
 
-    @name.expression
+    @name.expression  # type: ignore[no-redef]
     def name(cls):
         return sql.case(
             (
@@ -321,7 +322,7 @@ class Source(Base):
         )
 
 
-class Tenant(Base):
+class Tenant(Base):  # type: ignore[misc]
     __tablename__ = 'dird_tenant'
 
     uuid = Column(
@@ -330,7 +331,7 @@ class Tenant(Base):
     country = Column(String(2))
 
 
-class User(Base):
+class User(Base):  # type: ignore[misc]
     __tablename__ = 'dird_user'
     __table_args__ = (schema.Index('dird_user__idx__tenant_uuid', 'tenant_uuid'),)
 

@@ -7,7 +7,7 @@ import hashlib
 import json
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
-from typing import Literal, TypedDict, cast
+from typing import Any, Literal, TypedDict, cast
 
 from sqlalchemy import exc
 from sqlalchemy.orm import Session as BaseSession
@@ -19,13 +19,13 @@ from wazo_dird.exception import DatabaseServiceUnavailable
 from .. import ContactFields
 
 
-def delete_user(session: BaseSession, user_uuid: str):
+def delete_user(session: BaseSession, user_uuid: str) -> None:
     session.query(User).filter(User.user_uuid == user_uuid).delete()
 
 
-def extract_constraint_name(error: exc.DBAPIError):
+def extract_constraint_name(error: exc.DBAPIError) -> str | None:
     try:
-        return error.orig.diag.constraint_name
+        return cast('str | None', error.orig.diag.constraint_name)
     except AttributeError:
         return None
 
@@ -50,7 +50,7 @@ def list_contacts_by_uuid(session: BaseSession, uuids: list[str]) -> list[Contac
     return cast(list[ContactInfo], list(result.values()))
 
 
-def compute_contact_hash(contact_info: Mapping) -> str:
+def compute_contact_hash(contact_info: Mapping[str, Any]) -> str:
     d = dict(contact_info)
     d.pop('id', None)
     string_representation = json.dumps(d, sort_keys=True).encode('utf-8')
@@ -89,7 +89,7 @@ class BaseDAO:
         self,
         session: BaseSession,
         exc_handler: Callable[[exc.IntegrityError], Exception],
-    ):
+    ) -> None:
         try:
             session.flush()
         except exc.IntegrityError as ex:
@@ -110,14 +110,16 @@ class BaseDAO:
         finally:
             self._Session.remove()
 
-    def _create_tenant(self, s: BaseSession, uuid: str):
+    def _create_tenant(self, s: BaseSession, uuid: str) -> None:
         s.add(Tenant(uuid=uuid))
         try:
             s.flush()
         except exc.IntegrityError:
             s.rollback()
 
-    def _get_dird_user(self, session: BaseSession, tenant_uuid: str, user_uuid: str):
+    def _get_dird_user(
+        self, session: BaseSession, tenant_uuid: str, user_uuid: str
+    ) -> User:
         user = session.query(User).filter(User.user_uuid == user_uuid).first()
         tenant = session.query(Tenant).filter(Tenant.uuid == tenant_uuid).first()
         if not tenant:
@@ -127,15 +129,15 @@ class BaseDAO:
             session.add(user)
             session.flush()
 
-        return user
+        return cast('User', user)
 
-    def _generate_parameters(self, parameters: dict | None) -> Parameters:
+    def _generate_parameters(self, parameters: dict[str, Any] | None) -> Parameters:
         new_params = dict(self.DEFAULTS)
         if parameters:
             new_params.update(parameters)
         return cast(Parameters, new_params)
 
-    def validate_parameters(self, parameters: Parameters):
+    def validate_parameters(self, parameters: Parameters) -> None:
         if int(parameters['offset']) < 0:
             raise ValueError('offset must be positive number')
 
@@ -146,7 +148,7 @@ class BaseDAO:
             raise ValueError('direction must be asc or desc')
 
     def _extract_pagination_params(
-        self, parameters: dict | None
+        self, parameters: dict[str, Any] | None
     ) -> tuple[str | None, int | None, int, Direction]:
         _parameters = self._generate_parameters(parameters)
         self.validate_parameters(_parameters)

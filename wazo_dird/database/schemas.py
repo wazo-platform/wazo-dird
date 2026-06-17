@@ -1,6 +1,10 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Any
+
 import marshmallow
 from xivo.mallow import fields
 from xivo.mallow.validate import Length
@@ -8,20 +12,20 @@ from xivo.mallow.validate import Length
 from wazo_dird.schemas import BaseSchema
 
 
-class DisplayColumnSchema(BaseSchema):
+class DisplayColumnSchema(BaseSchema):  # type: ignore[misc]
     field = fields.String(allow_none=True)
     title = fields.String(allow_none=True)
     type = fields.String(allow_none=True)
     default = fields.String(allow_none=True)
     number_display = fields.String(allow_none=True)
 
-    @marshmallow.validates_schema
-    def check_not_empty(self, data, **kwargs):
+    @marshmallow.validates_schema  # type: ignore[untyped-decorator]
+    def check_not_empty(self, data: dict[str, Any], **kwargs: Any) -> None:
         if not data:
             raise marshmallow.ValidationError('Empty columns are now allowed')
 
 
-class DisplaySchema(BaseSchema):
+class DisplaySchema(BaseSchema):  # type: ignore[misc]
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
@@ -33,23 +37,25 @@ class DisplaySchema(BaseSchema):
     )
 
 
-class SourceSchema(BaseSchema):
+class SourceSchema(BaseSchema):  # type: ignore[misc]
     backend = fields.String()
     name = fields.String()
     tenant_uuid = fields.UUID(dump_only=True)
     uuid = fields.UUID(dump_only=True)
 
 
-class ServiceSchema(BaseSchema):
+class ServiceSchema(BaseSchema):  # type: ignore[misc]
     sources = fields.Nested(SourceSchema, many=True)
 
 
-class ServiceDictSchema(fields.Nested):
-    def _serialize(self, value, attr, obj, **kwargs):
+class ServiceDictSchema(fields.Nested):  # type: ignore[misc]
+    def _serialize(
+        self, value: Any, attr: str | None, obj: Any, **kwargs: Any
+    ) -> dict[str, Any] | None:
         if value is None:
             return None
 
-        result = {}
+        result: dict[str, Any] = {}
         for profile_service in value:
             service_name = profile_service.service.name
             result[service_name] = profile_service.config
@@ -58,7 +64,7 @@ class ServiceDictSchema(fields.Nested):
         return result
 
 
-class ProfileSchema(BaseSchema):
+class ProfileSchema(BaseSchema):  # type: ignore[misc]
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String()

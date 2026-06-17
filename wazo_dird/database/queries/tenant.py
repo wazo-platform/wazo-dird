@@ -1,7 +1,9 @@
 # Copyright 2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from typing import TypedDict
+from typing import TypedDict, cast
+
+from sqlalchemy.orm import Session
 
 from wazo_dird.exception import NoSuchTenant
 
@@ -15,10 +17,14 @@ class TenantDict(TypedDict, total=False):
 
 
 class TenantCRUD(BaseDAO):
-    def create(self, tenant_uuid: str = None, country: str = None) -> TenantDict:
+    def create(
+        self, tenant_uuid: str | None = None, country: str | None = None
+    ) -> TenantDict:
         return self.create_or_edit(tenant_uuid, {'country': country})
 
-    def create_or_edit(self, tenant_uuid, tenant_body) -> TenantDict:
+    def create_or_edit(
+        self, tenant_uuid: str | None, tenant_body: TenantDict
+    ) -> TenantDict:
         with self.new_session() as s:
             try:
                 tenant = self._get(s, tenant_uuid)
@@ -39,11 +45,11 @@ class TenantCRUD(BaseDAO):
             else:
                 return self._from_db_format(tenant)
 
-    def _get(self, session, tenant_uuid) -> Tenant:
+    def _get(self, session: Session, tenant_uuid: str | None) -> Tenant:
         tenant = session.query(Tenant).filter(Tenant.uuid == tenant_uuid).first()
         if not tenant:
             raise NoSuchTenant(tenant_uuid)
-        return tenant
+        return cast(Tenant, tenant)
 
     @staticmethod
     def _from_db_format(tenant: Tenant) -> TenantDict:

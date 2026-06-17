@@ -3,11 +3,12 @@
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import Any, TypedDict, cast
 
 from psycopg2.errorcodes import FOREIGN_KEY_VIOLATION, UNIQUE_VIOLATION
 from sqlalchemy import and_, exc, text
 from sqlalchemy.orm import Query, Session
+from sqlalchemy.sql.expression import ColumnElement
 
 from wazo_dird.database.queries.base import Direction
 from wazo_dird.exception import (
@@ -37,9 +38,12 @@ class SourceInfo(TypedDict, total=False):
     searched_columns: list[str]
     first_matched_columns: list[str]
     format_columns: dict[str, str]
+    phonebook_uuid: str
+    phonebook_name: str
+    phonebook_description: str | None
 
 
-def flush_and_handle(s: Session, context: dict):
+def flush_and_handle(s: Session, context: dict[str, Any]) -> None:
     try:
         s.flush()
     except exc.IntegrityError as e:
@@ -58,11 +62,12 @@ class SourceCRUD(BaseDAO):
     _UNIQUE_CONSTRAINT_CODE = '23505'
 
     def count(
-        self, backend: str, visible_tenants: list[str] | None, **list_params
+        self, backend: str | None, visible_tenants: list[str] | None, **list_params: Any
     ) -> int:
         filter_ = self._list_filter(backend, visible_tenants, **list_params)
         with self.new_session() as s:
-            return s.query(Source).filter(filter_).count()
+            count: int = s.query(Source).filter(filter_).count()
+            return count
 
     def list_(
         self,
@@ -75,7 +80,7 @@ class SourceCRUD(BaseDAO):
         limit: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
-        **list_params,
+        **list_params: Any,
     ) -> list[SourceInfo]:
         filter_ = self._list_filter(
             backend=backend,
@@ -97,7 +102,10 @@ class SourceCRUD(BaseDAO):
             self._create_tenant(s, source_body['tenant_uuid'])
             tenant_uuid = source_body.pop('tenant_uuid')
             source = self._create_new_source(
-                s, backend=backend, tenant_uuid=tenant_uuid, new_fields=source_body
+                s,
+                backend=backend,
+                tenant_uuid=tenant_uuid,
+                new_fields=cast(dict[str, Any], source_body),
             )
             s.add(source)
             flush_and_handle(s, dict(source_body, backend=backend))
@@ -105,7 +113,9 @@ class SourceCRUD(BaseDAO):
 
             return source_info
 
-    def delete(self, backend: str, source_uuid: str, visible_tenants: list[str] | None):
+    def delete(
+        self, backend: str, source_uuid: str, visible_tenants: list[str] | None
+    ) -> None:
         filter_ = self._multi_tenant_filter(backend, source_uuid, visible_tenants)
         with self.new_session() as s:
             nb_deleted = (
@@ -129,7 +139,7 @@ class SourceCRUD(BaseDAO):
             if not source:
                 raise NoSuchSource(source_uuid)
 
-            source_attrs = self._update_source(s, source, body)
+            source_attrs = self._update_source(s, source, cast(dict[str, Any], body))
 
             flush_and_handle(s, dict(body, backend=backend, source_uuid=source_uuid))
             source_info = self._from_db_format(source_attrs)
@@ -159,14 +169,14 @@ class SourceCRUD(BaseDAO):
 
     def _list_filter(
         self,
-        backend: str,
+        backend: str | None,
         visible_tenants: list[str] | None,
         uuid: str | None = None,
         name: str | None = None,
         search: str | None = None,
-        **list_params,
-    ):
-        filter_ = text('true')
+        **list_params: Any,
+    ) -> ColumnElement:
+        filter_: ColumnElement = text('true')
         if visible_tenants is not None:
             filter_ = and_(filter_, Source.tenant_uuid.in_(visible_tenants))
         if backend is not None:
@@ -174,16 +184,16 @@ class SourceCRUD(BaseDAO):
         if uuid is not None:
             filter_ = and_(filter_, Source.uuid == uuid)
         if name is not None:
-            filter_ = and_(filter_, Source.name == name)
+            filter_ = and_(filter_, Source.name == name)  # type: ignore[comparison-overlap]
         if search is not None:
             pattern = f'%{search}%'
-            filter_ = and_(filter_, Source.name.ilike(pattern))
+            filter_ = and_(filter_, Source.name.ilike(pattern))  # type: ignore[attr-defined]
 
         return filter_
 
     def _multi_tenant_filter(
         self, backend: str, source_uuid: str, visible_tenants: list[str] | None
-    ):
+    ) -> ColumnElement:
         filter_ = and_(Source.backend == backend, Source.uuid == source_uuid)
 
         if visible_tenants is None:
@@ -198,16 +208,15 @@ class SourceCRUD(BaseDAO):
         offset: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
-        **ignored,
+        **ignored: Any,
     ) -> Query:
         if order and direction:
-            field = None
+            field: ColumnElement | None = None
             if order == 'name':
                 field = Source.name
             if order == 'backend':
                 field = Source.backend
-
-            if field:
+            if field is not None:
                 order_clause = field.asc() if direction == 'asc' else field.desc()
                 query = query.order_by(order_clause)
 
@@ -225,7 +234,7 @@ class SourceCRUD(BaseDAO):
         backend: str,
         tenant_uuid: str,
         new_fields: dict[str, Any],
-    ):
+    ) -> Source:
         source = Source(
             backend=backend, tenant_uuid=tenant_uuid, uuid=new_fields.pop('uuid', None)
         )
@@ -235,7 +244,9 @@ class SourceCRUD(BaseDAO):
             phonebook = session.query(Phonebook).get(phonebook_uuid)
             if not phonebook or phonebook.tenant_uuid != tenant_uuid:
                 raise NoSuchPhonebook(
-                    phonebook_key=PhonebookKey(uuid=phonebook_uuid),
+                    phonebook_key=cast(
+                        dict[str, Any], PhonebookKey(uuid=phonebook_uuid)
+                    ),
                     tenants_in_scope=[tenant_uuid],
                 )
             source.phonebook = phonebook
@@ -244,13 +255,15 @@ class SourceCRUD(BaseDAO):
 
     def _update_source(
         self, session: Session, source: Source, updated_fields: dict[str, Any]
-    ):
+    ) -> Source:
         if source.backend == 'phonebook':
             if phonebook_uuid := updated_fields.pop('phonebook_uuid', None):
                 phonebook = session.query(Phonebook).get(phonebook_uuid)
                 if not phonebook or phonebook.tenant_uuid != source.tenant_uuid:
                     raise NoSuchPhonebook(
-                        phonebook_key=PhonebookKey(uuid=phonebook_uuid),
+                        phonebook_key=cast(
+                            dict[str, Any], PhonebookKey(uuid=phonebook_uuid)
+                        ),
                         tenants_in_scope=[source.tenant_uuid],
                     )
                 source.phonebook = phonebook
@@ -263,15 +276,15 @@ class SourceCRUD(BaseDAO):
         searched_columns: list[str],
         first_matched_columns: list[str],
         format_columns: dict[str, str],
-        name=None,
-        **extra_fields,
+        name: str | None = None,
+        **extra_fields: Any,
     ) -> Source:
         if source.backend == 'phonebook':
             assert source.phonebook
             assert source.phonebook_uuid
         else:
             assert name
-            source.name = name
+            source.name = name  # type: ignore[method-assign]
         source.searched_columns = searched_columns
         source.first_matched_columns = first_matched_columns
         source.format_columns = format_columns
