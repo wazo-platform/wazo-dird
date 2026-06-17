@@ -1,11 +1,14 @@
 # Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import csv
 import logging
 import time
+from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
-from typing import TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict, TypeVar
 
 from flask import request
 from wazo_auth_client import Client as AuthClient
@@ -25,10 +28,18 @@ from wazo_dird.exception import (
 )
 from wazo_dird.http import LegacyAuthResource
 
+if TYPE_CHECKING:
+    from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
+
 logger = logging.getLogger(__name__)
 
+R = TypeVar('R')
 
-def _make_error(reason, status_code):
+ErrorResponse = tuple[dict[str, Any], int]
+Response = tuple[Any, int] | dict[str, Any]
+
+
+def _make_error(reason: str, status_code: int) -> ErrorResponse:
     return (
         {'reason': [reason], 'timestamp': [time.time()], 'status_code': status_code},
         status_code,
@@ -36,21 +47,28 @@ def _make_error(reason, status_code):
 
 
 class _Resource(LegacyAuthResource):
-    def __init__(self, phonebook_service, auth_client):
+    error_code_map: dict[type[Exception], int] = {}
+
+    def __init__(
+        self, phonebook_service: _PhonebookService, auth_client: AuthClient
+    ) -> None:
         self.phonebook_service = phonebook_service
         self._auth_client: AuthClient = auth_client
 
-    def _find_tenant(self, scoping_tenant: Tenant, name: str):
+    def _find_tenant(self, scoping_tenant: Tenant, name: str) -> dict[str, Any]:
         tenants = self._auth_client.tenants.list(
             tenant_uuid=scoping_tenant.uuid, name=name
         )['items']
         for tenant in tenants:
-            return tenant
+            tenant_dict: dict[str, Any] = tenant
+            return tenant_dict
         raise NoSuchTenant(name)
 
 
 class _ArgParser:
-    def __init__(self, args, valid_columns=None):
+    def __init__(
+        self, args: Mapping[str, str], valid_columns: list[str] | None = None
+    ) -> None:
         self._search = args.get('search')
         self._direction = self._get_string_from_valid_values(
             args, 'direction', ['asc', 'desc', None]
@@ -59,13 +77,13 @@ class _ArgParser:
         self._offset = self._get_positive_int(args, 'offset')
         self._order = self._get_string_from_valid_values(args, 'order', valid_columns)
 
-    def count_params(self):
-        params = {}
+    def count_params(self) -> dict[str, Any]:
+        params: dict[str, Any] = {}
         if self._search:
             params['search'] = self._search
         return params
 
-    def list_params(self):
+    def list_params(self) -> dict[str, Any]:
         params = self.count_params()
         if self._direction:
             params['direction'] = self._direction
@@ -78,9 +96,11 @@ class _ArgParser:
         return params
 
     @staticmethod
-    def _get_string_from_valid_values(args, name, valid_values):
+    def _get_string_from_valid_values(
+        args: Mapping[str, str], name: str, valid_values: Sequence[str | None] | None
+    ) -> str | None:
         if name not in args:
-            return
+            return None
 
         value = args.get(name)
         if valid_values is None:
@@ -92,7 +112,7 @@ class _ArgParser:
         raise InvalidArgumentError(f'{name} should be one of {valid_values}')
 
     @staticmethod
-    def _get_positive_int(args, name):
+    def _get_positive_int(args: Mapping[str, str], name: str) -> int:
         try:
             value = int(args.get(name, 0))
             if value >= 0:
@@ -103,14 +123,16 @@ class _ArgParser:
         raise InvalidArgumentError(f'{name} should be a positive integer')
 
 
-def _default_error_route(f):
+def _default_error_route(
+    f: Callable[..., R],
+) -> Callable[..., R | ErrorResponse]:
     @wraps(f)
-    def decorator(self_, *args, **kwargs):
+    def decorator(self_: _Resource, *args: Any, **kwargs: Any) -> R | ErrorResponse:
         try:
             return f(self_, *args, **kwargs)
         except tuple(self_.error_code_map.keys()) as e:
             logger.info('%s', e)
-            code = self_.error_code_map.get(e.__class__)
+            code = self_.error_code_map[e.__class__]
             return _make_error(str(e), code)
 
     return decorator
@@ -121,9 +143,9 @@ class PhonebookKey(TypedDict, total=False):
     uuid: str
 
 
-def deprecated_endpoint(endpoint_func):
+def deprecated_endpoint(endpoint_func: Callable[..., R]) -> Callable[..., R]:
     @wraps(endpoint_func)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: _Resource, *args: Any, **kwargs: Any) -> R:
         endpoint_name = endpoint_func.__name__
         endpoint_context = self.__class__.__name__
         logger.warning(
@@ -147,9 +169,10 @@ class DeprecatedPhonebookContactAll(_Resource):
     }
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
-    def post(self, tenant, phonebook_id):
+    def post(self, tenant: str, phonebook_id: int) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
@@ -162,9 +185,10 @@ class DeprecatedPhonebookContactAll(_Resource):
         )
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
     @_default_error_route
-    def get(self, tenant, phonebook_id):
+    def get(self, tenant: str, phonebook_id: int) -> Response:
         parser = _ArgParser(request.args)
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
@@ -192,9 +216,10 @@ class DeprecatedPhonebookAll(_Resource):
     }
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.read')
     @_default_error_route
-    def get(self, tenant):
+    def get(self, tenant: str) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         parser = _ArgParser(request.args, valid_columns=['name', 'description'])
@@ -209,9 +234,10 @@ class DeprecatedPhonebookAll(_Resource):
         return {'items': phonebooks, 'total': count}
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.create')
     @_default_error_route
-    def post(self, tenant):
+    def post(self, tenant: str) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
@@ -226,9 +252,10 @@ class DeprecatedPhonebookContactImport(_Resource):
     error_code_map = {NoSuchTenant: 404, NoSuchPhonebook: 404}
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
-    def post(self, tenant, phonebook_id):
+    def post(self, tenant: str, phonebook_id: int) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         charset = request.mimetype_params.get('charset', 'utf-8')
@@ -265,11 +292,12 @@ class DeprecatedPhonebookContactOne(_Resource):
     }
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read'
     )
     @_default_error_route
-    def get(self, tenant, phonebook_id, contact_uuid):
+    def get(self, tenant: str, phonebook_id: int, contact_uuid: str) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
@@ -280,11 +308,12 @@ class DeprecatedPhonebookContactOne(_Resource):
         )
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.delete'
     )
     @_default_error_route
-    def delete(self, tenant, phonebook_id, contact_uuid):
+    def delete(self, tenant: str, phonebook_id: int, contact_uuid: str) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         self.phonebook_service.delete_contact(
@@ -293,11 +322,12 @@ class DeprecatedPhonebookContactOne(_Resource):
         return '', 204
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.update'
     )
     @_default_error_route
-    def put(self, tenant, phonebook_id, contact_uuid):
+    def put(self, tenant: str, phonebook_id: int, contact_uuid: str) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
@@ -321,9 +351,10 @@ class DeprecatedPhonebookOne(_Resource):
     }
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
     @_default_error_route
-    def delete(self, tenant, phonebook_id):
+    def delete(self, tenant: str, phonebook_id: int) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         self.phonebook_service.delete_phonebook(
@@ -332,9 +363,10 @@ class DeprecatedPhonebookOne(_Resource):
         return '', 204
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
     @_default_error_route
-    def get(self, tenant, phonebook_id):
+    def get(self, tenant: str, phonebook_id: int) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
@@ -345,9 +377,10 @@ class DeprecatedPhonebookOne(_Resource):
         )
 
     @deprecated_endpoint
+    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
     @_default_error_route
-    def put(self, tenant, phonebook_id):
+    def put(self, tenant: str, phonebook_id: int) -> Response:
         scoping_tenant = Tenant.autodetect()
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (

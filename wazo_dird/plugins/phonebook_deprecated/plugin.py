@@ -4,6 +4,7 @@
 import logging
 
 from wazo_dird import BaseViewPlugin
+from wazo_dird.plugin_manager import ViewDependencies
 
 from .http import (
     DeprecatedPhonebookAll,
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class DeprecatedPhonebookViewPlugin(BaseViewPlugin):
-    def load(self, dependencies=None):
+    def load(self, dependencies: ViewDependencies) -> None:
         api = dependencies['api']
         args = (dependencies['services'].get('phonebook'), dependencies['auth_client'])
 
