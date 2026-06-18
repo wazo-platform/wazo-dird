@@ -27,7 +27,7 @@ def upgrade():
         config = row.config
         if not isinstance(config, dict) or 'timeout' not in config:
             continue
-        top_level_timeout = config.pop('timeout')
+        top_level_timeout = config.pop('timeout', None)
         options = config.get('options') or {}
         if 'timeout' not in options:
             options['timeout'] = top_level_timeout
