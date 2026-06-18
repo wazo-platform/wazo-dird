@@ -1,5 +1,13 @@
 # Changelog
 
+## 26.07
+
+* `POST /0.1/profiles` and `PUT /0.1/profiles/<profile_uuid>`
+  * service configurations are now strictly validated; previously unrecognized fields were silently accepted:
+    * unknown keys in a service configuration now return a `400` error;
+    * the `options` field is now validated against a schema; unknown options now return a `400` error;
+    * the `timeout` option, when provided, must be a number strictly greater than `0`;
+
 ## 26.02
 
 * `POST` and `PATCH` request bodies to endpoints accepting JSON payload are systematically parsed as JSON, with or without a proper `Content-Type` header;

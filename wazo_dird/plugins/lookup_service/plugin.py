@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -64,7 +64,7 @@ class _LookupService(helpers.BaseService):
 
         params = {'return_when': ALL_COMPLETED}
         service_config = self.get_service_config(profile_config)
-        timeout = service_config.get('timeout')
+        timeout = (service_config.get('options') or {}).get('timeout')
         if timeout:
             params['timeout'] = timeout
 
