@@ -45,7 +45,12 @@ class _LookupService(helpers.BaseService):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self._executor = ThreadPoolExecutor(max_workers=10)
+        http_threads = self._config.get('rest_api', {}).get('max_threads', 10)
+        max_workers = self._config.get('lookup_service', {}).get(
+            'executor_workers', http_threads
+        )
+        logger.info('Creating Lookup service threadpool [max_workers=%d]', max_workers)
+        self._executor = ThreadPoolExecutor(max_workers=max_workers)
 
     def stop(self) -> None:
         self._executor.shutdown()
