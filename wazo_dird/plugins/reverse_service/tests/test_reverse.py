@@ -23,7 +23,7 @@ _PROFILE_WITH_TIMEOUT = {
     'services': {'reverse': {'sources': [], 'options': {'timeout': 0.5}}},
 }
 
-# timeout outside options is stripped by the profile schema (EXCLUDE unknown fields)
+# timeout outside options is rejected by the profile schema (RAISE on unknown fields)
 _PROFILE_WITH_TOPLEVEL_TIMEOUT = {
     'name': 'test',
     'services': {'reverse': {'sources': [], 'timeout': 0.5}},
