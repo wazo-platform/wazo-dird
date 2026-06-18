@@ -1,7 +1,7 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import and_, distinct, text
+from sqlalchemy import and_, distinct, select, text
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from unidecode import unidecode
 
@@ -9,7 +9,13 @@ from wazo_dird.exception import DuplicatedContactException, NoSuchContact
 from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 from .. import Contact, ContactFields, User
-from .base import BaseDAO, compute_contact_hash, list_contacts_by_uuid
+from .base import (
+    BaseDAO,
+    ContactInfo,
+    build_exten_contact_map,
+    compute_contact_hash,
+    list_contacts_by_uuid,
+)
 
 
 class unaccent(ReturnTypeFromArgs):
@@ -25,6 +31,34 @@ class PersonalContactSearchEngine(BaseDAO):
     def find_first_personal_contact(self, user_uuid, term):
         filter_ = self._new_strict_filter(user_uuid, term, self._first_match_columns)
         return self._find_personal_contacts_with_filter(filter_, limit=1)
+
+    def find_contacts_for_extens(
+        self, user_uuid: str, extens: list[str]
+    ) -> dict[str, ContactInfo]:
+        if not extens or not self._first_match_columns:
+            return {}
+
+        matched_uuids = (
+            select(ContactFields.contact_uuid)
+            .join(Contact)
+            .join(User)
+            .where(
+                User.user_uuid == user_uuid,
+                ContactFields.value.in_(extens),
+                ContactFields.name.in_(self._first_match_columns),
+            )
+            .distinct()
+            .scalar_subquery()
+        )
+        with self.new_session() as s:
+            rows = (
+                s.query(
+                    ContactFields.contact_uuid, ContactFields.name, ContactFields.value
+                )
+                .filter(ContactFields.contact_uuid.in_(matched_uuids))
+                .all()
+            )
+            return build_exten_contact_map(rows, extens, self._first_match_columns)
 
     def find_personal_contacts(self, user_uuid, term):
         filter_ = self._new_search_filter(user_uuid, term, self._searched_columns)
@@ -78,9 +112,11 @@ class PersonalContactSearchEngine(BaseDAO):
         if not columns:
             return False
 
+        # no normalization, assuming phone number-like values
+        # enable efficient index usage
         return and_(
             User.user_uuid == user_uuid,
-            unaccent(ContactFields.value) == unidecode(term),
+            ContactFields.value == term,
             ContactFields.name.in_(columns),
         )
 

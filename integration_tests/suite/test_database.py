@@ -1,4 +1,4 @@
-# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import functools
@@ -19,6 +19,7 @@ from hamcrest import (
     has_entries,
     has_item,
     has_items,
+    has_key,
     not_,
     raises,
 )
@@ -1456,6 +1457,28 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
         assert_that(result, any_of(self.mia, self.marcellus))
 
+    def test_find_contacts_for_extens_returns_all_matched(self):
+        result = self.engine.find_contacts_for_extens(['5552222222', '5553333333'])
+
+        assert_that(
+            result, has_entries({'5552222222': self.vincent, '5553333333': self.jules})
+        )
+
+    def test_find_contacts_for_extens_partial_match(self):
+        result = self.engine.find_contacts_for_extens(['5552222222', '0000000000'])
+
+        assert_that(result, has_entries({'5552222222': self.vincent}))
+        assert_that(result, not_(has_key('0000000000')))
+
+    def test_find_contacts_for_extens_empty_list(self):
+        assert_that(self.engine.find_contacts_for_extens([]), equal_to({}))
+
+    def test_find_contacts_for_extens_duplicate_number_returns_one(self):
+        result = self.engine.find_contacts_for_extens(['5551111111'])
+
+        assert_that(result, has_key('5551111111'))
+        assert_that(result['5551111111'], any_of(self.mia, self.marcellus))
+
     def test_that_listing_contacts_works(self):
         result = self.engine.list_contacts(
             [self.mia['id'], self.butch['id'], self.jimmie['id']]
@@ -1546,6 +1569,41 @@ class TestPersonalContactSearchEngine(_BaseTest):
 
         result = engine.list_personal_contacts(uuid_2, ids_1)
         assert_that(result, empty())
+
+    @with_user_uuid
+    def test_find_contacts_for_extens_returns_matched(self, user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            Session, first_match_columns=['number']
+        )
+        self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
+
+        result = engine.find_contacts_for_extens(
+            user_uuid, ['5555551111', '0000000000']
+        )
+
+        assert_that(result, has_key('5555551111'))
+        assert_that(result, not_(has_key('0000000000')))
+
+    @with_user_uuid
+    def test_find_contacts_for_extens_empty_returns_empty(self, user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            Session, first_match_columns=['number']
+        )
+        assert_that(engine.find_contacts_for_extens(user_uuid, []), equal_to({}))
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_find_contacts_for_extens_isolated_per_user(self, uuid_1, uuid_2):
+        engine = database.PersonalContactSearchEngine(
+            Session, first_match_columns=['number']
+        )
+        self._insert_personal_contacts(uuid_1, self.contact_1)
+        self._insert_personal_contacts(uuid_2, self.contact_2)
+
+        result = engine.find_contacts_for_extens(uuid_1, ['5555551111', '5555550001'])
+
+        assert_that(result, has_key('5555551111'))
+        assert_that(result, not_(has_key('5555550001')))
 
     @with_user_uuid
     def test_that_searching_for_a_contact_returns_its_fields(self, user_uuid):

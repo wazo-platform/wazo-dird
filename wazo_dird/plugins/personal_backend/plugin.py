@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -56,6 +56,17 @@ class PersonalBackend(BaseSourcePlugin):
         )
         for contact in self.format_contacts(matching_contacts):
             return contact
+
+    def match_all(self, extens, args=None):
+        logger.debug('Batch matching personal contacts for %d extens', len(extens))
+        user_uuid = (args or {}).get('user_uuid')
+        if not user_uuid:
+            return {}
+        contacts = self._search_engine.find_contacts_for_extens(user_uuid, extens)
+        return {
+            exten: self.format_contacts([contact])[0]
+            for exten, contact in contacts.items()
+        }
 
     def list(self, source_entry_ids, args):
         logger.debug('Listing personal contacts: %s', source_entry_ids)
