@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from concurrent.futures import ALL_COMPLETED
 from unittest.mock import Mock, patch, sentinel
 
 from hamcrest import assert_that, equal_to, none, not_
@@ -95,4 +96,4 @@ class TestLookupNullOptions(unittest.TestCase):
 
         service.lookup(profile, 'tenant', 'alice', 'user-uuid')
 
-        mock_wait.assert_called_once()
+        mock_wait.assert_called_once_with([], return_when=ALL_COMPLETED)
