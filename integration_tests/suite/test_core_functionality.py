@@ -1,6 +1,7 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from hamcrest import (
@@ -94,6 +95,17 @@ class TestCoreSourceManagement(BaseMultipleSourceLauncher):
             result['results'], contains_inanyorder(self.alice_aaa, self.alice_alan)
         )
 
+    def test_lookup_with_configured_executor_workers(self):
+        with self.dird_with_config({'lookup_service': {'executor_workers': 2}}):
+            self.wait_strategy.wait(self.dird)
+            with ThreadPoolExecutor(max_workers=5) as pool:
+                futures = [
+                    pool.submit(self.lookup, 'lice', 'default') for _ in range(5)
+                ]
+                results = [f.result() for f in futures]
+        for result in results:
+            assert_that(result['results'], has_length(2))
+
 
 class TestReverse(BaseMultipleSourceLauncher):
     def setUp(self):
@@ -171,6 +183,21 @@ class TestReverse(BaseMultipleSourceLauncher):
         }
 
         assert_that(result, equal_to(expected))
+
+    def test_reverse_with_configured_executor_workers(self):
+        with self.dird_with_config({'reverse_service': {'executor_workers': 2}}):
+            self.wait_strategy.wait(self.dird)
+            with ThreadPoolExecutor(max_workers=5) as pool:
+                futures = [
+                    pool.submit(self.reverse, '1111', 'default', VALID_UUID)
+                    for _ in range(5)
+                ]
+                results = [f.result() for f in futures]
+        for result in results:
+            assert_that(
+                result,
+                any_of(self.alice_result, self.qwerty_result_1, self.qwerty_result_2),
+            )
 
 
 class TestLookupWhenASourceFails(HalfBrokenTestCase):
