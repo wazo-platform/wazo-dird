@@ -94,6 +94,9 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
     @classmethod
     def restart_dird(cls):
         cls.restart_service('dird')
+        # The published host port may change across a container restart; refresh
+        # the cached value so url()/get_client() stay consistent with cls.dird.
+        cls.port = cls.service_port(9489, 'dird')
         cls.dird = cls.make_dird(VALID_TOKEN_MAIN_TENANT)
 
     @classmethod
