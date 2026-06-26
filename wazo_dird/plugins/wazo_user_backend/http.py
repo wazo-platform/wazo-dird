@@ -64,7 +64,7 @@ class WazoContactList(AuthResource):
         list_params = contact_list_param_schema.load(request.args)
         source_config = self._source_service.get('wazo', source_uuid, visible_tenants)
 
-        lister = ContactLister(registry.get(dict(source_config)))
+        lister = ContactLister(registry.get(source_config))
         response = lister.list(**list_params)
 
         return {

@@ -72,7 +72,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._searched_columns = config.get('searched_columns', [])
         self._first_matched_columns = config.get('first_matched_columns', [])
         self.name = config['name']
-        self._client = registry.get(dict(config))
+        self._client = registry.get(config)
 
         self._SourceResult = make_result_class(
             'wazo', self.name, 'id', format_columns=config.get('format_columns')

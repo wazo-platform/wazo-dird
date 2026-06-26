@@ -63,7 +63,7 @@ class ConferencePlugin(BaseSourcePlugin):
             'builtins.list[str]', config.get(self.FIRST_MATCHED_COLUMNS, [])
         )
         self.name = config['name']
-        self._client = registry.get(dict(config))
+        self._client = registry.get(config)
 
         self._SourceResult = make_result_class(
             'conference',
