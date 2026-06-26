@@ -50,7 +50,7 @@ class GooglePlugin(BaseSourcePlugin):
 
     def load(self, dependencies: SourcePluginDependencies) -> None:
         config = dependencies['config']
-        self.auth = cast('AuthConfig', dict(config).get('auth'))
+        self.auth = cast('AuthConfig', dict(config)['auth'])
         self.name = config['name']
         self.google = services.GoogleService()
         self.unique_column = 'id'
