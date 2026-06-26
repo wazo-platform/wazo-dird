@@ -124,7 +124,7 @@ class TestLDAPPlugin(unittest.TestCase):
         self.assertEqual(result, {'123': format_result, '456': format_result})
 
     def test_list_empty(self):
-        uids = []
+        uids: list[str] = []
         self.ldap_config.build_list_filter.return_value = None
         self.ldap_client.search.side_effect = TypeError('must be string, not None')
         self.ldap_result_formatter.format.return_value = []
@@ -434,7 +434,7 @@ class TestLDAPConfig(unittest.TestCase):
         ldap_config = self.new_ldap_config(
             {BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID'}
         )
-        uids = []
+        uids: list[str] = []
 
         self.assertFalse(ldap_config.build_list_filter(uids))
 

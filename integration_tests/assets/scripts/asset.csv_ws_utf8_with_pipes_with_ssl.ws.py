@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import sys
+from collections.abc import Iterator
 
 from flask import Flask, Response, request
 
@@ -24,13 +25,13 @@ separator = sys.argv[1]
 charset = sys.argv[2]
 
 
-def line(fields, sep=separator):
+def line(fields: tuple[object, ...] | list[str], sep: str = separator) -> bytes:
     return f'{sep.join(map(str, fields))}\n'.encode(charset)
 
 
 @app.route('/ws')
-def ws():
-    result = set()
+def ws() -> Response | tuple[str, int]:
+    result: set[tuple[object, ...]] = set()
 
     if not request.args.keys():
         result = entries
@@ -48,7 +49,7 @@ def ws():
     if not data:
         return '', 404
 
-    def generate():
+    def generate() -> Iterator[bytes]:
         yield line(headers)
         for entry in data:
             yield line(entry)
@@ -56,7 +57,7 @@ def ws():
     return Response(generate(), content_type=f'text/csv; charset={charset}')
 
 
-def main():
+def main() -> None:
     app.run(host='0.0.0.0', port=9485, ssl_context=context)
 
 

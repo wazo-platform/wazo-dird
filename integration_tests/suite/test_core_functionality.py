@@ -1,6 +1,8 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from typing import Any
+
 from hamcrest import (
     all_of,
     any_of,
@@ -135,7 +137,12 @@ class TestReverse(BaseMultipleSourceLauncher):
     def test_reverse_when_no_result(self):
         result = self.reverse('1234', 'default', VALID_UUID)
 
-        expected = {'display': None, 'exten': '1234', 'source': None, 'fields': {}}
+        expected: dict[str, Any] = {
+            'display': None,
+            'exten': '1234',
+            'source': None,
+            'fields': {},
+        }
 
         assert_that(result, equal_to(expected))
 

@@ -181,7 +181,7 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
         super().tearDownClass()
 
     @classmethod
-    def make_dird(cls, token) -> DirdClient:
+    def make_dird(cls, token: str) -> DirdClient:
         return DirdClient(
             '127.0.0.1',
             cls.service_port(9489, 'dird'),
@@ -247,7 +247,7 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
         cls.configure_wazo_auth()
 
     @classmethod
-    def get_client(cls, token=VALID_TOKEN_MAIN_TENANT) -> DirdClient:
+    def get_client(cls, token: str = VALID_TOKEN_MAIN_TENANT) -> DirdClient:
         return DirdClient(cls.host, cls.port, token=token, prefix=None, https=False)
 
     @property
@@ -468,7 +468,7 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
 
     def _make_http_request(
         self, verb: str, endpoint: str, body: str | None, headers: dict = None
-    ):
+    ) -> requests.Response:
         port = self.service_port(9489, 'dird')
         base_url = f'http://127.0.0.1:{port}/0.1/'
         default_headers = {
@@ -493,7 +493,7 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
             verify=False,
         )
 
-    def assert_empty_body_returns_400(self, urls: list[tuple[str, str]]):
+    def assert_empty_body_returns_400(self, urls: list[tuple[str, str]]) -> None:
         for method, url in urls:
             response = self._make_http_request(method, url, '')
             assert response.status_code == 400, f'Error with url: ({method}) {url}'

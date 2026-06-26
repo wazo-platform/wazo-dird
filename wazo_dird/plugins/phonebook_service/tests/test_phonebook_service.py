@@ -415,7 +415,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 
 class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
     def test_import_with_invalid_contacts(self):
-        db_errors = []
+        db_errors: list = []
         self.contact_crud.create_many.return_value = [], db_errors
 
         invalids: list[dict] = [{}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]

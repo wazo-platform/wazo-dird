@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import time
+from collections.abc import Iterator
 
 from flask import Flask, Response
 
@@ -15,10 +16,10 @@ LASTNAME = 'Timeout'
 
 
 @app.route('/ws')
-def ws():
+def ws() -> Response:
     time.sleep(DELAY)
 
-    def generate():
+    def generate() -> Iterator[str]:
         yield 'number,firstname,lastname\n'
         yield f'{NUMBER},{FIRSTNAME},{LASTNAME}\n'
 
