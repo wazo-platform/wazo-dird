@@ -1,9 +1,9 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 from sqlalchemy import and_, exc, func, text
 from sqlalchemy.orm import Query
@@ -83,7 +83,8 @@ class ProfileCRUD(BaseDAO):
             if not profile:
                 raise exception.NoSuchProfileAPIException(profile_uuid)
 
-            return cast('dict[str, Any]', self._profile_schema.dump(profile))
+            result: dict[str, Any] = self._profile_schema.dump(profile)
+            return result
 
     def list_(
         self, visible_tenants: list[str] | None, **list_params: Any
@@ -92,10 +93,10 @@ class ProfileCRUD(BaseDAO):
         with self.new_session() as s:
             query = s.query(Profile).filter(filter_)
             query = self._paginate(query, **list_params)
-            return cast(
-                'list[dict[str, Any]]',
-                self._profile_schema.dump(query.all(), many=True),
+            result: list[dict[str, Any]] = self._profile_schema.dump(
+                query.all(), many=True
             )
+            return result
 
     def _build_filter(
         self, visible_tenants: list[str] | None, profile_uuid: str
