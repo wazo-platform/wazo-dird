@@ -63,8 +63,14 @@ class RaiseStopper(Generic[T]):
         return self.return_on_raise
 
 
+class ServiceConfigOptions(TypedDict, total=False):
+    timeout: float
+
+
 class ServiceConfig(TypedDict, total=False):
     sources: list[SourceConfig]
+    options: ServiceConfigOptions
+    timeout: float
 
 
 class ProfileConfig(TypedDict, total=False):
