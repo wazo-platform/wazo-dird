@@ -70,7 +70,6 @@ class ServiceConfigOptions(TypedDict, total=False):
 class ServiceConfig(TypedDict, total=False):
     sources: list[SourceConfig]
     options: ServiceConfigOptions
-    timeout: float
 
 
 class ProfileConfig(TypedDict, total=False):

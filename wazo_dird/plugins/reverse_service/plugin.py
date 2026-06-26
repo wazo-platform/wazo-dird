@@ -78,9 +78,6 @@ class _ReverseService(helpers.BaseService):
         timeout: float | None = (service_config.get('options') or {}).get(
             'timeout'
         ) or 1
-        configured_timeout = service_config.get('timeout')
-        if configured_timeout and isinstance(configured_timeout, (int, float)):
-            timeout = configured_timeout
 
         results: dict[str, SourceResult | None] = {exten: None for exten in extens}
         try:
@@ -156,10 +153,6 @@ class _ReverseService(helpers.BaseService):
         timeout: float | None = (service_config.get('options') or {}).get(
             'timeout'
         ) or 1
-
-        configured_timeout = service_config.get('timeout')
-        if configured_timeout and isinstance(configured_timeout, (int, float)):
-            timeout = configured_timeout
 
         try:
             for future in as_completed(futures, timeout=timeout):
