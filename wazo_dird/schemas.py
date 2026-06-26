@@ -21,7 +21,7 @@ __all__ = [
 ]
 
 
-class VerifyCertificateField(fields.Field):  # type: ignore[misc]
+class VerifyCertificateField(fields.Field):
     def _deserialize(
         self,
         value: Any,
@@ -41,7 +41,7 @@ class VerifyCertificateField(fields.Field):  # type: ignore[misc]
             self.make_error('invalid_utf8')
 
 
-class BaseSourceSchema(BaseSchema):  # type: ignore[misc]
+class BaseSourceSchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
@@ -54,7 +54,7 @@ class BaseSourceSchema(BaseSchema):  # type: ignore[misc]
     format_columns = fields.Dict(validate=validate_string_dict, load_default={})
 
 
-class ConfdConfigSchema(BaseSchema):  # type: ignore[misc]
+class ConfdConfigSchema(BaseSchema):
     host = fields.String(validate=Length(min=1, max=1024), load_default='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), load_default=443)
     https = fields.Boolean(load_default=True)
@@ -64,7 +64,7 @@ class ConfdConfigSchema(BaseSchema):  # type: ignore[misc]
     timeout = fields.Float(validate=Range(min=0, max=3660))
 
 
-class BaseAuthConfigSchema(BaseSchema):  # type: ignore[misc]
+class BaseAuthConfigSchema(BaseSchema):
     host = fields.String(validate=Length(min=1, max=1024), load_default='localhost')
     port = fields.Integer(validate=Range(min=1, max=65535), load_default=443)
     https = fields.Boolean(load_default=True)
@@ -79,7 +79,7 @@ class AuthConfigSchema(BaseAuthConfigSchema):
     username = fields.String(validate=Length(min=1, max=512), allow_none=True)
     password = fields.String(validate=Length(min=1, max=512), allow_none=True)
 
-    @validates_schema  # type: ignore[untyped-decorator]
+    @validates_schema
     def validate_auth_info(self, data: dict[str, Any], **kwargs: Any) -> None:
         key_file = data.get('key_file')
         username = data.get('username')

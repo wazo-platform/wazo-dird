@@ -11,7 +11,7 @@ from wazo_bus.resources.common.abstract import EventProtocol
 from xivo.status import Status, StatusDict
 
 
-class CoreBus(BusPublisher, BusConsumer):  # type: ignore[misc]
+class CoreBus(BusPublisher, BusConsumer):
     def __init__(
         self,
         service_uuid: str | None,

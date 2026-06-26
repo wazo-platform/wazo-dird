@@ -13,7 +13,7 @@ from xivo.mallow_helpers import ListSchema as _ListSchema
 from wazo_dird.schemas import BaseSchema
 
 
-class ResourceSchema(BaseSchema):  # type: ignore[misc]
+class ResourceSchema(BaseSchema):
     uuid = fields.UUID(required=True)
 
 
@@ -26,7 +26,7 @@ class ServiceOptionsSchema(BaseSchema):
     )
 
 
-class ServiceConfigSchema(BaseSchema):  # type: ignore[misc]
+class ServiceConfigSchema(BaseSchema):
     class Meta(BaseSchema.Meta):
         unknown = RAISE
 
@@ -34,7 +34,7 @@ class ServiceConfigSchema(BaseSchema):  # type: ignore[misc]
     options = fields.Nested(ServiceOptionsSchema, load_default={})
 
 
-class ServiceDictSchema(fields.Nested):  # type: ignore[misc]
+class ServiceDictSchema(fields.Nested):
     def _serialize(
         self, nested_obj: Any, attr: str | None, obj: Any, **kwargs: Any
     ) -> dict[str, Any] | None:
@@ -63,7 +63,7 @@ class ServiceDictSchema(fields.Nested):  # type: ignore[misc]
         return result
 
 
-class ProfileSchema(BaseSchema):  # type: ignore[misc]
+class ProfileSchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
@@ -71,7 +71,7 @@ class ProfileSchema(BaseSchema):  # type: ignore[misc]
     services = ServiceDictSchema(BaseSchema, required=True)
 
 
-class ListSchema(_ListSchema):  # type: ignore[misc]
+class ListSchema(_ListSchema):
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'

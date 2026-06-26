@@ -87,7 +87,7 @@ class SourceManager:
 
         try:
             for result in manager.map(load):
-                return result  # type: ignore[no-any-return]
+                return result
             else:
                 return None
         except stevedore.exception.NoMatches:

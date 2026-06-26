@@ -18,13 +18,13 @@ class SourceSchema(BaseSourceSchema):
     phonebook_description = fields.String(dump_only=True)
     name = fields.String(validate=validate.Length(min=1, max=512), dump_only=True)
 
-    @post_load  # type: ignore[untyped-decorator]
+    @post_load
     def stringify_uuid(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         data.update(phonebook_uuid=str(data['phonebook_uuid']))
         return data
 
 
-class ListSchema(_ListSchema):  # type: ignore[misc]
+class ListSchema(_ListSchema):
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'
@@ -41,7 +41,7 @@ class CountParams(TypedDict):
     search: str | None
 
 
-class ContactListSchema(_ListSchema):  # type: ignore[misc]
+class ContactListSchema(_ListSchema):
     searchable_columns: list[str] = []
     sort_columns = ['firstname', 'lastname', 'number']
     default_sort_column = None

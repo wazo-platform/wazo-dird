@@ -27,7 +27,7 @@ Base: Any = declarative_base()
 UUID_LENGTH = 36
 
 
-class Contact(Base):  # type: ignore[misc]
+class Contact(Base):
     __tablename__ = 'dird_contact'
     __table_args__ = (
         schema.UniqueConstraint('user_uuid', 'hash'),
@@ -65,7 +65,7 @@ class Contact(Base):  # type: ignore[misc]
         return {field.name: field.value for field in self.fields}
 
 
-class ContactFields(Base):  # type: ignore[misc]
+class ContactFields(Base):
     __tablename__ = 'dird_contact_fields'
     __table_args__ = (
         schema.Index('dird_contact_fields__idx__contact_uuid', 'contact_uuid'),
@@ -79,7 +79,7 @@ class ContactFields(Base):  # type: ignore[misc]
     )
 
 
-class Display(Base):  # type: ignore[misc]
+class Display(Base):
     __tablename__ = 'dird_display'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
@@ -97,7 +97,7 @@ class Display(Base):  # type: ignore[misc]
     columns = relationship('DisplayColumn', viewonly=True)
 
 
-class DisplayColumn(Base):  # type: ignore[misc]
+class DisplayColumn(Base):
     __tablename__ = 'dird_display_column'
 
     uuid = Column(
@@ -115,7 +115,7 @@ class DisplayColumn(Base):  # type: ignore[misc]
     display = relationship('Display')
 
 
-class Favorite(Base):  # type: ignore[misc]
+class Favorite(Base):
     __tablename__ = 'dird_favorite'
 
     source_uuid = Column(
@@ -131,7 +131,7 @@ class Favorite(Base):  # type: ignore[misc]
     )
 
 
-class Phonebook(Base):  # type: ignore[misc]
+class Phonebook(Base):
     __tablename__ = 'dird_phonebook'
     __table_args__ = (
         schema.UniqueConstraint('name', 'tenant_uuid'),
@@ -152,7 +152,7 @@ class Phonebook(Base):  # type: ignore[misc]
     tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
 
 
-class Profile(Base):  # type: ignore[misc]
+class Profile(Base):
     __tablename__ = 'dird_profile'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
@@ -183,7 +183,7 @@ class Profile(Base):  # type: ignore[misc]
     services = relationship('ProfileService')
 
 
-class ProfileServiceSource(Base):  # type: ignore[misc]
+class ProfileServiceSource(Base):
     __tablename__ = 'dird_profile_service_source'
     __table_args__ = (
         schema.ForeignKeyConstraint(
@@ -209,7 +209,7 @@ class ProfileServiceSource(Base):  # type: ignore[misc]
     sources = relationship('Source')
 
 
-class ProfileService(Base):  # type: ignore[misc]
+class ProfileService(Base):
     __tablename__ = 'dird_profile_service'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'profile_tenant_uuid'),
@@ -248,7 +248,7 @@ class ProfileService(Base):  # type: ignore[misc]
     sources = association_proxy('profile_service_sources', 'sources')
 
 
-class Service(Base):  # type: ignore[misc]
+class Service(Base):
     __tablename__ = 'dird_service'
 
     uuid = Column(
@@ -257,7 +257,7 @@ class Service(Base):  # type: ignore[misc]
     name = Column(Text(), unique=True, nullable=False)
 
 
-class Source(Base):  # type: ignore[misc]
+class Source(Base):
     __tablename__ = 'dird_source'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
@@ -322,7 +322,7 @@ class Source(Base):  # type: ignore[misc]
         )
 
 
-class Tenant(Base):  # type: ignore[misc]
+class Tenant(Base):
     __tablename__ = 'dird_tenant'
 
     uuid = Column(
@@ -331,7 +331,7 @@ class Tenant(Base):  # type: ignore[misc]
     country = Column(String(2))
 
 
-class User(Base):  # type: ignore[misc]
+class User(Base):
     __tablename__ = 'dird_user'
     __table_args__ = (schema.Index('dird_user__idx__tenant_uuid', 'tenant_uuid'),)
 

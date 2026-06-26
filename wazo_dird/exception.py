@@ -20,7 +20,7 @@ class DatabaseServiceUnavailable(Exception):
         super().__init__('Postgresql is unavailable')
 
 
-class NoSuchDisplay(APIException):  # type: ignore[misc]
+class NoSuchDisplay(APIException):
     def __init__(self, uuid: Any) -> None:
         display_uuid = str(uuid)
         msg = f'No such display: "{display_uuid}"'
@@ -47,7 +47,7 @@ class NoSuchPhonebook(ValueError):
         super().__init__(message)
 
 
-class NoSuchPhonebookAPIException(APIException):  # type: ignore[misc]
+class NoSuchPhonebookAPIException(APIException):
     def __init__(
         self, resource: str, visible_tenants: list[str], phonebook_key: dict[str, Any]
     ) -> None:
@@ -63,7 +63,7 @@ class NoSuchPhonebookAPIException(APIException):  # type: ignore[misc]
         )
 
 
-class PhonebookContactImportAPIError(APIException):  # type: ignore[misc]
+class PhonebookContactImportAPIError(APIException):
     def __init__(
         self,
         message: str,
@@ -92,7 +92,7 @@ class NoSuchProfile(OldAPIException):
         super().__init__(status_code, body)
 
 
-class NoSuchProfileAPIException(APIException):  # type: ignore[misc]
+class NoSuchProfileAPIException(APIException):
     def __init__(self, uuid: Any) -> None:
         profile_uuid = str(uuid)
         msg = f'No such profile: "{profile_uuid}"'
@@ -117,7 +117,7 @@ class NoSuchContact(ValueError):
         super().__init__(message)
 
 
-class NoSuchSource(APIException):  # type: ignore[misc]
+class NoSuchSource(APIException):
     def __init__(self, uuid: Any) -> None:
         source_uuid = str(uuid)
         msg = f'No such source: "{source_uuid}"'
@@ -173,14 +173,14 @@ class PhonebookUpdateError(Exception):
         self.details = details or {}
 
 
-class DuplicatedProfileException(APIException):  # type: ignore[misc]
+class DuplicatedProfileException(APIException):
     def __init__(self, name: Any) -> None:
         msg = f'The name "{name}" is already used'
         details = {'name': {'constraint_id': 'unique', 'message': msg}}
         super().__init__(409, 'Conflict detected', 'conflict', details, 'profiles')
 
 
-class DuplicatedSourceException(APIException):  # type: ignore[misc]
+class DuplicatedSourceException(APIException):
     def __init__(self, name: Any) -> None:
         msg = f'The name "{name}" is already used'
         details = {'name': {'constraint_id': 'unique', 'message': msg}}
@@ -221,7 +221,7 @@ class InvalidSourceConfigError(InvalidConfigError):
         self.details = details
 
 
-class InvalidSourceConfigAPIError(APIException):  # type: ignore[misc]
+class InvalidSourceConfigAPIError(APIException):
     def __init__(
         self, source_info: dict[str, Any], details: dict[str, Any] | None = None
     ) -> None:
@@ -244,7 +244,7 @@ class InvalidContactException(Exception):
     pass
 
 
-class WazoConfdError(APIException):  # type: ignore[misc]
+class WazoConfdError(APIException):
     def __init__(self, confd_client: Any, error: Exception) -> None:
         super().__init__(
             status_code=503,
@@ -261,7 +261,7 @@ class WazoConfdError(APIException):  # type: ignore[misc]
         )
 
 
-class MasterTenantNotInitiatedException(APIException):  # type: ignore[misc]
+class MasterTenantNotInitiatedException(APIException):
     def __init__(self) -> None:
         error_message = 'wazo-dird master tenant is not initiated'
         super().__init__(503, error_message, 'matser-tenant-not-initiated')

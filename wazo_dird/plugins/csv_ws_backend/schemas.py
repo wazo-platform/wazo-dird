@@ -19,7 +19,7 @@ class SourceSchema(BaseSourceSchema):
     )
 
 
-class ListSchema(_ListSchema):  # type: ignore[misc]
+class ListSchema(_ListSchema):
     searchable_columns = ['uuid', 'name', 'lookup_url', 'list_url']
     sort_columns = ['name', 'lookup_url', 'list_url']
     default_sort_column = 'name'

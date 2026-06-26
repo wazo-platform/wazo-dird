@@ -23,11 +23,11 @@ from wazo_dird.plugin_manager import ServiceDependencies
 logger = logging.getLogger(__name__)
 
 
-class _PhonebookSchema(Schema):  # type: ignore[misc]
+class _PhonebookSchema(Schema):
     name = fields.String(validate=validate.Length(min=1, max=255), required=True)
     description = fields.String(allow_none=True)
 
-    @pre_load  # type: ignore[untyped-decorator]
+    @pre_load
     def ensure_dict(self, data: dict[str, Any] | None, **kwargs: Any) -> dict[str, Any]:
         return data or {}
 

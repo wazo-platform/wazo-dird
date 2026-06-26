@@ -12,20 +12,20 @@ from xivo.mallow.validate import Length
 from wazo_dird.schemas import BaseSchema
 
 
-class DisplayColumnSchema(BaseSchema):  # type: ignore[misc]
+class DisplayColumnSchema(BaseSchema):
     field = fields.String(allow_none=True)
     title = fields.String(allow_none=True)
     type = fields.String(allow_none=True)
     default = fields.String(allow_none=True)
     number_display = fields.String(allow_none=True)
 
-    @marshmallow.validates_schema  # type: ignore[untyped-decorator]
+    @marshmallow.validates_schema
     def check_not_empty(self, data: dict[str, Any], **kwargs: Any) -> None:
         if not data:
             raise marshmallow.ValidationError('Empty columns are now allowed')
 
 
-class DisplaySchema(BaseSchema):  # type: ignore[misc]
+class DisplaySchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String(validate=Length(min=1, max=512), required=True)
@@ -37,18 +37,18 @@ class DisplaySchema(BaseSchema):  # type: ignore[misc]
     )
 
 
-class SourceSchema(BaseSchema):  # type: ignore[misc]
+class SourceSchema(BaseSchema):
     backend = fields.String()
     name = fields.String()
     tenant_uuid = fields.UUID(dump_only=True)
     uuid = fields.UUID(dump_only=True)
 
 
-class ServiceSchema(BaseSchema):  # type: ignore[misc]
+class ServiceSchema(BaseSchema):
     sources = fields.Nested(SourceSchema, many=True)
 
 
-class ServiceDictSchema(fields.Nested):  # type: ignore[misc]
+class ServiceDictSchema(fields.Nested):
     def _serialize(
         self, value: Any, attr: str | None, obj: Any, **kwargs: Any
     ) -> dict[str, Any] | None:
@@ -64,7 +64,7 @@ class ServiceDictSchema(fields.Nested):  # type: ignore[misc]
         return result
 
 
-class ProfileSchema(BaseSchema):  # type: ignore[misc]
+class ProfileSchema(BaseSchema):
     uuid = fields.UUID(dump_only=True)
     tenant_uuid = fields.UUID(dump_only=True)
     name = fields.String()

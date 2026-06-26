@@ -4,7 +4,7 @@
 from xivo.rest_api_helpers import APIException
 
 
-class GoogleTokenNotFoundException(APIException):  # type: ignore[misc]
+class GoogleTokenNotFoundException(APIException):
     code = 404
 
     def __init__(self, user_uuid: str) -> None:

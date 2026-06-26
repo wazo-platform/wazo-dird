@@ -7,7 +7,7 @@ from xivo.mallow_helpers import ListSchema as _ListSchema
 from wazo_dird.schemas import BaseSourceSchema
 
 
-class ListSchema(_ListSchema):  # type: ignore[misc]
+class ListSchema(_ListSchema):
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'

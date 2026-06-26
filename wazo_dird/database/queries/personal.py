@@ -19,7 +19,7 @@ from .. import Contact, ContactFields, User
 from .base import BaseDAO, ContactInfo, compute_contact_hash, list_contacts_by_uuid
 
 
-class unaccent(ReturnTypeFromArgs):  # type: ignore[misc]
+class unaccent(ReturnTypeFromArgs):
     inherit_cache = True
 
 

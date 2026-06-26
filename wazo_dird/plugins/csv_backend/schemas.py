@@ -18,7 +18,7 @@ class SourceSchema(BaseSourceSchema):
     separator = fields.String(validate=Length(min=1, max=1), load_default=',')
 
 
-class ListSchema(_ListSchema):  # type: ignore[misc]
+class ListSchema(_ListSchema):
     searchable_columns = ['uuid', 'name', 'file']
     sort_columns = ['name', 'file']
     default_sort_column = 'name'

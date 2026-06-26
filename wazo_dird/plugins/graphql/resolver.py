@@ -29,7 +29,7 @@ if TYPE_CHECKING:
         user_uuid: str
         tenant_uuid: str
 
-    class ResolveInfo(GraphQLResolveInfo):  # type: ignore[misc]
+    class ResolveInfo(GraphQLResolveInfo):
         context: ContextDict
 
 

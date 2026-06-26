@@ -13,7 +13,7 @@ class CountParams(TypedDict):
     search: str | None
 
 
-class ContactListSchema(ListSchema):  # type: ignore[misc]
+class ContactListSchema(ListSchema):
     searchable_columns = ['uuid', 'name']
     sort_columns = ['firstname', 'lastname', 'name']
     default_sort_column = 'name'
@@ -28,7 +28,7 @@ class ContactListSchema(ListSchema):  # type: ignore[misc]
 contact_list_schema = ContactListSchema()
 
 
-class PhonebookListSchema(ListSchema):  # type: ignore[misc]
+class PhonebookListSchema(ListSchema):
     searchable_columns = ['name', 'description']
     sort_columns = ['name', 'description']
     default_sort_column = 'name'

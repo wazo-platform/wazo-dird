@@ -17,18 +17,18 @@ from wazo_dird.schemas import (
 )
 
 
-class ExtensionSchema(BaseSchema):  # type: ignore[misc]
+class ExtensionSchema(BaseSchema):
     context = fields.String()
     exten = fields.String()
 
 
-class ContactSchema(BaseSchema):  # type: ignore[misc]
+class ContactSchema(BaseSchema):
     id = fields.Integer()
     name = fields.String()
     extensions = fields.Nested(ExtensionSchema, many=True)
     incalls = fields.Nested(ExtensionSchema, many=True)
 
-    @pre_dump  # type: ignore[untyped-decorator]
+    @pre_dump
     def unpack_extensions(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         extension_schema = ExtensionSchema(many=True)
         incalls = []
@@ -44,7 +44,7 @@ class ContactSchema(BaseSchema):  # type: ignore[misc]
         return data
 
 
-class ContactListSchema(_ListSchema):  # type: ignore[misc]
+class ContactListSchema(_ListSchema):
     searchable_columns = ['id', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'
@@ -52,7 +52,7 @@ class ContactListSchema(_ListSchema):  # type: ignore[misc]
     recurse = fields.Boolean(load_default=False)
 
 
-class ListSchema(_ListSchema):  # type: ignore[misc]
+class ListSchema(_ListSchema):
     searchable_columns = ['uuid', 'name']
     sort_columns = ['name']
     default_sort_column = 'name'

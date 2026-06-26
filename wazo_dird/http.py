@@ -39,7 +39,7 @@ def handle_api_exception(
     return wrapper
 
 
-class LegacyErrorCatchingResource(Resource):  # type: ignore[misc]
+class LegacyErrorCatchingResource(Resource):
     method_decorators = [handle_api_exception] + Resource.method_decorators
 
 
@@ -49,7 +49,7 @@ class LegacyAuthResource(LegacyErrorCatchingResource):
     ] + LegacyErrorCatchingResource.method_decorators
 
 
-class ErrorCatchingResource(Resource):  # type: ignore[misc]
+class ErrorCatchingResource(Resource):
     method_decorators = [
         mallow_helpers.handle_validation_exception,
         rest_api_helpers.handle_api_exception,

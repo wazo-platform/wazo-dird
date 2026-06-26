@@ -6,7 +6,7 @@ from typing import Any
 from xivo.rest_api_helpers import APIException
 
 
-class UnexpectedEndpointException(APIException):  # type: ignore[misc]
+class UnexpectedEndpointException(APIException):
     code = 503
 
     def __init__(self, **kwargs: Any) -> None:
@@ -15,7 +15,7 @@ class UnexpectedEndpointException(APIException):  # type: ignore[misc]
         super().__init__(self.code, message, 'unexpected-endpoint-error', details)
 
 
-class MicrosoftTokenNotFoundException(APIException):  # type: ignore[misc]
+class MicrosoftTokenNotFoundException(APIException):
     code = 404
 
     def __init__(self, user_uuid: str) -> None:

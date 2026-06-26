@@ -10,12 +10,12 @@ from graphql import GraphQLError
 from xivo.rest_api_helpers import APIException
 
 
-class Unauthorized(GraphQLError):  # type: ignore[misc]
+class Unauthorized(GraphQLError):
     def __init__(self) -> None:
         super().__init__(message='Unauthorized')
 
 
-class AuthServerUnreachable(GraphQLError):  # type: ignore[misc]
+class AuthServerUnreachable(GraphQLError):
     def __init__(self, auth_config: dict[str, Any]) -> None:
         message = f'Authentication server {auth_config["host"]}:{auth_config["port"]} unreachable'
         super().__init__(message)

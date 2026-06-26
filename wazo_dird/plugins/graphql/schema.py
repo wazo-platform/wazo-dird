@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from .resolver import ResolveInfo
 
 
-class ContactInterface(Interface):  # type: ignore[misc]
+class ContactInterface(Interface):
     firstname = Field(String)
     lastname = Field(String)
     email = Field(String)
@@ -62,12 +62,12 @@ class ContactInterface(Interface):  # type: ignore[misc]
         pass
 
 
-class Contact(ObjectType):  # type: ignore[misc]
+class Contact(ObjectType):
     class Meta:
         interfaces = (ContactInterface,)
 
 
-class WazoContact(ObjectType):  # type: ignore[misc]
+class WazoContact(ObjectType):
     class Meta:
         interfaces = (ContactInterface,)
 
@@ -89,12 +89,12 @@ class WazoContact(ObjectType):  # type: ignore[misc]
         return info.context['resolver'].get_contact_related_field(contact, info)
 
 
-class ContactConnection(Connection):  # type: ignore[misc]
+class ContactConnection(Connection):
     class Meta:
         node = ContactInterface
 
 
-class UserMe(ObjectType):  # type: ignore[misc]
+class UserMe(ObjectType):
     contacts = relay.ConnectionField(
         ContactConnection,
         extens=List(
@@ -116,7 +116,7 @@ class UserMe(ObjectType):  # type: ignore[misc]
         return info.context['resolver'].get_user_me_uuid(parent, info, **args)
 
 
-class User(ObjectType):  # type: ignore[misc]
+class User(ObjectType):
     contacts = relay.ConnectionField(
         ContactConnection,
         extens=List(
@@ -138,7 +138,7 @@ class User(ObjectType):  # type: ignore[misc]
         return info.context['resolver'].get_user_me_uuid(parent, info, **args)
 
 
-class Query(ObjectType):  # type: ignore[misc]
+class Query(ObjectType):
     hello = Field(String, description='Return "world"')
     me = Field(UserMe, description='The user linked to the authentication token')
     user = Field(User, uuid=String(), description='The user to use for this query')
