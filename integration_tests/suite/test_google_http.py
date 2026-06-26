@@ -118,7 +118,9 @@ class TestGet(BaseGoogleCRUDTestCase):
             raises(Exception).matching(HTTP_404),
         )
 
-    def get(self, client, *args, **kwargs):
+    # Test facade: a per-instance helper that delegates to the dird client,
+    # intentionally shadowing RequestUtilMixin.get with a different signature.
+    def get(self, client, *args, **kwargs):  # type: ignore[override]
         return client.backends.get_source('google', *args, **kwargs)
 
 

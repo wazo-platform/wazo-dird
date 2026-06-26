@@ -29,7 +29,9 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
             exchange_type='headers',
         )
 
-        self.mock_auth_client = MockAuthClient(
+        # mock_auth_client is a ClassVar on the base class; assign through the
+        # class so it is not treated as an instance attribute override.
+        type(self).mock_auth_client = MockAuthClient(
             '127.0.0.1', self.service_port(9497, 'auth')
         )
 
@@ -90,7 +92,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
             if source['name'] == 'auto_conference_mytenant':
                 conference_uuid = source['uuid']
 
-        def check():
+        def check_profile():
             response = self.client.profiles.list(
                 name='default', tenant_uuid=self.tenant_uuid
             )
@@ -109,7 +111,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                 ),
             )
 
-        until.assert_(check, timeout=3)
+        until.assert_(check_profile, timeout=3)
 
     def test_google_source(self):
         self._publish_tenant_created_event()
@@ -154,7 +156,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
             if source['name'] == 'auto_google_mytenant':
                 google_source_uuid = source['uuid']
 
-        def check():
+        def check_profile():
             response = self.client.profiles.list(
                 name='default', tenant_uuid=self.tenant_uuid
             )
@@ -175,7 +177,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                 ),
             )
 
-        until.assert_(check, timeout=3)
+        until.assert_(check_profile, timeout=3)
 
     def test_lookup(self):
         self._publish_tenant_created_event()

@@ -176,7 +176,7 @@ class TestReverseTimeout(unittest.TestCase):
         future = Mock()
         future.done.return_value = False
         service, _ = _make_service_with_source()
-        service._executor.submit = Mock(return_value=future)
+        setattr(service._executor, 'submit', Mock(return_value=future))
 
         service.reverse(_PROFILE_WITH_SOURCE, '1234', 'test')
 
@@ -188,7 +188,7 @@ class TestReverseTimeout(unittest.TestCase):
         future = Mock()
         future.done.return_value = False
         service, _ = _make_service_with_source()
-        service._executor.submit = Mock(return_value=future)
+        setattr(service._executor, 'submit', Mock(return_value=future))
 
         service.reverse_many(_PROFILE_WITH_SOURCE, ['1234'], 'test')
 

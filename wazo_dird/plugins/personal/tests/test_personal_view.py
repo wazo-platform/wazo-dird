@@ -20,7 +20,15 @@ class TestPersonalView(TestCase):
 
     def test_that_load_with_no_personal_service_does_not_add_routes(self):
         self.plugin.load(
-            {'config': {}, 'http_namespace': Mock(), 'api': self.api, 'services': {}}
+            cast(
+                ViewDependencies,
+                {
+                    'config': {},
+                    'http_namespace': Mock(),
+                    'api': self.api,
+                    'services': {},
+                },
+            )
         )
 
         assert_that(self.api.add_resource.call_count, equal_to(0))

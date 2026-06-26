@@ -43,13 +43,16 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_with_no_lookup_service_does_not_add_route(self):
         self.plugin.load(
-            {
-                'config': {},
-                'http_namespace': Mock(),
-                'api': self.api,
-                'services': {},
-                'auth_client': None,
-            }
+            cast(
+                ViewDependencies,
+                {
+                    'config': {},
+                    'http_namespace': Mock(),
+                    'api': self.api,
+                    'services': {},
+                    'auth_client': None,
+                },
+            )
         )
 
         assert_that(
@@ -99,13 +102,16 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_with_no_favorites_service_does_not_add_route(self):
         JsonViewPlugin().load(
-            {
-                'config': {},
-                'http_namespace': Mock(),
-                'api': self.api,
-                'services': {},
-                'auth_client': None,
-            }
+            cast(
+                ViewDependencies,
+                {
+                    'config': {},
+                    'http_namespace': Mock(),
+                    'api': self.api,
+                    'services': {},
+                    'auth_client': None,
+                },
+            )
         )
 
         assert_that(
@@ -151,13 +157,16 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_with_no_personal_service_does_not_add_route(self):
         JsonViewPlugin().load(
-            {
-                'config': {},
-                'http_namespace': Mock(),
-                'api': self.api,
-                'services': {},
-                'auth_client': None,
-            }
+            cast(
+                ViewDependencies,
+                {
+                    'config': {},
+                    'http_namespace': Mock(),
+                    'api': self.api,
+                    'services': {},
+                    'auth_client': None,
+                },
+            )
         )
 
         assert_that(

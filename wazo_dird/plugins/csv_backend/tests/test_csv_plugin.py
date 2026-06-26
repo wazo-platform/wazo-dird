@@ -19,8 +19,14 @@ from hamcrest import (
 )
 
 from wazo_dird import make_result_class
+from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import CSVPlugin
+
+
+def _deps(deps: dict) -> SourcePluginDependencies:
+    return cast(SourcePluginDependencies, deps)
+
 
 comma_separated_content = '''\
 clientno,firstname,lastname,number,age
@@ -74,7 +80,7 @@ class TestCSVDirectorySourceSeparator(BaseCSVTestDirectory):
             'separator': '|',
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.search('ice')
 
@@ -105,7 +111,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         self.charles_result = SourceResult(self.charles)
 
     def test_load_empty_config(self):
-        self.source.load({})
+        self.source.load(_deps({}))
 
         result = self.source.search('foo')
 
@@ -117,7 +123,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'name': self.name,
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         result = self.source.search('foo')
 
@@ -126,7 +132,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_load_file(self):
         config = {'file': self.fname, 'name': self.name}
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         assert_that(
             self.source._content, contains_inanyorder(alice, self.bob, self.charles)
@@ -140,7 +146,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'unique_column': 'clientno',
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.search('ice')
 
@@ -153,7 +159,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'name': 'my_dir',
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.search('ice')
 
@@ -166,7 +172,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'name': 'my_dir',
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.search('ice')
 
@@ -175,7 +181,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_search_no_search_column(self):
         config = {'file': self.fname, 'name': 'my_dir'}
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.search('ice')
 
@@ -189,7 +195,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'name': self.name,
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.search('ice')
 
@@ -203,7 +209,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'name': self.name,
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.search('ice')
 
@@ -217,7 +223,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'name': self.name,
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         result = self.source.first_match('5555556666')
 
@@ -231,7 +237,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'name': self.name,
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         result = self.source.first_match('5555556666')
 
@@ -245,7 +251,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
             'name': self.name,
         }
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.first_match('555555666')
 
@@ -254,7 +260,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_list_no_unique(self):
         config = {'file': self.fname, 'name': 'my_dir'}
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.list(['1', '3'])
 
@@ -263,7 +269,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_list_with_unique_column_but_empty_uids(self):
         config = {'file': self.fname, 'unique_column': 'clientno', 'name': self.name}
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.list([])
 
@@ -272,7 +278,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_list_with_unique_column(self):
         config = {'file': self.fname, 'unique_column': 'clientno', 'name': self.name}
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         results = self.source.list(['1', '3'])
 
@@ -289,7 +295,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
     def test_is_in_unique_ids(self):
         config = {'file': self.fname, 'unique_column': 'clientno', 'name': 'my_dir'}
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         result = self.source._is_in_unique_ids(
             ['12'], {'firstname': 'Alice', 'lastname': 'AAA', 'clientno': '12'}
@@ -309,7 +315,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         term = 'ice'
         columns = ['firstname', 'lastname']
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         result = self.source._low_case_match_entry(term, columns, alice)
 
@@ -321,7 +327,7 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
         term = 'ice'
         columns = [None, 'firstname', 'lastname']
 
-        self.source.load({'config': config})
+        self.source.load(_deps({'config': config}))
 
         result = self.source._low_case_match_entry(
             term, cast('list[str]', columns), alice
