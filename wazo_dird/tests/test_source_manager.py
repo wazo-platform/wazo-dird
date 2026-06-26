@@ -13,7 +13,7 @@ class TestSourceManager(unittest.TestCase):
         source_1 = Mock()
         source_2 = Mock()
 
-        manager = SourceManager([], {'sources': {}}, s.auth_client, s.token_renewer)
+        manager = SourceManager({}, {'sources': {}}, s.auth_client, s.token_renewer)
         manager._sources = {'s1': source_1, 's2': source_2}
 
         manager.unload_sources()

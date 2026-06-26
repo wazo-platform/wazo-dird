@@ -4,6 +4,7 @@
 from contextlib import contextmanager
 from unittest.mock import ANY
 
+import requests
 from hamcrest import (
     assert_that,
     calling,
@@ -227,7 +228,7 @@ class TestPost(BaseOffice365CRUDTestCase):
     def test_post(self):
         try:
             self.client.backends.create_source(BACKEND, {})
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),
@@ -317,7 +318,7 @@ class TestPut(BaseOffice365CRUDTestCase):
 
         try:
             self.client.backends.edit_source(BACKEND, foobar['uuid'], {})
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),

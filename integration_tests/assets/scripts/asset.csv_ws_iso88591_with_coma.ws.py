@@ -26,10 +26,10 @@ def line(fields: Iterable[str], sep: str = separator) -> bytes:
 
 @app.route('/ws')
 def ws() -> Response | tuple[str, int]:
-    result: set[tuple[str, str, str, str]] = set()
+    result: list[tuple[str, str, str, str]] = []
 
     if not request.args.keys():
-        result = entries
+        result = list(entries)
 
     for field, term in request.args.items():
         if field not in headers:
@@ -37,8 +37,8 @@ def ws() -> Response | tuple[str, int]:
 
         i = headers.index(field)
         for entry in entries:
-            if term.lower() in entry[i].lower():
-                result.add(entry)
+            if term.lower() in entry[i].lower() and entry not in result:
+                result.append(entry)
 
     data = list(result)
     if not data:

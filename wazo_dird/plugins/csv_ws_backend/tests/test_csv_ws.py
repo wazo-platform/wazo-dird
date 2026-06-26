@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from typing import cast
 from unittest.mock import patch
 from unittest.mock import sentinel as s
 
 from hamcrest import assert_that, empty, is_
 
-from ..plugin import CSVWSPlugin
+from ..plugin import CSVWSPlugin, Dependencies
 
 
 class TestCSVWSPlugin(unittest.TestCase):
@@ -31,7 +32,7 @@ class TestCSVWSPlugin(unittest.TestCase):
         expected_params = {'firstname': 'dédé', 'lastname': 'dédé'}
 
         source = CSVWSPlugin()
-        source.load(config)
+        source.load(cast(Dependencies, config))
 
         source.search(term)
 
@@ -55,7 +56,7 @@ class TestCSVWSPlugin(unittest.TestCase):
         expected_params = {'exten': '1234'}
 
         source = CSVWSPlugin()
-        source.load(config)
+        source.load(cast(Dependencies, config))
 
         source.first_match(term)
 
@@ -73,9 +74,9 @@ class TestCSVWSPlugin(unittest.TestCase):
         }
 
         source = CSVWSPlugin()
-        source.load(config)
+        source.load(cast(Dependencies, config))
 
-        result = source.list([1, 2, 3])
+        result = source.list(['1', '2', '3'])
 
         assert_that(result, is_(empty()))
 
@@ -90,9 +91,9 @@ class TestCSVWSPlugin(unittest.TestCase):
         }
 
         source = CSVWSPlugin()
-        source.load(config)
+        source.load(cast(Dependencies, config))
 
-        result = source.list([1, 2, 3])
+        result = source.list(['1', '2', '3'])
 
         assert_that(result, is_(empty()))
 
@@ -109,9 +110,9 @@ class TestCSVWSPlugin(unittest.TestCase):
         }
 
         source = CSVWSPlugin()
-        source.load(config)
+        source.load(cast(Dependencies, config))
 
-        source.list([1, 2, 3])
+        source.list(['1', '2', '3'])
 
         mocked_requests.get.assert_called_once_with(
             'the_list_url', timeout=s.timeout, verify=True

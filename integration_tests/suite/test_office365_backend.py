@@ -4,6 +4,7 @@
 from unittest.mock import Mock
 
 import requests
+import urllib3
 from hamcrest import (
     assert_that,
     calling,
@@ -25,7 +26,7 @@ from .helpers.constants import UNKNOWN_TENANT, VALID_TOKEN_MAIN_TENANT
 from .helpers.fixtures import http as fixtures
 from .helpers.utils import BackendWrapper
 
-requests.packages.urllib3.disable_warnings()
+urllib3.disable_warnings()
 
 OFFICE365_CONTACTS = {
     "value": [

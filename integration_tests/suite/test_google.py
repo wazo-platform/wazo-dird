@@ -1,14 +1,14 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import requests
+import urllib3
 from hamcrest import assert_that, contains, has_entries, has_item
 from wazo_test_helpers.auth import AuthClient as AuthMock
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.fixtures import http as fixtures
 
-requests.packages.urllib3.disable_warnings()
+urllib3.disable_warnings()
 
 MARIO_INFO = {
     "resourceName": "people/c4084048990019506721",

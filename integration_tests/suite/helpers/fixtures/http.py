@@ -4,6 +4,7 @@
 import random
 import string
 from functools import wraps
+from typing import Any
 
 import requests
 from mockserver import MockServerClient as BaseMockServerClient
@@ -391,7 +392,10 @@ def personal_source(**source_args):
 
 
 def phonebook_autocreate_generator(self, *args, **kwargs):
-    return getattr(self, '_get_phonebook', PhonebookCRUD(Session()).create)(
+    # _get_phonebook (when defined on the test case) and PhonebookCRUD.create
+    # have intentionally different signatures, so the fetched callable is Any.
+    generator: Any = getattr(self, '_get_phonebook', PhonebookCRUD(Session()).create)
+    return generator(
         tenant_uuid=kwargs.get('tenant_uuid', MAIN_TENANT),
         name=kwargs.get('name', random_string()),
     )

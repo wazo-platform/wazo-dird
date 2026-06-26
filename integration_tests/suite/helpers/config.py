@@ -3,8 +3,10 @@
 
 import random
 import string
+from typing import cast
 
 from wazo_dird import database
+from wazo_dird.database.queries.source import SourceBody
 
 from .constants import MAIN_TENANT, SUB_TENANT
 
@@ -93,7 +95,7 @@ class Config:
         for source in self.sources:
             body = dict(source)
             backend = body.pop('backend')
-            new_source = self.source_crud.create(backend, body)
+            new_source = self.source_crud.create(backend, cast(SourceBody, body))
             self.created_sources[new_source['name']] = new_source
 
     def _remove_displays(self):

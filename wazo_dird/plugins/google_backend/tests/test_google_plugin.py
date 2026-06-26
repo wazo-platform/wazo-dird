@@ -1,9 +1,12 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from typing import cast
 from unittest import TestCase
 
 from hamcrest import assert_that, calling, equal_to, not_, raises
+
+from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import GooglePlugin
 
@@ -34,7 +37,7 @@ class TestGooglePlugin(TestCase):
         )
 
     def test_first_match_predicate(self):
-        self.source.load(self.DEPENDENCIES)
+        self.source.load(cast(SourcePluginDependencies, self.DEPENDENCIES))
 
         term = '5555551234'
 

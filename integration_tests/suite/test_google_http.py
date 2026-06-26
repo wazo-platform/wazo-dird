@@ -4,6 +4,7 @@
 from contextlib import contextmanager
 from unittest.mock import ANY
 
+import requests
 from hamcrest import (
     assert_that,
     calling,
@@ -211,7 +212,7 @@ class TestPost(BaseGoogleCRUDTestCase):
     def test_invalid_body(self):
         try:
             self.client.backends.create_source('google', {})
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),

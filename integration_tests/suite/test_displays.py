@@ -276,7 +276,7 @@ class TestPost(BaseDisplayTestCase):
     def assert_invalid_body(self, body):
         try:
             self.client.displays.create(body)
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(e.response.json(), has_entries(error_id='invalid-data'))
         else:
@@ -355,7 +355,7 @@ class TestPut(BaseDisplayTestCase):
     def assert_invalid_body(self, display_uuid, body):
         try:
             self.client.displays.edit(display_uuid, body)
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(e.response.json(), has_entries(error_id='invalid-data'))
         else:

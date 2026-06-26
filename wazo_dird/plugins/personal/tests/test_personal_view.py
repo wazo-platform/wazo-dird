@@ -1,10 +1,13 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from typing import cast
 from unittest import TestCase
 from unittest.mock import Mock
 
 from hamcrest import assert_that, equal_to
+
+from wazo_dird.plugin_manager import ViewDependencies
 
 from ..http import PersonalAll, PersonalImport, PersonalOne
 from ..plugin import PersonalViewPlugin
@@ -30,7 +33,7 @@ class TestPersonalView(TestCase):
             'services': {'personal': Mock()},
         }
 
-        self.plugin.load(args)
+        self.plugin.load(cast(ViewDependencies, args))
 
         self.api.add_resource.assert_any_call(
             PersonalAll, PersonalViewPlugin.personal_all_url

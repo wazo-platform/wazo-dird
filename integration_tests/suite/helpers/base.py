@@ -467,7 +467,7 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
         return result['bus_consumer']['status'] != 'fail'
 
     def _make_http_request(
-        self, verb: str, endpoint: str, body: str | None, headers: dict = None
+        self, verb: str, endpoint: str, body: str | None, headers: dict | None = None
     ) -> requests.Response:
         port = self.service_port(9489, 'dird')
         base_url = f'http://127.0.0.1:{port}/0.1/'

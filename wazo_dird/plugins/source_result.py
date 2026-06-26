@@ -43,6 +43,8 @@ class _SourceResult:
     backend: str
     source: str
     _format_columns: dict[str, str] = {}
+    is_deletable: bool = False
+    is_personal: bool = False
 
     fields: dict[str, Any | None]
     relations: dict[str, Any | None]

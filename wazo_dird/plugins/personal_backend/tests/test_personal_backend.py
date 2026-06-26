@@ -65,6 +65,7 @@ class TestPersonalBackend(TestCase):
         self._search_engine.find_first_personal_contact.assert_called_once_with(
             SOME_UUID, '555'
         )
+        assert result is not None
         assert_that(result.fields, equal_to(CONTACT_1))
 
     def test_that_first_match_return_none_if_no_match(self):

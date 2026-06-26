@@ -6,6 +6,7 @@ import random
 import string
 import tempfile
 import unittest
+from typing import IO, cast
 
 from hamcrest import (
     assert_that,
@@ -42,6 +43,11 @@ alice = {
 
 
 class BaseCSVTestDirectory(unittest.TestCase):
+    content: str
+    fd: int
+    fname: str
+    tmp_file: IO[str]
+
     @classmethod
     def setUpClass(cls):
         cls.fd, cls.fname = tempfile.mkstemp()
@@ -317,7 +323,9 @@ class TestCsvDirectorySource(BaseCSVTestDirectory):
 
         self.source.load({'config': config})
 
-        result = self.source._low_case_match_entry(term, columns, alice)
+        result = self.source._low_case_match_entry(
+            term, cast('list[str]', columns), alice
+        )
 
         assert_that(result, equal_to(True))
 

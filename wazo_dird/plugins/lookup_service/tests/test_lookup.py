@@ -3,9 +3,12 @@
 
 import unittest
 from concurrent.futures import ALL_COMPLETED
+from typing import cast
 from unittest.mock import Mock, patch, sentinel
 
 from hamcrest import assert_that, equal_to, none, not_
+
+from wazo_dird.helpers import ProfileConfig
 
 from ..plugin import LookupServicePlugin, _LookupService
 
@@ -94,6 +97,6 @@ class TestLookupNullOptions(unittest.TestCase):
             'services': {'lookup': {'sources': [], 'options': None}},
         }
 
-        service.lookup(profile, 'tenant', 'alice', 'user-uuid')
+        service.lookup(cast(ProfileConfig, profile), 'tenant', 'alice', 'user-uuid')
 
         mock_wait.assert_called_once_with([], return_when=ALL_COMPLETED)

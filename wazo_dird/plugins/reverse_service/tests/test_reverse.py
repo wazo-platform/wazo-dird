@@ -2,42 +2,63 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from typing import cast
 from unittest.mock import Mock, patch
+
+from wazo_dird.helpers import ProfileConfig
 
 from ..plugin import _ReverseService
 
 _SOURCE_UUID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 
-_PROFILE_NO_TIMEOUT = {
-    'name': 'test',
-    'services': {'reverse': {'sources': []}},
-}
+_PROFILE_NO_TIMEOUT = cast(
+    ProfileConfig,
+    {
+        'name': 'test',
+        'services': {'reverse': {'sources': []}},
+    },
+)
 
-_PROFILE_WITH_SOURCE = {
-    'name': 'test',
-    'services': {'reverse': {'sources': [{'uuid': _SOURCE_UUID}]}},
-}
+_PROFILE_WITH_SOURCE = cast(
+    ProfileConfig,
+    {
+        'name': 'test',
+        'services': {'reverse': {'sources': [{'uuid': _SOURCE_UUID}]}},
+    },
+)
 
-_PROFILE_WITH_TIMEOUT = {
-    'name': 'test',
-    'services': {'reverse': {'sources': [], 'options': {'timeout': 0.5}}},
-}
+_PROFILE_WITH_TIMEOUT = cast(
+    ProfileConfig,
+    {
+        'name': 'test',
+        'services': {'reverse': {'sources': [], 'options': {'timeout': 0.5}}},
+    },
+)
 
 # timeout outside options is rejected by the profile schema (RAISE on unknown fields)
-_PROFILE_WITH_TOPLEVEL_TIMEOUT = {
-    'name': 'test',
-    'services': {'reverse': {'sources': [], 'timeout': 0.5}},
-}
+_PROFILE_WITH_TOPLEVEL_TIMEOUT = cast(
+    ProfileConfig,
+    {
+        'name': 'test',
+        'services': {'reverse': {'sources': [], 'timeout': 0.5}},
+    },
+)
 
-_PROFILE_WITH_NULL_OPTIONS = {
-    'name': 'test',
-    'services': {'reverse': {'sources': [], 'options': None}},
-}
+_PROFILE_WITH_NULL_OPTIONS = cast(
+    ProfileConfig,
+    {
+        'name': 'test',
+        'services': {'reverse': {'sources': [], 'options': None}},
+    },
+)
 
-_PROFILE_WITH_ZERO_TIMEOUT = {
-    'name': 'test',
-    'services': {'reverse': {'sources': [], 'options': {'timeout': 0}}},
-}
+_PROFILE_WITH_ZERO_TIMEOUT = cast(
+    ProfileConfig,
+    {
+        'name': 'test',
+        'services': {'reverse': {'sources': [], 'options': {'timeout': 0}}},
+    },
+)
 
 
 def _make_service() -> _ReverseService:

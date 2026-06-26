@@ -4,6 +4,7 @@
 from contextlib import contextmanager
 from unittest.mock import ANY
 
+import requests
 from hamcrest import (
     assert_that,
     calling,
@@ -174,7 +175,7 @@ class TestPost(BaseWazoCRUDTestCase):
     def test_post(self):
         try:
             self.client.wazo_source.create({})
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),
@@ -260,7 +261,7 @@ class TestPut(BaseWazoCRUDTestCase):
 
         try:
             self.client.wazo_source.edit(foobar['uuid'], {})
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),

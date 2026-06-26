@@ -214,7 +214,7 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
             )
 
     def test_delete_contact(self):
-        result = self.service.delete_contact(
+        result = self.service.delete_contact(  # type: ignore[func-returns-value]
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), s.contact_uuid
         )
 

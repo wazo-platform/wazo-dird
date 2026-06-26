@@ -4,17 +4,19 @@
 import os
 import unittest
 import uuid
+from typing import cast
 from unittest.mock import ANY, Mock, call, sentinel
 
 import ldap
 from hamcrest import assert_that, contains_inanyorder
 from ldap.ldapobject import LDAPObject
 
-from wazo_dird.plugins.base_plugins import BaseSourcePlugin
+from wazo_dird.plugins.base_plugins import BaseSourcePlugin, SourcePluginDependencies
 from wazo_dird.plugins.source_result import make_result_class
 
 from ..plugin import (
     LDAPPlugin,
+    LDAPSourceConfig,
     _LDAPClient,
     _LDAPConfig,
     _LDAPFactory,
@@ -24,7 +26,7 @@ from ..plugin import (
 
 class TestLDAPPlugin(unittest.TestCase):
     def setUp(self):
-        self.config = {'config': sentinel}
+        self.config = cast(SourcePluginDependencies, {'config': sentinel})
         self.ldap_config = Mock(_LDAPConfig)
         self.ldap_result_formatter = Mock(_LDAPResultFormatter)
         self.ldap_client = Mock(_LDAPClient)
@@ -166,7 +168,7 @@ class TestLDAPFactory(unittest.TestCase):
         self.ldap_factory = _LDAPFactory()
 
     def test_ldap_config(self):
-        minimal_config = {'ldap_custom_filter': 'filter'}
+        minimal_config = cast(LDAPSourceConfig, {'ldap_custom_filter': 'filter'})
         ldap_config = self.ldap_factory.new_ldap_config(minimal_config)
 
         self.assertIsInstance(ldap_config, _LDAPConfig)
