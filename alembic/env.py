@@ -6,7 +6,8 @@ from logging.config import fileConfig
 
 from sqlalchemy import create_engine
 
-from alembic import context
+# alembic exposes op/context as runtime proxies that mypy cannot see statically
+from alembic import context  # type: ignore[attr-defined]
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,7 +26,7 @@ VERSION_TABLE = 'alembic_version_dird'
 URI = os.getenv('ALEMBIC_DB_URI', None)
 
 
-def get_url():
+def get_url() -> str | None:
     # The import should not be top level to allow the usage of the ALEMBIC_DB_URI
     # environment variable when the DB is not hosted on the same host as wazo-dird.
     # When building the docker image for the database for example.
@@ -35,7 +36,7 @@ def get_url():
     return wazo_config.get('db_uri')
 
 
-def run_migrations_offline():
+def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
     This configures the context with just a URL
@@ -54,7 +55,7 @@ def run_migrations_offline():
         context.run_migrations()
 
 
-def run_migrations_online():
+def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine

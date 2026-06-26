@@ -7,14 +7,15 @@ Revises: None
 
 import os
 
-from alembic import op
+# alembic exposes op as a runtime proxy that mypy cannot see statically
+from alembic import op  # type: ignore[attr-defined]
 
 # revision identifiers, used by Alembic.
 revision = '2adc8aff56ea'
 down_revision = None
 
 
-def upgrade():
+def upgrade() -> None:
     # Read and execute the SQL dump file
     versions_dir_path = os.path.dirname(__file__)
     sql_file_path = os.path.join(versions_dir_path, 'baseline-2514.sql')
@@ -26,5 +27,5 @@ def upgrade():
     op.execute(sql_content)
 
 
-def downgrade():
+def downgrade() -> None:
     pass

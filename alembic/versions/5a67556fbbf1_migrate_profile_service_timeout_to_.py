@@ -7,7 +7,8 @@ Revises: 2adc8aff56ea
 
 import sqlalchemy as sa
 
-from alembic import op
+# alembic exposes op as a runtime proxy that mypy cannot see statically
+from alembic import op  # type: ignore[attr-defined]
 
 # revision identifiers, used by Alembic.
 revision = '5a67556fbbf1'
@@ -20,7 +21,7 @@ _table = sa.table(
 )
 
 
-def upgrade():
+def upgrade() -> None:
     conn = op.get_bind()
     rows = conn.execute(sa.select(_table)).fetchall()
     for row in rows:
@@ -37,5 +38,5 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     pass
