@@ -26,7 +26,7 @@ from wazo_dird.exception import (
     NoSuchPhonebook,
     NoSuchTenant,
 )
-from wazo_dird.http import LegacyAuthResource
+from wazo_dird.http import LegacyAuthResource, get_json_body
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
@@ -178,7 +178,7 @@ class DeprecatedPhonebookContactAll(_Resource):
             self.phonebook_service.create_contact(
                 [matching_tenant['uuid']],
                 PhonebookKey(id=phonebook_id),
-                request.get_json(force=True),
+                get_json_body(),
             ),
             201,
         )
@@ -238,7 +238,7 @@ class DeprecatedPhonebookAll(_Resource):
         matching_tenant = self._find_tenant(scoping_tenant, tenant)
         return (
             self.phonebook_service.create_phonebook(
-                matching_tenant['uuid'], request.get_json(force=True)
+                matching_tenant['uuid'], get_json_body()
             ),
             201,
         )
@@ -327,7 +327,7 @@ class DeprecatedPhonebookContactOne(_Resource):
                 [matching_tenant['uuid']],
                 PhonebookKey(id=phonebook_id),
                 contact_uuid,
-                request.get_json(force=True),
+                get_json_body(),
             ),
             200,
         )
@@ -376,7 +376,7 @@ class DeprecatedPhonebookOne(_Resource):
             self.phonebook_service.edit_phonebook(
                 [matching_tenant['uuid']],
                 PhonebookKey(id=phonebook_id),
-                request.get_json(force=True),
+                get_json_body(),
             ),
             200,
         )

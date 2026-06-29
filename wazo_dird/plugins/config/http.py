@@ -1,16 +1,15 @@
-# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
 
 from typing import Any, cast
 
-from flask import request
 from jsonpatch import JsonPatch
 
 from wazo_dird.auth import required_acl, required_master_tenant
 from wazo_dird.config import Config as DirdConfig
-from wazo_dird.http import AuthResource
+from wazo_dird.http import AuthResource, get_json_body
 from wazo_dird.plugins.config_service.plugin import Service as ConfigService
 
 from .schemas import config_patch_schema
@@ -29,7 +28,7 @@ class Config(AuthResource):
     @required_master_tenant()
     @required_acl('dird.config.update')
     def patch(self) -> tuple[dict[str, Any], int]:
-        config_patch = config_patch_schema.load(request.get_json(force=True), many=True)
+        config_patch = config_patch_schema.load(get_json_body(many=True), many=True)
         config = self._config_service.get_config()
         patched_config = JsonPatch(config_patch).apply(cast('dict[str, Any]', config))
         self._config_service.update_config(cast('DirdConfig', patched_config))

@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from flask import request
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
-from wazo_dird.http import AuthResource
+from wazo_dird.http import AuthResource, get_json_body
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 
 from .schemas import display_list_schema, display_schema, list_schema
@@ -41,7 +41,7 @@ class Displays(_BaseResource):
     @required_acl('dird.displays.create')
     def post(self) -> tuple[dict[str, Any], int]:
         tenant = Tenant.autodetect()
-        args = display_schema.load(request.get_json(force=True))
+        args = display_schema.load(get_json_body())
         body = self._display_service.create(tenant_uuid=tenant.uuid, **args)
         result: dict[str, Any] = display_schema.dump(body)
         return result, 201
@@ -64,7 +64,7 @@ class Display(_BaseResource):
     @required_acl('dird.displays.{display_uuid}.update')
     def put(self, display_uuid: str) -> tuple[str, int]:
         visible_tenants = get_tenant_uuids(recurse=True)
-        args = display_schema.load(request.get_json(force=True))
+        args = display_schema.load(get_json_body())
         self._display_service.edit(
             display_uuid, visible_tenants=visible_tenants, **args
         )

@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -7,8 +7,9 @@ import logging
 import time
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any, Literal, TypeVar, cast, overload
 
+from flask import request
 from flask_restful import Resource
 from xivo import mallow_helpers, rest_api_helpers
 from xivo.flask.auth_verifier import AuthVerifierFlask
@@ -18,6 +19,26 @@ R = TypeVar('R')
 logger = logging.getLogger(__name__)
 
 auth_verifier = AuthVerifierFlask()
+
+
+@overload
+def get_json_body(many: Literal[False] = False) -> dict[str, Any]:
+    ...
+
+
+@overload
+def get_json_body(many: Literal[True]) -> list[dict[str, Any]]:
+    ...
+
+
+def get_json_body(many: bool = False) -> dict[str, Any] | list[dict[str, Any]]:
+    # get_json(force=True) raises on a missing/invalid body, so it never
+    # returns None at runtime; Flask's stub types it as Any | None regardless.
+    # `many` mirrors marshmallow: a JSON array body deserializes to a list.
+    body = request.get_json(force=True)
+    if many:
+        return cast('list[dict[str, Any]]', body)
+    return cast('dict[str, Any]', body)
 
 
 def handle_api_exception(

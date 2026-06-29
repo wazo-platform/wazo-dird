@@ -18,7 +18,7 @@ from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import auth
 from wazo_dird.auth import required_acl
-from wazo_dird.http import LegacyAuthResource
+from wazo_dird.http import LegacyAuthResource, get_json_body
 
 if TYPE_CHECKING:
     from wazo_dird.database.queries.base import ContactInfo
@@ -54,12 +54,12 @@ class PersonalAll(LegacyAuthResource):
     def post(self) -> tuple[dict[str, Any] | None, int]:
         user_uuid = _get_calling_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
-        contact = request.get_json(force=True)
+        contact = get_json_body()
         try:
-            contact = self.personal_service.create_contact(
+            created = self.personal_service.create_contact(
                 contact, user_uuid, tenant_uuid
             )
-            return contact, 201
+            return created, 201
         except self.personal_service.InvalidPersonalContact as e:
             error = {'reason': e.errors, 'timestamp': [time()], 'status_code': 400}
             return error, 400
@@ -170,7 +170,7 @@ class PersonalOne(LegacyAuthResource):
     def put(self, contact_id: str) -> tuple[dict[str, Any] | None, int]:
         user_uuid = _get_calling_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
-        new_contact = request.get_json(force=True)
+        new_contact = get_json_body()
         try:
             contact = self.personal_service.edit_contact(
                 contact_id, new_contact, user_uuid, tenant_uuid
