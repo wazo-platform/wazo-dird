@@ -81,7 +81,9 @@ class PersonalBackend(BaseSourcePlugin):
             return contact
         return None
 
-    def match_all(self, extens: list[str], args: dict[str, Any] | None = None):
+    def match_all(
+        self, extens: list[str], args: dict[str, Any] | None = None
+    ) -> dict[str, SourceResult]:
         logger.debug('Batch matching personal contacts for %d extens', len(extens))
         user_uuid = (args or {}).get('user_uuid')
         if not user_uuid:
