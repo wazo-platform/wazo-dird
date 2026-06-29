@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -8,6 +8,7 @@ import signal
 import threading
 from functools import partial
 from types import FrameType
+from typing import Any, cast
 
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
@@ -52,14 +53,17 @@ class Controller:
         self.token_renewer.subscribe_to_token_change(self.confd_client.set_token)
         self.status_aggregator = StatusAggregator()
         self.status_aggregator.add_provider(auth.provide_status)
-        self._service_registration_params = [
+        # a tuple keeps a distinct type per position so it unpacks cleanly into
+        # ServiceCatalogRegistration; the config values are typed Optional/
+        # TypedDict but are concrete dicts at runtime.
+        self._service_registration_params = (
             'wazo-dird',
-            self.config.get('uuid'),
-            self.config.get('consul'),
-            self.config.get('service_discovery'),
-            self.config.get('bus'),
+            cast(str, self.config.get('uuid')),
+            cast('dict[str, Any]', self.config.get('consul')),
+            cast('dict[str, Any]', self.config.get('service_discovery')),
+            cast('dict[str, Any]', self.config.get('bus')),
             partial(self_check, self.config['rest_api']['port']),
-        ]
+        )
         self._source_manager = SourceManager(
             self.config['enabled_plugins']['backends'],
             self.config,
