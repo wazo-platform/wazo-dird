@@ -169,7 +169,6 @@ class DeprecatedPhonebookContactAll(_Resource):
     }
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
     def post(self, tenant: str, phonebook_id: int) -> Response:
@@ -185,7 +184,6 @@ class DeprecatedPhonebookContactAll(_Resource):
         )
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.read')
     @_default_error_route
     def get(self, tenant: str, phonebook_id: int) -> Response:
@@ -216,7 +214,6 @@ class DeprecatedPhonebookAll(_Resource):
     }
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.read')
     @_default_error_route
     def get(self, tenant: str) -> Response:
@@ -234,7 +231,6 @@ class DeprecatedPhonebookAll(_Resource):
         return {'items': phonebooks, 'total': count}
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.create')
     @_default_error_route
     def post(self, tenant: str) -> Response:
@@ -252,7 +248,6 @@ class DeprecatedPhonebookContactImport(_Resource):
     error_code_map = {NoSuchTenant: 404, NoSuchPhonebook: 404}
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create')
     @_default_error_route
     def post(self, tenant: str, phonebook_id: int) -> Response:
@@ -292,7 +287,6 @@ class DeprecatedPhonebookContactOne(_Resource):
     }
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.read'
     )
@@ -308,7 +302,6 @@ class DeprecatedPhonebookContactOne(_Resource):
         )
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.delete'
     )
@@ -322,7 +315,6 @@ class DeprecatedPhonebookContactOne(_Resource):
         return '', 204
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl(
         'dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_uuid}.update'
     )
@@ -351,7 +343,6 @@ class DeprecatedPhonebookOne(_Resource):
     }
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete')
     @_default_error_route
     def delete(self, tenant: str, phonebook_id: int) -> Response:
@@ -363,7 +354,6 @@ class DeprecatedPhonebookOne(_Resource):
         return '', 204
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.read')
     @_default_error_route
     def get(self, tenant: str, phonebook_id: int) -> Response:
@@ -377,7 +367,6 @@ class DeprecatedPhonebookOne(_Resource):
         )
 
     @deprecated_endpoint
-    # required_acl comes from the untyped xivo.auth_verifier module
     @required_acl('dird.tenants.{tenant}.phonebooks.{phonebook_id}.update')
     @_default_error_route
     def put(self, tenant: str, phonebook_id: int) -> Response:

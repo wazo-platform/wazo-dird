@@ -1,4 +1,4 @@
-# Copyright 2015-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -7,9 +7,7 @@ from typing import Any, TypeVar, cast
 
 from wazo_auth_client import Client
 from werkzeug.local import LocalProxy as Proxy
-from xivo.auth_verifier import no_auth as _no_auth
-from xivo.auth_verifier import required_acl as _required_acl
-from xivo.auth_verifier import required_tenant
+from xivo.auth_verifier import no_auth, required_acl, required_tenant
 from xivo.status import Status, StatusDict
 
 from .config import AuthConfig
@@ -38,27 +36,8 @@ F = TypeVar('F', bound=Callable[..., Any])
 Decorator = Callable[[F], F]
 
 
-# no_auth and required_acl come from the untyped xivo.auth_verifier module;
-# wrap them so decorated endpoints keep a typed signature.
-def no_auth(func: F) -> F:
-    return cast(F, _no_auth(func))
-
-
-def required_acl(
-    acl: str, *args: Any, **kwargs: Any
-) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-    return cast(
-        'Callable[[Callable[..., Any]], Callable[..., Any]]',
-        _required_acl(acl, *args, **kwargs),
-    )
-
-
-def required_master_tenant() -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-    # required_tenant comes from the untyped xivo.auth_verifier module
-    return cast(
-        'Callable[[Callable[..., Any]], Callable[..., Any]]',
-        required_tenant(master_tenant_uuid),
-    )
+def required_master_tenant() -> Decorator:
+    return required_tenant(master_tenant_uuid)
 
 
 def init_master_tenant(token: dict[str, Any]) -> None:
