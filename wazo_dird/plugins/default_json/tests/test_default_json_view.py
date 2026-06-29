@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from typing import cast
 from unittest.mock import ANY, Mock, call
 from unittest.mock import sentinel as s
 from uuid import uuid4
@@ -18,6 +19,7 @@ from hamcrest import (
 
 from wazo_dird import make_result_class
 from wazo_dird.helpers import DisplayColumn
+from wazo_dird.plugin_manager import ViewDependencies
 from wazo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
 from ..http import (
@@ -41,13 +43,16 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_with_no_lookup_service_does_not_add_route(self):
         self.plugin.load(
-            {
-                'config': {},
-                'http_namespace': Mock(),
-                'api': self.api,
-                'services': {},
-                'auth_client': None,
-            }
+            cast(
+                ViewDependencies,
+                {
+                    'config': {},
+                    'http_namespace': Mock(),
+                    'api': self.api,
+                    'services': {},
+                    'auth_client': None,
+                },
+            )
         )
 
         assert_that(
@@ -55,17 +60,20 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         )
 
     def test_that_load_adds_the_lookup_route(self):
-        dependencies = {
-            'http_namespace': Mock(),
-            'api': self.api,
-            'services': {
-                'lookup': s.lookup_service,
-                'display': s.display_service,
-                'favorites': s.favorites_service,
-                'profile': s.profile_service,
+        dependencies = cast(
+            ViewDependencies,
+            {
+                'http_namespace': Mock(),
+                'api': self.api,
+                'services': {
+                    'lookup': s.lookup_service,
+                    'display': s.display_service,
+                    'favorites': s.favorites_service,
+                    'profile': s.profile_service,
+                },
+                'auth_client': s.auth_client,
             },
-            'auth_client': s.auth_client,
-        }
+        )
 
         self.plugin.load(dependencies)
 
@@ -94,13 +102,16 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_with_no_favorites_service_does_not_add_route(self):
         JsonViewPlugin().load(
-            {
-                'config': {},
-                'http_namespace': Mock(),
-                'api': self.api,
-                'services': {},
-                'auth_client': None,
-            }
+            cast(
+                ViewDependencies,
+                {
+                    'config': {},
+                    'http_namespace': Mock(),
+                    'api': self.api,
+                    'services': {},
+                    'auth_client': None,
+                },
+            )
         )
 
         assert_that(
@@ -113,16 +124,19 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         )
 
     def test_that_load_adds_the_favorite_route(self):
-        dependencies = {
-            'http_namespace': Mock(),
-            'api': self.api,
-            'services': {
-                'favorites': s.favorite_service,
-                'display': s.display_service,
-                'profile': s.profile_service,
+        dependencies = cast(
+            ViewDependencies,
+            {
+                'http_namespace': Mock(),
+                'api': self.api,
+                'services': {
+                    'favorites': s.favorite_service,
+                    'display': s.display_service,
+                    'profile': s.profile_service,
+                },
+                'auth_client': None,
             },
-            'auth_client': None,
-        }
+        )
 
         JsonViewPlugin().load(dependencies)
 
@@ -143,13 +157,16 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
     def test_that_load_with_no_personal_service_does_not_add_route(self):
         JsonViewPlugin().load(
-            {
-                'config': {},
-                'http_namespace': Mock(),
-                'api': self.api,
-                'services': {},
-                'auth_client': None,
-            }
+            cast(
+                ViewDependencies,
+                {
+                    'config': {},
+                    'http_namespace': Mock(),
+                    'api': self.api,
+                    'services': {},
+                    'auth_client': None,
+                },
+            )
         )
 
         assert_that(
@@ -157,17 +174,20 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
         )
 
     def test_that_load_adds_the_personal_routes(self):
-        dependencies = {
-            'http_namespace': Mock(),
-            'api': self.api,
-            'services': {
-                'personal': s.personal_service,
-                'favorites': s.favorites_service,
-                'display': s.display_service,
-                'profile': s.profile_service,
+        dependencies = cast(
+            ViewDependencies,
+            {
+                'http_namespace': Mock(),
+                'api': self.api,
+                'services': {
+                    'personal': s.personal_service,
+                    'favorites': s.favorites_service,
+                    'display': s.display_service,
+                    'profile': s.profile_service,
+                },
+                'auth_client': None,
             },
-            'auth_client': None,
-        }
+        )
 
         JsonViewPlugin().load(dependencies)
 
@@ -203,7 +223,7 @@ class TestFormatResult(unittest.TestCase):
         ]
         formatter = _ResultFormatter(display)
 
-        result = formatter.format_results([], [])
+        result = formatter.format_results([], {})
 
         expected_headers = ['Firstname', 'Lastname', None, 'Number', 'Country']
         assert_that(result, has_entries('column_headers', expected_headers))
@@ -219,7 +239,7 @@ class TestFormatResult(unittest.TestCase):
         ]
         formatter = _ResultFormatter(display)
 
-        result = formatter.format_results([], [])
+        result = formatter.format_results([], {})
 
         expected_types = [None, None, 'status', 'office_number', None, 'favorite']
         assert_that(result, has_entries('column_types', expected_types))
@@ -246,10 +266,10 @@ class TestFormatResult(unittest.TestCase):
                 'telephoneNumber': '5555556666',
             },
             self.xivo_id,
-            'agent_id',
-            'user_id',
+            cast(int, 'agent_id'),
+            cast(int, 'user_id'),
             UUID1,
-            'endpoint_id',
+            cast(int, 'endpoint_id'),
         )
         display = [
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
@@ -260,7 +280,7 @@ class TestFormatResult(unittest.TestCase):
         ]
         formatter = _ResultFormatter(display)
 
-        result = formatter.format_results([result1, result2], [])
+        result = formatter.format_results([result1, result2], {})
 
         assert_that(
             result,
@@ -319,10 +339,10 @@ class TestFormatResult(unittest.TestCase):
                 'telephoneNumber': '5555556666',
             },
             self.xivo_id,
-            'agent_id',
+            cast(int, 'agent_id'),
             2,
             UUID2,
-            'endpoint_id',
+            cast(int, 'endpoint_id'),
         )
         display = [
             DisplayColumn('Firstname', None, 'Unknown', 'firstname'),
@@ -375,10 +395,10 @@ class TestFormatResult(unittest.TestCase):
                 'telephoneNumber': '5555556666',
             },
             self.xivo_id,
-            'agent_id',
+            cast(int, 'agent_id'),
             2,
             UUID2,
-            'endpoint_id',
+            cast(int, 'endpoint_id'),
         )
         result3 = make_result_class(
             'personal',

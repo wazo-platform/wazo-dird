@@ -5,7 +5,7 @@ import logging
 import time
 from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
-from typing import TypedDict
+from typing import Any, TypedDict
 from unittest.mock import ANY
 
 import requests
@@ -57,7 +57,9 @@ class PhonebookSource(TypedDict):
 
 
 @contextmanager
-def phonebook_source(client: DirdClient, *args, **kwargs) -> Iterator[PhonebookSource]:
+def phonebook_source(
+    client: DirdClient, *args: Any, **kwargs: Any
+) -> Iterator[PhonebookSource]:
     try:
         _source = client.phonebook_source.create(*args, **kwargs)
     except requests.HTTPError as ex:
@@ -740,7 +742,7 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
 
 @contextmanager
 def timed():
-    result = {}
+    result: dict[str, float] = {}
     start = time.time()
     try:
         yield result

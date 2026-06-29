@@ -1,6 +1,8 @@
 # Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import logging
 import os
 from datetime import timedelta
@@ -12,6 +14,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from xivo import http_helpers, wsgi
 from xivo.http_helpers import ReverseProxied
 
+from .config import Config, RestAPIConfig
 from .http import (
     AuthResource,
     ErrorCatchingResource,
@@ -37,8 +40,8 @@ api = Api(app, prefix=f'/{VERSION}')
 
 
 class CoreRestApi:
-    def __init__(self, global_config):
-        self.config = global_config['rest_api']
+    def __init__(self, global_config: Config) -> None:
+        self.config: RestAPIConfig = global_config['rest_api']
         app.config['auth'] = global_config['auth']
         http_helpers.add_logger(app, logger)
         app.before_request(http_helpers.log_before_request)
@@ -47,17 +50,17 @@ class CoreRestApi:
         app.permanent_session_lifetime = timedelta(minutes=5)
         app.config.update(global_config)
         self.load_cors()
-        self.server = None
+        self.server: wsgi.WSGIServer | None = None
         self.app = app
         self.api = api
 
-    def load_cors(self):
+    def load_cors(self) -> None:
         cors_config = dict(self.config.get('cors', {}))
         enabled = cors_config.pop('enabled', False)
         if enabled:
             CORS(app, **cors_config)
 
-    def run(self):
+    def run(self) -> None:
         bind_addr = (self.config['listen'], self.config['port'])
 
         wsgi_app = ReverseProxied(ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': app})))
@@ -85,6 +88,6 @@ class CoreRestApi:
 
         self.server.start()
 
-    def stop(self):
+    def stop(self) -> None:
         if self.server:
             self.server.stop()

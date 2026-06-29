@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, cast
 
 from marshmallow import Schema, ValidationError, fields, pre_load, validate
 
@@ -17,6 +18,7 @@ from wazo_dird.database.queries.phonebook import (
 )
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
 from wazo_dird.plugin_helpers.sorting import sort_contacts
+from wazo_dird.plugin_manager import ServiceDependencies
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +28,12 @@ class _PhonebookSchema(Schema):
     description = fields.String(allow_none=True)
 
     @pre_load
-    def ensure_dict(self, data, **kwargs):
+    def ensure_dict(self, data: dict[str, Any] | None, **kwargs: Any) -> dict[str, Any]:
         return data or {}
 
 
 class PhonebookServicePlugin(BaseServicePlugin):
-    def load(self, args):
+    def load(self, args: ServiceDependencies) -> _PhonebookService:
         self._config = args.get('config')
         if not self._config:
             msg = '{} should be loaded with "config" but received: {}'.format(
@@ -63,24 +65,27 @@ class _PhonebookService:
         order: str | None = None,
         direction: Direction | None = None,
         order_insensitive: bool = False,
-        **params,
+        **params: Any,
     ) -> list[ContactInfo]:
         results = self._contact_crud.list(
             visible_tenants,
             phonebook_key,
             **params,
         )
-        results = sort_contacts(
-            results,
-            order=order,
-            direction=direction,
-            order_insensitive=order_insensitive,
+        sorted_results = cast(
+            list[ContactInfo],
+            sort_contacts(
+                cast('list[dict[str, Any]]', results),
+                order=order,
+                direction=direction,
+                order_insensitive=order_insensitive,
+            ),
         )
         start = offset or 0
-        return results[start : start + limit if limit else None]
+        return sorted_results[start : start + limit if limit else None]
 
     def list_phonebook(
-        self, visible_tenants: list[str], **params
+        self, visible_tenants: list[str], **params: Any
     ) -> list[PhonebookDict]:
         return self._phonebook_crud.list(
             visible_tenants,
@@ -92,27 +97,29 @@ class _PhonebookService:
         )
 
     def count_contact(
-        self, visible_tenants: list[str], phonebook_key: PhonebookKey, **params
+        self, visible_tenants: list[str], phonebook_key: PhonebookKey, **params: Any
     ) -> int:
         return self._contact_crud.count(visible_tenants, phonebook_key, **params)
 
-    def count_phonebook(self, visible_tenants: list[str], **params) -> int:
+    def count_phonebook(self, visible_tenants: list[str], **params: Any) -> int:
         return self._phonebook_crud.count(visible_tenants, **params)
 
     def create_contact(
         self,
         visible_tenants: list[str],
         phonebook_key: PhonebookKey,
-        contact_info: dict,
+        contact_info: dict[str, Any],
     ) -> ContactInfo:
         validated_contact = self._validate_contact(contact_info)
         return self._contact_crud.create(
             visible_tenants, phonebook_key, validated_contact
         )
 
-    def create_phonebook(self, tenant_uuid: str, phonebook_info: dict) -> PhonebookDict:
+    def create_phonebook(
+        self, tenant_uuid: str, phonebook_info: dict[str, Any]
+    ) -> PhonebookDict:
         try:
-            body: dict = _PhonebookSchema().load(phonebook_info)  # type: ignore
+            body: dict[str, Any] = _PhonebookSchema().load(phonebook_info)
         except ValidationError as e:
             raise InvalidPhonebookException(e.messages)
         return self._phonebook_crud.create(tenant_uuid, body)
@@ -122,7 +129,7 @@ class _PhonebookService:
         visible_tenants: list[str],
         phonebook_key: PhonebookKey,
         contact_uuid: str,
-        contact_info: dict,
+        contact_info: dict[str, Any],
     ) -> ContactInfo:
         return self._contact_crud.edit(
             visible_tenants,
@@ -135,20 +142,22 @@ class _PhonebookService:
         self,
         visible_tenants: list[str],
         phonebook_key: PhonebookKey,
-        phonebook_info: dict,
+        phonebook_info: dict[str, Any],
     ) -> PhonebookDict:
         try:
-            body: dict = _PhonebookSchema().load(phonebook_info)  # type: ignore
+            body: dict[str, Any] = _PhonebookSchema().load(phonebook_info)
         except ValidationError as e:
             raise InvalidPhonebookException(e.messages)
         return self._phonebook_crud.edit(visible_tenants, phonebook_key, body)
 
     def delete_contact(
         self, visible_tenants: list[str], phonebook_key: PhonebookKey, contact_uuid: str
-    ):
+    ) -> None:
         return self._contact_crud.delete(visible_tenants, phonebook_key, contact_uuid)
 
-    def delete_phonebook(self, visible_tenants: list[str], phonebook_key: PhonebookKey):
+    def delete_phonebook(
+        self, visible_tenants: list[str], phonebook_key: PhonebookKey
+    ) -> None:
         self._phonebook_crud.delete(visible_tenants, phonebook_key)
 
     def get_contact(
@@ -165,7 +174,7 @@ class _PhonebookService:
         self,
         visible_tenants: list[str],
         phonebook_key: PhonebookKey,
-        contacts: list[dict],
+        contacts: list[dict[str, Any]],
     ) -> tuple[list[ContactInfo], list[ContactEntryError]]:
         logger.debug(
             'Processing import of %d contacts in phonebook %s',
@@ -194,7 +203,7 @@ class _PhonebookService:
         return created, failed
 
     @staticmethod
-    def _validate_contact(body):
+    def _validate_contact(body: dict[str, Any]) -> dict[str, Any]:
         if not body:
             raise InvalidContactException('Contacts cannot be empty')
         if '' in body:

@@ -14,7 +14,9 @@ repos:
     rev: v1.19.1
     hooks:
       - id: mypy
-        exclude : "integration_tests/docker"
+        # broken-plugins fixture shares the module name "setup" with the root
+        # setup.py and triggers a duplicate-module error
+        exclude: '^integration_tests/docker/broken-plugins/setup\.py$'
         language_version: "3.11"
         additional_dependencies:
           - "types-requests"

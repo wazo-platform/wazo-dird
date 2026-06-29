@@ -1,19 +1,23 @@
 # Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import logging
 import threading
 from typing import Any
 
-from wazo_auth_client import Client as ConfdClient
 from wazo_bus.resources.auth.events import TenantCreatedEvent
 from wazo_bus.resources.localization.event import LocalizationEditedEvent
+from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseServicePlugin, database
-from wazo_dird.bus import BusConsumer
+from wazo_dird.bus import CoreBus
+from wazo_dird.config import Config
 from wazo_dird.controller import Controller
 from wazo_dird.database.helpers import Session
-from wazo_dird.database.queries.tenant import TenantCRUD
+from wazo_dird.database.queries.tenant import TenantCRUD, TenantDict
+from wazo_dird.plugin_manager import ServiceDependencies
 
 logger = logging.getLogger(__name__)
 
@@ -138,10 +142,10 @@ GOOGLE_SOURCE_BODY = {
 
 
 class ConfigServicePlugin(BaseServicePlugin):
-    def __init__(self):
-        self._service = None
+    def __init__(self) -> None:
+        self._service: Service | None = None
 
-    def load(self, dependencies):
+    def load(self, dependencies: ServiceDependencies) -> Service:
         bus = dependencies['bus']
         config = dependencies['config']
         controller = dependencies['controller']
@@ -149,9 +153,6 @@ class ConfigServicePlugin(BaseServicePlugin):
         return Service(
             config, bus, controller, database.TenantCRUD(Session), confd_client
         )
-
-
-Config = dict[str, Any]
 
 
 class Service:
@@ -162,11 +163,11 @@ class Service:
     def __init__(
         self,
         config: Config,
-        bus: BusConsumer,
+        bus: CoreBus,
         controller: Controller,
         tenant_crud: TenantCRUD,
         confd_client: ConfdClient,
-    ):
+    ) -> None:
         self._bus = bus
         self._config = config
         self._controller = controller
@@ -200,63 +201,65 @@ class Service:
         root_logger = logging.getLogger()
         root_logger.setLevel(self._config['log_level'])
 
-    def _on_new_tenant_event(self, tenant):
+    def _on_new_tenant_event(self, tenant: dict[str, Any]) -> None:
         name = tenant['name']
         uuid = tenant['uuid']
         sources = self._auto_create_sources(uuid, name)
         display = self._auto_create_display(uuid, name)
         self._auto_create_profile(uuid, name, display, sources)
 
-    def _on_localization_edited_event(self, localization):
+    def _on_localization_edited_event(self, localization: dict[str, Any]) -> None:
         logger.info('Localization_event received: %s', localization)
         tenant_uuid = localization['tenant_uuid']
         country = localization['country']
-        self._tenant_crud.create_or_edit(tenant_uuid, {'country': country})
+        body: TenantDict = {'country': country}
+        self._tenant_crud.create_or_edit(tenant_uuid, body)
 
-    def _add_source(self, backend, body):
-        source_service = self._controller.services.get('source')
+    def _add_source(self, backend: str, body: dict[str, Any]) -> Any:
+        source_service: Any = self._controller.services.get('source')
         try:
             source = source_service.create(backend, **body)
             logger.info('auto created %s source %s', backend, body)
             return source
         except Exception as e:
             logger.info('failed to create %s source %s', backend, e)
+            return None
 
-    def _add_conference_source(self, tenant_uuid, name):
+    def _add_conference_source(self, tenant_uuid: str, name: str) -> Any:
         backend = 'conference'
         body = dict(CONFERENCE_SOURCE_BODY)
         body['name'] = f'auto_{backend}_{name}'
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
-    def _add_personal_source(self, tenant_uuid, name):
+    def _add_personal_source(self, tenant_uuid: str, name: str) -> Any:
         backend = 'personal'
         body = dict(PERSONAL_SOURCE_BODY)
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
-    def _add_wazo_user_source(self, tenant_uuid, name):
+    def _add_wazo_user_source(self, tenant_uuid: str, name: str) -> Any:
         backend = 'wazo'
         body = dict(WAZO_SOURCE_BODY)
         body['name'] = f'auto_{backend}_{name}'
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
-    def _add_office365_source(self, tenant_uuid, name):
+    def _add_office365_source(self, tenant_uuid: str, name: str) -> Any:
         backend = 'office365'
         body = dict(OFFICE_365_SOURCE_BODY)
         body['name'] = f'auto_{backend}_{name}'
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
-    def _add_google_source(self, tenant_uuid, name):
+    def _add_google_source(self, tenant_uuid: str, name: str) -> Any:
         backend = 'google'
         body = dict(GOOGLE_SOURCE_BODY)
         body['name'] = f'auto_{backend}_{name}'
         body['tenant_uuid'] = tenant_uuid
         return self._add_source(backend, body)
 
-    def _auto_create_sources(self, tenant_uuid, name):
+    def _auto_create_sources(self, tenant_uuid: str, name: str) -> list[Any]:
         logger.info('creating sources for tenant "%s"', name)
         sources = [
             self._add_conference_source(tenant_uuid, name),
@@ -267,8 +270,8 @@ class Service:
         ]
         return [s for s in sources if s is not None]
 
-    def _auto_create_display(self, tenant_uuid, name):
-        display_service = self._controller.services.get('display')
+    def _auto_create_display(self, tenant_uuid: str, name: str) -> Any:
+        display_service: Any = self._controller.services.get('display')
         try:
             display = display_service.create(
                 tenant_uuid=tenant_uuid,
@@ -283,8 +286,15 @@ class Service:
             return display
         except Exception as e:
             logger.info('auto display creation failed %s', e)
+            return None
 
-    def _auto_create_profile(self, tenant_uuid, name, display, sources):
+    def _auto_create_profile(
+        self,
+        tenant_uuid: str,
+        name: str,
+        display: Any,
+        sources: list[Any],
+    ) -> None:
         logger.info('creating a new profile for tenant "%s"', name)
         body = {
             'name': 'default',
@@ -297,7 +307,7 @@ class Service:
             },
         }
 
-        profile_service = self._controller.services.get('profile')
+        profile_service: Any = self._controller.services.get('profile')
         try:
             profile = profile_service.create(**body)
             logger.info('auto created profile %s', profile)

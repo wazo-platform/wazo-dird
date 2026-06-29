@@ -94,7 +94,7 @@ class TestLDAP(BaseDirdIntegrationTest):
         Contact('Connor', 'Manson', '1003', 'QC'),
         Contact('François', 'Hollande', '1004', 'QC'),
     ]
-    entry_uuids = []
+    entry_uuids: list = []
 
     @classmethod
     def setUpClass(cls):
@@ -165,7 +165,7 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
         Contact('Bob', 'Barker', '1002', 'Québec'),
         Contact('Charlé', 'Doe', '1003', 'Québec'),
     ]
-    entry_uuids = []
+    entry_uuids: list = []
 
     @classmethod
     def setUpClass(cls):

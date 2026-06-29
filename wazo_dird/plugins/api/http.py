@@ -5,6 +5,7 @@ import logging
 
 import yaml
 from flask import make_response
+from flask.typing import ResponseReturnValue
 from xivo.chain_map import ChainMap
 from xivo.http_helpers import reverse_proxy_fix_api_spec
 from xivo.rest_api_helpers import load_all_api_specs
@@ -18,7 +19,7 @@ class ApiResource(ErrorCatchingResource):
     api_entry_point = "wazo_dird.views"
     api_filename = "api.yml"
 
-    def get(self):
+    def get(self) -> ResponseReturnValue:
         api_spec = ChainMap(
             *load_all_api_specs(self.api_entry_point, self.api_filename)
         )

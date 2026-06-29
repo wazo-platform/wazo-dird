@@ -8,7 +8,6 @@ from typing import TypedDict
 from flask_restful import Api
 
 from wazo_dird import BaseViewPlugin
-from wazo_dird.plugin_manager import ViewDependencies
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 
 from .http import (
@@ -24,13 +23,13 @@ class Services(TypedDict):
     phonebook: _PhonebookService
 
 
-class Dependencies(ViewDependencies):
+class Dependencies(TypedDict):
     api: Api
     services: Services
 
 
 class PhonebookViewPlugin(BaseViewPlugin):
-    def load(self, dependencies: Dependencies):
+    def load(self, dependencies: Dependencies) -> None:  # type: ignore[override]
         api = dependencies['api']
         args = (dependencies['services'].get('phonebook'),)
 

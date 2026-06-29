@@ -1,6 +1,10 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Any
+
 from marshmallow import RAISE
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range
@@ -31,20 +35,29 @@ class ServiceConfigSchema(BaseSchema):
 
 
 class ServiceDictSchema(fields.Nested):
-    def _serialize(self, nested_obj, attr, obj, **kwargs):
+    def _serialize(
+        self, nested_obj: Any, attr: str | None, obj: Any, **kwargs: Any
+    ) -> dict[str, Any] | None:
         if nested_obj is None:
             return None
 
-        result = {}
+        result: dict[str, Any] = {}
         for service_name, service_config in nested_obj.items():
             result[service_name] = ServiceConfigSchema().dump(service_config)
         return result
 
-    def _deserialize(self, nested_obj, attr, obj, **kwargs):
+    def _deserialize(
+        self,
+        nested_obj: Any,
+        attr: str | None,
+        obj: Any,
+        partial: bool | tuple[str, ...] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any] | None:
         if nested_obj is None:
             return None
 
-        result = {}
+        result: dict[str, Any] = {}
         for service_name, service_config in nested_obj.items():
             result[service_name] = ServiceConfigSchema().load(service_config)
         return result

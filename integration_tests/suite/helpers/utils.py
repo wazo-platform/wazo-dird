@@ -7,16 +7,14 @@ import random
 import string
 import uuid
 
-import requests
+import urllib3
 from stevedore import DriverManager
-
-from wazo_dird import BaseSourcePlugin
 
 from .constants import ASSET_ROOT
 
 logger = logging.getLogger(__name__)
 
-requests.packages.urllib3.disable_warnings()
+urllib3.disable_warnings()
 
 
 def absolute_file_name(asset_name, path):
@@ -25,7 +23,7 @@ def absolute_file_name(asset_name, path):
     return os.path.join(ASSET_ROOT, dirname, real_basename)
 
 
-class BackendWrapper(BaseSourcePlugin):
+class BackendWrapper:
     def __init__(self, backend, dependencies):
         manager = DriverManager(
             namespace='wazo_dird.backends', name=backend, invoke_on_load=True

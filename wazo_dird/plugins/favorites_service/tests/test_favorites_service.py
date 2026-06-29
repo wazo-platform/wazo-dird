@@ -2,12 +2,19 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from typing import cast
 from unittest.mock import ANY, Mock, patch
 from unittest.mock import sentinel as s
 
 from hamcrest import assert_that, equal_to, none, not_
 
+from wazo_dird.plugin_manager import ServiceDependencies
+
 from ..plugin import FavoritesServicePlugin
+
+
+def _deps(deps: dict) -> ServiceDependencies:
+    return cast(ServiceDependencies, deps)
 
 
 class TestFavoritesServicePlugin(unittest.TestCase):
@@ -32,12 +39,14 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         plugin = FavoritesServicePlugin()
 
         service = plugin.load(
-            {
-                'source_manager': self._source_manager,
-                'config': self._config,
-                'bus': s.bus,
-                'controller': s.controller,
-            }
+            _deps(
+                {
+                    'source_manager': self._source_manager,
+                    'config': self._config,
+                    'bus': s.bus,
+                    'controller': s.controller,
+                }
+            )
         )
 
         assert_that(service, not_(none()))
@@ -47,12 +56,14 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         plugin = FavoritesServicePlugin()
 
         service = plugin.load(
-            {
-                'config': self._config,
-                'source_manager': self._source_manager,
-                'bus': s.bus,
-                'controller': s.controller,
-            }
+            _deps(
+                {
+                    'config': self._config,
+                    'source_manager': self._source_manager,
+                    'bus': s.bus,
+                    'controller': s.controller,
+                }
+            )
         )
 
         MockedFavoritesService.assert_called_once_with(
@@ -69,12 +80,14 @@ class TestFavoritesServicePlugin(unittest.TestCase):
     def test_that_unload_stops_the_services(self, MockedFavoritesService):
         plugin = FavoritesServicePlugin()
         plugin.load(
-            {
-                'config': self._config,
-                'source_manager': self._source_manager,
-                'bus': s.bus,
-                'controller': s.controller,
-            }
+            _deps(
+                {
+                    'config': self._config,
+                    'source_manager': self._source_manager,
+                    'bus': s.bus,
+                    'controller': s.controller,
+                }
+            )
         )
 
         plugin.unload()

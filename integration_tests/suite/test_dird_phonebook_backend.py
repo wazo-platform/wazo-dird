@@ -36,7 +36,7 @@ def teardown_module():
     DBStarter.tearDownClass()
 
 
-def _new_contact(firstname, lastname) -> dict[str, str]:
+def _new_contact(firstname: str, lastname: str) -> dict[str, str]:
     random_number = ''.join(random.choice(string.digits) for _ in range(10))
     return {'firstname': firstname, 'lastname': lastname, 'number': random_number}
 

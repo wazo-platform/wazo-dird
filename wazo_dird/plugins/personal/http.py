@@ -1,11 +1,15 @@
 # Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import csv
 import io
 import logging
 import re
+from collections.abc import Callable
 from time import time
+from typing import TYPE_CHECKING, Any, cast
 
 from flask import Response, request
 from flask_restful import reqparse
@@ -16,6 +20,10 @@ from wazo_dird import auth
 from wazo_dird.auth import required_acl
 from wazo_dird.http import LegacyAuthResource
 
+if TYPE_CHECKING:
+    from wazo_dird.database.queries.base import ContactInfo
+    from wazo_dird.plugins.personal_service.plugin import _PersonalService
+
 logger = logging.getLogger(__name__)
 
 CHARSET_REGEX = re.compile('.*; *charset *= *(.*)')
@@ -25,25 +33,25 @@ parser = reqparse.RequestParser()
 parser.add_argument('format', type=str, required=False, location='args')
 
 
-def _get_calling_user_uuid():
+def _get_calling_user_uuid() -> str:
     token = request.headers['X-Auth-Token']
     token_infos = auth.client().token.get(token)
     user_uuid = token_infos.get('metadata').get('uuid')
     if not user_uuid:
         raise APIException(401, 'This token has no user UUID', 'invalid-token')
 
-    return user_uuid
+    return cast(str, user_uuid)
 
 
 class PersonalAll(LegacyAuthResource):
-    personal_service = None
+    personal_service: _PersonalService
 
     @classmethod
-    def configure(cls, personal_service):
+    def configure(cls, personal_service: _PersonalService) -> None:
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.create')
-    def post(self):
+    def post(self) -> tuple[dict[str, Any] | None, int]:
         user_uuid = _get_calling_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
         contact = request.get_json(force=True)
@@ -64,7 +72,9 @@ class PersonalAll(LegacyAuthResource):
             return error, 409
 
     @required_acl('dird.personal.read')
-    def get(self):
+    def get(
+        self,
+    ) -> tuple[dict[str, Any], int] | tuple[str, int] | Response:
         user_uuid = _get_calling_user_uuid()
         try:
             contacts = self.personal_service.list_contacts_raw(
@@ -82,7 +92,7 @@ class PersonalAll(LegacyAuthResource):
         return self.contacts_formatter(mimetype)(contacts)
 
     @required_acl('dird.personal.delete')
-    def delete(self):
+    def delete(self) -> tuple[str, int]:
         user_uuid = _get_calling_user_uuid()
 
         self.personal_service.purge_contacts(user_uuid)
@@ -90,12 +100,27 @@ class PersonalAll(LegacyAuthResource):
         return '', 204
 
     @classmethod
-    def contacts_formatter(cls, mimetype):
-        formatters = {'text/csv': cls.format_csv, 'application/json': cls.format_json}
+    def contacts_formatter(
+        cls, mimetype: str | None
+    ) -> Callable[
+        [list[dict[str, Any]]],
+        tuple[dict[str, Any], int] | tuple[str, int] | Response,
+    ]:
+        formatters: dict[
+            str,
+            Callable[
+                [list[dict[str, Any]]],
+                tuple[dict[str, Any], int] | tuple[str, int] | Response,
+            ],
+        ] = {'text/csv': cls.format_csv, 'application/json': cls.format_json}
+        if mimetype is None:
+            return cls.format_json
         return formatters.get(mimetype, cls.format_json)
 
     @staticmethod
-    def format_csv(contacts):
+    def format_csv(
+        contacts: list[dict[str, Any]],
+    ) -> tuple[str, int] | Response:
         if not contacts:
             return '', 204
         csv_text = io.StringIO()
@@ -116,19 +141,23 @@ class PersonalAll(LegacyAuthResource):
         )
 
     @staticmethod
-    def format_json(contacts):
+    def format_json(
+        contacts: list[dict[str, Any]],
+    ) -> tuple[dict[str, Any], int]:
         return {'items': contacts}, 200
 
 
 class PersonalOne(LegacyAuthResource):
-    personal_service = None
+    personal_service: _PersonalService
 
     @classmethod
-    def configure(cls, personal_service):
+    def configure(cls, personal_service: _PersonalService) -> None:
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.{contact_id}.read')
-    def get(self, contact_id):
+    def get(
+        self, contact_id: str
+    ) -> tuple[ContactInfo, int] | tuple[dict[str, Any], int]:
         user_uuid = _get_calling_user_uuid()
         try:
             contact = self.personal_service.get_contact(contact_id, user_uuid)
@@ -138,7 +167,7 @@ class PersonalOne(LegacyAuthResource):
             return error, 404
 
     @required_acl('dird.personal.{contact_id}.update')
-    def put(self, contact_id):
+    def put(self, contact_id: str) -> tuple[dict[str, Any] | None, int]:
         user_uuid = _get_calling_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
         new_contact = request.get_json(force=True)
@@ -162,7 +191,7 @@ class PersonalOne(LegacyAuthResource):
             return error, 409
 
     @required_acl('dird.personal.{contact_id}.delete')
-    def delete(self, contact_id):
+    def delete(self, contact_id: str) -> tuple[str | dict[str, Any], int]:
         user_uuid = _get_calling_user_uuid()
         try:
             self.personal_service.remove_contact(contact_id, user_uuid)
@@ -173,14 +202,14 @@ class PersonalOne(LegacyAuthResource):
 
 
 class PersonalImport(LegacyAuthResource):
-    personal_service = None
+    personal_service: _PersonalService
 
     @classmethod
-    def configure(cls, personal_service):
+    def configure(cls, personal_service: _PersonalService) -> None:
         cls.personal_service = personal_service
 
     @required_acl('dird.personal.import.create')
-    def post(self):
+    def post(self) -> tuple[dict[str, Any], int]:
         user_uuid = _get_calling_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
 
@@ -188,14 +217,23 @@ class PersonalImport(LegacyAuthResource):
         try:
             csv_document = request.data.decode(charset)
         except UnicodeDecodeError as e:
-            error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 400}
+            error: dict[str, Any] = {
+                'reason': [str(e)],
+                'timestamp': [time()],
+                'status_code': 400,
+            }
             return error, 400
 
         created, errors = self._mass_import(csv_document, user_uuid, tenant_uuid)
 
         if not created:
+            reason: list[dict[str, Any]] | list[str]
+            if errors:
+                reason = errors
+            else:
+                reason = ['No contact found']
             error = {
-                'reason': errors or ['No contact found'],
+                'reason': reason,
                 'timestamp': [time()],
                 'status_code': 400,
             }
@@ -204,6 +242,8 @@ class PersonalImport(LegacyAuthResource):
         result = {'created': created, 'failed': errors}
         return result, 201
 
-    def _mass_import(self, csv_document, user_uuid, tenant_uuid):
+    def _mass_import(
+        self, csv_document: str, user_uuid: str, tenant_uuid: str
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         reader = csv.DictReader(csv_document.split('\n'))
         return self.personal_service.create_contacts(reader, user_uuid, tenant_uuid)

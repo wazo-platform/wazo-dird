@@ -1,10 +1,13 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from typing import cast
 from unittest import TestCase
 from unittest.mock import Mock
 
 from hamcrest import assert_that, calling, not_, raises
+
+from wazo_dird.plugin_manager import ViewDependencies
 
 from ..plugin import SourceViewPlugin
 
@@ -16,7 +19,7 @@ class TestSourcePlugin(TestCase):
         self.source = SourceViewPlugin()
 
     def test_load(self):
-        self.source.load(self.DEPENDENCIES)
+        self.source.load(cast(ViewDependencies, self.DEPENDENCIES))
         assert_that(
             calling(self.source.load).with_args(self.DEPENDENCIES),
             not_(raises(Exception)),

@@ -4,17 +4,19 @@
 import os
 import unittest
 import uuid
+from typing import cast
 from unittest.mock import ANY, Mock, call, sentinel
 
 import ldap
 from hamcrest import assert_that, contains_inanyorder
 from ldap.ldapobject import LDAPObject
 
-from wazo_dird.plugins.base_plugins import BaseSourcePlugin
+from wazo_dird.plugins.base_plugins import BaseSourcePlugin, SourcePluginDependencies
 from wazo_dird.plugins.source_result import make_result_class
 
 from ..plugin import (
     LDAPPlugin,
+    LDAPSourceConfig,
     _LDAPClient,
     _LDAPConfig,
     _LDAPFactory,
@@ -24,7 +26,7 @@ from ..plugin import (
 
 class TestLDAPPlugin(unittest.TestCase):
     def setUp(self):
-        self.config = {'config': sentinel}
+        self.config = cast(SourcePluginDependencies, {'config': sentinel})
         self.ldap_config = Mock(_LDAPConfig)
         self.ldap_result_formatter = Mock(_LDAPResultFormatter)
         self.ldap_client = Mock(_LDAPClient)
@@ -124,7 +126,7 @@ class TestLDAPPlugin(unittest.TestCase):
         self.assertEqual(result, {'123': format_result, '456': format_result})
 
     def test_list_empty(self):
-        uids = []
+        uids: list[str] = []
         self.ldap_config.build_list_filter.return_value = None
         self.ldap_client.search.side_effect = TypeError('must be string, not None')
         self.ldap_result_formatter.format.return_value = []
@@ -166,7 +168,7 @@ class TestLDAPFactory(unittest.TestCase):
         self.ldap_factory = _LDAPFactory()
 
     def test_ldap_config(self):
-        minimal_config = {'ldap_custom_filter': 'filter'}
+        minimal_config = cast(LDAPSourceConfig, {'ldap_custom_filter': 'filter'})
         ldap_config = self.ldap_factory.new_ldap_config(minimal_config)
 
         self.assertIsInstance(ldap_config, _LDAPConfig)
@@ -365,7 +367,9 @@ class TestLDAPConfig(unittest.TestCase):
         assert_that(ldap_config.attributes(), contains_inanyorder('givenName', 'sn'))
 
     def test_build_search_filter_with_searched_columns_and_without_custom_filter(self):
-        ldap_config = _LDAPConfig({BaseSourcePlugin.SEARCHED_COLUMNS: ['cn']})
+        ldap_config = _LDAPConfig(
+            cast(LDAPSourceConfig, {BaseSourcePlugin.SEARCHED_COLUMNS: ['cn']})
+        )
 
         self.assertEqual('(cn=*foo*)', ldap_config.build_search_filter('foo'))
 
@@ -376,10 +380,13 @@ class TestLDAPConfig(unittest.TestCase):
 
     def test_build_search_filter_with_searched_columns_and_custom_filter(self):
         ldap_config = _LDAPConfig(
-            {
-                BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
-                'ldap_custom_filter': '(cn=*%Q*)',
-            }
+            cast(
+                LDAPSourceConfig,
+                {
+                    BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
+                    'ldap_custom_filter': '(cn=*%Q*)',
+                },
+            )
         )
 
         self.assertEqual(
@@ -390,10 +397,13 @@ class TestLDAPConfig(unittest.TestCase):
         self,
     ):
         ldap_config = _LDAPConfig(
-            {
-                BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
-                'ldap_custom_filter': '(cn=*%Q*)',
-            }
+            cast(
+                LDAPSourceConfig,
+                {
+                    BaseSourcePlugin.SEARCHED_COLUMNS: ['sn'],
+                    'ldap_custom_filter': '(cn=*%Q*)',
+                },
+            )
         )
 
         self.assertEqual(
@@ -401,7 +411,9 @@ class TestLDAPConfig(unittest.TestCase):
         )
 
     def test_build_search_filter_searched_columns_escape_term(self):
-        ldap_config = _LDAPConfig({BaseSourcePlugin.SEARCHED_COLUMNS: ['cn']})
+        ldap_config = _LDAPConfig(
+            cast(LDAPSourceConfig, {BaseSourcePlugin.SEARCHED_COLUMNS: ['cn']})
+        )
 
         term = 'f)f'
         escaped_term = 'f\\29f'
@@ -422,7 +434,10 @@ class TestLDAPConfig(unittest.TestCase):
 
     def test_build_search_filter_multiple_columns(self):
         ldap_config = _LDAPConfig(
-            {BaseSourcePlugin.SEARCHED_COLUMNS: ['givenName', 'sn']}
+            cast(
+                LDAPSourceConfig,
+                {BaseSourcePlugin.SEARCHED_COLUMNS: ['givenName', 'sn']},
+            )
         )
 
         term = 'foo'
@@ -434,7 +449,7 @@ class TestLDAPConfig(unittest.TestCase):
         ldap_config = self.new_ldap_config(
             {BaseSourcePlugin.UNIQUE_COLUMN: 'entryUUID'}
         )
-        uids = []
+        uids: list[str] = []
 
         self.assertFalse(ldap_config.build_list_filter(uids))
 

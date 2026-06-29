@@ -3,12 +3,13 @@
 
 from __future__ import annotations
 
-from typing import cast
+from typing import Any, cast
 
 from flask import request
 from jsonpatch import JsonPatch
 
 from wazo_dird.auth import required_acl, required_master_tenant
+from wazo_dird.config import Config as DirdConfig
 from wazo_dird.http import AuthResource
 from wazo_dird.plugins.config_service.plugin import Service as ConfigService
 
@@ -21,15 +22,15 @@ class Config(AuthResource):
 
     @required_master_tenant()
     @required_acl('dird.config.read')
-    def get(self) -> dict:
+    def get(self) -> dict[str, Any]:
         config = self._config_service.get_config()
         return dict(config)
 
     @required_master_tenant()
     @required_acl('dird.config.update')
-    def patch(self) -> tuple[dict, int]:
+    def patch(self) -> tuple[dict[str, Any], int]:
         config_patch = config_patch_schema.load(request.get_json(force=True), many=True)
         config = self._config_service.get_config()
-        patched_config = cast(dict, JsonPatch(config_patch).apply(config))
-        self._config_service.update_config(patched_config)
+        patched_config = JsonPatch(config_patch).apply(cast('dict[str, Any]', config))
+        self._config_service.update_config(cast('DirdConfig', patched_config))
         return dict(self._config_service.get_config()), 200

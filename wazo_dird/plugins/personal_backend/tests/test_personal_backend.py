@@ -1,6 +1,7 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from typing import cast
 from unittest import TestCase
 from unittest.mock import Mock
 from uuid import uuid4
@@ -8,6 +9,7 @@ from uuid import uuid4
 from hamcrest import assert_that, equal_to, has_item, has_property
 
 from wazo_dird import database
+from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import PersonalBackend
 
@@ -21,7 +23,8 @@ class TestPersonalBackend(TestCase):
         self._source = PersonalBackend()
         self._search_engine = Mock(database.PersonalContactSearchEngine)
         self._source.load(
-            {'config': {'name': 'personal'}}, search_engine=self._search_engine
+            cast(SourcePluginDependencies, {'config': {'name': 'personal'}}),
+            search_engine=self._search_engine,
         )
 
     def test_that_list_calls_list_on_the_search_engine(self):
@@ -65,6 +68,7 @@ class TestPersonalBackend(TestCase):
         self._search_engine.find_first_personal_contact.assert_called_once_with(
             SOME_UUID, '555'
         )
+        assert result is not None
         assert_that(result.fields, equal_to(CONTACT_1))
 
     def test_that_first_match_return_none_if_no_match(self):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TypedDict, cast
+from collections.abc import Mapping
+from typing import Any, TypedDict, cast
 
 from marshmallow import fields
 from xivo.mallow_helpers import ListSchema
@@ -20,7 +21,7 @@ class ContactListSchema(ListSchema):
 
     recurse = fields.Boolean(load_default=False)
 
-    def load_count(self, args: dict, **kwargs) -> CountParams:
+    def load_count(self, args: Mapping[str, Any], **kwargs: Any) -> CountParams:
         return cast(CountParams, projection(self.load(args, **kwargs), ['search']))
 
 
@@ -34,7 +35,7 @@ class PhonebookListSchema(ListSchema):
 
     recurse = fields.Boolean(load_default=False)
 
-    def load_count(self, args: dict, **kwargs) -> CountParams:
+    def load_count(self, args: Mapping[str, Any], **kwargs: Any) -> CountParams:
         return cast(CountParams, projection(self.load(args, **kwargs), ['search']))
 
 

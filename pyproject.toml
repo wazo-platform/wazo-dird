@@ -26,8 +26,7 @@ py_version = 311
 testpaths = ["wazo_dird"]
 
 [tool.mypy]
-python_version = "3.10"
-
+python_version = "3.11"
 show_error_codes = true
 check_untyped_defs = true
 warn_unused_configs = true
@@ -38,17 +37,27 @@ warn_unused_ignores = true
 strict_equality = true
 extra_checks = true
 no_warn_no_return = true
+scripts_are_modules = true
 
-ignore_errors = true
+# Exclude the broken-plugins fixture's setup.py: it shares the module name
+# "setup" with the root setup.py and causes a Duplicate module error
+exclude = [
+    "integration_tests/docker/broken-plugins/setup\\.py$",
+]
 
+explicit_package_bases = true
 [[tool.mypy.overrides]]
 module = [
-    "wazo_dird.plugins.config.*",
+    "*.tests.*",
+    "integration_tests.suite.*",
 ]
-ignore_errors = false
+disallow_untyped_defs = false
+disallow_untyped_calls = false
 
+# TODO: remove when py.typed markers are added to those libraries
 [[tool.mypy.overrides]]
 module = [
-    "wazo_dird.plugin_helpers.*"
+    "wazo_auth_client",
+    "wazo_confd_client",
 ]
-ignore_errors = false
+ignore_missing_imports = true

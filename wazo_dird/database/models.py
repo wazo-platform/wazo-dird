@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from typing import Any
 
 from sqlalchemy import (
     Column,
@@ -21,7 +22,7 @@ from sqlalchemy.orm import declarative_base, relationship
 
 logger = logging.getLogger(__name__)
 
-Base = declarative_base()
+Base: Any = declarative_base()
 
 UUID_LENGTH = 36
 
@@ -60,7 +61,7 @@ class Contact(Base):
     )
 
     @property
-    def fields_dict(self):
+    def fields_dict(self) -> dict[str, Any]:
         return {field.name: field.value for field in self.fields}
 
 
@@ -297,7 +298,7 @@ class Source(Base):
         else:
             return self._name
 
-    @name.setter
+    @name.setter  # type: ignore[no-redef]
     def name(self, value):
         if self.backend == 'phonebook':
             logger.debug(
@@ -308,7 +309,7 @@ class Source(Base):
         else:
             self._name = value
 
-    @name.expression
+    @name.expression  # type: ignore[no-redef]
     def name(cls):
         return sql.case(
             (

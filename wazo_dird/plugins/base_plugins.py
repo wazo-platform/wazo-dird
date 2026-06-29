@@ -4,13 +4,13 @@
 from __future__ import annotations
 
 import abc
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from wazo_auth_client import Client as AuthClient
 from xivo.token_renewer import TokenRenewer
 
 from wazo_dird.config import Config as MainConfig
-from wazo_dird.plugin_manager import ServiceDependencies
+from wazo_dird.plugin_manager import ServiceDependencies, ViewDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 
@@ -21,13 +21,13 @@ class BaseServicePlugin(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def load(self, args: ServiceDependencies):
+    def load(self, args: ServiceDependencies) -> Any:
         """
         Bootstraps the plugin instance. The flask app, bus connection and other
         handles will be passed through the args dictionary
         """
 
-    def unload(self):
+    def unload(self) -> None:
         """
         Does the cleanup before the service can be deleted
         """
@@ -35,7 +35,7 @@ class BaseServicePlugin(metaclass=abc.ABCMeta):
 
 class BaseViewPlugin(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def load(self, dependencies):
+    def load(self, dependencies: ViewDependencies) -> Any:
         """
         The load method is responsible of acquiring resources for the plugin and
         add the routes to the http_app.
@@ -76,20 +76,22 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
     backend: str
 
     @abc.abstractmethod
-    def load(self, args: SourcePluginDependencies):
+    def load(self, args: SourcePluginDependencies) -> Any:
         """
         The load function is responsible for setting up the source and acquiring
         any resources necessary.
         """
 
-    def unload(self):
+    def unload(self) -> None:
         """
         The unload method is used to release any resources that are under the
         responsibility of this instance.
         """
 
     @abc.abstractmethod
-    def search(self, term: str, args=None) -> list[SourceResult]:
+    def search(
+        self, term: str, args: dict[str, Any] | None = None
+    ) -> list[SourceResult]:
         """
         The search method should return a list of dict containing the search
         results.
@@ -104,7 +106,9 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def first_match(self, exten: str, args=None) -> SourceResult | None:
+    def first_match(
+        self, exten: str, args: dict[str, Any] | None = None
+    ) -> SourceResult | None:
         """
         The first_match method should return a dict containing the first matched
         result.
@@ -118,7 +122,9 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         added with a `__unique_id` header containing the unique key.
         """
 
-    def match_all(self, extens: list[str], args=None) -> dict[str, SourceResult]:
+    def match_all(
+        self, extens: list[str], args: dict[str, Any] | None = None
+    ) -> dict[str, SourceResult]:
         """
         The match_all method should return a dict with exten matched as key and
         a dict containing result as value.
@@ -138,7 +144,7 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
                 results[exten] = entry
         return results
 
-    def list(self, uids: list[str], args) -> list[SourceResult]:
+    def list(self, uids: list[str], args: dict[str, Any] | None) -> list[SourceResult]:
         """
         Returns a list of results based on the unique column for this backend.
         This function is not mandatory as some backends make it harder than

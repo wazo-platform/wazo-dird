@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from typing import cast
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
 from hamcrest import assert_that, equal_to, has_entries
 
 from wazo_dird import config
+from wazo_dird.config import Config
 
 
 @patch('builtins.print', Mock())
@@ -17,11 +19,14 @@ class TestConfig(TestCase):
         self, mock_open
     ):
         mock_open.side_effect = IOError('no such file')
-        config._DEFAULT_CONFIG = {
-            'config': 'default',
-            'config_file': '/etc/wazo-dird/config.yml',
-            'extra_config_files': '/etc/wazo-dird/conf.d/',
-        }
+        config._DEFAULT_CONFIG = cast(
+            Config,
+            {
+                'config': 'default',
+                'config_file': '/etc/wazo-dird/config.yml',
+                'extra_config_files': '/etc/wazo-dird/conf.d/',
+            },
+        )
 
         result = config.load([])
 

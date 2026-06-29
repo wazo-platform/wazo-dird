@@ -6,14 +6,17 @@ from __future__ import annotations
 import csv
 import logging
 import time
+from collections.abc import Callable
 from functools import wraps
-from typing import cast
+from typing import Any, TypeVar, cast
 from uuid import UUID
 
 from flask import Request, request
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
+from wazo_dird.database.queries.base import ContactInfo
+from wazo_dird.database.queries.phonebook import PhonebookDict, PhonebookKey
 from wazo_dird.exception import (
     DatabaseServiceUnavailable,
     DuplicatedContactException,
@@ -28,16 +31,20 @@ from wazo_dird.exception import (
 )
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
-from wazo_dird.plugins.phonebook_service.plugin import PhonebookKey, _PhonebookService
+from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 
 from .schemas import contact_list_schema, phonebook_list_schema
+
+R = TypeVar('R')
+
+ErrorResponse = tuple[dict[str, Any], int]
 
 request: Request  # type: ignore[no-redef]
 
 logger = logging.getLogger(__name__)
 
 
-def _make_error(reason, status_code):
+def _make_error(reason: str, status_code: int) -> ErrorResponse:
     return (
         {'reason': [reason], 'timestamp': [time.time()], 'status_code': status_code},
         status_code,
@@ -45,18 +52,23 @@ def _make_error(reason, status_code):
 
 
 class _Resource(AuthResource):
-    def __init__(self, phonebook_service):
+    error_code_map: dict[type[Exception], int] = {}
+
+    def __init__(self, phonebook_service: _PhonebookService) -> None:
         self.phonebook_service: _PhonebookService = phonebook_service
 
 
-def _default_error_route(f):
+def _default_error_route(
+    f: Callable[..., R],
+) -> Callable[..., R | ErrorResponse]:
     @wraps(f)
-    def decorator(self_, *args, **kwargs):
+    def decorator(self_: _Resource, *args: Any, **kwargs: Any) -> R | ErrorResponse:
         try:
             return f(self_, *args, **kwargs)
         except tuple(self_.error_code_map.keys()) as e:
             logger.info('%s', e)
             code = self_.error_code_map.get(e.__class__)
+            assert code is not None
             return _make_error(str(e), code)
 
     return decorator
@@ -74,22 +86,22 @@ class PhonebookContactAll(_Resource):
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.create')
     @_default_error_route
-    def post(self, phonebook_uuid: UUID):
+    def post(self, phonebook_uuid: UUID) -> tuple[ContactInfo, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
 
         return (
             self.phonebook_service.create_contact(
                 visible_tenants,
                 PhonebookKey(uuid=str(phonebook_uuid)),
-                cast(dict, request.get_json(force=True)),
+                cast('dict[str, Any]', request.get_json(force=True)),
             ),
             201,
         )
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.read')
     @_default_error_route
-    def get(self, phonebook_uuid: UUID):
-        list_params: dict = contact_list_schema.load(request.args)  # type: ignore
+    def get(self, phonebook_uuid: UUID) -> tuple[dict[str, Any], int]:
+        list_params: dict[str, Any] = contact_list_schema.load(request.args)
         visible_tenants = get_tenant_uuids(recurse=False)
 
         count = self.phonebook_service.count_contact(
@@ -116,8 +128,8 @@ class PhonebookAll(_Resource):
 
     @required_acl('dird.phonebooks.read')
     @_default_error_route
-    def get(self):
-        list_params = cast(dict, phonebook_list_schema.load(request.args))
+    def get(self) -> tuple[dict[str, Any], int]:
+        list_params = cast('dict[str, Any]', phonebook_list_schema.load(request.args))
         count_params = phonebook_list_schema.load_count(request.args)
         visible_tenants = get_tenant_uuids(recurse=list_params.pop('recurse'))
 
@@ -130,9 +142,9 @@ class PhonebookAll(_Resource):
 
     @required_acl('dird.phonebooks.create')
     @_default_error_route
-    def post(self):
+    def post(self) -> tuple[PhonebookDict, int]:
         tenant = Tenant.autodetect()
-        body = cast(dict, request.get_json(force=True))
+        body = cast('dict[str, Any]', request.get_json(force=True))
         return (
             self.phonebook_service.create_phonebook(tenant.uuid, body),
             201,
@@ -144,7 +156,7 @@ class PhonebookContactImport(_Resource):
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.create')
     @_default_error_route
-    def post(self, phonebook_uuid: UUID):
+    def post(self, phonebook_uuid: UUID) -> tuple[dict[str, Any], int]:
         visible_tenants = get_tenant_uuids(recurse=False)
 
         charset = request.mimetype_params.get('charset', 'utf-8')
@@ -164,7 +176,7 @@ class PhonebookContactImport(_Resource):
                 raise
 
         reader = csv.DictReader(data)
-        fields = reader.fieldnames
+        fields = reader.fieldnames or []
         duplicates = list({f for f in fields if fields.count(f) > 1})
         if duplicates:
             raise PhonebookContactImportAPIError(
@@ -218,7 +230,7 @@ class PhonebookContactOne(_Resource):
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.{contact_uuid}.read')
     @_default_error_route
-    def get(self, phonebook_uuid: UUID, contact_uuid: UUID):
+    def get(self, phonebook_uuid: UUID, contact_uuid: UUID) -> tuple[ContactInfo, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
 
         return (
@@ -232,7 +244,7 @@ class PhonebookContactOne(_Resource):
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.{contact_uuid}.delete')
     @_default_error_route
-    def delete(self, phonebook_uuid: UUID, contact_uuid: UUID):
+    def delete(self, phonebook_uuid: UUID, contact_uuid: UUID) -> tuple[str, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
 
         self.phonebook_service.delete_contact(
@@ -242,9 +254,9 @@ class PhonebookContactOne(_Resource):
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.contacts.{contact_uuid}.update')
     @_default_error_route
-    def put(self, phonebook_uuid: UUID, contact_uuid: UUID):
+    def put(self, phonebook_uuid: UUID, contact_uuid: UUID) -> tuple[ContactInfo, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
-        body = cast(dict, request.get_json(force=True))
+        body = cast('dict[str, Any]', request.get_json(force=True))
         return (
             self.phonebook_service.edit_contact(
                 visible_tenants,
@@ -267,7 +279,7 @@ class PhonebookOne(_Resource):
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.delete')
     @_default_error_route
-    def delete(self, phonebook_uuid: UUID):
+    def delete(self, phonebook_uuid: UUID) -> tuple[str, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
 
         self.phonebook_service.delete_phonebook(
@@ -277,7 +289,7 @@ class PhonebookOne(_Resource):
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.read')
     @_default_error_route
-    def get(self, phonebook_uuid: UUID):
+    def get(self, phonebook_uuid: UUID) -> tuple[PhonebookDict, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
 
         return (
@@ -289,9 +301,9 @@ class PhonebookOne(_Resource):
 
     @required_acl('dird.phonebooks.{phonebook_uuid}.update')
     @_default_error_route
-    def put(self, phonebook_uuid: UUID):
+    def put(self, phonebook_uuid: UUID) -> tuple[PhonebookDict, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
-        body = cast(dict, request.get_json(force=True))
+        body = cast('dict[str, Any]', request.get_json(force=True))
         return (
             self.phonebook_service.edit_phonebook(
                 visible_tenants,

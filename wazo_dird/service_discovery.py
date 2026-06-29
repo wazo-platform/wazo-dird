@@ -5,7 +5,7 @@ import requests
 
 
 # this function is not executed from the main thread
-def self_check(port):
+def self_check(port: int) -> bool:
     url = f'http://localhost:{port}/0.1/status'
     try:
         response = requests.get(url, headers={'accept': 'application/json'})

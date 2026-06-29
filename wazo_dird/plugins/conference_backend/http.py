@@ -1,6 +1,10 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Any, cast
+
 from flask import request
 
 from wazo_dird import exception
@@ -9,6 +13,7 @@ from wazo_dird.helpers import SourceItem, SourceList
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
+from wazo_dird.plugins.source_service.plugin import _SourceService
 
 from .schemas import (
     contact_list_param_schema,
@@ -25,11 +30,11 @@ class ConferenceList(SourceList):
     source_list_schema = source_list_schema
 
     @required_acl('dird.backends.conference.sources.read')
-    def get(self):
+    def get(self) -> dict[str, Any]:
         return super().get()
 
     @required_acl('dird.backends.conference.sources.create')
-    def post(self):
+    def post(self) -> dict[str, Any]:
         return super().post()
 
 
@@ -37,31 +42,31 @@ class ConferenceItem(SourceItem):
     source_schema = source_schema
 
     @required_acl('dird.backends.conference.sources.{source_uuid}.delete')
-    def delete(self, source_uuid):
+    def delete(self, source_uuid: str) -> tuple[str, int]:
         return super().delete(source_uuid)
 
     @required_acl('dird.backends.conference.sources.{source_uuid}.read')
-    def get(self, source_uuid):
+    def get(self, source_uuid: str) -> dict[str, Any]:
         return super().get(source_uuid)
 
     @required_acl('dird.backends.conference.sources.{source_uuid}.update')
-    def put(self, source_uuid):
+    def put(self, source_uuid: str) -> tuple[str, int]:
         return super().put(source_uuid)
 
 
 class ConferenceContactList(AuthResource):
-    def __init__(self, source_service):
+    def __init__(self, source_service: _SourceService) -> None:
         self._source_service = source_service
 
     @required_acl('dird.backends.conference.sources.{source_uuid}.contacts.read')
-    def get(self, source_uuid):
+    def get(self, source_uuid: str) -> dict[str, Any]:
         visible_tenants = get_tenant_uuids(recurse=True)
         list_params = contact_list_param_schema.load(request.args)
         source_config = self._source_service.get(
             'conference', source_uuid, visible_tenants
         )
 
-        confd = registry.get(source_config)
+        confd = registry.get(cast('dict[str, Any]', source_config))
         try:
             response = confd.conferences.list(**list_params)
         except Exception as e:

@@ -17,7 +17,7 @@
 import sys
 import time
 
-from flask import Flask, jsonify
+from flask import Flask, Response, jsonify
 
 timeout = int(sys.argv[1])
 
@@ -25,13 +25,13 @@ app = Flask(__name__)
 
 
 @app.route("/1.1/infos")
-def infos():
+def infos() -> Response:
     time.sleep(timeout)
     return jsonify({"uuid": "6fa459ea-ee8a-3ca4-894e-db77e1europe"})
 
 
 @app.route("/1.1/users")
-def users():
+def users() -> Response:
     time.sleep(timeout)
     return jsonify(
         {

@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import requests
 from graphql_server.flask import GraphQLView
@@ -23,13 +23,17 @@ from .schema import make_schema
 if TYPE_CHECKING:
     from wazo_auth_client.client import AuthClient
 
+    from wazo_dird.config import AuthConfig
+    from wazo_dird.plugin_manager import ViewDependencies
+    from wazo_dird.plugins.profile_service.plugin import _ProfileService
+    from wazo_dird.plugins.reverse_service.plugin import _ReverseService
     from wazo_dird.plugins.source_result import _SourceResult
 
     from .resolver import ResolveInfo
 
 
 class AuthorizationMiddleware:
-    def __init__(self, auth_config, auth_client: AuthClient) -> None:
+    def __init__(self, auth_config: AuthConfig, auth_client: AuthClient) -> None:
         self._auth_config = auth_config
         self._auth_client = auth_client
 
@@ -53,7 +57,7 @@ class AuthorizationMiddleware:
             raise
 
         try:
-            token_is_valid = self._auth_client.token.check(
+            token_is_valid: bool = self._auth_client.token.check(
                 token_id,
                 required_acl,
                 tenant=tenant.uuid,
@@ -71,12 +75,16 @@ class AuthorizationMiddleware:
         return token_is_valid
 
     def _is_schema_query(self, info: ResolveInfo) -> bool:
-        root_field = info.field_name
+        root_field: str = info.field_name
         return root_field == '__schema'
 
     def resolve(
-        self, next: Callable, root: _SourceResult, info: ResolveInfo, **args: Any
-    ):
+        self,
+        next: Callable[..., Any],
+        root: _SourceResult,
+        info: ResolveInfo,
+        **args: Any,
+    ) -> Any:
         if not self._is_root_query(info):
             return next(root, info, **args)
 
@@ -92,11 +100,15 @@ class AuthorizationMiddleware:
 
 
 class GraphQLViewPlugin(BaseViewPlugin):
-    def load(self, dependencies):
+    def load(self, dependencies: ViewDependencies) -> None:
         app = dependencies['flask_app']
 
-        profile_service = dependencies['services'].get('profile')
-        reverse_service = dependencies['services'].get('reverse')
+        profile_service = cast(
+            '_ProfileService', dependencies['services'].get('profile')
+        )
+        reverse_service = cast(
+            '_ReverseService', dependencies['services'].get('reverse')
+        )
         resolver = Resolver(profile_service, reverse_service)
         schema = make_schema()
 

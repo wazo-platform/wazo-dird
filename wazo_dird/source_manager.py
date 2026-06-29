@@ -58,7 +58,7 @@ class SourceManager:
 
             return self._sources[source_uuid]
 
-    def invalidate(self, source_uuid: str):
+    def invalidate(self, source_uuid: str) -> None:
         with self._source_lock:
             self._sources.pop(source_uuid, None)
 
@@ -82,7 +82,7 @@ class SourceManager:
             invoke_on_load=True,
         )
 
-        def load(extension):
+        def load(extension: Extension) -> BaseSourcePlugin:
             return self._add_source_with_config(extension, source_config)
 
         try:
@@ -93,13 +93,13 @@ class SourceManager:
         except stevedore.exception.NoMatches:
             return None
 
-    def unload_sources(self):
+    def unload_sources(self) -> None:
         logger.info('unloading all source plugins')
         for source in self._sources.values():
             if source is not None:
                 source.unload()
 
-    def set_source_service(self, service: SourceServiceProtocol):
+    def set_source_service(self, service: SourceServiceProtocol) -> None:
         self._source_service = service
 
     def _add_source_with_config(

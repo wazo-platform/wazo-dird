@@ -2,22 +2,23 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-from typing import cast
+from typing import Any, cast
 
 from flask import Request, request
 
 from wazo_dird.auth import required_acl
-from wazo_dird.config import AuthConfig
 from wazo_dird.database.queries.phonebook import PhonebookCRUD, PhonebookKey
+from wazo_dird.database.queries.source import SourceBody, SourceInfo
 from wazo_dird.exception import (
     InvalidConfigError,
     InvalidSourceConfigError,
     NoSuchPhonebook,
     NoSuchPhonebookAPIException,
 )
-from wazo_dird.helpers import SourceConfig, SourceItem, SourceList
+from wazo_dird.helpers import AuthConfig, SourceItem, SourceList
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
+from wazo_dird.plugins.base_plugins import SourceConfig
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_service.plugin import _SourceService
 from wazo_dird.utils import projection
@@ -30,7 +31,7 @@ request: Request  # type: ignore[no-redef]
 logger = logging.getLogger(__name__)
 
 
-def get_count_params(args: dict) -> dict:
+def get_count_params(args: dict[str, Any]) -> dict[str, Any]:
     return projection(args, ['search'])
 
 
@@ -56,21 +57,24 @@ class PhonebookList(SourceList):
         self.phonebook_dao = phonebook_dao
 
     @required_acl('dird.backends.phonebook.sources.read')
-    def get(self):
+    def get(self) -> dict[str, Any]:
         return super().get()
 
-    def _create_new_source(self, source_data: dict, tenant_uuid: str) -> dict:
+    def _create_new_source(
+        self, source_data: SourceBody, tenant_uuid: str
+    ) -> SourceInfo:
         try:
             return super()._create_new_source(source_data, tenant_uuid)
         except NoSuchPhonebook as ex:
+            phonebook_uuid = cast(dict[str, Any], source_data)['phonebook_uuid']
             raise NoSuchPhonebookAPIException(
                 resource='/backends/phonebook/sources',
                 visible_tenants=[tenant_uuid],
-                phonebook_key=PhonebookKey(uuid=source_data['phonebook_uuid']),
+                phonebook_key=dict(PhonebookKey(uuid=phonebook_uuid)),
             ) from ex
 
     @required_acl('dird.backends.phonebook.sources.create')
-    def post(self):
+    def post(self) -> dict[str, Any]:
         return super().post()
 
 
@@ -88,29 +92,31 @@ class PhonebookItem(SourceItem):
         self.phonebook_dao = phonebook_dao
 
     @required_acl('dird.backends.phonebook.sources.{source_uuid}.delete')
-    def delete(self, source_uuid):
+    def delete(self, source_uuid: str) -> tuple[str, int]:
         return super().delete(source_uuid)
 
     @required_acl('dird.backends.phonebook.sources.{source_uuid}.read')
-    def get(self, source_uuid):
+    def get(self, source_uuid: str) -> dict[str, Any]:
         return super().get(source_uuid)
 
     def _edit_source(
-        self, source_uuid: str, visible_tenants: list[str], source_data: dict
-    ):
+        self, source_uuid: str, visible_tenants: list[str], source_data: SourceBody
+    ) -> SourceInfo:
         try:
             return super()._edit_source(source_uuid, visible_tenants, source_data)
         except InvalidSourceConfigError as ex:
-            if 'pgerror' in ex.details and 'phonebook_uuid' in ex.details['pgerror']:
+            details = ex.details or {}
+            if 'pgerror' in details and 'phonebook_uuid' in details['pgerror']:
+                phonebook_uuid = cast(dict[str, Any], source_data)['phonebook_uuid']
                 raise NoSuchPhonebookAPIException(
                     resource='/backends/phonebook/sources',
                     visible_tenants=visible_tenants,
-                    phonebook_key=PhonebookKey(uuid=source_data['phonebook_uuid']),
+                    phonebook_key=dict(PhonebookKey(uuid=phonebook_uuid)),
                 )
             raise
 
     @required_acl('dird.backends.phonebook.sources.{source_uuid}.update')
-    def put(self, source_uuid):
+    def put(self, source_uuid: str) -> tuple[str, int]:
         return super().put(source_uuid)
 
 
@@ -126,7 +132,7 @@ class PhonebookContactList(AuthResource):
         self._phonebook_service = phonebook_service
 
     @required_acl('dird.backends.phonebook.sources.{source_uuid}.contacts.read')
-    def get(self, source_uuid):
+    def get(self, source_uuid: str) -> tuple[dict[str, Any], int]:
         visible_tenants = get_tenant_uuids(recurse=False)
         list_params = contact_list_schema.load(request.args)
         count_params = get_count_params(list_params)

@@ -14,6 +14,9 @@ from .helpers.utils import BackendWrapper, absolute_file_name
 
 
 class _BaseCSVFileTestCase(unittest.TestCase):
+    asset: str
+    source_config: str
+
     def setUp(self):
         config_file = absolute_file_name(self.asset, self.source_config)
         with open(config_file) as f:

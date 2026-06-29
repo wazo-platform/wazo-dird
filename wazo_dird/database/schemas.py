@@ -1,6 +1,10 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Any
+
 import marshmallow
 from xivo.mallow import fields
 from xivo.mallow.validate import Length
@@ -16,7 +20,7 @@ class DisplayColumnSchema(BaseSchema):
     number_display = fields.String(allow_none=True)
 
     @marshmallow.validates_schema
-    def check_not_empty(self, data, **kwargs):
+    def check_not_empty(self, data: dict[str, Any], **kwargs: Any) -> None:
         if not data:
             raise marshmallow.ValidationError('Empty columns are now allowed')
 
@@ -45,11 +49,13 @@ class ServiceSchema(BaseSchema):
 
 
 class ServiceDictSchema(fields.Nested):
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(
+        self, value: Any, attr: str | None, obj: Any, **kwargs: Any
+    ) -> dict[str, Any] | None:
         if value is None:
             return None
 
-        result = {}
+        result: dict[str, Any] = {}
         for profile_service in value:
             service_name = profile_service.service.name
             result[service_name] = profile_service.config

@@ -1,7 +1,13 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
+from typing import Any
+
 from sqlalchemy import and_, exc, func, text
+from sqlalchemy.orm import Query
+from sqlalchemy.orm import Session as BaseSession
 
 from wazo_dird import exception
 from wazo_dird.database import schemas
@@ -13,13 +19,13 @@ from .base import BaseDAO, extract_constraint_name
 class ProfileCRUD(BaseDAO):
     _profile_schema = schemas.ProfileSchema()
 
-    def count(self, visible_tenants, **list_params):
+    def count(self, visible_tenants: list[str] | None, **list_params: Any) -> int:
         filter_ = self._list_filter(visible_tenants, **list_params)
         with self.new_session() as s:
             query = s.query(func.count(Profile.uuid)).filter(filter_)
-            return query.scalar()
+            return int(query.scalar())
 
-    def create(self, body):
+    def create(self, body: dict[str, Any]) -> dict[str, Any]:
         tenant_uuid = body['tenant_uuid']
         with self.new_session() as s:
             self._create_tenant(s, tenant_uuid)
@@ -27,7 +33,7 @@ class ProfileCRUD(BaseDAO):
             self._associate_all_services(s, tenant_uuid, body['uuid'], body['services'])
         return body
 
-    def delete(self, visible_tenants, profile_uuid):
+    def delete(self, visible_tenants: list[str] | None, profile_uuid: str) -> None:
         filter_ = self._build_filter(visible_tenants, profile_uuid)
         with self.new_session() as s:
             nb_deleted = (
@@ -37,7 +43,12 @@ class ProfileCRUD(BaseDAO):
         if not nb_deleted:
             raise exception.NoSuchProfileAPIException(profile_uuid)
 
-    def edit(self, visible_tenants, profile_uuid, body):
+    def edit(
+        self,
+        visible_tenants: list[str] | None,
+        profile_uuid: str,
+        body: dict[str, Any],
+    ) -> None:
         filter_ = self._build_filter(visible_tenants, profile_uuid)
         with self.new_session() as s:
             self._dissociate_all_services(s, profile_uuid)
@@ -63,23 +74,33 @@ class ProfileCRUD(BaseDAO):
                 s, profile.tenant_uuid, profile_uuid, body['services']
             )
 
-    def get(self, visible_tenants, profile_uuid):
+    def get(
+        self, visible_tenants: list[str] | None, profile_uuid: str
+    ) -> dict[str, Any]:
         filter_ = self._build_filter(visible_tenants, profile_uuid)
         with self.new_session() as s:
             profile = s.query(Profile).filter(filter_).first()
             if not profile:
                 raise exception.NoSuchProfileAPIException(profile_uuid)
 
-            return self._profile_schema.dump(profile)
+            result: dict[str, Any] = self._profile_schema.dump(profile)
+            return result
 
-    def list_(self, visible_tenants, **list_params):
+    def list_(
+        self, visible_tenants: list[str] | None, **list_params: Any
+    ) -> list[dict[str, Any]]:
         filter_ = self._list_filter(visible_tenants, **list_params)
         with self.new_session() as s:
             query = s.query(Profile).filter(filter_)
             query = self._paginate(query, **list_params)
-            return self._profile_schema.dump(query.all(), many=True)
+            result: list[dict[str, Any]] = self._profile_schema.dump(
+                query.all(), many=True
+            )
+            return result
 
-    def _build_filter(self, visible_tenants, profile_uuid):
+    def _build_filter(
+        self, visible_tenants: list[str] | None, profile_uuid: str
+    ) -> Any:
         filter_ = Profile.uuid == profile_uuid
         if visible_tenants is not None:
             if not visible_tenants:
@@ -87,7 +108,13 @@ class ProfileCRUD(BaseDAO):
             filter_ = and_(filter_, Profile.tenant_uuid.in_(visible_tenants))
         return filter_
 
-    def _associate_all_services(self, session, tenant_uuid, profile_uuid, services):
+    def _associate_all_services(
+        self,
+        session: BaseSession,
+        tenant_uuid: str,
+        profile_uuid: str,
+        services: dict[str, dict[str, Any]],
+    ) -> None:
         for service_name, config in services.items():
             service_uuid = self._create_service(session, service_name)
             profile_service_uuid = self._create_profile_service(
@@ -99,15 +126,20 @@ class ProfileCRUD(BaseDAO):
                     session, tenant_uuid, profile_service_uuid, source_uuid
                 )
 
-    def _dissociate_all_services(self, session, profile_uuid):
+    def _dissociate_all_services(self, session: BaseSession, profile_uuid: str) -> None:
         session.query(ProfileService).filter(
             ProfileService.profile_uuid == profile_uuid
         ).delete(synchronize_session=False)
 
     def _list_filter(
-        self, visible_tenants, uuid=None, name=None, search=None, **list_params
-    ):
-        filter_ = text('true')
+        self,
+        visible_tenants: list[str] | None,
+        uuid: str | None = None,
+        name: str | None = None,
+        search: str | None = None,
+        **list_params: Any,
+    ) -> Any:
+        filter_: Any = text('true')
         if visible_tenants is not None:
             if not visible_tenants:
                 return text('false')
@@ -123,8 +155,13 @@ class ProfileCRUD(BaseDAO):
 
     @staticmethod
     def _paginate(
-        query, limit=None, offset=None, order=None, direction=None, **ignored
-    ):
+        query: Query[Any],
+        limit: int | None = None,
+        offset: int | None = None,
+        order: str | None = None,
+        direction: str | None = None,
+        **ignored: Any,
+    ) -> Query[Any]:
         if order and direction:
             field = None
             if order == 'name':
@@ -143,7 +180,7 @@ class ProfileCRUD(BaseDAO):
         return query
 
     @staticmethod
-    def _create_profile(session, body):
+    def _create_profile(session: BaseSession, body: dict[str, Any]) -> Any:
         display = body.get('display') or {}
         display_uuid = display.get('uuid')
         profile = Profile(
@@ -166,8 +203,12 @@ class ProfileCRUD(BaseDAO):
 
     @staticmethod
     def _create_profile_service(
-        session, tenant_uuid, profile_uuid, service_uuid, config
-    ):
+        session: BaseSession,
+        tenant_uuid: str,
+        profile_uuid: str,
+        service_uuid: str,
+        config: dict[str, Any],
+    ) -> Any:
         config = dict(config)
         config.pop('sources', None)
         profile_service = ProfileService(
@@ -182,8 +223,11 @@ class ProfileCRUD(BaseDAO):
 
     @staticmethod
     def _create_profile_service_source(
-        session, tenant_uuid, profile_service_uuid, source_uuid
-    ):
+        session: BaseSession,
+        tenant_uuid: str,
+        profile_service_uuid: str,
+        source_uuid: str | None,
+    ) -> None:
         if source_uuid is None:
             raise exception.NoSuchSource(source_uuid)
 
@@ -205,7 +249,7 @@ class ProfileCRUD(BaseDAO):
             raise
 
     @staticmethod
-    def _create_service(session, name):
+    def _create_service(session: BaseSession, name: str) -> Any:
         service = session.query(Service).filter(Service.name == name).scalar()
         if not service:
             service = Service(name=name)
@@ -215,7 +259,7 @@ class ProfileCRUD(BaseDAO):
         return service.uuid
 
     @staticmethod
-    def _display_to_dict(display):
-        result = display.__dict__
+    def _display_to_dict(display: Any) -> dict[str, Any]:
+        result: dict[str, Any] = display.__dict__
         result['columns'] = display.columns
         return result

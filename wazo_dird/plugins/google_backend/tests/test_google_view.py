@@ -1,8 +1,11 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from typing import cast
 from unittest import TestCase
 from unittest.mock import ANY, Mock
+
+from wazo_dird.helpers import BackendViewDependencies
 
 from ..http import GoogleItem, GoogleList
 from ..plugin import GoogleViewPlugin
@@ -21,7 +24,7 @@ class TestGoogleView(TestCase):
             'services': {'source': Mock()},
         }
 
-        self.plugin.load(dependencies)
+        self.plugin.load(cast(BackendViewDependencies, dependencies))
 
         self.api.add_resource.assert_any_call(GoogleList, ANY, resource_class_args=ANY)
         self.api.add_resource.assert_any_call(GoogleItem, ANY, resource_class_args=ANY)

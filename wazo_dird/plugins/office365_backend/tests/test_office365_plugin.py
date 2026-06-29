@@ -1,6 +1,7 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from typing import Any
 from unittest import TestCase
 
 from hamcrest import (
@@ -50,7 +51,11 @@ class TestOffice365Plugin(TestCase):
 
         term = '5555551234'
 
-        mario = {'name': 'Mario Bros', 'mobilePhone': None, 'businessPhones': []}
+        mario: dict[str, Any] = {
+            'name': 'Mario Bros',
+            'mobilePhone': None,
+            'businessPhones': [],
+        }
         luigi = {
             'name': 'Luigi Bros',
             'mobilePhone': None,
@@ -128,7 +133,7 @@ class TestOffice365Plugin(TestCase):
     def test_update_contact_fields_no_phone(self):
         self.source.load(self.DEPENDENCIES)
 
-        mario = {
+        mario: dict[str, Any] = {
             'name': 'Mario Bros',
             'mobilePhone': None,
             'businessPhones': [],

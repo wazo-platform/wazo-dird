@@ -346,7 +346,7 @@ class TestPost(BaseProfileTestCase):
 
             try:
                 self.client.profiles.create(unknown_display)
-            except Exception as e:
+            except HTTPError as e:
                 assert_that(e.response.status_code, equal_to(400))
                 assert_that(e.response.json(), has_entries(error_id='unknown-display'))
 
@@ -363,7 +363,7 @@ class TestPost(BaseProfileTestCase):
 
             try:
                 self.client.profiles.create(unknown_source)
-            except Exception as e:
+            except HTTPError as e:
                 assert_that(e.response.status_code, equal_to(400))
                 assert_that(e.response.json(), has_entries(error_id='unknown-source'))
 
@@ -443,7 +443,7 @@ class TestPost(BaseProfileTestCase):
     def assert_invalid_body(self, body):
         try:
             self.client.profiles.create(body)
-        except Exception as e:
+        except HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(e.response.json(), has_entries(error_id='invalid-data'))
         else:

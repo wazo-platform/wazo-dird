@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
+from typing import Any, cast
 from unittest.mock import ANY
 
 from hamcrest import (
@@ -179,9 +180,10 @@ class TestPost(BaseLDAPCRUDTestCase):
         try:
             self.client.ldap_source.create({})
         except Exception as e:
-            assert_that(e.response.status_code, equal_to(400))
+            error = cast(Any, e)
+            assert_that(error.response.status_code, equal_to(400))
             assert_that(
-                e.response.json(),
+                error.response.json(),
                 has_entries(
                     message=ANY,
                     error_id='invalid-data',
@@ -266,9 +268,10 @@ class TestPut(BaseLDAPCRUDTestCase):
         try:
             self.client.ldap_source.edit(foobar['uuid'], {})
         except Exception as e:
-            assert_that(e.response.status_code, equal_to(400))
+            error = cast(Any, e)
+            assert_that(error.response.status_code, equal_to(400))
             assert_that(
-                e.response.json(),
+                error.response.json(),
                 has_entries(
                     message=ANY,
                     error_id='invalid-data',

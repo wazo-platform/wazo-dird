@@ -4,7 +4,8 @@
 from __future__ import annotations
 
 import argparse
-from typing import Literal, TypedDict
+from collections.abc import Sequence
+from typing import Any, Literal, TypedDict
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_file, read_config_file_hierarchy
@@ -20,6 +21,13 @@ class AuthConfig(TypedDict, total=False):
     username: str
     password: str
     master_tenant_uuid: str
+
+
+class ConfdConfig(TypedDict, total=False):
+    host: str
+    port: int
+    prefix: str | None
+    https: bool
 
 
 class EnabledPluginsConfig(TypedDict):
@@ -74,6 +82,7 @@ class ConsulConfig(TypedDict):
 class Config(TypedDict, total=False):
     uuid: str
     auth: AuthConfig
+    confd: ConfdConfig
     config_file: str
     db_uri: str
     debug: bool
@@ -82,7 +91,7 @@ class Config(TypedDict, total=False):
     log_level: str
     log_filename: str
     rest_api: RestAPIConfig
-    services: dict[str, dict]
+    services: dict[str, dict[str, Any]]
     user: str
     bus: BusConfig
     consul: ConsulConfig
@@ -204,7 +213,7 @@ _DEFAULT_CONFIG: Config = {
 }
 
 
-def load(argv):
+def load(argv: Sequence[str]) -> ChainMap:
     cli_config = _parse_cli_args(argv)
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
     reinterpreted_config = _get_reinterpreted_raw_values(
@@ -217,7 +226,7 @@ def load(argv):
     )
 
 
-def _parse_cli_args(argv):
+def _parse_cli_args(argv: Sequence[str]) -> dict[str, Any]:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-c',
@@ -243,7 +252,7 @@ def _parse_cli_args(argv):
     )
     parsed_args = parser.parse_args(argv)
 
-    result = {}
+    result: dict[str, Any] = {}
     if parsed_args.config_file:
         result['config_file'] = parsed_args.config_file
     if parsed_args.debug:
@@ -256,7 +265,7 @@ def _parse_cli_args(argv):
     return result
 
 
-def _load_key_file(config):
+def _load_key_file(config: ChainMap) -> dict[str, Any]:
     filename = config.get('auth', {}).get('key_file')
     if not filename:
         return {}
@@ -273,8 +282,8 @@ def _load_key_file(config):
     }
 
 
-def _get_reinterpreted_raw_values(config):
-    result = {}
+def _get_reinterpreted_raw_values(config: ChainMap) -> dict[str, Any]:
+    result: dict[str, Any] = {}
 
     log_level = config.get('log_level')
     if log_level:

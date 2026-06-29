@@ -4,39 +4,50 @@
 from __future__ import annotations
 
 import logging
-from typing import cast
+from typing import Any, cast
 
 from wazo_dird import BaseServicePlugin, database
 from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.base import Direction
 from wazo_dird.database.queries.source import SourceBody, SourceInfo
+from wazo_dird.plugin_manager import ServiceDependencies
 from wazo_dird.source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
 
 
 class SourceServicePlugin(BaseServicePlugin):
-    def load(self, dependencies) -> _SourceService:
+    def load(self, dependencies: ServiceDependencies) -> _SourceService:
         source_manager = dependencies['source_manager']
         return _SourceService(database.SourceCRUD(Session), source_manager)
 
 
 class _SourceService:
-    def __init__(self, crud: database.SourceCRUD, source_manager: SourceManager):
+    def __init__(
+        self, crud: database.SourceCRUD, source_manager: SourceManager
+    ) -> None:
         self._source_crud = crud
         self._source_manager = source_manager
 
-    def count(self, backend: str, visible_tenants: list[str], **list_params):
+    def count(
+        self, backend: str | None, visible_tenants: list[str], **list_params: Any
+    ) -> int:
         return self._source_crud.count(backend, visible_tenants, **list_params)
 
-    def create(self, backend: str, **body) -> SourceInfo:
+    def create(self, backend: str, **body: Any) -> SourceInfo:
         return self._source_crud.create(backend, cast(SourceBody, body))
 
-    def delete(self, backend: str, source_uuid: str, visible_tenants: list[str]):
+    def delete(
+        self, backend: str, source_uuid: str, visible_tenants: list[str]
+    ) -> None:
         return self._source_crud.delete(backend, source_uuid, visible_tenants)
 
     def edit(
-        self, backend: str, source_uuid: str, visible_tenants: list[str], body
+        self,
+        backend: str,
+        source_uuid: str,
+        visible_tenants: list[str],
+        body: SourceBody,
     ) -> SourceInfo:
         result = self._source_crud.edit(backend, source_uuid, visible_tenants, body)
         self._source_manager.invalidate(source_uuid)
@@ -61,8 +72,8 @@ class _SourceService:
         limit: int | None = None,
         order: str | None = None,
         direction: Direction | None = None,
-        **list_params,
-    ):
+        **list_params: Any,
+    ) -> list[SourceInfo]:
         return self._source_crud.list_(
             backend,
             visible_tenants,

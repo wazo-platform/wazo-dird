@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from typing import cast
 from unittest.mock import Mock, call, patch
 
 from hamcrest import (
@@ -16,6 +17,7 @@ from hamcrest import (
 from requests import RequestException
 
 from wazo_dird import make_result_class
+from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
 
@@ -44,8 +46,8 @@ UUID_1 = '55abf77c-5744-44a0-9c36-34da29f647cb'
 UUID_2 = '22f51ae2-296d-4340-a7d5-3567ae66df73'
 
 SourceResult = make_result_class(
-    DEFAULT_ARGS['config']['backend'],
-    DEFAULT_ARGS['config']['name'],
+    cast(str, DEFAULT_ARGS['config']['backend']),
+    cast(str, DEFAULT_ARGS['config']['name']),
     unique_column='id',
 )
 
@@ -172,7 +174,7 @@ class TestWazoUserBackendSearch(_BaseTest):
         config['config']['extra_search_params'] = {'context': 'inside'}
 
         with patch('wazo_dird.plugins.wazo_user_backend.plugin.registry') as registry:
-            self._source.load(DEFAULT_ARGS)
+            self._source.load(cast(SourcePluginDependencies, DEFAULT_ARGS))
 
             self._source.search(term='paul')
 

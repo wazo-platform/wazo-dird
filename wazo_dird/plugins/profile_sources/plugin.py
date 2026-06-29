@@ -4,6 +4,7 @@
 import logging
 
 from wazo_dird import BaseViewPlugin
+from wazo_dird.plugin_manager import ViewDependencies
 
 from .http import SourceResource
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class SourceViewPlugin(BaseViewPlugin):
-    def load(self, dependencies):
+    def load(self, dependencies: ViewDependencies) -> None:
         api = dependencies['api']
         profile_service = dependencies['services']['profile']
         args = (profile_service,)

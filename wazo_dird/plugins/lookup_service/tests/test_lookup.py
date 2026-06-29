@@ -3,11 +3,19 @@
 
 import unittest
 from concurrent.futures import ALL_COMPLETED
+from typing import cast
 from unittest.mock import Mock, patch, sentinel
 
 from hamcrest import assert_that, equal_to, none, not_
 
+from wazo_dird.helpers import ProfileConfig
+from wazo_dird.plugin_manager import ServiceDependencies
+
 from ..plugin import LookupServicePlugin, _LookupService
+
+
+def _deps(deps: dict) -> ServiceDependencies:
+    return cast(ServiceDependencies, deps)
 
 
 class TestLookupServicePlugin(unittest.TestCase):
@@ -31,11 +39,13 @@ class TestLookupServicePlugin(unittest.TestCase):
         plugin = LookupServicePlugin()
 
         service = plugin.load(
-            {
-                'source_manager': self._source_manager,
-                'config': sentinel.config,
-                'controller': sentinel.controller,
-            }
+            _deps(
+                {
+                    'source_manager': self._source_manager,
+                    'config': sentinel.config,
+                    'controller': sentinel.controller,
+                }
+            )
         )
 
         assert_that(service, not_(none()))
@@ -45,11 +55,13 @@ class TestLookupServicePlugin(unittest.TestCase):
         plugin = LookupServicePlugin()
 
         service = plugin.load(
-            {
-                'config': sentinel.config,
-                'source_manager': self._source_manager,
-                'controller': sentinel.controller,
-            }
+            _deps(
+                {
+                    'config': sentinel.config,
+                    'source_manager': self._source_manager,
+                    'controller': sentinel.controller,
+                }
+            )
         )
 
         MockedLookupService.assert_called_once_with(
@@ -66,11 +78,13 @@ class TestLookupServicePlugin(unittest.TestCase):
     def test_that_unload_stops_the_services(self, MockedLookupService):
         plugin = LookupServicePlugin()
         plugin.load(
-            {
-                'config': sentinel.config,
-                'source_manager': self._source_manager,
-                'controller': sentinel.controller,
-            }
+            _deps(
+                {
+                    'config': sentinel.config,
+                    'source_manager': self._source_manager,
+                    'controller': sentinel.controller,
+                }
+            )
         )
 
         plugin.unload()
@@ -94,6 +108,6 @@ class TestLookupNullOptions(unittest.TestCase):
             'services': {'lookup': {'sources': [], 'options': None}},
         }
 
-        service.lookup(profile, 'tenant', 'alice', 'user-uuid')
+        service.lookup(cast(ProfileConfig, profile), 'tenant', 'alice', 'user-uuid')
 
         mock_wait.assert_called_once_with([], return_when=ALL_COMPLETED)

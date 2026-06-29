@@ -4,6 +4,7 @@
 from contextlib import contextmanager
 from unittest.mock import ANY
 
+import requests
 from hamcrest import (
     assert_that,
     calling,
@@ -117,7 +118,9 @@ class TestGet(BaseGoogleCRUDTestCase):
             raises(Exception).matching(HTTP_404),
         )
 
-    def get(self, client, *args, **kwargs):
+    # Test facade: a per-instance helper that delegates to the dird client,
+    # intentionally shadowing RequestUtilMixin.get with a different signature.
+    def get(self, client, *args, **kwargs):  # type: ignore[override]
         return client.backends.get_source('google', *args, **kwargs)
 
 
@@ -211,7 +214,7 @@ class TestPost(BaseGoogleCRUDTestCase):
     def test_invalid_body(self):
         try:
             self.client.backends.create_source('google', {})
-        except Exception as e:
+        except requests.HTTPError as e:
             assert_that(e.response.status_code, equal_to(400))
             assert_that(
                 e.response.json(),

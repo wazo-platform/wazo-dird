@@ -2,17 +2,22 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from typing import cast
 from unittest.mock import Mock
 from unittest.mock import sentinel as s
 
 from hamcrest import assert_that, equal_to, has_entries
+
+from wazo_dird.database.queries.tenant import TenantCRUD
 
 from ..plugin import Service
 
 
 class TestConfigService(unittest.TestCase):
     def test_that_get_config_returns_the_config(self):
-        service = Service(s.original_config, Mock(), s.controller, None, None)
+        service = Service(
+            s.original_config, Mock(), s.controller, cast(TenantCRUD, None), None
+        )
 
         config = service.get_config()
 

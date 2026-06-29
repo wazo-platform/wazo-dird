@@ -3,7 +3,9 @@
 
 import logging
 from collections import namedtuple
+from collections.abc import Mapping
 from threading import Lock
+from typing import Any
 
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
@@ -20,7 +22,7 @@ class _Registry:
         self._clients: dict[str, RegisteredClient] = {}
         self._clients_lock: Lock = Lock()
 
-    def get(self, source_config: dict) -> ConfdClient:
+    def get(self, source_config: Mapping[str, Any]) -> ConfdClient:
         source_uuid = source_config['uuid']
 
         with self._clients_lock:
@@ -35,7 +37,7 @@ class _Registry:
                 renewer.stop()
             self._clients = {}
 
-    def _add_client(self, source_config: dict) -> None:
+    def _add_client(self, source_config: Mapping[str, Any]) -> None:
         logger.debug('Instantiating a new confd client for %s', source_config['uuid'])
         confd_config = source_config['confd']
 

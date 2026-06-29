@@ -5,13 +5,16 @@ from __future__ import annotations
 
 import builtins
 import logging
-from typing import TypedDict
+from collections.abc import Iterable
+from typing import Any, TypedDict
 
 from wazo_dird import BaseSourcePlugin, database, make_result_class
 from wazo_dird.database.helpers import Session
+from wazo_dird.database.queries.base import ContactInfo
 from wazo_dird.database.queries.phonebook import PhonebookCRUD
 from wazo_dird.exception import InvalidConfigError
 from wazo_dird.helpers import (
+    AuthConfig,
     BackendViewDependencies,
     BackendViewServices,
     BaseBackendView,
@@ -19,6 +22,7 @@ from wazo_dird.helpers import (
 from wazo_dird.plugins.base_plugins import SourceConfig as BaseSourceConfig
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
+from wazo_dird.plugins.source_service.plugin import _SourceService
 
 from . import http
 
@@ -39,7 +43,7 @@ class PhonebookView(BaseBackendView):
     item_resource = http.PhonebookItem
     contact_resource = http.PhonebookContactList
 
-    def load(self, dependencies: PhonebookViewDependencies):  # type: ignore[override]
+    def load(self, dependencies: PhonebookViewDependencies) -> None:  # type: ignore[override]
         super().load(dependencies)  # type: ignore[arg-type]
         api = dependencies['api']
         source_service = dependencies['services']['source']
@@ -52,7 +56,9 @@ class PhonebookView(BaseBackendView):
             resource_class_args=args,
         )
 
-    def _get_view_args(self, dependencies: BackendViewDependencies):
+    def _get_view_args(  # type: ignore[override]
+        self, dependencies: BackendViewDependencies
+    ) -> tuple[str, _SourceService, AuthConfig, PhonebookCRUD]:
         config = dependencies['config']
         source_service = dependencies['services']['source']
         phonebook_dao = PhonebookCRUD(Session)
@@ -79,7 +85,7 @@ class PhonebookPlugin(BaseSourcePlugin):
         self._search_engine = None  # type: ignore[assignment]
         self._source_name = None  # type: ignore[assignment]
 
-    def load(self, dependencies: Dependencies):
+    def load(self, dependencies: Dependencies) -> None:  # type: ignore[override]
         logger.debug('Loading phonebook source')
 
         self._crud = database.PhonebookCRUD(Session)
@@ -115,12 +121,16 @@ class PhonebookPlugin(BaseSourcePlugin):
 
         logger.info('phonebook source %s loaded', self._source_name)
 
-    def search(self, term: str, args=None) -> list[SourceResult]:
+    def search(
+        self, term: str, args: dict[str, Any] | None = None
+    ) -> list[SourceResult]:
         logger.debug('Searching phonebook contact with %s', term)
         matching_contacts = self._search_engine.find_contacts(term)
         return self.format_contacts(matching_contacts)
 
-    def first_match(self, exten: str, args=None) -> SourceResult | None:
+    def first_match(
+        self, exten: str, args: dict[str, Any] | None = None
+    ) -> SourceResult | None:
         logger.debug('First matching phonebook contacts with %s', exten)
         matching_contact = self._search_engine.find_first_contact(exten)
         if not matching_contact:
@@ -133,12 +143,16 @@ class PhonebookPlugin(BaseSourcePlugin):
         else:
             return None
 
-    def list(self, source_entry_ids: list[str], args=None) -> list[SourceResult]:
+    def list(
+        self, source_entry_ids: list[str], args: dict[str, Any] | None = None
+    ) -> list[SourceResult]:
         logger.debug('Listing phonebook contacts')
         matching_contacts = self._search_engine.list_contacts(source_entry_ids)
         return self.format_contacts(matching_contacts)
 
-    def format_contacts(self, contacts) -> builtins.list[SourceResult]:
+    def format_contacts(
+        self, contacts: Iterable[ContactInfo]
+    ) -> builtins.list[SourceResult]:
         return [self._SourceResult(c) for c in contacts]
 
     def _get_phonebook_key(

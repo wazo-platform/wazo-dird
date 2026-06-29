@@ -5,7 +5,7 @@ import functools
 import unittest
 from collections import defaultdict
 from contextlib import closing, contextmanager
-from typing import Any
+from typing import Any, cast
 from unittest.mock import ANY
 
 from hamcrest import (
@@ -92,6 +92,10 @@ def teardown_module():
 
 
 class _BaseTest(unittest.TestCase):
+    _contact_1: Any
+    _contact_2: Any
+    _contact_3: Any
+
     def setUp(self):
         self.display_crud = database.DisplayCRUD(Session)
         self.profile_crud = database.ProfileCRUD(Session)
@@ -195,7 +199,7 @@ class TestDisplayCRUD(_BaseTest):
     def test_create_no_error(self):
         tenant_uuid = new_uuid()
         name = 'english'
-        body = {
+        body: dict[str, Any] = {
             'tenant_uuid': tenant_uuid,
             'name': name,
             'columns': [
@@ -992,17 +996,17 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
             [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'one', 'foo': 'bar'},
-        )  # type: ignore
+        )
         self._contact_2 = self._crud.create(
             [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'two', 'foo': 'bar'},
-        )  # type: ignore
+        )
         self._contact_3 = self._crud.create(
             [self._tenant_uuid],
             database.PhonebookKey(uuid=self._phonebook_uuid),
             {'name': 'three', 'foo': 'bar'},
-        )  # type: ignore
+        )
 
     def test_that_listing_contacts_works(self):
         result = self._crud.list(
@@ -1132,10 +1136,14 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     def test_that_personal_contacts_remain_unique(self, user_uuid):
-        contact_1_uuid = self._crud.create_personal_contact(
-            TENANT_UUID, user_uuid, self.contact_1
+        contact_1_uuid = cast(
+            'dict[str, Any]',
+            self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_1),
         )['id']
-        self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_2)['id']
+        cast(
+            'dict[str, Any]',
+            self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_2),
+        )['id']
 
         assert_that(
             calling(self._crud.edit_personal_contact).with_args(
@@ -1154,11 +1162,17 @@ class TestContactCRUD(_BaseTest):
     def test_that_personal_contacts_can_be_duplicated_between_users(
         self, user_uuid_1, user_uuid_2
     ):
-        contact_1_uuid = self._crud.create_personal_contact(
-            TENANT_UUID, user_uuid_1, self.contact_1
+        contact_1_uuid = cast(
+            'dict[str, Any]',
+            self._crud.create_personal_contact(
+                TENANT_UUID, user_uuid_1, self.contact_1
+            ),
         )['id']
-        contact_2_uuid = self._crud.create_personal_contact(
-            TENANT_UUID, user_uuid_2, self.contact_1
+        contact_2_uuid = cast(
+            'dict[str, Any]',
+            self._crud.create_personal_contact(
+                TENANT_UUID, user_uuid_2, self.contact_1
+            ),
         )['id']
 
         assert_that(contact_1_uuid, not_(equal_to(contact_2_uuid)))
@@ -1648,7 +1662,7 @@ class TestProfileCRUD(_BaseTest):
 
     @fixtures.display(tenant_uuid=TENANT_UUID)
     def test_create_unknown_source(self, display):
-        body = {
+        body: dict[str, Any] = {
             'tenant_uuid': TENANT_UUID,
             'name': 'profile',
             'display_uuid': None,

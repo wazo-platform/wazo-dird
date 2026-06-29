@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from marshmallow import post_load
 from xivo.mallow import fields, validate
@@ -19,7 +19,7 @@ class SourceSchema(BaseSourceSchema):
     name = fields.String(validate=validate.Length(min=1, max=512), dump_only=True)
 
     @post_load
-    def stringify_uuid(self, data, **kwargs):
+    def stringify_uuid(self, data: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         data.update(phonebook_uuid=str(data['phonebook_uuid']))
         return data
 
@@ -42,7 +42,7 @@ class CountParams(TypedDict):
 
 
 class ContactListSchema(_ListSchema):
-    searchable_columns = []
+    searchable_columns: list[str] = []
     sort_columns = ['firstname', 'lastname', 'number']
     default_sort_column = None
     sort_insensitive_columns = ['firstname', 'lastname']

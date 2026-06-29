@@ -1,23 +1,20 @@
-# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-from typing import Any
 
 from wazo_dird import BaseViewPlugin
+from wazo_dird.plugin_manager import ViewDependencies
 
 from .http import Config
 
 logger = logging.getLogger(__name__)
 
-# TODO: replace with TypedDict
-HTTPDependencies = dict[str, Any]
-
 
 class ConfigViewPlugin(BaseViewPlugin):
     url = "/config"
 
-    def load(self, dependencies: HTTPDependencies) -> None:
+    def load(self, dependencies: ViewDependencies) -> None:
         api = dependencies["api"]
         config_service = dependencies["services"].get("config")
         if not config_service:

@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from typing import cast
 
 from hamcrest import assert_that, contains_exactly, equal_to
 
 from wazo_dird import make_result_class
+from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import SamplePlugin
 
@@ -14,12 +16,16 @@ MSG = (
 )
 
 
+def _deps(deps: dict) -> SourcePluginDependencies:
+    return cast(SourcePluginDependencies, deps)
+
+
 class TestSampleBackend(unittest.TestCase):
     def setUp(self):
         self.source = SamplePlugin()
 
     def test_load_empty_config_does_not_raise(self):
-        self.source.load({})
+        self.source.load(_deps({}))
 
     def test_search(self):
         SourceResult = make_result_class('sample_backend', 'sample_directory', 'id')
@@ -33,7 +39,7 @@ class TestSampleBackend(unittest.TestCase):
             }
         )
 
-        self.source.load({})
+        self.source.load(_deps({}))
         results = self.source.search('anything')
 
         assert_that(results, contains_exactly(only_result))
@@ -50,7 +56,7 @@ class TestSampleBackend(unittest.TestCase):
             }
         )
 
-        self.source.load({})
+        self.source.load(_deps({}))
         result = self.source.first_match('555')
 
         assert_that(result, equal_to(only_result))

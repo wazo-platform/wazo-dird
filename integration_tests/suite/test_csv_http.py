@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
+from typing import cast
 from unittest.mock import ANY
 
 from hamcrest import (
@@ -14,6 +15,7 @@ from hamcrest import (
     has_properties,
     not_,
 )
+from requests import HTTPError
 from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
@@ -181,9 +183,10 @@ class TestPost(BaseCSVCRUDTestCase):
         try:
             self.client.csv_source.create({})
         except Exception as e:
-            assert_that(e.response.status_code, equal_to(400))
+            error = cast(HTTPError, e)
+            assert_that(error.response.status_code, equal_to(400))
             assert_that(
-                e.response.json(),
+                error.response.json(),
                 has_entries(
                     message=ANY,
                     error_id='invalid-data',
@@ -264,9 +267,10 @@ class TestPut(BaseCSVCRUDTestCase):
         try:
             self.client.csv_source.edit(foobar['uuid'], {})
         except Exception as e:
-            assert_that(e.response.status_code, equal_to(400))
+            error = cast(HTTPError, e)
+            assert_that(error.response.status_code, equal_to(400))
             assert_that(
-                e.response.json(),
+                error.response.json(),
                 has_entries(
                     message=ANY,
                     error_id='invalid-data',

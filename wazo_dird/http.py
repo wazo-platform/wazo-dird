@@ -1,22 +1,30 @@
 # Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import logging
 import time
+from collections.abc import Callable
 from functools import wraps
+from typing import Any, TypeVar
 
 from flask_restful import Resource
 from xivo import mallow_helpers, rest_api_helpers
 from xivo.flask.auth_verifier import AuthVerifierFlask
+
+R = TypeVar('R')
 
 logger = logging.getLogger(__name__)
 
 auth_verifier = AuthVerifierFlask()
 
 
-def handle_api_exception(func):
+def handle_api_exception(
+    func: Callable[..., R],
+) -> Callable[..., R | tuple[dict[str, Any], int]]:
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> R | tuple[dict[str, Any], int]:
         try:
             return func(*args, **kwargs)
         except rest_api_helpers.APIException as error:

@@ -4,6 +4,7 @@
 import logging
 
 from wazo_dird import BaseViewPlugin
+from wazo_dird.plugin_manager import ViewDependencies
 
 from .http import Headers
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class HeadersViewPlugin(BaseViewPlugin):
-    def load(self, dependencies):
+    def load(self, dependencies: ViewDependencies) -> None:
         api = dependencies['api']
         display_service = dependencies['services'].get('display')
         profile_service = dependencies['services'].get('profile')

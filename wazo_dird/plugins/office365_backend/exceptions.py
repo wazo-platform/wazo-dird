@@ -1,13 +1,15 @@
 # Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from typing import Any
+
 from xivo.rest_api_helpers import APIException
 
 
 class UnexpectedEndpointException(APIException):
     code = 503
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         message = 'Unexpected endpoint error.'
         details = kwargs
         super().__init__(self.code, message, 'unexpected-endpoint-error', details)
@@ -16,7 +18,7 @@ class UnexpectedEndpointException(APIException):
 class MicrosoftTokenNotFoundException(APIException):
     code = 404
 
-    def __init__(self, user_uuid):
+    def __init__(self, user_uuid: str) -> None:
         message = 'No microsoft token found.'
         details = {'user_uuid': user_uuid}
         super().__init__(self.code, message, 'no-token-found', details)

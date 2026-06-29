@@ -214,7 +214,7 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
             )
 
     def test_delete_contact(self):
-        result = self.service.delete_contact(
+        result = self.service.delete_contact(  # type: ignore[func-returns-value]
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), s.contact_uuid
         )
 
@@ -415,7 +415,7 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
 
 class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
     def test_import_with_invalid_contacts(self):
-        db_errors = []
+        db_errors: list = []
         self.contact_crud.create_many.return_value = [], db_errors
 
         invalids: list[dict] = [{}, {'': 'test'}, {'firstname': 'Foo', None: ['extra']}]

@@ -1,19 +1,25 @@
 # Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import logging
-from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
+from __future__ import annotations
 
-from wazo_dird import BaseServicePlugin, helpers
+import logging
+from concurrent.futures import ALL_COMPLETED, Future, ThreadPoolExecutor, wait
+from typing import Any
+
+from wazo_dird import BaseServicePlugin, BaseSourcePlugin, helpers
+from wazo_dird.helpers import ProfileConfig
+from wazo_dird.plugin_manager import ServiceDependencies
+from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 logger = logging.getLogger(__name__)
 
 
 class LookupServicePlugin(BaseServicePlugin):
-    def __init__(self):
-        self._service = None
+    def __init__(self) -> None:
+        self._service: _LookupService | None = None
 
-    def load(self, dependencies):
+    def load(self, dependencies: ServiceDependencies) -> _LookupService:
         try:
             self._service = _LookupService(
                 dependencies['config'],
@@ -28,7 +34,7 @@ class LookupServicePlugin(BaseServicePlugin):
             )
             raise ValueError(msg)
 
-    def unload(self):
+    def unload(self) -> None:
         if self._service:
             self._service.stop()
             self._service = None
@@ -37,22 +43,32 @@ class LookupServicePlugin(BaseServicePlugin):
 class _LookupService(helpers.BaseService):
     _service_name = 'lookup'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._executor = ThreadPoolExecutor(max_workers=10)
 
-    def stop(self):
+    def stop(self) -> None:
         self._executor.shutdown()
 
-    def _async_search(self, source, term, args):
-        raise_stopper = helpers.RaiseStopper(return_on_raise=[])
+    def _async_search(
+        self, source: BaseSourcePlugin, term: str, args: dict[str, Any]
+    ) -> Future[list[SourceResult]]:
+        raise_stopper: helpers.RaiseStopper[list[SourceResult]] = helpers.RaiseStopper(
+            return_on_raise=[]
+        )
         future = self._executor.submit(raise_stopper.execute, source.search, term, args)
-        future.name = source.name
+        setattr(future, 'name', source.name)
         return future
 
     def lookup(
-        self, profile_config, tenant_uuid, term, user_uuid, args=None, token=None
-    ):
+        self,
+        profile_config: ProfileConfig,
+        tenant_uuid: str,
+        term: str,
+        user_uuid: str | None,
+        args: dict[str, Any] | None = None,
+        token: str | None = None,
+    ) -> list[SourceResult]:
         args = args or {}
         futures = []
         sources = self.source_from_profile(profile_config)
@@ -62,7 +78,7 @@ class _LookupService(helpers.BaseService):
             args['xivo_user_uuid'] = user_uuid
             futures.append(self._async_search(source, term, args))
 
-        params = {'return_when': ALL_COMPLETED}
+        params: dict[str, Any] = {'return_when': ALL_COMPLETED}
         service_config = self.get_service_config(profile_config)
         timeout = (service_config.get('options') or {}).get('timeout')
         if timeout:
