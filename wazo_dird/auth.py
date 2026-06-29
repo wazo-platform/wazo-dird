@@ -28,7 +28,7 @@ def set_auth_config(config: AuthConfig) -> None:
 def client() -> Client:
     global auth_client
     if not auth_client:
-        auth_client = Client(**auth_config)
+        auth_client = Client(**cast('AuthConfig', auth_config))
     return auth_client
 
 
@@ -37,7 +37,7 @@ Decorator = Callable[[F], F]
 
 
 def required_master_tenant() -> Decorator:
-    return required_tenant(master_tenant_uuid)
+    return required_tenant(cast(str, master_tenant_uuid))
 
 
 def init_master_tenant(token: dict[str, Any]) -> None:
