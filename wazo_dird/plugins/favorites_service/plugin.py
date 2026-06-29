@@ -1,4 +1,4 @@
-# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -85,13 +85,18 @@ class _FavoritesService(helpers.BaseService):
         crud: database.FavoriteCRUD,
         bus: CoreBus,
     ) -> None:
-        super().__init__(config, source_manager, controller, crud, bus)
-        self._executor = ThreadPoolExecutor(max_workers=10)
+        super().__init__(config, source_manager, controller)
+        http_threads = config.get('rest_api', {}).get('max_threads', 10)
+        max_workers = config.get('favorites_service', {}).get(
+            'executor_workers', http_threads
+        )
+        logger.info(
+            'Creating favorites service threadpool [max_workers=%d]', max_workers
+        )
+        self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._crud = crud
         self._bus = bus
         self._xivo_uuid = config.get('uuid')
-        self._source_manager = source_manager
-        self._controller = controller
         if not self._xivo_uuid:
             logger.info('loaded without a UUID: published events will be incomplete')
 

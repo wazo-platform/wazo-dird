@@ -1,7 +1,8 @@
-# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 from hamcrest import (
     any_of,
@@ -160,6 +161,26 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
                 has_entry('column_values', contains('Bob', 'BBB', '5555551234', True)),
             ),
         )
+
+    def test_favorites_with_configured_executor_workers(self):
+        with self.favorite('my_csv', '1', token=self.token_1):
+            with self.dird_with_config({'favorites_service': {'executor_workers': 2}}):
+                self.wait_strategy.wait(self.dird)
+                with ThreadPoolExecutor(max_workers=5) as pool:
+                    futures = [
+                        pool.submit(self.favorites, 'default', token=self.token_1)
+                        for _ in range(5)
+                    ]
+                    results = [f.result() for f in futures]
+        for result in results:
+            assert_that(
+                result['results'],
+                contains_inanyorder(
+                    has_entry(
+                        'column_values', contains('Alice', 'AAA', '5555555555', True)
+                    )
+                ),
+            )
 
 
 class TestRemovingFavoriteAlreadyInexistant(CSVWithMultipleDisplayTestCase):
