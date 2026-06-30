@@ -18,8 +18,8 @@ from wazo_dird.schemas import (
 
 
 class ExtensionSchema(BaseSchema):
-    # "context" shadows marshmallow's Schema.context attribute (a dict)
-    context = fields.String()  # type: ignore[assignment]
+    # context_ avoids shadowing marshmallow's Schema.context; key stays "context"
+    context_ = fields.String(attribute='context', data_key='context')
     exten = fields.String()
 
 
