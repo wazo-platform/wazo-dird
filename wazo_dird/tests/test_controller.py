@@ -49,6 +49,14 @@ class TestController(TestCase):
 
         self.rest_api.run.assert_called_once_with()
 
+    def test_init_without_uuid_when_service_discovery_disabled(self):
+        # XIVO_UUID may be unset (UUIDNotFound swallowed in main) when service
+        # discovery is disabled; Controller must still build.
+        config = self._create_config(**{'service_discovery': {'enabled': False}})
+        del config['uuid']
+
+        Controller(config)
+
     def test_run_loads_and_unloads_services(self):
         config = self._create_config(
             **{

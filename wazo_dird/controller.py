@@ -54,7 +54,7 @@ class Controller:
         self.status_aggregator.add_provider(auth.provide_status)
         self._service_registration_params = (
             'wazo-dird',
-            self.config['uuid'],
+            self.config.get('uuid'),
             self.config['consul'],
             self.config['service_discovery'],
             self.config['bus'],
