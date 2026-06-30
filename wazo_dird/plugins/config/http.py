@@ -28,7 +28,7 @@ class Config(AuthResource):
     @required_master_tenant()
     @required_acl('dird.config.update')
     def patch(self) -> tuple[dict[str, Any], int]:
-        config_patch = config_patch_schema.load(get_json_body(many=True), many=True)
+        config_patch = config_patch_schema.load(get_json_body(), many=True)
         config = self._config_service.get_config()
         patched_config = JsonPatch(config_patch).apply(cast('dict[str, Any]', config))
         self._config_service.update_config(cast('DirdConfig', patched_config))
