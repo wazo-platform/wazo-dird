@@ -22,10 +22,12 @@ auth_verifier = AuthVerifierFlask()
 
 
 def get_json_body() -> Any:
-    # get_json(force=True) raises on a missing/invalid body, so it never
-    # returns None at runtime; Flask's stub types it as Any | None regardless.
+    # get_json(force=True) raises 400 on a missing/invalid body but returns
+    # None for a literal `null` payload; reject that as a 400 so the return is
+    # genuinely non-None (Flask's stub types it as Any | None).
     body = request.get_json(force=True)
-    assert body is not None
+    if body is None:
+        raise rest_api_helpers.APIException(400, 'invalid data', 'invalid-data')
     return body
 
 
