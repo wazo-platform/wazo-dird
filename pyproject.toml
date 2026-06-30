@@ -65,9 +65,8 @@ module = [
 ]
 ignore_missing_imports = true
 
-# Third-party libraries that ship no type information. CI omits their stubs and
-# relies on this override; without it a local checkout (where the libs are
-# installed but untyped) reports import-untyped noise that hides real errors.
+# TODO: install the available stub packages (e.g. types-psycopg2,
+# sqlalchemy-stubs) in the pre-commit/mypy env so these overrides can be dropped.
 [[tool.mypy.overrides]]
 module = [
     "flask_cors.*",
