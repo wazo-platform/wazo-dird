@@ -57,7 +57,34 @@ disallow_untyped_calls = false
 # TODO: remove when py.typed markers are added to those libraries
 [[tool.mypy.overrides]]
 module = [
-    "wazo_auth_client",
-    "wazo_confd_client",
+    "wazo_auth_client.*",
+    "wazo_bus.*",
+    "wazo_confd_client.*",
+    "wazo_dird_client.*",
+    "wazo_test_helpers.*",
 ]
+ignore_missing_imports = true
+
+# Third-party libraries that ship no type information. CI omits their stubs and
+# relies on this override; without it a local checkout (where the libs are
+# installed but untyped) reports import-untyped noise that hides real errors.
+[[tool.mypy.overrides]]
+module = [
+    "flask_cors.*",
+    "flask_restful.*",
+    "graphene.*",
+    "graphql_server.*",
+    "ldap.*",
+    "mockserver.*",
+    "psycopg2.*",
+    "sqlalchemy.*",
+    "stevedore.*",
+]
+ignore_missing_imports = true
+
+# assert_that's invariant Matcher[T] can't unify with container matchers; skip
+# following hamcrest so assertions type as Any rather than erroring.
+[[tool.mypy.overrides]]
+module = ["hamcrest.*"]
+follow_imports = "skip"
 ignore_missing_imports = true
