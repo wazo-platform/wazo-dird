@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -49,7 +49,9 @@ class ServiceSchema(BaseSchema):
 
 
 class ServiceDictSchema(fields.Nested):
-    def _serialize(
+    # marshmallow names _serialize's first arg "value" in Field but
+    # "nested_obj" in Nested; an override can't match both names.
+    def _serialize(  # type: ignore[override]
         self, value: Any, attr: str | None, obj: Any, **kwargs: Any
     ) -> dict[str, Any] | None:
         if value is None:

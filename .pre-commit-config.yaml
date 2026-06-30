@@ -19,6 +19,7 @@ repos:
         exclude: '^integration_tests/docker/broken-plugins/setup\.py$'
         language_version: "3.11"
         additional_dependencies:
+          - "marshmallow==3.18.0"
           - "types-jsonpatch"
           - "types-pyyaml"
           - "types-requests"

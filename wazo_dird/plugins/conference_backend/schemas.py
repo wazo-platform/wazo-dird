@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -18,7 +18,8 @@ from wazo_dird.schemas import (
 
 
 class ExtensionSchema(BaseSchema):
-    context = fields.String()
+    # "context" shadows marshmallow's Schema.context attribute (a dict)
+    context = fields.String()  # type: ignore[assignment]
     exten = fields.String()
 
 
