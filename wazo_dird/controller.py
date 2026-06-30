@@ -8,7 +8,6 @@ import signal
 import threading
 from functools import partial
 from types import FrameType
-from typing import Any, cast
 
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
@@ -53,15 +52,12 @@ class Controller:
         self.token_renewer.subscribe_to_token_change(self.confd_client.set_token)
         self.status_aggregator = StatusAggregator()
         self.status_aggregator.add_provider(auth.provide_status)
-        # a tuple keeps a distinct type per position so it unpacks cleanly into
-        # ServiceCatalogRegistration; the config values are typed Optional/
-        # TypedDict but are concrete dicts at runtime.
         self._service_registration_params = (
             'wazo-dird',
-            cast(str, self.config.get('uuid')),
-            cast('dict[str, Any]', self.config.get('consul')),
-            cast('dict[str, Any]', self.config.get('service_discovery')),
-            cast('dict[str, Any]', self.config.get('bus')),
+            self.config['uuid'],
+            self.config['consul'],
+            self.config['service_discovery'],
+            self.config['bus'],
             partial(self_check, self.config['rest_api']['port']),
         )
         self._source_manager = SourceManager(

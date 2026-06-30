@@ -92,6 +92,9 @@ class TestController(TestCase):
 
     def _create_config(self, **kwargs):
         config = dict(kwargs)
+        config.setdefault('uuid', s.uuid)
+        config.setdefault('consul', {})
+        config.setdefault('service_discovery', {'enabled': False})
         config.setdefault('bus', {'enabled': False})
         config.setdefault('auth', {'host': 'localhost'})
         config.setdefault('confd', {'host': 'localhost'})
