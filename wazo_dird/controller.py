@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -52,14 +52,14 @@ class Controller:
         self.token_renewer.subscribe_to_token_change(self.confd_client.set_token)
         self.status_aggregator = StatusAggregator()
         self.status_aggregator.add_provider(auth.provide_status)
-        self._service_registration_params = [
+        self._service_registration_params = (
             'wazo-dird',
             self.config.get('uuid'),
-            self.config.get('consul'),
-            self.config.get('service_discovery'),
-            self.config.get('bus'),
+            self.config['consul'],
+            self.config['service_discovery'],
+            self.config['bus'],
             partial(self_check, self.config['rest_api']['port']),
-        ]
+        )
         self._source_manager = SourceManager(
             self.config['enabled_plugins']['backends'],
             self.config,

@@ -57,7 +57,33 @@ disallow_untyped_calls = false
 # TODO: remove when py.typed markers are added to those libraries
 [[tool.mypy.overrides]]
 module = [
-    "wazo_auth_client",
-    "wazo_confd_client",
+    "wazo_auth_client.*",
+    "wazo_bus.*",
+    "wazo_confd_client.*",
+    "wazo_dird_client.*",
+    "wazo_test_helpers.*",
 ]
+ignore_missing_imports = true
+
+# TODO: install the available stub packages (e.g. types-psycopg2,
+# sqlalchemy-stubs) in the pre-commit/mypy env so these overrides can be dropped.
+[[tool.mypy.overrides]]
+module = [
+    "flask_cors.*",
+    "flask_restful.*",
+    "graphene.*",
+    "graphql_server.*",
+    "ldap.*",
+    "mockserver.*",
+    "psycopg2.*",
+    "sqlalchemy.*",
+    "stevedore.*",
+]
+ignore_missing_imports = true
+
+# assert_that's invariant Matcher[T] can't unify with container matchers; skip
+# following hamcrest so assertions type as Any rather than erroring.
+[[tool.mypy.overrides]]
+module = ["hamcrest.*"]
+follow_imports = "skip"
 ignore_missing_imports = true

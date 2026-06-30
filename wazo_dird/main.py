@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -7,12 +7,13 @@ import logging
 import sys
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any
+from typing import Any, cast
 
 from xivo import xivo_logging
 from xivo.config_helper import UUIDNotFound, set_xivo_uuid
 from xivo.user_rights import change_user
 
+from wazo_dird.config import Config
 from wazo_dird.config import load as load_config
 from wazo_dird.controller import Controller
 
@@ -58,8 +59,8 @@ class _PreConfigLogger:
 
 def main(argv: Sequence[str] | None = None) -> None:
     argv = argv or sys.argv[1:]
-    with _PreConfigLogger() as logger:
-        logger.debug('Starting wazo-dird')
+    with _PreConfigLogger() as startup_logger:
+        startup_logger.debug('Starting wazo-dird')
 
         config = load_config(argv)
 
@@ -81,5 +82,6 @@ def main(argv: Sequence[str] | None = None) -> None:
         if config['service_discovery']['enabled']:
             raise
 
-    controller = Controller(config)
+    # set_xivo_uuid has filled in 'uuid'; the merged mapping is now a Config
+    controller = Controller(cast('Config', config))
     controller.run()

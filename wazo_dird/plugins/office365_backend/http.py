@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -75,7 +75,9 @@ class MicrosoftContactList(AuthResource):
         )
         microsoft_token = cast(
             'str',
-            get_microsoft_access_token(user_uuid, token_from_request, **source['auth']),
+            get_microsoft_access_token(
+                cast(str, user_uuid), cast(str, token_from_request), **source['auth']
+            ),
         )
 
         contacts, total = self.office365.get_contacts(

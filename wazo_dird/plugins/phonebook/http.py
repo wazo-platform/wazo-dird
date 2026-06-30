@@ -29,7 +29,7 @@ from wazo_dird.exception import (
     NoSuchTenant,
     PhonebookContactImportAPIError,
 )
-from wazo_dird.http import AuthResource
+from wazo_dird.http import AuthResource, get_json_body
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 
@@ -93,7 +93,7 @@ class PhonebookContactAll(_Resource):
             self.phonebook_service.create_contact(
                 visible_tenants,
                 PhonebookKey(uuid=str(phonebook_uuid)),
-                cast('dict[str, Any]', request.get_json(force=True)),
+                get_json_body(),
             ),
             201,
         )
@@ -144,7 +144,7 @@ class PhonebookAll(_Resource):
     @_default_error_route
     def post(self) -> tuple[PhonebookDict, int]:
         tenant = Tenant.autodetect()
-        body = cast('dict[str, Any]', request.get_json(force=True))
+        body = get_json_body()
         return (
             self.phonebook_service.create_phonebook(tenant.uuid, body),
             201,
@@ -256,7 +256,7 @@ class PhonebookContactOne(_Resource):
     @_default_error_route
     def put(self, phonebook_uuid: UUID, contact_uuid: UUID) -> tuple[ContactInfo, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
-        body = cast('dict[str, Any]', request.get_json(force=True))
+        body = get_json_body()
         return (
             self.phonebook_service.edit_contact(
                 visible_tenants,
@@ -303,7 +303,7 @@ class PhonebookOne(_Resource):
     @_default_error_route
     def put(self, phonebook_uuid: UUID) -> tuple[PhonebookDict, int]:
         visible_tenants = get_tenant_uuids(recurse=False)
-        body = cast('dict[str, Any]', request.get_json(force=True))
+        body = get_json_body()
         return (
             self.phonebook_service.edit_phonebook(
                 visible_tenants,

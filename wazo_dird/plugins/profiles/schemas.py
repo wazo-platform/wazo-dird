@@ -35,7 +35,9 @@ class ServiceConfigSchema(BaseSchema):
 
 
 class ServiceDictSchema(fields.Nested):
-    def _serialize(
+    # marshmallow names _serialize's first arg "value" in Field but
+    # "nested_obj" in Nested; an override can't match both names.
+    def _serialize(  # type: ignore[override]
         self, nested_obj: Any, attr: str | None, obj: Any, **kwargs: Any
     ) -> dict[str, Any] | None:
         if nested_obj is None:
@@ -46,7 +48,7 @@ class ServiceDictSchema(fields.Nested):
             result[service_name] = ServiceConfigSchema().dump(service_config)
         return result
 
-    def _deserialize(
+    def _deserialize(  # type: ignore[override]
         self,
         nested_obj: Any,
         attr: str | None,

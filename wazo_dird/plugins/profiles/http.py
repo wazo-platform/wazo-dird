@@ -10,7 +10,7 @@ from flask import request
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
-from wazo_dird.http import AuthResource
+from wazo_dird.http import AuthResource, get_json_body
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 
 from .schemas import list_schema, profile_list_schema, profile_schema
@@ -41,7 +41,7 @@ class Profiles(_BaseResource):
     @required_acl('dird.profiles.create')
     def post(self) -> tuple[dict[str, Any], int]:
         tenant = Tenant.autodetect()
-        args = profile_schema.load(request.get_json(force=True))
+        args = profile_schema.load(get_json_body())
         body = self._profile_service.create(tenant_uuid=tenant.uuid, **args)
         result: dict[str, Any] = profile_schema.dump(body)
         return result, 201
@@ -64,7 +64,7 @@ class Profile(_BaseResource):
     @required_acl('dird.profiles.{profile_uuid}.update')
     def put(self, profile_uuid: str) -> tuple[str, int]:
         visible_tenants = get_tenant_uuids(recurse=True)
-        args = profile_schema.load(request.get_json(force=True))
+        args = profile_schema.load(get_json_body())
         self._profile_service.edit(
             profile_uuid, visible_tenants=visible_tenants, **args
         )
