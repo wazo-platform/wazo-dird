@@ -37,7 +37,12 @@ class Controller:
     def __init__(self, config: Config):
         self.config = config
         self._stopping_thread: threading.Thread | None = None
-        init_db(config['db_uri'], pool_size=config['rest_api']['max_threads'])
+        init_db(
+            config['db_uri'],
+            pool_size=config['rest_api']['min_threads'],
+            max_overflow=config['rest_api']['max_threads']
+            - config['rest_api']['min_threads'],
+        )
         self.rest_api = CoreRestApi(self.config)
         self.bus = CoreBus(config.get('uuid'), **config['bus'])
         auth.set_auth_config(self.config['auth'])

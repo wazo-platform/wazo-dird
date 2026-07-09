@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -39,6 +39,7 @@ class TestController(TestCase):
                     'listen': '127.0.0.1',
                     'port': '9489',
                     'certificate': 'my-certificate',
+                    'min_threads': 10,
                     'max_threads': 10,
                 },
                 'debug': s.debug,
@@ -116,6 +117,7 @@ class TestController(TestCase):
             {
                 'port': Mock(),
                 'certificate': 'my-certificate',
+                'min_threads': 10,
                 'max_threads': 10,
             },
         )

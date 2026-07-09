@@ -58,6 +58,7 @@ class RestAPIConfig(TypedDict):
     certificate: None  # Deprecated
     private_key: None  # Deprecated
     cors: CORSConfig
+    min_threads: int
     max_threads: int
 
 
@@ -193,7 +194,8 @@ _DEFAULT_CONFIG: Config = {
             'enabled': True,
             'allow_headers': ['Content-Type', 'X-Auth-Token', 'Wazo-Tenant'],
         },
-        'max_threads': 10,
+        'min_threads': 10,
+        'max_threads': 100,
     },
     'reverse_service': {
         'executor_workers': None,  # None: inherit rest_api.max_threads
