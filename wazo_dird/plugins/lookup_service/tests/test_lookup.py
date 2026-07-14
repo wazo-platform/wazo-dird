@@ -6,7 +6,7 @@ from concurrent.futures import ALL_COMPLETED
 from typing import cast
 from unittest.mock import Mock, patch, sentinel
 
-from hamcrest import assert_that, equal_to, none, not_
+from hamcrest import assert_that, contains_string, equal_to, none, not_
 
 from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugin_manager import ServiceDependencies
@@ -111,3 +111,39 @@ class TestLookupNullOptions(unittest.TestCase):
         service.lookup(cast(ProfileConfig, profile), 'tenant', 'alice', 'user-uuid')
 
         mock_wait.assert_called_once_with([], return_when=ALL_COMPLETED)
+
+
+TIMING_LOGGER = 'wazo_dird.plugins.lookup_service.plugin.timing'
+
+
+class TestLookupPerSourceTiming(unittest.TestCase):
+    def _service_with_source(self, source: Mock) -> _LookupService:
+        source_manager = Mock()
+        source_manager.get.return_value = source
+        return _LookupService(
+            config={}, source_manager=source_manager, controller=Mock()
+        )
+
+    def test_logs_queue_and_exec_time_per_source(self):
+        source = Mock()
+        source.name = 'my_ldap'
+        source.backend = 'ldap'
+        source.search.return_value = [sentinel.result1, sentinel.result2]
+        service = self._service_with_source(source)
+        profile = {
+            'name': 'test',
+            'services': {'lookup': {'sources': [{'uuid': 'src-uuid'}]}},
+        }
+
+        with self.assertLogs(TIMING_LOGGER, level='DEBUG') as logs:
+            results = service.lookup(
+                cast(ProfileConfig, profile), 'tenant', 'alice', 'user-uuid'
+            )
+
+        assert_that(results, equal_to([sentinel.result1, sentinel.result2]))
+        messages = [r.getMessage() for r in logs.records if 'my_ldap' in r.getMessage()]
+        assert_that(len(messages), equal_to(1))
+        assert_that(messages[0], contains_string('backend=ldap'))
+        assert_that(messages[0], contains_string('queue_ms='))
+        assert_that(messages[0], contains_string('exec_ms='))
+        assert_that(messages[0], contains_string('results=2'))

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 from concurrent.futures import ALL_COMPLETED, Future, ThreadPoolExecutor, wait
+from time import perf_counter
 from typing import Any
 
 from wazo_dird import BaseServicePlugin, BaseSourcePlugin, helpers
@@ -13,6 +14,7 @@ from wazo_dird.plugin_manager import ServiceDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 logger = logging.getLogger(__name__)
+timing_logger = logger.getChild('timing')
 
 
 class LookupServicePlugin(BaseServicePlugin):
@@ -62,9 +64,33 @@ class _LookupService(helpers.BaseService):
         raise_stopper: helpers.RaiseStopper[list[SourceResult]] = helpers.RaiseStopper(
             return_on_raise=[]
         )
-        future = self._executor.submit(raise_stopper.execute, source.search, term, args)
+        submitted_at = perf_counter()
+        future = self._executor.submit(
+            self._timed_search, raise_stopper, source, term, args, submitted_at
+        )
         setattr(future, 'name', source.name)
         return future
+
+    def _timed_search(
+        self,
+        raise_stopper: helpers.RaiseStopper[list[SourceResult]],
+        source: BaseSourcePlugin,
+        term: str,
+        args: dict[str, Any],
+        submitted_at: float,
+    ) -> list[SourceResult]:
+        started_at = perf_counter()
+        results = raise_stopper.execute(source.search, term, args)
+        finished_at = perf_counter()
+        timing_logger.debug(
+            'lookup source=%s backend=%s queue_ms=%.1f exec_ms=%.1f results=%d',
+            source.name,
+            source.backend,
+            (started_at - submitted_at) * 1000,
+            (finished_at - started_at) * 1000,
+            len(results),
+        )
+        return results
 
     def lookup(
         self,
