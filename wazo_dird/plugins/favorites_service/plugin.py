@@ -87,9 +87,8 @@ class _FavoritesService(helpers.BaseService):
     ) -> None:
         super().__init__(config, source_manager, controller)
         http_threads = config.get('rest_api', {}).get('max_threads', 10)
-        max_workers = config.get('favorites_service', {}).get(
-            'executor_workers', http_threads
-        )
+        executor_workers = config.get('favorites_service', {}).get('executor_workers')
+        max_workers = executor_workers if executor_workers is not None else http_threads
         logger.info(
             'Creating favorites service threadpool [max_workers=%d]', max_workers
         )

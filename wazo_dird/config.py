@@ -80,15 +80,15 @@ class ConsulConfig(TypedDict):
 
 
 class ReverseServiceConfig(TypedDict, total=False):
-    executor_workers: int
+    executor_workers: int | None
 
 
 class LookupServiceConfig(TypedDict, total=False):
-    executor_workers: int
+    executor_workers: int | None
 
 
 class FavoritesServiceConfig(TypedDict, total=False):
-    executor_workers: int
+    executor_workers: int | None
 
 
 class Config(TypedDict, total=False):
@@ -194,6 +194,15 @@ _DEFAULT_CONFIG: Config = {
             'allow_headers': ['Content-Type', 'X-Auth-Token', 'Wazo-Tenant'],
         },
         'max_threads': 10,
+    },
+    'reverse_service': {
+        'executor_workers': None,  # None: inherit rest_api.max_threads
+    },
+    'lookup_service': {
+        'executor_workers': None,  # None: inherit rest_api.max_threads
+    },
+    'favorites_service': {
+        'executor_workers': None,  # None: inherit rest_api.max_threads
     },
     'services': {
         'service_discovery': {
