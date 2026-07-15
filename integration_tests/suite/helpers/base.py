@@ -94,6 +94,7 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
     @classmethod
     def restart_dird(cls):
         cls.restart_service('dird')
+        cls.port = cls.service_port(9489, 'dird')
         cls.dird = cls.make_dird(VALID_TOKEN_MAIN_TENANT)
 
     @classmethod

@@ -45,7 +45,13 @@ class _ReverseService(helpers.BaseService):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self._executor = ThreadPoolExecutor(max_workers=10)
+        http_threads = self._config.get('rest_api', {}).get('max_threads', 10)
+        executor_workers = self._config.get('reverse_service', {}).get(
+            'executor_workers'
+        )
+        max_workers = executor_workers if executor_workers is not None else http_threads
+        logger.info('Creating reverse service threadpool [max_workers=%d]', max_workers)
+        self._executor = ThreadPoolExecutor(max_workers=max_workers)
 
     def stop(self) -> None:
         self._executor.shutdown()

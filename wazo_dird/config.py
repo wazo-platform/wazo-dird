@@ -1,4 +1,4 @@
-# Copyright 2014-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -79,6 +79,18 @@ class ConsulConfig(TypedDict):
     port: int
 
 
+class ReverseServiceConfig(TypedDict, total=False):
+    executor_workers: int | None
+
+
+class LookupServiceConfig(TypedDict, total=False):
+    executor_workers: int | None
+
+
+class FavoritesServiceConfig(TypedDict, total=False):
+    executor_workers: int | None
+
+
 class Config(TypedDict, total=False):
     uuid: str
     auth: AuthConfig
@@ -92,6 +104,9 @@ class Config(TypedDict, total=False):
     log_filename: str
     rest_api: RestAPIConfig
     services: dict[str, dict[str, Any]]
+    reverse_service: ReverseServiceConfig
+    lookup_service: LookupServiceConfig
+    favorites_service: FavoritesServiceConfig
     user: str
     bus: BusConfig
     consul: ConsulConfig
@@ -179,6 +194,15 @@ _DEFAULT_CONFIG: Config = {
             'allow_headers': ['Content-Type', 'X-Auth-Token', 'Wazo-Tenant'],
         },
         'max_threads': 10,
+    },
+    'reverse_service': {
+        'executor_workers': None,  # None: inherit rest_api.max_threads
+    },
+    'lookup_service': {
+        'executor_workers': None,  # None: inherit rest_api.max_threads
+    },
+    'favorites_service': {
+        'executor_workers': None,  # None: inherit rest_api.max_threads
     },
     'services': {
         'service_discovery': {
