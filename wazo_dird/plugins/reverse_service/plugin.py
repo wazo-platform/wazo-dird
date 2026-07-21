@@ -57,7 +57,7 @@ class _ReverseService(helpers.BaseService):
         self._executor.shutdown()
 
     @staticmethod
-    def _cancel_pending(futures: list) -> None:
+    def _cancel_pending(futures: list[Future]) -> None:
         pending = [f for f in futures if not f.done()]
         cancelled = sum(1 for f in pending if f.cancel())
         logger.debug(
