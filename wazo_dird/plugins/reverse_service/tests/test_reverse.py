@@ -193,3 +193,28 @@ class TestReverseTimeout(unittest.TestCase):
         service.reverse_many(_PROFILE_WITH_SOURCE, ['1234'], 'test')
 
         future.cancel.assert_called_once()
+
+    @patch('wazo_dird.plugins.reverse_service.plugin.as_completed')
+    def test_reverse_many_keeps_first_match_when_sources_disagree(
+        self, mock_as_completed
+    ):
+        # a later-completing source must not overwrite an exten already
+        # matched by an earlier one, matching reverse()'s first-match-wins
+        exten_a, exten_b = '1111', '2222'
+        match_a1, match_a2, match_b = Mock(), Mock(), Mock()
+
+        first_future = Mock()
+        first_future.result.return_value = {exten_a: match_a1}
+        first_future.done.return_value = True
+
+        second_future = Mock()
+        second_future.result.return_value = {exten_a: match_a2, exten_b: match_b}
+        second_future.done.return_value = True
+
+        mock_as_completed.return_value = iter([first_future, second_future])
+        service, _ = _make_service_with_source()
+        setattr(service._executor, 'submit', Mock(return_value=Mock()))
+
+        results = service.reverse_many(_PROFILE_WITH_SOURCE, [exten_a, exten_b], 'test')
+
+        assert results == [match_a1, match_b]
