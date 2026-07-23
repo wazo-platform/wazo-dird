@@ -10,6 +10,7 @@
     wazo-gate:
       jobs:
         - dird-tox-integration
+        - dird-tox-performance
 
 - job:
     name: dird-tox-integration
