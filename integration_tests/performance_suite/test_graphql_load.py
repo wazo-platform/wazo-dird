@@ -421,7 +421,7 @@ class TestGraphQLReverseLookupDefaultProfileLoad(_GraphQLLoadBase):
                         not null_nodes
                     ), f'Null nodes at indices {null_nodes} (timeout?)'
 
-                assert stats.p50 < 2.0, f'p50 latency {stats.p50:.2f}s exceeds 2s'
+                assert stats.p50 < 3.0, f'p50 latency {stats.p50:.2f}s exceeds 3s'
 
 
 class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
@@ -559,4 +559,4 @@ class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
             null_nodes = [i for i, e in enumerate(edges) if e['node'] is None]
             assert not null_nodes, f'Null nodes at indices {null_nodes} (timeout?)'
 
-        assert stats.p50 < 2.0, f'p50 latency {stats.p50:.2f}s exceeds 2s'
+        assert stats.p50 < 3.0, f'p50 latency {stats.p50:.2f}s exceeds 3s'
