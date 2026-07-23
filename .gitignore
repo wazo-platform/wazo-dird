@@ -12,3 +12,5 @@ coverage.xml
 pylint.txt
 unit-tests.xml
 pycodestyle.txt
+
+integration_tests/explain-logs/
