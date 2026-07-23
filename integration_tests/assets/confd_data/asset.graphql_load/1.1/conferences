@@ -1,0 +1,465 @@
+{
+    "total": 20,
+    "items": [
+        {
+            "id": 1,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 00",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1000,
+                    "exten": "4000",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 2,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 01",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1001,
+                    "exten": "4001",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 3,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 02",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1002,
+                    "exten": "4002",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 4,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 03",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1003,
+                    "exten": "4003",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 5,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 04",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1004,
+                    "exten": "4004",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 6,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 05",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1005,
+                    "exten": "4005",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 7,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 06",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1006,
+                    "exten": "4006",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 8,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 07",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1007,
+                    "exten": "4007",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 9,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 08",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1008,
+                    "exten": "4008",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 10,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 09",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1009,
+                    "exten": "4009",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 11,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 10",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1010,
+                    "exten": "4010",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 12,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 11",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1011,
+                    "exten": "4011",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 13,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 12",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1012,
+                    "exten": "4012",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 14,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 13",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1013,
+                    "exten": "4013",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 15,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 14",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1014,
+                    "exten": "4014",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 16,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 15",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1015,
+                    "exten": "4015",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 17,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 16",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1016,
+                    "exten": "4016",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 18,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 17",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1017,
+                    "exten": "4017",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 19,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 18",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1018,
+                    "exten": "4018",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        },
+        {
+            "id": 20,
+            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "name": "Conference 19",
+            "preprocess_subroutine": null,
+            "max_users": 50,
+            "record": false,
+            "pin": null,
+            "admin_pin": null,
+            "quiet_join_leave": false,
+            "announce_join_leave": false,
+            "announce_user_count": false,
+            "announce_only_user": false,
+            "music_on_hold": null,
+            "extensions": [
+                {
+                    "id": 1019,
+                    "exten": "4019",
+                    "context": "inside"
+                }
+            ],
+            "incalls": []
+        }
+    ]
+}

@@ -22,7 +22,7 @@ ignore = [
 profile = "black"
 py_version = 311
 
-[tool.pytest]
+[tool.pytest.ini_options]
 testpaths = ["wazo_dird"]
 
 [tool.mypy]
@@ -50,6 +50,7 @@ explicit_package_bases = true
 module = [
     "*.tests.*",
     "integration_tests.suite.*",
+    "integration_tests.performance_suite.*",
 ]
 disallow_untyped_defs = false
 disallow_untyped_calls = false
