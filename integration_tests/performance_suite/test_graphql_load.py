@@ -112,9 +112,10 @@ def latency_stats(latencies: list[float]) -> LatencyStats:
 
 
 def concurrent_p50_budget(num_extens: int) -> float:
-    # need to be generous to tolerate CI variability
-    # and scale with query size
-    return 3.0 + 0.2 * num_extens
+    # Generous ceiling: the no-errors / no-null-nodes checks are the real gate;
+    # this only catches a return to the timeout/collapse regime. Base absorbs CI
+    # runner variance (~3s->~5s run-to-run for the same subtest); slope covers fan-out.
+    return 6.0 + 0.2 * num_extens
 
 
 class _GraphQLLoadBase(BaseDirdIntegrationTest):
