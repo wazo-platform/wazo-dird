@@ -1,7 +1,6 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
@@ -26,8 +25,6 @@ from wazo_dird.plugins.config_service.plugin import (
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_null_config
 from .helpers.constants import MAIN_TENANT, MAIN_USER_UUID, VALID_TOKEN_MAIN_TENANT
-
-logger = logging.getLogger(__name__)
 
 _CONTACT_COUNT = 25_000
 _PERSONAL_CONTACT_COUNT = 1_000
@@ -346,10 +343,8 @@ class TestGraphQLReverseLookupDefaultProfileLoad(_GraphQLLoadBase):
                 response = self.dird.graphql.query(_graphql_query('default', extens))
                 elapsed = time.monotonic() - t0
 
-                logger.info(
-                    'load[single]: %d extens / 25k contacts → %.2fs',
-                    num_extens,
-                    elapsed,
+                print(
+                    f'load[single]: {num_extens} extens / 25k contacts → {elapsed:.2f}s'
                 )
 
                 assert (
@@ -401,18 +396,11 @@ class TestGraphQLReverseLookupDefaultProfileLoad(_GraphQLLoadBase):
                     results = list(pool.map(run_query, range(num_users)))
 
                 stats = latency_stats([t for t, _ in results])
-                logger.info(
-                    'load[concurrent %d users, %d extens, 6 sources / 25k '
-                    'contacts]: min=%.2fs avg=%.2fs p50=%.2fs p95=%.2fs '
-                    'p99=%.2fs max=%.2fs',
-                    num_users,
-                    num_extens,
-                    stats.min,
-                    stats.avg,
-                    stats.p50,
-                    stats.p95,
-                    stats.p99,
-                    stats.max,
+                print(
+                    f'load[concurrent {num_users} users, {num_extens} extens, '
+                    f'6 sources / 25k contacts]: min={stats.min:.2f}s '
+                    f'avg={stats.avg:.2f}s p50={stats.p50:.2f}s p95={stats.p95:.2f}s '
+                    f'p99={stats.p99:.2f}s max={stats.max:.2f}s'
                 )
 
                 all_errors = [
@@ -433,7 +421,7 @@ class TestGraphQLReverseLookupDefaultProfileLoad(_GraphQLLoadBase):
                         not null_nodes
                     ), f'Null nodes at indices {null_nodes} (timeout?)'
 
-                assert stats.p95 < 5.0, f'p95 latency {stats.p95:.2f}s exceeds 5s'
+                assert stats.p50 < 2.0, f'p50 latency {stats.p50:.2f}s exceeds 2s'
 
 
 class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
@@ -510,7 +498,7 @@ class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
         response = self.dird.graphql.query(_graphql_query('personal', extens))
         elapsed = time.monotonic() - t0
 
-        logger.info('load[single, personal]: 20 extens / 1k contacts → %.2fs', elapsed)
+        print(f'load[single, personal]: 20 extens / 1k contacts → {elapsed:.2f}s')
 
         assert 'errors' not in response, f'GraphQL errors: {response.get("errors")}'
         edges = response['data']['me']['contacts']['edges']
@@ -551,17 +539,11 @@ class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
             results = list(pool.map(run_query, range(num_users)))
 
         stats = latency_stats([t for t, _ in results])
-        logger.info(
-            'load[concurrent %d users, %d extens, personal / 1k contacts]: '
-            'min=%.2fs avg=%.2fs p50=%.2fs p95=%.2fs p99=%.2fs max=%.2fs',
-            num_users,
-            num_extens,
-            stats.min,
-            stats.avg,
-            stats.p50,
-            stats.p95,
-            stats.p99,
-            stats.max,
+        print(
+            f'load[concurrent {num_users} users, {num_extens} extens, '
+            f'personal / 1k contacts]: min={stats.min:.2f}s avg={stats.avg:.2f}s '
+            f'p50={stats.p50:.2f}s p95={stats.p95:.2f}s p99={stats.p99:.2f}s '
+            f'max={stats.max:.2f}s'
         )
 
         all_errors = [
@@ -577,4 +559,4 @@ class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
             null_nodes = [i for i, e in enumerate(edges) if e['node'] is None]
             assert not null_nodes, f'Null nodes at indices {null_nodes} (timeout?)'
 
-        assert stats.p95 < 5.0, f'p95 latency {stats.p95:.2f}s exceeds 5s'
+        assert stats.p50 < 2.0, f'p50 latency {stats.p50:.2f}s exceeds 2s'
