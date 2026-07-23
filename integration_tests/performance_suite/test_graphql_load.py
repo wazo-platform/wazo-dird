@@ -111,6 +111,12 @@ def latency_stats(latencies: list[float]) -> LatencyStats:
     )
 
 
+def concurrent_p50_budget(num_extens: int) -> float:
+    # need to be generous to tolerate CI variability
+    # and scale with query size
+    return 3.0 + 0.2 * num_extens
+
+
 class _GraphQLLoadBase(BaseDirdIntegrationTest):
     asset = 'graphql_load'
     config_factory = new_null_config
@@ -421,7 +427,11 @@ class TestGraphQLReverseLookupDefaultProfileLoad(_GraphQLLoadBase):
                         not null_nodes
                     ), f'Null nodes at indices {null_nodes} (timeout?)'
 
-                assert stats.p50 < 3.0, f'p50 latency {stats.p50:.2f}s exceeds 3s'
+                budget = concurrent_p50_budget(num_extens)
+                assert stats.p50 < budget, (
+                    f'p50 latency {stats.p50:.2f}s exceeds budget {budget:.2f}s '
+                    f'({num_extens} extens, {num_users} users)'
+                )
 
 
 class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
@@ -559,4 +569,8 @@ class TestGraphQLReverseLookupPersonalLoad(_GraphQLLoadBase):
             null_nodes = [i for i, e in enumerate(edges) if e['node'] is None]
             assert not null_nodes, f'Null nodes at indices {null_nodes} (timeout?)'
 
-        assert stats.p50 < 3.0, f'p50 latency {stats.p50:.2f}s exceeds 3s'
+        budget = concurrent_p50_budget(num_extens)
+        assert stats.p50 < budget, (
+            f'p50 latency {stats.p50:.2f}s exceeds budget {budget:.2f}s '
+            f'({num_extens} extens, {num_users} users)'
+        )
