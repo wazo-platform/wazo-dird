@@ -74,7 +74,7 @@ class _ReverseService(helpers.BaseService):
         token: str | None = None,
     ) -> list[SourceResult | None]:
         args = args or {}
-        futures = []
+        futures: list[Future[dict[str, SourceResult] | None]] = []
         sources = self.source_from_profile(profile_config)
         logger.debug(
             'Reverse lookup for %s in sources %s',
@@ -94,17 +94,25 @@ class _ReverseService(helpers.BaseService):
         ) or 1
 
         results: dict[str, SourceResult | None] = {exten: None for exten in extens}
+        completed_sources = set()
         try:
             for future in as_completed(futures, timeout=timeout):
+                completed_sources.add(getattr(future, 'name'))
                 if result := future.result():
                     results.update(result)
                     if all(result is not None for result in results.values()):
                         self._cancel_pending(futures)
                         break
         except TimeoutError:
+            incomplete_matches = [
+                getattr(future, 'name')
+                for future in futures
+                if getattr(future, 'name') not in completed_sources
+            ]
             logger.warning(
-                'Timeout on reverse many lookup, returning partial results (extens=%s)',
+                'Timeout on reverse many lookup, returning partial results (extens=%s, incomplete=%s)',
                 extens,
+                incomplete_matches,
             )
             self._cancel_pending(futures)
         return [value for value in results.values()]
