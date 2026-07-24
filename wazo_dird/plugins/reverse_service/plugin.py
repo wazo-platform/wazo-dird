@@ -139,7 +139,7 @@ class _ReverseService(helpers.BaseService):
         token: str | None = None,
     ) -> SourceResult | None:
         args = args or {}
-        futures = []
+        futures: list[Future[SourceResult | None]] = []
         sources = self.source_from_profile(profile_config)
         logger.debug(
             'Reverse lookup for %s in sources %s',
@@ -158,13 +158,24 @@ class _ReverseService(helpers.BaseService):
             'timeout'
         ) or 1
 
+        completed_sources = set()
         try:
             for future in as_completed(futures, timeout=timeout):
+                completed_sources.add(getattr(future, 'name'))
                 if result := future.result():
                     self._cancel_pending(futures)
                     return result
         except TimeoutError:
-            logger.warning('Timeout on reverse lookup for exten: %s', exten)
+            incomplete_matches = [
+                getattr(future, 'name')
+                for future in futures
+                if getattr(future, 'name') not in completed_sources
+            ]
+            logger.warning(
+                'Timeout on reverse lookup for exten: %s, incomplete=%s',
+                exten,
+                incomplete_matches,
+            )
             self._cancel_pending(futures)
 
     def _async_reverse(
