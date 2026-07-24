@@ -14,3 +14,6 @@ services:
     volumes:
       - "./scripts/asset.reverse_timeout.slow_ws.py:/tmp/ws.py"
     command: "python3 /tmp/ws.py"
+  dird:
+    volumes:
+      - "./tmp/data/asset.reverse_timeout.fast.csv:/tmp/data/fast.csv"
