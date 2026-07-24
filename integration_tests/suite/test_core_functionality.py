@@ -172,6 +172,50 @@ class TestReverse(BaseMultipleSourceLauncher):
             any_of(self.alice_result, self.qwerty_result_1, self.qwerty_result_2),
         )
 
+    def _reverse_many_source_names(self, extens):
+        extens_literal = '[' + ', '.join(f'"{exten}"' for exten in extens) + ']'
+        query = {
+            'query': f'''
+            {{
+                user(uuid: "{VALID_UUID}") {{
+                    contacts(profile: "default", extens: {extens_literal}) {{
+                        edges {{
+                            node {{
+                                wazoSourceName
+                            }}
+                        }}
+                    }}
+                }}
+            }}
+            ''',
+        }
+        response = self.dird.graphql.query(query)
+        edges = response['data']['user']['contacts']['edges']
+        return [
+            edge['node']['wazoSourceName'] if edge['node'] else None for edge in edges
+        ]
+
+    def test_reverse_many_keeps_first_source_match(self):
+        # third_csv, my_csv and second_csv all match exten 1111; reverse_many
+        # must keep whichever source answers first for a given exten, same
+        # as reverse(), instead of letting a later-completing source
+        # overwrite it.
+        with self.dird_with_config({'reverse_service': {'executor_workers': 1}}):
+            self.wait_strategy.wait(self.dird)
+
+            # a single-exten batch short-circuits on the first source to
+            # answer and cancels the rest, revealing the deterministic
+            # winner for this profile/executor configuration
+            (first_source,) = self._reverse_many_source_names(['1111'])
+
+            # 9999 never matches, so the loop can't break early and every
+            # source's result for 1111 gets folded into the aggregate,
+            # exercising the overwrite path
+            multi_source, unmatched = self._reverse_many_source_names(['1111', '9999'])
+
+        assert_that(multi_source, equal_to(first_source))
+        assert_that(unmatched, equal_to(None))
+
     def test_reverse_when_multi_columns(self):
         result = self.reverse('11112', 'default', VALID_UUID)
 
