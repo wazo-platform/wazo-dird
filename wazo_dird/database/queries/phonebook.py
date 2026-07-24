@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -28,7 +28,13 @@ from wazo_dird.exception import (
 )
 
 from .. import Contact, ContactFields, Phonebook
-from .base import BaseDAO, ContactInfo, compute_contact_hash, list_contacts_by_uuid
+from .base import (
+    BaseDAO,
+    ContactInfo,
+    build_exten_contact_map,
+    compute_contact_hash,
+    list_contacts_by_uuid,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +89,43 @@ class PhonebookContactSearchEngine(BaseDAO):
                 return contact
             else:
                 return None
+
+    def find_contacts_for_extens(self, extens: list[str]) -> dict[str, ContactInfo]:
+        if not extens or not self._first_match_columns:
+            return {}
+
+        phonebook_filter = phonebook_key_to_filter(self._phonebook_key)
+        if self._visible_tenants is None:
+            tenant_filter = phonebook_filter
+        elif not self._visible_tenants:
+            return {}
+        else:
+            tenant_filter = and_(
+                phonebook_filter,
+                Phonebook.tenant_uuid.in_(self._visible_tenants),
+            )
+
+        matched_uuids = (
+            select(ContactFields.contact_uuid)
+            .join(Contact)
+            .join(Phonebook)
+            .where(
+                ContactFields.value.in_(extens),
+                ContactFields.name.in_(self._first_match_columns),
+                tenant_filter,
+            )
+            .distinct()
+            .scalar_subquery()
+        )
+        with self.new_session() as s:
+            rows = (
+                s.query(
+                    ContactFields.contact_uuid, ContactFields.name, ContactFields.value
+                )
+                .filter(ContactFields.contact_uuid.in_(matched_uuids))
+                .all()
+            )
+            return build_exten_contact_map(rows, extens, self._first_match_columns)
 
     def list_contacts(self, contact_uuids: list[str]) -> list[ContactInfo]:
         filter_ = self._new_list_filter(contact_uuids)

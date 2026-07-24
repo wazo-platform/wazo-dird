@@ -1,0 +1,34 @@
+# Opt-in override: capture EXPLAIN ANALYZE output for every SQL query.
+#
+# Enable via:
+#   export WAZO_TEST_DOCKER_OVERRIDE_EXTRA=$(pwd)/integration_tests/assets/docker-compose.explain.override.yml
+#   tox -e integration -- <any test>
+#
+# Collect with:
+#   docker compose -f integration_tests/assets/docker-compose.yml \
+#                  -f integration_tests/assets/docker-compose.<asset>.override.yml \
+#                  -f integration_tests/assets/docker-compose.explain.override.yml \
+#                  logs db > /tmp/explain.log
+#
+# Includes log_min_duration_statement=0 so combining with graphql_load.override.yml
+# is harmless (docker-compose replaces command:, not extends, so this file must be
+# self-contained).
+services:
+  db:
+    command:
+      - -c
+      - shared_preload_libraries=auto_explain
+      - -c
+      - log_min_duration_statement=0
+      - -c
+      - auto_explain.log_min_duration=0
+      - -c
+      - auto_explain.log_analyze=on
+      - -c
+      - auto_explain.log_buffers=on
+      - -c
+      - auto_explain.log_verbose=on
+      - -c
+      - auto_explain.log_format=text
+      - -c
+      - auto_explain.log_nested_statements=on

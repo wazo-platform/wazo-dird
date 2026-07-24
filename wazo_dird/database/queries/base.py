@@ -57,6 +57,28 @@ def compute_contact_hash(contact_info: Mapping[str, Any]) -> str:
     return hashlib.sha1(string_representation).hexdigest()
 
 
+def build_exten_contact_map(
+    rows: list[tuple[str, str, str]],
+    extens: list[str],
+    first_match_columns: list[str],
+) -> dict[str, ContactInfo]:
+    extens_set = set(extens)
+    match_columns_set = set(first_match_columns)
+    contacts: dict[str, ContactInfo] = {}
+    exten_to_uuid: dict[str, str] = {}
+    for contact_uuid, name, value in rows:
+        if contact_uuid not in contacts:
+            contacts[contact_uuid] = cast(ContactInfo, {'id': contact_uuid})
+        contacts[contact_uuid][name] = value  # type: ignore[literal-required]
+        if (
+            name in match_columns_set
+            and value in extens_set
+            and value not in exten_to_uuid
+        ):
+            exten_to_uuid[value] = contact_uuid
+    return {exten: contacts[uuid] for exten, uuid in exten_to_uuid.items()}
+
+
 Direction = Literal['asc', 'desc']
 
 

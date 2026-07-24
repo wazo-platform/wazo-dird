@@ -6,9 +6,11 @@
     wazo-check:
       jobs:
         - dird-tox-integration
+        - dird-tox-performance
     wazo-gate:
       jobs:
         - dird-tox-integration
+        - dird-tox-performance
 
 - job:
     name: dird-tox-integration
@@ -16,4 +18,13 @@
     parent: wazo-tox-integration-py311
     timeout: 10800
     vars:
+      integration_test_timeout: 60
+
+- job:
+    name: dird-tox-performance
+    description: Run dird performance tests
+    parent: wazo-tox-integration-py311
+    timeout: 10800
+    vars:
+      tox_envlist: performance
       integration_test_timeout: 60

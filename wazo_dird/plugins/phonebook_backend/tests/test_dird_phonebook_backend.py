@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -75,3 +75,16 @@ class TestDirdPhonebook(unittest.TestCase):
         result = self.source.first_match(s.term)
 
         assert_that(result, equal_to(None))
+
+    def test_that_match_all_returns_formatted_results(self):
+        raw = {'id': '1', 'number': '555', 'firstname': 'Foo'}
+        self.engine.find_contacts_for_extens.return_value = {'555': raw}
+
+        result = self.source.match_all(['555'])
+
+        assert_that(result, equal_to({'555': self.SourceResult(raw)}))
+
+    def test_that_match_all_returns_empty_when_engine_returns_nothing(self):
+        self.engine.find_contacts_for_extens.return_value = {}
+
+        assert_that(self.source.match_all(['555']), equal_to({}))
