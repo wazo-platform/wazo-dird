@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import create_engine
@@ -8,7 +8,15 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 Session = scoped_session(sessionmaker())
 
 
-def init_db(db_uri: str, echo: bool = False, pool_size: int = 16) -> Engine:
-    engine = create_engine(db_uri, echo=echo, pool_size=pool_size, pool_pre_ping=True)
+def init_db(
+    db_uri: str, echo: bool = False, pool_size: int = 16, max_overflow: int = 10
+) -> Engine:
+    engine = create_engine(
+        db_uri,
+        echo=echo,
+        pool_size=pool_size,
+        max_overflow=max_overflow,
+        pool_pre_ping=True,
+    )
     Session.configure(bind=engine)
     return engine

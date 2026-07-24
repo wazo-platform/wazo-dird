@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ class CoreRestApi:
         app.permanent_session_lifetime = timedelta(minutes=5)
         app.config.update(global_config)
         self.load_cors()
-        self.server: wsgi.WSGIServer | None = None
+        self.server: wsgi.DynamicWSGIServer | None = None
         self.app = app
         self.api = api
 
@@ -64,10 +64,11 @@ class CoreRestApi:
         bind_addr = (self.config['listen'], self.config['port'])
 
         wsgi_app = ReverseProxied(ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': app})))
-        self.server = wsgi.WSGIServer(
+        self.server = wsgi.DynamicWSGIServer(
             bind_addr=bind_addr,
             wsgi_app=wsgi_app,
-            numthreads=self.config['max_threads'],
+            numthreads=self.config['min_threads'],
+            max=self.config['max_threads'],
         )
         if self.config['certificate'] and self.config['private_key']:
             logger.warning(

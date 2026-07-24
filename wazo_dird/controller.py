@@ -25,6 +25,8 @@ from .source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
 
+DB_POOL_SPARE_CONN = 10
+
 
 class Controller:
     config: Config
@@ -37,7 +39,15 @@ class Controller:
     def __init__(self, config: Config):
         self.config = config
         self._stopping_thread: threading.Thread | None = None
-        init_db(config['db_uri'], pool_size=config['rest_api']['max_threads'])
+        min_threads = config['rest_api']['min_threads']
+        max_threads = config['rest_api']['max_threads']
+        # Executors (lookup/reverse/favorites) don't need extra connections:
+        # HTTP threads hold none while waiting, and executors are capped at max_threads.
+        init_db(
+            config['db_uri'],
+            pool_size=min_threads,
+            max_overflow=max_threads - min_threads + DB_POOL_SPARE_CONN,
+        )
         self.rest_api = CoreRestApi(self.config)
         self.bus = CoreBus(config.get('uuid'), **config['bus'])
         auth.set_auth_config(self.config['auth'])
