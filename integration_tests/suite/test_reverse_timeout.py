@@ -1,7 +1,16 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, equal_to, none, not_
+from hamcrest import (
+    assert_that,
+    contains,
+    contains_string,
+    equal_to,
+    has_entries,
+    has_entry,
+    none,
+    not_,
+)
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import Config
@@ -9,6 +18,7 @@ from .helpers.constants import VALID_UUID
 
 _SLOW_WS_NUMBER = '5551234567'
 _SLOW_WS_URL = 'http://ws:9485/ws'
+_FAST_CSV_NUMBER = '5559999999'
 
 _DEFAULT_DISPLAY = {
     'name': 'default_display',
@@ -30,6 +40,14 @@ def new_reverse_timeout_config(Session):
         first_matched_columns=['number'],
         format_columns={'reverse': '{firstname} {lastname}'},
     )
+    config.with_source(
+        backend='csv',
+        name='fast_csv',
+        file='/tmp/data/fast.csv',
+        separator=',',
+        first_matched_columns=['number'],
+        format_columns={'reverse': '{firstname} {lastname}'},
+    )
     config.with_profile(
         name='reverse-short-timeout',
         display='default_display',
@@ -47,6 +65,16 @@ def new_reverse_timeout_config(Session):
             'reverse': {
                 'sources': ['slow_ws'],
                 'options': {'timeout': 5},
+            }
+        },
+    )
+    config.with_profile(
+        name='reverse-many-short-timeout',
+        display='default_display',
+        services={
+            'reverse': {
+                'sources': ['slow_ws', 'fast_csv'],
+                'options': {'timeout': 0.1},
             }
         },
     )
@@ -75,3 +103,38 @@ class TestReverseServiceTimeout(BaseDirdIntegrationTest):
 
         assert_that(result['display'], not_(none()))
         assert_that(result['display'], equal_to('Alice Timeout'))
+
+    def test_reverse_many_with_short_timeout_returns_partial_and_logs_incomplete_source(
+        self,
+    ) -> None:
+        query = {
+            'query': '''
+            {
+                me {
+                    contacts(
+                        profile: "reverse-many-short-timeout",
+                        extens: ["%s", "%s"]
+                    ) {
+                        edges {
+                            node {
+                                firstname
+                            }
+                        }
+                    }
+                }
+            }
+            '''
+            % (_FAST_CSV_NUMBER, _SLOW_WS_NUMBER),
+        }
+
+        with self.capture_logs(service_name='dird') as logs:
+            response = self.dird.graphql.query(query)
+
+        assert_that(
+            response['data']['me']['contacts']['edges'],
+            contains(
+                has_entry('node', has_entries({'firstname': 'Bob'})),
+                has_entry('node', none()),
+            ),
+        )
+        assert_that(logs.result(), contains_string('incomplete=[\'slow_ws\']'))
