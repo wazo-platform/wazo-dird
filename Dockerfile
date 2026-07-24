@@ -5,13 +5,14 @@ RUN python3 -m venv /opt/venv
 # Activate virtual env
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN apt-get -q update
-RUN apt-get -yq install gcc libldap2-dev libsasl2-dev
+RUN apt-get -q update && apt-get -yq install gcc libldap2-dev libsasl2-dev
+
+WORKDIR /usr/src/wazo-dird
+COPY ./requirements.txt /usr/src/wazo-dird
+RUN pip3 install -r requirements.txt
 
 COPY . /usr/src/wazo-dird
-WORKDIR /usr/src/wazo-dird
-RUN pip3 install -r requirements.txt
-RUN python3 setup.py install
+RUN pip3 install .
 
 FROM python:3.11-slim-bookworm AS build-image
 COPY --from=compile-image /opt/venv /opt/venv
