@@ -36,6 +36,7 @@
 #   PHONEBOOK_COUNT     number of contacts in the phonebook   (default: 25000)
 #   P95_THRESHOLD_MS    fail if p95 exceeds this value in ms  (default: 4000)
 #   FAIL_RATIO_PCT      fail if error rate exceeds this %     (default: 5)
+#   TOKEN_EXPIRATION    token lifetime when --run-time is unset (default: 600)
 
 from __future__ import annotations
 
@@ -63,18 +64,21 @@ _MOBILE_BASE = int(os.getenv('MOBILE_BASE', '33600000000'))
 _PHONEBOOK_COUNT = int(os.getenv('PHONEBOOK_COUNT', '25000'))
 _P95_THRESHOLD_MS = int(os.getenv('P95_THRESHOLD_MS', '4000'))
 _FAIL_RATIO_PCT = float(os.getenv('FAIL_RATIO_PCT', '5'))
+_TOKEN_EXPIRATION = int(os.getenv('TOKEN_EXPIRATION', '600'))
+# Extra token lifetime beyond --run-time so the token outlives ramp-up/teardown.
+_TOKEN_MARGIN = 60
 
 _SSL_CTX = ssl.create_default_context()
 _SSL_CTX.check_hostname = False
 _SSL_CTX.verify_mode = ssl.CERT_NONE
 
 
-def _create_token(host: str) -> str:
+def _create_token(host: str, expiration: int) -> str:
     auth_host = os.getenv('WAZO_AUTH_HOST', f'{host}/api/auth')
     credentials = base64.b64encode(f'{_LOGIN}:{_PASSWORD}'.encode()).decode()
     req = urllib.request.Request(
         f'{auth_host}/0.1/token',
-        data=json.dumps({'expiration': 600}).encode(),
+        data=json.dumps({'expiration': expiration}).encode(),
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Basic {credentials}',
@@ -214,7 +218,11 @@ _TOKEN = ''
 @events.test_start.add_listener
 def on_test_start(environment: Environment, **kw: dict) -> None:
     global _TOKEN
-    _TOKEN = _create_token(environment.host)
+    run_time = (
+        environment.parsed_options.run_time if environment.parsed_options else None
+    )
+    expiration = run_time + _TOKEN_MARGIN if run_time else _TOKEN_EXPIRATION
+    _TOKEN = _create_token(environment.host, expiration)
     logging.info(
         'target: %s  profile: %s  phonebook: %d contacts',
         environment.host,
