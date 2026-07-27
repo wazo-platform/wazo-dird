@@ -265,5 +265,5 @@ def on_quit(environment: Environment, **kw: dict) -> None:
         logging.error('FAIL: p95 %.0fms > %dms', p95, _P95_THRESHOLD_MS)
         environment.process_exit_code = 1
     else:
+        # locust might set error exit code anyway in some circumstances
         logging.info('PASS')
-        environment.process_exit_code = 0
