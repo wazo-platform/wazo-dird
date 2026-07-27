@@ -141,8 +141,9 @@ class GraphQLReverseLookupUser(FastHttpUser):
         ) as response:
             if not response.status_code:
                 response.failure('timeout or connection error')
+            elif response.status_code >= 400:
+                response.failure(f'HTTP {response.status_code}')
             else:
-                response.raise_for_status()
                 body = response.json()
                 if 'errors' in body:
                     response.failure(str(body['errors'])[:200])
@@ -160,8 +161,9 @@ def _query_headers() -> dict[str, str]:
 def _check_rest_response(response: ResponseContextManager) -> None:
     if not response.status_code:
         response.failure('timeout or connection error')
+    elif response.status_code >= 400:
+        response.failure(f'HTTP {response.status_code}')
     else:
-        response.raise_for_status()
         response.success()
 
 
