@@ -97,7 +97,9 @@ class _ReverseService(helpers.BaseService):
         try:
             for future in as_completed(futures, timeout=timeout):
                 if result := future.result():
-                    results.update(result)
+                    for exten, source_result in result.items():
+                        if results.get(exten) is None:
+                            results[exten] = source_result
                     if all(result is not None for result in results.values()):
                         self._cancel_pending(futures)
                         break
