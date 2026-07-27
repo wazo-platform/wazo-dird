@@ -10,9 +10,10 @@
 #   FavoritesUser             REST favorites listing  (favorites_service pool)
 #
 # All scenarios assume a synthetic phonebook and a profile with several sources
-# already exist on the target stack (see contribs/create_synthetic_phonebook.sh
-# and contribs/create_phonebook_source.sh). FavoritesUser additionally requires
-# favorites to be seeded for the test user (see contribs/create_favorites.sh).
+# already exist on the target stack (see contribs/scripts/create_synthetic_phonebook.sh
+# and contribs/scripts/create_phonebook_source.sh). FavoritesUser additionally
+# requires favorites to be seeded for the test user (see
+# contribs/scripts/create_favorites.sh).
 #
 # Requirements:  pip install locust
 #
@@ -204,7 +205,7 @@ class FavoritesUser(_DirdUser):
     fanning out one future per source holding a favorite in the
     favorites_service ThreadPoolExecutor.
 
-    Favorites must be seeded beforehand (see contribs/create_favorites.sh);
+    Favorites must be seeded beforehand (see contribs/scripts/create_favorites.sh);
     with no favorites the listing still succeeds but exercises no fan-out.
     """
 
