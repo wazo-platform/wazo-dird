@@ -36,6 +36,7 @@
 #   PHONEBOOK_COUNT     number of contacts in the phonebook   (default: 25000)
 #   P95_THRESHOLD_MS    fail if p95 exceeds this value in ms  (default: 4000)
 #   FAIL_RATIO_PCT      fail if error rate exceeds this %     (default: 5)
+#   REQUEST_TIMEOUT     per-request hard ceiling in seconds   (default: 30)
 #   TOKEN_EXPIRATION    token lifetime when --run-time is unset (default: 600)
 
 from __future__ import annotations
@@ -64,6 +65,10 @@ _MOBILE_BASE = int(os.getenv('MOBILE_BASE', '33600000000'))
 _PHONEBOOK_COUNT = int(os.getenv('PHONEBOOK_COUNT', '25000'))
 _P95_THRESHOLD_MS = int(os.getenv('P95_THRESHOLD_MS', '4000'))
 _FAIL_RATIO_PCT = float(os.getenv('FAIL_RATIO_PCT', '5'))
+# Hard per-request ceiling so a stalled dird fails fast instead of hanging for
+# FastHttpUser's 60s default; kept above P95_THRESHOLD_MS so merely-slow requests
+# still complete and count toward p95.
+_REQUEST_TIMEOUT = float(os.getenv('REQUEST_TIMEOUT', '30'))
 _TOKEN_EXPIRATION = int(os.getenv('TOKEN_EXPIRATION', '600'))
 # Extra token lifetime beyond --run-time so the token outlives ramp-up/teardown.
 _TOKEN_MARGIN = 60
@@ -99,15 +104,22 @@ def _delete_token(host: str, token: str) -> None:
         logging.warning('failed to delete token: %s', e)
 
 
-class GraphQLReverseLookupUser(FastHttpUser):
+class _DirdUser(FastHttpUser):
+    abstract = True
+    wait_time = between(0.5, 3.0)
+    # network_timeout/connection_timeout are the only honoured per-request
+    # ceilings; FastHttpSession.request has no `timeout` kwarg.
+    network_timeout = _REQUEST_TIMEOUT
+    connection_timeout = _REQUEST_TIMEOUT
+
+
+class GraphQLReverseLookupUser(_DirdUser):
     """
     Simulates one application instance resolving call-history entries via
     GraphQL reverse lookup.  Each task picks 0-35 extensions drawn from the
     synthetic phonebook. All virtual users share a single token created at
     test_start, so authentication latency is excluded from the stats.
     """
-
-    wait_time = between(0.5, 3.0)
 
     @task
     def reverse_lookup(self) -> None:
@@ -137,7 +149,6 @@ class GraphQLReverseLookupUser(FastHttpUser):
             headers=headers,
             json={'query': query},
             catch_response=True,
-            timeout=_P95_THRESHOLD_MS / 1000,
         ) as response:
             if not response.status_code:
                 response.failure('timeout or connection error')
@@ -167,14 +178,12 @@ def _check_rest_response(response: ResponseContextManager) -> None:
         response.success()
 
 
-class LookupUser(FastHttpUser):
+class LookupUser(_DirdUser):
     """
     Simulates contact search: each task searches the firstname of a random
     synthetic contact, fanning out one future per profile source in the
     lookup_service ThreadPoolExecutor.
     """
-
-    wait_time = between(0.5, 3.0)
 
     @task
     def lookup(self) -> None:
@@ -185,12 +194,11 @@ class LookupUser(FastHttpUser):
             headers=_query_headers(),
             params={'term': term},
             catch_response=True,
-            timeout=_P95_THRESHOLD_MS / 1000,
         ) as response:
             _check_rest_response(response)
 
 
-class FavoritesUser(FastHttpUser):
+class FavoritesUser(_DirdUser):
     """
     Simulates favorites listing: each task lists the test user's favorites,
     fanning out one future per source holding a favorite in the
@@ -200,8 +208,6 @@ class FavoritesUser(FastHttpUser):
     with no favorites the listing still succeeds but exercises no fan-out.
     """
 
-    wait_time = between(0.5, 3.0)
-
     @task
     def favorites(self) -> None:
         with self.client.get(
@@ -209,7 +215,6 @@ class FavoritesUser(FastHttpUser):
             name='favorites',
             headers=_query_headers(),
             catch_response=True,
-            timeout=_P95_THRESHOLD_MS / 1000,
         ) as response:
             _check_rest_response(response)
 
