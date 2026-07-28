@@ -28,13 +28,22 @@ CURL=(curl -sSk -H "X-Auth-Token: $TOKEN" -H "Wazo-Tenant: $TENANT")
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+# Fail on any HTTP error status, keeping the response body for diagnostics
+# (curl --fail-with-body alone would abort before a captured body is ever
+# printed).
+curl_or_die() {
+    local response rc=0
+    response=$("${CURL[@]}" --fail-with-body "$@") || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "$response" | jq . >&2 2>/dev/null || echo "$response" >&2
+        die "curl failed (exit $rc) — see response above"
+    fi
+    echo "$response"
+}
+
 # ── 1. Look up one contact across all sources ─────────────────────────────────
 echo "=== Looking up '$SEARCH_TERM' in profile '$PROFILE' ==="
-RESPONSE=$("${CURL[@]}" "$BASE_URL/directories/lookup/$PROFILE?term=$SEARCH_TERM")
-if echo "$RESPONSE" | jq -e '.error_id' &>/dev/null; then
-    echo "$RESPONSE" | jq . >&2
-    die "lookup failed (see above)"
-fi
+RESPONSE=$(curl_or_die "$BASE_URL/directories/lookup/$PROFILE?term=$SEARCH_TERM")
 
 # Each result carries its source name and the source-specific contact id.
 mapfile -t PAIRS < <(
@@ -47,6 +56,9 @@ mapfile -t PAIRS < <(
 [ "${#PAIRS[@]}" -gt 0 ] || die "no results with a source_entry_id — is the phonebook populated and the profile wired?"
 
 # ── 2. Mark each (source, contact) as a favorite ──────────────────────────────
+# Uses a plain (non-failing) curl call: 409 (already a favorite) is tolerated,
+# and any other status only warns rather than aborting the whole batch — both
+# would be wrong under curl_or_die.
 echo "=== Marking ${#PAIRS[@]} favorites ==="
 CREATED=0
 for pair in "${PAIRS[@]}"; do

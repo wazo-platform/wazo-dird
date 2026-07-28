@@ -33,19 +33,24 @@ CURL=(curl -sSk -H "X-Auth-Token: $TOKEN" -H "Wazo-Tenant: $TENANT")
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
-check_error() {
-    local response="$1"
-    if echo "$response" | jq -e '.message // .error_id' &>/dev/null; then
-        echo "$response" | jq . >&2
-        die "API error (see above)"
+# Fail on any HTTP error status, keeping the response body for diagnostics
+# (curl --fail-with-body alone would abort before a captured body is ever
+# printed).
+curl_or_die() {
+    local response rc=0
+    response=$("${CURL[@]}" --fail-with-body "$@") || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "$response" | jq . >&2 2>/dev/null || echo "$response" >&2
+        die "curl failed (exit $rc) — see response above"
     fi
+    echo "$response"
 }
 
 # ── 1. Create sources ─────────────────────────────────────────────────────────
 echo "=== Creating $NUM_SOURCES phonebook sources ==="
 SOURCE_UUIDS=()
 for i in $(seq 1 "$NUM_SOURCES"); do
-    RESPONSE=$("${CURL[@]}" -H "Content-Type: application/json" \
+    RESPONSE=$(curl_or_die -H "Content-Type: application/json" \
         -X POST "$BASE_URL/backends/phonebook/sources" \
         -d "{
             \"name\": \"$SOURCE_PREFIX-$i\",
@@ -54,7 +59,6 @@ for i in $(seq 1 "$NUM_SOURCES"); do
             \"first_matched_columns\": [\"number\", \"mobile\"],
             \"format_columns\": {\"reverse\": \"{firstname} {lastname}\"}
         }")
-    check_error "$RESPONSE"
     UUID=$(echo "$RESPONSE" | jq -r '.uuid')
     SOURCE_UUIDS+=("$UUID")
     echo "  source $i/$NUM_SOURCES: $SOURCE_PREFIX-$i ($UUID)"
@@ -65,7 +69,7 @@ SOURCES_JSON=$(printf '%s\n' "${SOURCE_UUIDS[@]}" | jq -R '{uuid: .}' | jq -s '.
 
 # ── 2. Create display ─────────────────────────────────────────────────────────
 echo "=== Creating display '$DISPLAY_NAME' ==="
-RESPONSE=$("${CURL[@]}" -H "Content-Type: application/json" \
+RESPONSE=$(curl_or_die -H "Content-Type: application/json" \
     -X POST "$BASE_URL/displays" \
     -d "{
         \"name\": \"$DISPLAY_NAME\",
@@ -77,7 +81,6 @@ RESPONSE=$("${CURL[@]}" -H "Content-Type: application/json" \
             {\"title\": \"Email\", \"field\": \"email\"}
         ]
     }")
-check_error "$RESPONSE"
 DISPLAY_UUID=$(echo "$RESPONSE" | jq -r '.uuid')
 echo "Display UUID: $DISPLAY_UUID"
 
@@ -96,9 +99,8 @@ PROFILE_BODY=$(jq -n \
             favorites: {sources: $sources}
         }
     }')
-RESPONSE=$("${CURL[@]}" -H "Content-Type: application/json" \
+RESPONSE=$(curl_or_die -H "Content-Type: application/json" \
     -X POST "$BASE_URL/profiles" -d "$PROFILE_BODY")
-check_error "$RESPONSE"
 PROFILE_UUID=$(echo "$RESPONSE" | jq -r '.uuid')
 
 cat <<EOF

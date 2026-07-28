@@ -28,28 +28,52 @@ CURL=(curl -sSk -H "X-Auth-Token: $TOKEN" -H "Wazo-Tenant: $TENANT")
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
-check_error() {
-    local response="$1"
-    if echo "$response" | jq -e '.message // .error_id' &>/dev/null; then
-        echo "$response" | jq . >&2
-        die "API error (see above)"
+# Fail on any HTTP error status, keeping the response body for diagnostics
+# (curl --fail-with-body alone would abort before a captured body is ever
+# printed).
+curl_or_die() {
+    local response rc=0
+    response=$("${CURL[@]}" --fail-with-body "$@") || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "$response" | jq . >&2 2>/dev/null || echo "$response" >&2
+        die "curl failed (exit $rc) — see response above"
     fi
+    echo "$response"
 }
 
-# ── 1. Create phonebook ───────────────────────────────────────────────────────
+# ── 1. Create phonebook (idempotent: reuse an existing one) ───────────────────
+# Uses a plain (non-failing) curl call: a 409 here means "already exists" and
+# must be tolerated rather than aborting like curl_or_die would.
 echo "=== Creating phonebook '$PHONEBOOK_NAME' ==="
 RESPONSE=$("${CURL[@]}" -H "Content-Type: application/json" \
     -X POST "$BASE_URL/phonebooks" \
     -d "{\"name\": \"$PHONEBOOK_NAME\", \"description\": \"Synthetic $COUNT-contact phonebook for load testing\"}")
-check_error "$RESPONSE"
-PB_UUID=$(echo "$RESPONSE" | jq -r '.uuid')
+STATUS=$(echo "$RESPONSE" | jq -r '.status_code // empty')
+if [ "$STATUS" = "409" ]; then
+    echo "  phonebook '$PHONEBOOK_NAME' already exists — reusing it"
+    PB_UUID=$(curl_or_die "$BASE_URL/phonebooks" \
+        | jq -r --arg n "$PHONEBOOK_NAME" '.items[] | select(.name == $n) | .uuid' | head -n1)
+elif [ -n "$STATUS" ] && [ "$STATUS" -ge 400 ] 2>/dev/null; then
+    echo "$RESPONSE" | jq . >&2
+    die "API error (status $STATUS) — see above"
+else
+    PB_UUID=$(echo "$RESPONSE" | jq -r '.uuid')
+fi
+[ -n "$PB_UUID" ] && [ "$PB_UUID" != "null" ] || die "could not determine phonebook UUID"
 echo "Phonebook UUID: $PB_UUID"
 
 # ── 2. Import contacts in batches ─────────────────────────────────────────────
-BATCHES=$(( (COUNT + BATCH_SIZE - 1) / BATCH_SIZE ))
-TOTAL_CREATED=0
+EXISTING=$(curl_or_die "$BASE_URL/phonebooks/$PB_UUID/contacts?limit=1" | jq -r '.total // 0')
+if [ "$EXISTING" -ge "$COUNT" ]; then
+    echo "=== Phonebook already has $EXISTING contacts (>= $COUNT) — skipping import ==="
+    TOTAL_CREATED="$EXISTING"
+    BATCHES=0
+fi
 
-echo "=== Importing $COUNT contacts in $BATCHES batches of $BATCH_SIZE ==="
+BATCHES=${BATCHES:-$(( (COUNT + BATCH_SIZE - 1) / BATCH_SIZE ))}
+TOTAL_CREATED=${TOTAL_CREATED:-0}
+
+[ "$BATCHES" -gt 0 ] && echo "=== Importing $COUNT contacts in $BATCHES batches of $BATCH_SIZE ==="
 
 for batch in $(seq 1 "$BATCHES"); do
     START=$(( (batch - 1) * BATCH_SIZE ))
@@ -65,11 +89,10 @@ for i in range(start, end + 1):
 PY
 )
 
-    RESPONSE=$(echo "$CSV" | "${CURL[@]}" \
+    RESPONSE=$(echo "$CSV" | curl_or_die \
         -H "Content-Type: text/csv; charset=utf-8" \
         -X POST "$BASE_URL/phonebooks/$PB_UUID/contacts/import" \
         --data-binary @-)
-    check_error "$RESPONSE"
 
     CREATED=$(echo "$RESPONSE" | jq '.created | length')
     FAILED_COUNT=$(echo "$RESPONSE" | jq '.failed | length')
