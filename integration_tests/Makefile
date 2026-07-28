@@ -14,7 +14,9 @@ egg-info:
 	cd .. && python3 setup.py egg_info
 	cd docker/broken-plugins && python3 setup.py egg_info
 
+PYTEST_TARGET=suite/
+PYTEST_FLAGS=
 test:
-	pytest
+	pytest $(PYTEST_FLAGS) $(PWD)/$(PYTEST_TARGET)
 
 .PHONY: test-setup build-dird build-db-image egg-info test
