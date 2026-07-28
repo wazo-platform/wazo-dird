@@ -94,8 +94,8 @@ paths:
             application/json:
               auth:
                 host: localhost
-                port: 9497
-                prefix: null
+                port: 80
+                prefix: /api/auth
                 https: false
                 version: 0.1
               format_columns:

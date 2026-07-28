@@ -212,7 +212,7 @@ definitions:
       - properties:
           port:
             type: integer
-            default: 9497
+            default: 80
           key_file:
             type: string
             description: The path the the file containing the credentials

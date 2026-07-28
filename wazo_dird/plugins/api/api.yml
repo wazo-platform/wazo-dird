@@ -393,7 +393,7 @@ definitions:
       - properties:
           port:
             type: integer
-            default: 9497
+            default: 80
           version:
             type: string
             default: "0.1"

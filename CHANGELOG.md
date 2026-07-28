@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.09
+
+* Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
+  directory sources pointing at `localhost:9497` are migrated.
+
 ## 26.08
 
 * New `rest_api.min_threads` option: threads kept ready at all times.

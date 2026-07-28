@@ -5,6 +5,8 @@ rest_api:
 
 auth:
   host: auth
+  port: 9497
+  prefix: null
   username: dird-service
   password: dird-password
 
