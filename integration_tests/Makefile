@@ -15,6 +15,6 @@ egg-info:
 	cd docker/broken-plugins && python3 setup.py egg_info
 
 test:
-	pytest
+	pytest suite
 
 .PHONY: test-setup build-dird build-db-image egg-info test
