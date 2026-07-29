@@ -1,5 +1,5 @@
 ---
-name: wazo-dird-api
+name: wazo-dird
 description: >-
   Orientation to the wazo-dird directory service — its dird-specific abstractions
   (backend/source, service, profile, display, phonebook, personal), user-facing functionality, and
@@ -16,8 +16,8 @@ description: >-
 # wazo-dird — directory service
 
 **Prerequisite:** this assumes the general Wazo backend patterns from the **`wazo-backend-developer`**
-skill — standard service layout (`controller.py`/`http_server.py`/`config.py`/`plugins/`/`services/`/
-`database/`/`bus.py`), Flask-RESTful + Marshmallow + Stevedore + SQLAlchemy, the wdk/tox/alembic dev
+skill — standard service layout ([`controller.py`](../../../wazo_dird/controller.py)/[`http_server.py`](../../../wazo_dird/http_server.py)/[`config.py`](../../../wazo_dird/config.py)/[`plugins/`](../../../wazo_dird/plugins/)/`services/`/
+[`database/`](../../../wazo_dird/database/)/[`bus.py`](../../../wazo_dird/bus.py)), Flask-RESTful + Marshmallow + Stevedore + SQLAlchemy, the wdk/tox/alembic dev
 workflow, and conventions (`/0.1/` path versioning, `X-Auth-Token` + `Wazo-Tenant` headers,
 AssetLaunchingTestCase integration tests, bus events). Everything below is what's **specific to dird**.
 
@@ -27,22 +27,22 @@ GraphQL API. Everything is per-**tenant** and selected by a **profile** name the
 
 ## Code structure (dird-specific pieces only)
 Standard Wazo service layout (see `wazo-backend-developer`). What's notable in dird:
-- `source_manager.py` — instantiates one **source** plugin instance per configured source (an
-  extra manager beyond the usual `controller.py`/`plugin_manager.py`).
-- `plugins/base_plugins.py` — `BaseSourcePlugin` adds directory methods `search` / `first_match` /
+- [`source_manager.py`](../../../wazo_dird/source_manager.py) — instantiates one **source** plugin instance per configured source (an
+  extra manager beyond the usual [`controller.py`](../../../wazo_dird/controller.py)/[`plugin_manager.py`](../../../wazo_dird/plugin_manager.py)).
+- [`plugins/base_plugins.py`](../../../wazo_dird/plugins/base_plugins.py) — `BaseSourcePlugin` adds directory methods `search` / `first_match` /
   `match_all` / `list` on top of the generic `load()/unload()`.
-- `database/queries/*.py` — one DAO per entity (phonebook, personal, display, profile, source, …);
-  `database/models.py` includes the EAV `dird_contact_fields` (name/value/contact_uuid).
+- [`database/queries/*.py`](../../../wazo_dird/database/queries/) — one DAO per entity (phonebook, personal, display, profile, source, …);
+  [`database/models.py`](../../../wazo_dird/database/models.py) includes the EAV `dird_contact_fields` (name/value/contact_uuid).
 
 ## Stevedore plugin extension points (dird-specific)
 For how stevedore + setuptools `entry_points` work in general (and `make egg-info`), see
 `wazo-backend-developer`. dird exposes **three entry-point groups** — group names / stevedore
 namespaces, NOT import paths and NOT API routes — each with a base class in
-`plugins/base_plugins.py`. The **authoritative, current** registrations are in `setup.py`'s
-`entry_points={…}`; the names below are illustrative examples (they drift — read `setup.py`).
+[`plugins/base_plugins.py`](../../../wazo_dird/plugins/base_plugins.py). The **authoritative, current** registrations are in [`setup.py`](../../../setup.py)'s
+`entry_points={…}`; the names below are illustrative examples (they drift — read [`setup.py`](../../../setup.py)).
 Config gates which registered plugins actually load.
 
-| entry-point group | base class | role | example names (authoritative: `setup.py`) |
+| entry-point group | base class | role | example names (authoritative: [`setup.py`](../../../setup.py)) |
 |---|---|---|---|
 | `wazo_dird.services` | `BaseServicePlugin` | business logic / orchestration | lookup, reverse, favorites, personal, phonebook, profile, display, … |
 | `wazo_dird.backends` | `BaseSourcePlugin` | source connectors (implement the directory methods) | wazo, phonebook, personal, ldap, csv, google, office365, conference |
@@ -54,10 +54,10 @@ configuring that backend's sources; distinct from the backend in `wazo_dird.back
 ## Core abstractions
 - **Backend** (`wazo_dird.backends` group): a connector *type* to a data source — `wazo`, `phonebook`,
   `personal`, `conference`, `ldap`, `csv`, `google`, `office365`, … Implements
-  `BaseSourcePlugin` (`plugins/base_plugins.py`): roughly `search` → lookup, `first_match` /
+  `BaseSourcePlugin` ([`plugins/base_plugins.py`](../../../wazo_dird/plugins/base_plugins.py)): roughly `search` → lookup, `first_match` /
   `match_all` → reverse, `list` → favorites/personal (check the base class for the current contract).
 - **Source**: a *configured instance* of a backend (name + backend + config + tenant). Created via
-  `POST /backends/<backend>/sources`; `source_manager` runs one plugin per source. Wazo
+  `POST /backends/<backend>/sources`; [`source_manager`](../../../wazo_dird/source_manager.py) runs one plugin per source. Wazo
   auto-provisions `auto_*` sources (wazo/conference/google/office365/personal) per tenant.
 - **Service** (`wazo_dird.services` group): business logic orchestrating across sources — **lookup**
   (fan out `search`), **reverse** (fan out `first_match`/`match_all`), **favorites**, **personal**
@@ -99,28 +99,28 @@ instance) → results are shaped by the profile's **display**.
 
 ## dird-specific gotchas
 - Reverse `node: null` = no match / timed out, **not** an error; under load the fan-out timeout
-  returns all-null. Consider **goodput** (non-null/s), not raw RPS. (→ `reverse-lookup.md`)
+  returns all-null. Consider **goodput** (non-null/s), not raw RPS. (→ [`reverse-lookup.md`](references/reverse-lookup.md))
 - **Phonebook** endpoints error as `{"reason":[…],"status_code":N}` (dird uses this instead of the
-  usual Wazo `message`/`details` shape on these routes). (→ `rest-api.md`)
-- GraphQL `me` needs a *user* token (with `pbx_user_uuid`), not just any admin token. (→ `rest-api.md`)
+  usual Wazo `message`/`details` shape on these routes). (→ [`rest-api.md`](references/rest-api.md))
+- GraphQL `me` needs a *user* token (with `pbx_user_uuid`), not just any admin token. (→ [`rest-api.md`](references/rest-api.md))
 - Reverse lookup is a **parallel fan-out with a per-request timeout** across the profile's reverse
   sources, bounded by the `reverse` service's executor pool and the DB pool (sized from
-  `rest_api.max_threads`). Exact defaults/config keys: read `reverse_service` + `config.py`.
-  (→ `reverse-lookup.md`)
+  `rest_api.max_threads`). Exact defaults/config keys: read [`reverse_service`](../../../wazo_dird/plugins/reverse_service/) + [`config.py`](../../../wazo_dird/config.py).
+  (→ [`reverse-lookup.md`](references/reverse-lookup.md))
 - Tests: `env -u FORCE_COLOR` before `tox`; the integration/explain DB schema is **baked into the
   db image** (a new migration needs `make test-setup` rebuild) while dird app code is mounted live;
   parallel integration/explain runs collide on the fixed docker-compose project name → serialize
-  with `flock`. (→ `dev-and-test.md`; general wdk/tox: `wazo-backend-developer`)
+  with `flock`. (→ [`dev-and-test.md`](references/dev-and-test.md); general wdk/tox: `wazo-backend-developer`)
 
 ## References
-Detailed dird-specific companions under `references/` (general Wazo backend patterns →
+Detailed dird-specific companions under [`references/`](references/) (general Wazo backend patterns →
 `wazo-backend-developer`):
-- **`rest-api.md`** — stable REST + GraphQL surface: reaching dird (gateway/auth/token), endpoints
+- **[`rest-api.md`](references/rest-api.md)** — stable REST + GraphQL surface: reaching dird (gateway/auth/token), endpoints
   (phonebooks, CSV import, sources, displays, profiles, directories), GraphQL reverse query,
   error-shape quirks.
-- **`reverse-lookup.md`** — reverse-lookup internals & tuning: parallel fan-out + timeout,
+- **[`reverse-lookup.md`](references/reverse-lookup.md)** — reverse-lookup internals & tuning: parallel fan-out + timeout,
   executor/DB pools, congestion collapse (goodput vs RPS), phonebook plan-fragility + ANALYZE.
-- **`dev-and-test.md`** — dev workflow & test harness: tox envs incl. `explain`/auto_explain,
+- **[`dev-and-test.md`](references/dev-and-test.md)** — dev workflow & test harness: tox envs incl. `explain`/auto_explain,
   db-image schema baking, `flock`/FORCE_COLOR/sandbox gotchas, wdk deploy.
-- **`tasks.md`** — task recipes: seed a synthetic phonebook, load-test reverse lookup with `ab`,
+- **[`tasks.md`](references/tasks.md)** — task recipes: seed a synthetic phonebook, load-test reverse lookup with `ab`,
   A/B a change on a stack, capture a query's real SQL/plan.
