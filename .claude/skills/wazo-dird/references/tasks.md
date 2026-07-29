@@ -1,19 +1,19 @@
 # wazo-dird — task recipes & tips
 
-Concrete recipes for common dird testing/ops tasks. API details → `rest-api.md`; interpreting
-reverse-lookup results → `reverse-lookup.md`; test harness → `dev-and-test.md`.
+Concrete recipes for common dird testing/ops tasks. API details → [`rest-api.md`](rest-api.md); interpreting
+reverse-lookup results → [`reverse-lookup.md`](reverse-lookup.md); test harness → [`dev-and-test.md`](dev-and-test.md).
 
 ## Seed a synthetic phonebook (for load/perf testing)
 Against a running stack, create a phonebook and bulk-import contacts via the CSV endpoint
-(`rest-api.md`), in batches (a few thousand per request). Sequential integer numbers/mobiles make
+([`rest-api.md`](rest-api.md)), in batches (a few thousand per request). Sequential integer numbers/mobiles make
 reverse-lookup extens predictable (pick a base like `1000000000`). Make it idempotent: on create,
 treat the duplicate-name error as "reuse" (look it up in `GET /phonebooks` by name); skip import if
 the contact count is already at the target. Then wire a phonebook **source** at it and add that
-source to a profile's `reverse` service (SKILL.md workflow). After a large import,
-`ANALYZE dird_contact, dird_contact_fields` (see `reverse-lookup.md`).
+source to a profile's `reverse` service ([`SKILL.md`](../SKILL.md) workflow). After a large import,
+`ANALYZE dird_contact, dird_contact_fields` (see [`reverse-lookup.md`](reverse-lookup.md)).
 
 ## Load-test reverse lookup with `ab`
-Build a GraphQL body file (`rest-api.md` query) and POST it:
+Build a GraphQL body file ([`rest-api.md`](rest-api.md) query) and POST it:
 ```sh
 ab -n <N> -c <C> -k -p body.json -T 'application/json' \
    -H "X-Auth-Token: $TOKEN" -H "Wazo-Tenant: $TENANT" \
@@ -23,7 +23,7 @@ ab -n <N> -c <C> -k -p body.json -T 'application/json' \
   (tokens expire — an expired one turns every response into a small `Unauthorized` body).
 - **Interpreting output:** ab's **"Failed (Length)"** counts responses whose body length differs
   from the first. For a *fixed* reverse query that means **all-null (empty) results** (the reverse
-  timeout, `reverse-lookup.md`), NOT HTTP errors. Cross-check by firing a concurrent `curl` sample
+  timeout, [`reverse-lookup.md`](reverse-lookup.md)), NOT HTTP errors. Cross-check by firing a concurrent `curl` sample
   and parsing `.data.me.contacts.edges` for null nodes.
 - **Method:** keep `-n` **fixed** across concurrency levels (varying it with `-c` makes levels
   incomparable). Report **goodput** (non-null responses/s) and p50/p95, not raw RPS. Keep the full
@@ -39,7 +39,7 @@ confirm which code paths the change actually affects.
 
 ## Inspect the actual SQL a query generates
 Two options: run under `tox -e explain` (auto_explain captures EXPLAIN ANALYZE for every query — see
-`dev-and-test.md`); or, in a test, hook SQLAlchemy's `before_cursor_execute` to capture the exact
+[`dev-and-test.md`](dev-and-test.md)); or, in a test, hook SQLAlchemy's `before_cursor_execute` to capture the exact
 emitted statement, then run `EXPLAIN (ANALYZE, FORMAT JSON)` on it and assert on the plan (e.g. no
 Sort/Hash over a large row count, or that a specific index is used). The latter is a good pattern
 for a deterministic plan-stability guard in the performance suite.

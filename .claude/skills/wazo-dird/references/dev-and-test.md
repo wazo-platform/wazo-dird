@@ -2,12 +2,12 @@
 
 dird-specific dev/test details. General wdk (mount/restart/tailf), tox (`py311`/`linters`/
 `integration`), and alembic usage → the `wazo-backend-developer` skill. Paths/targets/env names
-below can change — treat them as *where to look*, and confirm in `tox.ini` / `Makefile` /
-`integration_tests/`.
+below can change — treat them as *where to look*, and confirm in [`tox.ini`](../../../../tox.ini) / [`Makefile`](../../../../integration_tests/Makefile) /
+[`integration_tests/`](../../../../integration_tests/).
 
 ## Test environments (tox)
 - Usual envs: unit (`py311`), `linters` (pre-commit: flake8/black/mypy/isort/…), `integration`
-  (Docker Compose under `integration_tests/suite/`). Definition of done: linters + mypy green, type
+  (Docker Compose under [`integration_tests/suite/`](../../../../integration_tests/suite/)). Definition of done: linters + mypy green, type
   hints on new public functions, tests for new behavior.
 - **`tox -e explain`** (dird-specific) — runs the performance suite with Postgres **`auto_explain`**
   enabled via a compose override, logging EXPLAIN ANALYZE for **every** query to a per-run dir under
@@ -24,7 +24,7 @@ below can change — treat them as *where to look*, and confirm in `tox.ini` / `
   clash). Serialize the docker phase with `flock <lockfile> <tox cmd>` when running parallel
   worktrees.
 - The integration **DB image's schema is built by running the alembic migrations at image-build
-  time** (see the db image's Dockerfile under `contribs/docker/`), so a **new migration only takes
+  time** (see the db image's Dockerfile under [`contribs/docker/`](../../../../contribs/docker/)), so a **new migration only takes
   effect after the db image is rebuilt** (`make test-setup` / the db-image build target). The dird
   **app code is bind-mounted** into the container (see the compose file), so pure-Python changes
   apply on restart without a rebuild. Verify both mechanisms in the current compose/Makefile.
@@ -38,4 +38,4 @@ below can change — treat them as *where to look*, and confirm in `tox.ini` / `
   changes. Note the installed release can lag the branch (e.g. a backend method the branch adds may
   be absent in the release) — check the deployed version rather than assuming parity.
 - **Stack traffic runs outside the command sandbox** (stack host not whitelisted) — disable the
-  sandbox for curl/ssh/docker against a stack. Auth token: see `rest-api.md`.
+  sandbox for curl/ssh/docker against a stack. Auth token: see [`rest-api.md`](rest-api.md).

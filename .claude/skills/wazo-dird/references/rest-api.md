@@ -32,7 +32,7 @@ guaranteed current. Everything here was exercised against a real stack.
 - **Bulk contact import (seeding fast path):** `POST /phonebooks/{uuid}/contacts/import`,
   `Content-Type: text/csv; charset=utf-8`, body = CSV with header
   (`firstname,lastname,number,mobile,email`). Returns `{"created":[…],"failed":[…]}`; import in
-  chunks. Count: `GET /phonebooks/{uuid}/contacts?limit=1` → `.total`. (Seeding recipe: `tasks.md`.)
+  chunks. Count: `GET /phonebooks/{uuid}/contacts?limit=1` → `.total`. (Seeding recipe: [`tasks.md`](tasks.md).)
 - **Sources:** `POST /backends/<backend>/sources`; phonebook source body:
   `{"name","phonebook_uuid","searched_columns":[…],"first_matched_columns":["number","mobile"],
   "format_columns":{"reverse":"{firstname} {lastname}"}}`. `GET /sources` lists all + their
@@ -57,4 +57,4 @@ guaranteed current. Everything here was exercised against a real stack.
   Schema field is `wazo_reverse`; queries use `wazoReverse`.
 - **`node: null` for an exten = no match / not resolved in time, NOT an error.** Under load a whole
   request can come back all-null with no `.errors` — that is the reverse timeout, not a failure;
-  see `reverse-lookup.md`.
+  see [`reverse-lookup.md`](reverse-lookup.md).
