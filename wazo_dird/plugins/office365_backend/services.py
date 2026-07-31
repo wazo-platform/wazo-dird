@@ -118,8 +118,12 @@ class Office365Service:
 
 
 def get_microsoft_access_token(
-    user_uuid: str, wazo_token: str, **auth_config: Any
+    user_uuid: str | None, wazo_token: str, **auth_config: Any
 ) -> str | None:
+    if not user_uuid:
+        logger.debug('User UUID is None')
+        raise MicrosoftTokenNotFoundException('user_uuid is empty or None')
+
     try:
         auth = Auth(token=wazo_token, **auth_config)
         access_token: str | None = auth.external.get('microsoft', user_uuid).get(
