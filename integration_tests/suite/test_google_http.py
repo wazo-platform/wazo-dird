@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -8,7 +8,7 @@ import requests
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     equal_to,
     has_entries,
@@ -138,12 +138,13 @@ class TestList(BaseGoogleCRUDTestCase):
         )
 
         assert_that(
-            self.list_(name='abc'), has_entries(items=contains(a), total=3, filtered=1)
+            self.list_(name='abc'),
+            has_entries(items=contains_exactly(a), total=3, filtered=1),
         )
 
         assert_that(
             self.list_(uuid=c['uuid']),
-            has_entries(items=contains(c), total=3, filtered=1),
+            has_entries(items=contains_exactly(c), total=3, filtered=1),
         )
 
         assert_that(
@@ -157,22 +158,22 @@ class TestList(BaseGoogleCRUDTestCase):
     def test_pagination(self, c, b, a):
         assert_that(
             self.list_(order='name'),
-            has_entries(items=contains(a, b, c), total=3, filtered=3),
+            has_entries(items=contains_exactly(a, b, c), total=3, filtered=3),
         )
 
         assert_that(
             self.list_(order='name', direction='desc'),
-            has_entries(items=contains(c, b, a), total=3, filtered=3),
+            has_entries(items=contains_exactly(c, b, a), total=3, filtered=3),
         )
 
         assert_that(
             self.list_(order='name', limit=2),
-            has_entries(items=contains(a, b), total=3, filtered=3),
+            has_entries(items=contains_exactly(a, b), total=3, filtered=3),
         )
 
         assert_that(
             self.list_(order='name', offset=2),
-            has_entries(items=contains(c), total=3, filtered=3),
+            has_entries(items=contains_exactly(c), total=3, filtered=3),
         )
 
     @fixtures.google_source(name='abc', token=VALID_TOKEN_MAIN_TENANT)

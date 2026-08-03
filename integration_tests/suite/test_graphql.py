@@ -1,4 +1,4 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from hamcrest import (
     any_of,
     assert_that,
-    contains,
+    contains_exactly,
     contains_string,
     equal_to,
     has_entries,
@@ -63,7 +63,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
         response = self.dird.graphql.query(query)
         assert_that(
             response['errors'],
-            contains(
+            contains_exactly(
                 has_entries(
                     {
                         'path': ['hello'],
@@ -80,7 +80,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
         response = self.dird.graphql.query(query)
         assert_that(
             response['errors'],
-            contains(
+            contains_exactly(
                 has_entries(
                     {
                         'path': ['hello'],
@@ -183,7 +183,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['data']['me']['contacts']['edges'],
-            contains(
+            contains_exactly(
                 has_entry('node', has_entries({'firstname': 'Alice'})),
                 has_entry('node', has_entries({'firstname': 'Bob'})),
             ),
@@ -210,7 +210,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['data']['user']['contacts']['edges'],
-            contains(
+            contains_exactly(
                 has_entry('node', has_entries({'firstname': 'Alice'})),
                 has_entry('node', has_entries({'firstname': 'Bob'})),
             ),
@@ -237,7 +237,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['errors'],
-            contains(
+            contains_exactly(
                 has_entries(
                     {
                         'path': ['me', 'contacts'],
@@ -269,7 +269,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['errors'],
-            contains(
+            contains_exactly(
                 has_entries(
                     {
                         'path': ['user', 'contacts'],
@@ -301,7 +301,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['data']['me']['contacts']['edges'],
-            contains(
+            contains_exactly(
                 has_entry('node', has_entries({'firstname': 'Alice'})),
                 has_entry('node', None),
                 has_entry('node', has_entries({'firstname': 'Bob'})),
@@ -329,7 +329,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['data']['user']['contacts']['edges'],
-            contains(
+            contains_exactly(
                 has_entry('node', has_entries({'firstname': 'Alice'})),
                 has_entry('node', None),
                 has_entry('node', has_entries({'firstname': 'Bob'})),
@@ -363,7 +363,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['data']['me']['contacts']['edges'],
-            contains(
+            contains_exactly(
                 has_entry(
                     'node',
                     has_entries(
@@ -404,7 +404,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
 
         assert_that(
             response['data']['me']['contacts']['edges'],
-            contains(
+            contains_exactly(
                 has_entry(
                     'node',
                     has_entries(
@@ -423,7 +423,7 @@ class TestGraphQL(BaseDirdIntegrationTest):
             response = dird.graphql.query(query)
             assert_that(
                 response['errors'],
-                contains(
+                contains_exactly(
                     has_entries(
                         {'path': ['hello'], 'message': contains_string('unreachable')}
                     )
@@ -481,7 +481,7 @@ class TestGraphQLWazoBackend(BaseDirdIntegrationTest):
         response = self.dird.graphql.query(query)
         assert_that(
             response['data']['me']['contacts']['edges'],
-            contains(
+            contains_exactly(
                 has_entry(
                     'node',
                     has_entries(

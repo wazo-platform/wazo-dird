@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import time
@@ -7,7 +7,7 @@ from collections import namedtuple
 import ldap
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     empty,
     equal_to,
@@ -112,7 +112,7 @@ class TestLDAP(BaseDirdIntegrationTest):
 
         assert_that(
             result['results'][0]['column_values'],
-            contains('Alice', 'Wonderland', '1001'),
+            contains_exactly('Alice', 'Wonderland', '1001'),
         )
 
     def test_lookup_on_telephone_number(self):
@@ -120,7 +120,7 @@ class TestLDAP(BaseDirdIntegrationTest):
 
         assert_that(
             result['results'][0]['column_values'],
-            contains('Alice', 'Wonderland', '1001'),
+            contains_exactly('Alice', 'Wonderland', '1001'),
         )
 
     def test_lookup_with_non_ascii_characters(self):
@@ -128,7 +128,7 @@ class TestLDAP(BaseDirdIntegrationTest):
 
         assert_that(
             result['results'][0]['column_values'],
-            contains('François', 'Hollande', '1004'),
+            contains_exactly('François', 'Hollande', '1004'),
         )
 
     def test_reverse_lookup(self):
@@ -150,8 +150,12 @@ class TestLDAP(BaseDirdIntegrationTest):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('Alice', 'Wonderland', '1001')),
-                has_entry('column_values', contains('Connor', 'Manson', '1003')),
+                has_entry(
+                    'column_values', contains_exactly('Alice', 'Wonderland', '1001')
+                ),
+                has_entry(
+                    'column_values', contains_exactly('Connor', 'Manson', '1003')
+                ),
             ),
         )
 
@@ -182,7 +186,8 @@ class TestLDAPWithCustomFilter(BaseDirdIntegrationTest):
         result = self.lookup('charlé', 'default')
 
         assert_that(
-            result['results'][0]['column_values'], contains('Charlé', 'Doe', '1003')
+            result['results'][0]['column_values'],
+            contains_exactly('Charlé', 'Doe', '1003'),
         )
 
     def test_no_result_because_of_the_custom_filter(self):

@@ -1,11 +1,11 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
 import unittest
 
 import yaml
-from hamcrest import assert_that, contains, contains_inanyorder, has_entries
+from hamcrest import assert_that, contains_exactly, contains_inanyorder, has_entries
 
 from .helpers.base import BaseDirdIntegrationTest, CSVWithMultipleDisplayTestCase
 from .helpers.config import new_csv_with_pipes_config
@@ -40,7 +40,7 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
         favorite = [False]
         assert_that(
             response['results'],
-            contains(has_entries(column_values=self._alice + favorite)),
+            contains_exactly(has_entries(column_values=self._alice + favorite)),
         )
 
     def test_that_csv_file_changes_have_been_committed(self):
@@ -58,7 +58,9 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
             favorite = [False]
             assert_that(
                 response['results'],
-                contains(has_entries(column_values=updated_column_values + favorite)),
+                contains_exactly(
+                    has_entries(column_values=updated_column_values + favorite)
+                ),
             )
 
         finally:
@@ -89,7 +91,7 @@ class TestCSVBackend(CSVWithMultipleDisplayTestCase):
             favorite = [True]
             assert_that(
                 response['results'],
-                contains(
+                contains_exactly(
                     has_entries(column_values=self._alice + favorite),
                     has_entries(column_values=self._charles + favorite),
                 ),
@@ -111,7 +113,7 @@ class TestCSVNoUnique(_BaseCSVFileTestCase):
     def test_lookup_should_work_without_unique_column(self):
         result = self.backend.search('lice')
 
-        assert_that(result, contains(has_entries(**self._alice)))
+        assert_that(result, contains_exactly(has_entries(**self._alice)))
 
 
 class TestCSVWithAccents(_BaseCSVFileTestCase):
@@ -125,12 +127,12 @@ class TestCSVWithAccents(_BaseCSVFileTestCase):
     def test_lookup_with_accents_in_term(self):
         result = self.backend.search('pép')
 
-        assert_that(result, contains(has_entries(**self._pepe)))
+        assert_that(result, contains_exactly(has_entries(**self._pepe)))
 
     def test_lookup_with_accents_in_the_result(self):
         result = self.backend.search('lol')
 
-        assert_that(result, contains(has_entries(**self._pepe)))
+        assert_that(result, contains_exactly(has_entries(**self._pepe)))
 
 
 class TestCSVSeparator(BaseDirdIntegrationTest):
@@ -143,6 +145,8 @@ class TestCSVSeparator(BaseDirdIntegrationTest):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entries(column_values=contains('Alice', 'AAA', '5555555555'))
+                has_entries(
+                    column_values=contains_exactly('Alice', 'AAA', '5555555555')
+                )
             ),
         )

@@ -1,7 +1,7 @@
-# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, contains, contains_inanyorder, has_entries
+from hamcrest import assert_that, contains_exactly, contains_inanyorder, has_entries
 
 from .helpers.base import BaseDirdIntegrationTest
 
@@ -32,7 +32,7 @@ class TestBackends(BaseDirdIntegrationTest):
         )
 
         result = self.client.backends.list(name='csv')
-        self._assert_matches(result, 9, 1, contains, 'csv')
+        self._assert_matches(result, 9, 1, contains_exactly, 'csv')
 
         result = self.client.backends.list(order='name', direction='asc')
         expected = [
@@ -46,7 +46,7 @@ class TestBackends(BaseDirdIntegrationTest):
             'phonebook',
             'wazo',
         ]
-        self._assert_matches(result, 9, 9, contains, *expected)
+        self._assert_matches(result, 9, 9, contains_exactly, *expected)
 
         result = self.client.backends.list(order='name', direction='desc')
         expected = [
@@ -60,16 +60,16 @@ class TestBackends(BaseDirdIntegrationTest):
             'csv',
             'conference',
         ]
-        self._assert_matches(result, 9, 9, contains, *expected)
+        self._assert_matches(result, 9, 9, contains_exactly, *expected)
 
         result = self.client.backends.list(limit=2, offset=5)
-        self._assert_matches(result, 9, 9, contains, 'office365', 'personal')
+        self._assert_matches(result, 9, 9, contains_exactly, 'office365', 'personal')
 
         result = self.client.backends.list(limit=2)
-        self._assert_matches(result, 9, 9, contains, 'conference', 'csv')
+        self._assert_matches(result, 9, 9, contains_exactly, 'conference', 'csv')
 
         result = self.client.backends.list(offset=7)
-        self._assert_matches(result, 9, 9, contains, 'phonebook', 'wazo')
+        self._assert_matches(result, 9, 9, contains_exactly, 'phonebook', 'wazo')
 
     @staticmethod
     def _assert_matches(result, total, filtered, matcher, *names):

@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     empty,
     equal_to,
@@ -208,10 +208,10 @@ class TestList(BaseProfileTestCase):
             )
 
             result = self.client.profiles.list(name='abc')
-            self.assert_list_result(result, contains(abc), total=3, filtered=1)
+            self.assert_list_result(result, contains_exactly(abc), total=3, filtered=1)
 
             result = self.client.profiles.list(uuid=cde['uuid'])
-            self.assert_list_result(result, contains(cde), total=3, filtered=1)
+            self.assert_list_result(result, contains_exactly(cde), total=3, filtered=1)
 
             result = self.client.profiles.list(search='b')
             self.assert_list_result(
@@ -231,19 +231,21 @@ class TestList(BaseProfileTestCase):
         ) as bcd, self.profile(self.client, body_cde) as cde:
             result = self.client.profiles.list(order='name')
             self.assert_list_result(
-                result, contains(abc, bcd, cde), total=3, filtered=3
+                result, contains_exactly(abc, bcd, cde), total=3, filtered=3
             )
 
             result = self.client.profiles.list(order='name', direction='desc')
             self.assert_list_result(
-                result, contains(cde, bcd, abc), total=3, filtered=3
+                result, contains_exactly(cde, bcd, abc), total=3, filtered=3
             )
 
             result = self.client.profiles.list(order='name', limit=2)
-            self.assert_list_result(result, contains(abc, bcd), total=3, filtered=3)
+            self.assert_list_result(
+                result, contains_exactly(abc, bcd), total=3, filtered=3
+            )
 
             result = self.client.profiles.list(order='name', offset=2)
-            self.assert_list_result(result, contains(cde), total=3, filtered=3)
+            self.assert_list_result(result, contains_exactly(cde), total=3, filtered=3)
 
     @fixtures.display(token=VALID_TOKEN_MAIN_TENANT)
     @fixtures.display(token=VALID_TOKEN_SUB_TENANT)
@@ -268,7 +270,7 @@ class TestList(BaseProfileTestCase):
             sub_tenant_client, body_sub_profile
         ) as sub:
             result = main_tenant_client.profiles.list()
-            self.assert_list_result(result, contains(main), total=1, filtered=1)
+            self.assert_list_result(result, contains_exactly(main), total=1, filtered=1)
 
             result = main_tenant_client.profiles.list(recurse=True)
             self.assert_list_result(
@@ -395,11 +397,11 @@ class TestPost(BaseProfileTestCase):
                     display=has_entries(uuid=display['uuid']),
                     services=has_entries(
                         lookup=has_entries(
-                            sources=contains(has_entries(uuid=source['uuid'])),
+                            sources=contains_exactly(has_entries(uuid=source['uuid'])),
                             options=has_entries(timeout=5),
                         ),
                         reverse=has_entries(
-                            sources=contains(has_entries(uuid=source['uuid'])),
+                            sources=contains_exactly(has_entries(uuid=source['uuid'])),
                             options=has_entries(timeout=0.5),
                         ),
                     ),
@@ -479,13 +481,13 @@ class TestPut(BaseProfileTestCase):
                     name='updated',
                     services=has_entries(
                         reverse=has_entries(
-                            sources=contains(
+                            sources=contains_exactly(
                                 has_entries(uuid=s1['uuid']),
                                 has_entries(uuid=s2['uuid']),
                             )
                         ),
                         favorites=has_entries(
-                            sources=contains(has_entries(uuid=s2['uuid']))
+                            sources=contains_exactly(has_entries(uuid=s2['uuid']))
                         ),
                     ),
                 ),
@@ -573,7 +575,9 @@ class TestPut(BaseProfileTestCase):
                     name='profile',
                     services=has_entries(
                         lookup=has_entries(
-                            sources=contains(has_entries(uuid=sub_source['uuid']))
+                            sources=contains_exactly(
+                                has_entries(uuid=sub_source['uuid'])
+                            )
                         )
                     ),
                 ),
@@ -656,7 +660,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries(name='a_wazo_main'),
                 has_entries(name='csv_main'),
                 has_entries(name='personal_main'),
@@ -670,7 +674,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries(name='personal_main', backend='personal'),
                 has_entries(name='csv_main', backend='csv'),
                 has_entries(name='a_wazo_main', backend='wazo'),
@@ -696,7 +700,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries(name='a_wazo_main', backend='wazo'),
                 has_entries(name='csv_main', backend='csv'),
                 has_entries(name='personal_main', backend='personal'),
@@ -710,7 +714,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries(name='csv_main', backend='csv'),
                 has_entries(name='personal_main', backend='personal'),
                 has_entries(name='a_wazo_main', backend='wazo'),
@@ -764,7 +768,8 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
         response = self.client.directories.list_sources('main', **list_params)
 
         assert_that(
-            response['items'], contains(has_entries(name='a_wazo_main', backend='wazo'))
+            response['items'],
+            contains_exactly(has_entries(name='a_wazo_main', backend='wazo')),
         )
 
     def test_given_over_limit_when_get_then_sources_returned(self):
@@ -774,7 +779,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries(name='a_wazo_main', backend='wazo'),
                 has_entries(name='csv_main', backend='csv'),
                 has_entries(name='personal_main', backend='personal'),
@@ -788,7 +793,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
 
         assert_that(
             response['items'],
-            contains(has_entries(name='personal_main', backend='personal')),
+            contains_exactly(has_entries(name='personal_main', backend='personal')),
         )
 
     def test_given_oversized_offset_when_get_then_no_sources_returned(self):
@@ -805,7 +810,9 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
         assert_that(
             response,
             has_entries(
-                items=contains(has_entries(name='personal_main', backend='personal')),
+                items=contains_exactly(
+                    has_entries(name='personal_main', backend='personal')
+                ),
                 total=3,
                 filtered=3,
             ),
@@ -818,7 +825,9 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
             has_entries(
                 total=3,
                 filtered=1,
-                items=contains(has_entries(name='personal_main', backend='personal')),
+                items=contains_exactly(
+                    has_entries(name='personal_main', backend='personal')
+                ),
             ),
         )
 
@@ -828,7 +837,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
             has_entries(
                 total=3,
                 filtered=1,
-                items=contains(has_entries(name='csv_main', backend='csv')),
+                items=contains_exactly(has_entries(name='csv_main', backend='csv')),
             ),
         )
 
@@ -838,7 +847,7 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
             has_entries(
                 total=3,
                 filtered=2,
-                items=contains(
+                items=contains_exactly(
                     has_entries(name='csv_main', backend='csv'),
                     has_entries(name='personal_main', backend='personal'),
                 ),

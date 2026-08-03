@@ -1,11 +1,11 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import Mock
 
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     empty,
     equal_to,
@@ -87,7 +87,7 @@ class TestWazoUser(DirdAssetRunningTestCase):
         for term in search_terms:
             results = self.backend.search(term)
 
-            assert_that(results, contains(has_entries(**self._dylan)))
+            assert_that(results, contains_exactly(has_entries(**self._dylan)))
 
         search_terms = [
             'pic',
@@ -100,7 +100,7 @@ class TestWazoUser(DirdAssetRunningTestCase):
         for term in search_terms:
             results = self.backend.search(term)
 
-            assert_that(results, contains(has_entries(**self._picasso)))
+            assert_that(results, contains_exactly(has_entries(**self._picasso)))
 
     def test_that_the_reverse_lookup_returns_the_expected_result(self):
         result = self.backend.first('1000')
@@ -148,7 +148,7 @@ class TestWazoUserNoConfd(BaseDirdIntegrationTest):
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):
         result = self.lookup('dyl', 'default')
-        assert_that(result['results'], contains())
+        assert_that(result['results'], contains_exactly())
 
 
 class TestWazoUserLateConfd(BaseDirdIntegrationTest):
@@ -158,7 +158,7 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
     def test_no_result_until_started(self):
         # dird is not stuck on a late confd
         result = self.lookup('dyl', 'default')
-        assert_that(result['results'], contains())
+        assert_that(result['results'], contains_exactly())
 
         self.docker_exec(['touch', '/var/local/start-confd'], service_name='america')
 
@@ -166,8 +166,10 @@ class TestWazoUserLateConfd(BaseDirdIntegrationTest):
             result = self.lookup('dyl', 'default')
             assert_that(
                 result['results'],
-                contains(
-                    has_entry('column_values', contains('Bob', 'Dylan', '1000', ''))
+                contains_exactly(
+                    has_entry(
+                        'column_values', contains_exactly('Bob', 'Dylan', '1000', '')
+                    )
                 ),
             )
 
@@ -235,10 +237,12 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
             result['results'],
             contains_inanyorder(
                 has_entries(
-                    source='wazo_asia', column_values=contains('Alice', None, '6543')
+                    source='wazo_asia',
+                    column_values=contains_exactly('Alice', None, '6543'),
                 ),
                 has_entries(
-                    source='wazo_america', column_values=contains('John', 'Doe', '1234')
+                    source='wazo_america',
+                    column_values=contains_exactly('John', 'Doe', '1234'),
                 ),
             ),
         )

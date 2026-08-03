@@ -1,4 +1,4 @@
-# Copyright 2016-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -8,7 +8,7 @@ from typing import cast
 from unittest.mock import Mock
 from uuid import uuid4
 
-from hamcrest import assert_that, contains, contains_inanyorder, equal_to
+from hamcrest import assert_that, contains_exactly, contains_inanyorder, equal_to
 
 from wazo_dird import database
 from wazo_dird.database.queries.base import ContactInfo as _ContactInfo
@@ -124,7 +124,7 @@ class TestPhonebookBackend(unittest.TestCase):
     def test_that_searching_for_grid_returns_agrid(self):
         result = self.backend.search('grid')
 
-        assert_that(result, contains(self.hagrid))
+        assert_that(result, contains_exactly(self.hagrid))
 
     def test_that_first_match_returns_a_contact(self):
         result = self.backend.first(self.draco['number'])

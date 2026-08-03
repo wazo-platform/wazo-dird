@@ -1,7 +1,13 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, contains, contains_inanyorder, has_entries, has_item
+from hamcrest import (
+    assert_that,
+    contains_exactly,
+    contains_inanyorder,
+    has_entries,
+    has_item,
+)
 from wazo_test_helpers import until
 from wazo_test_helpers.auth import AuthClient as MockAuthClient
 from wazo_test_helpers.auth import MockUserToken
@@ -188,7 +194,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
             assert_that(
                 result,
                 has_entries(
-                    column_headers=contains(
+                    column_headers=contains_exactly(
                         'Nom',
                         'Prénom',
                         'Nom de famille',
@@ -198,7 +204,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                         'Favoris',
                         'E-mail',
                     ),
-                    column_types=contains(
+                    column_types=contains_exactly(
                         'name',
                         'firstname',
                         'lastname',
@@ -210,7 +216,7 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                     ),
                     results=contains_inanyorder(
                         has_entries(
-                            column_values=contains(
+                            column_values=contains_exactly(
                                 'Alice', 'Alice', None, '1234', None, None, False, None
                             )
                         )

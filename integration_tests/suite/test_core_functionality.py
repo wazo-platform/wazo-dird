@@ -8,7 +8,7 @@ from hamcrest import (
     all_of,
     any_of,
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     contains_string,
     equal_to,
@@ -45,8 +45,8 @@ class TestSourceModification(BaseMultipleSourceLauncher):
         assert_that(
             response,
             has_entries(
-                results=contains(
-                    has_entries(column_values=contains('Alice', 'Alan', '1111'))
+                results=contains_exactly(
+                    has_entries(column_values=contains_exactly('Alice', 'Alan', '1111'))
                 )
             ),
         )
@@ -59,8 +59,10 @@ class TestSourceModification(BaseMultipleSourceLauncher):
         assert_that(
             response,
             has_entries(
-                results=contains(
-                    has_entries(column_values=contains('SUCCESS Alice', 'Alan', '1111'))
+                results=contains_exactly(
+                    has_entries(
+                        column_values=contains_exactly('SUCCESS Alice', 'Alan', '1111')
+                    )
                 )
             ),
         )
@@ -251,11 +253,11 @@ class TestLookupWhenASourceFails(HalfBrokenTestCase):
         assert_that(result['results'], has_length(2))
         assert_that(
             result['results'][0]['column_values'],
-            contains('Alice', 'AAA', '5555555555'),
+            contains_exactly('Alice', 'AAA', '5555555555'),
         )
         assert_that(
             result['results'][1]['column_values'],
-            contains('Alice', 'AAA', '5555555555'),
+            contains_exactly('Alice', 'AAA', '5555555555'),
         )
 
     def test_that_reverse_returns_a_result(self):
@@ -271,40 +273,50 @@ class TestDisplay(CSVWithMultipleDisplayTestCase):
         result = self.lookup('lice', 'default')
 
         assert_that(
-            result['column_headers'], contains('Firstname', 'Lastname', 'Number', None)
+            result['column_headers'],
+            contains_exactly('Firstname', 'Lastname', 'Number', None),
         )
-        assert_that(result['column_types'], contains(None, None, None, 'favorite'))
+        assert_that(
+            result['column_types'], contains_exactly(None, None, None, 'favorite')
+        )
 
     def test_display_with_a_type_only(self):
         result = self.lookup('lice', 'test')
 
         assert_that(
-            result['column_headers'], contains('fn', 'ln', 'Empty', None, 'Default')
+            result['column_headers'],
+            contains_exactly('fn', 'ln', 'Empty', None, 'Default'),
         )
         assert_that(
-            result['column_types'], contains('firstname', None, None, 'status', None)
+            result['column_types'],
+            contains_exactly('firstname', None, None, 'status', None),
         )
         assert_that(
             result['results'][0]['column_values'],
-            contains('Alice', 'AAA', None, None, 'Default'),
+            contains_exactly('Alice', 'AAA', None, None, 'Default'),
         )
 
     def test_that_the_display_is_applied_to_headers(self):
         result = self.headers('default')
 
         assert_that(
-            result['column_headers'], contains('Firstname', 'Lastname', 'Number', None)
+            result['column_headers'],
+            contains_exactly('Firstname', 'Lastname', 'Number', None),
         )
-        assert_that(result['column_types'], contains(None, None, None, 'favorite'))
+        assert_that(
+            result['column_types'], contains_exactly(None, None, None, 'favorite')
+        )
 
     def test_display_on_headers_with_no_title(self):
         result = self.headers('test')
 
         assert_that(
-            result['column_headers'], contains('fn', 'ln', 'Empty', None, 'Default')
+            result['column_headers'],
+            contains_exactly('fn', 'ln', 'Empty', None, 'Default'),
         )
         assert_that(
-            result['column_types'], contains('firstname', None, None, 'status', None)
+            result['column_types'],
+            contains_exactly('firstname', None, None, 'status', None),
         )
 
 
@@ -319,7 +331,9 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error['reason'],
-            contains(all_of(contains_string('profile'), contains_string('unknown'))),
+            contains_exactly(
+                all_of(contains_string('profile'), contains_string('unknown'))
+            ),
         )
 
     def test_that_headers_returns_404(self):
@@ -330,7 +344,9 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error['reason'],
-            contains(all_of(contains_string('profile'), contains_string('unknown'))),
+            contains_exactly(
+                all_of(contains_string('profile'), contains_string('unknown'))
+            ),
         )
 
     def test_that_favorites_returns_404(self):
@@ -341,7 +357,9 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error['reason'],
-            contains(all_of(contains_string('profile'), contains_string('unknown'))),
+            contains_exactly(
+                all_of(contains_string('profile'), contains_string('unknown'))
+            ),
         )
 
     def test_that_personal_returns_404(self):
@@ -354,5 +372,7 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error['reason'],
-            contains(all_of(contains_string('profile'), contains_string('unknown'))),
+            contains_exactly(
+                all_of(contains_string('profile'), contains_string('unknown'))
+            ),
         )
