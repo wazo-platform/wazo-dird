@@ -24,6 +24,10 @@ py_version = 311
 
 [tool.pytest.ini_options]
 testpaths = ["wazo_dird"]
+filterwarnings = [
+    # test doubles use self-signed certs; verification is intentionally disabled
+    "ignore::urllib3.exceptions.InsecureRequestWarning",
+]
 
 [tool.mypy]
 python_version = "3.11"
