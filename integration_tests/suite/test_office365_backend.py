@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import Mock
@@ -8,7 +8,7 @@ import urllib3
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     empty,
     equal_to,
     has_entries,
@@ -150,7 +150,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
 
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_entries(
                     number='5555555555',
                     email='wbros@wazoquebec.onmicrosoft.com',
@@ -167,7 +167,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
 
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_entries(
                     number='5555555555',
                     email='wbros@wazoquebec.onmicrosoft.com',
@@ -199,7 +199,7 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
 
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_entries(
                     number='5555555555',
                     email='wbros@wazoquebec.onmicrosoft.com',
@@ -283,7 +283,11 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
         result = self.client.directories.lookup(term='war', profile='default')
         assert_that(
             result,
-            has_entries(results=contains(has_entries(column_values=contains('Wario')))),
+            has_entries(
+                results=contains_exactly(
+                    has_entries(column_values=contains_exactly('Wario'))
+                )
+            ),
         )
 
     @fixtures.office365_result(OFFICE365_CONTACTS)
@@ -310,7 +314,7 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
             has_entries(
                 total=1,
                 filtered=1,
-                items=contains(
+                items=contains_exactly(
                     has_entries(
                         displayName='Wario Bros',
                         surname='Bros',

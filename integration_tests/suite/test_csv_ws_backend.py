@@ -1,7 +1,7 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, contains, empty, has_entries
+from hamcrest import assert_that, contains_exactly, empty, has_entries
 
 from .helpers.base import DirdAssetRunningTestCase
 from .helpers.utils import BackendWrapper
@@ -47,12 +47,12 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
     def test_that_verify_certificate_false(self):
         results = self.backend.search('Ben')
 
-        assert_that(results, contains(has_entries(**self._benoit)))
+        assert_that(results, contains_exactly(has_entries(**self._benoit)))
 
     def test_that_searching_for_result_with_non_ascii(self):
         results = self.backend.search('dré')
 
-        assert_that(results, contains(has_entries(**self._andree_anne)))
+        assert_that(results, contains_exactly(has_entries(**self._andree_anne)))
 
     def test_reverse_lookup(self):
         result = self.backend.first('5551231111')
@@ -69,7 +69,7 @@ class TestCSVWSBackend(_BaseCSVWSBackend):
 
         result = self.backend.list([self._benoit['id'], unknown_id])
 
-        assert_that(result, contains(has_entries(**self._benoit)))
+        assert_that(result, contains_exactly(has_entries(**self._benoit)))
 
 
 class TestCSVWSBackendComa(_BaseCSVWSBackend):
@@ -104,7 +104,7 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
     def test_that_searching_for_result_with_non_ascii(self):
         results = self.backend.search('dré')
 
-        assert_that(results, contains(has_entries(**self._andree_anne)))
+        assert_that(results, contains_exactly(has_entries(**self._andree_anne)))
 
     def test_that_no_result_returns_an_empty_list(self):
         results = self.backend.search('henry')
@@ -116,4 +116,4 @@ class TestCSVWSBackendComa(_BaseCSVWSBackend):
 
         result = self.backend.list([self._benoit['id'], unknown_id])
 
-        assert_that(result, contains(has_entries(**self._benoit)))
+        assert_that(result, contains_exactly(has_entries(**self._benoit)))

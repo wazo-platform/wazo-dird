@@ -1,9 +1,15 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import Mock
 
-from hamcrest import assert_that, contains, contains_inanyorder, empty, has_entries
+from hamcrest import (
+    assert_that,
+    contains_exactly,
+    contains_inanyorder,
+    empty,
+    has_entries,
+)
 
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
 from .helpers.config import new_conference_config
@@ -51,16 +57,16 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
 
     def test_lookup_with_accent(self):
         result = self.backend.search('accent')
-        assert_that(result, contains(has_entries(displayname='accént')))
+        assert_that(result, contains_exactly(has_entries(displayname='accént')))
 
     def test_lookup_by_name(self):
         result = self.backend.search('daily')
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_entries(
                     displayname='daily scrum',
-                    extensions=contains('4002'),
+                    extensions=contains_exactly('4002'),
                     id=4,
                     incalls=empty(),
                     name='daily scrum',
@@ -74,10 +80,10 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
         result = self.backend.search('4002')
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_entries(
                     displayname='daily scrum',
-                    extensions=contains('4002'),
+                    extensions=contains_exactly('4002'),
                     id=4,
                     incalls=empty(),
                     name='daily scrum',
@@ -91,12 +97,12 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
         result = self.backend.search('1009')
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_entries(
                     displayname='test',
-                    extensions=contains('4001'),
+                    extensions=contains_exactly('4001'),
                     id=1,
-                    incalls=contains('1009'),
+                    incalls=contains_exactly('1009'),
                     name='test',
                     phone='4001',
                     reverse='test',
@@ -110,7 +116,7 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
             result,
             has_entries(
                 displayname='daily scrum',
-                extensions=contains('4002'),
+                extensions=contains_exactly('4002'),
                 id=4,
                 incalls=empty(),
                 name='daily scrum',
@@ -125,9 +131,9 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
             result,
             has_entries(
                 displayname='test',
-                extensions=contains('4001'),
+                extensions=contains_exactly('4001'),
                 id=1,
-                incalls=contains('1009'),
+                incalls=contains_exactly('1009'),
                 name='test',
                 phone='4001',
                 reverse='test',
@@ -162,4 +168,4 @@ class TestNoConfd(BaseDirdIntegrationTest):
 
     def test_given_no_confd_when_lookup_then_returns_no_results(self):
         result = self.lookup('daily', 'default')
-        assert_that(result['results'], contains())
+        assert_that(result['results'], contains_exactly())

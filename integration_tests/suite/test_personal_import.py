@@ -1,11 +1,11 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import textwrap
 
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     equal_to,
     has_entries,
@@ -89,7 +89,7 @@ class TestPersonalImportSuccess(BaseDirdIntegrationTest):
         )
         result = self.import_personal(csv, VALID_TOKEN_MAIN_TENANT)
 
-        assert_that(result['failed'], contains())
+        assert_that(result['failed'], contains_exactly())
         assert_that(
             result['created'],
             contains_inanyorder(
@@ -118,7 +118,8 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
         result = self.import_personal(csv, VALID_TOKEN_MAIN_TENANT)
 
         assert_that(
-            result['failed'], contains(has_entry('line', 3), has_entry('line', 5))
+            result['failed'],
+            contains_exactly(has_entry('line', 3), has_entry('line', 5)),
         )
         assert_that(
             self.list_personal()['items'],
@@ -149,7 +150,7 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
         )
         result = self.import_personal(csv, VALID_TOKEN_MAIN_TENANT)
 
-        assert_that(result['failed'], contains(has_entry('line', 2)))
+        assert_that(result['failed'], contains_exactly(has_entry('line', 2)))
 
 
 class TestPersonalImportUTF8(BaseDirdIntegrationTest):

@@ -6,7 +6,7 @@ from unittest.mock import ANY
 
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     contains_string,
     empty,
@@ -70,7 +70,7 @@ class TestList(BasePhonebookTestCase):
             assert_that(
                 result.json(),
                 has_entries(
-                    items=contains(
+                    items=contains_exactly(
                         *[has_entries(**phonebook) for phonebook in phonebooks]
                     ),
                     total=3,
@@ -492,7 +492,9 @@ class TestContactList(_BasePhonebookContactTestCase):
             assert_that(
                 result.json(),
                 has_entries(
-                    items=contains(*[has_entries(**contact) for contact in contacts]),
+                    items=contains_exactly(
+                        *[has_entries(**contact) for contact in contacts]
+                    ),
                     total=equal_to(3),
                 ),
             )

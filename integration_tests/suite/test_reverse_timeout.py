@@ -3,7 +3,7 @@
 
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_string,
     equal_to,
     has_entries,
@@ -132,7 +132,7 @@ class TestReverseServiceTimeout(BaseDirdIntegrationTest):
 
         assert_that(
             response['data']['me']['contacts']['edges'],
-            contains(
+            contains_exactly(
                 has_entry('node', has_entries({'firstname': 'Bob'})),
                 has_entry('node', none()),
             ),

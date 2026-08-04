@@ -12,7 +12,7 @@ from hamcrest import (
     any_of,
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     empty,
     equal_to,
@@ -224,7 +224,7 @@ class TestDisplayCRUD(_BaseTest):
                     uuid=uuid_(),
                     tenant_uuid=tenant_uuid,
                     name=name,
-                    columns=contains(
+                    columns=contains_exactly(
                         has_entries(field='firstname', title='Firstname'),
                         has_entries(field='lastname', title='Lastname', default=''),
                         has_entries(field='number', title='Number', type='number'),
@@ -1113,7 +1113,7 @@ class TestContactCRUD(_BaseTest):
         assert_that(result, equal_to(expected(self.contact_1)))
 
         contact_list = self._crud.list_personal_contacts(owner)
-        assert_that(contact_list, contains(expected(self.contact_1)))
+        assert_that(contact_list, contains_exactly(expected(self.contact_1)))
 
     @with_user_uuid
     def test_that_create_personal_contact_creates_with_existing_owner(self, user_uuid):
@@ -1123,7 +1123,7 @@ class TestContactCRUD(_BaseTest):
         assert_that(result, equal_to(expected(self.contact_1)))
 
         contact_list = self._crud.list_personal_contacts(user_uuid)
-        assert_that(contact_list, contains(expected(self.contact_1)))
+        assert_that(contact_list, contains_exactly(expected(self.contact_1)))
 
     @with_user_uuid
     def test_that_personal_contacts_are_unique(self, user_uuid):
@@ -1529,7 +1529,10 @@ class TestPersonalContactSearchEngine(_BaseTest):
         result = engine.find_first_personal_contact(user_uuid, '5555550001')
 
         assert_that(
-            result, contains(any_of(expected(self.contact_2), expected(self.contact_3)))
+            result,
+            contains_exactly(
+                any_of(expected(self.contact_2), expected(self.contact_3))
+            ),
         )
 
     @with_user_uuid
@@ -1549,10 +1552,10 @@ class TestPersonalContactSearchEngine(_BaseTest):
         )
 
         result = engine.list_personal_contacts(user_uuid, ids[:1])
-        assert_that(result, contains(expected(self.contact_1)))
+        assert_that(result, contains_exactly(expected(self.contact_1)))
 
         result = engine.list_personal_contacts(user_uuid, ids[1:])
-        assert_that(result, contains(expected(self.contact_2)))
+        assert_that(result, contains_exactly(expected(self.contact_2)))
 
     @with_user_uuid
     @with_user_uuid
@@ -1628,10 +1631,10 @@ class TestPersonalContactSearchEngine(_BaseTest):
         self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
 
         result = engine.find_personal_contacts(user_uuid, 'ced')
-        assert_that(result, contains(expected(self.contact_2)))
+        assert_that(result, contains_exactly(expected(self.contact_2)))
 
         result = engine.find_personal_contacts(user_uuid, 'céd')
-        assert_that(result, contains(expected(self.contact_2)))
+        assert_that(result, contains_exactly(expected(self.contact_2)))
 
     @with_user_uuid
     def test_that_find_searches_only_in_searched_columns(self, user_uuid):
@@ -1687,14 +1690,16 @@ class TestProfileCRUD(_BaseTest):
                     display=has_entries(uuid=display['uuid']),
                     services=has_entries(
                         lookup=has_entries(
-                            sources=contains(
+                            sources=contains_exactly(
                                 has_entries(uuid=source_1['uuid']),
                                 has_entries(uuid=source_2['uuid']),
                             ),
                             timeout=5,
                         ),
                         reverse=has_entries(
-                            sources=contains(has_entries(uuid=source_2['uuid'])),
+                            sources=contains_exactly(
+                                has_entries(uuid=source_2['uuid'])
+                            ),
                             timeout=0.5,
                         ),
                     ),

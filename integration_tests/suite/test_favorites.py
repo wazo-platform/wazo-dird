@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from hamcrest import (
     any_of,
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     equal_to,
     has_entries,
@@ -72,10 +72,12 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
             result['results'],
             contains_inanyorder(
                 has_entry(
-                    'column_values', contains('Alice', 'AAA', '5555555555', True)
+                    'column_values',
+                    contains_exactly('Alice', 'AAA', '5555555555', True),
                 ),
                 has_entry(
-                    'column_values', contains('Charles', 'CCC', '555123555', True)
+                    'column_values',
+                    contains_exactly('Charles', 'CCC', '555123555', True),
                 ),
             ),
         )
@@ -90,9 +92,12 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
             result['results'],
             contains_inanyorder(
                 has_entry(
-                    'column_values', contains('Alice', 'AAA', '5555555555', True)
+                    'column_values',
+                    contains_exactly('Alice', 'AAA', '5555555555', True),
                 ),
-                has_entry('column_values', contains('Bob', 'BBB', '5555551234', True)),
+                has_entry(
+                    'column_values', contains_exactly('Bob', 'BBB', '5555551234', True)
+                ),
             ),
         )
 
@@ -104,7 +109,8 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
                 result['results'],
                 contains_inanyorder(
                     has_entry(
-                        'column_values', contains('Alice', 'AAA', '5555555555', True)
+                        'column_values',
+                        contains_exactly('Alice', 'AAA', '5555555555', True),
                     )
                 ),
             )
@@ -119,7 +125,8 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
                 result['results'],
                 contains_inanyorder(
                     has_entry(
-                        'column_values', contains('Alice', 'AAA', '5555555555', True)
+                        'column_values',
+                        contains_exactly('Alice', 'AAA', '5555555555', True),
                     )
                 ),
             )
@@ -131,7 +138,8 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
             result['results'],
             contains_inanyorder(
                 has_entry(
-                    'column_values', contains('Alice', 'AAA', '5555555555', False)
+                    'column_values',
+                    contains_exactly('Alice', 'AAA', '5555555555', False),
                 )
             ),
         )
@@ -142,7 +150,10 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))
+                has_entry(
+                    'column_values',
+                    contains_exactly('Alice', 'AAA', '5555555555', True),
+                )
             ),
         )
 
@@ -156,9 +167,12 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
             result['results'],
             contains_inanyorder(
                 has_entry(
-                    'column_values', contains('Alice', 'AAA', '5555555555', True)
+                    'column_values',
+                    contains_exactly('Alice', 'AAA', '5555555555', True),
                 ),
-                has_entry('column_values', contains('Bob', 'BBB', '5555551234', True)),
+                has_entry(
+                    'column_values', contains_exactly('Bob', 'BBB', '5555551234', True)
+                ),
             ),
         )
 
@@ -177,7 +191,8 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
                 result['results'],
                 contains_inanyorder(
                     has_entry(
-                        'column_values', contains('Alice', 'AAA', '5555555555', True)
+                        'column_values',
+                        contains_exactly('Alice', 'AAA', '5555555555', True),
                     )
                 ),
             )
@@ -202,9 +217,15 @@ class TestFavoritesInPersonalResults(PersonalOnlyTestCase):
             assert_that(
                 result['results'],
                 contains_inanyorder(
-                    has_entry('column_values', contains('Alice', None, None, False)),
-                    has_entry('column_values', contains('Bob', None, None, False)),
-                    has_entry('column_values', contains('Charlie', None, None, False)),
+                    has_entry(
+                        'column_values', contains_exactly('Alice', None, None, False)
+                    ),
+                    has_entry(
+                        'column_values', contains_exactly('Bob', None, None, False)
+                    ),
+                    has_entry(
+                        'column_values', contains_exactly('Charlie', None, None, False)
+                    ),
                 ),
             )
 
@@ -214,9 +235,13 @@ class TestFavoritesInPersonalResults(PersonalOnlyTestCase):
         assert_that(
             personal['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('Alice', None, None, False)),
-                has_entry('column_values', contains('Bob', None, None, True)),
-                has_entry('column_values', contains('Charlie', None, None, False)),
+                has_entry(
+                    'column_values', contains_exactly('Alice', None, None, False)
+                ),
+                has_entry('column_values', contains_exactly('Bob', None, None, True)),
+                has_entry(
+                    'column_values', contains_exactly('Charlie', None, None, False)
+                ),
             ),
         )
 
@@ -227,7 +252,9 @@ class TestFavoritesInPersonalResults(PersonalOnlyTestCase):
 
         assert_that(
             favorites['results'],
-            contains(has_entry('column_values', contains('Alice', None, None, True))),
+            contains_exactly(
+                has_entry('column_values', contains_exactly('Alice', None, None, True))
+            ),
         )
 
     def test_that_removed_favorited_personal_are_not_listed_anymore(self):
@@ -236,7 +263,7 @@ class TestFavoritesInPersonalResults(PersonalOnlyTestCase):
 
         favorites = self.favorites('default')
 
-        assert_that(favorites['results'], contains())
+        assert_that(favorites['results'], contains_exactly())
 
 
 class TestFavoritesBusEvents(PersonalOnlyTestCase):

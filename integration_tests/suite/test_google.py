@@ -1,8 +1,8 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import urllib3
-from hamcrest import assert_that, contains, has_entries, has_item
+from hamcrest import assert_that, contains_exactly, has_entries, has_item
 from wazo_test_helpers.auth import AuthClient as AuthMock
 
 from .helpers.base import BaseDirdIntegrationTest
@@ -289,11 +289,11 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
         assert_that(
             result,
             has_entries(
-                results=contains(
+                results=contains_exactly(
                     has_entries(
                         backend='google',
                         source='google',
-                        column_values=contains(
+                        column_values=contains_exactly(
                             'Mario Bros',
                             'mario@bros.example.com',
                             '5555551234',
@@ -317,7 +317,9 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
         assert_that(
             result,
             has_entries(
-                results=contains(has_entries(column_values=has_item('Luigi Bros')))
+                results=contains_exactly(
+                    has_entries(column_values=has_item('Luigi Bros'))
+                )
             ),
         )
 

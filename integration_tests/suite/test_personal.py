@@ -7,7 +7,7 @@ from unittest.mock import ANY
 from hamcrest import (
     all_of,
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     empty,
     equal_to,
@@ -43,7 +43,7 @@ class TestListPersonal(PersonalOnlyTestCase):
     def test_that_listing_empty_personal_returns_empty_list(self):
         result = self.list_personal()
 
-        assert_that(result['items'], contains())
+        assert_that(result['items'], contains_exactly())
 
 
 class TestDeletedUser(BaseDirdIntegrationTest):
@@ -132,7 +132,9 @@ class TestAddPersonal(PersonalOnlyTestCase):
         assert_that(raw['items'], has_items(has_entry('key', 'NonAsciiValue-é')))
         assert_that(
             formatted['results'],
-            has_items(has_entry('column_values', contains('Alice', None, None, False))),
+            has_items(
+                has_entry('column_values', contains_exactly('Alice', None, None, False))
+            ),
         )
 
     def test_that_adding_invalid_personal_returns_400(self):
@@ -231,7 +233,7 @@ class TestPersonalPersistence(PersonalOnlyTestCase):
 
         result_before = self.list_personal()
 
-        assert_that(result_before['items'], contains(has_key('id')))
+        assert_that(result_before['items'], contains_exactly(has_key('id')))
 
         self._run_cmd('docker compose kill dird')
         self._run_cmd('docker compose rm -f dird')
@@ -239,7 +241,7 @@ class TestPersonalPersistence(PersonalOnlyTestCase):
 
         result_after = self.list_personal()
 
-        assert_that(result_after['items'], contains(has_key('id')))
+        assert_that(result_after['items'], contains_exactly(has_key('id')))
         assert_that(
             result_before['items'][0]['id'], equal_to(result_after['items'][0]['id'])
         )
@@ -275,7 +277,9 @@ class TestPersonalVisibility(PersonalOnlyTestCase):
                 has_entry('firstname', 'Alice'), has_entry('firstname', 'Bob')
             ),
         )
-        assert_that(result_2['items'], contains(has_entry('firstname', 'Charlie')))
+        assert_that(
+            result_2['items'], contains_exactly(has_entry('firstname', 'Charlie'))
+        )
 
 
 class TestPersonalListWithProfile(PersonalOnlyTestCase):
@@ -289,7 +293,7 @@ class TestPersonalListWithProfile(PersonalOnlyTestCase):
     def test_that_listing_personal_with_profile_empty_returns_empty_list(self):
         result = self.get_personal_with_profile('default')
 
-        assert_that(result['results'], contains())
+        assert_that(result['results'], contains_exactly())
 
     def test_listing_personal_with_profile(self):
         self.post_personal({'firstname': 'Alice'})
@@ -300,8 +304,10 @@ class TestPersonalListWithProfile(PersonalOnlyTestCase):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('Alice', None, None, False)),
-                has_entry('column_values', contains('Bob', None, None, False)),
+                has_entry(
+                    'column_values', contains_exactly('Alice', None, None, False)
+                ),
+                has_entry('column_values', contains_exactly('Bob', None, None, False)),
             ),
         )
 
@@ -353,7 +359,7 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('Alice', None, None, False))
+                has_entry('column_values', contains_exactly('Alice', None, None, False))
             ),
         )
 
@@ -363,7 +369,9 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('Céline', None, None, False))
+                has_entry(
+                    'column_values', contains_exactly('Céline', None, None, False)
+                )
             ),
         )
 
@@ -373,7 +381,9 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('Céline', None, None, False))
+                has_entry(
+                    'column_values', contains_exactly('Céline', None, None, False)
+                )
             ),
         )
 
@@ -383,7 +393,9 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('Etienne', None, None, False))
+                has_entry(
+                    'column_values', contains_exactly('Etienne', None, None, False)
+                )
             ),
         )
 
@@ -393,7 +405,9 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('john', 'john', None, False))
+                has_entry(
+                    'column_values', contains_exactly('john', 'john', None, False)
+                )
             ),
         )
 
@@ -403,7 +417,9 @@ class TestLookupPersonal(PersonalOnlyTestCase):
         assert_that(
             result['results'],
             contains_inanyorder(
-                has_entry('column_values', contains('empty-column', None, None, False))
+                has_entry(
+                    'column_values', contains_exactly('empty-column', None, None, False)
+                )
             ),
         )
 
@@ -424,7 +440,8 @@ class TestLookupPersonal(PersonalOnlyTestCase):
             result['results'],
             contains_inanyorder(
                 has_entry(
-                    'column_values', contains('William', 'Gates', '222222', False)
+                    'column_values',
+                    contains_exactly('William', 'Gates', '222222', False),
                 )
             ),
         )
@@ -434,7 +451,8 @@ class TestLookupPersonal(PersonalOnlyTestCase):
             not_(
                 contains_inanyorder(
                     has_entry(
-                        'column_values', contains('William', 'Gates', '222222', False)
+                        'column_values',
+                        contains_exactly('William', 'Gates', '222222', False),
                     )
                 )
             ),
@@ -478,7 +496,7 @@ class TestEditPersonal(PersonalOnlyTestCase):
         list_result = self.list_personal()
         assert_that(
             list_result['items'],
-            contains(
+            contains_exactly(
                 all_of(
                     contains_inanyorder('id', 'firstname', 'company'),
                     has_entries({'firstname': 'Nicolas', 'company': 'acme'}),
@@ -578,7 +596,7 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         result = self.list_personal(order='firstname')
         assert_that(
             result['items'],
-            contains(
+            contains_exactly(
                 has_entry('firstname', 'Ãlberto'),
                 has_entry('firstname', 'Alice'),
                 has_entry('firstname', 'bib'),
@@ -591,7 +609,7 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         result = self.list_personal(order='firstname', direction='desc')
         assert_that(
             result['items'],
-            contains(
+            contains_exactly(
                 has_entry('firstname', 'Etienne'),
                 has_entry('firstname', 'Céline'),
                 has_entry('firstname', 'Bob'),
@@ -624,7 +642,7 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         result = self.list_personal(order='firstname', limit=2)
         assert_that(
             result['items'],
-            contains(
+            contains_exactly(
                 has_entry('firstname', 'Ãlberto'),
                 has_entry('firstname', 'Alice'),
             ),

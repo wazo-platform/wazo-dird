@@ -7,7 +7,7 @@ import requests
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     equal_to,
     has_entries,
@@ -143,10 +143,10 @@ class TestList(BaseDisplayTestCase):
         )
 
         result = self.client.displays.list(name='abc')
-        self.assert_list_result(result, contains(a), total=3, filtered=1)
+        self.assert_list_result(result, contains_exactly(a), total=3, filtered=1)
 
         result = self.client.displays.list(uuid=c['uuid'])
-        self.assert_list_result(result, contains(c), total=3, filtered=1)
+        self.assert_list_result(result, contains_exactly(c), total=3, filtered=1)
 
         result = self.client.displays.list(search='b')
         self.assert_list_result(result, contains_inanyorder(a, b), total=3, filtered=2)
@@ -170,10 +170,10 @@ class TestList(BaseDisplayTestCase):
         self.assert_list_result(result, contains_inanyorder(c), total=1, filtered=1)
 
         result = sub_tenant_client.displays.list()
-        self.assert_list_result(result, contains(c), total=1, filtered=1)
+        self.assert_list_result(result, contains_exactly(c), total=1, filtered=1)
 
         result = sub_tenant_client.displays.list(recurse=True)
-        self.assert_list_result(result, contains(c), total=1, filtered=1)
+        self.assert_list_result(result, contains_exactly(c), total=1, filtered=1)
 
         assert_that(
             calling(sub_tenant_client.displays.list).with_args(tenant_uuid=MAIN_TENANT),
@@ -187,16 +187,16 @@ class TestList(BaseDisplayTestCase):
     @fixtures.display(name='cde')
     def test_pagination(self, c, b, a):
         result = self.client.displays.list(order='name')
-        self.assert_list_result(result, contains(a, b, c), total=3, filtered=3)
+        self.assert_list_result(result, contains_exactly(a, b, c), total=3, filtered=3)
 
         result = self.client.displays.list(order='name', direction='desc')
-        self.assert_list_result(result, contains(c, b, a), total=3, filtered=3)
+        self.assert_list_result(result, contains_exactly(c, b, a), total=3, filtered=3)
 
         result = self.client.displays.list(order='name', limit=2)
-        self.assert_list_result(result, contains(a, b), total=3, filtered=3)
+        self.assert_list_result(result, contains_exactly(a, b), total=3, filtered=3)
 
         result = self.client.displays.list(order='name', offset=2)
-        self.assert_list_result(result, contains(c), total=3, filtered=3)
+        self.assert_list_result(result, contains_exactly(c), total=3, filtered=3)
 
 
 class TestPost(BaseDisplayTestCase):
@@ -233,7 +233,7 @@ class TestPost(BaseDisplayTestCase):
                 has_entries(
                     uuid=uuid_(),
                     tenant_uuid=MAIN_TENANT,
-                    columns=contains(
+                    columns=contains_exactly(
                         has_entries(
                             field='fn',
                             title='Firstname',
@@ -325,7 +325,7 @@ class TestPut(BaseDisplayTestCase):
                 uuid=display['uuid'],
                 tenant_uuid=display['tenant_uuid'],
                 name=self.valid_body['name'],
-                columns=contains(
+                columns=contains_exactly(
                     has_entries(self.valid_body['columns'][0]),
                     has_entries(self.valid_body['columns'][1]),
                 ),

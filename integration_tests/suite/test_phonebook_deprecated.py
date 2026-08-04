@@ -3,7 +3,13 @@
 
 from unittest.mock import ANY
 
-from hamcrest import assert_that, contains, contains_inanyorder, equal_to, has_entries
+from hamcrest import (
+    assert_that,
+    contains_exactly,
+    contains_inanyorder,
+    equal_to,
+    has_entries,
+)
 
 from .helpers.phonebook_deprecated import BaseDeprecatedPhonebookTestCase
 
@@ -43,7 +49,7 @@ class TestList(BaseDeprecatedPhonebookTestCase):
             assert_that(
                 result.json(),
                 has_entries(
-                    items=contains(
+                    items=contains_exactly(
                         *[has_entries(**phonebook) for phonebook in phonebooks]
                     ),
                     total=3,
@@ -392,7 +398,9 @@ class TestContactList(_BasePhonebookContactTestCase):
             assert_that(
                 result.json(),
                 has_entries(
-                    items=contains(*[has_entries(**contact) for contact in contacts]),
+                    items=contains_exactly(
+                        *[has_entries(**contact) for contact in contacts]
+                    ),
                     total=3,
                 ),
             )

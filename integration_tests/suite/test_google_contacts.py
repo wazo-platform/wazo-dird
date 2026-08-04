@@ -1,7 +1,13 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, calling, contains, contains_inanyorder, has_entries
+from hamcrest import (
+    assert_that,
+    calling,
+    contains_exactly,
+    contains_inanyorder,
+    has_entries,
+)
 from wazo_test_helpers.auth import AuthClient as AuthMock
 from wazo_test_helpers.hamcrest.raises import raises
 
@@ -347,22 +353,22 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name'),
-            has_entries(items=contains(aa, ba, bb)),
+            has_entries(items=contains_exactly(aa, ba, bb)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', direction='desc'),
-            has_entries(items=contains(bb, ba, aa)),
+            has_entries(items=contains_exactly(bb, ba, aa)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', limit=1),
-            has_entries(items=contains(aa)),
+            has_entries(items=contains_exactly(aa)),
         )
 
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', offset=1),
-            has_entries(items=contains(ba, bb)),
+            has_entries(items=contains_exactly(ba, bb)),
         )
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
