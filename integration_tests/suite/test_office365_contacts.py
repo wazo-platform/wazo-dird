@@ -260,7 +260,7 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
 
     @fixtures.office365_result(OFFICE365_CONTACT_LIST)
     def test_search(self, office365_api):
-        self.list_(self.client, self.source_uuid, search='mario'),
+        _ = (self.list_(self.client, self.source_uuid, search='mario'),)
         office365_api.verify(
             {
                 'method': 'GET',

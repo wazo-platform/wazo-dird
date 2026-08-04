@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -84,6 +84,7 @@ class Office365Plugin(BaseSourcePlugin):
             return []
 
         updated_contacts = self._update_contact_fields(contacts)
+        logger.debug("All contacts: %s", updated_contacts)
         lowered_term = term.lower()
 
         def match_fn(contact: dict[str, Any]) -> bool:
@@ -94,6 +95,7 @@ class Office365Plugin(BaseSourcePlugin):
             return False
 
         filtered_contacts = [c for c in updated_contacts if match_fn(c)]
+        logger.debug("Filtered contacts: %s", filtered_contacts)
 
         # Note(achohra): We need to make sure that `givenName` key/value exists to avoid TypeError when sorting
 
@@ -101,7 +103,7 @@ class Office365Plugin(BaseSourcePlugin):
             field_name: str,
         ) -> Callable[[dict[str, Any]], Any]:
             def g(obj: dict[str, Any]) -> Any:
-                return obj.get(field_name, '')
+                return obj.get(field_name) or ''
 
             return g
 

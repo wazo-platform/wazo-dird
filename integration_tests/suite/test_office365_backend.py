@@ -47,6 +47,34 @@ OFFICE365_CONTACTS = {
     ]
 }
 
+# Microsoft Graph returns an explicit null for unset properties, so the key is
+# present with a None value. Two matching contacts are needed to make the sort
+# actually compare the values.
+OFFICE365_CONTACTS_WITHOUT_GIVEN_NAME = {
+    "value": [
+        {
+            "@odata.etag": "W/\"an-odata-etag\"",
+            "id": "an-id",
+            "displayName": "Wario Bros",
+            "givenName": "Wario",
+            "surname": "Bros",
+            "mobilePhone": "",
+            "businessPhones": ['5555555555'],
+            "emailAddresses": [{"address": "wbros@wazoquebec.onmicrosoft.com"}],
+        },
+        {
+            "@odata.etag": "W/\"another-odata-etag\"",
+            "id": "another-id",
+            "displayName": "Bros",
+            "givenName": None,
+            "surname": "Bros",
+            "mobilePhone": "",
+            "businessPhones": ['5555555556'],
+            "emailAddresses": [{"address": "bros@wazoquebec.onmicrosoft.com"}],
+        },
+    ]
+}
+
 
 class BaseOffice365TestCase(DirdAssetRunningTestCase):
     service = 'dird'
@@ -156,6 +184,31 @@ class TestOffice365Plugin(BaseOffice365PluginTestCase):
                     email='wbros@wazoquebec.onmicrosoft.com',
                     **self.WARIO,
                 )
+            ),
+        )
+
+    @fixtures.office365_result(OFFICE365_CONTACTS_WITHOUT_GIVEN_NAME)
+    def test_plugin_lookup_when_given_name_is_none(self, office365_api):
+        self.auth_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
+
+        result = self.backend.search('bros', self.LOOKUP_ARGS)
+
+        # sorted on "givenName": the None value is treated as an empty string
+        assert_that(
+            result,
+            contains_exactly(
+                has_entries(
+                    givenName=None,
+                    surname='Bros',
+                    number='5555555556',
+                    email='bros@wazoquebec.onmicrosoft.com',
+                ),
+                has_entries(
+                    givenName='Wario',
+                    surname='Bros',
+                    number='5555555555',
+                    email='wbros@wazoquebec.onmicrosoft.com',
+                ),
             ),
         )
 
@@ -286,6 +339,26 @@ class TestDirdOffice365Plugin(BaseOffice365TestCase):
             has_entries(
                 results=contains_exactly(
                     has_entries(column_values=contains_exactly('Wario'))
+                )
+            ),
+        )
+
+    @fixtures.office365_result(OFFICE365_CONTACTS_WITHOUT_GIVEN_NAME)
+    def test_given_none_given_name_when_lookup_then_contacts_fetched(
+        self, office365_api
+    ):
+        self.auth_client_mock.set_external_auth(self.MICROSOFT_EXTERNAL_AUTH)
+
+        result = self.client.directories.lookup(term='bros', profile='default')
+
+        # a raising source is swallowed by the lookup service, so a regression
+        # here shows up as an empty result set rather than an error
+        assert_that(
+            result,
+            has_entries(
+                results=contains_exactly(
+                    has_entries(column_values=contains_exactly(None)),
+                    has_entries(column_values=contains_exactly('Wario')),
                 )
             ),
         )
