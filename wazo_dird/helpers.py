@@ -69,11 +69,12 @@ class ServiceConfigOptions(TypedDict, total=False):
 
 
 _SizedT = TypeVar('_SizedT', bound=Sized)
+TimedResult = tuple[_SizedT, float]
 
 
 def timed(
     function: Callable[..., _SizedT], *args: Any, **kwargs: Any
-) -> tuple[_SizedT, float]:
+) -> TimedResult[_SizedT]:
     start = time.monotonic()
     result = function(*args, **kwargs)
     return result, time.monotonic() - start

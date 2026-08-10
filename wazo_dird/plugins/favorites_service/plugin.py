@@ -113,7 +113,7 @@ class _FavoritesService(helpers.BaseService):
         source: BaseSourcePlugin,
         contact_ids: list[str],
         args: dict[str, Any],
-    ) -> Future[tuple[list[_SourceResult], float]]:
+    ) -> Future[helpers.TimedResult[list[_SourceResult]]]:
         raise_stopper: helpers.RaiseStopper[list[_SourceResult]] = helpers.RaiseStopper(
             return_on_raise=[]
         )
@@ -176,6 +176,8 @@ class _FavoritesService(helpers.BaseService):
             backend_stats.append((getattr(future, 'name'), len(contacts), duration))
             for contact in contacts:
                 results.append(contact)
+        for future in not_done:
+            backend_stats.append((getattr(future, 'name'), 0, float('inf')))
         logger.info(
             'favorites: %s',
             ', '.join(
