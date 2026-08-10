@@ -113,12 +113,12 @@ class _FavoritesService(helpers.BaseService):
         source: BaseSourcePlugin,
         contact_ids: list[str],
         args: dict[str, Any],
-    ) -> Future[list[_SourceResult]]:
+    ) -> Future[tuple[list[_SourceResult], float]]:
         raise_stopper: helpers.RaiseStopper[list[_SourceResult]] = helpers.RaiseStopper(
             return_on_raise=[]
         )
         future = self._executor.submit(
-            raise_stopper.execute, source.list, contact_ids, args
+            helpers.timed, raise_stopper.execute, source.list, contact_ids, args
         )
         setattr(future, 'name', source.name)
         return future
@@ -141,7 +141,7 @@ class _FavoritesService(helpers.BaseService):
             'xivo_user_uuid': user_uuid,  # To avoid breaking old plugins
             'user_uuid': user_uuid,
         }
-        futures: list[Future[list[_SourceResult]]] = []
+        futures: list[Future[helpers.TimedResult[list[_SourceResult]]]] = []
         favorite_map = self.favorite_ids(profile_config, user_uuid).by_uuid
         for source_uuid, ids in favorite_map.items():
             source = self._source_manager.get(source_uuid)
@@ -170,9 +170,19 @@ class _FavoritesService(helpers.BaseService):
             )
 
         results: list[_SourceResult] = []
+        backend_stats: list[tuple[str, int, float]] = []
         for future in done:
-            for result in future.result():
-                results.append(result)
+            contacts, duration = future.result()
+            backend_stats.append((getattr(future, 'name'), len(contacts), duration))
+            for contact in contacts:
+                results.append(contact)
+        logger.info(
+            'favorites: %s',
+            ', '.join(
+                f'{name} results={count} duration_ms={duration * 1000:.1f}'
+                for name, count, duration in backend_stats
+            ),
+        )
         return results
 
     def favorite_ids(self, profile_config: ProfileConfig, user_uuid: str) -> Any:

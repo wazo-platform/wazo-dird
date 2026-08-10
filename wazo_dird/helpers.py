@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+import time
 from collections import namedtuple
-from collections.abc import Callable
+from collections.abc import Callable, Sized
 from typing import Any, Generic, TypedDict, TypeVar
 
 from flask import request
@@ -65,6 +66,17 @@ class RaiseStopper(Generic[T]):
 
 class ServiceConfigOptions(TypedDict, total=False):
     timeout: float
+
+
+_SizedT = TypeVar('_SizedT', bound=Sized)
+
+
+def timed(
+    function: Callable[..., _SizedT], *args: Any, **kwargs: Any
+) -> tuple[_SizedT, float]:
+    start = time.monotonic()
+    result = function(*args, **kwargs)
+    return result, time.monotonic() - start
 
 
 class ServiceConfig(TypedDict, total=False):

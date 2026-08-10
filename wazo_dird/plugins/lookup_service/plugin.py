@@ -61,13 +61,19 @@ class _LookupService(helpers.BaseService):
 
     def _async_search(
         self, source: BaseSourcePlugin, term: str, args: LookupArgs
-    ) -> Future[list[SourceResult]]:
+    ) -> Future[tuple[list[SourceResult], float]]:
         raise_stopper: helpers.RaiseStopper[list[SourceResult]] = helpers.RaiseStopper(
             return_on_raise=[]
         )
         submitted_at = perf_counter()
         future = self._executor.submit(
-            self._timed_search, raise_stopper, source, term, args, submitted_at
+            helpers.timed,
+            self._timed_search,
+            raise_stopper,
+            source,
+            term,
+            args,
+            submitted_at,
         )
         setattr(future, 'name', source.name)
         return future
@@ -115,7 +121,17 @@ class _LookupService(helpers.BaseService):
 
         done, _ = wait(futures, **params)
         results = []
+        backend_stats = []
         for future in done:
-            for result in future.result():
-                results.append(result)
+            contacts, duration = future.result()
+            backend_stats.append((getattr(future, 'name'), len(contacts), duration))
+            for contact in contacts:
+                results.append(contact)
+        logger.info(
+            'lookup: %s',
+            ', '.join(
+                f'{name} results={count} duration_ms={duration * 1000:.1f}'
+                for name, count, duration in backend_stats
+            ),
+        )
         return results

@@ -68,6 +68,16 @@ class TestSourceModification(BaseMultipleSourceLauncher):
         )
 
 
+class TestLookupLogsPerBackendStats(BaseMultipleSourceLauncher):
+    def test_that_lookup_logs_result_count_and_latency_per_backend(self):
+        with self.capture_logs(service_name='dird') as logs:
+            self.lookup('lice', 'default')
+
+        assert_that(logs.result(), contains_string('my_csv results=1'))
+        assert_that(logs.result(), contains_string('second_csv results=0'))
+        assert_that(logs.result(), contains_string('third_csv results=1'))
+
+
 class TestCoreSourceManagement(BaseMultipleSourceLauncher):
     alice_aaa = {
         'column_values': ['Alice', 'AAA', '5555555555'],
