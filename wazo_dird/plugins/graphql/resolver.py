@@ -1,4 +1,4 @@
-# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -6,8 +6,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 from graphql import Undefined
+from xivo.tenant_flask_helpers import user
 
-from wazo_dird import auth
 from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
 
 from . import schema
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     class ContextDict(TypedDict):
         resolver: Resolver
         token_id: str
-        user_uuid: str
+        user_uuid: str | None
         tenant_uuid: str
 
     class ResolveInfo(GraphQLResolveInfo):
@@ -48,14 +48,12 @@ class Resolver:
     def get_user_me(
         self, root: _SourceResult, info: ResolveInfo, **args: Any
     ) -> dict[str, Any]:
-        token_info = auth.client().token.get(info.context['token_id'])
-        metadata = token_info['metadata']
-        info.context['user_uuid'] = metadata['uuid']
+        info.context['user_uuid'] = user.uuid
         return {}
 
     def get_user_me_uuid(
         self, root: _SourceResult, info: ResolveInfo, **args: Any
-    ) -> str:
+    ) -> str | None:
         return info.context['user_uuid']
 
     def get_user_by_uuid(

@@ -8,7 +8,9 @@ from typing import Any, TypeVar, cast
 from wazo_auth_client import Client
 from werkzeug.local import LocalProxy as Proxy
 from xivo.auth_verifier import no_auth, required_acl, required_tenant
+from xivo.rest_api_helpers import APIException
 from xivo.status import Status, StatusDict
+from xivo.tenant_flask_helpers import user
 
 from .config import AuthConfig
 from .exception import MasterTenantNotInitiatedException
@@ -30,6 +32,15 @@ def client() -> Client:
     if not auth_client:
         auth_client = Client(**cast('AuthConfig', auth_config))
     return auth_client
+
+
+def get_user_uuid() -> str:
+    # reads the request-scoped token: no wazo-auth request once it is loaded
+    user_uuid = user.uuid
+    if not user_uuid:
+        raise APIException(401, 'This token has no user UUID', 'invalid-token')
+
+    return user_uuid
 
 
 F = TypeVar('F', bound=Callable[..., Any])

@@ -1,4 +1,4 @@
-# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -112,7 +112,9 @@ class UserMe(ObjectType):
     ) -> list[Any]:
         return info.context['resolver'].get_user_contacts(parent, info, **args)
 
-    def resolve_user_uuid(parent: _SourceResult, info: ResolveInfo, **args: Any) -> str:
+    def resolve_user_uuid(
+        parent: _SourceResult, info: ResolveInfo, **args: Any
+    ) -> str | None:
         return info.context['resolver'].get_user_me_uuid(parent, info, **args)
 
 
@@ -134,7 +136,9 @@ class User(ObjectType):
     ) -> list[Any]:
         return info.context['resolver'].get_user_contacts(parent, info, **args)
 
-    def resolve_uuid(parent: _SourceResult, info: ResolveInfo, **args: Any) -> str:
+    def resolve_uuid(
+        parent: _SourceResult, info: ResolveInfo, **args: Any
+    ) -> str | None:
         return info.context['resolver'].get_user_me_uuid(parent, info, **args)
 
 
