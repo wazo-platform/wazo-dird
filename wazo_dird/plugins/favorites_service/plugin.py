@@ -86,7 +86,7 @@ class _FavoritesService(helpers.BaseService):
 
     def _async_list(
         self, source, contact_ids, args
-    ) -> Future[tuple[list[SourceResult], float]]:
+    ) -> Future[helpers.TimedResult[list[SourceResult]]]:
         raise_stopper = helpers.RaiseStopper(return_on_raise=[])
         future = self._executor.submit(
             helpers.timed, raise_stopper.execute, source.list, contact_ids, args
@@ -117,7 +117,7 @@ class _FavoritesService(helpers.BaseService):
         if 'lookup_timeout' in self._config:
             params['timeout'] = self._config['lookup_timeout']
 
-        done, _ = wait(futures, **params)
+        done, not_done = wait(futures, **params)
         results = []
         backend_stats = []
         for future in done:
@@ -125,6 +125,8 @@ class _FavoritesService(helpers.BaseService):
             backend_stats.append((future.name, len(contacts), duration))
             for contact in contacts:
                 results.append(contact)
+        for future in not_done:
+            backend_stats.append((future.name, 0, float('inf')))
         logger.info(
             'favorites: %s',
             ', '.join(

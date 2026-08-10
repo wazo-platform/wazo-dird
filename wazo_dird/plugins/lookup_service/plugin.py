@@ -47,7 +47,7 @@ class _LookupService(helpers.BaseService):
 
     def _async_search(
         self, source, term, args
-    ) -> Future[tuple[list[SourceResult], float]]:
+    ) -> Future[helpers.TimedResult[list[SourceResult]]]:
         raise_stopper = helpers.RaiseStopper(return_on_raise=[])
         future = self._executor.submit(
             helpers.timed, raise_stopper.execute, source.search, term, args
@@ -73,7 +73,7 @@ class _LookupService(helpers.BaseService):
         if timeout:
             params['timeout'] = timeout
 
-        done, _ = wait(futures, **params)
+        done, not_done = wait(futures, **params)
         results = []
         backend_stats = []
         for future in done:
@@ -81,6 +81,8 @@ class _LookupService(helpers.BaseService):
             backend_stats.append((future.name, len(contacts), duration))
             for contact in contacts:
                 results.append(contact)
+        for future in not_done:
+            backend_stats.append((future.name, 0, float('inf')))
         logger.info(
             'lookup: %s',
             ', '.join(

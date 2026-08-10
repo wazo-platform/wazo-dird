@@ -60,9 +60,10 @@ class RaiseStopper:
 
 
 _SizedT = TypeVar('_SizedT', bound=Sized)
+TimedResult = tuple[_SizedT, float]
 
 
-def timed(function: Callable[..., _SizedT], *args, **kwargs) -> tuple[_SizedT, float]:
+def timed(function: Callable[..., _SizedT], *args, **kwargs) -> TimedResult[_SizedT]:
     start = time.monotonic()
     result = function(*args, **kwargs)
     return result, time.monotonic() - start

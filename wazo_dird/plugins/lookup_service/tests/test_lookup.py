@@ -1,12 +1,13 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import time
 import unittest
 from unittest.mock import Mock, patch, sentinel
 
-from hamcrest import assert_that, equal_to, none, not_
+from hamcrest import assert_that, contains_string, equal_to, none, not_
 
-from ..plugin import LookupServicePlugin
+from ..plugin import LookupServicePlugin, _LookupService
 
 
 class TestLookupServicePlugin(unittest.TestCase):
@@ -75,3 +76,48 @@ class TestLookupServicePlugin(unittest.TestCase):
         plugin.unload()
 
         MockedLookupService.return_value.stop.assert_called_once_with()
+
+
+class TestLookupServiceBackendStats(unittest.TestCase):
+    def setUp(self):
+        self._source_manager = Mock()
+        self._service = _LookupService({}, self._source_manager, sentinel.controller)
+
+    def tearDown(self):
+        self._service.stop()
+
+    def test_that_timed_out_backends_are_logged_with_inf_duration(self):
+        fast = Mock()
+        fast.name = 'fast'
+        fast.search.return_value = [{'firstname': 'Alice'}]
+        slow = Mock()
+        slow.name = 'slow'
+
+        def slow_search(term, args):
+            time.sleep(0.5)
+            return []
+
+        slow.search.side_effect = slow_search
+        sources = {'fast-uuid': fast, 'slow-uuid': slow}
+        self._source_manager.get.side_effect = sources.get
+        profile_config = {
+            'name': 'default',
+            'services': {
+                'lookup': {
+                    'sources': [{'uuid': 'fast-uuid'}, {'uuid': 'slow-uuid'}],
+                    'timeout': 0.1,
+                }
+            },
+        }
+
+        with self.assertLogs(
+            'wazo_dird.plugins.lookup_service.plugin', level='INFO'
+        ) as logs:
+            results = self._service.lookup(
+                profile_config, sentinel.tenant_uuid, 'term', sentinel.user_uuid
+            )
+
+        log_output = '\n'.join(logs.output)
+        assert_that(log_output, contains_string('fast results=1'))
+        assert_that(log_output, contains_string('slow results=0 duration_ms=inf'))
+        assert_that(results, equal_to([{'firstname': 'Alice'}]))

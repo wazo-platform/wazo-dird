@@ -1,13 +1,14 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import time
 import unittest
 from unittest.mock import ANY, Mock, patch
 from unittest.mock import sentinel as s
 
-from hamcrest import assert_that, equal_to, none, not_
+from hamcrest import assert_that, contains_string, equal_to, none, not_
 
-from ..plugin import FavoritesServicePlugin
+from ..plugin import FavoritesServicePlugin, _FavoritesService
 
 
 class TestFavoritesServicePlugin(unittest.TestCase):
@@ -80,3 +81,56 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         plugin.unload()
 
         MockedFavoritesService.return_value.stop.assert_called_once_with()
+
+
+class TestFavoritesServiceBackendStats(unittest.TestCase):
+    def setUp(self):
+        self._source_manager = Mock()
+        self._crud = Mock()
+        self._service = _FavoritesService(
+            {'lookup_timeout': 0.1, 'uuid': 'xivo-uuid'},
+            self._source_manager,
+            s.controller,
+            self._crud,
+            s.bus,
+        )
+
+    def tearDown(self):
+        self._service.stop()
+
+    def test_that_timed_out_backends_are_logged_with_inf_duration(self):
+        fast = Mock()
+        fast.name = 'fast'
+        fast.list.return_value = [{'firstname': 'Alice'}]
+        slow = Mock()
+        slow.name = 'slow'
+
+        def slow_list(contact_ids, args):
+            time.sleep(0.5)
+            return []
+
+        slow.list.side_effect = slow_list
+        sources = {'fast-uuid': fast, 'slow-uuid': slow}
+        self._source_manager.get.side_effect = sources.get
+        self._crud.get.return_value = [('fast', '1'), ('slow', '2')]
+        profile_config = {
+            'name': 'default',
+            'services': {
+                'favorites': {
+                    'sources': [
+                        {'name': 'fast', 'uuid': 'fast-uuid'},
+                        {'name': 'slow', 'uuid': 'slow-uuid'},
+                    ],
+                }
+            },
+        }
+
+        with self.assertLogs(
+            'wazo_dird.plugins.favorites_service.plugin', level='INFO'
+        ) as logs:
+            results = self._service.favorites(profile_config, s.user_uuid)
+
+        log_output = '\n'.join(logs.output)
+        assert_that(log_output, contains_string('fast results=1'))
+        assert_that(log_output, contains_string('slow results=0 duration_ms=inf'))
+        assert_that(results, equal_to([{'firstname': 'Alice'}]))
