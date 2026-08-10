@@ -1,10 +1,11 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
+from concurrent.futures import ALL_COMPLETED, Future, ThreadPoolExecutor, wait
 
 from wazo_dird import BaseServicePlugin, helpers
+from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +45,13 @@ class _LookupService(helpers.BaseService):
     def stop(self):
         self._executor.shutdown()
 
-    def _async_search(self, source, term, args):
+    def _async_search(
+        self, source, term, args
+    ) -> Future[tuple[list[SourceResult], float]]:
         raise_stopper = helpers.RaiseStopper(return_on_raise=[])
-        future = self._executor.submit(raise_stopper.execute, source.search, term, args)
+        future = self._executor.submit(
+            helpers.timed, raise_stopper.execute, source.search, term, args
+        )
         future.name = source.name
         return future
 
@@ -70,7 +75,17 @@ class _LookupService(helpers.BaseService):
 
         done, _ = wait(futures, **params)
         results = []
+        backend_stats = []
         for future in done:
-            for result in future.result():
-                results.append(result)
+            contacts, duration = future.result()
+            backend_stats.append((future.name, len(contacts), duration))
+            for contact in contacts:
+                results.append(contact)
+        logger.info(
+            'lookup: %s',
+            ', '.join(
+                f'{name} results={count} duration_ms={duration * 1000:.1f}'
+                for name, count, duration in backend_stats
+            ),
+        )
         return results

@@ -1,9 +1,11 @@
-# Copyright 2015-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+import time
 from collections import namedtuple
-from typing import TypedDict
+from collections.abc import Callable, Sized
+from typing import TypedDict, TypeVar
 
 from flask import request
 from flask_restful import Api
@@ -55,6 +57,15 @@ class RaiseStopper:
         except Exception:
             logger.exception('An error occured in %s', function.__name__)
         return self.return_on_raise
+
+
+_SizedT = TypeVar('_SizedT', bound=Sized)
+
+
+def timed(function: Callable[..., _SizedT], *args, **kwargs) -> tuple[_SizedT, float]:
+    start = time.monotonic()
+    result = function(*args, **kwargs)
+    return result, time.monotonic() - start
 
 
 class ServiceConfig(TypedDict, total=False):

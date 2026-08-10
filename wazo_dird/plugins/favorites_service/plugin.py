@@ -1,14 +1,15 @@
-# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 from collections import defaultdict, namedtuple
-from concurrent.futures import ALL_COMPLETED, ThreadPoolExecutor, wait
+from concurrent.futures import ALL_COMPLETED, Future, ThreadPoolExecutor, wait
 
 from wazo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
 
 from wazo_dird import BaseServicePlugin, database, exception, helpers
 from wazo_dird.database.helpers import Session
+from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 logger = logging.getLogger(__name__)
 
@@ -83,10 +84,12 @@ class _FavoritesService(helpers.BaseService):
     def stop(self):
         self._executor.shutdown()
 
-    def _async_list(self, source, contact_ids, args):
+    def _async_list(
+        self, source, contact_ids, args
+    ) -> Future[tuple[list[SourceResult], float]]:
         raise_stopper = helpers.RaiseStopper(return_on_raise=[])
         future = self._executor.submit(
-            raise_stopper.execute, source.list, contact_ids, args
+            helpers.timed, raise_stopper.execute, source.list, contact_ids, args
         )
         future.name = source.name
         return future
@@ -116,9 +119,19 @@ class _FavoritesService(helpers.BaseService):
 
         done, _ = wait(futures, **params)
         results = []
+        backend_stats = []
         for future in done:
-            for result in future.result():
-                results.append(result)
+            contacts, duration = future.result()
+            backend_stats.append((future.name, len(contacts), duration))
+            for contact in contacts:
+                results.append(contact)
+        logger.info(
+            'favorites: %s',
+            ', '.join(
+                f'{name} results={count} duration_ms={duration * 1000:.1f}'
+                for name, count, duration in backend_stats
+            ),
+        )
         return results
 
     def favorite_ids(self, profile_config, user_uuid):

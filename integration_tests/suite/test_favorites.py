@@ -1,4 +1,4 @@
-# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -8,6 +8,7 @@ from hamcrest import (
     assert_that,
     contains,
     contains_inanyorder,
+    contains_string,
     equal_to,
     has_entries,
     has_entry,
@@ -144,6 +145,19 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
                 has_entry('column_values', contains('Alice', 'AAA', '5555555555', True))
             ),
         )
+
+    def test_that_favorites_logs_result_count_and_latency_per_backend(self):
+        # only sources holding at least one favorite are queried, so only
+        # those appear in the log line
+        with self.favorite('my_csv', '1', token=self.token_1), self.favorite(
+            'my_csv/slash', '1', token=self.token_1
+        ), self.favorite('my_csv/slash', '2', token=self.token_1):
+            with self.capture_logs(service_name='dird') as logs:
+                self.favorites('default', token=self.token_1)
+
+        assert_that(logs.result(), contains_string('my_csv results=1'))
+        assert_that(logs.result(), contains_string('my_csv/slash results=2'))
+        assert_that(logs.result(), contains_string('duration_ms='))
 
     def test_favorite_source_name_supports_slash(self):
         with self.favorite('my_csv/slash', '1', token=self.token_1), self.favorite(
