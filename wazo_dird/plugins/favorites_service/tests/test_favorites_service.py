@@ -131,6 +131,7 @@ class TestFavoritesServiceBackendStats(unittest.TestCase):
             results = self._service.favorites(profile_config, s.user_uuid)
 
         log_output = '\n'.join(logs.output)
+        assert_that(log_output, contains_string('favorites per-backend latency:'))
         assert_that(log_output, contains_string('fast results=1'))
         assert_that(log_output, contains_string('slow results=0 duration_ms=inf'))
         assert_that(results, equal_to([{'firstname': 'Alice'}]))

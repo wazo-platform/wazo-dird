@@ -118,6 +118,7 @@ class TestLookupServiceBackendStats(unittest.TestCase):
             )
 
         log_output = '\n'.join(logs.output)
+        assert_that(log_output, contains_string('lookup per-backend latency:'))
         assert_that(log_output, contains_string('fast results=1'))
         assert_that(log_output, contains_string('slow results=0 duration_ms=inf'))
         assert_that(results, equal_to([{'firstname': 'Alice'}]))

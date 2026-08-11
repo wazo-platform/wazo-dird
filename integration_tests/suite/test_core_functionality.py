@@ -68,6 +68,7 @@ class TestLookupLogsPerBackendStats(BaseMultipleSourceLauncher):
         with self.capture_logs(service_name='dird') as logs:
             self.lookup('lice', 'default')
 
+        assert_that(logs.result(), contains_string('lookup per-backend latency:'))
         assert_that(logs.result(), contains_string('my_csv results=1'))
         assert_that(logs.result(), contains_string('second_csv results=0'))
         assert_that(logs.result(), contains_string('third_csv results=1'))

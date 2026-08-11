@@ -128,7 +128,7 @@ class _FavoritesService(helpers.BaseService):
         for future in not_done:
             backend_stats.append((future.name, 0, float('inf')))
         logger.info(
-            'favorites: %s',
+            'favorites per-backend latency: %s',
             ', '.join(
                 f'{name} results={count} duration_ms={duration * 1000:.1f}'
                 for name, count, duration in backend_stats

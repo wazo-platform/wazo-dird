@@ -155,6 +155,7 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
             with self.capture_logs(service_name='dird') as logs:
                 self.favorites('default', token=self.token_1)
 
+        assert_that(logs.result(), contains_string('favorites per-backend latency:'))
         assert_that(logs.result(), contains_string('my_csv results=1'))
         assert_that(logs.result(), contains_string('my_csv/slash results=2'))
         assert_that(logs.result(), contains_string('duration_ms='))
