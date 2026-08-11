@@ -8,14 +8,14 @@ first_matched_columns:
 tenant_uuid: {{ tenant_uuid }}
 auth:
   host: {{ hostname }}
-  port: 9497
+  port: 443
   username: {{ service_id }}
   password: {{ service_key }}
+  https: true
   verify_certificate: false
 confd:
   host: {{ hostname }}
-  port: {{ port }}
-  version: "1.1"
+  port: 443
   https: true
   verify_certificate: false
 format_columns:
