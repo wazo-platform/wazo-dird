@@ -7,6 +7,7 @@ from hamcrest import (
     contains_inanyorder,
     contains_string,
     has_entry,
+    not_,
 )
 
 from .helpers.base import BaseDirdIntegrationTest
@@ -62,6 +63,21 @@ def new_favorites_timeout_config(Session):
             }
         },
     )
+    config.with_profile(
+        name='favorites-no-options',
+        display='default_display',
+        services={'favorites': {'sources': ['slow_ws', 'fast_csv']}},
+    )
+    config.with_profile(
+        name='favorites-null-timeout',
+        display='default_display',
+        services={
+            'favorites': {
+                'sources': ['slow_ws', 'fast_csv'],
+                'options': {'timeout': None},
+            }
+        },
+    )
     return config
 
 
@@ -105,3 +121,26 @@ class TestFavoritesServiceTimeout(BaseDirdIntegrationTest):
                 has_entry('column_values', contains_exactly('Alice', 'Timeout')),
             ),
         )
+
+    def test_no_options_waits_for_the_slow_source(self) -> None:
+        self._assert_exhaustive('favorites-no-options')
+
+    def test_null_timeout_waits_for_the_slow_source(self) -> None:
+        self._assert_exhaustive('favorites-null-timeout')
+
+    def _assert_exhaustive(self, profile: str) -> None:
+        """A profile with no timeout must return every source, however slow."""
+        with self.favorite('fast_csv', _FAST_CSV_CONTACT_ID), self.favorite(
+            'slow_ws', _SLOW_WS_CONTACT_ID
+        ):
+            with self.capture_logs(service_name='dird') as logs:
+                result = self.favorites(profile)
+
+        assert_that(
+            result['results'],
+            contains_inanyorder(
+                has_entry('column_values', contains_exactly('Bob', 'Fast')),
+                has_entry('column_values', contains_exactly('Alice', 'Timeout')),
+            ),
+        )
+        assert_that(logs.result(), not_(contains_string('incomplete=')))
