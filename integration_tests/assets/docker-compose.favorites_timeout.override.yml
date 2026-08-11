@@ -1,0 +1,24 @@
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+      - db
+      - rabbitmq
+      - ws
+    environment:
+      TARGETS: "dird:9489 auth:9497 db:5432 rabbitmq:5672 ws:9485"
+  ws:
+    image: wazoplatform/wazo-dird-ws-mock:local
+    ports:
+      - "9485"
+    volumes:
+      - "./scripts/asset.favorites_timeout.slow_ws.py:/tmp/ws.py"
+    command: "python3 /tmp/ws.py"
+  rabbitmq:
+    image: rabbitmq:3
+    ports:
+      - "5672"
+  dird:
+    volumes:
+      - "./tmp/data/asset.favorites_timeout.fast.csv:/tmp/data/fast.csv"

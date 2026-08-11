@@ -149,10 +149,24 @@ class _FavoritesService(helpers.BaseService):
             futures.append(self._async_list(source, ids, args))
 
         params: dict[str, Any] = {'return_when': ALL_COMPLETED}
-        if 'lookup_timeout' in self._config:
-            params['timeout'] = self._config['lookup_timeout']
+        service_config = self.get_service_config(profile_config)
+        timeout = (service_config.get('options') or {}).get('timeout')
+        if timeout:
+            params['timeout'] = timeout
 
-        done, _ = wait(futures, **params)
+        done, not_done = wait(futures, **params)
+        if not_done:
+            logger.warning(
+                'Timeout on favorites listing, returning partial results '
+                '(user_uuid=%s, incomplete=%s)',
+                user_uuid,
+                [getattr(future, 'name') for future in not_done],
+            )
+            cancelled = sum(1 for future in not_done if future.cancel())
+            logger.debug(
+                'Cancelled %d/%d pending favorites tasks', cancelled, len(not_done)
+            )
+
         results: list[_SourceResult] = []
         for future in done:
             for result in future.result():
