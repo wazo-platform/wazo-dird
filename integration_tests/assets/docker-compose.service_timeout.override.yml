@@ -13,7 +13,7 @@ services:
     ports:
       - "9485"
     volumes:
-      - "./scripts/asset.favorites_timeout.slow_ws.py:/tmp/ws.py"
+      - "./scripts/asset.service_timeout.slow_ws.py:/tmp/ws.py"
     command: "python3 /tmp/ws.py"
   rabbitmq:
     image: rabbitmq:3
@@ -21,4 +21,4 @@ services:
       - "5672"
   dird:
     volumes:
-      - "./tmp/data/asset.favorites_timeout.fast.csv:/tmp/data/fast.csv"
+      - "./tmp/data/asset.service_timeout.fast.csv:/tmp/data/fast.csv"
