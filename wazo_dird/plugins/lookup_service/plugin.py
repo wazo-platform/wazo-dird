@@ -130,7 +130,7 @@ class _LookupService(helpers.BaseService):
         for future in not_done:
             backend_stats.append((getattr(future, 'name'), 0, float('inf')))
         logger.info(
-            'lookup: %s',
+            'lookup per-backend latency: %s',
             ', '.join(
                 f'{name} results={count} duration_ms={duration * 1000:.1f}'
                 for name, count, duration in backend_stats
