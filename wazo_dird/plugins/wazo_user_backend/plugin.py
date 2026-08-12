@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -7,19 +7,24 @@ import logging
 from collections.abc import Iterable, Iterator
 from typing import Any, cast
 
-from requests.exceptions import ConnectionError, RequestException
+from requests.exceptions import ConnectionError, HTTPError, RequestException
 from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.exception import WazoConfdError
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
+from wazo_dird.utils import is_uuid
 
 from . import http
 
 logger = logging.getLogger(__name__)
+
+# confd documents maxItems 20 on the `uuid` filter of GET /users
+LIST_BATCH_SIZE = 20
 
 
 class WazoUserView(BaseBackendView):
@@ -46,6 +51,7 @@ class WazoUserView(BaseBackendView):
 class WazoUserPlugin(BaseSourcePlugin):
     _valid_keys = [
         'id',
+        'uuid',
         'exten',
         'firstname',
         'lastname',
@@ -75,7 +81,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._client = registry.get(config)
 
         self._SourceResult = make_result_class(
-            'wazo', self.name, 'id', format_columns=config.get('format_columns')
+            'wazo', self.name, 'uuid', format_columns=config.get('format_columns')
         )
         self._search_params.update(
             cast('dict[str, Any]', config.get('extra_search_params', {}))
@@ -162,18 +168,95 @@ class WazoUserPlugin(BaseSourcePlugin):
             logger.debug('Found no match')
         return results
 
+    def is_valid_unique_id(self, unique_id: str) -> bool:
+        if not self._is_known_id_form(unique_id):
+            return False
+
+        assert self._client is not None
+        try:
+            self._client.users.get(unique_id)
+        except HTTPError as e:
+            if e.response is not None and e.response.status_code == 404:
+                logger.info('%s: confd knows no user %s', self.name, unique_id)
+                return False
+            raise WazoConfdError(self._client, e)
+        except RequestException as e:
+            raise WazoConfdError(self._client, e)
+
+        return True
+
+    def _is_known_id_form(self, unique_id: str) -> bool:
+        """Reject an id of the wrong shape before asking confd about it.
+
+        confd resolves `GET /users/<id_or_uuid>`, so the shape has to be
+        checked here: without it a confd id would stay acceptable after the
+        transition ends.
+        """
+        # --- transition: drop `or unique_id.isdigit()` once every favorite is
+        # migrated; a client still sending a confd id then gets a 400 ---
+        return is_uuid(unique_id) or unique_id.isdigit()
+
+    # NOTE: defined before `list` because the name `list` is shadowed by the
+    # method below for every annotation evaluated in this class body
+    def _uuids_of_confd_ids(self, confd_ids: list[str]) -> list[str]:
+        """The uuids of favorites still keyed on a confd user id.
+
+        Transition only. confd has no filter on `id`, so each one costs its
+        own request; only favorites the migration has not rewritten yet pay
+        it, and they resolve into the same batched query as the rest.
+        """
+        assert self._client is not None
+        uuids = []
+        for confd_id in confd_ids:
+            try:
+                uuids.append(self._client.users.get(confd_id)['uuid'])
+            except RequestException as e:
+                logger.info(
+                    '%s: cannot resolve contact id %s, skipping it: %s',
+                    self.name,
+                    confd_id,
+                    e,
+                )
+        return uuids
+
+    def _list_by_uuid(self, unique_ids: list[str]) -> list[SourceResult]:
+        results: list[SourceResult] = []
+        for start in range(0, len(unique_ids), LIST_BATCH_SIZE):
+            batch = unique_ids[start : start + LIST_BATCH_SIZE]
+            results.extend(self._fetch_entries(','.join(batch), 'uuid'))
+        return results
+
     def list(
         self, unique_ids: list[str], args: dict[str, Any] | None = None
     ) -> list[SourceResult]:
-        entries = self._fetch_entries()
+        """List contacts by unique id.
 
-        def match_fn(entry: SourceResult) -> bool:
-            for unique_id in unique_ids:
-                if unique_id == entry.get_unique():
-                    return True
-            return False
+        A favorite holds whatever contact id the client sent when it was
+        added, so the ids arriving here are a mix of user uuids and, until
+        the migration has run everywhere, confd user ids.
+        """
+        if not unique_ids:
+            return []
 
-        return [entry for entry in entries if match_fn(entry)]
+        # favorites stored before the write path checked their contact id may
+        # hold anything: drop those rather than query confd for them
+        uuids = [unique_id for unique_id in unique_ids if is_uuid(unique_id)]
+
+        # --- transition: delete with `_uuids_of_confd_ids` ---
+        # a confd user id is an integer; anything else is neither form
+        confd_ids = [unique_id for unique_id in unique_ids if unique_id.isdigit()]
+        if confd_ids:
+            logger.info(
+                '%s: %s of %s favorites are keyed on a confd id, resolving them '
+                'one by one; run the favorite migration',
+                self.name,
+                len(confd_ids),
+                len(unique_ids),
+            )
+            uuids += self._uuids_of_confd_ids(confd_ids)
+        # --- end transition ---
+
+        return self._list_by_uuid(uuids)
 
     def _fetch_entries(
         self, term: str | None = None, column: str = 'search'

@@ -131,7 +131,7 @@ class TestWazoUser(DirdAssetRunningTestCase):
                     'endpoint_id': 2,
                     'user_id': 1,
                     'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
-                    'source_entry_id': '1',
+                    'source_entry_id': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
                 }
             ),
         )
@@ -192,7 +192,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                     'endpoint_id': 42,
                     'user_id': 100,
                     'user_uuid': 'ce36bbb4-ae97-4f7d-8a36-d82b96120418',
-                    'source_entry_id': '100',
+                    'source_entry_id': 'ce36bbb4-ae97-4f7d-8a36-d82b96120418',
                 },
                 'source': 'wazo_europe',
                 'backend': 'wazo',
@@ -205,7 +205,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                     'endpoint_id': 2,
                     'user_id': 2,
                     'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
-                    'source_entry_id': '2',
+                    'source_entry_id': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                 },
                 'source': 'wazo_america',
                 'backend': 'wazo',
@@ -218,7 +218,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                     'endpoint_id': None,
                     'user_id': 100,
                     'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
-                    'source_entry_id': '100',
+                    'source_entry_id': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                 },
                 'source': 'wazo_america',
                 'backend': 'wazo',
@@ -227,7 +227,26 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
         assert_that(result['results'], contains_inanyorder(*expected_result))
 
+    def test_favorites_by_user_uuid(self):
+        john_doe_uuid = '7ca42f43-8bd9-4a26-acb8-cb756f42bebb'
+
+        with self.favorite('wazo_america', john_doe_uuid):
+            result = self.favorites('default')
+
+        assert_that(
+            result['results'],
+            contains_inanyorder(
+                has_entries(
+                    source='wazo_america',
+                    column_values=contains_exactly('John', 'Doe', '1234'),
+                    relations=has_entries(source_entry_id=john_doe_uuid),
+                )
+            ),
+        )
+
     def test_favorites_multiple_wazo(self):
+        # a client that predates the uuid switch still sends the confd id;
+        # it must be resolved to the uuid of the user of *that* wazo
         self.put_favorite('wazo_america', 1)
         self.put_favorite('wazo_asia', 1)
 
@@ -239,10 +258,16 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                 has_entries(
                     source='wazo_asia',
                     column_values=contains_exactly('Alice', None, '6543'),
+                    relations=has_entries(
+                        source_entry_id='7c12f90e-7391-4514-b482-5b75b57772e1'
+                    ),
                 ),
                 has_entries(
                     source='wazo_america',
                     column_values=contains_exactly('John', 'Doe', '1234'),
+                    relations=has_entries(
+                        source_entry_id='7ca42f43-8bd9-4a26-acb8-cb756f42bebb'
+                    ),
                 ),
             ),
         )
@@ -264,7 +289,7 @@ class TestWazoUserMultipleWazoOneMissing(BaseDirdIntegrationTest):
                     'endpoint_id': 2,
                     'user_id': 1,
                     'user_uuid': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
-                    'source_entry_id': '1',
+                    'source_entry_id': '7ca42f43-8bd9-4a26-acb8-cb756f42bebb',
                 },
                 'source': 'wazo_america',
                 'backend': 'wazo',
@@ -290,7 +315,7 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
                     'endpoint_id': 2,
                     'user_id': 2,
                     'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
-                    'source_entry_id': '2',
+                    'source_entry_id': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                 },
                 'source': 'wazo_america',
                 'backend': 'wazo',
@@ -303,7 +328,7 @@ class TestWazoUserMultipleWazoOne404(BaseDirdIntegrationTest):
                     'endpoint_id': None,
                     'user_id': 100,
                     'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
-                    'source_entry_id': '100',
+                    'source_entry_id': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                 },
                 'source': 'wazo_america',
                 'backend': 'wazo',
@@ -329,7 +354,7 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
                     'endpoint_id': 2,
                     'user_id': 2,
                     'user_uuid': 'df486ed4-975b-4316-815c-e19c3c1811c4',
-                    'source_entry_id': '2',
+                    'source_entry_id': 'df486ed4-975b-4316-815c-e19c3c1811c4',
                 },
                 'source': 'wazo_america',
                 'backend': 'wazo',
@@ -342,7 +367,7 @@ class TestWazoUserMultipleWazoOneTimeout(BaseDirdIntegrationTest):
                     'endpoint_id': None,
                     'user_id': 100,
                     'user_uuid': '9dfa2706-cd85-4130-82be-c54cc15e8410',
-                    'source_entry_id': '100',
+                    'source_entry_id': '9dfa2706-cd85-4130-82be-c54cc15e8410',
                 },
                 'source': 'wazo_america',
                 'backend': 'wazo',

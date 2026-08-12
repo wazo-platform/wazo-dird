@@ -55,18 +55,12 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
             return source.uuid
 
     def _given_legacy_favorite(self, source_name, contact_id):
-        """Put a favorite through the API, then force the stored contact_id.
+        """Write the row a pre-upgrade wazo-dird would have written.
 
-        This reproduces the row a pre-upgrade wazo-dird wrote, whatever the
-        current backend stores on write.
+        The favorites service stores the contact id as it is given, so a
+        client that still sends a confd id produces exactly such a row.
         """
         self.put_favorite(source_name, contact_id)
-        source_uuid = self._source_uuid(source_name)
-        with closing(self.Session()) as s:
-            s.query(database.Favorite).filter(
-                database.Favorite.source_uuid == source_uuid
-            ).update({database.Favorite.contact_id: str(contact_id)})
-            s.commit()
 
     def _contact_ids(self, source_name):
         source_uuid = self._source_uuid(source_name)
@@ -157,6 +151,22 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
         assert_that(
             self._contact_ids('wazo_america'),
             contains_exactly(AMERICA_USER_42_UUID),
+        )
+
+    def test_migrated_favorites_are_listed_again(self):
+        self._given_legacy_favorite('wazo_america', '1')
+
+        self.post_favorite_migration()
+
+        assert_that(
+            self.favorites('default')['results'],
+            contains_exactly(
+                has_entries(
+                    source='wazo_america',
+                    column_values=contains_exactly('John', 'Doe', '1234'),
+                    relations=has_entries(source_entry_id=AMERICA_USER_1_UUID),
+                )
+            ),
         )
 
     def test_sources_without_favorites_are_not_queried(self):
