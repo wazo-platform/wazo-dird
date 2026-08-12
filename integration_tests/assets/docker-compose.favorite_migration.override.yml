@@ -1,0 +1,29 @@
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+      - america
+      - europe
+      - asia
+      - db
+    environment:
+      TARGETS: "america:9486 asia:9486 europe:9486 dird:9489 auth:9497 db:5432"
+  dird:
+    volumes:
+      - "./etc/wazo-dird/conf.d/asset.favorite_migration.yml:/etc/wazo-dird/conf.d/20-config.yml"
+  america:
+    image: python:3.11-slim-bookworm
+    volumes:
+      - "./confd_data/asset.wazo_users_multiple_wazo:/tmp"
+    command: "/tmp/run_confd america"
+  europe:
+    image: python:3.11-slim-bookworm
+    volumes:
+      - "./confd_data/asset.wazo_users_multiple_wazo:/tmp"
+    command: "/tmp/run_confd europe"
+  asia:
+    image: python:3.11-slim-bookworm
+    volumes:
+      - "./confd_data/asset.wazo_users_multiple_wazo:/tmp"
+    command: "/tmp/run_confd asia"

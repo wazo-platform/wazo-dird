@@ -1,8 +1,27 @@
+# Copyright 2024-2026 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from collections.abc import Mapping
 from typing import TypeVar
+from uuid import UUID
 
 K = TypeVar("K")
 V = TypeVar("V")
+
+
+def is_uuid(value: str) -> bool:
+    """
+    >>> is_uuid('7ca42f43-8bd9-4a26-acb8-cb756f42bebb')
+    True
+    >>> is_uuid('226')
+    False
+
+    """
+    try:
+        UUID(value)
+    except ValueError:
+        return False
+    return True
 
 
 def projection(
