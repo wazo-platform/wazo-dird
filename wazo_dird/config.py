@@ -118,8 +118,7 @@ _DEFAULT_HTTPS_PORT = 9489
 _DEFAULT_CONFIG: Config = {
     'auth': {
         'host': 'localhost',
-        'port': 9497,
-        'prefix': None,
+        'port': 80,
         'https': False,
         'key_file': '',
     },

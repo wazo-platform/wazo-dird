@@ -63,8 +63,8 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                             name='auto_conference_mytenant',
                             auth={
                                 'host': 'localhost',
-                                'port': 9497,
-                                'prefix': None,
+                                'port': 80,
+                                'prefix': '/api/auth',
                                 'https': False,
                                 'version': '0.1',
                                 'key_file': key_file,
@@ -136,8 +136,8 @@ class TestConfigAutoCreation(BaseDirdIntegrationTest):
                             name='auto_google_mytenant',
                             auth={
                                 'host': 'localhost',
-                                'port': 9497,
-                                'prefix': None,
+                                'port': 80,
+                                'prefix': '/api/auth',
                                 'https': False,
                                 'version': '0.1',
                             },
