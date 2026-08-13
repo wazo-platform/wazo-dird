@@ -1,4 +1,4 @@
-# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from wazo_auth_client.exceptions import MissingPermissionsTokenException
 from xivo.auth_verifier import AuthServerUnreachable, Unauthorized
 from xivo.flask.headers import extract_token_id_from_header
 from xivo.rest_api_helpers import APIException
-from xivo.tenant_helpers import Tenant
+from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird import BaseViewPlugin, http_server
 
@@ -44,7 +44,7 @@ class AuthorizationMiddleware:
         root_field = info.field_name
         required_acl = f'dird.graphql.{root_field}'
         try:
-            tenant = Tenant.autodetect(self._auth_client)
+            tenant = Tenant.autodetect()
         except AuthServerUnreachable as e:
             host = self._auth_config['host']
             port = self._auth_config['port']

@@ -1,4 +1,4 @@
-# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -12,8 +12,7 @@ from flask_restful import reqparse
 from requests.exceptions import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 
-from wazo_dird import auth
-from wazo_dird.auth import required_acl
+from wazo_dird.auth import get_user_uuid, required_acl
 from wazo_dird.exception import (
     NoSuchProfile,
     NoSuchProfileAPIException,
@@ -83,8 +82,7 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
             return e.body, e.status_code
 
         token = request.headers['X-Auth-Token']
-        token_infos = auth.client().token.get(token)
-        user_uuid = token_infos['metadata']['uuid']
+        user_uuid = get_user_uuid()
 
         raw_results = self.lookup_service.lookup(
             cast(ProfileConfig, profile_config),
@@ -232,12 +230,11 @@ class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
             return e.body, e.status_code
 
         token = request.headers.get('X-Auth-Token', '')
-        token_infos = auth.client().token.get(token)
 
         try:
             raw_results = self.favorites_service.favorites(
                 cast(ProfileConfig, profile_config),
-                token_infos['metadata']['uuid'],
+                get_user_uuid(),
                 token,
             )
         except self.favorites_service.NoSuchProfileException as e:
@@ -255,13 +252,10 @@ class FavoritesWrite(LegacyAuthResource):
     def put(
         self, directory: str, contact: str
     ) -> tuple[str, int] | tuple[dict[str, Any], int]:
-        token = request.headers.get('X-Auth-Token', '')
-        token_infos = auth.client().token.get(token)
-
         tenant = Tenant.autodetect()
         try:
             self.favorites_service.new_favorite(
-                tenant.uuid, directory, contact, token_infos['metadata']['uuid']
+                tenant.uuid, directory, contact, get_user_uuid()
             )
         except self.favorites_service.DuplicatedFavoriteException:
             return _error(409, 'Adding this favorite would create a duplicate')
@@ -273,13 +267,10 @@ class FavoritesWrite(LegacyAuthResource):
     def delete(
         self, directory: str, contact: str
     ) -> tuple[str, int] | tuple[dict[str, Any], int]:
-        token = request.headers.get('X-Auth-Token', '')
-        token_infos = auth.client().token.get(token)
-
         tenant = Tenant.autodetect()
         try:
             self.favorites_service.remove_favorite(
-                tenant.uuid, directory, contact, token_infos['metadata']['uuid']
+                tenant.uuid, directory, contact, get_user_uuid()
             )
             return '', 204
         except (
@@ -309,9 +300,6 @@ class Personal(LegacyAuthResource, DisplayAwareResource):
     @required_acl('dird.directories.personal.{profile}.read')
     def get(self, profile: str) -> dict[str, Any] | tuple[dict[str, Any], int]:
         logger.debug('Listing personal with profile %s', profile)
-        token = request.headers.get('X-Auth-Token', '')
-        token_infos = auth.client().token.get(token)
-
         tenant = Tenant.autodetect()
         try:
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
@@ -319,13 +307,12 @@ class Personal(LegacyAuthResource, DisplayAwareResource):
         except OldAPIException as e:
             return e.body, e.status_code
 
-        raw_results = self.personal_service.list_contacts(
-            tenant.uuid, token_infos['metadata']['uuid']
-        )
+        user_uuid = get_user_uuid()
+        raw_results = self.personal_service.list_contacts(tenant.uuid, user_uuid)
 
         try:
             favorites = self.favorite_service.favorite_ids(
-                cast(ProfileConfig, profile_config), token_infos['metadata']['uuid']
+                cast(ProfileConfig, profile_config), user_uuid
             ).by_name
         except self.favorite_service.NoSuchProfileException as e:
             return _error(404, str(e))
