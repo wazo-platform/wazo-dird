@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 from marshmallow import Schema, ValidationError, fields, pre_load, validate
 
@@ -17,7 +17,6 @@ from wazo_dird.database.queries.phonebook import (
     PhonebookKey,
 )
 from wazo_dird.exception import InvalidContactException, InvalidPhonebookException
-from wazo_dird.plugin_helpers.sorting import sort_contacts
 from wazo_dird.plugin_manager import ServiceDependencies
 
 logger = logging.getLogger(__name__)
@@ -67,22 +66,16 @@ class _PhonebookService:
         order_insensitive: bool = False,
         **params: Any,
     ) -> list[ContactInfo]:
-        results = self._contact_crud.list(
+        return self._contact_crud.list(
             visible_tenants,
             phonebook_key,
+            order=order,
+            direction=direction,
+            limit=limit,
+            offset=offset,
+            order_insensitive=order_insensitive,
             **params,
         )
-        sorted_results = cast(
-            list[ContactInfo],
-            sort_contacts(
-                cast('list[dict[str, Any]]', results),
-                order=order,
-                direction=direction,
-                order_insensitive=order_insensitive,
-            ),
-        )
-        start = offset or 0
-        return sorted_results[start : start + limit if limit else None]
 
     def list_phonebook(
         self, visible_tenants: list[str], **params: Any
