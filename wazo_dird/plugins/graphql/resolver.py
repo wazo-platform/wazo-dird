@@ -1,4 +1,4 @@
-# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -6,8 +6,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 from graphql import Undefined
+from xivo.rest_api_helpers import APIException
 
-from wazo_dird import auth
+from wazo_dird.auth import get_user_uuid
 from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
 
 from . import schema
@@ -48,9 +49,10 @@ class Resolver:
     def get_user_me(
         self, root: _SourceResult, info: ResolveInfo, **args: Any
     ) -> dict[str, Any]:
-        token_info = auth.client().token.get(info.context['token_id'])
-        metadata = token_info['metadata']
-        info.context['user_uuid'] = metadata['uuid']
+        try:
+            info.context['user_uuid'] = get_user_uuid()
+        except APIException as e:
+            raise graphql_error_from_api_exception(e) from e
         return {}
 
     def get_user_me_uuid(

@@ -9,15 +9,13 @@ import logging
 import re
 from collections.abc import Callable
 from time import time
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from flask import Response, request
 from flask_restful import reqparse
-from xivo.rest_api_helpers import APIException
 from xivo.tenant_flask_helpers import Tenant
 
-from wazo_dird import auth
-from wazo_dird.auth import required_acl
+from wazo_dird.auth import get_user_uuid, required_acl
 from wazo_dird.http import LegacyAuthResource, get_json_body
 
 if TYPE_CHECKING:
@@ -33,16 +31,6 @@ parser = reqparse.RequestParser()
 parser.add_argument('format', type=str, required=False, location='args')
 
 
-def _get_calling_user_uuid() -> str:
-    token = request.headers['X-Auth-Token']
-    token_infos = auth.client().token.get(token)
-    user_uuid = token_infos.get('metadata').get('uuid')
-    if not user_uuid:
-        raise APIException(401, 'This token has no user UUID', 'invalid-token')
-
-    return cast(str, user_uuid)
-
-
 class PersonalAll(LegacyAuthResource):
     personal_service: _PersonalService
 
@@ -52,7 +40,7 @@ class PersonalAll(LegacyAuthResource):
 
     @required_acl('dird.personal.create')
     def post(self) -> tuple[dict[str, Any] | None, int]:
-        user_uuid = _get_calling_user_uuid()
+        user_uuid = get_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
         contact = get_json_body()
         try:
@@ -75,7 +63,7 @@ class PersonalAll(LegacyAuthResource):
     def get(
         self,
     ) -> tuple[dict[str, Any], int] | tuple[str, int] | Response:
-        user_uuid = _get_calling_user_uuid()
+        user_uuid = get_user_uuid()
         try:
             contacts = self.personal_service.list_contacts_raw(
                 user_uuid, search_params=request.args
@@ -93,7 +81,7 @@ class PersonalAll(LegacyAuthResource):
 
     @required_acl('dird.personal.delete')
     def delete(self) -> tuple[str, int]:
-        user_uuid = _get_calling_user_uuid()
+        user_uuid = get_user_uuid()
 
         self.personal_service.purge_contacts(user_uuid)
 
@@ -158,7 +146,7 @@ class PersonalOne(LegacyAuthResource):
     def get(
         self, contact_id: str
     ) -> tuple[ContactInfo, int] | tuple[dict[str, Any], int]:
-        user_uuid = _get_calling_user_uuid()
+        user_uuid = get_user_uuid()
         try:
             contact = self.personal_service.get_contact(contact_id, user_uuid)
             return contact, 200
@@ -168,7 +156,7 @@ class PersonalOne(LegacyAuthResource):
 
     @required_acl('dird.personal.{contact_id}.update')
     def put(self, contact_id: str) -> tuple[dict[str, Any] | None, int]:
-        user_uuid = _get_calling_user_uuid()
+        user_uuid = get_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
         new_contact = get_json_body()
         try:
@@ -192,7 +180,7 @@ class PersonalOne(LegacyAuthResource):
 
     @required_acl('dird.personal.{contact_id}.delete')
     def delete(self, contact_id: str) -> tuple[str | dict[str, Any], int]:
-        user_uuid = _get_calling_user_uuid()
+        user_uuid = get_user_uuid()
         try:
             self.personal_service.remove_contact(contact_id, user_uuid)
             return '', 204
@@ -210,7 +198,7 @@ class PersonalImport(LegacyAuthResource):
 
     @required_acl('dird.personal.import.create')
     def post(self) -> tuple[dict[str, Any], int]:
-        user_uuid = _get_calling_user_uuid()
+        user_uuid = get_user_uuid()
         tenant_uuid = Tenant.autodetect().uuid
 
         charset = request.mimetype_params.get('charset', 'utf-8')
