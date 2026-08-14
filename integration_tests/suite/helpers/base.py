@@ -11,6 +11,7 @@ from typing import ClassVar
 import requests
 import yaml
 from hamcrest import assert_that, equal_to, has_entries
+from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import scoped_session
 from wazo_dird_client import Client as DirdClient
@@ -75,13 +76,48 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
         database.Base.metadata.create_all(bind=cls.engine)
 
     @classmethod
+    def clean_db(cls) -> None:
+        """Empty every table without touching the schema.
+
+        The schema of the db image comes from the alembic migrations. Dropping
+        it would let `create_all` rebuild a different one from the models - the
+        constraint names do not agree - so the tests would no longer run
+        against the schema that we install.
+        """
+        # `Base.metadata` belongs to the process, and `setUpClass` reflects each
+        # database into it. One session covers many assets, so the metadata
+        # ends up describing tables that the current database does not have.
+        existing = set(inspect(cls.engine).get_table_names())
+
+        with cls.engine.begin() as connection:
+            # DELETE takes a row lock. TRUNCATE needs an ACCESS EXCLUSIVE lock,
+            # so it would queue behind the queries that dird still has in
+            # flight and block the rest of the run.
+            connection.execute(text("SET LOCAL lock_timeout = '10s'"))
+            for table in reversed(database.Base.metadata.sorted_tables):
+                if table.name == 'alembic_version' or table.name not in existing:
+                    continue
+                connection.execute(table.delete())
+
+        # Reclaim the dead rows and refresh the planner statistics. Without
+        # this, a class that loads many contacts leaves the next one with a
+        # bloated table and stale statistics, and the phonebook queries become
+        # slow enough to time out.
+        with cls.engine.connect().execution_options(
+            isolation_level='AUTOCOMMIT'
+        ) as connection:
+            connection.execute(text('VACUUM (ANALYZE)'))
+
+    @classmethod
     def tearDownClass(cls):
+        # A failure of the cleanup must still release the connections and stop
+        # the stack, otherwise the next class of the same asset inherits the
+        # leak and every later class fails too.
         try:
-            database.Base.metadata.drop_all(bind=cls.engine)
-        except Exception:
-            pass
-        cls.engine.dispose()
-        super().tearDownClass()
+            cls.clean_db()
+        finally:
+            cls.engine.dispose()
+            super().tearDownClass()
 
     @classmethod
     def restart_postgres(cls):
