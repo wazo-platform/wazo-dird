@@ -43,6 +43,7 @@ from .base import (
     build_exten_contact_map,
     compute_contact_hash,
     list_contacts_by_uuid,
+    unaccent,
 )
 
 logger = logging.getLogger(__name__)
@@ -467,7 +468,7 @@ class PhonebookContactCRUD(BaseDAO):
                     sort_field.name == order,
                 ),
             )
-            sort_value: ColumnElement = func.nullif(sort_field.value, '')
+            sort_value: ColumnElement = unaccent(func.nullif(sort_field.value, ''))
             if order_insensitive:
                 sort_value = func.lower(sort_value)
             if direction == 'desc':

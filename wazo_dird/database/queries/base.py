@@ -12,11 +12,16 @@ from typing import Any, Literal, TypedDict, cast
 from sqlalchemy import exc
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import scoped_session
+from sqlalchemy.sql.functions import ReturnTypeFromArgs
 
 from wazo_dird.database import Tenant, User
 from wazo_dird.exception import DatabaseServiceUnavailable
 
 from .. import ContactFields
+
+
+class unaccent(ReturnTypeFromArgs):
+    inherit_cache = True
 
 
 def delete_user(session: BaseSession, user_uuid: str) -> None:

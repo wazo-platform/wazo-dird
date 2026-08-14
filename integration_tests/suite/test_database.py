@@ -1056,6 +1056,60 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
             contains_exactly(self._contact_1, self._contact_3, self._contact_2),
         )
 
+    def test_that_ordering_folds_accents(self):
+        ane = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': 'ané'},
+        )
+        anz = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': 'anz'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+        )
+
+        # 'ané' folds to 'ane' and sorts before 'anz'; without accent folding the
+        # C.UTF-8 byte order would place 'anz' before 'ané'.
+        assert_that(
+            result,
+            contains_exactly(
+                ane, anz, self._contact_1, self._contact_3, self._contact_2
+            ),
+        )
+
+    def test_that_case_insensitive_ordering_folds_case_and_accents(self):
+        abe = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': 'Ábe'},
+        )
+        abz = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': 'abz'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            order_insensitive=True,
+        )
+
+        # 'Ábe' folds to 'abe' (case + accent) and sorts before 'abz'.
+        assert_that(
+            result,
+            contains_exactly(
+                abe, abz, self._contact_1, self._contact_3, self._contact_2
+            ),
+        )
+
     def test_that_the_list_can_be_ordered_in_a_direction(self):
         result = self._crud.list(
             [self._tenant_uuid],

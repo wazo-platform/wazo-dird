@@ -9,7 +9,6 @@ from sqlalchemy import and_, distinct, select, text
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.expression import ColumnElement
-from sqlalchemy.sql.functions import ReturnTypeFromArgs
 from unidecode import unidecode
 
 from wazo_dird.exception import DuplicatedContactException, NoSuchContact
@@ -22,11 +21,8 @@ from .base import (
     build_exten_contact_map,
     compute_contact_hash,
     list_contacts_by_uuid,
+    unaccent,
 )
-
-
-class unaccent(ReturnTypeFromArgs):
-    inherit_cache = True
 
 
 class PersonalContactSearchEngine(BaseDAO):
