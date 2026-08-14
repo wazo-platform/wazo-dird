@@ -10,11 +10,6 @@
 * New `rest_api.min_threads` option: threads kept ready at all times.
   `max_threads` is now a ceiling the pool grows to under load, not a fixed
   thread count.
-* The `favorites` service now applies the profile's `options.timeout`, as the
-  `lookup` and `reverse` services already do. A source that does not answer
-  before the timeout is left out of the response, and its name is logged.
-  Profiles that do not set a `favorites` timeout keep the previous behaviour:
-  the service waits for all sources.
 
 ## 26.07
 
