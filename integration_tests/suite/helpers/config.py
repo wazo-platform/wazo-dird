@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -267,15 +267,15 @@ def new_csv_with_multiple_displays_config(Session):
         services={
             'lookup': {
                 'sources': ['my_csv', 'my_csv_no_email'],
-                'timeout': 0.5,
+                'options': {'timeout': 0.5},
             },
             'favorites': {
                 'sources': ['my_csv', 'my_csv/slash', 'my_csv_no_email'],
-                'timeout': 0.5,
+                'options': {'timeout': 0.5},
             },
             'reverse': {
                 'sources': ['my_csv', 'my_csv_no_email'],
-                'timeout': 0.5,
+                'options': {'timeout': 0.5},
             },
         },
     )
@@ -318,7 +318,7 @@ def new_half_broken_config(Session):
         services={
             'lookup': {
                 'sources': ['my_csv', 'broken', 'my_other_csv'],
-                'timeout': 0.5,
+                'options': {'timeout': 0.5},
             },
             'reverse': {
                 'sources': ['chained_broken_first_lookup', 'chained_second_lookup']

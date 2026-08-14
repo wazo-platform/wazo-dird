@@ -1,16 +1,26 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import time
 import unittest
-from typing import cast
+from typing import Any, cast
 from unittest.mock import ANY, Mock, patch
 from unittest.mock import sentinel as s
 
-from hamcrest import assert_that, equal_to, none, not_
+from hamcrest import (
+    assert_that,
+    contains_exactly,
+    contains_inanyorder,
+    equal_to,
+    less_than,
+    none,
+    not_,
+)
 
+from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugin_manager import ServiceDependencies
 
-from ..plugin import FavoritesServicePlugin
+from ..plugin import FavoritesServicePlugin, _FavoritesService
 
 
 def _deps(deps: dict) -> ServiceDependencies:
@@ -93,3 +103,84 @@ class TestFavoritesServicePlugin(unittest.TestCase):
         plugin.unload()
 
         MockedFavoritesService.return_value.stop.assert_called_once_with()
+
+
+_SLOW_SOURCE_DELAY = 1.0
+_SHORT_TIMEOUT = 0.2
+
+
+class TestFavoritesServiceTimeout(unittest.TestCase):
+    """The favorites service must honour the profile's options.timeout,
+    like the lookup and reverse services already do.
+    """
+
+    def setUp(self) -> None:
+        self._crud = Mock()
+        self._crud.get.return_value = [('fast', '1'), ('slow', '2')]
+        self._source_manager = Mock()
+        self._source_manager.get.side_effect = {
+            'fast-uuid': self._new_source('fast', s.fast_result),
+            'slow-uuid': self._new_source(
+                'slow', s.slow_result, delay=_SLOW_SOURCE_DELAY
+            ),
+        }.get
+        self._service = _FavoritesService(
+            {}, self._source_manager, Mock(), self._crud, Mock()
+        )
+
+    def tearDown(self) -> None:
+        self._service.stop()
+
+    @staticmethod
+    def _new_source(name: str, result: Any, delay: float = 0.0) -> Mock:
+        source = Mock()
+        source.name = name
+
+        def list_(unique_ids: list[str], args: dict[str, Any]) -> list[Any]:
+            time.sleep(delay)
+            return [result]
+
+        source.list.side_effect = list_
+        return source
+
+    @staticmethod
+    def _profile_config(**options: Any) -> ProfileConfig:
+        return cast(
+            'ProfileConfig',
+            {
+                'name': 'default',
+                'services': {
+                    'favorites': {
+                        'sources': [
+                            {'uuid': 'fast-uuid', 'name': 'fast'},
+                            {'uuid': 'slow-uuid', 'name': 'slow'},
+                        ],
+                        'options': options,
+                    }
+                },
+            },
+        )
+
+    def test_that_a_source_slower_than_the_timeout_is_left_out(self) -> None:
+        profile_config = self._profile_config(timeout=_SHORT_TIMEOUT)
+
+        start = time.monotonic()
+        results = self._service.favorites(profile_config, s.user_uuid)
+        elapsed = time.monotonic() - start
+
+        assert_that(results, contains_exactly(s.fast_result))
+        assert_that(elapsed, less_than(_SLOW_SOURCE_DELAY))
+
+    def test_that_a_source_faster_than_the_timeout_is_returned(self) -> None:
+        profile_config = self._profile_config(timeout=_SLOW_SOURCE_DELAY * 10)
+
+        results = self._service.favorites(profile_config, s.user_uuid)
+
+        assert_that(results, contains_inanyorder(s.fast_result, s.slow_result))
+
+    def test_that_no_timeout_waits_for_every_source(self) -> None:
+        profile_config = self._profile_config()
+
+        results = self._service.favorites(profile_config, s.user_uuid)
+
+        assert_that(results, contains_inanyorder(s.fast_result, s.slow_result))

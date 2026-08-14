@@ -59,9 +59,11 @@ class _ReverseService(helpers.BaseService):
     @staticmethod
     def _cancel_pending(futures: list[Future]) -> None:
         pending = [f for f in futures if not f.done()]
-        cancelled = sum(1 for f in pending if f.cancel())
+        dropped = sum(1 for f in pending if f.cancel())
         logger.debug(
-            'Cancelled %d/%d pending reverse lookup tasks', cancelled, len(pending)
+            'Dropped %d/%d reverse lookup tasks that never started',
+            dropped,
+            len(pending),
         )
 
     def reverse_many(

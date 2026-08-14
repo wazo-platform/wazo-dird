@@ -128,7 +128,7 @@ class _FavoritesService(helpers.BaseService):
         user_uuid: str,
         token: str | None = None,
     ) -> list[_SourceResult]:
-        favorites_config = profile_config.get('services', {}).get('favorites', {})
+        favorites_config = self.get_service_config(profile_config)
         if not favorites_config:
             raise self.NoSuchProfileException(profile_config['name'])
 
@@ -149,10 +149,25 @@ class _FavoritesService(helpers.BaseService):
             futures.append(self._async_list(source, ids, args))
 
         params: dict[str, Any] = {'return_when': ALL_COMPLETED}
-        if 'lookup_timeout' in self._config:
-            params['timeout'] = self._config['lookup_timeout']
+        timeout = (favorites_config.get('options') or {}).get('timeout')
+        if timeout:
+            params['timeout'] = timeout
 
-        done, _ = wait(futures, **params)
+        done, not_done = wait(futures, **params)
+        if not_done:
+            logger.warning(
+                'Timeout on favorites listing, returning partial results '
+                '(user_uuid=%s, incomplete=%s)',
+                user_uuid,
+                [getattr(future, 'name') for future in not_done],
+            )
+            dropped = sum(1 for future in not_done if future.cancel())
+            logger.debug(
+                'Dropped %d/%d favorites tasks that never started',
+                dropped,
+                len(not_done),
+            )
+
         results: list[_SourceResult] = []
         for future in done:
             for result in future.result():
@@ -161,7 +176,7 @@ class _FavoritesService(helpers.BaseService):
 
     def favorite_ids(self, profile_config: ProfileConfig, user_uuid: str) -> Any:
         favorites = self._crud.get(user_uuid)
-        favorite_config = profile_config.get('services', {}).get('favorites', {})
+        favorite_config = self.get_service_config(profile_config)
         enabled_sources: dict[str, SourceConfig] = {
             source['name']: source for source in favorite_config.get('sources', [])
         }
