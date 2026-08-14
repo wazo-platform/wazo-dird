@@ -8,6 +8,7 @@ from contextlib import closing, contextmanager
 from typing import Any, cast
 from unittest.mock import ANY
 
+import pytest
 from hamcrest import (
     any_of,
     assert_that,
@@ -80,15 +81,20 @@ class DBStarter(DBRunningTestCase):
     asset = 'database'
 
 
-def setup_module():
+@pytest.fixture(scope='module', autouse=True)
+def _database_session(request):
+    """Open the session once the `database` stack is up.
+
+    The stack belongs to the asset plugin, so it must be asked for through the
+    fixture; `setup_module` would run before it.
+    """
     global Session
+    request.getfixturevalue('database')
     DBStarter.setUpClass()
     database.Base.metadata.drop_all(bind=DBStarter.engine)
     database.Base.metadata.create_all(bind=DBStarter.engine)
     Session = DBStarter.Session
-
-
-def teardown_module():
+    yield
     DBStarter.tearDownClass()
 
 
