@@ -105,6 +105,7 @@ class _BaseTest(unittest.TestCase):
         self.display_crud = database.DisplayCRUD(Session)
         self.profile_crud = database.ProfileCRUD(Session)
         self.source_crud = database.SourceCRUD(Session)
+        self.tenant_crud = database.TenantCRUD(Session)
 
         self._contact_1 = {
             'firtname': 'Finley',
@@ -179,7 +180,10 @@ class _BasePhonebookCRUDTest(_BaseTest):
 
 
 class TestBaseDAO(_BaseTest):
-    def test_that_an_unexpected_error_does_not_block_the_current_Session(self):
+    # The phonebook needs its tenant: the migrations declare `tenant_uuid`
+    # NOT NULL, with a foreign key on the tenant.
+    @fixtures.tenant()
+    def test_that_an_unexpected_error_does_not_block_the_current_Session(self, tenant):
         dao = base.BaseDAO(Session)
 
         try:
@@ -194,8 +198,7 @@ class TestBaseDAO(_BaseTest):
 
         try:
             with dao.new_session() as s:
-                phonebook = database.Phonebook(name='bar')
-                s.add(phonebook)
+                s.add(database.Phonebook(name='bar', tenant_uuid=tenant['uuid']))
         except exc.InvalidRequestError:
             self.fail('Should not raise')
 
