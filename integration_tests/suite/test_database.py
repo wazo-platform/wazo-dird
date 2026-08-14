@@ -1044,6 +1044,82 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
 
         assert_that(result, contains_inanyorder(self._contact_1, self._contact_2))
 
+    def test_that_the_list_can_be_ordered(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(self._contact_1, self._contact_3, self._contact_2),
+        )
+
+    def test_that_the_list_can_be_ordered_in_a_direction(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            direction='desc',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(self._contact_2, self._contact_3, self._contact_1),
+        )
+
+    def test_that_the_list_can_be_limited(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            limit=2,
+        )
+
+        assert_that(result, contains_exactly(self._contact_1, self._contact_3))
+
+    def test_that_the_list_can_be_offset(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            offset=1,
+        )
+
+        assert_that(result, contains_exactly(self._contact_3, self._contact_2))
+
+    def test_that_limit_and_offset_combine(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            limit=1,
+            offset=1,
+        )
+
+        assert_that(result, contains_exactly(self._contact_3))
+
+    def test_that_contacts_without_the_order_field_sort_last(self):
+        contact_4 = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'foo': 'bar'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(
+                self._contact_1, self._contact_3, self._contact_2, contact_4
+            ),
+        )
+
 
 class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
     def setUp(self):
