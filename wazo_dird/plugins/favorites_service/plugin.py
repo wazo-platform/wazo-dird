@@ -161,9 +161,11 @@ class _FavoritesService(helpers.BaseService):
                 user_uuid,
                 [getattr(future, 'name') for future in not_done],
             )
-            cancelled = sum(1 for future in not_done if future.cancel())
+            dropped = sum(1 for future in not_done if future.cancel())
             logger.debug(
-                'Cancelled %d/%d pending favorites tasks', cancelled, len(not_done)
+                'Dropped %d/%d favorites tasks that never started',
+                dropped,
+                len(not_done),
             )
 
         results: list[_SourceResult] = []
