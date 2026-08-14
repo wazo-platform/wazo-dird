@@ -128,7 +128,7 @@ class _FavoritesService(helpers.BaseService):
         user_uuid: str,
         token: str | None = None,
     ) -> list[_SourceResult]:
-        favorites_config = profile_config.get('services', {}).get('favorites', {})
+        favorites_config = self.get_service_config(profile_config)
         if not favorites_config:
             raise self.NoSuchProfileException(profile_config['name'])
 
@@ -149,8 +149,7 @@ class _FavoritesService(helpers.BaseService):
             futures.append(self._async_list(source, ids, args))
 
         params: dict[str, Any] = {'return_when': ALL_COMPLETED}
-        service_config = self.get_service_config(profile_config)
-        timeout = (service_config.get('options') or {}).get('timeout')
+        timeout = (favorites_config.get('options') or {}).get('timeout')
         if timeout:
             params['timeout'] = timeout
 
@@ -175,7 +174,7 @@ class _FavoritesService(helpers.BaseService):
 
     def favorite_ids(self, profile_config: ProfileConfig, user_uuid: str) -> Any:
         favorites = self._crud.get(user_uuid)
-        favorite_config = profile_config.get('services', {}).get('favorites', {})
+        favorite_config = self.get_service_config(profile_config)
         enabled_sources: dict[str, SourceConfig] = {
             source['name']: source for source in favorite_config.get('sources', [])
         }
