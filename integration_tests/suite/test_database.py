@@ -91,8 +91,6 @@ def _database_session(request):
     global Session
     request.getfixturevalue('database')
     DBStarter.setUpClass()
-    database.Base.metadata.drop_all(bind=DBStarter.engine)
-    database.Base.metadata.create_all(bind=DBStarter.engine)
     Session = DBStarter.Session
     yield
     DBStarter.tearDownClass()

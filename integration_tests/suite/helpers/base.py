@@ -262,8 +262,6 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.setup_db_session()
-        database.Base.metadata.reflect(bind=cls.engine)
-        database.Base.metadata.create_all(bind=cls.engine)
 
     @classmethod
     def clean_db(cls) -> None:
