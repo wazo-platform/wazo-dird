@@ -109,6 +109,19 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
             connection.execute(text('VACUUM (ANALYZE)'))
 
     @classmethod
+    def analyze_db(cls) -> None:
+        """Refresh the planner statistics after a bulk load.
+
+        `clean_db` leaves the statistics of empty tables behind. A class that
+        loads many rows must refresh them, otherwise the planner still believes
+        the tables are empty and chooses a plan that is far too slow.
+        """
+        with cls.engine.connect().execution_options(
+            isolation_level='AUTOCOMMIT'
+        ) as connection:
+            connection.execute(text('ANALYZE'))
+
+    @classmethod
     def tearDownClass(cls):
         # A failure of the cleanup must still release the connections and stop
         # the stack, otherwise the next class of the same asset inherits the

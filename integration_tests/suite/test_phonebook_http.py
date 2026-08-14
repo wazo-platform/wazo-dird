@@ -787,6 +787,7 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         )
         assert not errors
         assert len(cls.contacts) == cls.contact_count
+        cls.analyze_db()
 
         source_body = {
             'first_matched_columns': ['number', 'firstname', 'lastname'],
@@ -917,6 +918,7 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
             ],
         )
         assert not errors
+        cls.analyze_db()
 
     @classmethod
     def tearDownClass(self):
