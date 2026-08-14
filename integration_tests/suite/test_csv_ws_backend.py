@@ -8,6 +8,9 @@ from .helpers.utils import BackendWrapper
 
 
 class _BaseCSVWSBackend(DirdAssetRunningTestCase):
+    def backend_config(self) -> dict:
+        raise NotImplementedError
+
     def setUp(self):
         self.backend = BackendWrapper('csv_ws', {'config': self.backend_config()})
 
