@@ -1,11 +1,33 @@
-# Copyright 2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from functools import wraps
 
 from wazo_dird import exception
+from wazo_dird.database import models
 
 from ..utils import new_uuid, random_string
+
+
+def tenant(**tenant_args):
+    tenant_args.setdefault('tenant_uuid', new_uuid())
+
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            tenant = self.tenant_crud.create(**tenant_args)
+            try:
+                return decorated(self, tenant, *args, **kwargs)
+            finally:
+                # `TenantCRUD` has no delete.
+                with self.tenant_crud.new_session() as session:
+                    session.query(models.Tenant).filter(
+                        models.Tenant.uuid == tenant['uuid']
+                    ).delete()
+
+        return wrapper
+
+    return decorator
 
 
 def display(**display_args):
