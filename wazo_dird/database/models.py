@@ -19,6 +19,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, HSTORE, JSON, UUID
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ class Contact(Base):
 
     fields = relationship(
         lambda: ContactFields,
+        collection_class=attribute_mapped_collection('name'),
         lazy='subquery',
         passive_deletes=True,
         cascade='all, delete-orphan',
@@ -62,7 +64,7 @@ class Contact(Base):
 
     @property
     def fields_dict(self) -> dict[str, Any]:
-        return {field.name: field.value for field in self.fields}
+        return {name: field.value for name, field in self.fields.items()}
 
 
 class ContactFields(Base):
