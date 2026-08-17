@@ -429,10 +429,7 @@ class PhonebookContactCRUD(BaseDAO):
         contact.fields = [
             ContactFields(name=name, value=value, contact_uuid=contact.uuid)
             for name, value in contact_body.items()
-        ] + [
-            ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid)
-            for name, value in contact_body.items()
-        ]
+        ] + [ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid)]
 
     def _get_contact(
         self,
