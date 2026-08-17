@@ -1,4 +1,4 @@
-# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -149,14 +149,18 @@ class Phonebook(Base):
     )
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    tenant_uuid = Column(String(UUID_LENGTH), ForeignKey('dird_tenant.uuid'))
+    tenant_uuid = Column(
+        String(UUID_LENGTH),
+        ForeignKey('dird_tenant.uuid', ondelete='CASCADE'),
+        nullable=False,
+    )
 
 
 class Profile(Base):
     __tablename__ = 'dird_profile'
     __table_args__ = (
         schema.UniqueConstraint('uuid', 'tenant_uuid'),
-        schema.UniqueConstraint('name', 'tenant_uuid'),
+        schema.UniqueConstraint('name', 'tenant_uuid', name='dird_profile_tenant_name'),
         schema.ForeignKeyConstraint(
             ('display_uuid', 'display_tenant_uuid'),
             ('dird_display.uuid', 'dird_display.tenant_uuid'),
