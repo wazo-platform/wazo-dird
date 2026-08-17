@@ -1,4 +1,4 @@
-# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -69,6 +69,12 @@ class ContactFields(Base):
     __tablename__ = 'dird_contact_fields'
     __table_args__ = (
         schema.Index('dird_contact_fields__idx__contact_uuid', 'contact_uuid'),
+        schema.Index(
+            'dird_contact_fields__idx__name_contact_uuid',
+            'name',
+            'contact_uuid',
+            unique=True,
+        ),
     )
 
     id = Column(Integer(), primary_key=True)
