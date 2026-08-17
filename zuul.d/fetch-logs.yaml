@@ -1,0 +1,16 @@
+---
+- hosts: all
+  tasks:
+    - name: Extract Postgres container logs
+      shell: "docker logs check-db-schema-postgres > check-db-schema-postgres.log 2>&1 || true"
+      args:
+        chdir: "{{ zuul.executor.work_root }}"
+
+    - name: Upload Postgres container logs
+      synchronize:
+        src: "{{ zuul.executor.work_root }}/check-db-schema-postgres.log"
+        dest: "{{ zuul.executor.log_root }}"
+        mode: pull
+        copy_links: true
+        verify_host: true
+        rsync_opts: []
