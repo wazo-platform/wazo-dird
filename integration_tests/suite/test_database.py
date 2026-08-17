@@ -1725,6 +1725,24 @@ class TestProfileCRUD(_BaseTest):
         )
 
     @fixtures.display(tenant_uuid=TENANT_UUID)
+    def test_create_duplicate(self, display):
+        body = {
+            'tenant_uuid': TENANT_UUID,
+            'name': 'my-duplicate-profile',
+            'display': {'uuid': display['uuid']},
+            'services': {},
+        }
+        result = self.profile_crud.create(body)
+
+        try:
+            assert_that(
+                calling(self.profile_crud.create).with_args(body),
+                raises(exception.DuplicatedProfileException),
+            )
+        finally:
+            self.profile_crud.delete(None, result['uuid'])
+
+    @fixtures.display(tenant_uuid=TENANT_UUID)
     def test_create_unknown_source(self, display):
         body: dict[str, Any] = {
             'tenant_uuid': TENANT_UUID,
