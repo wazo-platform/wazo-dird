@@ -370,8 +370,10 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.config.tear_down()
-        super().tearDownClass()
+        try:
+            cls.config.tear_down()
+        finally:
+            super().tearDownClass()
 
     @classmethod
     def restart_dird(cls):
@@ -458,11 +460,13 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
     @contextmanager
     def auth_stopped(cls):
         cls.stop_service('auth')
-        yield
-        cls.start_service('auth')
-        auth = cls.make_mock_auth()
-        until.true(auth.is_up, timeout=START_TIMEOUT)
-        cls.configure_wazo_auth()
+        try:
+            yield
+        finally:
+            cls.start_service('auth')
+            auth = cls.make_mock_auth()
+            until.true(auth.is_up, timeout=START_TIMEOUT)
+            cls.configure_wazo_auth()
 
     @classmethod
     def get_client(cls, token: str = VALID_TOKEN_MAIN_TENANT) -> DirdClient:

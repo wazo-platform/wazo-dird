@@ -571,9 +571,11 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
         assert not errors
 
     @classmethod
-    def tearDownClass(self):
-        self.stack.close()
-        super().tearDownClass()
+    def tearDownClass(cls):
+        try:
+            cls.stack.close()
+        finally:
+            super().tearDownClass()
 
     def test_get_all(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
@@ -845,8 +847,10 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.stack.close()
-        super().tearDownClass()
+        try:
+            cls.stack.close()
+        finally:
+            super().tearDownClass()
 
     def test_plugin_lookup(self):
         result = self.client.directories.lookup(term=' 5', profile='default')
@@ -934,9 +938,11 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
         cls.analyze_db()
 
     @classmethod
-    def tearDownClass(self):
-        self.stack.close()
-        super().tearDownClass()
+    def tearDownClass(cls):
+        try:
+            cls.stack.close()
+        finally:
+            super().tearDownClass()
 
     def test_get_paginated(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)

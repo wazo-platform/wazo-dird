@@ -283,12 +283,14 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
 
     @classmethod
     def tearDownClass(cls):
-        client = cls.get_client()
-        cls.auth_client_mock.reset_external_auth()
-        client.backends.delete_source('google', cls.source_uuid)
-        client.displays.delete(cls.display_uuid)
-        client.profiles.delete(cls.profile_uuid)
-        super().tearDownClass()
+        try:
+            client = cls.get_client()
+            cls.auth_client_mock.reset_external_auth()
+            client.backends.delete_source('google', cls.source_uuid)
+            client.displays.delete(cls.display_uuid)
+            client.profiles.delete(cls.profile_uuid)
+        finally:
+            super().tearDownClass()
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_plugin_lookup(self, google_api):
