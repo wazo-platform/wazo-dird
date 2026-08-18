@@ -426,13 +426,21 @@ class PhonebookContactCRUD(BaseDAO):
         self, s: BaseSession, contact: Contact, contact_body: dict[str, Any]
     ) -> None:
         assert contact.uuid
-        contact.fields = [
-            ContactFields(name=name, value=value, contact_uuid=contact.uuid)
-            for name, value in contact_body.items()
-        ] + [
-            ContactFields(name='id', value=contact.uuid, contact_uuid=contact.uuid)
-            for name, value in contact_body.items()
-        ]
+        new_fields = {
+            name: value for name, value in contact_body.items() if name != 'id'
+        }
+        new_fields['id'] = contact.uuid
+
+        for name in contact.fields.keys() - new_fields.keys():
+            del contact.fields[name]
+
+        for name, value in new_fields.items():
+            if name in contact.fields:
+                contact.fields[name].value = value
+            else:
+                contact.fields[name] = ContactFields(
+                    name=name, value=value, contact_uuid=contact.uuid
+                )
 
     def _get_contact(
         self,
