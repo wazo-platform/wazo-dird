@@ -82,20 +82,20 @@ class DBStarter(DBRunningTestCase):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def _database_session(request):
+def _database_session():
     """Open the session once the `database` stack is up.
 
-    The stack belongs to the asset plugin, so it must be asked for through the
-    fixture; `setup_module` would run before it.
+    `_BaseTest`'s `usefixtures('database')` mark already brings the stack up
+    before this, a module-scoped fixture, runs.
     """
     global Session
-    request.getfixturevalue('database')
     DBStarter.setUpClass()
     Session = DBStarter.Session
     yield
     DBStarter.tearDownClass()
 
 
+@pytest.mark.usefixtures('database')
 class _BaseTest(unittest.TestCase):
     _contact_1: Any
     _contact_2: Any

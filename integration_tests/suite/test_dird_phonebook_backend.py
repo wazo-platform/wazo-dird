@@ -26,15 +26,14 @@ class DBStarter(DBRunningTestCase):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def _database_session(request):
+def _database_session():
     """Open the session once the `database` stack is up.
 
-    The stack belongs to the asset plugin, so it must be asked for through the
-    fixture; `setup_module` would run before it.
+    `TestPhonebookBackend`'s `usefixtures('database')` mark already brings
+    the stack up before this, a module-scoped fixture, runs.
     """
     global Session
     global DB_URI
-    request.getfixturevalue('database')
     DBStarter.setUpClass()
     Session = DBStarter.Session
     DB_URI = DBStarter.db_uri
@@ -67,6 +66,7 @@ class ContactInfo(_ContactInfo):
 contacts: list[ContactInfo] = []
 
 
+@pytest.mark.usefixtures('database')
 class TestPhonebookBackend(unittest.TestCase):
     def setUp(self):
         global contacts
