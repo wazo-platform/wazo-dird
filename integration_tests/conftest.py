@@ -1,14 +1,5 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Give the suite the shared asset plugin of wazo_test_helpers.
-
-The plugin groups the test classes by the asset they ask for, starts each stack
-once, and stops it as soon as the next class needs another one. A test class
-asks for its stack with `asset = '<name>'`; see `suite/helpers/base.py`.
-
-One fixture is built for each asset class, because the marker that the plugin
-reads is the name of the fixture.
-"""
 from __future__ import annotations
 
 from collections.abc import Iterator
