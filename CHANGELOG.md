@@ -5,6 +5,11 @@
 * Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
   directory sources pointing at `localhost:9497` are migrated.
 
+* `PUT /0.1/directories/favorites/<source>/<contact_id>` now returns `400` when
+  the source rejects `contact_id`; a `wazo` source rejects an id that names no
+  confd user. Use the `source_entry_id` returned by a lookup for a valid id.
+  Sources that cannot check an id keep accepting any.
+
 * Contacts of a `wazo` source are now identified by the confd user `uuid`
   instead of the confd user `id`. Existing favorites are migrated during the
   upgrade.
@@ -12,9 +17,8 @@
     favorites results, is now the user uuid;
   * `wazoSourceEntryId` in GraphQL results is now the user uuid;
   * `PUT` and `DELETE /0.1/directories/favorites/<source>/<contact_id>` accept
-    the user uuid. A favorite added with the confd user id keeps working for
-    one release, but is no longer listed once that release is out: use the
-    `source_entry_id` returned by a lookup.
+    the user uuid. The confd user id is still accepted for backward compatibility
+    (resolved to the corresponding user uuid).
 
 ## 26.08
 

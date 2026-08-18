@@ -168,22 +168,31 @@ class WazoUserPlugin(BaseSourcePlugin):
             logger.debug('Found no match')
         return results
 
-    def is_valid_unique_id(self, unique_id: str) -> bool:
+    def canonical_unique_id(self, unique_id: str) -> str | None:
         if not self._is_known_id_form(unique_id):
-            return False
+            return None
 
+        user = self._confd_user(unique_id)
+        return user['uuid'] if user else None
+
+    def _confd_user(self, unique_id: str) -> dict[str, Any] | None:
+        """The confd user an id names, `None` if confd knows none.
+
+        confd resolves `GET /users/<id_or_uuid>`, so this both proves the
+        contact exists and gives the uuid the favorite is stored under.
+        """
         assert self._client is not None
         try:
-            self._client.users.get(unique_id)
+            user: dict[str, Any] = self._client.users.get(unique_id)
         except HTTPError as e:
             if e.response is not None and e.response.status_code == 404:
                 logger.info('%s: confd knows no user %s', self.name, unique_id)
-                return False
+                return None
             raise WazoConfdError(self._client, e)
         except RequestException as e:
             raise WazoConfdError(self._client, e)
 
-        return True
+        return user
 
     def _is_known_id_form(self, unique_id: str) -> bool:
         """Reject an id of the wrong shape before asking confd about it.
@@ -198,27 +207,6 @@ class WazoUserPlugin(BaseSourcePlugin):
 
     # NOTE: defined before `list` because the name `list` is shadowed by the
     # method below for every annotation evaluated in this class body
-    def _uuids_of_confd_ids(self, confd_ids: list[str]) -> list[str]:
-        """The uuids of favorites still keyed on a confd user id.
-
-        Transition only. confd has no filter on `id`, so each one costs its
-        own request; only favorites the migration has not rewritten yet pay
-        it, and they resolve into the same batched query as the rest.
-        """
-        assert self._client is not None
-        uuids = []
-        for confd_id in confd_ids:
-            try:
-                uuids.append(self._client.users.get(confd_id)['uuid'])
-            except RequestException as e:
-                logger.info(
-                    '%s: cannot resolve contact id %s, skipping it: %s',
-                    self.name,
-                    confd_id,
-                    e,
-                )
-        return uuids
-
     def _list_by_uuid(self, unique_ids: list[str]) -> list[SourceResult]:
         results: list[SourceResult] = []
         for start in range(0, len(unique_ids), LIST_BATCH_SIZE):
@@ -229,33 +217,9 @@ class WazoUserPlugin(BaseSourcePlugin):
     def list(
         self, unique_ids: list[str], args: dict[str, Any] | None = None
     ) -> list[SourceResult]:
-        """List contacts by unique id.
-
-        A favorite holds whatever contact id the client sent when it was
-        added, so the ids arriving here are a mix of user uuids and, until
-        the migration has run everywhere, confd user ids.
-        """
-        if not unique_ids:
-            return []
-
-        # favorites stored before the write path checked their contact id may
-        # hold anything: drop those rather than query confd for them
+        """List contacts by unique id."""
+        # filter out non-uuid legacy form, expected to be canonicalized by caller
         uuids = [unique_id for unique_id in unique_ids if is_uuid(unique_id)]
-
-        # --- transition: delete with `_uuids_of_confd_ids` ---
-        # a confd user id is an integer; anything else is neither form
-        confd_ids = [unique_id for unique_id in unique_ids if unique_id.isdigit()]
-        if confd_ids:
-            logger.info(
-                '%s: %s of %s favorites are keyed on a confd id, resolving them '
-                'one by one; run the favorite migration',
-                self.name,
-                len(confd_ids),
-                len(unique_ids),
-            )
-            uuids += self._uuids_of_confd_ids(confd_ids)
-        # --- end transition ---
-
         return self._list_by_uuid(uuids)
 
     def _fetch_entries(

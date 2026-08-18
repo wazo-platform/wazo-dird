@@ -16,7 +16,7 @@ from wazo_test_helpers import until
 
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
 from .helpers.config import new_wazo_users_config, new_wazo_users_multiple_wazo_config
-from .helpers.constants import MAIN_TENANT
+from .helpers.constants import MAIN_TENANT, VALID_TOKEN_MAIN_TENANT
 from .helpers.utils import BackendWrapper
 
 
@@ -243,6 +243,15 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
                 )
             ),
         )
+
+    def test_favorite_with_an_invalid_contact_id_is_refused(self):
+        # nothing else checks the contact id, so an id no lookup could ever
+        # return must not be storable
+        result = self.put_favorite_result(
+            'wazo_america', 'not-a-contact-id', token=VALID_TOKEN_MAIN_TENANT
+        )
+
+        assert_that(result.status_code, equal_to(400))
 
     def test_favorites_multiple_wazo(self):
         # a client that predates the uuid switch still sends the confd id;

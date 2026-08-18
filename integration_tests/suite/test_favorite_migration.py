@@ -29,6 +29,13 @@ EUROPE_USER_42_UUID = '8d0acfe6-054e-4d84-93c3-6d283937a7c9'
 
 DELETED_USER_ID = '999'
 
+# each wazo knows only its own users, so the seed favorite differs per source
+SEED_UUIDS = {
+    'wazo_america': AMERICA_USER_1_UUID,
+    'wazo_asia': ASIA_USER_1_UUID,
+    'wazo_europe': EUROPE_USER_42_UUID,
+}
+
 
 class TestFavoriteMigration(BaseDirdIntegrationTest):
     asset = 'favorite_migration'
@@ -57,10 +64,20 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
     def _given_legacy_favorite(self, source_name, contact_id):
         """Write the row a pre-upgrade wazo-dird would have written.
 
-        The favorites service stores the contact id as it is given, so a
-        client that still sends a confd id produces exactly such a row.
+        It cannot go through the API: the write path now asks confd whether
+        the contact exists, and a favorite kept by the migration may name a
+        user confd no longer knows. The API call creates the dird_user row
+        the favorite refers to, then the contact_id is forced.
         """
-        self.put_favorite(source_name, contact_id)
+        seed_uuid = SEED_UUIDS[source_name]
+        self.put_favorite(source_name, seed_uuid)
+        source_uuid = self._source_uuid(source_name)
+        with closing(self.Session()) as s:
+            s.query(database.Favorite).filter(
+                database.Favorite.source_uuid == source_uuid,
+                database.Favorite.contact_id == seed_uuid,
+            ).update({database.Favorite.contact_id: str(contact_id)})
+            s.commit()
 
     def _contact_ids(self, source_name):
         source_uuid = self._source_uuid(source_name)

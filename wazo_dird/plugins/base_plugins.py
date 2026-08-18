@@ -144,6 +144,16 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
                 results[exten] = entry
         return results
 
+    def canonical_unique_id(self, unique_id: str) -> str | None:
+        """The id this backend stores for `unique_id`, `None` if there is none.
+
+        The favorites service stores what this returns, so a backend that
+        accepts more than one form of id translates it here and keeps a single
+        form in the database. Backends whose ids have no recognisable shape
+        accept anything, which is what this default does.
+        """
+        return unique_id
+
     def list(self, uids: list[str], args: dict[str, Any] | None) -> list[SourceResult]:
         """
         Returns a list of results based on the unique column for this backend.

@@ -8,7 +8,6 @@ from unittest.mock import Mock, call, patch
 from hamcrest import (
     assert_that,
     contains_exactly,
-    contains_inanyorder,
     empty,
     equal_to,
     has_entries,
@@ -18,6 +17,7 @@ from hamcrest import (
 from requests import HTTPError, RequestException
 
 from wazo_dird import make_result_class
+from wazo_dird.exception import WazoConfdError
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
@@ -334,51 +334,49 @@ class TestWazoUserBackendSearch(_BaseTest):
             second_call, equal_to(call(recurse=True, view='directory', uuid=uuids[20]))
         )
 
-    def test_list_resolves_an_unmigrated_id_then_fetches_by_uuid(self):
-        # confd has no filter on `id`, so each one costs its own request
-        self._confd_client.users.get.return_value = CONFD_USER_1
+    def test_list_ignores_an_id_that_is_not_a_uuid(self):
+        # a favorite stored before the write path resolved its contact id
+        result = self._source.list(unique_ids=[UUID_1, '226'])
 
-        result = self._source.list(unique_ids=['226'])
-
-        self._confd_client.users.get.assert_called_once_with('226')
         self._confd_client.users.list.assert_called_once_with(
             recurse=True, view='directory', uuid=UUID_1
         )
 
         assert_that(result, contains_exactly(SOURCE_1))
 
-    def test_list_of_mixed_forms_keeps_one_batched_query(self):
-        # a uuid must not lose the batched query because a confd id is present
+    def test_canonical_unique_id_of_a_uuid_confd_knows_is_that_uuid(self):
         self._confd_client.users.get.return_value = CONFD_USER_1
 
-        result = self._source.list(unique_ids=[UUID_2, '226'])
+        result = self._source.canonical_unique_id(UUID_1)
+
+        self._confd_client.users.get.assert_called_once_with(UUID_1)
+        assert_that(result, equal_to(UUID_1))
+
+    def test_canonical_unique_id_translates_a_confd_id_during_the_transition(self):
+        # the write path stores the uuid, so the database keeps one form
+        self._confd_client.users.get.return_value = CONFD_USER_1
+
+        result = self._source.canonical_unique_id('226')
 
         self._confd_client.users.get.assert_called_once_with('226')
-        self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', uuid=f'{UUID_2},{UUID_1}'
-        )
+        assert_that(result, equal_to(UUID_1))
 
-        assert_that(result, contains_inanyorder(SOURCE_1, SOURCE_2))
-
-    def test_list_skips_an_unmigrated_id_confd_cannot_resolve(self):
+    def test_canonical_unique_id_of_a_user_confd_does_not_know_is_none(self):
         self._confd_client.users.get.side_effect = _http_error(404)
 
-        result = self._source.list(unique_ids=['226'])
+        assert_that(self._source.canonical_unique_id(UUID_1), is_(none()))
 
-        self._confd_client.users.list.assert_not_called()
+    def test_canonical_unique_id_of_a_malformed_id_does_not_ask_confd(self):
+        for unique_id in ['', 'not-an-id', '226-a', 'null']:
+            assert_that(self._source.canonical_unique_id(unique_id), is_(none()))
 
-        assert_that(result, empty())
+        self._confd_client.users.get.assert_not_called()
 
-    def test_list_ignores_an_id_that_is_neither_a_uuid_nor_a_confd_id(self):
-        # nothing validates the contact id on write, so a client can store
-        # arbitrary text: it must not drag the listing onto the slow path
-        result = self._source.list(unique_ids=[UUID_1, 'not-an-id'])
+    def test_canonical_unique_id_aborts_when_confd_is_unreachable(self):
+        # an unknown user is a 400, but an unreachable confd must not be
+        self._confd_client.users.get.side_effect = RequestException()
 
-        self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', uuid=UUID_1
-        )
-
-        assert_that(result, contains_exactly(SOURCE_1))
+        self.assertRaises(WazoConfdError, self._source.canonical_unique_id, UUID_1)
 
     def test_list_with_empty_list_does_not_reach_confd(self):
         result = self._source.list(unique_ids=[])
