@@ -1,6 +1,7 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from contextlib import contextmanager
 from functools import wraps
 
 from wazo_dird import exception
@@ -9,21 +10,26 @@ from wazo_dird.database import models
 from ..utils import new_uuid, random_string
 
 
-def tenant(**tenant_args):
+@contextmanager
+def _created_tenant(dao, **tenant_args):
     tenant_args.setdefault('tenant_uuid', new_uuid())
+    created = dao.tenant_crud.create(**tenant_args)
+    try:
+        yield created
+    finally:
+        # `TenantCRUD` has no delete.
+        with dao.tenant_crud.new_session() as session:
+            session.query(models.Tenant).filter(
+                models.Tenant.uuid == created['uuid']
+            ).delete()
 
+
+def tenant(**tenant_args):
     def decorator(decorated):
         @wraps(decorated)
         def wrapper(self, *args, **kwargs):
-            tenant = self.tenant_crud.create(**tenant_args)
-            try:
-                return decorated(self, tenant, *args, **kwargs)
-            finally:
-                # `TenantCRUD` has no delete.
-                with self.tenant_crud.new_session() as session:
-                    session.query(models.Tenant).filter(
-                        models.Tenant.uuid == tenant['uuid']
-                    ).delete()
+            with _created_tenant(self, **tenant_args) as created:
+                return decorated(self, created, *args, **kwargs)
 
         return wrapper
 
