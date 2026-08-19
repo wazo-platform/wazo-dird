@@ -60,17 +60,15 @@ def upgrade() -> None:
             'never happens. Investigate before adding this constraint.'
         )
 
-    # Unnamed: Postgres auto-names these dird_profile_service_source_pkey
-    # and dird_profile_service_source_check, matching the unnamed
-    # primary_key=True columns and CheckConstraint already in
-    # wazo_dird/database/models.py.
     op.execute(
         'ALTER TABLE dird_profile_service_source '
-        'ADD PRIMARY KEY (profile_service_uuid, source_uuid)'
+        'ADD CONSTRAINT dird_profile_service_source_pkey '
+        'PRIMARY KEY (profile_service_uuid, source_uuid)'
     )
     op.execute(
         'ALTER TABLE dird_profile_service_source '
-        'ADD CHECK (profile_tenant_uuid = source_tenant_uuid)'
+        'ADD CONSTRAINT dird_profile_service_source_check '
+        'CHECK (profile_tenant_uuid = source_tenant_uuid)'
     )
 
 

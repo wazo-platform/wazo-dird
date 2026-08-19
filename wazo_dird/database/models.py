@@ -232,6 +232,11 @@ class Profile(Base):
 class ProfileServiceSource(Base):
     __tablename__ = 'dird_profile_service_source'
     __table_args__ = (
+        schema.PrimaryKeyConstraint(
+            'profile_service_uuid',
+            'source_uuid',
+            name='dird_profile_service_source_pkey',
+        ),
         schema.ForeignKeyConstraint(
             ('profile_service_uuid', 'profile_tenant_uuid'),
             ('dird_profile_service.uuid', 'dird_profile_service.profile_tenant_uuid'),
@@ -244,12 +249,15 @@ class ProfileServiceSource(Base):
             ondelete='CASCADE',
             name='dird_profile_service_source_source_uuid_tenant_fkey',
         ),
-        schema.CheckConstraint('profile_tenant_uuid = source_tenant_uuid'),
+        schema.CheckConstraint(
+            'profile_tenant_uuid = source_tenant_uuid',
+            name='dird_profile_service_source_check',
+        ),
     )
 
-    profile_service_uuid = Column(String(UUID_LENGTH), primary_key=True)
+    profile_service_uuid = Column(String(UUID_LENGTH))
     profile_tenant_uuid = Column(String(UUID_LENGTH))
-    source_uuid = Column(String(UUID_LENGTH), primary_key=True)
+    source_uuid = Column(String(UUID_LENGTH))
     source_tenant_uuid = Column(String(UUID_LENGTH))
 
     sources = relationship('Source')
