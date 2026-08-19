@@ -197,8 +197,8 @@ def _own_dird_phonebook_id_seq(
 class Profile(Base):
     __tablename__ = 'dird_profile'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', 'tenant_uuid'),
-        schema.UniqueConstraint('name', 'tenant_uuid', name='dird_profile_tenant_name'),
+        schema.UniqueConstraint('uuid', 'tenant_uuid', name='dird_profile_uuid_tenant'),
+        schema.UniqueConstraint('tenant_uuid', 'name', name='dird_profile_tenant_name'),
         schema.ForeignKeyConstraint(
             ('display_uuid', 'display_tenant_uuid'),
             ('dird_display.uuid', 'dird_display.tenant_uuid'),
@@ -215,7 +215,9 @@ class Profile(Base):
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
     )
     tenant_uuid = Column(
-        String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE')
+        String(UUID_LENGTH),
+        ForeignKey('dird_tenant.uuid', ondelete='CASCADE'),
+        nullable=False,
     )
     name = Column(Text(), nullable=False)
     display_tenant_uuid = Column(String(UUID_LENGTH))
