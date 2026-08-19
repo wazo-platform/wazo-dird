@@ -256,7 +256,9 @@ class ProfileServiceSource(Base):
 class ProfileService(Base):
     __tablename__ = 'dird_profile_service'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', 'profile_tenant_uuid'),
+        schema.UniqueConstraint(
+            'uuid', 'profile_tenant_uuid', name='dird_profile_service_uuid_tenant'
+        ),
         schema.ForeignKeyConstraint(
             ('profile_uuid', 'profile_tenant_uuid'),
             ('dird_profile.uuid', 'dird_profile.tenant_uuid'),
@@ -280,10 +282,12 @@ class ProfileService(Base):
     uuid = Column(
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
     )
-    profile_uuid = Column(String(UUID_LENGTH))
+    profile_uuid = Column(String(UUID_LENGTH), nullable=False)
     profile_tenant_uuid = Column(String(UUID_LENGTH))
     service_uuid = Column(
-        String(UUID_LENGTH), ForeignKey('dird_service.uuid', ondelete='CASCADE')
+        String(UUID_LENGTH),
+        ForeignKey('dird_service.uuid', ondelete='CASCADE'),
+        nullable=False,
     )
     config = Column(JSON)
 
