@@ -23,8 +23,4 @@
 - job:
     name: dird-check-db-schema
     description: Compare the schema of the models with the one the migrations install
-    parent: wazo-tox-py311
-    pre-run: zuul.d/pre-run.yaml
-    post-run: zuul.d/fetch-logs.yaml
-    vars:
-      tox_envlist: check-db-schema
+    parent: check-db-schema
