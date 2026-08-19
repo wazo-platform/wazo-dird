@@ -35,9 +35,10 @@ def upgrade() -> None:
             'Investigate before adding this constraint.'
         )
 
-    # Unnamed: Postgres auto-names it dird_profile_check, matching the
-    # unnamed CheckConstraint already in wazo_dird/database/models.py.
-    op.execute('ALTER TABLE dird_profile ADD CHECK (tenant_uuid = display_tenant_uuid)')
+    op.execute(
+        'ALTER TABLE dird_profile ADD CONSTRAINT dird_profile_check '
+        'CHECK (tenant_uuid = display_tenant_uuid)'
+    )
 
 
 def downgrade() -> None:

@@ -205,7 +205,9 @@ class Profile(Base):
             ondelete='SET NULL',
             name='dird_profile_display_uuid_tenant_fkey',
         ),
-        schema.CheckConstraint('tenant_uuid = display_tenant_uuid'),
+        schema.CheckConstraint(
+            'tenant_uuid = display_tenant_uuid', name='dird_profile_check'
+        ),
         schema.Index('dird_profile__idx__tenant_uuid', 'tenant_uuid'),
         schema.Index('dird_profile__idx__display_tenant_uuid', 'display_tenant_uuid'),
         schema.Index('dird_profile__idx__display_uuid', 'display_uuid'),
