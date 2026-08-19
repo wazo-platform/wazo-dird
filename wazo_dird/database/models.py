@@ -11,6 +11,7 @@ from sqlalchemy import (
     Sequence,
     String,
     Text,
+    event,
     schema,
     sql,
     text,
@@ -146,18 +147,29 @@ class Favorite(Base):
     )
 
 
+_dird_phonebook_id_seq = Sequence('dird_phonebook_id_seq', start=1)
+
+
 class Phonebook(Base):
     __tablename__ = 'dird_phonebook'
     __table_args__ = (
-        schema.UniqueConstraint('name', 'tenant_uuid'),
-        schema.UniqueConstraint('uuid', 'tenant_uuid'),
-        schema.UniqueConstraint('id'),
+        schema.UniqueConstraint(
+            'name', 'tenant_uuid', name='dird_phonebook_name_tenant_uuid'
+        ),
+        schema.UniqueConstraint(
+            'uuid', 'tenant_uuid', name='dird_phonebook_tenant_uuid_idx'
+        ),
+        schema.UniqueConstraint('id', name='dird_phonebook_id'),
         schema.CheckConstraint("name != ''"),
         schema.Index('dird_phonebook__idx__tenant_uuid', 'tenant_uuid'),
     )
 
     id = Column(
-        Integer, Sequence("dird_phonebook_id_seq", start=1), nullable=False, unique=True
+        Integer,
+        _dird_phonebook_id_seq,
+        server_default=_dird_phonebook_id_seq.next_value(),
+        nullable=False,
+        unique=True,
     )
     uuid = Column(
         UUID(as_uuid=False), server_default=text('uuid_generate_v4()'), primary_key=True
@@ -168,6 +180,17 @@ class Phonebook(Base):
         String(UUID_LENGTH),
         ForeignKey('dird_tenant.uuid', ondelete='CASCADE'),
         nullable=False,
+    )
+
+
+@event.listens_for(Phonebook.__table__, 'after_create')
+def _own_dird_phonebook_id_seq(
+    target: schema.Table, connection: Any, **kwargs: Any
+) -> None:
+    # A Sequence has no notion of ownership in SQLAlchemy, so create_all()
+    # never emits it; the migrations do, so bind it here to match.
+    connection.execute(
+        text('ALTER SEQUENCE dird_phonebook_id_seq OWNED BY dird_phonebook.id')
     )
 
 
