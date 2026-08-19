@@ -308,8 +308,8 @@ class Service(Base):
 class Source(Base):
     __tablename__ = 'dird_source'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', 'tenant_uuid'),
-        schema.UniqueConstraint('name', 'tenant_uuid'),
+        schema.UniqueConstraint('uuid', 'tenant_uuid', name='dird_source_uuid_tenant'),
+        schema.UniqueConstraint('tenant_uuid', 'name', name='dird_source_tenant_name'),
         schema.Index('dird_source__idx__tenant_uuid', 'tenant_uuid'),
         schema.ForeignKeyConstraint(
             ('phonebook_uuid', 'tenant_uuid'),
