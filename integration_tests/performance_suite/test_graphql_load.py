@@ -4,7 +4,7 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
-from typing import NamedTuple
+from typing import ClassVar, NamedTuple
 
 from wazo_dird_client import Client as DirdClient
 
@@ -121,6 +121,8 @@ def concurrent_p50_budget(num_extens: int) -> float:
 class _GraphQLLoadBase(BaseDirdIntegrationTest):
     asset = 'graphql_load'
     config_factory = new_null_config
+
+    stack: ClassVar[ExitStack]
 
     @classmethod
     def setUpClass(cls) -> None:

@@ -8,6 +8,7 @@ from typing import cast
 from unittest.mock import Mock
 from uuid import uuid4
 
+import pytest
 from hamcrest import assert_that, contains_exactly, contains_inanyorder, equal_to
 
 from wazo_dird import database
@@ -24,15 +25,19 @@ class DBStarter(DBRunningTestCase):
     asset = 'database'
 
 
-def setup_module():
+@pytest.fixture(scope='module', autouse=True)
+def _database_session():
+    """Open the session once the `database` stack is up.
+
+    `TestPhonebookBackend`'s `usefixtures('database')` mark already brings
+    the stack up before this, a module-scoped fixture, runs.
+    """
     global Session
     global DB_URI
     DBStarter.setUpClass()
     Session = DBStarter.Session
     DB_URI = DBStarter.db_uri
-
-
-def teardown_module():
+    yield
     DBStarter.tearDownClass()
 
 
@@ -61,6 +66,7 @@ class ContactInfo(_ContactInfo):
 contacts: list[ContactInfo] = []
 
 
+@pytest.mark.usefixtures('database')
 class TestPhonebookBackend(unittest.TestCase):
     def setUp(self):
         global contacts

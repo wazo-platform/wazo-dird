@@ -4,13 +4,16 @@
 import os
 import random
 import string
+import unittest
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import ClassVar
+from typing import Any, ClassVar
 
+import pytest
 import requests
 import yaml
 from hamcrest import assert_that, equal_to, has_entries
+from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import scoped_session
 from wazo_dird_client import Client as DirdClient
@@ -50,9 +53,193 @@ START_TIMEOUT = int(os.getenv('INTEGRATION_TEST_TIMEOUT', '30'))
 DB_ECHO = os.getenv('DB_ECHO', '').lower() in ['true', '1']
 
 
-class DirdAssetRunningTestCase(AssetLaunchingTestCase):
+use_asset = pytest.mark.usefixtures
+
+
+class DirdAssetLaunchingTestCase(AssetLaunchingTestCase):
+    """Owns the lifecycle of one docker asset.
+
+    `wazo_test_helpers.pytest_asset` drives the subclasses from a session
+    fixture, so one stack serves every test class that asks for the same asset.
+    """
+
+    # These classes hold a stack, they hold no test.
+    __test__ = False
+
     assets_root = ASSET_ROOT
     service = 'dird'
+
+
+# `csv_with_no_unique_column` has no class: it names data files, not a stack.
+
+
+class AllRoutesAsset(DirdAssetLaunchingTestCase):
+    asset = 'all_routes'
+
+
+class CsvWithPipesAsset(DirdAssetLaunchingTestCase):
+    asset = 'csv_with_pipes'
+
+
+class CsvWsIso88591WithComaAsset(DirdAssetLaunchingTestCase):
+    asset = 'csv_ws_iso88591_with_coma'
+
+
+class CsvWsUtf8WithPipesWithSslAsset(DirdAssetLaunchingTestCase):
+    asset = 'csv_ws_utf8_with_pipes_with_ssl'
+
+
+class DatabaseAsset(DirdAssetLaunchingTestCase):
+    asset = 'database'
+
+
+class DirdGoogleAsset(DirdAssetLaunchingTestCase):
+    asset = 'dird_google'
+
+
+class DirdMicrosoftAsset(DirdAssetLaunchingTestCase):
+    asset = 'dird_microsoft'
+
+
+class GraphqlLoadAsset(DirdAssetLaunchingTestCase):
+    # `performance_suite/helpers` is a symlink on `suite/helpers`, so the
+    # performance tests need their asset here too.
+    asset = 'graphql_load'
+
+
+class HalfBrokenAsset(DirdAssetLaunchingTestCase):
+    asset = 'half_broken'
+
+
+class LdapAsset(DirdAssetLaunchingTestCase):
+    asset = 'ldap'
+
+
+class LdapCityAsset(DirdAssetLaunchingTestCase):
+    asset = 'ldap_city'
+
+
+class LdapServiceDownAsset(DirdAssetLaunchingTestCase):
+    asset = 'ldap_service_down'
+
+
+class LdapServiceInnactiveAsset(DirdAssetLaunchingTestCase):
+    asset = 'ldap_service_innactive'
+
+
+class MultipleSourcesAsset(DirdAssetLaunchingTestCase):
+    asset = 'multiple_sources'
+
+
+class PersonalOnlyAsset(DirdAssetLaunchingTestCase):
+    asset = 'personal_only'
+
+
+class PhonebookOnlyAsset(DirdAssetLaunchingTestCase):
+    asset = 'phonebook_only'
+
+
+class ServiceTimeoutAsset(DirdAssetLaunchingTestCase):
+    asset = 'service_timeout'
+
+
+class WazoConfdAsset(DirdAssetLaunchingTestCase):
+    asset = 'wazo_confd'
+
+
+class WazoNoConfdAsset(DirdAssetLaunchingTestCase):
+    asset = 'wazo_no_confd'
+
+
+class WazoUsersLateConfdAsset(DirdAssetLaunchingTestCase):
+    asset = 'wazo_users_late_confd'
+
+
+class WazoUsersMissingOneWazoAsset(DirdAssetLaunchingTestCase):
+    asset = 'wazo_users_missing_one_wazo'
+
+
+class WazoUsersMultipleWazoAsset(DirdAssetLaunchingTestCase):
+    asset = 'wazo_users_multiple_wazo'
+
+
+class WazoUsersTwoWorkingOne404Asset(DirdAssetLaunchingTestCase):
+    asset = 'wazo_users_two_working_one_404'
+
+
+class WazoUsersTwoWorkingOneTimeoutAsset(DirdAssetLaunchingTestCase):
+    asset = 'wazo_users_two_working_one_timeout'
+
+
+# The name of the asset is already on each class, so read it back from there.
+ASSET_CLASSES: dict[str, type[DirdAssetLaunchingTestCase]] = {
+    asset_class.asset: asset_class
+    for asset_class in DirdAssetLaunchingTestCase.__subclasses__()
+}
+
+
+class DirdAssetRunningTestCase(unittest.TestCase):
+    """Base of the test classes. It does not start anything itself.
+
+    A subclass names the stack it needs with `asset = '<name>'`. That gives it
+    the matching `asset_cls` and the `usefixtures` marker that the plugin reads
+    to group the classes and to start the stack once.
+    """
+
+    asset: ClassVar[str]
+    asset_cls: ClassVar[type[DirdAssetLaunchingTestCase]]
+    pytestmark: ClassVar[list[pytest.MarkDecorator]]
+    # A few tests build a path to an asset file, so they need this too.
+    assets_root = ASSET_ROOT
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # bind the shared asset class
+        declared = cls.__dict__.get('asset')
+        if declared is not None:
+            if declared not in ASSET_CLASSES:
+                raise RuntimeError(
+                    f'{cls.__name__} asks for the unknown asset {declared!r}; '
+                    'add a subclass of DirdAssetLaunchingTestCase for it'
+                )
+            cls.asset_cls = ASSET_CLASSES[declared]
+
+        # Mark only the collected classes: pytest gathers `pytestmark` along the
+        # whole MRO and the plugin keeps the first, so a marker on a base class
+        # would win over the one of its subclasses.
+        asset = getattr(cls, 'asset', None)
+        if asset is not None and cls.__name__.startswith('Test'):
+            cls.pytestmark = [use_asset(asset)]
+
+    # The asset class owns the stack, so these reach it. They are the only
+    # methods of it that the tests use; `*args` avoids a copy of its signatures.
+    @classmethod
+    def service_port(cls, *args: Any, **kwargs: Any) -> Any:
+        return cls.asset_cls.service_port(*args, **kwargs)
+
+    @classmethod
+    def docker_exec(cls, *args: Any, **kwargs: Any) -> Any:
+        return cls.asset_cls.docker_exec(*args, **kwargs)
+
+    @classmethod
+    def restart_service(cls, *args: Any, **kwargs: Any) -> Any:
+        return cls.asset_cls.restart_service(*args, **kwargs)
+
+    @classmethod
+    def stop_service(cls, *args: Any, **kwargs: Any) -> Any:
+        return cls.asset_cls.stop_service(*args, **kwargs)
+
+    @classmethod
+    def start_service(cls, *args: Any, **kwargs: Any) -> Any:
+        return cls.asset_cls.start_service(*args, **kwargs)
+
+    @classmethod
+    def capture_logs(cls, *args: Any, **kwargs: Any) -> Any:
+        return cls.asset_cls.capture_logs(*args, **kwargs)
+
+    @classmethod
+    def _run_cmd(cls, *args: Any, **kwargs: Any) -> Any:
+        return cls.asset_cls._run_cmd(*args, **kwargs)
 
 
 class DBRunningTestCase(DirdAssetRunningTestCase):
@@ -71,17 +258,47 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.setup_db_session()
-        database.Base.metadata.reflect(bind=cls.engine)
-        database.Base.metadata.create_all(bind=cls.engine)
+
+    @classmethod
+    def clean_db(cls) -> None:
+        """Empty every table, keeping the schema that alembic installed."""
+        # ensure a fresh current view of db tables
+        existing = set(inspect(cls.engine).get_table_names())
+
+        with cls.engine.begin() as connection:
+            # use delete to take a row lock instead of an exclusive lock
+            # (avoid deadlock)
+            connection.execute(text("SET LOCAL lock_timeout = '10s'"))
+            for table in reversed(database.Base.metadata.sorted_tables):
+                if table.name == 'alembic_version' or table.name not in existing:
+                    continue
+                connection.execute(table.delete())
+
+        # update stats so previous data churn does not impact planning on the
+        # next test run
+        with cls.engine.connect().execution_options(
+            isolation_level='AUTOCOMMIT'
+        ) as connection:
+            connection.execute(text('VACUUM (ANALYZE)'))
+
+    @classmethod
+    def analyze_db(cls) -> None:
+        """Refresh the planner statistics after a bulk load."""
+        with cls.engine.connect().execution_options(
+            isolation_level='AUTOCOMMIT'
+        ) as connection:
+            connection.execute(text('ANALYZE'))
 
     @classmethod
     def tearDownClass(cls):
+        # A failure of the cleanup must still release the connections and stop
+        # the stack, otherwise the next class of the same asset inherits the
+        # leak and every later class fails too.
         try:
-            database.Base.metadata.drop_all(bind=cls.engine)
-        except Exception:
-            pass
-        cls.engine.dispose()
-        super().tearDownClass()
+            cls.clean_db()
+        finally:
+            cls.engine.dispose()
+            super().tearDownClass()
 
     @classmethod
     def restart_postgres(cls):
@@ -90,31 +307,6 @@ class DBRunningTestCase(DirdAssetRunningTestCase):
         cls.setup_db_session()
         database = DBUserClient(cls.db_uri)
         until.true(database.is_up, timeout=5, message='Postgres did not come back up')
-
-    @classmethod
-    def restart_dird(cls):
-        cls.restart_service('dird')
-        cls.port = cls.service_port(9489, 'dird')
-        cls.dird = cls.make_dird(VALID_TOKEN_MAIN_TENANT)
-
-    @classmethod
-    @contextmanager
-    def dird_with_config(cls, config: dict) -> Generator[None, None, None]:
-        filesystem = FileSystemClient(
-            execute=cls.docker_exec,
-            service_name='dird',
-            root=True,
-        )
-        name = ''.join(random.choice(string.ascii_lowercase) for _ in range(6))
-        config_file = f'/etc/wazo-dird/conf.d/10-{name}.yml'
-        content = yaml.dump(config)
-        try:
-            with filesystem.file_(config_file, content=content):
-                cls.restart_dird()
-                yield
-        finally:
-            cls.restart_dird()
-            cls.wait_strategy.wait(cls.dird)
 
 
 class RequestUtilMixin:
@@ -178,8 +370,35 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.config.tear_down()
-        super().tearDownClass()
+        try:
+            cls.config.tear_down()
+        finally:
+            super().tearDownClass()
+
+    @classmethod
+    def restart_dird(cls):
+        cls.restart_service('dird')
+        cls.port = cls.service_port(9489, 'dird')
+        cls.dird = cls.make_dird(VALID_TOKEN_MAIN_TENANT)
+
+    @classmethod
+    @contextmanager
+    def dird_with_config(cls, config: dict) -> Generator[None, None, None]:
+        filesystem = FileSystemClient(
+            execute=cls.docker_exec,
+            service_name='dird',
+            root=True,
+        )
+        name = ''.join(random.choice(string.ascii_lowercase) for _ in range(6))
+        config_file = f'/etc/wazo-dird/conf.d/10-{name}.yml'
+        content = yaml.dump(config)
+        try:
+            with filesystem.file_(config_file, content=content):
+                cls.restart_dird()
+                yield
+        finally:
+            cls.restart_dird()
+            cls.wait_strategy.wait(cls.dird)
 
     @classmethod
     def make_dird(cls, token: str) -> DirdClient:
@@ -241,11 +460,13 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
     @contextmanager
     def auth_stopped(cls):
         cls.stop_service('auth')
-        yield
-        cls.start_service('auth')
-        auth = cls.make_mock_auth()
-        until.true(auth.is_up, timeout=START_TIMEOUT)
-        cls.configure_wazo_auth()
+        try:
+            yield
+        finally:
+            cls.start_service('auth')
+            auth = cls.make_mock_auth()
+            until.true(auth.is_up, timeout=START_TIMEOUT)
+            cls.configure_wazo_auth()
 
     @classmethod
     def get_client(cls, token: str = VALID_TOKEN_MAIN_TENANT) -> DirdClient:

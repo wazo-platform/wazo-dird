@@ -1,6 +1,0 @@
-services:
-  sync:
-    depends_on:
-      - dird
-    environment:
-      TARGETS: "dird:9489"

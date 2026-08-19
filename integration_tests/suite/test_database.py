@@ -8,6 +8,7 @@ from contextlib import closing, contextmanager
 from typing import Any, cast
 from unittest.mock import ANY
 
+import pytest
 from hamcrest import (
     any_of,
     assert_that,
@@ -80,18 +81,21 @@ class DBStarter(DBRunningTestCase):
     asset = 'database'
 
 
-def setup_module():
+@pytest.fixture(scope='module', autouse=True)
+def _database_session():
+    """Open the session once the `database` stack is up.
+
+    `_BaseTest`'s `usefixtures('database')` mark already brings the stack up
+    before this, a module-scoped fixture, runs.
+    """
     global Session
     DBStarter.setUpClass()
-    database.Base.metadata.drop_all(bind=DBStarter.engine)
-    database.Base.metadata.create_all(bind=DBStarter.engine)
     Session = DBStarter.Session
-
-
-def teardown_module():
+    yield
     DBStarter.tearDownClass()
 
 
+@pytest.mark.usefixtures('database')
 class _BaseTest(unittest.TestCase):
     _contact_1: Any
     _contact_2: Any
@@ -101,6 +105,7 @@ class _BaseTest(unittest.TestCase):
         self.display_crud = database.DisplayCRUD(Session)
         self.profile_crud = database.ProfileCRUD(Session)
         self.source_crud = database.SourceCRUD(Session)
+        self.tenant_crud = database.TenantCRUD(Session)
 
         self._contact_1 = {
             'firtname': 'Finley',
@@ -175,7 +180,10 @@ class _BasePhonebookCRUDTest(_BaseTest):
 
 
 class TestBaseDAO(_BaseTest):
-    def test_that_an_unexpected_error_does_not_block_the_current_Session(self):
+    # The phonebook needs its tenant: the migrations declare `tenant_uuid`
+    # NOT NULL, with a foreign key on the tenant.
+    @fixtures.tenant()
+    def test_that_an_unexpected_error_does_not_block_the_current_Session(self, tenant):
         dao = base.BaseDAO(Session)
 
         try:
@@ -190,8 +198,7 @@ class TestBaseDAO(_BaseTest):
 
         try:
             with dao.new_session() as s:
-                phonebook = database.Phonebook(name='bar')
-                s.add(phonebook)
+                s.add(database.Phonebook(name='bar', tenant_uuid=tenant['uuid']))
         except exc.InvalidRequestError:
             self.fail('Should not raise')
 

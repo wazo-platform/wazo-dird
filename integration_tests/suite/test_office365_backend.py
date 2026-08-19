@@ -1,6 +1,7 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from typing import ClassVar
 from unittest.mock import Mock
 
 import requests
@@ -78,6 +79,12 @@ OFFICE365_CONTACTS_WITHOUT_GIVEN_NAME = {
 
 class BaseOffice365TestCase(DirdAssetRunningTestCase):
     service = 'dird'
+
+    # The subclasses give these their value.
+    BACKEND: ClassVar[str]
+
+    def config(self) -> dict:
+        raise NotImplementedError
 
     MICROSOFT_EXTERNAL_AUTH = {
         "access_token": "an-access-token",

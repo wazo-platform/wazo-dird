@@ -1,6 +1,8 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from typing import ClassVar
+
 from hamcrest import assert_that, equal_to, has_key, has_length, not_
 from wazo_test_helpers.auth import AuthClient as MockAuthClient
 from wazo_test_helpers.auth import MockUserToken
@@ -22,6 +24,9 @@ class TestTokenRequestCount(BaseDirdIntegrationTest):
 
     asset = 'all_routes'
     config_factory = new_csv_with_multiple_displays_config
+
+    auth: ClassVar[MockAuthClient]
+    token: ClassVar[str]
 
     @classmethod
     def setUpClass(cls):

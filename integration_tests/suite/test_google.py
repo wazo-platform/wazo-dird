@@ -1,6 +1,8 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from typing import ClassVar
+
 import urllib3
 from hamcrest import assert_that, contains_exactly, has_entries, has_item
 from wazo_test_helpers.auth import AuthClient as AuthMock
@@ -219,6 +221,12 @@ GOOGLE_SEARCH_LIST = {
 
 class TestGooglePlugin(BaseDirdIntegrationTest):
     asset = 'dird_google'
+
+    auth_client_mock: ClassVar[AuthMock]
+    source_uuid: ClassVar[str]
+    display_uuid: ClassVar[str]
+    profile_uuid: ClassVar[str]
+
     GOOGLE_EXTERNAL_AUTH = {
         "access_token": "an-access-token",
         "scope": "a-scope",
@@ -275,12 +283,14 @@ class TestGooglePlugin(BaseDirdIntegrationTest):
 
     @classmethod
     def tearDownClass(cls):
-        client = cls.get_client()
-        cls.auth_client_mock.reset_external_auth()
-        client.backends.delete_source('google', cls.source_uuid)
-        client.displays.delete(cls.display_uuid)
-        client.profiles.delete(cls.profile_uuid)
-        super().tearDownClass()
+        try:
+            client = cls.get_client()
+            cls.auth_client_mock.reset_external_auth()
+            client.backends.delete_source('google', cls.source_uuid)
+            client.displays.delete(cls.display_uuid)
+            client.profiles.delete(cls.profile_uuid)
+        finally:
+            super().tearDownClass()
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_plugin_lookup(self, google_api):

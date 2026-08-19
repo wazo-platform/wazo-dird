@@ -3,6 +3,7 @@
 
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from typing import ClassVar
 
 from hamcrest import (
     any_of,
@@ -31,6 +32,10 @@ from .helpers.constants import MAIN_TENANT, TENANT_UUID_2, VALID_TOKEN_MAIN_TENA
 class _BaseMultiTokenFavoriteTest(BaseDirdIntegrationTest):
     asset = 'all_routes'
     config_factory = new_csv_with_multiple_displays_config
+
+    token_1: ClassVar[str]
+    token_2: ClassVar[str]
+    token_3: ClassVar[str]
 
     @classmethod
     def setUpClass(cls):
@@ -267,6 +272,9 @@ class TestFavoritesInPersonalResults(PersonalOnlyTestCase):
 
 
 class TestFavoritesBusEvents(PersonalOnlyTestCase):
+    token_1: ClassVar[str]
+    token_2: ClassVar[str]
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

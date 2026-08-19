@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
+from typing import ClassVar
 
 from hamcrest import (
     any_of,
@@ -26,6 +27,9 @@ from .helpers.constants import MAIN_TENANT, VALID_TOKEN, VALID_TOKEN_NO_ACL
 class TestGraphQL(BaseDirdIntegrationTest):
     asset = 'all_routes'
     config_factory = new_csv_with_multiple_displays_config
+
+    auth: ClassVar[MockAuthClient]
+    main_tenant_token: ClassVar[str]
 
     @classmethod
     def setUpClass(cls):
@@ -434,6 +438,9 @@ class TestGraphQL(BaseDirdIntegrationTest):
 class TestGraphQLWazoBackend(BaseDirdIntegrationTest):
     asset = 'wazo_users_multiple_wazo'
     config_factory = new_wazo_users_config
+
+    auth: ClassVar[MockAuthClient]
+    main_tenant_token: ClassVar[str]
 
     @classmethod
     def setUpClass(cls):

@@ -5,7 +5,7 @@ import logging
 import time
 from collections.abc import Iterator
 from contextlib import ExitStack, contextmanager
-from typing import Any, TypedDict
+from typing import Any, ClassVar, TypedDict
 from unittest.mock import ANY
 
 import requests
@@ -88,6 +88,19 @@ def phonebook(
 
 class BasePhonebookCRUDTestCase(BasePhonebookTestCase):
     asset = 'all_routes'
+
+    # `setUpClass` of the subclasses sets these.
+    stack: ClassVar[ExitStack]
+    phonebook: ClassVar[PhonebookDict]
+    phonebook_crud: ClassVar[PhonebookCRUD]
+    contact_crud: ClassVar[PhonebookContactCRUD]
+    contacts: ClassVar[list[Any]]
+    num_contacts: ClassVar[int]
+    contact_count: ClassVar[int]
+    source_uuid: ClassVar[str]
+    source_name: ClassVar[str]
+    display_uuid: ClassVar[str]
+    profile_uuid: ClassVar[str]
 
     def setUp(self):
         super().setUp()
@@ -558,9 +571,11 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
         assert not errors
 
     @classmethod
-    def tearDownClass(self):
-        self.stack.close()
-        super().tearDownClass()
+    def tearDownClass(cls):
+        try:
+            cls.stack.close()
+        finally:
+            super().tearDownClass()
 
     def test_get_all(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
@@ -787,6 +802,7 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
         )
         assert not errors
         assert len(cls.contacts) == cls.contact_count
+        cls.analyze_db()
 
         source_body = {
             'first_matched_columns': ['number', 'firstname', 'lastname'],
@@ -831,8 +847,10 @@ class TestPluginLookup(BasePhonebookCRUDTestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.stack.close()
-        super().tearDownClass()
+        try:
+            cls.stack.close()
+        finally:
+            super().tearDownClass()
 
     def test_plugin_lookup(self):
         result = self.client.directories.lookup(term=' 5', profile='default')
@@ -917,11 +935,14 @@ class TestGetContactsLoad(BasePhonebookCRUDTestCase):
             ],
         )
         assert not errors
+        cls.analyze_db()
 
     @classmethod
-    def tearDownClass(self):
-        self.stack.close()
-        super().tearDownClass()
+    def tearDownClass(cls):
+        try:
+            cls.stack.close()
+        finally:
+            super().tearDownClass()
 
     def test_get_paginated(self):
         client = self.get_client(VALID_TOKEN_MAIN_TENANT)
