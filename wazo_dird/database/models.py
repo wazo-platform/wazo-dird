@@ -93,7 +93,7 @@ class ContactFields(Base):
 class Display(Base):
     __tablename__ = 'dird_display'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', 'tenant_uuid'),
+        schema.UniqueConstraint('uuid', 'tenant_uuid', name='dird_display_uuid_tenant'),
         schema.Index('dird_display__idx__tenant_uuid', 'tenant_uuid'),
     )
 
@@ -101,7 +101,9 @@ class Display(Base):
         String(UUID_LENGTH), server_default=text('uuid_generate_v4()'), primary_key=True
     )
     tenant_uuid = Column(
-        String(UUID_LENGTH), ForeignKey('dird_tenant.uuid', ondelete='CASCADE')
+        String(UUID_LENGTH),
+        ForeignKey('dird_tenant.uuid', ondelete='CASCADE'),
+        nullable=False,
     )
     name = Column(Text(), nullable=False)
 
