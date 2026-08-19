@@ -31,10 +31,13 @@ UUID_LENGTH = 36
 class Contact(Base):
     __tablename__ = 'dird_contact'
     __table_args__ = (
-        schema.UniqueConstraint('user_uuid', 'hash'),
+        schema.UniqueConstraint(
+            'hash', 'user_uuid', name='dird_contact_hash_user_uuid'
+        ),
         schema.UniqueConstraint(
             'phonebook_uuid',
             'hash',
+            name='dird_contact_hash_phonebook_uuid',
         ),
         schema.Index('dird_contact__idx__user_uuid', 'user_uuid'),
         schema.Index('dird_contact__idx__phonebook_uuid', 'phonebook_uuid'),
