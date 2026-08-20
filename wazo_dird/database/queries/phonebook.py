@@ -43,7 +43,6 @@ from .base import (
     build_exten_contact_map,
     compute_contact_hash,
     list_contacts_by_uuid,
-    unaccent,
 )
 
 logger = logging.getLogger(__name__)
@@ -468,13 +467,13 @@ class PhonebookContactCRUD(BaseDAO):
                     sort_field.name == order,
                 ),
             )
-            sort_value: ColumnElement = unaccent(func.nullif(sort_field.value, ''))
+            sort_key: ColumnElement = func.nullif(sort_field.sort_value, '')
             if order_insensitive:
-                sort_value = func.lower(sort_value)
+                sort_key = func.lower(sort_key)
             if direction == 'desc':
-                query = query.order_by(nullsfirst(sort_value.desc()), Contact.uuid)
+                query = query.order_by(nullsfirst(sort_key.desc()), Contact.uuid)
             else:
-                query = query.order_by(nullslast(sort_value.asc()), Contact.uuid)
+                query = query.order_by(nullslast(sort_key.asc()), Contact.uuid)
         else:
             query = query.order_by(Contact.uuid)
 

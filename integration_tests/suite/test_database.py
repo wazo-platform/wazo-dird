@@ -1110,6 +1110,31 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
             ),
         )
 
+    def test_that_ordering_uses_unidecode_romanization(self):
+        # firstname -> unidecode: apple, arger, iana, oeuvre, strasse, zebra
+        for firstname in ['zebra', 'straße', 'œuvre', 'apple', 'яна', 'ärger']:
+            self._crud.create(
+                [self._tenant_uuid],
+                database.PhonebookKey(uuid=self._phonebook_uuid),
+                {'firstname': firstname},
+            )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='firstname',
+        )
+
+        # 'ä'->a, 'ß'->ss, 'œ'->oe, Cyrillic 'я'->ia: non-Latin / non-ASCII names
+        # sort by their unidecode romanization, not by raw code point order.
+        firstnames = [
+            dict(contact)['firstname'] for contact in result if 'firstname' in contact
+        ]
+        assert_that(
+            firstnames,
+            contains_exactly('apple', 'ärger', 'яна', 'œuvre', 'straße', 'zebra'),
+        )
+
     def test_that_the_list_can_be_ordered_in_a_direction(self):
         result = self._crud.list(
             [self._tenant_uuid],
