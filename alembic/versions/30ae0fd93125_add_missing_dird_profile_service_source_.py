@@ -20,6 +20,7 @@ _profile_service_source = sa.table(
     sa.column('source_uuid', sa.String),
     sa.column('profile_tenant_uuid', sa.String),
     sa.column('source_tenant_uuid', sa.String),
+    sa.column('ctid'),
 )
 
 
@@ -29,13 +30,13 @@ def upgrade() -> None:
     # profile_tenant_uuid/source_tenant_uuid are each pinned by an FK to a
     # single parent row, so duplicates here are exact duplicates; keep one
     # per pair via ctid.
+    keep = sa.select(sa.func.min(_profile_service_source.c.ctid)).group_by(
+        _profile_service_source.c.profile_service_uuid,
+        _profile_service_source.c.source_uuid,
+    )
     connection.execute(
-        sa.text(
-            'DELETE FROM dird_profile_service_source a '
-            'USING dird_profile_service_source b '
-            'WHERE a.ctid < b.ctid '
-            'AND a.profile_service_uuid = b.profile_service_uuid '
-            'AND a.source_uuid = b.source_uuid'
+        _profile_service_source.delete().where(
+            _profile_service_source.c.ctid.notin_(keep)
         )
     )
 
