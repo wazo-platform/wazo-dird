@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -58,3 +58,15 @@ class TestMakeDisplays(unittest.TestCase):
 
         assert_that(make_display(first), equal_to(first_display))
         assert_that(make_display(second), equal_to(second_display))
+
+
+class TestBuildDisplay(unittest.TestCase):
+    def test_that_build_display_with_none_display_returns_none(self):
+        result = DisplayAwareResource().build_display({'display': None})
+
+        assert_that(result, equal_to(None))
+
+    def test_that_build_display_with_missing_display_returns_none(self):
+        result = DisplayAwareResource().build_display({})
+
+        assert_that(result, equal_to(None))
