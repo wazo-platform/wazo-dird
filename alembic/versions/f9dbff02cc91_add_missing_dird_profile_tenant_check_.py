@@ -17,18 +17,19 @@ down_revision = '52869e467b80'
 _profile = sa.table(
     'dird_profile',
     sa.column('tenant_uuid', sa.String),
+    sa.column('display_uuid', sa.String),
     sa.column('display_tenant_uuid', sa.String),
 )
 
 
 def upgrade() -> None:
     connection = op.get_bind()
-    # Deletes rather than nulling display_uuid/display_tenant_uuid:
-    # build_display() in wazo_dird/helpers.py can't handle a None display.
+    # display_tenant_uuid only mirrors tenant_uuid for the FK below; a
+    # mismatch means the display link is wrong, not the profile itself.
     connection.execute(
-        _profile.delete().where(
-            _profile.c.tenant_uuid != _profile.c.display_tenant_uuid
-        )
+        _profile.update()
+        .where(_profile.c.tenant_uuid != _profile.c.display_tenant_uuid)
+        .values(display_uuid=None, display_tenant_uuid=None)
     )
 
     op.create_check_constraint(
