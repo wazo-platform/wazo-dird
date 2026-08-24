@@ -3,14 +3,13 @@
       - wazo-tox-linters-py311
       - wazo-tox-py311
       - debian-packaging-bookworm
+      - check-db-schema-pg15
     wazo-check:
       jobs:
         - dird-tox-integration
-        - dird-check-db-schema
     wazo-gate:
       jobs:
         - dird-tox-integration
-        - dird-check-db-schema
 
 - job:
     name: dird-tox-integration
@@ -19,8 +18,3 @@
     timeout: 10800
     vars:
       integration_test_timeout: 60
-
-- job:
-    name: dird-check-db-schema
-    description: Compare the schema of the models with the one the migrations install
-    parent: check-db-schema
