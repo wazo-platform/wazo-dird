@@ -23,23 +23,18 @@ _profile = sa.table(
 
 def upgrade() -> None:
     connection = op.get_bind()
-    violations = connection.execute(
-        sa.select(sa.func.count())
-        .select_from(_profile)
-        .where(_profile.c.tenant_uuid != _profile.c.display_tenant_uuid)
-    ).scalar()
-    if violations:
-        raise RuntimeError(
-            f'{violations} row(s) in dird_profile have tenant_uuid != '
-            'display_tenant_uuid; BUG-455 assumed this never happens. '
-            'Investigate before adding this constraint.'
+    # Deletes rather than nulling display_uuid/display_tenant_uuid:
+    # build_display() in wazo_dird/helpers.py can't handle a None display.
+    connection.execute(
+        _profile.delete().where(
+            _profile.c.tenant_uuid != _profile.c.display_tenant_uuid
         )
+    )
 
-    op.execute(
-        'ALTER TABLE dird_profile ADD CONSTRAINT dird_profile_check '
-        'CHECK (tenant_uuid = display_tenant_uuid)'
+    op.create_check_constraint(
+        'dird_profile_check', 'dird_profile', 'tenant_uuid = display_tenant_uuid'
     )
 
 
 def downgrade() -> None:
-    op.execute('ALTER TABLE dird_profile DROP CONSTRAINT dird_profile_check')
+    op.drop_constraint('dird_profile_check', 'dird_profile', type_='check')
