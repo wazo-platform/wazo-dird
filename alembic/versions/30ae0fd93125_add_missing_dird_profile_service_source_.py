@@ -27,6 +27,18 @@ _profile_service_source = sa.table(
 def upgrade() -> None:
     connection = op.get_bind()
 
+    # The composite FKs use MATCH SIMPLE, so a NULL in either key column
+    # escapes FK enforcement; such orphans would make the primary key
+    # creation below abort.
+    connection.execute(
+        _profile_service_source.delete().where(
+            sa.or_(
+                _profile_service_source.c.profile_service_uuid.is_(None),
+                _profile_service_source.c.source_uuid.is_(None),
+            )
+        )
+    )
+
     # profile_tenant_uuid/source_tenant_uuid are each pinned by an FK to a
     # single parent row, so duplicates here are exact duplicates; keep one
     # per pair via ctid.
