@@ -1,4 +1,4 @@
-# Copyright 2015-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -31,7 +31,7 @@ class DisplayAwareResource:
     def build_display(
         self, profile_config: dict[str, Any]
     ) -> list[DisplayColumn] | None:
-        display = profile_config.get('display', {})
+        display = profile_config.get('display') or {}
         return self._make_display(display)
 
     @staticmethod

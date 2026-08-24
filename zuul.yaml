@@ -3,6 +3,7 @@
       - wazo-tox-linters-py311
       - wazo-tox-py311
       - debian-packaging-bookworm
+      - check-db-schema-pg15
     wazo-check:
       jobs:
         - dird-tox-integration
