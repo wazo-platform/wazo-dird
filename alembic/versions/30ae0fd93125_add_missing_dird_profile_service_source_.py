@@ -26,58 +26,46 @@ _profile_service_source = sa.table(
 def upgrade() -> None:
     connection = op.get_bind()
 
-    duplicates = connection.execute(
-        sa.select(sa.func.count()).select_from(
-            sa.select(sa.literal(1))
-            .select_from(_profile_service_source)
-            .group_by(
-                _profile_service_source.c.profile_service_uuid,
-                _profile_service_source.c.source_uuid,
-            )
-            .having(sa.func.count() > 1)
-            .subquery()
+    # profile_tenant_uuid/source_tenant_uuid are each pinned by an FK to a
+    # single parent row, so duplicates here are exact duplicates; keep one
+    # per pair via ctid.
+    connection.execute(
+        sa.text(
+            'DELETE FROM dird_profile_service_source a '
+            'USING dird_profile_service_source b '
+            'WHERE a.ctid < b.ctid '
+            'AND a.profile_service_uuid = b.profile_service_uuid '
+            'AND a.source_uuid = b.source_uuid'
         )
-    ).scalar()
-    if duplicates:
-        raise RuntimeError(
-            f'{duplicates} duplicate (profile_service_uuid, source_uuid) '
-            'pair(s) in dird_profile_service_source; BUG-455 assumed this '
-            'never happens. Investigate before adding this primary key.'
-        )
+    )
 
-    tenant_violations = connection.execute(
-        sa.select(sa.func.count())
-        .select_from(_profile_service_source)
-        .where(
+    connection.execute(
+        _profile_service_source.delete().where(
             _profile_service_source.c.profile_tenant_uuid
             != _profile_service_source.c.source_tenant_uuid
         )
-    ).scalar()
-    if tenant_violations:
-        raise RuntimeError(
-            f'{tenant_violations} row(s) in dird_profile_service_source have '
-            'profile_tenant_uuid != source_tenant_uuid; BUG-455 assumed this '
-            'never happens. Investigate before adding this constraint.'
-        )
-
-    op.execute(
-        'ALTER TABLE dird_profile_service_source '
-        'ADD CONSTRAINT dird_profile_service_source_pkey '
-        'PRIMARY KEY (profile_service_uuid, source_uuid)'
     )
-    op.execute(
-        'ALTER TABLE dird_profile_service_source '
-        'ADD CONSTRAINT dird_profile_service_source_check '
-        'CHECK (profile_tenant_uuid = source_tenant_uuid)'
+
+    op.create_primary_key(
+        'dird_profile_service_source_pkey',
+        'dird_profile_service_source',
+        ['profile_service_uuid', 'source_uuid'],
+    )
+    op.create_check_constraint(
+        'dird_profile_service_source_check',
+        'dird_profile_service_source',
+        'profile_tenant_uuid = source_tenant_uuid',
     )
 
 
 def downgrade() -> None:
-    op.execute(
-        'ALTER TABLE dird_profile_service_source '
-        'DROP CONSTRAINT dird_profile_service_source_check'
+    op.drop_constraint(
+        'dird_profile_service_source_check',
+        'dird_profile_service_source',
+        type_='check',
     )
-    op.execute(
-        'ALTER TABLE dird_profile_service_source '
-        'DROP CONSTRAINT dird_profile_service_source_pkey'
+    op.drop_constraint(
+        'dird_profile_service_source_pkey',
+        'dird_profile_service_source',
+        type_='primary',
     )
