@@ -169,7 +169,6 @@ class Phonebook(Base):
         _dird_phonebook_id_seq,
         server_default=_dird_phonebook_id_seq.next_value(),
         nullable=False,
-        unique=True,
     )
     uuid = Column(
         UUID(as_uuid=False), server_default=text('uuid_generate_v4()'), primary_key=True
