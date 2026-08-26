@@ -334,16 +334,6 @@ class TestWazoUserBackendSearch(_BaseTest):
             second_call, equal_to(call(recurse=True, view='directory', uuid=uuids[20]))
         )
 
-    def test_list_ignores_an_id_that_is_not_a_uuid(self):
-        # a favorite stored before the write path resolved its contact id
-        result = self._source.list(unique_ids=[UUID_1, '226'])
-
-        self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', uuid=UUID_1
-        )
-
-        assert_that(result, contains_exactly(SOURCE_1))
-
     def test_canonical_unique_id_of_a_uuid_confd_knows_is_that_uuid(self):
         self._confd_client.users.get.return_value = CONFD_USER_1
 

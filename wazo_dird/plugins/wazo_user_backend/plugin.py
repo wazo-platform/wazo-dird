@@ -217,10 +217,8 @@ class WazoUserPlugin(BaseSourcePlugin):
     def list(
         self, unique_ids: list[str], args: dict[str, Any] | None = None
     ) -> list[SourceResult]:
-        """List contacts by unique id."""
-        # filter out non-uuid legacy form, expected to be canonicalized by caller
-        uuids = [unique_id for unique_id in unique_ids if is_uuid(unique_id)]
-        return self._list_by_uuid(uuids)
+        """List contacts by unique id (user uuid)"""
+        return self._list_by_uuid(unique_ids)
 
     def _fetch_entries(
         self, term: str | None = None, column: str = 'search'

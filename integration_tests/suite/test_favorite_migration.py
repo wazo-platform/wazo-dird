@@ -97,7 +97,7 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
         assert_that(response.status_code, equal_to(200))
         assert_that(
             response.json(),
-            has_entries(migrated=2, already_migrated=0, unresolved=0, failed_sources=0),
+            has_entries(migrated=2, already_migrated=0, dropped=0, failed_sources=0),
         )
 
         assert_that(
@@ -112,32 +112,30 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
         assert_that(first, has_entries(migrated=1, already_migrated=0))
 
         second = self.post_favorite_migration().json()
-        assert_that(second, has_entries(migrated=0, already_migrated=1, unresolved=0))
+        assert_that(second, has_entries(migrated=0, already_migrated=1, dropped=0))
 
         assert_that(
             self._contact_ids('wazo_europe'), contains_exactly(EUROPE_USER_42_UUID)
         )
 
-    def test_unresolvable_contact_id_is_reported_and_kept(self):
+    def test_unresolvable_contact_id_is_dropped_and_reported(self):
+        # the code that follows this migration reads uuids only, so a favorite
+        # naming no confd user cannot be left behind
         self._given_legacy_favorite('wazo_america', DELETED_USER_ID)
 
         report = self.post_favorite_migration().json()
 
-        assert_that(report, has_entries(migrated=0, unresolved=1))
+        assert_that(report, has_entries(migrated=0, dropped=1))
         assert_that(
             report['sources'],
             has_items(
                 has_entries(
                     source_name='wazo_america',
-                    unresolved=contains_exactly(
-                        has_entries(contact_id=DELETED_USER_ID)
-                    ),
+                    dropped=contains_exactly(has_entries(contact_id=DELETED_USER_ID)),
                 )
             ),
         )
-        assert_that(
-            self._contact_ids('wazo_america'), contains_exactly(DELETED_USER_ID)
-        )
+        assert_that(self._contact_ids('wazo_america'), empty())
 
     def test_row_colliding_with_an_existing_uuid_row_is_deduplicated(self):
         self.put_favorite('wazo_america', AMERICA_USER_42_UUID)
@@ -164,7 +162,7 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
 
         report = self.post_favorite_migration().json()
 
-        assert_that(report, has_entries(migrated=0, deduplicated=1, unresolved=0))
+        assert_that(report, has_entries(migrated=0, deduplicated=1, dropped=0))
         assert_that(
             self._contact_ids('wazo_america'),
             contains_exactly(AMERICA_USER_42_UUID),
@@ -194,7 +192,7 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
             has_entries(
                 migrated=0,
                 already_migrated=0,
-                unresolved=0,
+                dropped=0,
                 failed_sources=0,
                 sources=empty(),
             ),
