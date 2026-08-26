@@ -6,6 +6,7 @@ Revises: 30ae0fd93125
 """
 
 import sqlalchemy as sa
+from psycopg2.extras import execute_values
 from unidecode import unidecode
 
 # alembic exposes op as a runtime proxy that mypy cannot see statically
@@ -31,10 +32,9 @@ def upgrade() -> None:
     op.add_column(TABLE_NAME, sa.Column(COLUMN_NAME, sa.Text(), nullable=True))
 
     conn = op.get_bind()
+    cursor = conn.connection.cursor()
 
     # Backfill in id-ordered batches so memory stays bounded on large tables.
-    # unidecode is only available in Python, so the value is normalized row by
-    # row rather than in SQL.
     last_id = 0
     while True:
         rows = conn.execute(
@@ -48,15 +48,14 @@ def upgrade() -> None:
         ).fetchall()
         if not rows:
             break
-        sort_values = [
-            {"b_id": contact_id, "b_sort_value": unidecode(value)}
-            for contact_id, value in rows
-        ]
-        conn.execute(
-            _contact_fields.update()
-            .where(_contact_fields.c.id == sa.bindparam("b_id"))
-            .values(sort_value=sa.bindparam("b_sort_value")),
-            sort_values,
+        payload = [(contact_id, unidecode(value)) for contact_id, value in rows]
+        execute_values(
+            cursor,
+            f'UPDATE {TABLE_NAME} AS t SET {COLUMN_NAME} = v.{COLUMN_NAME} '
+            f'FROM (VALUES %s) AS v(id, {COLUMN_NAME}) WHERE t.id = v.id',
+            payload,
+            template='(%s, %s)',
+            page_size=_BATCH_SIZE,
         )
         last_id = rows[-1][0]
 
