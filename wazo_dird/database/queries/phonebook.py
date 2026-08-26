@@ -439,10 +439,9 @@ class PhonebookContactCRUD(BaseDAO):
                 contact['id']: contact for contact in list_contacts_by_uuid(s, uuids)
             }
 
-        return cast(
-            builtins.list[ContactInfo],
-            [contacts_by_uuid[uuid] for uuid in uuids if uuid in contacts_by_uuid],
-        )
+        # uuid can be missing if the contact was deleted between the two
+        # queries above (READ COMMITTED) -- skip it rather than KeyError.
+        return [contacts_by_uuid[uuid] for uuid in uuids if uuid in contacts_by_uuid]
 
     def _paginate_contact_uuids(
         self,
