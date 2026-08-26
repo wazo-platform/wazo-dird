@@ -743,6 +743,24 @@ def new_wazo_users_multiple_wazo_config(Session):
             'favorites': {'sources': ['wazo_america', 'wazo_asia', 'wazo_europe']},
         },
     )
+    # a lookup marks a result as a favorite by matching the stored contact id
+    # against its source_entry_id, so the two must keep naming a contact the
+    # same way; only a display with a favorite column shows that
+    config.with_display(
+        name='favorite_display',
+        columns=[
+            {'title': 'Firstname', 'field': 'firstname'},
+            {'field': 'favorite', 'type': 'favorite'},
+        ],
+    )
+    config.with_profile(
+        name='marks_favorites',
+        display='favorite_display',
+        services={
+            'lookup': {'sources': ['wazo_america']},
+            'favorites': {'sources': ['wazo_america']},
+        },
+    )
     return config
 
 

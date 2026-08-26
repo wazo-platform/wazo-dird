@@ -253,6 +253,33 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
 
         assert_that(result.status_code, equal_to(400))
 
+    def test_a_favorited_contact_is_marked_in_a_lookup(self):
+        # the marking compares the stored contact id with the source_entry_id
+        # a lookup returns; nothing translates between them, so the write path
+        # and the backend have to agree on the form
+        john_doe_uuid = '7ca42f43-8bd9-4a26-acb8-cb756f42bebb'
+
+        before = self.lookup('John', 'marks_favorites')
+        assert_that(
+            before['results'],
+            contains_exactly(
+                has_entries(column_values=contains_exactly('John', False))
+            ),
+        )
+
+        with self.favorite('wazo_america', john_doe_uuid):
+            after = self.lookup('John', 'marks_favorites')
+
+        assert_that(
+            after['results'],
+            contains_exactly(
+                has_entries(
+                    column_values=contains_exactly('John', True),
+                    relations=has_entries(source_entry_id=john_doe_uuid),
+                )
+            ),
+        )
+
     def test_favorites_multiple_wazo(self):
         # a client that predates the uuid switch still sends the confd id;
         # it must be resolved to the uuid of the user of *that* wazo
