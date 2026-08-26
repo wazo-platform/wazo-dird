@@ -1076,14 +1076,14 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
         )
 
     def test_that_count_and_list_agree_on_the_result_set(self):
-        # count() and list() must describe the same underlying row set --
-        # regression guard for _query_contacts / _paginate_contact_uuids drift
-        # (see PR review: they independently rebuild the same predicate).
-        for search in (None, 'o'):
+        # order='name' adds the sort-field join; that's the branch that can
+        # duplicate rows if it ever regresses.
+        for search, order in ((None, None), ('o', None), (None, 'name')):
             contacts = self._crud.list(
                 [self._tenant_uuid],
                 database.PhonebookKey(uuid=self._phonebook_uuid),
                 search=search,
+                order=order,
             )
             count = self._crud.count(
                 [self._tenant_uuid],
@@ -1091,11 +1091,12 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
                 search=search,
             )
 
-            assert_that(len(contacts), equal_to(count), f'search={search!r}')
+            label = f'search={search!r} order={order!r}'
+            assert_that(len(contacts), equal_to(count), label)
             assert_that(
                 len({contact['id'] for contact in contacts}),
                 equal_to(count),
-                f'search={search!r} (duplicate contacts in list())',
+                f'{label} (duplicate contacts in list())',
             )
 
     def test_that_the_list_can_be_ordered(self):
