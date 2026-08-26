@@ -13,6 +13,7 @@ from sqlalchemy import exc
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.functions import ReturnTypeFromArgs
+from unidecode import unidecode
 
 from wazo_dird.database import Tenant, User
 from wazo_dird.exception import DatabaseServiceUnavailable
@@ -53,6 +54,10 @@ def list_contacts_by_uuid(session: BaseSession, uuids: list[str]) -> list[Contac
             result[uuid] = {'id': uuid}
         result[uuid][contact_field.name] = contact_field.value
     return cast(list[ContactInfo], list(result.values()))
+
+
+def compute_sort_value(value: str | None) -> str | None:
+    return unidecode(value) if value is not None else None
 
 
 def compute_contact_hash(contact_info: Mapping[str, Any]) -> str:

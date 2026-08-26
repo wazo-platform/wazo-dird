@@ -42,6 +42,7 @@ from .base import (
     ContactInfo,
     build_exten_contact_map,
     compute_contact_hash,
+    compute_sort_value,
     list_contacts_by_uuid,
 )
 
@@ -499,9 +500,13 @@ class PhonebookContactCRUD(BaseDAO):
         for name, value in new_fields.items():
             if name in contact.fields:
                 contact.fields[name].value = value
+                contact.fields[name].sort_value = compute_sort_value(value)
             else:
                 contact.fields[name] = ContactFields(
-                    name=name, value=value, contact_uuid=contact.uuid
+                    name=name,
+                    value=value,
+                    sort_value=compute_sort_value(value),
+                    contact_uuid=contact.uuid,
                 )
 
     def _get_contact(

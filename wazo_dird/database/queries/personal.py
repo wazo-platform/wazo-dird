@@ -20,6 +20,7 @@ from .base import (
     ContactInfo,
     build_exten_contact_map,
     compute_contact_hash,
+    compute_sort_value,
     list_contacts_by_uuid,
     unaccent,
 )
@@ -223,7 +224,12 @@ class PersonalContactCRUD(BaseDAO):
             contact_info['id'] = contact.uuid
             for name, value in contact_info.items():
                 session.add(
-                    ContactFields(name=name, value=value, contact_uuid=contact.uuid)
+                    ContactFields(
+                        name=name,
+                        value=value,
+                        sort_value=compute_sort_value(value),
+                        contact_uuid=contact.uuid,
+                    )
                 )
 
         for hash_ in existing:

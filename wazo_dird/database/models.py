@@ -21,7 +21,6 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from unidecode import unidecode
 
 logger = logging.getLogger(__name__)
 
@@ -87,21 +86,10 @@ class ContactFields(Base):
     id = Column(Integer(), primary_key=True)
     name = Column(Text(), nullable=False, index=True)
     value = Column(Text(), index=True)
-    # unidecode-normalized copy of value, kept in sync by the event below, used
-    # as the database-side sort key so ordering matches the former in-Python
-    # unidecode sort (see _populate_contact_field_sort_value).
     sort_value = Column(Text())
     contact_uuid = Column(
         String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False
     )
-
-
-@event.listens_for(ContactFields, 'before_insert')
-@event.listens_for(ContactFields, 'before_update')
-def _populate_contact_field_sort_value(
-    _mapper: Any, _connection: Any, target: ContactFields
-) -> None:
-    target.sort_value = unidecode(target.value) if target.value is not None else None
 
 
 class Display(Base):
