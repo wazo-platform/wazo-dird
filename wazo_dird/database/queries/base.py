@@ -56,8 +56,12 @@ def list_contacts_by_uuid(session: BaseSession, uuids: list[str]) -> list[Contac
     return cast(list[ContactInfo], list(result.values()))
 
 
-def compute_sort_value(value: str | None) -> str | None:
-    return unidecode(value) if value is not None else None
+def compute_sort_value(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return str(value)
+    return unidecode(value)
 
 
 def compute_contact_hash(contact_info: Mapping[str, Any]) -> str:

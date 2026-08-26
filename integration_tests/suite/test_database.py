@@ -695,6 +695,18 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
         assert_that(result, equal_to(expected))
         assert_that(self._list_contacts(), has_item(expected))
 
+    def test_that_a_non_string_field_value_does_not_crash_sort_value_computation(self):
+        # A JSON contact body isn't restricted to string values (unlike CSV import
+        # or personal contacts, which validate this upstream) -- sort_value
+        # computation must not crash on e.g. an int, bool, or list value.
+        body = {'firstname': 'Foo', 'lastname': 'bar', 'number': 5555555555}
+
+        result = self._crud.create(
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid), body
+        )
+
+        assert_that(result, has_entries(number=5555555555))
+
     def test_that_duplicated_contacts_cannot_be_created(self):
         self._crud.create(
             [self._tenant_uuid],
