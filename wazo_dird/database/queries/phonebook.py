@@ -455,9 +455,9 @@ class PhonebookContactCRUD(BaseDAO):
         offset: int | None,
         order_insensitive: bool,
     ) -> builtins.list[str]:
-        phonebook_filter = self._build_phonebook_filter(phonebook_key)
-        search_filter = contact_search_filter(search)
-        query = s.query(Contact.uuid).filter(and_(phonebook_filter, search_filter))
+        query = self._query_contacts(s, phonebook_key, search).with_entities(
+            Contact.uuid
+        )
 
         if order:
             sort_field = aliased(ContactFields)
@@ -559,7 +559,7 @@ class PhonebookContactCRUD(BaseDAO):
         phonebook_filter = self._build_phonebook_filter(phonebook_key)
         search_filter = contact_search_filter(search)
         filter_ = and_(phonebook_filter, search_filter)
-        query = s.query(Contact).join(Phonebook).filter(filter_)
+        query = s.query(Contact).filter(filter_)
         return query
 
     def _new_contact_filter(
