@@ -10,6 +10,10 @@
   confd user. Use the `source_entry_id` returned by a lookup for a valid id.
   Sources that cannot check an id keep accepting any.
 
+* `PUT /0.1/directories/favorites/<source>/<contact_id>` now returns `503` when
+  the source cannot be reached, instead of storing a favorite that no listing
+  could resolve. Deleting a favorite of such a source still works.
+
 * Contacts of a `wazo` source are now identified by the confd user `uuid`
   instead of the confd user `id`. Existing favorites are migrated during the
   upgrade.

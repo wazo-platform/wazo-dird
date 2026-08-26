@@ -255,6 +255,17 @@ class InvalidContactId(APIException):
         )
 
 
+class SourceUnavailable(APIException):
+    def __init__(self, source_name: str) -> None:
+        super().__init__(
+            503,
+            f'Source "{source_name}" is unavailable',
+            'source-unavailable',
+            {'source': source_name},
+            'favorites',
+        )
+
+
 class WazoConfdError(APIException):
     def __init__(self, confd_client: Any, error: Exception) -> None:
         super().__init__(

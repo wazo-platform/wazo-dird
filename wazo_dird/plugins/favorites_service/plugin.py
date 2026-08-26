@@ -12,7 +12,7 @@ from wazo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDelet
 
 from wazo_dird import BaseServicePlugin, BaseSourcePlugin, database, exception, helpers
 from wazo_dird.database.helpers import Session
-from wazo_dird.exception import InvalidContactId
+from wazo_dird.exception import InvalidContactId, SourceUnavailable
 from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugins.base_plugins import SourceConfig
 from wazo_dird.plugins.source_result import _SourceResult
@@ -194,21 +194,23 @@ class _FavoritesService(helpers.BaseService):
         FavoriteList = namedtuple('FavoriteList', ['by_uuid', 'by_name'])
         return FavoriteList(by_uuid, by_name)
 
-    def _canonical_contact_id(
-        self, source: SourceInfo, source_name: str, contact_id: str
-    ) -> str:
+    def _canonical_contact_id(self, source: SourceInfo, contact_id: str) -> str:
         """The form the source stores, resolved before anything is written.
 
         The database holds one form per source, so nothing below this point
         meets a contact id in a shape a client used to send.
         """
+        source_name = source['name']
         source_plugin = self._source_manager.get(source['uuid'])
         if not source_plugin:
-            logger.info(
-                'source %s has no loaded plugin, storing its contact id unchanged',
+            # the source cannot resolve the id now and could not list it later;
+            # refusing keeps the failure here, and to this source alone
+            logger.warning(
+                'source %s has no loaded plugin, refusing to store %s',
                 source_name,
+                contact_id,
             )
-            return contact_id
+            raise SourceUnavailable(source_name)
 
         canonical = source_plugin.canonical_unique_id(contact_id)
         if canonical is None:
@@ -232,9 +234,7 @@ class _FavoritesService(helpers.BaseService):
         if not matching_source:
             raise self.NoSuchSourceException(source_name)
 
-        contact_id = self._canonical_contact_id(
-            matching_source, source_name, contact_id
-        )
+        contact_id = self._canonical_contact_id(matching_source, contact_id)
 
         backend = matching_source['backend']
         self._crud.create(user_uuid, tenant_uuid, backend, source_name, contact_id)
@@ -261,14 +261,10 @@ class _FavoritesService(helpers.BaseService):
             raise self.NoSuchSourceException(source_name)
 
         try:
-            contact_id = self._canonical_contact_id(
-                matching_source, source_name, contact_id
-            )
-        except InvalidContactId:
-            # a favorite of a contact the source has since lost cannot be
-            # resolved, and must still be removable
+            contact_id = self._canonical_contact_id(matching_source, contact_id)
+        except (InvalidContactId, SourceUnavailable):
             logger.info(
-                'source %s cannot resolve %s, deleting the favorite as stored',
+                'source %s cannot resolve %s, deleting the favorite as given',
                 source_name,
                 contact_id,
             )

@@ -17,7 +17,7 @@ from hamcrest import (
     not_,
 )
 
-from wazo_dird.exception import InvalidContactId
+from wazo_dird.exception import InvalidContactId, SourceUnavailable
 from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugin_manager import ServiceDependencies
 
@@ -233,11 +233,22 @@ class TestNewFavoriteResolvesTheContactId(unittest.TestCase):
 
         self._crud.create.assert_not_called()
 
-    def test_a_source_whose_plugin_is_not_loaded_still_accepts(self):
-        # favorites() already skips a source with no loaded plugin; a failed
-        # plugin must not also make favorites impossible to add
+    def test_a_source_that_cannot_be_reached_stores_nothing(self):
+        # an id kept without being resolved would name a contact no listing
+        # can return, so the failure belongs here rather than at read time
         self._source_manager.get.return_value = None
 
-        self._new_favorite()
+        self.assertRaises(SourceUnavailable, self._new_favorite)
 
-        self._crud.create.assert_called_once()
+        self._crud.create.assert_not_called()
+
+    def test_a_favorite_of_an_unreachable_source_stays_removable(self):
+        # a delete matches the stored contact id exactly, so it cannot remove
+        # the wrong favorite even when nothing can resolve the id
+        self._source_manager.get.return_value = None
+
+        self._service.remove_favorite(
+            s.tenant_uuid, 'my_source', 'a-contact-id', s.user
+        )
+
+        self._crud.delete.assert_called_once_with(s.user, 'my_source', 'a-contact-id')
