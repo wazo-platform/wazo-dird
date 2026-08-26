@@ -1056,6 +1056,48 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
 
         assert_that(result, contains_inanyorder(self._contact_1, self._contact_2))
 
+    def test_that_listing_is_limited_to_the_current_phonebook(self):
+        other_phonebook = self._phonebook_crud.create(
+            self._tenant_uuid, {'name': 'other'}
+        )
+        self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=other_phonebook['uuid']),
+            {'name': 'elsewhere'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid)
+        )
+
+        assert_that(
+            result,
+            contains_inanyorder(self._contact_1, self._contact_2, self._contact_3),
+        )
+
+    def test_that_count_and_list_agree_on_the_result_set(self):
+        # count() and list() must describe the same underlying row set --
+        # regression guard for _query_contacts / _paginate_contact_uuids drift
+        # (see PR review: they independently rebuild the same predicate).
+        for search in (None, 'o'):
+            contacts = self._crud.list(
+                [self._tenant_uuid],
+                database.PhonebookKey(uuid=self._phonebook_uuid),
+                search=search,
+            )
+            count = self._crud.count(
+                [self._tenant_uuid],
+                database.PhonebookKey(uuid=self._phonebook_uuid),
+                search=search,
+            )
+
+            assert_that(len(contacts), equal_to(count), f'search={search!r}')
+            assert_that(
+                len({contact['id'] for contact in contacts}),
+                equal_to(count),
+                f'search={search!r} (duplicate contacts in list())',
+            )
+
     def test_that_the_list_can_be_ordered(self):
         result = self._crud.list(
             [self._tenant_uuid],
@@ -1259,6 +1301,22 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
         )
 
         assert_that(result, equal_to(2))
+
+    def test_that_counting_is_limited_to_the_current_phonebook(self):
+        other_phonebook = self._phonebook_crud.create(
+            self._tenant_uuid, {'name': 'other'}
+        )
+        self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=other_phonebook['uuid']),
+            {'name': 'elsewhere'},
+        )
+
+        result = self._crud.count(
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid)
+        )
+
+        assert_that(result, equal_to(3))
 
     def test_that_counting_from_another_tenant_return_0(self):
         assert_that(
