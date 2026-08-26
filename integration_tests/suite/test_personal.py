@@ -142,6 +142,16 @@ class TestAddPersonal(PersonalOnlyTestCase):
 
         assert_that(result.status_code, equal_to(400))
 
+    def test_that_a_non_string_field_value_returns_400(self):
+        # Unlike phonebook contacts, personal contacts validate field value
+        # types upstream (_PersonalService.validate_contact) and must reject
+        # a non-string value with a clean error, not a crash.
+        result = self.post_personal_result(
+            {'firstname': 'Alice', 'number': 5555555555}, VALID_TOKEN_MAIN_TENANT
+        )
+
+        assert_that(result.status_code, equal_to(400))
+
     def test_that_adding_duplicated_personal_returns_409(self):
         self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN_MAIN_TENANT)
         result = self.post_personal_result(

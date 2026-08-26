@@ -1300,6 +1300,19 @@ class TestContactCRUD(_BaseTest):
         assert_that(contact_list, contains_exactly(expected(self.contact_1)))
 
     @with_user_uuid
+    def test_that_a_non_string_field_value_does_not_crash_sort_value_computation(
+        self, user_uuid
+    ):
+        # The DAO itself does not validate field value types (that happens in
+        # _PersonalService.validate_contact, one layer up); sort_value
+        # computation must not crash if it is ever reached directly.
+        body = {'firstname': 'Foo', 'number': 5555555555}
+
+        result = self._crud.create_personal_contact(TENANT_UUID, user_uuid, body)
+
+        assert_that(result, has_entries(number=5555555555))
+
+    @with_user_uuid
     def test_that_personal_contacts_are_unique(self, user_uuid):
         self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_1)
         assert_that(
