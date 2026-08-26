@@ -1254,6 +1254,47 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
             ),
         )
 
+    def test_that_contacts_without_the_order_field_sort_first_in_desc(self):
+        contact_4 = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'foo': 'bar'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            direction='desc',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(
+                contact_4, self._contact_2, self._contact_3, self._contact_1
+            ),
+        )
+
+    def test_that_an_empty_order_field_sorts_like_a_missing_one(self):
+        contact_4 = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': ''},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(
+                self._contact_1, self._contact_3, self._contact_2, contact_4
+            ),
+        )
+
 
 class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
     def setUp(self):
