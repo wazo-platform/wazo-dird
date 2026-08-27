@@ -1213,6 +1213,19 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
 
         assert_that(result, contains_exactly(self._contact_1, self._contact_3))
 
+    def test_that_a_zero_limit_means_no_limit(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            limit=0,
+        )
+
+        assert_that(
+            result,
+            contains_exactly(self._contact_1, self._contact_3, self._contact_2),
+        )
+
     def test_that_the_list_can_be_offset(self):
         result = self._crud.list(
             [self._tenant_uuid],
