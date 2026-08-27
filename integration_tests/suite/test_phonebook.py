@@ -602,6 +602,20 @@ class TestContactPost(_BasePhonebookContactTestCase):
             ]
         )
 
+    def test_that_a_non_string_field_value_is_accepted(self):
+        # A JSON body is not restricted to string values; unlike personal
+        # contacts, nothing here rejects a non-string value upstream, so it
+        # must be accepted without crashing.
+        self.set_tenants(self.tenant_1.name)
+        body = {'firstname': 'Alice', 'number': 5555555555}
+
+        result = self.post_phonebook_contact(
+            self.phonebook_1['uuid'], body, tenant=self.tenant_1.uuid
+        )
+
+        assert_that(result.status_code, equal_to(201))
+        assert_that(result.json(), has_entries(number=5555555555))
+
 
 class TestContactPut(_BasePhonebookContactTestCase):
     def setUp(self):

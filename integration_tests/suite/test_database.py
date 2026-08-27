@@ -695,6 +695,18 @@ class TestPhonebookContactCRUDCreate(_BasePhonebookContactCRUDTest):
         assert_that(result, equal_to(expected))
         assert_that(self._list_contacts(), has_item(expected))
 
+    def test_that_a_non_string_field_value_does_not_crash_sort_value_computation(self):
+        # A JSON contact body isn't restricted to string values (unlike CSV import
+        # or personal contacts, which validate this upstream) -- sort_value
+        # computation must not crash on e.g. an int, bool, or list value.
+        body = {'firstname': 'Foo', 'lastname': 'bar', 'number': 5555555555}
+
+        result = self._crud.create(
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid), body
+        )
+
+        assert_that(result, has_entries(number=5555555555))
+
     def test_that_duplicated_contacts_cannot_be_created(self):
         self._crud.create(
             [self._tenant_uuid],
@@ -1044,6 +1056,258 @@ class TestPhonebookContactCRUDList(_BasePhonebookContactCRUDTest):
 
         assert_that(result, contains_inanyorder(self._contact_1, self._contact_2))
 
+    def test_that_listing_is_limited_to_the_current_phonebook(self):
+        other_phonebook = self._phonebook_crud.create(
+            self._tenant_uuid, {'name': 'other'}
+        )
+        self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=other_phonebook['uuid']),
+            {'name': 'elsewhere'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid)
+        )
+
+        assert_that(
+            result,
+            contains_inanyorder(self._contact_1, self._contact_2, self._contact_3),
+        )
+
+    def test_that_count_and_list_agree_on_the_result_set(self):
+        # order='name' adds the sort-field join; that's the branch that can
+        # duplicate rows if it ever regresses.
+        for search, order in ((None, None), ('o', None), (None, 'name')):
+            contacts = self._crud.list(
+                [self._tenant_uuid],
+                database.PhonebookKey(uuid=self._phonebook_uuid),
+                search=search,
+                order=order,
+            )
+            count = self._crud.count(
+                [self._tenant_uuid],
+                database.PhonebookKey(uuid=self._phonebook_uuid),
+                search=search,
+            )
+
+            label = f'search={search!r} order={order!r}'
+            assert_that(len(contacts), equal_to(count), label)
+            assert_that(
+                len({contact['id'] for contact in contacts}),
+                equal_to(count),
+                f'{label} (duplicate contacts in list())',
+            )
+
+    def test_that_the_list_can_be_ordered(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(self._contact_1, self._contact_3, self._contact_2),
+        )
+
+    def test_that_ordering_folds_accents(self):
+        ane = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': 'ané'},
+        )
+        anz = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': 'anz'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+        )
+
+        # 'ané' folds to 'ane' and sorts before 'anz'; without accent folding the
+        # C.UTF-8 byte order would place 'anz' before 'ané'.
+        assert_that(
+            result,
+            contains_exactly(
+                ane, anz, self._contact_1, self._contact_3, self._contact_2
+            ),
+        )
+
+    def test_that_case_insensitive_ordering_folds_case_and_accents(self):
+        abe = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': 'Ábe'},
+        )
+        abz = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': 'abz'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            order_insensitive=True,
+        )
+
+        # 'Ábe' folds to 'abe' (case + accent) and sorts before 'abz'.
+        assert_that(
+            result,
+            contains_exactly(
+                abe, abz, self._contact_1, self._contact_3, self._contact_2
+            ),
+        )
+
+    def test_that_ordering_uses_unidecode_romanization(self):
+        # firstname -> unidecode: apple, arger, iana, oeuvre, strasse, zebra
+        for firstname in ['zebra', 'straße', 'œuvre', 'apple', 'яна', 'ärger']:
+            self._crud.create(
+                [self._tenant_uuid],
+                database.PhonebookKey(uuid=self._phonebook_uuid),
+                {'firstname': firstname},
+            )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='firstname',
+        )
+
+        # 'ä'->a, 'ß'->ss, 'œ'->oe, Cyrillic 'я'->ia: non-Latin / non-ASCII names
+        # sort by their unidecode romanization, not by raw code point order.
+        firstnames = [
+            dict(contact)['firstname'] for contact in result if 'firstname' in contact
+        ]
+        assert_that(
+            firstnames,
+            contains_exactly('apple', 'ärger', 'яна', 'œuvre', 'straße', 'zebra'),
+        )
+
+    def test_that_the_list_can_be_ordered_in_a_direction(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            direction='desc',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(self._contact_2, self._contact_3, self._contact_1),
+        )
+
+    def test_that_the_list_can_be_limited(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            limit=2,
+        )
+
+        assert_that(result, contains_exactly(self._contact_1, self._contact_3))
+
+    def test_that_a_zero_limit_means_no_limit(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            limit=0,
+        )
+
+        assert_that(
+            result,
+            contains_exactly(self._contact_1, self._contact_3, self._contact_2),
+        )
+
+    def test_that_the_list_can_be_offset(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            offset=1,
+        )
+
+        assert_that(result, contains_exactly(self._contact_3, self._contact_2))
+
+    def test_that_limit_and_offset_combine(self):
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            limit=1,
+            offset=1,
+        )
+
+        assert_that(result, contains_exactly(self._contact_3))
+
+    def test_that_contacts_without_the_order_field_sort_last(self):
+        contact_4 = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'foo': 'bar'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(
+                self._contact_1, self._contact_3, self._contact_2, contact_4
+            ),
+        )
+
+    def test_that_contacts_without_the_order_field_sort_first_in_desc(self):
+        contact_4 = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'foo': 'bar'},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+            direction='desc',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(
+                contact_4, self._contact_2, self._contact_3, self._contact_1
+            ),
+        )
+
+    def test_that_an_empty_order_field_sorts_like_a_missing_one(self):
+        contact_4 = self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            {'name': ''},
+        )
+
+        result = self._crud.list(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=self._phonebook_uuid),
+            order='name',
+        )
+
+        assert_that(
+            result,
+            contains_exactly(
+                self._contact_1, self._contact_3, self._contact_2, contact_4
+            ),
+        )
+
 
 class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
     def setUp(self):
@@ -1093,6 +1357,22 @@ class TestPhonebookContactCRUDCount(_BasePhonebookContactCRUDTest):
 
         assert_that(result, equal_to(2))
 
+    def test_that_counting_is_limited_to_the_current_phonebook(self):
+        other_phonebook = self._phonebook_crud.create(
+            self._tenant_uuid, {'name': 'other'}
+        )
+        self._crud.create(
+            [self._tenant_uuid],
+            database.PhonebookKey(uuid=other_phonebook['uuid']),
+            {'name': 'elsewhere'},
+        )
+
+        result = self._crud.count(
+            [self._tenant_uuid], database.PhonebookKey(uuid=self._phonebook_uuid)
+        )
+
+        assert_that(result, equal_to(3))
+
     def test_that_counting_from_another_tenant_return_0(self):
         assert_that(
             calling(self._crud.count).with_args(
@@ -1131,6 +1411,19 @@ class TestContactCRUD(_BaseTest):
 
         contact_list = self._crud.list_personal_contacts(user_uuid)
         assert_that(contact_list, contains_exactly(expected(self.contact_1)))
+
+    @with_user_uuid
+    def test_that_a_non_string_field_value_does_not_crash_sort_value_computation(
+        self, user_uuid
+    ):
+        # The DAO itself does not validate field value types (that happens in
+        # _PersonalService.validate_contact, one layer up); sort_value
+        # computation must not crash if it is ever reached directly.
+        body = {'firstname': 'Foo', 'number': 5555555555}
+
+        result = self._crud.create_personal_contact(TENANT_UUID, user_uuid, body)
+
+        assert_that(result, has_entries(number=5555555555))
 
     @with_user_uuid
     def test_that_personal_contacts_are_unique(self, user_uuid):

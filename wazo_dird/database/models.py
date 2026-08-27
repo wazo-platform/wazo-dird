@@ -86,6 +86,7 @@ class ContactFields(Base):
     id = Column(Integer(), primary_key=True)
     name = Column(Text(), nullable=False, index=True)
     value = Column(Text(), index=True)
+    sort_value = Column(Text())
     contact_uuid = Column(
         String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False
     )

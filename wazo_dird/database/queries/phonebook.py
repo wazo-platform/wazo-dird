@@ -5,14 +5,23 @@ from __future__ import annotations
 
 import builtins
 import logging
-from collections import defaultdict
 from typing import Any, TypedDict, cast
 
 from psycopg2 import errorcodes
-from sqlalchemy import and_, distinct, exc, func, or_, select, text
+from sqlalchemy import (
+    and_,
+    distinct,
+    exc,
+    func,
+    nullsfirst,
+    nullslast,
+    or_,
+    select,
+    text,
+)
 from sqlalchemy.orm import Query
 from sqlalchemy.orm import Session as BaseSession
-from sqlalchemy.orm import scoped_session
+from sqlalchemy.orm import aliased, scoped_session
 from sqlalchemy.sql.expression import ColumnElement
 
 from wazo_dird.database.queries.base import Direction
@@ -33,6 +42,7 @@ from .base import (
     ContactInfo,
     build_exten_contact_map,
     compute_contact_hash,
+    compute_sort_value,
     list_contacts_by_uuid,
 )
 
@@ -407,20 +417,73 @@ class PhonebookContactCRUD(BaseDAO):
         visible_tenants: list[str] | None,
         phonebook_key: PhonebookKey,
         search: str | None = None,
-    ) -> list[ContactInfo]:
+        order: str | None = None,
+        direction: Direction | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        order_insensitive: bool = False,
+    ) -> builtins.list[ContactInfo]:
         with self.new_session() as s:
             phonebook = self._get_phonebook(s, visible_tenants, phonebook_key)
-            fields = self._list_contact_fields(
+            uuids = self._paginate_contact_uuids(
                 s,
                 phonebook_key=PhonebookKey(uuid=phonebook.uuid),
                 search=search,
+                order=order,
+                direction=direction,
+                limit=limit,
+                offset=offset,
+                order_insensitive=order_insensitive,
             )
+            contacts_by_uuid = {
+                contact['id']: contact for contact in list_contacts_by_uuid(s, uuids)
+            }
 
-            result: dict[str, dict[str, Any]] = defaultdict(dict)
-            for field in fields:
-                result[field.contact_uuid][field.name] = field.value
+        # uuid can be missing if the contact was deleted between the two
+        # queries above (READ COMMITTED) -- skip it rather than KeyError.
+        return [contacts_by_uuid[uuid] for uuid in uuids if uuid in contacts_by_uuid]
 
-        return cast(list[ContactInfo], list(result.values()))
+    def _paginate_contact_uuids(
+        self,
+        s: BaseSession,
+        phonebook_key: PhonebookKey,
+        search: str | None,
+        order: str | None,
+        direction: Direction | None,
+        limit: int | None,
+        offset: int | None,
+        order_insensitive: bool,
+    ) -> builtins.list[str]:
+        query = self._query_contacts(s, phonebook_key, search).with_entities(
+            Contact.uuid
+        )
+
+        if order:
+            sort_field = aliased(ContactFields)
+            query = query.outerjoin(
+                sort_field,
+                and_(
+                    sort_field.contact_uuid == Contact.uuid,
+                    sort_field.name == order,
+                ),
+            )
+            sort_key: ColumnElement = func.nullif(sort_field.sort_value, '')
+            if order_insensitive:
+                sort_key = func.lower(sort_key)
+            if direction == 'desc':
+                query = query.order_by(nullsfirst(sort_key.desc()), Contact.uuid)
+            else:
+                query = query.order_by(nullslast(sort_key.asc()), Contact.uuid)
+        else:
+            query = query.order_by(Contact.uuid)
+
+        if offset:
+            query = query.offset(offset)
+        # TODO: change limit=0 behavior and uniformize with personal DAO
+        if limit:
+            query = query.limit(limit)
+
+        return [uuid for (uuid,) in query.all()]
 
     def _set_contact_fields(
         self, s: BaseSession, contact: Contact, contact_body: dict[str, Any]
@@ -437,9 +500,13 @@ class PhonebookContactCRUD(BaseDAO):
         for name, value in new_fields.items():
             if name in contact.fields:
                 contact.fields[name].value = value
+                contact.fields[name].sort_value = compute_sort_value(value)
             else:
                 contact.fields[name] = ContactFields(
-                    name=name, value=value, contact_uuid=contact.uuid
+                    name=name,
+                    value=value,
+                    sort_value=compute_sort_value(value),
+                    contact_uuid=contact.uuid,
                 )
 
     def _get_contact(
@@ -492,35 +559,8 @@ class PhonebookContactCRUD(BaseDAO):
         phonebook_filter = self._build_phonebook_filter(phonebook_key)
         search_filter = contact_search_filter(search)
         filter_ = and_(phonebook_filter, search_filter)
-        query = s.query(Contact).join(Phonebook).filter(filter_)
+        query = s.query(Contact).filter(filter_)
         return query
-
-    def _query_contact_fields(
-        self,
-        s: BaseSession,
-        phonebook_key: PhonebookKey,
-        search: str | None,
-    ) -> Query:
-        phonebook_filter = self._build_phonebook_filter(phonebook_key)
-        search_filter = contact_search_filter(search)
-        filter_ = and_(
-            phonebook_filter,
-            search_filter,
-        )
-        query = s.query(ContactFields).join(Contact).join(Phonebook).filter(filter_)
-        return query
-
-    def _list_contact_fields(
-        self,
-        s: BaseSession,
-        phonebook_key: PhonebookKey,
-        search: str | None = None,
-    ) -> builtins.list[ContactFields]:
-        query = self._query_contact_fields(
-            s, phonebook_key=phonebook_key, search=search
-        )
-        logger.debug("listing contact fields with query %s", str(query.statement))
-        return cast(builtins.list[ContactFields], query.all())
 
     def _new_contact_filter(
         self, tenant_uuid: str, phonebook_key: PhonebookKey, contact_uuid: str

@@ -3,7 +3,31 @@
 
 import unittest
 
-from wazo_dird.database.queries.base import build_exten_contact_map
+from wazo_dird.database.queries.base import build_exten_contact_map, compute_sort_value
+
+
+class TestComputeSortValue(unittest.TestCase):
+    def test_none_returns_none(self):
+        assert compute_sort_value(None) is None
+
+    def test_string_is_unidecoded(self):
+        assert compute_sort_value('Ärger') == 'Arger'
+
+    def test_empty_string_stays_empty(self):
+        assert compute_sort_value('') == ''
+
+    def test_int_is_stringified_not_unidecoded(self):
+        assert compute_sort_value(5555555555) == '5555555555'
+
+    def test_float_is_stringified(self):
+        assert compute_sort_value(3.14) == '3.14'
+
+    def test_bool_is_stringified(self):
+        assert compute_sort_value(True) == 'True'
+
+    def test_list_is_stringified_not_raised(self):
+        # not a value the API should send, but must not crash the write path
+        assert compute_sort_value(['a', 'b']) == "['a', 'b']"
 
 
 class TestBuildExtenContactMap(unittest.TestCase):

@@ -1,4 +1,4 @@
-# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -8,7 +8,6 @@ from unittest.mock import sentinel as s
 from hamcrest import (
     assert_that,
     calling,
-    contains_exactly,
     contains_inanyorder,
     contains_string,
     equal_to,
@@ -235,142 +234,8 @@ class TestPhonebookServiceContactAPI(_BasePhonebookServiceTest):
 
 
 class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
-    def setUp(self):
-        super().setUp()
-        self._manolo = {
-            'firstname': 'Manolo',
-            'lastname': 'Laporte-Carpentier',
-            'number': '5551111234',
-        }
-        self._annabelle = {
-            'firstname': 'Ännabelle',
-            'lastname': 'Courval',
-            'number': '5552221234',
-        }
-        self._gary_bob = {'firstname': 'Gary-Bob', 'lastname': 'Derome'}
-        self._antonin = {
-            'firstname': 'Antonin',
-            'lastname': 'Mongeau',
-            'number': '5554441234',
-        }
-        self._simon = {'firstname': 'Simon', 'lastname': "L'Espérance"}
-        self._contacts = [
-            self._manolo,
-            self._annabelle,
-            self._gary_bob,
-            self._antonin,
-            self._simon,
-        ]
-
-    def test_that_list_returns_the_db_result_when_no_pagination_or_sorting(self):
-        self.contact_crud.list.return_value = self._contacts
-
-        result = self.service.list_contacts(
-            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
-        )
-
-        self.contact_crud.list.assert_called_once_with(
-            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
-        )
-        assert_that(result, contains_exactly(*self._contacts))
-
-    def test_that_list_can_be_limited(self):
-        self.contact_crud.list.return_value = self._contacts
-
-        result = self.service.list_contacts(
-            [s.tenant_uuid],
-            PhonebookKey(uuid=s.phonebook_uuid),
-            search=s.search,
-            limit=2,
-        )
-
-        self.contact_crud.list.assert_called_once_with(
-            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
-        )
-        assert_that(result, contains_exactly(self._manolo, self._annabelle))
-
-    def test_that_list_can_have_an_offset(self):
-        self.contact_crud.list.return_value = self._contacts
-
-        result = self.service.list_contacts(
-            [s.tenant_uuid],
-            PhonebookKey(uuid=s.phonebook_uuid),
-            search=s.search,
-            offset=3,
-        )
-
-        self.contact_crud.list.assert_called_once_with(
-            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
-        )
-        assert_that(result, contains_exactly(self._antonin, self._simon))
-
-    def test_that_limit_and_offset_work_togeter(self):
-        self.contact_crud.list.return_value = self._contacts
-
-        result = self.service.list_contacts(
-            [s.tenant_uuid],
-            PhonebookKey(uuid=s.phonebook_uuid),
-            search=s.search,
-            offset=1,
-            limit=2,
-        )
-
-        self.contact_crud.list.assert_called_once_with(
-            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
-        )
-        assert_that(result, contains_exactly(self._annabelle, self._gary_bob))
-
-    def test_that_results_can_be_ordered(self):
-        self.contact_crud.list.return_value = self._contacts
-
-        result = self.service.list_contacts(
-            [s.tenant_uuid],
-            PhonebookKey(uuid=s.phonebook_uuid),
-            search=s.search,
-            order='firstname',
-        )
-
-        self.contact_crud.list.assert_called_once_with(
-            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
-        )
-        assert_that(
-            result,
-            contains_exactly(
-                self._annabelle,
-                self._antonin,
-                self._gary_bob,
-                self._manolo,
-                self._simon,
-            ),
-        )
-
-    def test_that_results_can_be_ordered_by_an_unknown_column_with_no_effect(self):
-        self.contact_crud.list.return_value = self._contacts
-
-        result = self.service.list_contacts(
-            [s.tenant_uuid],
-            PhonebookKey(uuid=s.phonebook_uuid),
-            search=s.search,
-            order='number',
-            direction='desc',
-        )
-
-        self.contact_crud.list.assert_called_once_with(
-            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
-        )
-        assert_that(
-            result,
-            contains_inanyorder(
-                self._manolo,
-                self._antonin,
-                self._annabelle,
-                self._gary_bob,  # no number
-                self._simon,
-            ),
-        )  # no number
-
-    def test_that_the_direction_can_be_specified(self):
-        self.contact_crud.list.return_value = self._contacts
+    def test_that_list_delegates_pagination_and_sorting_to_the_dao(self):
+        self.contact_crud.list.return_value = s.contacts
 
         result = self.service.list_contacts(
             [s.tenant_uuid],
@@ -378,39 +243,40 @@ class TestPhonebookServiceContactList(_BasePhonebookServiceTest):
             search=s.search,
             order='firstname',
             direction='desc',
-        )
-
-        self.contact_crud.list.assert_called_once_with(
-            [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
-        )
-        assert_that(
-            result,
-            contains_exactly(
-                self._simon,
-                self._manolo,
-                self._gary_bob,
-                self._antonin,
-                self._annabelle,
-            ),
-        )
-
-    def test_all(self):
-        self.contact_crud.list.return_value = self._contacts
-
-        result = self.service.list_contacts(
-            [s.tenant_uuid],
-            PhonebookKey(uuid=s.phonebook_uuid),
-            search=s.search,
-            order='lastname',
-            direction='desc',
-            limit=3,
+            limit=2,
             offset=1,
         )
 
         self.contact_crud.list.assert_called_once_with(
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
+            search=s.search,
+            order='firstname',
+            direction='desc',
+            limit=2,
+            offset=1,
+            order_insensitive=False,
+        )
+        assert_that(result, equal_to(s.contacts))
+
+    def test_that_list_passes_defaults_when_not_specified(self):
+        self.contact_crud.list.return_value = s.contacts
+
+        result = self.service.list_contacts(
             [s.tenant_uuid], PhonebookKey(uuid=s.phonebook_uuid), search=s.search
         )
-        assert_that(result, contains_exactly(self._manolo, self._simon, self._gary_bob))
+
+        self.contact_crud.list.assert_called_once_with(
+            [s.tenant_uuid],
+            PhonebookKey(uuid=s.phonebook_uuid),
+            search=s.search,
+            order=None,
+            direction=None,
+            limit=None,
+            offset=None,
+            order_insensitive=False,
+        )
+        assert_that(result, equal_to(s.contacts))
 
 
 class TestPhonebookServiceContactImport(_BasePhonebookServiceTest):
