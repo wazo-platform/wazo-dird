@@ -45,6 +45,11 @@ class TestListPersonal(PersonalOnlyTestCase):
 
         assert_that(result['items'], contains_exactly())
 
+    def test_that_a_zero_limit_returns_400(self):
+        result = self.list_personal_result(VALID_TOKEN_MAIN_TENANT, limit=0)
+
+        assert_that(result.status_code, equal_to(400))
+
 
 class TestDeletedUser(BaseDirdIntegrationTest):
     asset = 'personal_only'
