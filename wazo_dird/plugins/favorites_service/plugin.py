@@ -260,14 +260,18 @@ class _FavoritesService(helpers.BaseService):
         if not matching_source:
             raise self.NoSuchSourceException(source_name)
 
-        try:
-            contact_id = self._canonical_contact_id(matching_source, contact_id)
-        except (InvalidContactId, SourceUnavailable):
-            logger.info(
-                'source %s cannot resolve %s, deleting the favorite as given',
-                source_name,
-                contact_id,
-            )
+        # a delete matches the stored contact id exactly, so it only needs the
+        # deprecated form translated, never validated: a wrong id deletes nothing
+        source_plugin = self._source_manager.get(matching_source['uuid'])
+        if source_plugin is not None:
+            try:
+                contact_id = source_plugin.translate_unique_id(contact_id)
+            except SourceUnavailable:
+                logger.info(
+                    'source %s cannot resolve %s, deleting the favorite as given',
+                    source_name,
+                    contact_id,
+                )
 
         self._crud.delete(user_uuid, source_name, contact_id)
         event = FavoriteDeletedEvent(

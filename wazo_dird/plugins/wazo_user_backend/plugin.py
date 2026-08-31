@@ -7,12 +7,12 @@ import logging
 from collections.abc import Iterable, Iterator
 from typing import Any, cast
 
-from requests.exceptions import ConnectionError, HTTPError, RequestException
+from requests.exceptions import ConnectionError, RequestException
 from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import WazoConfdError
+from wazo_dird.exception import SourceUnavailable
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
@@ -175,6 +175,14 @@ class WazoUserPlugin(BaseSourcePlugin):
         user = self._confd_user(unique_id)
         return user['uuid'] if user else None
 
+    def translate_unique_id(self, unique_id: str) -> str:
+        # --- transition: drop this resolution once every favorite is
+        # migrated; any id is then deleted as given ---
+        if not unique_id.isdigit():
+            return unique_id
+        user = self._confd_user(unique_id)
+        return user['uuid'] if user else unique_id
+
     def _confd_user(self, unique_id: str) -> dict[str, Any] | None:
         """The confd user an id names, `None` if confd knows none.
 
@@ -184,13 +192,13 @@ class WazoUserPlugin(BaseSourcePlugin):
         assert self._client is not None
         try:
             user: dict[str, Any] = self._client.users.get(unique_id)
-        except HTTPError as e:
-            if e.response is not None and e.response.status_code == 404:
+        except RequestException as e:
+            response = getattr(e, 'response', None)
+            if getattr(response, 'status_code', None) == 404:
                 logger.info('%s: confd knows no user %s', self.name, unique_id)
                 return None
-            raise WazoConfdError(self._client, e)
-        except RequestException as e:
-            raise WazoConfdError(self._client, e)
+            logger.warning('%s: confd request failed: %s', self.name, e)
+            raise SourceUnavailable(self.name)
 
         return user
 

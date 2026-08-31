@@ -252,3 +252,25 @@ class TestNewFavoriteResolvesTheContactId(unittest.TestCase):
         )
 
         self._crud.delete.assert_called_once_with(s.user, 'my_source', 'a-contact-id')
+
+    def test_remove_favorite_translates_but_never_validates(self):
+        self._source_plugin.translate_unique_id.return_value = 'translated-id'
+
+        self._service.remove_favorite(
+            s.tenant_uuid, 'my_source', 'a-contact-id', s.user
+        )
+
+        self._source_plugin.translate_unique_id.assert_called_once_with('a-contact-id')
+        self._source_plugin.canonical_unique_id.assert_not_called()
+        self._crud.delete.assert_called_once_with(s.user, 'my_source', 'translated-id')
+
+    def test_remove_favorite_deletes_as_given_when_translation_fails(self):
+        self._source_plugin.translate_unique_id.side_effect = SourceUnavailable(
+            'my_source'
+        )
+
+        self._service.remove_favorite(
+            s.tenant_uuid, 'my_source', 'a-contact-id', s.user
+        )
+
+        self._crud.delete.assert_called_once_with(s.user, 'my_source', 'a-contact-id')

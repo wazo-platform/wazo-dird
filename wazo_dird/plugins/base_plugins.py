@@ -152,6 +152,10 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         """
         return unique_id
 
+    def translate_unique_id(self, unique_id: str) -> str:
+        """The stored form of `unique_id`, without checking it names a contact."""
+        return unique_id
+
     def list(self, uids: list[str], args: dict[str, Any] | None) -> list[SourceResult]:
         """
         Returns a list of results based on the unique column for this backend.

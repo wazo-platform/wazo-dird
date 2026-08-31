@@ -38,3 +38,9 @@ class TestCanonicalUniqueId(unittest.TestCase):
             assert_that(
                 self._source.canonical_unique_id(unique_id), equal_to(unique_id)
             )
+
+    def test_a_backend_translates_nothing_by_default(self):
+        for unique_id in ['226', 'abcd', '', 'a/b c', '7ca42f43-8bd9-4a26-acb8-cb']:
+            assert_that(
+                self._source.translate_unique_id(unique_id), equal_to(unique_id)
+            )

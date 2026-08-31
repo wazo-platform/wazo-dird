@@ -17,7 +17,7 @@ from hamcrest import (
 from requests import HTTPError, RequestException
 
 from wazo_dird import make_result_class
-from wazo_dird.exception import WazoConfdError
+from wazo_dird.exception import SourceUnavailable
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
@@ -366,7 +366,32 @@ class TestWazoUserBackendSearch(_BaseTest):
         # an unknown user is a 400, but an unreachable confd must not be
         self._confd_client.users.get.side_effect = RequestException()
 
-        self.assertRaises(WazoConfdError, self._source.canonical_unique_id, UUID_1)
+        self.assertRaises(SourceUnavailable, self._source.canonical_unique_id, UUID_1)
+
+    def test_translate_unique_id_of_a_uuid_does_not_ask_confd(self):
+        result = self._source.translate_unique_id(UUID_1)
+
+        self._confd_client.users.get.assert_not_called()
+        assert_that(result, equal_to(UUID_1))
+
+    def test_translate_unique_id_resolves_a_confd_id_during_the_transition(self):
+        self._confd_client.users.get.return_value = CONFD_USER_1
+
+        result = self._source.translate_unique_id('226')
+
+        self._confd_client.users.get.assert_called_once_with('226')
+        assert_that(result, equal_to(UUID_1))
+
+    def test_translate_unique_id_keeps_a_confd_id_confd_does_not_know(self):
+        # a wrong id deletes nothing, so there is nothing to refuse
+        self._confd_client.users.get.side_effect = _http_error(404)
+
+        assert_that(self._source.translate_unique_id('226'), equal_to('226'))
+
+    def test_translate_unique_id_aborts_when_confd_is_unreachable(self):
+        self._confd_client.users.get.side_effect = RequestException()
+
+        self.assertRaises(SourceUnavailable, self._source.translate_unique_id, '226')
 
     def test_list_with_empty_list_does_not_reach_confd(self):
         result = self._source.list(unique_ids=[])
