@@ -224,7 +224,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self, term: str | None = None, column: str = 'search'
     ) -> Iterable[SourceResult]:
         try:
-            uuid = self._get_stack_uuid()
+            uuid = self._get_wazo_uuid()
         except ConnectionError as e:
             logger.info('%s', e)
             return []
@@ -254,7 +254,7 @@ class WazoUserPlugin(BaseSourcePlugin):
 
         return (self._source_result_from_entry(entry, uuid) for entry in entries)
 
-    def _get_stack_uuid(self) -> str:
+    def _get_wazo_uuid(self) -> str:
         if self._uuid:
             return self._uuid
 
