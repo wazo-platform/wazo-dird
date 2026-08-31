@@ -6,23 +6,14 @@
   directory sources pointing at `localhost:9497` are migrated.
 
 * `PUT /0.1/directories/favorites/<source>/<contact_id>` now returns `400` when
-  the source rejects `contact_id`; a `wazo` source rejects an id that names no
-  confd user. Use the `source_entry_id` returned by a lookup for a valid id.
-  Sources that cannot check an id keep accepting any.
-
-* `PUT /0.1/directories/favorites/<source>/<contact_id>` now returns `503` when
-  the source cannot be reached, instead of storing a favorite that no listing
-  could resolve. Deleting a favorite of such a source still works.
+  the source rejects `contact_id` and `503` when the source cannot be reached,
+  instead of storing a favorite that no listing could resolve. Use the
+  `source_entry_id` returned by a lookup for a valid id.
 
 * Contacts of a `wazo` source are now identified by the confd user `uuid`
-  instead of the confd user `id`. Existing favorites are migrated during the
-  upgrade.
-  * `relations.source_entry_id` of a `wazo` contact, in lookup, reverse and
-    favorites results, is now the user uuid;
-  * `wazoSourceEntryId` in GraphQL results is now the user uuid;
-  * `PUT` and `DELETE /0.1/directories/favorites/<source>/<contact_id>` accept
-    the user uuid. The confd user id is still accepted for backward compatibility
-    (resolved to the corresponding user uuid).
+  instead of the confd user `id`: `relations.source_entry_id` in REST results,
+  `wazoSourceEntryId` in GraphQL results, and the id accepted by the favorites
+  endpoints. The confd user id is still accepted but deprecated.
 
 ## 26.08
 
