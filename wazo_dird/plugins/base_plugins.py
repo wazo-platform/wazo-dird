@@ -147,10 +147,8 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
     def canonical_unique_id(self, unique_id: str) -> str | None:
         """The id this backend stores for `unique_id`, `None` if there is none.
 
-        The favorites service stores what this returns, so a backend that
-        accepts more than one form of id translates it here and keeps a single
-        form in the database. Backends whose ids have no recognisable shape
-        accept anything, which is what this default does.
+        Backends accepting several id forms translate them here so the database
+        keeps a single form. The default accepts anything.
         """
         return unique_id
 
