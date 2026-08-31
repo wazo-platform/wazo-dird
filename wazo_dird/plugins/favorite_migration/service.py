@@ -19,6 +19,7 @@ from wazo_dird.utils import is_uuid
 logger = logging.getLogger(__name__)
 
 BACKEND = 'wazo'
+USER_LIST_LIMIT = 1000
 
 
 class SourceServiceProtocol(Protocol):
@@ -213,6 +214,25 @@ class FavoriteMigrationService:
 
     def _fetch_id_to_uuid(self, source: SourceInfo) -> dict[str, str]:
         client = registry.get(source)
-        users = client.users.list(view='directory', recurse=True)
-        logger.info('source %s: fetched %s confd users', source['name'], users['total'])
-        return {str(user['id']): user['uuid'] for user in users['items']}
+        id_to_uuid: dict[str, str] = {}
+        offset = 0
+        while True:
+            users = client.users.list(
+                view='directory', recurse=True, limit=USER_LIST_LIMIT, offset=offset
+            )
+            for user in users['items']:
+                id_to_uuid[str(user['id'])] = user['uuid']
+            offset += len(users['items'])
+            if not users['items']:
+                if offset < users['total']:
+                    logger.warning(
+                        'source %s: confd announced %s users but returned %s',
+                        source['name'],
+                        users['total'],
+                        offset,
+                    )
+                break
+            if offset >= users['total']:
+                break
+        logger.info('source %s: fetched %s confd users', source['name'], offset)
+        return id_to_uuid
