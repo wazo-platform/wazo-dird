@@ -45,6 +45,19 @@ class TestListPersonal(PersonalOnlyTestCase):
 
         assert_that(result['items'], contains_exactly())
 
+    def test_that_an_invalid_limit_or_offset_returns_400(self):
+        for value in [0, -1]:
+            result = self.list_personal_result(VALID_TOKEN_MAIN_TENANT, limit=value)
+            assert_that(result.status_code, equal_to(400), f'limit={value}')
+
+        result = self.list_personal_result(VALID_TOKEN_MAIN_TENANT, offset=-1)
+        assert_that(result.status_code, equal_to(400))
+
+    def test_that_a_valid_limit_and_offset_are_accepted(self):
+        result = self.list_personal_result(VALID_TOKEN_MAIN_TENANT, limit=1, offset=0)
+
+        assert_that(result.status_code, equal_to(200))
+
 
 class TestDeletedUser(BaseDirdIntegrationTest):
     asset = 'personal_only'
