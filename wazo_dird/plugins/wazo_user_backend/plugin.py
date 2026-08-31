@@ -205,20 +205,15 @@ class WazoUserPlugin(BaseSourcePlugin):
         # migrated; a client still sending a confd id then gets a 400 ---
         return is_uuid(unique_id) or unique_id.isdigit()
 
-    # NOTE: defined before `list` because the name `list` is shadowed by the
-    # method below for every annotation evaluated in this class body
-    def _list_by_uuid(self, unique_ids: list[str]) -> list[SourceResult]:
+    def list(
+        self, unique_ids: list[str], args: dict[str, Any] | None = None
+    ) -> list[SourceResult]:
+        """List contacts by unique id (user uuid)"""
         results: list[SourceResult] = []
         for start in range(0, len(unique_ids), LIST_BATCH_SIZE):
             batch = unique_ids[start : start + LIST_BATCH_SIZE]
             results.extend(self._fetch_entries(','.join(batch), 'uuid'))
         return results
-
-    def list(
-        self, unique_ids: list[str], args: dict[str, Any] | None = None
-    ) -> list[SourceResult]:
-        """List contacts by unique id (user uuid)"""
-        return self._list_by_uuid(unique_ids)
 
     def _fetch_entries(
         self, term: str | None = None, column: str = 'search'
