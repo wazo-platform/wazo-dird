@@ -5,6 +5,16 @@
 * Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
   directory sources pointing at `localhost:9497` are migrated.
 
+* `PUT /0.1/directories/favorites/<source>/<contact_id>` now returns `400` when
+  the source rejects `contact_id` and `503` when the source cannot be reached,
+  instead of storing a favorite that no listing could resolve. Use the
+  `source_entry_id` returned by a lookup for a valid id.
+
+* Contacts of a `wazo` source are now identified by the confd user `uuid`
+  instead of the confd user `id`: `relations.source_entry_id` in REST results,
+  `wazoSourceEntryId` in GraphQL results, and the id accepted by the favorites
+  endpoints. The confd user id is still accepted but deprecated.
+
 ## 26.08
 
 * New `rest_api.min_threads` option: threads kept ready at all times.

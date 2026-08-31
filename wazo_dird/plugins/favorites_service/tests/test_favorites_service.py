@@ -17,6 +17,7 @@ from hamcrest import (
     not_,
 )
 
+from wazo_dird.exception import InvalidContactId, SourceUnavailable
 from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugin_manager import ServiceDependencies
 
@@ -184,3 +185,92 @@ class TestFavoritesServiceTimeout(unittest.TestCase):
         results = self._service.favorites(profile_config, s.user_uuid)
 
         assert_that(results, contains_inanyorder(s.fast_result, s.slow_result))
+
+
+class TestNewFavoriteResolvesTheContactId(unittest.TestCase):
+    """The backend resolves the contact id before the service stores it."""
+
+    def setUp(self):
+        self._crud = Mock()
+        self._source_plugin = Mock()
+        self._source_manager = Mock()
+        self._source_manager.get.return_value = self._source_plugin
+        controller = Mock()
+        controller.services = {
+            'source': Mock(
+                list_=Mock(
+                    return_value=[
+                        {'uuid': s.source_uuid, 'name': 'my_source', 'backend': 'wazo'}
+                    ]
+                )
+            )
+        }
+        self._service = _FavoritesService(
+            {}, self._source_manager, controller, self._crud, Mock()
+        )
+
+    def tearDown(self):
+        self._service.stop()
+
+    def _new_favorite(self):
+        self._service.new_favorite(s.tenant_uuid, 'my_source', 'a-contact-id', s.user)
+
+    def test_the_resolved_contact_id_is_what_gets_stored(self):
+        # the database holds the form the source returns, not the one sent
+        self._source_plugin.canonical_unique_id.return_value = 'resolved-id'
+
+        self._new_favorite()
+
+        self._source_plugin.canonical_unique_id.assert_called_once_with('a-contact-id')
+        self._crud.create.assert_called_once_with(
+            s.user, s.tenant_uuid, 'wazo', 'my_source', 'resolved-id'
+        )
+
+    def test_a_contact_id_the_source_cannot_resolve_is_not_stored(self):
+        self._source_plugin.canonical_unique_id.return_value = None
+
+        self.assertRaises(InvalidContactId, self._new_favorite)
+
+        self._crud.create.assert_not_called()
+
+    def test_a_source_that_cannot_be_reached_stores_nothing(self):
+        # an id kept without being resolved would name a contact no listing
+        # can return, so the failure belongs here rather than at read time
+        self._source_manager.get.return_value = None
+
+        self.assertRaises(SourceUnavailable, self._new_favorite)
+
+        self._crud.create.assert_not_called()
+
+    def test_a_favorite_of_an_unreachable_source_stays_removable(self):
+        # a delete matches the stored contact id exactly, so it cannot remove
+        # the wrong favorite even when nothing can resolve the id
+        self._source_manager.get.return_value = None
+
+        self._service.remove_favorite(
+            s.tenant_uuid, 'my_source', 'a-contact-id', s.user
+        )
+
+        self._crud.delete.assert_called_once_with(s.user, 'my_source', 'a-contact-id')
+
+    def test_remove_favorite_translates_but_never_validates(self):
+        self._source_plugin.translate_unique_id.return_value = 'translated-id'
+
+        self._service.remove_favorite(
+            s.tenant_uuid, 'my_source', 'a-contact-id', s.user
+        )
+
+        self._source_plugin.translate_unique_id.assert_called_once_with('a-contact-id')
+        self._source_plugin.canonical_unique_id.assert_not_called()
+        self._crud.delete.assert_called_once_with(s.user, 'my_source', 'translated-id')
+
+    def test_remove_favorite_deletes_as_given_when_translation_fails(self):
+        self._source_plugin.translate_unique_id.side_effect = SourceUnavailable(
+            'my_source'
+        )
+
+        self._service.remove_favorite(
+            s.tenant_uuid, 'my_source', 'a-contact-id', s.user
+        )
+
+        self._crud.delete.assert_called_once_with(s.user, 'my_source', 'a-contact-id')

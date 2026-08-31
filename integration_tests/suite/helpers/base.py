@@ -101,6 +101,10 @@ class DirdMicrosoftAsset(DirdAssetLaunchingTestCase):
     asset = 'dird_microsoft'
 
 
+class FavoriteMigrationAsset(DirdAssetLaunchingTestCase):
+    asset = 'favorite_migration'
+
+
 class GraphqlLoadAsset(DirdAssetLaunchingTestCase):
     # `performance_suite/helpers` is a symlink on `suite/helpers`, so the
     # performance tests need their asset here too.

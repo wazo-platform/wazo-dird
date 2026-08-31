@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -12,14 +12,19 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.exception import SourceUnavailable
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
+from wazo_dird.utils import is_uuid
 
 from . import http
 
 logger = logging.getLogger(__name__)
+
+# confd documents maxItems 20 on the `uuid` filter of GET /users
+LIST_BATCH_SIZE = 20
 
 
 class WazoUserView(BaseBackendView):
@@ -46,6 +51,7 @@ class WazoUserView(BaseBackendView):
 class WazoUserPlugin(BaseSourcePlugin):
     _valid_keys = [
         'id',
+        'uuid',
         'exten',
         'firstname',
         'lastname',
@@ -75,7 +81,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._client = registry.get(config)
 
         self._SourceResult = make_result_class(
-            'wazo', self.name, 'id', format_columns=config.get('format_columns')
+            'wazo', self.name, 'uuid', format_columns=config.get('format_columns')
         )
         self._search_params.update(
             cast('dict[str, Any]', config.get('extra_search_params', {}))
@@ -162,24 +168,66 @@ class WazoUserPlugin(BaseSourcePlugin):
             logger.debug('Found no match')
         return results
 
+    def canonical_unique_id(self, unique_id: str) -> str | None:
+        if not self._is_known_id_form(unique_id):
+            return None
+
+        user = self._confd_user(unique_id)
+        return user['uuid'] if user else None
+
+    def translate_unique_id(self, unique_id: str) -> str:
+        # --- transition: drop this resolution once every favorite is
+        # migrated; any id is then deleted as given ---
+        if not unique_id.isdigit():
+            return unique_id
+        user = self._confd_user(unique_id)
+        return user['uuid'] if user else unique_id
+
+    def _confd_user(self, unique_id: str) -> dict[str, Any] | None:
+        """The confd user an id names, `None` if confd knows none.
+
+        confd resolves `GET /users/<id_or_uuid>`, so this both proves the
+        contact exists and gives the uuid the favorite is stored under.
+        """
+        assert self._client is not None
+        try:
+            user: dict[str, Any] = self._client.users.get(unique_id)
+        except RequestException as e:
+            response = getattr(e, 'response', None)
+            if getattr(response, 'status_code', None) == 404:
+                logger.info('%s: confd knows no user %s', self.name, unique_id)
+                return None
+            logger.warning('%s: confd request failed: %s', self.name, e)
+            raise SourceUnavailable(self.name)
+
+        return user
+
+    def _is_known_id_form(self, unique_id: str) -> bool:
+        """Reject an id of the wrong shape before asking confd about it.
+
+        confd resolves `GET /users/<id_or_uuid>`, so the shape has to be
+        checked here: without it a confd id would stay acceptable after the
+        transition ends.
+        """
+        # --- transition: drop `or unique_id.isdigit()` once every favorite is
+        # migrated; a client still sending a confd id then gets a 400 ---
+        return is_uuid(unique_id) or unique_id.isdigit()
+
     def list(
         self, unique_ids: list[str], args: dict[str, Any] | None = None
     ) -> list[SourceResult]:
-        entries = self._fetch_entries()
-
-        def match_fn(entry: SourceResult) -> bool:
-            for unique_id in unique_ids:
-                if unique_id == entry.get_unique():
-                    return True
-            return False
-
-        return [entry for entry in entries if match_fn(entry)]
+        """List contacts by unique id (user uuid)"""
+        results: list[SourceResult] = []
+        for start in range(0, len(unique_ids), LIST_BATCH_SIZE):
+            batch = unique_ids[start : start + LIST_BATCH_SIZE]
+            results.extend(self._fetch_entries(','.join(batch), 'uuid'))
+        return results
 
     def _fetch_entries(
         self, term: str | None = None, column: str = 'search'
     ) -> Iterable[SourceResult]:
         try:
-            uuid = self._get_uuid()
+            uuid = self._get_wazo_uuid()
         except ConnectionError as e:
             logger.info('%s', e)
             return []
@@ -209,7 +257,7 @@ class WazoUserPlugin(BaseSourcePlugin):
 
         return (self._source_result_from_entry(entry, uuid) for entry in entries)
 
-    def _get_uuid(self) -> str:
+    def _get_wazo_uuid(self) -> str:
         if self._uuid:
             return self._uuid
 

@@ -1,8 +1,8 @@
-# Copyright 2014-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
-from typing import cast
+from typing import Any, cast
 from unittest.mock import Mock, call, patch
 
 from hamcrest import (
@@ -14,12 +14,18 @@ from hamcrest import (
     is_,
     none,
 )
-from requests import RequestException
+from requests import HTTPError, RequestException
 
 from wazo_dird import make_result_class
+from wazo_dird.exception import SourceUnavailable
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
+
+
+def _http_error(status_code: int) -> RequestException:
+    return HTTPError(response=Mock(status_code=status_code))
+
 
 TENANT_UUID = '02153e33-4b59-4a9f-8cd1-7e917b306e1d'
 AUTH_CONFIG = {
@@ -48,7 +54,7 @@ UUID_2 = '22f51ae2-296d-4340-a7d5-3567ae66df73'
 SourceResult = make_result_class(
     cast(str, DEFAULT_ARGS['config']['backend']),
     cast(str, DEFAULT_ARGS['config']['name']),
-    unique_column='id',
+    unique_column='uuid',
 )
 
 CONFD_USER_1 = {
@@ -73,6 +79,7 @@ CONFD_USER_1 = {
 SOURCE_1 = SourceResult(
     {
         'id': 226,
+        'uuid': UUID_1,
         'exten': '666',
         'firstname': 'Louis-Jean',
         'lastname': '',
@@ -112,6 +119,7 @@ CONFD_USER_2 = {
 SOURCE_2 = SourceResult(
     {
         'id': 227,
+        'uuid': UUID_2,
         'exten': '1234',
         'firstname': 'Paul',
         'lastname': 'àccent',
@@ -132,15 +140,31 @@ SOURCE_2 = SourceResult(
 class _BaseTest(unittest.TestCase):
     def setUp(self):
         self._source = WazoUserPlugin()
+        # the source manager always names a source before loading it
+        self._source.name = cast(str, DEFAULT_ARGS['config']['name'])
         self._confd_client = Mock()
         self._source._client = self._confd_client
+
+
+def _confd_users_list(**params: Any) -> dict[str, Any]:
+    """Answer like confd: `uuid` is a filter, the other params are not.
+
+    dird narrows a `search` or a `first_matched_column` itself, so those stay
+    a pass-through; `uuid` is the one confd resolves, and a mock that ignored
+    it would let a wrong or missing filter pass unnoticed.
+    """
+    items: list[dict[str, Any]] = [CONFD_USER_1, CONFD_USER_2]
+    wanted = params.get('uuid')
+    if wanted is not None:
+        keep = set(wanted.split(','))
+        items = [user for user in items if user['uuid'] in keep]
+    return {'items': items, 'total': len(items)}
 
 
 class TestWazoUserBackendSearch(_BaseTest):
     def setUp(self):
         super().setUp()
-        response = {'items': [CONFD_USER_1, CONFD_USER_2], 'total': 2}
-        self._confd_client.users.list.return_value = response
+        self._confd_client.users.list.side_effect = _confd_users_list
         self._source._client = self._confd_client
         self._source._SourceResult = SourceResult
         self._source._uuid = UUID
@@ -266,30 +290,113 @@ class TestWazoUserBackendSearch(_BaseTest):
         call1 = call(recurse=True, view='directory', search='12')
         self._confd_client.users.list.assert_has_calls([call1])
 
-    def test_list_with_unknown_id(self):
-        result = self._source.list(unique_ids=['42'])
+    def test_list_with_unknown_uuid(self):
+        unknown_uuid = '11111111-1111-4111-8111-111111111111'
+
+        result = self._source.list(unique_ids=[unknown_uuid])
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory'
+            recurse=True, view='directory', uuid=unknown_uuid
         )
 
         assert_that(result, empty())
 
-    def test_list_with_known_id(self):
-        result = self._source.list(unique_ids=['226'])
+    def test_list_with_known_uuid(self):
+        result = self._source.list(unique_ids=[UUID_1])
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory'
+            recurse=True, view='directory', uuid=UUID_1
         )
 
         assert_that(result, contains_exactly(SOURCE_1))
 
-    def test_list_with_empty_list(self):
-        result = self._source.list(unique_ids=[])
+    def test_list_asks_confd_for_the_wanted_uuids_only(self):
+        result = self._source.list(unique_ids=[UUID_1, UUID_2])
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory'
+            recurse=True, view='directory', uuid=f'{UUID_1},{UUID_2}'
         )
+
+        assert_that(result, contains_exactly(SOURCE_1, SOURCE_2))
+
+    def test_list_splits_large_requests_in_batches(self):
+        uuids = [f'{i:08d}-1111-4111-8111-111111111111' for i in range(21)]
+
+        self._source.list(unique_ids=uuids)
+
+        assert_that(self._confd_client.users.list.call_count, equal_to(2))
+        first_call, second_call = self._confd_client.users.list.call_args_list
+        assert_that(
+            first_call,
+            equal_to(call(recurse=True, view='directory', uuid=','.join(uuids[:20]))),
+        )
+        assert_that(
+            second_call, equal_to(call(recurse=True, view='directory', uuid=uuids[20]))
+        )
+
+    def test_canonical_unique_id_of_a_uuid_confd_knows_is_that_uuid(self):
+        self._confd_client.users.get.return_value = CONFD_USER_1
+
+        result = self._source.canonical_unique_id(UUID_1)
+
+        self._confd_client.users.get.assert_called_once_with(UUID_1)
+        assert_that(result, equal_to(UUID_1))
+
+    def test_canonical_unique_id_translates_a_confd_id_during_the_transition(self):
+        # the write path stores the uuid, so the database keeps one form
+        self._confd_client.users.get.return_value = CONFD_USER_1
+
+        result = self._source.canonical_unique_id('226')
+
+        self._confd_client.users.get.assert_called_once_with('226')
+        assert_that(result, equal_to(UUID_1))
+
+    def test_canonical_unique_id_of_a_user_confd_does_not_know_is_none(self):
+        self._confd_client.users.get.side_effect = _http_error(404)
+
+        assert_that(self._source.canonical_unique_id(UUID_1), is_(none()))
+
+    def test_canonical_unique_id_of_a_malformed_id_does_not_ask_confd(self):
+        for unique_id in ['', 'not-an-id', '226-a', 'null']:
+            assert_that(self._source.canonical_unique_id(unique_id), is_(none()))
+
+        self._confd_client.users.get.assert_not_called()
+
+    def test_canonical_unique_id_aborts_when_confd_is_unreachable(self):
+        # an unknown user is a 400, but an unreachable confd must not be
+        self._confd_client.users.get.side_effect = RequestException()
+
+        self.assertRaises(SourceUnavailable, self._source.canonical_unique_id, UUID_1)
+
+    def test_translate_unique_id_of_a_uuid_does_not_ask_confd(self):
+        result = self._source.translate_unique_id(UUID_1)
+
+        self._confd_client.users.get.assert_not_called()
+        assert_that(result, equal_to(UUID_1))
+
+    def test_translate_unique_id_resolves_a_confd_id_during_the_transition(self):
+        self._confd_client.users.get.return_value = CONFD_USER_1
+
+        result = self._source.translate_unique_id('226')
+
+        self._confd_client.users.get.assert_called_once_with('226')
+        assert_that(result, equal_to(UUID_1))
+
+    def test_translate_unique_id_keeps_a_confd_id_confd_does_not_know(self):
+        # a wrong id deletes nothing, so there is nothing to refuse
+        self._confd_client.users.get.side_effect = _http_error(404)
+
+        assert_that(self._source.translate_unique_id('226'), equal_to('226'))
+
+    def test_translate_unique_id_aborts_when_confd_is_unreachable(self):
+        self._confd_client.users.get.side_effect = RequestException()
+
+        self.assertRaises(SourceUnavailable, self._source.translate_unique_id, '226')
+
+    def test_list_with_empty_list_does_not_reach_confd(self):
+        result = self._source.list(unique_ids=[])
+
+        self._confd_client.users.list.assert_not_called()
 
         assert_that(result, contains_exactly())
 

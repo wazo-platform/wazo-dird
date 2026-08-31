@@ -51,6 +51,7 @@ setup(
             'csv_backend = wazo_dird.plugins.csv_backend.plugin:CSVView',
             'csv_ws_backend = wazo_dird.plugins.csv_ws_backend.plugin:CSVWSView',
             'displays_view = wazo_dird.plugins.displays.plugin:DisplaysViewPlugin',
+            'favorite_migration = wazo_dird.plugins.favorite_migration.plugin:FavoriteMigrationViewPlugin',
             'default_json = wazo_dird.plugins.default_json.plugin:JsonViewPlugin',
             'google_view = wazo_dird.plugins.google_backend.plugin:GoogleViewPlugin',
             'graphql_view = wazo_dird.plugins.graphql.plugin:GraphQLViewPlugin',

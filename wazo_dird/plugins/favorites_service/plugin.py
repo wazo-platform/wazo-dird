@@ -12,6 +12,7 @@ from wazo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDelet
 
 from wazo_dird import BaseServicePlugin, BaseSourcePlugin, database, exception, helpers
 from wazo_dird.database.helpers import Session
+from wazo_dird.exception import InvalidContactId, SourceUnavailable
 from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugins.base_plugins import SourceConfig
 from wazo_dird.plugins.source_result import _SourceResult
@@ -193,6 +194,29 @@ class _FavoritesService(helpers.BaseService):
         FavoriteList = namedtuple('FavoriteList', ['by_uuid', 'by_name'])
         return FavoriteList(by_uuid, by_name)
 
+    def _canonical_contact_id(self, source: SourceInfo, contact_id: str) -> str:
+        """The form the source stores, resolved before anything is written.
+
+        The database holds one form per source, so nothing below this point
+        meets a contact id in a shape a client used to send.
+        """
+        source_name = source['name']
+        source_plugin = self._source_manager.get(source['uuid'])
+        if not source_plugin:
+            # the source cannot resolve the id now and could not list it later;
+            # refusing keeps the failure here, and to this source alone
+            logger.warning(
+                'source %s has no loaded plugin, refusing to store %s',
+                source_name,
+                contact_id,
+            )
+            raise SourceUnavailable(source_name)
+
+        canonical = source_plugin.canonical_unique_id(contact_id)
+        if canonical is None:
+            raise InvalidContactId(source_name, contact_id)
+        return canonical
+
     def new_favorite(
         self,
         tenant_uuid: str,
@@ -210,7 +234,9 @@ class _FavoritesService(helpers.BaseService):
         if not matching_source:
             raise self.NoSuchSourceException(source_name)
 
-        backend = source['backend']
+        contact_id = self._canonical_contact_id(matching_source, contact_id)
+
+        backend = matching_source['backend']
         self._crud.create(user_uuid, tenant_uuid, backend, source_name, contact_id)
         event = FavoriteAddedEvent(
             source_name, contact_id, self._xivo_uuid, tenant_uuid, user_uuid
@@ -233,6 +259,19 @@ class _FavoritesService(helpers.BaseService):
 
         if not matching_source:
             raise self.NoSuchSourceException(source_name)
+
+        # a delete matches the stored contact id exactly, so it only needs the
+        # deprecated form translated, never validated: a wrong id deletes nothing
+        source_plugin = self._source_manager.get(matching_source['uuid'])
+        if source_plugin is not None:
+            try:
+                contact_id = source_plugin.translate_unique_id(contact_id)
+            except SourceUnavailable:
+                logger.info(
+                    'source %s cannot resolve %s, deleting the favorite as given',
+                    source_name,
+                    contact_id,
+                )
 
         self._crud.delete(user_uuid, source_name, contact_id)
         event = FavoriteDeletedEvent(

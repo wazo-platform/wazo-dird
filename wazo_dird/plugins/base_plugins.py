@@ -1,4 +1,4 @@
-# Copyright 2014-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -143,6 +143,18 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
             if entry:
                 results[exten] = entry
         return results
+
+    def canonical_unique_id(self, unique_id: str) -> str | None:
+        """The id this backend stores for `unique_id`, `None` if there is none.
+
+        Backends accepting several id forms translate them here so the database
+        keeps a single form. The default accepts anything.
+        """
+        return unique_id
+
+    def translate_unique_id(self, unique_id: str) -> str:
+        """The stored form of `unique_id`, without checking it names a contact."""
+        return unique_id
 
     def list(self, uids: list[str], args: dict[str, Any] | None) -> list[SourceResult]:
         """

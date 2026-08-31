@@ -1,4 +1,4 @@
-# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -242,6 +242,28 @@ class InvalidPhonebookException(Exception):
 
 class InvalidContactException(Exception):
     pass
+
+
+class InvalidContactId(APIException):
+    def __init__(self, source_name: str, contact_id: str) -> None:
+        super().__init__(
+            400,
+            f'Invalid contact id for source "{source_name}"',
+            'invalid-contact-id',
+            {'source': source_name, 'contact_id': contact_id},
+            'favorites',
+        )
+
+
+class SourceUnavailable(APIException):
+    def __init__(self, source_name: str) -> None:
+        super().__init__(
+            503,
+            f'Source "{source_name}" is unavailable',
+            'source-unavailable',
+            {'source': source_name},
+            'favorites',
+        )
 
 
 class WazoConfdError(APIException):
