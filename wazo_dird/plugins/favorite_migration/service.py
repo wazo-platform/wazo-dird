@@ -247,6 +247,12 @@ class FavoriteMigrationService:
             self._auth_client.token.check(token, tenant=tenant_uuid)
         except MissingPermissionsTokenException:
             return False
+        except InvalidTokenException:
+            raise InvalidTokenAPIException(token, '')
+        except RequestException as e:
+            raise AuthServerUnreachable(
+                self._auth_client.host, self._auth_client.port, e
+            )
         return True
 
     def _fetch_id_to_uuid(self, source: SourceInfo) -> dict[str, str]:
