@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from flask import request
+
 from wazo_dird.auth import required_acl, required_master_tenant
 from wazo_dird.http import AuthResource
 
@@ -16,4 +18,4 @@ class FavoriteMigrationResource(AuthResource):
     @required_master_tenant()
     @required_acl('dird.favorite_migration.create')
     def post(self) -> tuple[MigrationReport, int]:
-        return self._service.migrate(), 200
+        return self._service.migrate(request.headers['X-Auth-Token']), 200

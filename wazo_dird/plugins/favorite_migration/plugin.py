@@ -22,7 +22,7 @@ class FavoriteMigrationViewPlugin(BaseViewPlugin):
         source_service = cast(
             'SourceServiceProtocol', dependencies['services']['source']
         )
-        service = FavoriteMigrationService(source_service)
+        service = FavoriteMigrationService(source_service, dependencies['auth_client'])
         api.add_resource(
             FavoriteMigrationResource,
             '/favorite_migration',

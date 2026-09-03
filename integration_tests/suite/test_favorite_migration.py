@@ -17,7 +17,7 @@ from wazo_dird import database
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_wazo_users_multiple_wazo_config
-from .helpers.constants import VALID_TOKEN_MAIN_TENANT
+from .helpers.constants import MAIN_TENANT, USER_2_TOKEN, VALID_TOKEN_MAIN_TENANT
 
 # See integration_tests/assets/confd_data/asset.wazo_users_multiple_wazo.
 # The same confd id maps to a different uuid on each wazo, which is why the
@@ -32,6 +32,7 @@ DELETED_USER_ID = '999'
 # each wazo knows only its own users, so the seed favorite differs per source
 SEED_UUIDS = {
     'wazo_america': AMERICA_USER_1_UUID,
+    'wazo_america_sub': AMERICA_USER_1_UUID,
     'wazo_asia': ASIA_USER_1_UUID,
     'wazo_europe': EUROPE_USER_42_UUID,
 }
@@ -45,6 +46,7 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
         with closing(self.Session()) as s:
             s.query(database.Favorite).delete()
             s.commit()
+        self.configure_wazo_auth()
         super().tearDown()
 
     @classmethod
@@ -61,7 +63,9 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
             )
             return source.uuid
 
-    def _given_legacy_favorite(self, source_name, contact_id):
+    def _given_legacy_favorite(
+        self, source_name, contact_id, token=VALID_TOKEN_MAIN_TENANT
+    ):
         """Write the row a pre-upgrade wazo-dird would have written.
 
         It cannot go through the API: the write path now asks confd whether
@@ -70,7 +74,7 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
         the favorite refers to, then the contact_id is forced.
         """
         seed_uuid = SEED_UUIDS[source_name]
-        self.put_favorite(source_name, seed_uuid)
+        self.put_favorite(source_name, seed_uuid, token=token)
         source_uuid = self._source_uuid(source_name)
         with closing(self.Session()) as s:
             s.query(database.Favorite).filter(
@@ -183,6 +187,39 @@ class TestFavoriteMigration(BaseDirdIntegrationTest):
                 )
             ),
         )
+
+    def test_favorites_of_a_source_whose_tenant_is_gone_are_dropped(self):
+        self._given_legacy_favorite('wazo_america_sub', '1', token=USER_2_TOKEN)
+        self.put_favorite('wazo_america_sub', AMERICA_USER_42_UUID, token=USER_2_TOKEN)
+        self.mock_auth_client.set_tenants(
+            {
+                'uuid': MAIN_TENANT,
+                'name': 'dird-tests-master',
+                'parent_uuid': MAIN_TENANT,
+            }
+        )
+
+        report = self.post_favorite_migration().json()
+
+        assert_that(
+            report,
+            has_entries(migrated=0, dropped=2, orphan_sources=1, failed_sources=0),
+        )
+        assert_that(
+            report['sources'],
+            contains_exactly(
+                has_entries(
+                    source_name='wazo_america_sub',
+                    tenant_deleted=True,
+                    error=None,
+                    dropped=contains_inanyorder(
+                        has_entries(contact_id='1'),
+                        has_entries(contact_id=AMERICA_USER_42_UUID),
+                    ),
+                )
+            ),
+        )
+        assert_that(self._contact_ids('wazo_america_sub'), empty())
 
     def test_sources_without_favorites_are_not_queried(self):
         report = self.post_favorite_migration().json()
