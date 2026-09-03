@@ -9,7 +9,11 @@ from typing import Any, Protocol, TypedDict
 from requests.exceptions import RequestException
 from sqlalchemy import and_
 from wazo_auth_client import Client as AuthClient
-from wazo_auth_client.exceptions import MissingPermissionsTokenException
+from wazo_auth_client.exceptions import (
+    InvalidTokenException,
+    MissingPermissionsTokenException,
+)
+from xivo.http_exceptions import AuthServerUnreachable, InvalidTokenAPIException
 
 from wazo_dird.database import Favorite
 from wazo_dird.database.helpers import Session
