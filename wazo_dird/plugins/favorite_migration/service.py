@@ -8,6 +8,12 @@ from typing import Any, Protocol, TypedDict
 
 from requests.exceptions import RequestException
 from sqlalchemy import and_
+from wazo_auth_client import Client as AuthClient
+from wazo_auth_client.exceptions import (
+    InvalidTokenException,
+    MissingPermissionsTokenException,
+)
+from xivo.http_exceptions import AuthServerUnreachable, InvalidTokenAPIException
 
 from wazo_dird.database import Favorite
 from wazo_dird.database.helpers import Session
@@ -41,6 +47,7 @@ class SourceReport(TypedDict):
     already_migrated: int
     deduplicated: int
     dropped: list[DroppedFavorite]
+    tenant_deleted: bool
     error: str | None
 
 
@@ -49,6 +56,7 @@ class MigrationReport(TypedDict):
     already_migrated: int
     deduplicated: int
     dropped: int
+    orphan_sources: int
     failed_sources: int
     sources: list[SourceReport]
 
@@ -122,22 +130,26 @@ class FavoriteMigrationDAO(BaseDAO):
 
 
 class FavoriteMigrationService:
-    def __init__(self, source_service: SourceServiceProtocol) -> None:
+    def __init__(
+        self, source_service: SourceServiceProtocol, auth_client: AuthClient
+    ) -> None:
         self._source_service = source_service
+        self._auth_client = auth_client
         self._dao = FavoriteMigrationDAO(Session)
 
-    def migrate(self) -> MigrationReport:
+    def migrate(self, token: str) -> MigrationReport:
         report: MigrationReport = {
             'migrated': 0,
             'already_migrated': 0,
             'deduplicated': 0,
             'dropped': 0,
+            'orphan_sources': 0,
             'failed_sources': 0,
             'sources': [],
         }
 
         for source in self._source_service.list_(BACKEND, None):
-            source_report = self._migrate_source(source)
+            source_report = self._migrate_source(source, token)
             if source_report is None:
                 continue
             report['sources'].append(source_report)
@@ -145,13 +157,15 @@ class FavoriteMigrationService:
             report['already_migrated'] += source_report['already_migrated']
             report['deduplicated'] += source_report['deduplicated']
             report['dropped'] += len(source_report['dropped'])
+            if source_report['tenant_deleted']:
+                report['orphan_sources'] += 1
             if source_report['error']:
                 report['failed_sources'] += 1
 
         logger.info('favorite migration done: %s', report)
         return report
 
-    def _migrate_source(self, source: SourceInfo) -> SourceReport | None:
+    def _migrate_source(self, source: SourceInfo, token: str) -> SourceReport | None:
         source_uuid = source['uuid']
         favorites = self._dao.list_favorites(source_uuid)
         if not favorites:
@@ -164,8 +178,28 @@ class FavoriteMigrationService:
             'already_migrated': 0,
             'deduplicated': 0,
             'dropped': [],
+            'tenant_deleted': False,
             'error': None,
         }
+
+        if not self._tenant_exists(source['tenant_uuid'], token):
+            # no listing reaches a deleted tenant's source, so nothing can resolve them
+            logger.warning(
+                'source %s: tenant %s no longer exists, dropping its %s favorite(s)',
+                source['name'],
+                source['tenant_uuid'],
+                len(favorites),
+            )
+            report['tenant_deleted'] = True
+            report['dropped'] = [
+                {'contact_id': contact_id, 'user_uuid': user_uuid}
+                for contact_id, user_uuid in favorites
+            ]
+            self._dao.drop(
+                source_uuid,
+                [(user_uuid, contact_id) for contact_id, user_uuid in favorites],
+            )
+            return report
 
         pending = [
             (contact_id, user_uuid)
@@ -211,6 +245,19 @@ class FavoriteMigrationService:
         )
         self._dao.drop(source_uuid, drops)
         return report
+
+    def _tenant_exists(self, tenant_uuid: str, token: str) -> bool:
+        try:
+            self._auth_client.token.check(token, tenant=tenant_uuid)
+        except MissingPermissionsTokenException:
+            return False
+        except InvalidTokenException:
+            raise InvalidTokenAPIException(token, '')
+        except RequestException as e:
+            raise AuthServerUnreachable(
+                self._auth_client.host, self._auth_client.port, e
+            )
+        return True
 
     def _fetch_id_to_uuid(self, source: SourceInfo) -> dict[str, str]:
         client = registry.get(source)
