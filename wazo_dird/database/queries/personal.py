@@ -20,7 +20,7 @@ from .base import (
     ContactInfo,
     build_exten_contact_map,
     compute_contact_hash,
-    compute_sort_value,
+    compute_normalized_value,
     list_contacts_by_uuid,
     unaccent,
 )
@@ -227,7 +227,7 @@ class PersonalContactCRUD(BaseDAO):
                     ContactFields(
                         name=name,
                         value=value,
-                        sort_value=compute_sort_value(value),
+                        normalized_value=compute_normalized_value(value),
                         contact_uuid=contact.uuid,
                     )
                 )

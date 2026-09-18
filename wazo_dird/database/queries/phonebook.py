@@ -42,7 +42,7 @@ from .base import (
     ContactInfo,
     build_exten_contact_map,
     compute_contact_hash,
-    compute_sort_value,
+    compute_normalized_value,
     list_contacts_by_uuid,
 )
 
@@ -467,7 +467,7 @@ class PhonebookContactCRUD(BaseDAO):
                     sort_field.name == order,
                 ),
             )
-            sort_key: ColumnElement = func.nullif(sort_field.sort_value, '')
+            sort_key: ColumnElement = func.nullif(sort_field.normalized_value, '')
             if order_insensitive:
                 sort_key = func.lower(sort_key)
             if direction == 'desc':
@@ -500,12 +500,12 @@ class PhonebookContactCRUD(BaseDAO):
         for name, value in new_fields.items():
             if name in contact.fields:
                 contact.fields[name].value = value
-                contact.fields[name].sort_value = compute_sort_value(value)
+                contact.fields[name].normalized_value = compute_normalized_value(value)
             else:
                 contact.fields[name] = ContactFields(
                     name=name,
                     value=value,
-                    sort_value=compute_sort_value(value),
+                    normalized_value=compute_normalized_value(value),
                     contact_uuid=contact.uuid,
                 )
 

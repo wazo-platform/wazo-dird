@@ -146,7 +146,10 @@ class _BaseTest(unittest.TestCase):
                 ids.append(dird_contact.uuid)
                 for name, value in contact.items():
                     field = database.ContactFields(
-                        name=name, value=value, contact_uuid=dird_contact.uuid
+                        name=name,
+                        value=value,
+                        normalized_value=base.compute_normalized_value(value),
+                        contact_uuid=dird_contact.uuid,
                     )
                     session.add(field)
                 session.commit()

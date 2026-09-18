@@ -56,7 +56,7 @@ def list_contacts_by_uuid(session: BaseSession, uuids: list[str]) -> list[Contac
     return cast(list[ContactInfo], list(result.values()))
 
 
-def compute_sort_value(value: Any) -> str | None:
+def compute_normalized_value(value: Any) -> str | None:
     if value is None:
         return None
     if not isinstance(value, str):
