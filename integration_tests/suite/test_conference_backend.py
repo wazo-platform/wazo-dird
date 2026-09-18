@@ -9,6 +9,7 @@ from hamcrest import (
     contains_inanyorder,
     empty,
     has_entries,
+    has_length,
 )
 
 from .helpers.base import BaseDirdIntegrationTest, DirdAssetRunningTestCase
@@ -92,6 +93,14 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
                 )
             ),
         )
+
+    def test_lookup_honours_the_limit(self):
+        result = self.backend.search('a')
+        assert_that(result, has_length(3))
+
+        result = self.backend.search('a', {'limit': 1})
+
+        assert_that(result, has_length(1))
 
     def test_lookup_by_incall(self):
         result = self.backend.search('1009')

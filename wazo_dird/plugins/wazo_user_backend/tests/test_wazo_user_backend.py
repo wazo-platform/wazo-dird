@@ -414,3 +414,30 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source._fetch_entries()
 
         assert_that(result, empty())
+
+    def test_that_search_asks_confd_for_the_limit(self):
+        self._source._searched_columns = ['firstname', 'lastname']
+
+        self._source.search(term='paul', args={'limit': 7})
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='paul', limit=7
+        )
+
+    def test_that_search_without_a_limit_asks_confd_for_every_user(self):
+        self._source._searched_columns = ['firstname', 'lastname']
+
+        self._source.search(term='paul')
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='paul'
+        )
+
+    def test_that_first_match_never_limits_confd(self):
+        self._source._first_matched_columns = ['exten']
+
+        self._source.first_match('1234', {'limit': 7})
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='1234'
+        )

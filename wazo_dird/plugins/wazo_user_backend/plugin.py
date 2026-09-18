@@ -91,14 +91,11 @@ class WazoUserPlugin(BaseSourcePlugin):
     def unload(self) -> None:
         registry.unregister_all()
 
-    def search(  # type: ignore[override]
-        self,
-        term: str,
-        profile: Any | None = None,
-        args: dict[str, Any] | None = None,
+    def search(
+        self, term: str, args: dict[str, Any] | None = None
     ) -> list[SourceResult]:
         clean_term = unidecode(term.lower())
-        entries = self._fetch_entries(term)
+        entries = self._fetch_entries(term, limit=(args or {}).get('limit'))
 
         def match_fn(entry: SourceResult) -> bool:
             for column in self._searched_columns:
@@ -224,7 +221,10 @@ class WazoUserPlugin(BaseSourcePlugin):
         return results
 
     def _fetch_entries(
-        self, term: str | None = None, column: str = 'search'
+        self,
+        term: str | None = None,
+        column: str = 'search',
+        limit: int | None = None,
     ) -> Iterable[SourceResult]:
         try:
             uuid = self._get_wazo_uuid()
@@ -241,7 +241,7 @@ class WazoUserPlugin(BaseSourcePlugin):
             return []
 
         try:
-            entries = self._fetch_users(term, column)
+            entries = self._fetch_users(term, column, limit)
         except ConnectionError as e:
             logger.info('%s', e)
             return []
@@ -268,11 +268,18 @@ class WazoUserPlugin(BaseSourcePlugin):
         return uuid
 
     def _fetch_users(
-        self, term: str | None = None, column: str = 'search'
+        self,
+        term: str | None = None,
+        column: str = 'search',
+        limit: int | None = None,
     ) -> Iterator[dict[str, Any]]:
         search_params = dict(self._search_params)
         if term:
             search_params[column] = term
+        if limit:
+            # confd searches its own columns and this source narrows the answer
+            # again, so a limited search can return fewer results than asked.
+            search_params['limit'] = limit
         assert self._client is not None
         users = self._client.users.list(**search_params)
         logger.debug('Fetched %s users', users['total'])

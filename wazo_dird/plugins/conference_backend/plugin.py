@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -6,6 +6,7 @@ from __future__ import annotations
 import builtins
 import logging
 from collections.abc import Iterator
+from itertools import islice
 from typing import Any, cast
 
 from requests import HTTPError
@@ -88,16 +89,20 @@ class ConferencePlugin(BaseSourcePlugin):
         logger.debug('Found %s conferences', len(results))
         return results
 
-    def search(  # type: ignore[override]
-        self,
-        term: str,
-        profile: Any | None = None,
-        args: dict[str, Any] | None = None,
+    def search(
+        self, term: str, args: dict[str, Any] | None = None
     ) -> builtins.list[SourceResult]:
         logger.debug('Looking for all conferences matching "%s"', term)
         clean_term = unidecode(term.lower())
         contacts = self._fetch_contacts()
-        matching_contacts = (c for c in contacts if self._search_filter(clean_term, c))
+        matching_contacts: Iterator[dict[str, Any]] = (
+            c for c in contacts if self._search_filter(clean_term, c)
+        )
+        # this source matches on incalls, which confd cannot search, so it
+        # fetches every conference and the cut comes after the filter
+        limit = (args or {}).get('limit')
+        if limit:
+            matching_contacts = islice(matching_contacts, limit)
         results = [self._SourceResult(c) for c in matching_contacts]
         logger.debug('Found %s conferences', len(results))
         return results
