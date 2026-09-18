@@ -64,6 +64,11 @@ def compute_normalized_value(value: Any) -> str | None:
     return unidecode(value)
 
 
+def normalize_search_term(term: str) -> str:
+    """Fold accents like `normalized_value`; ILIKE covers the case."""
+    return unidecode(term)
+
+
 def compute_contact_hash(contact_info: Mapping[str, Any]) -> str:
     d = dict(contact_info)
     d.pop('id', None)

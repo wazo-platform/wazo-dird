@@ -15,6 +15,7 @@ from hamcrest import (
     calling,
     contains_exactly,
     contains_inanyorder,
+    contains_string,
     empty,
     equal_to,
     has_entries,
@@ -24,7 +25,7 @@ from hamcrest import (
     not_,
     raises,
 )
-from sqlalchemy import and_, exc, func
+from sqlalchemy import and_, exc, func, text
 from sqlalchemy.orm import scoped_session
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
@@ -1758,6 +1759,52 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
         assert_that(result, empty())
 
+    def test_that_searching_folds_accents_and_case(self):
+        contact = self.phonebook_contact_crud.create(
+            [self.tenant_uuid],
+            database.PhonebookKey(uuid=self.phonebook_uuid),
+            {'firstname': 'Lea', 'lastname': 'Bérubé'},
+        )
+
+        for term in ['Bérubé', 'berube', 'BERUBE', 'BÉRUBÉ', 'rub']:
+            assert_that(
+                self.engine.find_contacts(term), has_item(contact), f'term {term!r}'
+            )
+
+    def test_that_creating_a_contact_fills_normalized_value(self):
+        contact = self.phonebook_contact_crud.create(
+            [self.tenant_uuid],
+            database.PhonebookKey(uuid=self.phonebook_uuid),
+            {'firstname': 'Lea', 'lastname': 'Bérubé'},
+        )
+
+        assert_that(self._normalized_values(contact['id']), has_item('Berube'))
+
+    def test_that_editing_a_contact_fills_normalized_value(self):
+        contact = self.phonebook_contact_crud.create(
+            [self.tenant_uuid],
+            database.PhonebookKey(uuid=self.phonebook_uuid),
+            {'firstname': 'Lea', 'lastname': 'Bérubé'},
+        )
+
+        self.phonebook_contact_crud.edit(
+            [self.tenant_uuid],
+            database.PhonebookKey(uuid=self.phonebook_uuid),
+            contact['id'],
+            {'firstname': 'Lea', 'lastname': 'Désirée'},
+        )
+
+        assert_that(self._normalized_values(contact['id']), has_item('Desiree'))
+
+    def _normalized_values(self, contact_uuid):
+        with closing(Session()) as s:
+            return [
+                field.normalized_value
+                for field in s.query(database.ContactFields).filter(
+                    database.ContactFields.contact_uuid == contact_uuid
+                )
+            ]
+
     def test_that_no_searched_columns_does_not_search(self):
         engine = database.PhonebookContactSearchEngine(
             Session,
@@ -1819,6 +1866,34 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
 
 class TestPersonalContactSearchEngine(_BaseTest):
+    @with_user_uuid
+    def test_that_searching_folds_accents_and_case(self, user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            Session, searched_columns=['lastname']
+        )
+        contact = {'firstname': 'Lea', 'lastname': 'Bérubé'}
+        self._insert_personal_contacts(user_uuid, contact)
+
+        for term in ['Bérubé', 'berube', 'BERUBE', 'BÉRUBÉ', 'rub']:
+            assert_that(
+                engine.find_personal_contacts(user_uuid, term),
+                contains_exactly(expected(contact)),
+                f'term {term!r}',
+            )
+
+    @with_user_uuid
+    def test_that_creating_a_contact_fills_normalized_value(self, user_uuid):
+        crud = database.PersonalContactCRUD(Session)
+
+        crud.create_personal_contact(
+            TENANT_UUID, user_uuid, {'firstname': 'Lea', 'lastname': 'Bérubé'}
+        )
+
+        with closing(Session()) as s:
+            values = [f.normalized_value for f in s.query(database.ContactFields)]
+
+        assert_that(values, has_item('Berube'))
+
     @with_user_uuid
     def test_that_find_first_returns_a_contact(self, user_uuid):
         engine = database.PersonalContactSearchEngine(
@@ -2247,3 +2322,64 @@ class TestTenantCRUD(_BaseTest):
 
         result = self._crud.create(tenant_uuid=TENANT_UUID, country='CA')
         assert result == {'uuid': TENANT_UUID, 'country': 'CA'}
+
+
+class TestContactFieldsSearchIndexes(_BaseTest):
+    """Indexes that the contact search depends on."""
+
+    def _indexdef(self, name):
+        with closing(Session()) as session:
+            return session.execute(
+                text('select indexdef from pg_indexes where indexname = :name'),
+                {'name': name},
+            ).scalar()
+
+    def test_pg_trgm_extension_is_installed(self):
+        with closing(Session()) as session:
+            installed = session.execute(
+                text("select count(*) from pg_extension where extname = 'pg_trgm'")
+            ).scalar()
+
+        assert_that(installed, equal_to(1))
+
+    def test_normalized_value_has_a_gin_trigram_index(self):
+        indexdef = self._indexdef('dird_contact_fields__idx__normalized_value_trgm')
+
+        assert_that(indexdef, contains_string('USING gin'))
+        assert_that(indexdef, contains_string('gin_trgm_ops'))
+
+    def _plan_for(self, where: str) -> str:
+        with closing(Session()) as session:
+            # the table is empty here, so only ask whether the index *can* be used
+            session.execute(text('SET LOCAL enable_seqscan = off'))
+            return '\n'.join(
+                row[0]
+                for row in session.execute(
+                    text(
+                        'EXPLAIN SELECT contact_uuid FROM dird_contact_fields '
+                        f'WHERE {where}'
+                    )
+                ).all()
+            )
+
+    def test_the_search_filter_uses_the_trigram_index(self):
+        plan = self._plan_for("normalized_value ILIKE '%mccontact%'")
+
+        assert_that(
+            plan, contains_string('dird_contact_fields__idx__normalized_value_trgm')
+        )
+
+    def test_wrapping_the_column_in_a_function_does_not_use_the_index(self):
+        """The index is on the column, not on an expression."""
+        plan = self._plan_for("lower(normalized_value) LIKE '%mccontact%'")
+
+        assert_that(
+            plan,
+            not_(contains_string('dird_contact_fields__idx__normalized_value_trgm')),
+        )
+
+    def test_value_keeps_its_btree_index(self):
+        """`match_all` probes `value IN (...)`, far cheaper on the btree."""
+        indexdef = self._indexdef('ix_dird_contact_fields_value')
+
+        assert_that(indexdef, contains_string('USING btree'))

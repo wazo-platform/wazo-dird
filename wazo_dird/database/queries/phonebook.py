@@ -44,6 +44,7 @@ from .base import (
     compute_contact_hash,
     compute_normalized_value,
     list_contacts_by_uuid,
+    normalize_search_term,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,13 +88,13 @@ class PhonebookContactSearchEngine(BaseDAO):
         self._phonebook_key = phonebook_key
 
     def find_contacts(self, term: str) -> list[ContactInfo]:
-        pattern = f'%{term}%'
+        pattern = f'%{normalize_search_term(term)}%'
         filter_ = self._new_search_filter(pattern, self._searched_columns)
         with self.new_session() as s:
             return self._find_contacts_with_filter(s, filter_)
 
     def find_first_contact(self, term: str) -> ContactInfo | None:
-        filter_ = self._new_search_filter(term, self._first_match_columns)
+        filter_ = self._new_first_match_filter(term, self._first_match_columns)
         with self.new_session() as s:
             for contact in self._find_contacts_with_filter(s, filter_, limit=1):
                 return contact
@@ -182,7 +183,19 @@ class PhonebookContactSearchEngine(BaseDAO):
         if not columns:
             return False
 
-        return and_(ContactFields.value.ilike(pattern), ContactFields.name.in_(columns))
+        return and_(
+            ContactFields.normalized_value.ilike(pattern),
+            ContactFields.name.in_(columns),
+        )
+
+    def _new_first_match_filter(
+        self, term: str, columns: list[str] | None
+    ) -> bool | ColumnElement:
+        if not columns:
+            return False
+
+        # phone numbers: no folding, and `value` carries the btree
+        return and_(ContactFields.value.ilike(term), ContactFields.name.in_(columns))
 
 
 def contact_search_filter(search: str | None) -> bool | ColumnElement:
@@ -190,7 +203,11 @@ def contact_search_filter(search: str | None) -> bool | ColumnElement:
         Contact.uuid.in_(
             select(ContactFields.contact_uuid)
             .join(Contact)
-            .filter(ContactFields.value.ilike(f'%{search}%'))
+            .filter(
+                ContactFields.normalized_value.ilike(
+                    f'%{normalize_search_term(search)}%'
+                )
+            )
         )
         if search
         else True
