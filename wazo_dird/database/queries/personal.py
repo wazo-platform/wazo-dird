@@ -71,9 +71,11 @@ class PersonalContactSearchEngine(BaseDAO):
             )
             return build_exten_contact_map(rows, extens, self._first_match_columns)
 
-    def find_personal_contacts(self, user_uuid: str, term: str) -> list[ContactInfo]:
+    def find_personal_contacts(
+        self, user_uuid: str, term: str, limit: int | None = None
+    ) -> list[ContactInfo]:
         filter_ = self._new_search_filter(user_uuid, term, self._searched_columns)
-        return self._find_personal_contacts_with_filter(filter_)
+        return self._find_personal_contacts_with_filter(filter_, limit=limit)
 
     def list_personal_contacts(
         self, user_uuid: str, uuids: list[str] | None = None

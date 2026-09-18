@@ -55,7 +55,18 @@ class TestPersonalBackend(TestCase):
         self._source.search('alice', {'token': 'valid-token', 'user_uuid': SOME_UUID})
 
         self._search_engine.find_personal_contacts.assert_called_once_with(
-            SOME_UUID, 'alice'
+            SOME_UUID, 'alice', limit=None
+        )
+
+    def test_that_search_forwards_the_limit_to_the_search_engine(self):
+        self._search_engine.find_personal_contacts.return_value = [CONTACT_1]
+
+        self._source.search(
+            'alice', {'token': 'valid-token', 'user_uuid': SOME_UUID, 'limit': 7}
+        )
+
+        self._search_engine.find_personal_contacts.assert_called_once_with(
+            SOME_UUID, 'alice', limit=7
         )
 
     def test_that_first_match_calls_find_first_personal_contact(self):

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 from concurrent.futures import ALL_COMPLETED, Future, ThreadPoolExecutor, wait
+from itertools import chain, islice
 from time import perf_counter
 from typing import Any
 
@@ -15,6 +16,9 @@ from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 logger = logging.getLogger(__name__)
 timing_logger = logger.getChild('timing')
+
+# TASK-589 load-test arm: hardcoded until the API parameter lands
+DEFAULT_LOOKUP_LIMIT = 50
 
 
 class LookupServicePlugin(BaseServicePlugin):
@@ -108,6 +112,7 @@ class _LookupService(helpers.BaseService):
             args['token'] = token
             args['user_uuid'] = user_uuid
             args['xivo_user_uuid'] = user_uuid
+            args['limit'] = DEFAULT_LOOKUP_LIMIT
             futures.append(self._async_search(source, term, args))
 
         params: dict[str, Any] = {'return_when': ALL_COMPLETED}
@@ -117,8 +122,9 @@ class _LookupService(helpers.BaseService):
             params['timeout'] = timeout
 
         done, _ = wait(futures, **params)
-        results = []
-        for future in done:
-            for result in future.result():
-                results.append(result)
-        return results
+        return list(
+            islice(
+                chain.from_iterable(future.result() for future in done),
+                DEFAULT_LOOKUP_LIMIT,
+            )
+        )

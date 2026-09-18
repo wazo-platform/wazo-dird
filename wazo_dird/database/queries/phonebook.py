@@ -86,11 +86,11 @@ class PhonebookContactSearchEngine(BaseDAO):
         self._visible_tenants = visible_tenants
         self._phonebook_key = phonebook_key
 
-    def find_contacts(self, term: str) -> list[ContactInfo]:
+    def find_contacts(self, term: str, limit: int | None = None) -> list[ContactInfo]:
         pattern = f'%{term}%'
         filter_ = self._new_search_filter(pattern, self._searched_columns)
         with self.new_session() as s:
-            return self._find_contacts_with_filter(s, filter_)
+            return self._find_contacts_with_filter(s, filter_, limit=limit)
 
     def find_first_contact(self, term: str) -> ContactInfo | None:
         filter_ = self._new_search_filter(term, self._first_match_columns)

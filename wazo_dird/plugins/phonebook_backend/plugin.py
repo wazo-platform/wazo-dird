@@ -125,7 +125,8 @@ class PhonebookPlugin(BaseSourcePlugin):
         self, term: str, args: dict[str, Any] | None = None
     ) -> list[SourceResult]:
         logger.debug('Searching phonebook contact with %s', term)
-        matching_contacts = self._search_engine.find_contacts(term)
+        limit = (args or {}).get('limit')
+        matching_contacts = self._search_engine.find_contacts(term, limit=limit)
         return self.format_contacts(matching_contacts)
 
     def first_match(

@@ -65,7 +65,9 @@ class PersonalBackend(BaseSourcePlugin):
         logger.debug('Searching personal contacts with %s', term)
         assert args is not None
         user_uuid = args['user_uuid']
-        matching_contacts = self._search_engine.find_personal_contacts(user_uuid, term)
+        matching_contacts = self._search_engine.find_personal_contacts(
+            user_uuid, term, limit=args.get('limit')
+        )
         return self.format_contacts(matching_contacts)
 
     def first_match(

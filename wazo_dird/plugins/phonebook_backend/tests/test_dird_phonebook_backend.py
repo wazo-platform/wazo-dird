@@ -88,3 +88,17 @@ class TestDirdPhonebook(unittest.TestCase):
         self.engine.find_contacts_for_extens.return_value = {}
 
         assert_that(self.source.match_all(['555']), equal_to({}))
+
+    def test_that_search_forwards_the_limit_to_the_search_engine(self):
+        self.engine.find_contacts.return_value = []
+
+        self.source.search('foo', {'limit': 7})
+
+        self.engine.find_contacts.assert_called_once_with('foo', limit=7)
+
+    def test_that_search_without_a_limit_asks_for_every_contact(self):
+        self.engine.find_contacts.return_value = []
+
+        self.source.search('foo', {})
+
+        self.engine.find_contacts.assert_called_once_with('foo', limit=None)

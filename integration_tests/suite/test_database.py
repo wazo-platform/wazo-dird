@@ -1814,8 +1814,38 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
         assert_that(result, contains_inanyorder(self.mia, self.jimmie))
 
+    def test_that_find_contacts_honours_the_limit(self):
+        result = self.engine.find_contacts('Wallace')
+        assert_that(result, contains_inanyorder(self.mia, self.marcellus))
+
+        result = self.engine.find_contacts('Wallace', limit=1)
+
+        assert_that(result, contains_exactly(any_of(self.mia, self.marcellus)))
+
 
 class TestPersonalContactSearchEngine(_BaseTest):
+    @with_user_uuid
+    def test_that_find_personal_contacts_honours_the_limit(self, user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            Session, searched_columns=['number']
+        )
+        self._insert_personal_contacts(user_uuid, self.contact_2, self.contact_3)
+
+        result = engine.find_personal_contacts(user_uuid, '5555550001')
+        assert_that(
+            result,
+            contains_inanyorder(expected(self.contact_2), expected(self.contact_3)),
+        )
+
+        result = engine.find_personal_contacts(user_uuid, '5555550001', limit=1)
+
+        assert_that(
+            result,
+            contains_exactly(
+                any_of(expected(self.contact_2), expected(self.contact_3))
+            ),
+        )
+
     @with_user_uuid
     def test_that_find_first_returns_a_contact(self, user_uuid):
         engine = database.PersonalContactSearchEngine(

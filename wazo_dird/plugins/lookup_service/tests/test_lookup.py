@@ -11,7 +11,7 @@ from hamcrest import assert_that, contains_string, equal_to, none, not_
 from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugin_manager import ServiceDependencies
 
-from ..plugin import LookupServicePlugin, _LookupService
+from ..plugin import DEFAULT_LOOKUP_LIMIT, LookupServicePlugin, _LookupService
 
 
 def _deps(deps: dict) -> ServiceDependencies:
@@ -147,3 +147,42 @@ class TestLookupPerSourceTiming(unittest.TestCase):
         assert_that(messages[0], contains_string('queue_ms='))
         assert_that(messages[0], contains_string('exec_ms='))
         assert_that(messages[0], contains_string('results=2'))
+
+
+class TestLookupDefaultLimit(unittest.TestCase):
+    def _service_with_sources(self, *sources: Mock) -> _LookupService:
+        source_manager = Mock()
+        source_manager.get.side_effect = list(sources)
+        return _LookupService(
+            config={}, source_manager=source_manager, controller=Mock()
+        )
+
+    @staticmethod
+    def _profile(source_count: int) -> ProfileConfig:
+        sources = [{'uuid': f'src-{i}'} for i in range(source_count)]
+        return cast(
+            ProfileConfig,
+            {'name': 'test', 'services': {'lookup': {'sources': sources}}},
+        )
+
+    def test_that_each_source_is_given_the_limit(self):
+        source = Mock()
+        source.search.return_value = []
+        service = self._service_with_sources(source)
+
+        service.lookup(self._profile(1), 'tenant', 'alice', 'user-uuid')
+
+        _, args = source.search.call_args[0]
+        assert_that(args.get('limit'), equal_to(DEFAULT_LOOKUP_LIMIT))
+
+    def test_that_the_aggregated_results_are_capped_at_the_limit(self):
+        sources = []
+        for _ in range(2):
+            source = Mock()
+            source.search.return_value = list(range(DEFAULT_LOOKUP_LIMIT))
+            sources.append(source)
+        service = self._service_with_sources(*sources)
+
+        results = service.lookup(self._profile(2), 'tenant', 'alice', 'user-uuid')
+
+        assert_that(len(results), equal_to(DEFAULT_LOOKUP_LIMIT))
