@@ -198,7 +198,7 @@ class PhonebookContactSearchEngine(BaseDAO):
             return False
 
         # phone numbers: no folding, and `value` carries the btree
-        return and_(ContactFields.value.ilike(term), ContactFields.name.in_(columns))
+        return and_(ContactFields.value == term, ContactFields.name.in_(columns))
 
 
 def contact_search_filter(search: str | None) -> bool | ColumnElement:
