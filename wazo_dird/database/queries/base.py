@@ -59,9 +59,14 @@ def compute_normalized_value(value: Any) -> str | None:
     return unidecode(value)
 
 
-def normalize_search_term(term: str) -> str:
-    """Fold accents like `normalized_value`; ILIKE covers the case."""
-    return unidecode(term)
+def search_pattern(term: str) -> str | None:
+    """Fold accents like `normalized_value`; ILIKE covers the case.
+
+    `None` when the term folds away to nothing, which matches nothing rather
+    than every row.
+    """
+    folded = unidecode(term)
+    return f'%{folded}%' if folded else None
 
 
 def compute_contact_hash(contact_info: Mapping[str, Any]) -> str:

@@ -21,7 +21,7 @@ from .base import (
     compute_contact_hash,
     compute_normalized_value,
     list_contacts_by_uuid,
-    normalize_search_term,
+    search_pattern,
 )
 
 
@@ -119,7 +119,10 @@ class PersonalContactSearchEngine(BaseDAO):
         if not columns:
             return False
 
-        pattern = f'%{normalize_search_term(term)}%'
+        pattern = search_pattern(term)
+        if pattern is None:
+            return False
+
         return and_(
             User.user_uuid == user_uuid,
             ContactFields.normalized_value.ilike(pattern),

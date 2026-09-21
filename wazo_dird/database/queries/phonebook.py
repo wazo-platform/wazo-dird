@@ -44,7 +44,7 @@ from .base import (
     compute_contact_hash,
     compute_normalized_value,
     list_contacts_by_uuid,
-    normalize_search_term,
+    search_pattern,
 )
 
 logger = logging.getLogger(__name__)
@@ -88,7 +88,10 @@ class PhonebookContactSearchEngine(BaseDAO):
         self._phonebook_key = phonebook_key
 
     def find_contacts(self, term: str) -> list[ContactInfo]:
-        pattern = f'%{normalize_search_term(term)}%'
+        pattern = search_pattern(term)
+        if pattern is None:
+            return []
+
         filter_ = self._new_search_filter(pattern, self._searched_columns)
         with self.new_session() as s:
             return self._find_contacts_with_filter(s, filter_)
@@ -199,20 +202,18 @@ class PhonebookContactSearchEngine(BaseDAO):
 
 
 def contact_search_filter(search: str | None) -> bool | ColumnElement:
-    search_filter = (
-        Contact.uuid.in_(
-            select(ContactFields.contact_uuid)
-            .join(Contact)
-            .filter(
-                ContactFields.normalized_value.ilike(
-                    f'%{normalize_search_term(search)}%'
-                )
-            )
-        )
-        if search
-        else True
+    if not search:
+        return True
+
+    pattern = search_pattern(search)
+    if pattern is None:
+        return False
+
+    return Contact.uuid.in_(
+        select(ContactFields.contact_uuid)
+        .join(Contact)
+        .filter(ContactFields.normalized_value.ilike(pattern))
     )
-    return search_filter
 
 
 class ContactEntryError(TypedDict):

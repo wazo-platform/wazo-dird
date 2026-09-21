@@ -1759,6 +1759,24 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
         assert_that(result, empty())
 
+    def test_that_a_term_folding_to_nothing_matches_nothing(self):
+        for term in ['', '\U0001F600', '\U0001F600\U0001F389']:
+            assert_that(self.engine.find_contacts(term), empty(), f'term {term!r}')
+
+    def test_that_a_listing_search_folding_to_nothing_matches_nothing(self):
+        total = self.phonebook_contact_crud.count(
+            [self.tenant_uuid], database.PhonebookKey(uuid=self.phonebook_uuid)
+        )
+        assert_that(total, equal_to(6))
+
+        matched = self.phonebook_contact_crud.count(
+            [self.tenant_uuid],
+            database.PhonebookKey(uuid=self.phonebook_uuid),
+            search='\U0001F600',
+        )
+
+        assert_that(matched, equal_to(0))
+
     def test_that_searching_folds_accents_and_case(self):
         contact = self.phonebook_contact_crud.create(
             [self.tenant_uuid],
@@ -1866,6 +1884,20 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
 
 class TestPersonalContactSearchEngine(_BaseTest):
+    @with_user_uuid
+    def test_that_a_term_folding_to_nothing_matches_nothing(self, user_uuid):
+        engine = database.PersonalContactSearchEngine(
+            Session, searched_columns=['lastname']
+        )
+        self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
+
+        for term in ['', '\U0001F600', '\U0001F600\U0001F389']:
+            assert_that(
+                engine.find_personal_contacts(user_uuid, term),
+                empty(),
+                f'term {term!r}',
+            )
+
     @with_user_uuid
     def test_that_searching_folds_accents_and_case(self, user_uuid):
         engine = database.PersonalContactSearchEngine(
