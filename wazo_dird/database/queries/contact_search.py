@@ -58,7 +58,7 @@ class ContactSearchEngine(BaseDAO):
         if not self._first_match_columns:
             return False
 
-        # phone numbers: no folding, and `value` carries the btree
+        # phone numbers: exact match, relies on btree indexing of value
         return and_(
             ContactFields.value == term,
             ContactFields.name.in_(self._first_match_columns),
