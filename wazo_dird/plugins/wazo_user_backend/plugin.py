@@ -120,6 +120,24 @@ class WazoUserPlugin(BaseSourcePlugin):
         self, term: str, args: dict[str, Any] | None = None
     ) -> SourceResult | None:
         logger.debug('Looking for "%s"', term)
+
+        if self._exact_match_supported():
+            for column in self._first_matched_columns:
+                match = self._fetch_exact_matches(column, [term]).get(term)
+                if match is not None:
+                    logger.debug('Found a match: %s', match)
+                    return match
+            logger.debug('Found no match')
+            return None
+
+        return self._first_match_by_search(term)
+
+    def _first_match_by_search(self, term: str) -> SourceResult | None:
+        """Match a column confd cannot filter on exactly.
+
+        confd searches its own columns with a substring match, so the answer
+        has to be narrowed here.
+        """
         entries = self._fetch_entries(term)
 
         def match_fn(entry: SourceResult) -> bool:
@@ -135,19 +153,31 @@ class WazoUserPlugin(BaseSourcePlugin):
         logger.debug('Found no match')
         return None
 
+    def _exact_match_supported(self) -> bool:
+        return all(
+            column in self._match_all_supported_columns
+            for column in self._first_matched_columns
+        )
+
+    def _fetch_exact_matches(
+        self, column: str, terms: list[str]
+    ) -> dict[str, SourceResult]:
+        logger.debug('Looking for "%s"="%s"', column, terms)
+        entries = self._fetch_entries(','.join(terms), column)
+        matches = {}
+        for entry in entries:
+            value = entry.fields.get(column)
+            if value is not None and value in terms:
+                matches[value] = entry
+        return matches
+
     def match_all(
         self, terms: list[str], args: dict[str, Any] | None = None
     ) -> dict[str, SourceResult]:
         results: dict[str, SourceResult] = {}
 
         # NOTE(fblackburn) fallback if one of fields are not supported
-        supported = all(
-            column in self._match_all_supported_columns
-            for column in self._first_matched_columns
-        )
-        first_match_faster = len(terms) < len(self._first_matched_columns)
-        if not supported or first_match_faster:
-            results = {}
+        if not self._exact_match_supported():
             for term in terms:
                 match = self.first_match(term, args=args)
                 if match is not None:
@@ -155,14 +185,7 @@ class WazoUserPlugin(BaseSourcePlugin):
             return results
 
         for column in self._first_matched_columns:
-            terms_merged = ','.join(terms)
-            logger.debug('Looking for "%s"="%s"', column, terms)
-            entries = self._fetch_entries(terms_merged, column)
-            for entry in entries:
-                value = entry.fields.get(column)
-                if value is not None and value in terms:
-                    results[value] = entry
-                    logger.debug('Found a match: %s', entry)
+            results.update(self._fetch_exact_matches(column, terms))
 
         if not results:
             logger.debug('Found no match')

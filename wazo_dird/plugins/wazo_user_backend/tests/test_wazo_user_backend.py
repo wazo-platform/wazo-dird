@@ -147,17 +147,16 @@ class _BaseTest(unittest.TestCase):
 
 
 def _confd_users_list(**params: Any) -> dict[str, Any]:
-    """Answer like confd: `uuid` is a filter, the other params are not.
-
-    dird narrows a `search` or a `first_matched_column` itself, so those stay
-    a pass-through; `uuid` is the one confd resolves, and a mock that ignored
-    it would let a wrong or missing filter pass unnoticed.
+    """Answer like confd: `uuid`, `exten` and `mobile_phone_number` are exact
+    filters, `search` is not.
     """
     items: list[dict[str, Any]] = [CONFD_USER_1, CONFD_USER_2]
-    wanted = params.get('uuid')
-    if wanted is not None:
+    for field in ('uuid', 'exten', 'mobile_phone_number'):
+        wanted = params.get(field)
+        if wanted is None:
+            continue
         keep = set(wanted.split(','))
-        items = [user for user in items if user['uuid'] in keep]
+        items = [user for user in items if user[field] in keep]
     return {'items': items, 'total': len(items)}
 
 
@@ -229,13 +228,49 @@ class TestWazoUserBackendSearch(_BaseTest):
 
         assert_that(result, contains_exactly(SOURCE_2))
 
-    def test_first_match(self):
+    def test_first_match_uses_the_exact_filter(self):
         self._source._first_matched_columns = ['exten']
 
         result = self._source.first_match('1234')
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='1234'
+            recurse=True, view='directory', exten='1234'
+        )
+
+        assert_that(result, equal_to(SOURCE_2))
+
+    def test_first_match_stops_at_the_first_column_that_matches(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        result = self._source.first_match('1234')
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', exten='1234'
+        )
+
+        assert_that(result, equal_to(SOURCE_2))
+
+    def test_first_match_tries_every_supported_column(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        result = self._source.first_match('5555551234')
+
+        self._confd_client.users.list.assert_has_calls(
+            [
+                call(recurse=True, view='directory', exten='5555551234'),
+                call(recurse=True, view='directory', mobile_phone_number='5555551234'),
+            ]
+        )
+
+        assert_that(result, equal_to(SOURCE_1))
+
+    def test_first_match_falls_back_to_search_for_an_unsupported_column(self):
+        self._source._first_matched_columns = ['userfield']
+
+        result = self._source.first_match('555')
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', search='555'
         )
 
         assert_that(result, equal_to(SOURCE_2))
@@ -282,13 +317,17 @@ class TestWazoUserBackendSearch(_BaseTest):
         call2 = call(recurse=True, view='directory', search='34')
         self._confd_client.users.list.assert_has_calls([call1, call2])
 
-    def test_match_all_when_first_match_faster_then_fallback(self):
+    def test_match_all_uses_the_exact_filters_even_for_a_single_term(self):
         self._source._first_matched_columns = ['exten', 'mobile_phone_number']
 
         self._source.match_all(['12'])
 
-        call1 = call(recurse=True, view='directory', search='12')
-        self._confd_client.users.list.assert_has_calls([call1])
+        self._confd_client.users.list.assert_has_calls(
+            [
+                call(recurse=True, view='directory', exten='12'),
+                call(recurse=True, view='directory', mobile_phone_number='12'),
+            ]
+        )
 
     def test_list_with_unknown_uuid(self):
         unknown_uuid = '11111111-1111-4111-8111-111111111111'
