@@ -1840,6 +1840,20 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
         assert_that(result, any_of(self.mia, self.marcellus))
 
+    def test_that_no_visible_tenant_finds_nothing(self):
+        engine = database.PhonebookContactSearchEngine(
+            Session,
+            [],
+            database.PhonebookKey(uuid=self.phonebook_uuid),
+            searched_columns=['lastname'],
+            first_match_columns=['number'],
+        )
+
+        assert_that(engine.find_contacts('w'), empty())
+        assert_that(engine.find_first_contact('5551111111'), none())
+        assert_that(engine.find_contacts_for_extens(['5551111111']), empty())
+        assert_that(engine.list_contacts([self.mia['id']]), empty())
+
     def test_that_find_first_matches_the_value_exactly(self):
         """First match is an equality, as it is for personal contacts."""
         engine = database.PhonebookContactSearchEngine(

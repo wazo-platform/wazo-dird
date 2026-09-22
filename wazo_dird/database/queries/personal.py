@@ -5,9 +5,8 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from sqlalchemy import and_, distinct, select, text
+from sqlalchemy import and_, distinct, text
 from sqlalchemy.orm import Session as BaseSession
-from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.expression import ColumnElement
 
 from wazo_dird.exception import DuplicatedContactException, NoSuchContact
@@ -17,134 +16,40 @@ from .. import Contact, ContactFields, User
 from .base import (
     BaseDAO,
     ContactInfo,
-    build_exten_contact_map,
     compute_contact_hash,
     compute_normalized_value,
     list_contacts_by_uuid,
-    search_pattern,
 )
+from .contact_search import ContactSearchEngine
 
 
-class PersonalContactSearchEngine(BaseDAO):
-    def __init__(
-        self,
-        Session: scoped_session,
-        searched_columns: list[str] | None = None,
-        first_match_columns: list[str] | None = None,
-    ) -> None:
-        super().__init__(Session)
-        self._searched_columns = searched_columns or []
-        self._first_match_columns = first_match_columns or []
+class PersonalContactSearchEngine(ContactSearchEngine):
+    _owner_model = User
+
+    @staticmethod
+    def _scope(user_uuid: str) -> ColumnElement:
+        return User.user_uuid == user_uuid
 
     def find_first_personal_contact(
         self, user_uuid: str, term: str
     ) -> list[ContactInfo]:
-        filter_ = self._new_strict_filter(user_uuid, term, self._first_match_columns)
-        return self._find_personal_contacts_with_filter(filter_, limit=1)
+        return self._find_contacts(
+            self._scope(user_uuid), self._first_match_filter(term), limit=1
+        )
 
     def find_contacts_for_extens(
         self, user_uuid: str, extens: list[str]
     ) -> dict[str, ContactInfo]:
-        if not extens or not self._first_match_columns:
-            return {}
-
-        matched_uuids = (
-            select(ContactFields.contact_uuid)
-            .join(Contact)
-            .join(User)
-            .where(
-                User.user_uuid == user_uuid,
-                ContactFields.value.in_(extens),
-                ContactFields.name.in_(self._first_match_columns),
-            )
-            .distinct()
-            .scalar_subquery()
-        )
-        with self.new_session() as s:
-            rows = (
-                s.query(
-                    ContactFields.contact_uuid, ContactFields.name, ContactFields.value
-                )
-                .filter(ContactFields.contact_uuid.in_(matched_uuids))
-                .all()
-            )
-            return build_exten_contact_map(rows, extens, self._first_match_columns)
+        return self._find_contacts_for_extens(self._scope(user_uuid), extens)
 
     def find_personal_contacts(self, user_uuid: str, term: str) -> list[ContactInfo]:
-        filter_ = self._new_search_filter(user_uuid, term, self._searched_columns)
-        return self._find_personal_contacts_with_filter(filter_)
+        return self._find_contacts(self._scope(user_uuid), self._search_filter(term))
 
     def list_personal_contacts(
         self, user_uuid: str, uuids: list[str] | None = None
     ) -> list[ContactInfo]:
-        if uuids is None:
-            filter_ = self._new_user_contacts_filter(user_uuid)
-        else:
-            filter_ = self._new_list_filter(user_uuid, uuids)
-        return self._find_personal_contacts_with_filter(filter_)
-
-    def _find_personal_contacts_with_filter(
-        self, filter_: bool | ColumnElement, limit: int | None = None
-    ) -> list[ContactInfo]:
-        if filter_ is False:
-            return []
-
-        with self.new_session() as s:
-            base_query = (
-                s.query(distinct(ContactFields.contact_uuid))
-                .join(Contact)
-                .join(User)
-                .filter(filter_)
-            )
-            if limit:
-                query = base_query.limit(limit)
-            else:
-                query = base_query
-
-            uuids = [uuid for (uuid,) in query.all()]
-
-            return list_contacts_by_uuid(s, uuids)
-
-    def _new_list_filter(
-        self, user_uuid: str, uuids: list[str]
-    ) -> bool | ColumnElement:
-        if not uuids:
-            return False
-
-        return and_(User.user_uuid == user_uuid, ContactFields.contact_uuid.in_(uuids))
-
-    def _new_search_filter(
-        self, user_uuid: str, term: str, columns: list[str]
-    ) -> bool | ColumnElement:
-        if not columns:
-            return False
-
-        pattern = search_pattern(term)
-        if pattern is None:
-            return False
-
-        return and_(
-            User.user_uuid == user_uuid,
-            ContactFields.normalized_value.ilike(pattern),
-            ContactFields.name.in_(columns),
-        )
-
-    def _new_strict_filter(
-        self, user_uuid: str, term: str, columns: list[str]
-    ) -> bool | ColumnElement:
-        if not columns:
-            return False
-
-        # no normalization, assuming phone number-like values
-        # enable efficient index usage
-        return and_(
-            User.user_uuid == user_uuid,
-            ContactFields.value == term,
-            ContactFields.name.in_(columns),
-        )
-
-    def _new_user_contacts_filter(self, user_uuid: str) -> ColumnElement:
-        return User.user_uuid == user_uuid
+        filter_ = None if uuids is None else self._list_filter(uuids)
+        return self._find_contacts(self._scope(user_uuid), filter_)
 
 
 class PersonalContactCRUD(BaseDAO):

@@ -40,12 +40,12 @@ from .. import Contact, ContactFields, Phonebook
 from .base import (
     BaseDAO,
     ContactInfo,
-    build_exten_contact_map,
     compute_contact_hash,
     compute_normalized_value,
     list_contacts_by_uuid,
     search_pattern,
 )
+from .contact_search import ContactSearchEngine
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,9 @@ def phonebook_key_to_filter(phonebook_key: PhonebookKey) -> ColumnElement:
     )
 
 
-class PhonebookContactSearchEngine(BaseDAO):
+class PhonebookContactSearchEngine(ContactSearchEngine):
+    _owner_model = Phonebook
+
     def __init__(
         self,
         Session: scoped_session,
@@ -81,124 +83,32 @@ class PhonebookContactSearchEngine(BaseDAO):
         searched_columns: list[str] | None = None,
         first_match_columns: list[str] | None = None,
     ):
-        super().__init__(Session)
-        self._searched_columns = searched_columns
-        self._first_match_columns = first_match_columns
+        super().__init__(Session, searched_columns, first_match_columns)
         self._visible_tenants = visible_tenants
         self._phonebook_key = phonebook_key
 
-    def find_contacts(self, term: str) -> list[ContactInfo]:
-        pattern = search_pattern(term)
-        if pattern is None:
-            return []
+    def _scope(self) -> ColumnElement | bool:
+        phonebook_filter = phonebook_key_to_filter(self._phonebook_key)
+        if self._visible_tenants is None:
+            return phonebook_filter
+        if not self._visible_tenants:
+            return False
+        return and_(phonebook_filter, Phonebook.tenant_uuid.in_(self._visible_tenants))
 
-        filter_ = self._new_search_filter(pattern, self._searched_columns)
-        with self.new_session() as s:
-            return self._find_contacts_with_filter(s, filter_)
+    def find_contacts(self, term: str) -> list[ContactInfo]:
+        return self._find_contacts(self._scope(), self._search_filter(term))
 
     def find_first_contact(self, term: str) -> ContactInfo | None:
-        filter_ = self._new_first_match_filter(term, self._first_match_columns)
-        with self.new_session() as s:
-            for contact in self._find_contacts_with_filter(s, filter_, limit=1):
-                return contact
-            else:
-                return None
+        contacts = self._find_contacts(
+            self._scope(), self._first_match_filter(term), limit=1
+        )
+        return contacts[0] if contacts else None
 
     def find_contacts_for_extens(self, extens: list[str]) -> dict[str, ContactInfo]:
-        if not extens or not self._first_match_columns:
-            return {}
-
-        phonebook_filter = phonebook_key_to_filter(self._phonebook_key)
-        if self._visible_tenants is None:
-            tenant_filter = phonebook_filter
-        elif not self._visible_tenants:
-            return {}
-        else:
-            tenant_filter = and_(
-                phonebook_filter,
-                Phonebook.tenant_uuid.in_(self._visible_tenants),
-            )
-
-        matched_uuids = (
-            select(ContactFields.contact_uuid)
-            .join(Contact)
-            .join(Phonebook)
-            .where(
-                ContactFields.value.in_(extens),
-                ContactFields.name.in_(self._first_match_columns),
-                tenant_filter,
-            )
-            .distinct()
-            .scalar_subquery()
-        )
-        with self.new_session() as s:
-            rows = (
-                s.query(
-                    ContactFields.contact_uuid, ContactFields.name, ContactFields.value
-                )
-                .filter(ContactFields.contact_uuid.in_(matched_uuids))
-                .all()
-            )
-            return build_exten_contact_map(rows, extens, self._first_match_columns)
+        return self._find_contacts_for_extens(self._scope(), extens)
 
     def list_contacts(self, contact_uuids: list[str]) -> list[ContactInfo]:
-        filter_ = self._new_list_filter(contact_uuids)
-        with self.new_session() as s:
-            return self._find_contacts_with_filter(s, filter_)
-
-    def _find_contacts_with_filter(
-        self, s: BaseSession, filter_: ColumnElement, limit: int | None = None
-    ) -> list[ContactInfo]:
-        phonebook_filter = phonebook_key_to_filter(self._phonebook_key)
-        if self._visible_tenants is None:
-            _filter = and_(filter_, phonebook_filter)
-        elif not self._visible_tenants:
-            _filter = text('false')
-        else:
-            _filter = and_(
-                filter_,
-                phonebook_filter,
-                Phonebook.tenant_uuid.in_(self._visible_tenants),
-            )
-        query = (
-            s.query(distinct(ContactFields.contact_uuid))
-            .join(Contact)
-            .join(Phonebook)
-            .filter(_filter)
-        )
-
-        if limit:
-            query = query.limit(limit)
-
-        uuids = [uuid for (uuid,) in query.all()]
-
-        return list_contacts_by_uuid(s, uuids)
-
-    def _new_list_filter(self, contact_uuids: list[str]) -> bool | ColumnElement:
-        if not contact_uuids:
-            return False
-
-        return ContactFields.contact_uuid.in_(contact_uuids)
-
-    def _new_search_filter(
-        self, pattern: str, columns: list[str] | None
-    ) -> bool | ColumnElement:
-        if not columns:
-            return False
-
-        return and_(
-            ContactFields.normalized_value.ilike(pattern),
-            ContactFields.name.in_(columns),
-        )
-
-    def _new_first_match_filter(
-        self, term: str, columns: list[str] | None
-    ) -> bool | ColumnElement:
-        if not columns:
-            return False
-
-        # phone numbers: no folding, and `value` carries the btree
-        return and_(ContactFields.value == term, ContactFields.name.in_(columns))
+        return self._find_contacts(self._scope(), self._list_filter(contact_uuids))
 
 
 def contact_search_filter(search: str | None) -> bool | ColumnElement:
