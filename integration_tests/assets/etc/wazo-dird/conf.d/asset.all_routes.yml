@@ -1,0 +1,3 @@
+rest_api:
+  cache_control:
+    profile_sources: 3600

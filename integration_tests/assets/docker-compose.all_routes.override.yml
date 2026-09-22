@@ -12,6 +12,7 @@ services:
   dird:
     volumes:
       - "./etc/wazo-dird/conf.d/20-broken-bus.yml:/etc/wazo-dird/conf.d/20-broken-bus.yml"
+      - "./etc/wazo-dird/conf.d/asset.all_routes.yml:/etc/wazo-dird/conf.d/asset.all_routes.yml"
       - "./tmp/data/asset.all_routes.test.csv:/tmp/data/test.csv"
       - "./tmp/data/asset.all_routes.test_no_email.csv:/tmp/data/test_no_email.csv"
   rabbitmq:

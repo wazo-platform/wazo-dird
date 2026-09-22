@@ -39,6 +39,12 @@ rest_api:
   # https://wazo-platform.org/uc-doc/system/performance/
   max_threads: 100
 
+  # How long a resource's GET response stays fresh in a client cache, in seconds.
+  # Recommended:
+  # cache_control:
+  #   profile_sources: 3600  # GET /0.1/directories/<profile>/sources
+  cache_control: {}
+
 # Authentication server connection settings
 auth:
   host: localhost

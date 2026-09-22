@@ -1,5 +1,14 @@
 # Changelog
 
+## 26.10
+
+* `GET /0.1/directories/<profile>/sources` can now answer with a
+  `Cache-Control: private, max-age=<seconds>` header, so a client reuses its
+  cached response instead of sending a request. The lifetime is configured per
+  resource under the new `rest_api.cache_control` option and is disabled by
+  default. No validator is sent, so a client keeps the old source list for the
+  whole lifetime after a change.
+
 ## 26.09
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
