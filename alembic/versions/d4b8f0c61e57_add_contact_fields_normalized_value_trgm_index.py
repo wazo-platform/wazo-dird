@@ -18,7 +18,6 @@ COLUMN_NAME = 'normalized_value'
 
 
 def upgrade() -> None:
-    op.execute('CREATE EXTENSION IF NOT EXISTS pg_trgm')
     op.create_index(
         INDEX_NAME,
         TABLE_NAME,

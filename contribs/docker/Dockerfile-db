@@ -14,6 +14,7 @@ RUN true \
     && su postgres -c "psql \"wazo-dird\" -c 'CREATE EXTENSION \"uuid-ossp\";'" \
     && su postgres -c "psql \"wazo-dird\" -c 'CREATE EXTENSION \"unaccent\";'" \
     && su postgres -c "psql \"wazo-dird\" -c 'CREATE EXTENSION \"hstore\";'" \
+    && su postgres -c "psql \"wazo-dird\" -c 'CREATE EXTENSION \"pg_trgm\";'" \
     && (cd /usr/src/wazo-dird && python3 -m alembic.config -c alembic.ini upgrade head) \
     && pg_stop \
     && true
