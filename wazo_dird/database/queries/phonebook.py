@@ -88,12 +88,11 @@ class PhonebookContactSearchEngine(ContactSearchEngine):
         self._phonebook_key = phonebook_key
 
     def _scope(self) -> ColumnElement | bool:
-        phonebook_filter = phonebook_key_to_filter(self._phonebook_key)
-        if self._visible_tenants is None:
-            return phonebook_filter
-        if not self._visible_tenants:
+        # `False` rather than the selector's `text('false')`: `_find_contacts`
+        # skips the query entirely on it
+        if self._visible_tenants is not None and not self._visible_tenants:
             return False
-        return and_(phonebook_filter, Phonebook.tenant_uuid.in_(self._visible_tenants))
+        return phonebook_selector(self._visible_tenants, self._phonebook_key)
 
     def find_contacts(self, term: str) -> list[ContactInfo]:
         return self._find_contacts(self._scope(), self._search_filter(term))
