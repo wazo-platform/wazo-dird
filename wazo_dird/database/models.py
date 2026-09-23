@@ -81,12 +81,21 @@ class ContactFields(Base):
             'contact_uuid',
             unique=True,
         ),
+        # index for search
+        schema.Index(
+            'dird_contact_fields__idx__normalized_value_trgm',
+            'normalized_value',
+            postgresql_using='gin',
+            postgresql_ops={'normalized_value': 'gin_trgm_ops'},
+        ),
     )
 
     id = Column(Integer(), primary_key=True)
     name = Column(Text(), nullable=False, index=True)
+    # btree for the reverse lookup's `=` and `IN`
     value = Column(Text(), index=True)
-    sort_value = Column(Text())
+    # unidecode(value), case preserved for sorting
+    normalized_value = Column(Text())
     contact_uuid = Column(
         String(38), ForeignKey('dird_contact.uuid', ondelete='CASCADE'), nullable=False
     )

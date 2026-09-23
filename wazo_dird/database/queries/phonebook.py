@@ -42,8 +42,9 @@ from .base import (
     ContactInfo,
     build_exten_contact_map,
     compute_contact_hash,
-    compute_sort_value,
+    compute_normalized_value,
     list_contacts_by_uuid,
+    search_pattern,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,13 +88,16 @@ class PhonebookContactSearchEngine(BaseDAO):
         self._phonebook_key = phonebook_key
 
     def find_contacts(self, term: str) -> list[ContactInfo]:
-        pattern = f'%{term}%'
+        pattern = search_pattern(term)
+        if pattern is None:
+            return []
+
         filter_ = self._new_search_filter(pattern, self._searched_columns)
         with self.new_session() as s:
             return self._find_contacts_with_filter(s, filter_)
 
     def find_first_contact(self, term: str) -> ContactInfo | None:
-        filter_ = self._new_search_filter(term, self._first_match_columns)
+        filter_ = self._new_first_match_filter(term, self._first_match_columns)
         with self.new_session() as s:
             for contact in self._find_contacts_with_filter(s, filter_, limit=1):
                 return contact
@@ -182,20 +186,34 @@ class PhonebookContactSearchEngine(BaseDAO):
         if not columns:
             return False
 
-        return and_(ContactFields.value.ilike(pattern), ContactFields.name.in_(columns))
+        return and_(
+            ContactFields.normalized_value.ilike(pattern),
+            ContactFields.name.in_(columns),
+        )
+
+    def _new_first_match_filter(
+        self, term: str, columns: list[str] | None
+    ) -> bool | ColumnElement:
+        if not columns:
+            return False
+
+        # phone numbers: no folding, and `value` carries the btree
+        return and_(ContactFields.value.ilike(term), ContactFields.name.in_(columns))
 
 
 def contact_search_filter(search: str | None) -> bool | ColumnElement:
-    search_filter = (
-        Contact.uuid.in_(
-            select(ContactFields.contact_uuid)
-            .join(Contact)
-            .filter(ContactFields.value.ilike(f'%{search}%'))
-        )
-        if search
-        else True
+    if not search:
+        return True
+
+    pattern = search_pattern(search)
+    if pattern is None:
+        return False
+
+    return Contact.uuid.in_(
+        select(ContactFields.contact_uuid)
+        .join(Contact)
+        .filter(ContactFields.normalized_value.ilike(pattern))
     )
-    return search_filter
 
 
 class ContactEntryError(TypedDict):
@@ -467,7 +485,7 @@ class PhonebookContactCRUD(BaseDAO):
                     sort_field.name == order,
                 ),
             )
-            sort_key: ColumnElement = func.nullif(sort_field.sort_value, '')
+            sort_key: ColumnElement = func.nullif(sort_field.normalized_value, '')
             if order_insensitive:
                 sort_key = func.lower(sort_key)
             if direction == 'desc':
@@ -500,12 +518,12 @@ class PhonebookContactCRUD(BaseDAO):
         for name, value in new_fields.items():
             if name in contact.fields:
                 contact.fields[name].value = value
-                contact.fields[name].sort_value = compute_sort_value(value)
+                contact.fields[name].normalized_value = compute_normalized_value(value)
             else:
                 contact.fields[name] = ContactFields(
                     name=name,
                     value=value,
-                    sort_value=compute_sort_value(value),
+                    normalized_value=compute_normalized_value(value),
                     contact_uuid=contact.uuid,
                 )
 

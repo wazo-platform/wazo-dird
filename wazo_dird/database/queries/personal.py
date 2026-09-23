@@ -9,7 +9,6 @@ from sqlalchemy import and_, distinct, select, text
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.sql.expression import ColumnElement
-from unidecode import unidecode
 
 from wazo_dird.exception import DuplicatedContactException, NoSuchContact
 from wazo_dird.plugin_helpers.sorting import sort_contacts
@@ -20,9 +19,9 @@ from .base import (
     ContactInfo,
     build_exten_contact_map,
     compute_contact_hash,
-    compute_sort_value,
+    compute_normalized_value,
     list_contacts_by_uuid,
-    unaccent,
+    search_pattern,
 )
 
 
@@ -120,10 +119,13 @@ class PersonalContactSearchEngine(BaseDAO):
         if not columns:
             return False
 
-        pattern = f'%{unidecode(term)}%'
+        pattern = search_pattern(term)
+        if pattern is None:
+            return False
+
         return and_(
             User.user_uuid == user_uuid,
-            unaccent(ContactFields.value).ilike(pattern),
+            ContactFields.normalized_value.ilike(pattern),
             ContactFields.name.in_(columns),
         )
 
@@ -227,7 +229,7 @@ class PersonalContactCRUD(BaseDAO):
                     ContactFields(
                         name=name,
                         value=value,
-                        sort_value=compute_sort_value(value),
+                        normalized_value=compute_normalized_value(value),
                         contact_uuid=contact.uuid,
                     )
                 )
