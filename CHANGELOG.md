@@ -7,7 +7,8 @@
   `first_matched_columns` to `exten` and `mobile_phone_number`, the only
   columns confd can match exactly. Any other column now returns a `400`
   error; previously it was accepted and silently matched nothing useful.
-  A source already stored with another column fails to load and is logged.
+  Sources already stored are migrated: any other column is dropped from
+  their `first_matched_columns`.
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
   directory sources pointing at `localhost:9497` are migrated.
