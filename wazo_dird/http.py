@@ -51,7 +51,13 @@ def handle_api_exception(
 
 
 class LegacyErrorCatchingResource(Resource):
-    method_decorators = [handle_api_exception] + Resource.method_decorators
+    # handle_validation_exception turns a marshmallow ValidationError into an
+    # APIException, which handle_api_exception then renders in the legacy error
+    # format used by these resources.
+    method_decorators = [
+        mallow_helpers.handle_validation_exception,
+        handle_api_exception,
+    ] + Resource.method_decorators
 
 
 class LegacyAuthResource(LegacyErrorCatchingResource):

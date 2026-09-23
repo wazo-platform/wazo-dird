@@ -21,6 +21,8 @@ paths:
           description: A list of contacts
           schema:
             $ref: '#/definitions/Lookup'
+        '400':
+          $ref: '#/responses/InvalidParameters'
         '404':
           $ref: '#/responses/ProfileInvalid'
         '503':
@@ -51,6 +53,8 @@ paths:
           description: A list of contacts
           schema:
             $ref: '#/definitions/Lookup'
+        '400':
+          $ref: '#/responses/InvalidParameters'
         '404':
           $ref: '#/responses/ProfileInvalid'
         '503':

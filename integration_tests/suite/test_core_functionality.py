@@ -376,3 +376,26 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
                 all_of(contains_string('profile'), contains_string('unknown'))
             ),
         )
+
+
+class Test400WhenEmptyTerm(CSVWithMultipleDisplayTestCase):
+    def test_that_lookup_returns_400(self):
+        result = self.get_lookup_result('', 'default', token=VALID_TOKEN_MAIN_TENANT)
+
+        assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(status_code=400))
+
+    def test_that_lookup_user_returns_400(self):
+        result = self.get_lookup_user_result(
+            '', 'default', VALID_UUID, token=VALID_TOKEN_MAIN_TENANT
+        )
+
+        assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-data'))
+
+    def test_that_a_lookup_with_a_term_still_returns_200(self):
+        result = self.get_lookup_result(
+            'lice', 'default', token=VALID_TOKEN_MAIN_TENANT
+        )
+
+        assert_that(result.status_code, equal_to(200))

@@ -23,6 +23,8 @@ from wazo_dird.helpers import DisplayAwareResource, DisplayColumn, ProfileConfig
 from wazo_dird.http import AuthResource, LegacyAuthResource
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
+from .schemas import lookup_query_string_schema
+
 if TYPE_CHECKING:
     from wazo_auth_client import Client as AuthClient
 
@@ -34,11 +36,6 @@ if TYPE_CHECKING:
     from wazo_dird.plugins.reverse_service.plugin import _ReverseService
 
 logger = logging.getLogger(__name__)
-
-parser = reqparse.RequestParser()
-parser.add_argument(
-    'term', type=str, required=True, help='term is missing', location='args'
-)
 
 parser_reverse = reqparse.RequestParser()
 parser_reverse.add_argument('exten', type=str, required=True, location='args')
@@ -69,8 +66,7 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
 
     @required_acl('dird.directories.lookup.{profile}.read')
     def get(self, profile: str) -> dict[str, Any] | tuple[dict[str, Any], int]:
-        args = parser.parse_args()
-        term = args['term']
+        term = lookup_query_string_schema.load(request.args)['term']
 
         logger.info('Lookup for %s with profile %s', term, profile)
 
@@ -119,8 +115,7 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
 
     @required_acl('dird.directories.lookup.{profile}.{user_uuid}.read')
     def get(self, profile: str, user_uuid: str) -> dict[str, Any]:
-        args = parser.parse_args()
-        term = args['term']
+        term = lookup_query_string_schema.load(request.args)['term']
 
         logger.info('Lookup %s for user %s with profile %s', term, user_uuid, profile)
 

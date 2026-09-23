@@ -2,6 +2,13 @@
 
 ## 26.09
 
+* `GET /0.1/directories/lookup/<profile>` and
+  `GET /0.1/directories/lookup/<profile>/<user_uuid>` now return `400` when
+  `term` is empty. An empty term matched every entry of every source configured
+  on the profile, turning a search into a full directory dump. The `term`
+  parameter is now validated by a schema, so the error body follows each
+  route's usual error format instead of the `flask-restful` one.
+
 * Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
   directory sources pointing at `localhost:9497` are migrated.
 

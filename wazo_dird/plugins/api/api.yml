@@ -172,6 +172,7 @@ parameters:
     type: string
     description: A search term to look for
     required: true
+    minLength: 1
   UserUUID:
     name: user_uuid
     in: path
