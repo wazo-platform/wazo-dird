@@ -77,9 +77,7 @@ def main() -> None:
     conn = psycopg2.connect(args.dird_db_uri)
     with conn:
         with conn.cursor() as cursor:
-            db_helper.create_db_extensions(
-                cursor, ['uuid-ossp', 'unaccent', 'hstore', 'pg_trgm']
-            )
+            db_helper.create_db_extensions(cursor, ['uuid-ossp', 'hstore', 'pg_trgm'])
 
 
 if __name__ == '__main__':
