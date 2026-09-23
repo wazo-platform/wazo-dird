@@ -7,17 +7,19 @@ from unittest.mock import Mock, call, patch
 
 from hamcrest import (
     assert_that,
+    calling,
     contains_exactly,
     empty,
     equal_to,
     has_entries,
     is_,
     none,
+    raises,
 )
 from requests import HTTPError, RequestException
 
 from wazo_dird import make_result_class
-from wazo_dird.exception import SourceUnavailable
+from wazo_dird.exception import InvalidConfigError, SourceUnavailable
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
@@ -160,6 +162,30 @@ def _confd_users_list(**params: Any) -> dict[str, Any]:
     return {'items': items, 'total': len(items)}
 
 
+class TestWazoUserBackendLoad(_BaseTest):
+    def _load(self, first_matched_columns):
+        config = dict(cast(dict, DEFAULT_ARGS['config']))
+        config['first_matched_columns'] = first_matched_columns
+        with patch('wazo_dird.plugins.wazo_user_backend.plugin.registry'):
+            self._source.load(
+                cast(SourcePluginDependencies, {'config': config}),
+            )
+
+    def test_load_accepts_a_column_confd_can_match_exactly(self):
+        self._load(['exten', 'mobile_phone_number'])
+
+        assert_that(
+            self._source._first_matched_columns,
+            contains_exactly('exten', 'mobile_phone_number'),
+        )
+
+    def test_load_refuses_a_column_confd_cannot_match_exactly(self):
+        assert_that(
+            calling(self._load).with_args(['number']),
+            raises(InvalidConfigError),
+        )
+
+
 class TestWazoUserBackendSearch(_BaseTest):
     def setUp(self):
         super().setUp()
@@ -264,24 +290,13 @@ class TestWazoUserBackendSearch(_BaseTest):
 
         assert_that(result, equal_to(SOURCE_1))
 
-    def test_first_match_falls_back_to_search_for_an_unsupported_column(self):
-        self._source._first_matched_columns = ['userfield']
-
-        result = self._source.first_match('555')
-
-        self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='555'
-        )
-
-        assert_that(result, equal_to(SOURCE_2))
-
     def test_first_match_return_none_when_no_result(self):
-        self._source._first_matched_columns = ['number']
+        self._source._first_matched_columns = ['exten']
 
         result = self._source.first_match('12')
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='12'
+            recurse=True, view='directory', exten='12'
         )
 
         assert_that(result, is_(none()))
@@ -307,15 +322,6 @@ class TestWazoUserBackendSearch(_BaseTest):
         )
 
         assert_that(result, has_entries({}))
-
-    def test_match_all_when_not_supported_column_then_fallback(self):
-        self._source._first_matched_columns = ['exten', 'unsupported']
-
-        self._source.match_all(['12', '34'])
-
-        call1 = call(recurse=True, view='directory', search='12')
-        call2 = call(recurse=True, view='directory', search='34')
-        self._confd_client.users.list.assert_has_calls([call1, call2])
 
     def test_match_all_uses_the_exact_filters_even_for_a_single_term(self):
         self._source._first_matched_columns = ['exten', 'mobile_phone_number']

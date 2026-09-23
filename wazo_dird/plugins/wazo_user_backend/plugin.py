@@ -12,7 +12,7 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import SourceUnavailable
+from wazo_dird.exception import InvalidConfigError, SourceUnavailable
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
@@ -20,6 +20,7 @@ from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 from wazo_dird.utils import is_uuid
 
 from . import http
+from .schemas import FIRST_MATCHED_COLUMNS
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,6 @@ class WazoUserPlugin(BaseSourcePlugin):
         'mobile_phone_number',
         'voicemail_number',
     ]
-    _match_all_supported_columns = ['exten', 'mobile_phone_number']
 
     _client: ConfdClient | None
     _searched_columns: list[str]
@@ -76,7 +76,9 @@ class WazoUserPlugin(BaseSourcePlugin):
     def load(self, dependencies: SourcePluginDependencies) -> None:
         config = dependencies['config']
         self._searched_columns = config.get('searched_columns', [])
-        self._first_matched_columns = config.get('first_matched_columns', [])
+        self._first_matched_columns = self._validate_first_matched_columns(
+            config.get('first_matched_columns', [])
+        )
         self.name = config['name']
         self._client = registry.get(config)
 
@@ -121,43 +123,27 @@ class WazoUserPlugin(BaseSourcePlugin):
     ) -> SourceResult | None:
         logger.debug('Looking for "%s"', term)
 
-        if self._exact_match_supported():
-            for column in self._first_matched_columns:
-                match = self._fetch_exact_matches(column, [term]).get(term)
-                if match is not None:
-                    logger.debug('Found a match: %s', match)
-                    return match
-            logger.debug('Found no match')
-            return None
+        for column in self._first_matched_columns:
+            match_ = self._fetch_exact_matches(column, [term]).get(term)
+            if match_ is not None:
+                logger.debug('Found a match: %s', match_)
+                return match_
 
-        return self._first_match_by_search(term)
-
-    def _first_match_by_search(self, term: str) -> SourceResult | None:
-        """Match a column confd cannot filter on exactly.
-
-        confd searches its own columns with a substring match, so the answer
-        has to be narrowed here.
-        """
-        entries = self._fetch_entries(term)
-
-        def match_fn(entry: SourceResult) -> bool:
-            for column in self._first_matched_columns:
-                if term == entry.fields.get(column):
-                    return True
-            return False
-
-        for entry in entries:
-            if match_fn(entry):
-                logger.debug('Found a match: %s', entry)
-                return entry
         logger.debug('Found no match')
         return None
 
-    def _exact_match_supported(self) -> bool:
-        return all(
-            column in self._match_all_supported_columns
-            for column in self._first_matched_columns
-        )
+    @staticmethod
+    def _validate_first_matched_columns(columns: list[str]) -> list[str]:
+        unsupported = [
+            column for column in columns if column not in FIRST_MATCHED_COLUMNS
+        ]
+        if unsupported:
+            raise InvalidConfigError(
+                'sources/first_matched_columns',
+                f'confd cannot match {unsupported} exactly; '
+                f'expected any of {FIRST_MATCHED_COLUMNS}',
+            )
+        return columns
 
     def _fetch_exact_matches(
         self, column: str, terms: list[str]
@@ -175,14 +161,6 @@ class WazoUserPlugin(BaseSourcePlugin):
         self, terms: list[str], args: dict[str, Any] | None = None
     ) -> dict[str, SourceResult]:
         results: dict[str, SourceResult] = {}
-
-        # NOTE(fblackburn) fallback if one of fields are not supported
-        if not self._exact_match_supported():
-            for term in terms:
-                match = self.first_match(term, args=args)
-                if match is not None:
-                    results[term] = match
-            return results
 
         for column in self._first_matched_columns:
             results.update(self._fetch_exact_matches(column, terms))
