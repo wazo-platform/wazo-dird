@@ -52,6 +52,7 @@ UUID = 'my-xivo-uuid'
 
 UUID_1 = '55abf77c-5744-44a0-9c36-34da29f647cb'
 UUID_2 = '22f51ae2-296d-4340-a7d5-3567ae66df73'
+UUID_3 = '3b8e6b2c-4f1a-4c7e-9a2f-0f4a1d6c8e55'
 
 SourceResult = make_result_class(
     cast(str, DEFAULT_ARGS['config']['backend']),
@@ -139,6 +140,44 @@ SOURCE_2 = SourceResult(
 )
 
 
+CONFD_USER_3: dict[str, Any] = {
+    "agent_id": None,
+    "exten": '777',
+    "firstname": "Collide",
+    "lastname": "McCollide",
+    "id": 228,
+    'uuid': UUID_3,
+    "line_id": 321,
+    'userfield': None,
+    'description': None,
+    "links": [],
+    'email': '',
+    # the same value as CONFD_USER_1's exten, so the two columns disagree
+    "mobile_phone_number": "666",
+    "voicemail_number": None,
+}
+
+SOURCE_3 = SourceResult(
+    {
+        'id': 228,
+        'uuid': UUID_3,
+        'exten': '777',
+        'firstname': 'Collide',
+        'lastname': 'McCollide',
+        'full_name': 'Collide McCollide',
+        'email': '',
+        'mobile_phone_number': '666',
+        'userfield': None,
+        'description': None,
+        'voicemail_number': None,
+    },
+    xivo_id=UUID,
+    user_id=228,
+    user_uuid=UUID_3,
+    endpoint_id=321,
+)
+
+
 class _BaseTest(unittest.TestCase):
     def setUp(self):
         self._source = WazoUserPlugin()
@@ -152,7 +191,7 @@ def _confd_users_list(**params: Any) -> dict[str, Any]:
     """Answer like confd: `uuid`, `exten` and `mobile_phone_number` are exact
     filters, `search` is not.
     """
-    items: list[dict[str, Any]] = [CONFD_USER_1, CONFD_USER_2]
+    items: list[dict[str, Any]] = [CONFD_USER_1, CONFD_USER_2, CONFD_USER_3]
     for field in ('uuid', 'exten', 'mobile_phone_number'):
         wanted = params.get(field)
         if wanted is None:
@@ -289,6 +328,23 @@ class TestWazoUserBackendSearch(_BaseTest):
         )
 
         assert_that(result, equal_to(SOURCE_1))
+
+    def test_first_match_and_match_all_agree_when_columns_disagree(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        first = self._source.first_match('666')
+        every = self._source.match_all(['666'])
+
+        assert_that(first, equal_to(SOURCE_1))
+        assert_that(every, has_entries({'666': SOURCE_1}))
+
+    def test_an_empty_term_never_reaches_confd(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        assert_that(self._source.first_match(''), is_(none()))
+        assert_that(self._source.match_all(['']), equal_to({}))
+
+        self._confd_client.users.list.assert_not_called()
 
     def test_first_match_return_none_when_no_result(self):
         self._source._first_matched_columns = ['exten']
