@@ -1432,14 +1432,18 @@ class TestContactCRUD(_BaseTest):
 
     @with_user_uuid
     def test_that_an_id_in_the_body_does_not_choose_the_contact_uuid(self, user_uuid):
-        body = dict(self.contact_1, id=new_uuid())
+        # The DAO fills the generated uuid into the body it was handed and
+        # returns that same dict, so keep the requested uuid in a local.
+        requested_uuid = new_uuid()
 
         result = cast(
             'dict[str, Any]',
-            self._crud.create_personal_contact(TENANT_UUID, user_uuid, body),
+            self._crud.create_personal_contact(
+                TENANT_UUID, user_uuid, dict(self.contact_1, id=requested_uuid)
+            ),
         )
 
-        assert_that(result['id'], not_(equal_to(body['id'])))
+        assert_that(result['id'], not_(equal_to(requested_uuid)))
 
     @with_user_uuid
     def test_that_editing_a_personal_contact_keeps_its_uuid(self, user_uuid):
