@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -78,9 +78,6 @@ class _PersonalService:
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         errors: list[dict[str, Any]] = []
         to_add: list[dict[str, Any]] = []
-        existing_contact_uuids = {
-            contact['id'] for contact in self._crud.list_personal_contacts()
-        }
 
         for contact_info in contact_infos:
             try:
@@ -89,7 +86,7 @@ class _PersonalService:
                 if None in contact_info.values():
                     raise PersonalImportError('missing fields')
 
-                self.validate_contact(contact_info, existing_contact_uuids)
+                self.validate_contact(contact_info)
                 to_add.append(contact_info)
             except self.InvalidPersonalContact as e:
                 errors.append({'errors': e.errors, 'line': contact_infos.line_num})
@@ -146,9 +143,7 @@ class _PersonalService:
             return source
 
     @staticmethod
-    def validate_contact(
-        contact_infos: dict[str, Any], existing_contact_uuids: set[str] | None = None
-    ) -> None:
+    def validate_contact(contact_infos: dict[str, Any]) -> None:
         errors: list[str] = []
 
         if any(not hasattr(key, 'encode') for key in contact_infos):
@@ -162,11 +157,6 @@ class _PersonalService:
 
         if errors:
             raise _PersonalService.InvalidPersonalContact(errors)
-
-        if existing_contact_uuids:
-            uuid = contact_infos.get('id', contact_infos.get('uuid'))
-            if uuid and uuid in existing_contact_uuids:
-                raise PersonalImportError(f'contact "{uuid}" already exist')
 
 
 class DisabledPersonalSource:

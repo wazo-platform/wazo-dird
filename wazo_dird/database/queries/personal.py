@@ -106,7 +106,12 @@ class PersonalContactCRUD(BaseDAO):
         user_uuid: str,
         contact_infos: list[dict[str, Any]],
         fail_on_duplicate: bool = False,
+        reuse_uuid: str | None = None,
     ) -> list[dict[str, Any]]:
+        # reuse_uuid belongs to edit_personal_contact, which re-creates a single
+        # contact under its original uuid. Uuids are otherwise ours to generate:
+        # an `id` in contact_infos is input we overwrite, never a requested key.
+        assert reuse_uuid is None or len(contact_infos) == 1
         hash_and_contact = {compute_contact_hash(c): c for c in contact_infos}
         user = self._get_dird_user(session, tenant_uuid, user_uuid)
         existing_hashes_and_id = self._find_existing_contact_by_hash(
@@ -121,9 +126,8 @@ class PersonalContactCRUD(BaseDAO):
         for hash_ in to_add:
             contact_info = hash_and_contact[hash_]
             contact_args = {'user_uuid': user.user_uuid, 'hash': hash_}
-            contact_uuid = contact_info.get('id')
-            if contact_uuid:
-                contact_args['uuid'] = contact_uuid
+            if reuse_uuid:
+                contact_args['uuid'] = reuse_uuid
             contact = Contact(**contact_args)
             session.add(contact)
             session.flush()
@@ -168,9 +172,8 @@ class PersonalContactCRUD(BaseDAO):
             if self._find_existing_contact_by_hash(s, user_uuid, [hash_]):
                 s.rollback()
                 raise DuplicatedContactException()
-            contact_info['id'] = contact_id
             for contact in self._create_personal_contacts(
-                s, tenant_uuid, user_uuid, [contact_info]
+                s, tenant_uuid, user_uuid, [contact_info], reuse_uuid=contact_id
             ):
                 return contact
         return None

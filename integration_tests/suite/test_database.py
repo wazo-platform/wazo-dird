@@ -1431,6 +1431,33 @@ class TestContactCRUD(_BaseTest):
         assert_that(result, has_entries(number=5555555555))
 
     @with_user_uuid
+    def test_that_an_id_in_the_body_does_not_choose_the_contact_uuid(self, user_uuid):
+        body = dict(self.contact_1, id=new_uuid())
+
+        result = cast(
+            'dict[str, Any]',
+            self._crud.create_personal_contact(TENANT_UUID, user_uuid, body),
+        )
+
+        assert_that(result['id'], not_(equal_to(body['id'])))
+
+    @with_user_uuid
+    def test_that_editing_a_personal_contact_keeps_its_uuid(self, user_uuid):
+        contact_uuid = cast(
+            'dict[str, Any]',
+            self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_1),
+        )['id']
+
+        result = cast(
+            'dict[str, Any]',
+            self._crud.edit_personal_contact(
+                TENANT_UUID, user_uuid, contact_uuid, self.contact_2
+            ),
+        )
+
+        assert_that(result, equal_to(dict(self.contact_2, id=contact_uuid)))
+
+    @with_user_uuid
     def test_that_personal_contacts_are_unique(self, user_uuid):
         self._crud.create_personal_contact(TENANT_UUID, user_uuid, self.contact_1)
         assert_that(

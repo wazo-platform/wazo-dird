@@ -10,6 +10,7 @@ from hamcrest import (
     equal_to,
     has_entries,
     has_entry,
+    is_not,
 )
 
 from .helpers.base import BaseDirdIntegrationTest
@@ -129,7 +130,15 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
             ),
         )
 
-    def test_that_importing_a_contact_with_an_existing_uuid(self):
+
+class TestPersonalImportContactIds(BaseDirdIntegrationTest):
+    asset = 'personal_only'
+
+    def tearDown(self):
+        self.purge_personal()
+        super().tearDown()
+
+    def test_that_an_id_column_is_ignored(self):
         csv = textwrap.dedent(
             '''\
         firstname
@@ -137,20 +146,52 @@ class TestPersonalImportSomeFail(BaseDirdIntegrationTest):
         '''
         )
         result = self.import_personal(csv, VALID_TOKEN_MAIN_TENANT)
-        for user in result['created']:
-            uuid = user['id']
-            break
+        alice_uuid = result['created'][0]['id']
 
         csv = textwrap.dedent(
             f'''\
         id,firstname
-        {uuid},not alice
+        {alice_uuid},not alice
         29d4aec1-db4c-4c67-80a0-b83136c58a47,bob
         '''
         )
         result = self.import_personal(csv, VALID_TOKEN_MAIN_TENANT)
 
-        assert_that(result['failed'], contains_exactly(has_entry('line', 2)))
+        assert_that(result['failed'], contains_exactly())
+        assert_that(
+            result['created'],
+            contains_inanyorder(
+                has_entries({'firstname': 'not alice', 'id': is_not(alice_uuid)}),
+                has_entries(
+                    {
+                        'firstname': 'bob',
+                        'id': is_not('29d4aec1-db4c-4c67-80a0-b83136c58a47'),
+                    }
+                ),
+            ),
+        )
+
+    def test_that_reimporting_an_export_does_not_duplicate_contacts(self):
+        csv = textwrap.dedent(
+            '''\
+        firstname,lastname
+        alice,aldertion
+        '''
+        )
+        created = self.import_personal(csv, VALID_TOKEN_MAIN_TENANT)['created']
+
+        # An export carries the generated id back; dedup is by content, so the
+        # round-trip returns the same contact rather than creating another.
+        exported = textwrap.dedent(
+            f'''\
+        id,firstname,lastname
+        {created[0]['id']},alice,aldertion
+        '''
+        )
+        result = self.import_personal(exported, VALID_TOKEN_MAIN_TENANT)
+
+        assert_that(result['failed'], contains_exactly())
+        assert_that(self.list_personal()['items'], contains_exactly(*created))
 
 
 class TestPersonalImportUTF8(BaseDirdIntegrationTest):
