@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, TypedDict, cast
 
-from marshmallow import fields
+from xivo.mallow import fields, validate
 from xivo.mallow_helpers import ListSchema
 
 from wazo_dird.utils import projection
@@ -20,6 +20,7 @@ class ContactListSchema(ListSchema):
     sort_insensitive_columns = ['firstname', 'lastname', 'name']
 
     recurse = fields.Boolean(load_default=False)
+    limit = fields.Integer(validate=validate.Range(min=1), load_default=None)
 
     def load_count(self, args: Mapping[str, Any], **kwargs: Any) -> CountParams:
         return cast(CountParams, projection(self.load(args, **kwargs), ['search']))

@@ -47,5 +47,7 @@ class ContactListSchema(_ListSchema):
     default_sort_column = None
     sort_insensitive_columns = ['firstname', 'lastname']
 
+    limit = fields.Integer(validate=validate.Range(min=1), load_default=None)
+
 
 contact_list_schema = ContactListSchema()

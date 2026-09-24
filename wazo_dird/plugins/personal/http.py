@@ -13,10 +13,13 @@ from typing import TYPE_CHECKING, Any
 
 from flask import Response, request
 from flask_restful import reqparse
+from marshmallow import ValidationError
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import get_user_uuid, required_acl
 from wazo_dird.http import LegacyAuthResource, get_json_body
+
+from .schemas import list_schema
 
 if TYPE_CHECKING:
     from wazo_dird.database.queries.base import ContactInfo
@@ -65,10 +68,11 @@ class PersonalAll(LegacyAuthResource):
     ) -> tuple[dict[str, Any], int] | tuple[str, int] | Response:
         user_uuid = get_user_uuid()
         try:
+            search_params = dict(request.args) | list_schema.load(request.args)
             contacts = self.personal_service.list_contacts_raw(
-                user_uuid, search_params=request.args
+                user_uuid, search_params=search_params
             )
-        except ValueError as e:
+        except (ValidationError, ValueError) as e:
             error = {'reason': str(e), 'timestamp': [time()], 'status_code': 400}
             return error, 400
 
