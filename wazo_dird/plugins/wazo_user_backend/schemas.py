@@ -1,7 +1,8 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.mallow import fields
+from xivo.mallow.validate import ContainsOnly, Length
 from xivo.mallow_helpers import ListSchema as _ListSchema
 
 from wazo_dird.schemas import (
@@ -11,8 +12,18 @@ from wazo_dird.schemas import (
     ConfdConfigSchema,
 )
 
+# confd resolves these two as exact-match filters, against an index. A reverse
+# lookup on any other column has no meaning in the confd data model, so the
+# source refuses it rather than searching and discarding.
+FIRST_MATCHED_COLUMNS = ['exten', 'mobile_phone_number']
+
 
 class SourceSchema(BaseSourceSchema):
+    first_matched_columns = fields.List(
+        fields.String(validate=Length(min=1, max=128)),
+        validate=ContainsOnly(FIRST_MATCHED_COLUMNS),
+        load_default=[],
+    )
     auth = fields.Nested(
         AuthConfigSchema, load_default=lambda: AuthConfigSchema().load({})
     )

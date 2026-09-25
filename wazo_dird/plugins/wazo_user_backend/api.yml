@@ -212,6 +212,16 @@ definitions:
             $ref: '#/definitions/WazoAuthConfig'
           confd:
             $ref: '#/definitions/ConfdConfig'
+          first_matched_columns:
+            type: array
+            description: >
+              Columns searched on a reverse lookup. Only the columns confd can
+              match exactly are accepted; any other value is refused.
+            items:
+              type: string
+              enum:
+                - exten
+                - mobile_phone_number
       - required:
         - name
         - auth

@@ -1,4 +1,4 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -51,6 +51,35 @@ class TestSourceSchema(TestCase):
                     verify_certificate=True,
                 ),
             ),
+        )
+
+    def test_first_matched_columns_accepts_any_subset(self):
+        for columns in (
+            [],
+            ['exten'],
+            ['mobile_phone_number'],
+            ['exten', 'mobile_phone_number'],
+        ):
+            body = dict(
+                auth={'username': 'foo', 'password': 'bar'},
+                first_matched_columns=columns,
+                **self._body,
+            )
+
+            parsed = source_schema.load(body)
+
+            assert_that(parsed, has_entries(first_matched_columns=columns))
+
+    def test_first_matched_columns_refuses_a_column_confd_cannot_match(self):
+        body = dict(
+            auth={'username': 'foo', 'password': 'bar'},
+            first_matched_columns=['number'],
+            **self._body,
+        )
+
+        assert_that(
+            calling(source_schema.load).with_args(body),
+            raises(ValidationError),
         )
 
     def test_that_username_password_or_keyfile_is_present(self):

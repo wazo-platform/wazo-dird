@@ -12,7 +12,7 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import SourceUnavailable
+from wazo_dird.exception import InvalidConfigError, SourceUnavailable
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
@@ -20,6 +20,7 @@ from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 from wazo_dird.utils import is_uuid
 
 from . import http
+from .schemas import FIRST_MATCHED_COLUMNS
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,6 @@ class WazoUserPlugin(BaseSourcePlugin):
         'mobile_phone_number',
         'voicemail_number',
     ]
-    _match_all_supported_columns = ['exten', 'mobile_phone_number']
 
     _client: ConfdClient | None
     _searched_columns: list[str]
@@ -76,7 +76,9 @@ class WazoUserPlugin(BaseSourcePlugin):
     def load(self, dependencies: SourcePluginDependencies) -> None:
         config = dependencies['config']
         self._searched_columns = config.get('searched_columns', [])
-        self._first_matched_columns = config.get('first_matched_columns', [])
+        self._first_matched_columns = self._validate_first_matched_columns(
+            config.get('first_matched_columns', [])
+        )
         self.name = config['name']
         self._client = registry.get(config)
 
@@ -120,49 +122,57 @@ class WazoUserPlugin(BaseSourcePlugin):
         self, term: str, args: dict[str, Any] | None = None
     ) -> SourceResult | None:
         logger.debug('Looking for "%s"', term)
-        entries = self._fetch_entries(term)
 
-        def match_fn(entry: SourceResult) -> bool:
-            for column in self._first_matched_columns:
-                if term == entry.fields.get(column):
-                    return True
-            return False
+        for column in self._first_matched_columns:
+            match_ = self._fetch_exact_matches(column, [term]).get(term)
+            if match_ is not None:
+                logger.debug('Found a match: %s', match_)
+                return match_
 
-        for entry in entries:
-            if match_fn(entry):
-                logger.debug('Found a match: %s', entry)
-                return entry
         logger.debug('Found no match')
         return None
+
+    @staticmethod
+    def _validate_first_matched_columns(columns: list[str]) -> list[str]:
+        unsupported = [
+            column for column in columns if column not in FIRST_MATCHED_COLUMNS
+        ]
+        if unsupported:
+            raise InvalidConfigError(
+                'sources/first_matched_columns',
+                f'confd cannot match {unsupported} exactly; '
+                f'expected any of {FIRST_MATCHED_COLUMNS}',
+            )
+        return columns
+
+    def _fetch_exact_matches(
+        self, column: str, terms: list[str]
+    ) -> dict[str, SourceResult]:
+        # an empty term makes confd drop the filter and answer with every user,
+        # which then matches anyone whose own value is empty
+        wanted = [term for term in terms if term]
+        if not wanted:
+            return {}
+
+        logger.debug('Looking for "%s"="%s"', column, wanted)
+        entries = self._fetch_entries(','.join(wanted), column)
+        matches: dict[str, SourceResult] = {}
+        for entry in entries:
+            value = entry.fields.get(column)
+            if value is not None and value in wanted:
+                matches.setdefault(value, entry)
+        return matches
 
     def match_all(
         self, terms: list[str], args: dict[str, Any] | None = None
     ) -> dict[str, SourceResult]:
         results: dict[str, SourceResult] = {}
 
-        # NOTE(fblackburn) fallback if one of fields are not supported
-        supported = all(
-            column in self._match_all_supported_columns
-            for column in self._first_matched_columns
-        )
-        first_match_faster = len(terms) < len(self._first_matched_columns)
-        if not supported or first_match_faster:
-            results = {}
-            for term in terms:
-                match = self.first_match(term, args=args)
-                if match is not None:
-                    results[term] = match
-            return results
-
+        # the earlier column wins, as it does in first_match, so a reverse and
+        # a reverse_many of the same number answer with the same user
         for column in self._first_matched_columns:
-            terms_merged = ','.join(terms)
-            logger.debug('Looking for "%s"="%s"', column, terms)
-            entries = self._fetch_entries(terms_merged, column)
-            for entry in entries:
-                value = entry.fields.get(column)
-                if value is not None and value in terms:
-                    results[value] = entry
-                    logger.debug('Found a match: %s', entry)
+            for value, entry in self._fetch_exact_matches(column, terms).items():
+                results.setdefault(value, entry)
 
         if not results:
             logger.debug('Found no match')
