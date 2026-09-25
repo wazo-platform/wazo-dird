@@ -1,7 +1,7 @@
 """restrict_wazo_source_first_matched_columns
 
 Revision ID: bcee44e583d9
-Revises: a3f1c9d2e4b6
+Revises: d4b8f0c61e57
 
 """
 
@@ -13,7 +13,7 @@ from alembic import op  # type: ignore[attr-defined]
 
 # revision identifiers, used by Alembic.
 revision = 'bcee44e583d9'
-down_revision = 'a3f1c9d2e4b6'
+down_revision = 'd4b8f0c61e57'
 
 BACKEND = 'wazo'
 SUPPORTED_COLUMNS = ('exten', 'mobile_phone_number')
