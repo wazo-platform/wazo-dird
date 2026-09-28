@@ -148,8 +148,7 @@ class WazoUserPlugin(BaseSourcePlugin):
     def _fetch_exact_matches(
         self, column: str, terms: list[str]
     ) -> dict[str, SourceResult]:
-        # an empty term makes confd drop the filter and answer with every user,
-        # which then matches anyone whose own value is empty
+        # confd ignores an empty filter and returns every user
         wanted = [term for term in terms if term]
         if not wanted:
             return {}
@@ -168,8 +167,6 @@ class WazoUserPlugin(BaseSourcePlugin):
     ) -> dict[str, SourceResult]:
         results: dict[str, SourceResult] = {}
 
-        # the earlier column wins, as it does in first_match, so a reverse and
-        # a reverse_many of the same number answer with the same user
         for column in self._first_matched_columns:
             for value, entry in self._fetch_exact_matches(column, terms).items():
                 results.setdefault(value, entry)
