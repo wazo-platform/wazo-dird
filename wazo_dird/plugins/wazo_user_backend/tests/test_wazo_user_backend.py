@@ -7,17 +7,19 @@ from unittest.mock import Mock, call, patch
 
 from hamcrest import (
     assert_that,
+    calling,
     contains_exactly,
     empty,
     equal_to,
     has_entries,
     is_,
     none,
+    raises,
 )
 from requests import HTTPError, RequestException
 
 from wazo_dird import make_result_class
-from wazo_dird.exception import SourceUnavailable
+from wazo_dird.exception import InvalidConfigError, SourceUnavailable
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
@@ -50,6 +52,7 @@ UUID = 'my-xivo-uuid'
 
 UUID_1 = '55abf77c-5744-44a0-9c36-34da29f647cb'
 UUID_2 = '22f51ae2-296d-4340-a7d5-3567ae66df73'
+UUID_3 = '3b8e6b2c-4f1a-4c7e-9a2f-0f4a1d6c8e55'
 
 SourceResult = make_result_class(
     cast(str, DEFAULT_ARGS['config']['backend']),
@@ -137,6 +140,44 @@ SOURCE_2 = SourceResult(
 )
 
 
+CONFD_USER_3: dict[str, Any] = {
+    "agent_id": None,
+    "exten": '777',
+    "firstname": "Collide",
+    "lastname": "McCollide",
+    "id": 228,
+    'uuid': UUID_3,
+    "line_id": 321,
+    'userfield': None,
+    'description': None,
+    "links": [],
+    'email': '',
+    # the same value as CONFD_USER_1's exten, so the two columns disagree
+    "mobile_phone_number": "666",
+    "voicemail_number": None,
+}
+
+SOURCE_3 = SourceResult(
+    {
+        'id': 228,
+        'uuid': UUID_3,
+        'exten': '777',
+        'firstname': 'Collide',
+        'lastname': 'McCollide',
+        'full_name': 'Collide McCollide',
+        'email': '',
+        'mobile_phone_number': '666',
+        'userfield': None,
+        'description': None,
+        'voicemail_number': None,
+    },
+    xivo_id=UUID,
+    user_id=228,
+    user_uuid=UUID_3,
+    endpoint_id=321,
+)
+
+
 class _BaseTest(unittest.TestCase):
     def setUp(self):
         self._source = WazoUserPlugin()
@@ -147,18 +188,41 @@ class _BaseTest(unittest.TestCase):
 
 
 def _confd_users_list(**params: Any) -> dict[str, Any]:
-    """Answer like confd: `uuid` is a filter, the other params are not.
-
-    dird narrows a `search` or a `first_matched_column` itself, so those stay
-    a pass-through; `uuid` is the one confd resolves, and a mock that ignored
-    it would let a wrong or missing filter pass unnoticed.
+    """Answer like confd: `uuid`, `exten` and `mobile_phone_number` are exact
+    filters, `search` is not.
     """
-    items: list[dict[str, Any]] = [CONFD_USER_1, CONFD_USER_2]
-    wanted = params.get('uuid')
-    if wanted is not None:
+    items: list[dict[str, Any]] = [CONFD_USER_1, CONFD_USER_2, CONFD_USER_3]
+    for field in ('uuid', 'exten', 'mobile_phone_number'):
+        wanted = params.get(field)
+        if wanted is None:
+            continue
         keep = set(wanted.split(','))
-        items = [user for user in items if user['uuid'] in keep]
+        items = [user for user in items if user[field] in keep]
     return {'items': items, 'total': len(items)}
+
+
+class TestWazoUserBackendLoad(_BaseTest):
+    def _load(self, first_matched_columns):
+        config = dict(cast(dict, DEFAULT_ARGS['config']))
+        config['first_matched_columns'] = first_matched_columns
+        with patch('wazo_dird.plugins.wazo_user_backend.plugin.registry'):
+            self._source.load(
+                cast(SourcePluginDependencies, {'config': config}),
+            )
+
+    def test_load_accepts_a_column_confd_can_match_exactly(self):
+        self._load(['exten', 'mobile_phone_number'])
+
+        assert_that(
+            self._source._first_matched_columns,
+            contains_exactly('exten', 'mobile_phone_number'),
+        )
+
+    def test_load_refuses_a_column_confd_cannot_match_exactly(self):
+        assert_that(
+            calling(self._load).with_args(['number']),
+            raises(InvalidConfigError),
+        )
 
 
 class TestWazoUserBackendSearch(_BaseTest):
@@ -229,24 +293,66 @@ class TestWazoUserBackendSearch(_BaseTest):
 
         assert_that(result, contains_exactly(SOURCE_2))
 
-    def test_first_match(self):
+    def test_first_match_uses_the_exact_filter(self):
         self._source._first_matched_columns = ['exten']
 
         result = self._source.first_match('1234')
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='1234'
+            recurse=True, view='directory', exten='1234'
         )
 
         assert_that(result, equal_to(SOURCE_2))
 
+    def test_first_match_stops_at_the_first_column_that_matches(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        result = self._source.first_match('1234')
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory', exten='1234'
+        )
+
+        assert_that(result, equal_to(SOURCE_2))
+
+    def test_first_match_tries_every_supported_column(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        result = self._source.first_match('5555551234')
+
+        self._confd_client.users.list.assert_has_calls(
+            [
+                call(recurse=True, view='directory', exten='5555551234'),
+                call(recurse=True, view='directory', mobile_phone_number='5555551234'),
+            ]
+        )
+
+        assert_that(result, equal_to(SOURCE_1))
+
+    def test_first_match_and_match_all_agree_when_columns_disagree(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        first = self._source.first_match('666')
+        every = self._source.match_all(['666'])
+
+        assert_that(first, equal_to(SOURCE_1))
+        assert_that(every, has_entries({'666': SOURCE_1}))
+
+    def test_an_empty_term_never_reaches_confd(self):
+        self._source._first_matched_columns = ['exten', 'mobile_phone_number']
+
+        assert_that(self._source.first_match(''), is_(none()))
+        assert_that(self._source.match_all(['']), equal_to({}))
+
+        self._confd_client.users.list.assert_not_called()
+
     def test_first_match_return_none_when_no_result(self):
-        self._source._first_matched_columns = ['number']
+        self._source._first_matched_columns = ['exten']
 
         result = self._source.first_match('12')
 
         self._confd_client.users.list.assert_called_once_with(
-            recurse=True, view='directory', search='12'
+            recurse=True, view='directory', exten='12'
         )
 
         assert_that(result, is_(none()))
@@ -273,22 +379,17 @@ class TestWazoUserBackendSearch(_BaseTest):
 
         assert_that(result, has_entries({}))
 
-    def test_match_all_when_not_supported_column_then_fallback(self):
-        self._source._first_matched_columns = ['exten', 'unsupported']
-
-        self._source.match_all(['12', '34'])
-
-        call1 = call(recurse=True, view='directory', search='12')
-        call2 = call(recurse=True, view='directory', search='34')
-        self._confd_client.users.list.assert_has_calls([call1, call2])
-
-    def test_match_all_when_first_match_faster_then_fallback(self):
+    def test_match_all_uses_the_exact_filters_even_for_a_single_term(self):
         self._source._first_matched_columns = ['exten', 'mobile_phone_number']
 
         self._source.match_all(['12'])
 
-        call1 = call(recurse=True, view='directory', search='12')
-        self._confd_client.users.list.assert_has_calls([call1])
+        self._confd_client.users.list.assert_has_calls(
+            [
+                call(recurse=True, view='directory', exten='12'),
+                call(recurse=True, view='directory', mobile_phone_number='12'),
+            ]
+        )
 
     def test_list_with_unknown_uuid(self):
         unknown_uuid = '11111111-1111-4111-8111-111111111111'
