@@ -41,7 +41,11 @@ paths:
           $ref: '#/responses/AnotherServiceUnavailable'
     post:
       summary: Create new personal contact
-      description: '**Required ACL:** `dird.personal.create`'
+      description: '**Required ACL:** `dird.personal.create`
+
+
+        Attribute `id` is assigned by the server; a value sent in the body is
+        ignored.'
       operationId: add_personal
       tags:
       - personal
@@ -140,7 +144,12 @@ paths:
   /personal/import:
     post:
       summary: Import multiple personal contacts at once
-      description: '**Required ACL:** `dird.personal.import.create`'
+      description: '**Required ACL:** `dird.personal.import.create`
+
+
+        Attribute `id` is assigned by the server; an `id` column in the CSV is
+        ignored. Contacts are deduplicated on their content, so re-importing an
+        export does not create duplicates.'
       operationId: import_personal
       tags:
       - personal
