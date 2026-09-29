@@ -452,6 +452,15 @@ class TestContactGet(_BasePhonebookContactTestCase):
 
 
 class TestContactList(_BasePhonebookContactTestCase):
+    def test_that_a_zero_limit_returns_400(self):
+        self.set_tenants(self.tenant_1.name)
+
+        result = self.list_phonebook_contacts(
+            self.phonebook_1['uuid'], tenant=self.tenant_1.uuid, limit=0
+        )
+
+        assert_that(result.status_code, equal_to(400))
+
     def test_unknown_tenant_or_phonebook(self):
         self.set_tenants(self.tenant_2.name)
         result = self.list_phonebook_contacts(
