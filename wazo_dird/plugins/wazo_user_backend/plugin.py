@@ -93,11 +93,8 @@ class WazoUserPlugin(BaseSourcePlugin):
     def unload(self) -> None:
         registry.unregister_all()
 
-    def search(  # type: ignore[override]
-        self,
-        term: str,
-        profile: Any | None = None,
-        args: dict[str, Any] | None = None,
+    def search(
+        self, term: str, args: dict[str, Any] | None = None
     ) -> list[SourceResult]:
         clean_term = unidecode(term.lower())
         entries = self._fetch_entries(term)

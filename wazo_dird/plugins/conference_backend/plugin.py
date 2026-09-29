@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -88,11 +88,8 @@ class ConferencePlugin(BaseSourcePlugin):
         logger.debug('Found %s conferences', len(results))
         return results
 
-    def search(  # type: ignore[override]
-        self,
-        term: str,
-        profile: Any | None = None,
-        args: dict[str, Any] | None = None,
+    def search(
+        self, term: str, args: dict[str, Any] | None = None
     ) -> builtins.list[SourceResult]:
         logger.debug('Looking for all conferences matching "%s"', term)
         clean_term = unidecode(term.lower())
