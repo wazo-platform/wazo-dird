@@ -19,6 +19,7 @@ from wazo_dird.helpers import (
     BackendViewServices,
     BaseBackendView,
 )
+from wazo_dird.plugins.base_plugins import LookupArgs
 from wazo_dird.plugins.base_plugins import SourceConfig as BaseSourceConfig
 from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
@@ -121,9 +122,7 @@ class PhonebookPlugin(BaseSourcePlugin):
 
         logger.info('phonebook source %s loaded', self._source_name)
 
-    def search(
-        self, term: str, args: dict[str, Any] | None = None
-    ) -> list[SourceResult]:
+    def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         logger.debug('Searching phonebook contact with %s', term)
         matching_contacts = self._search_engine.find_contacts(term)
         return self.format_contacts(matching_contacts)
