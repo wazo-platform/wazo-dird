@@ -60,6 +60,8 @@ class RestAPIConfig(TypedDict):
     cors: CORSConfig
     min_threads: int
     max_threads: int
+    # resource cache_control_key -> Cache-Control max-age, in seconds
+    cache_control: dict[str, int]
 
 
 class BusConfig(TypedDict):
@@ -195,6 +197,7 @@ _DEFAULT_CONFIG: Config = {
         },
         'min_threads': 10,
         'max_threads': 100,
+        'cache_control': {},
     },
     'reverse_service': {
         'executor_workers': None,  # None: inherit rest_api.max_threads

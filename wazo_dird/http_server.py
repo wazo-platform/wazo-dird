@@ -22,6 +22,7 @@ from .http import (
     LegacyAuthResource,
     LegacyErrorCatchingResource,
 )
+from .http_cache import CACHE_CONTROL_CONFIG_KEY, add_cache_control, sanitized_max_ages
 
 # Compatibility for old plugins < 22.03
 __all__ = [
@@ -51,6 +52,7 @@ class CoreRestApi:
         app.permanent_session_lifetime = timedelta(minutes=5)
         app.config.update(global_config)
         self.load_cors()
+        self.load_cache_control()
         self.server: wsgi.DynamicWSGIServer | None = None
         self._stopped = threading.Event()
         self.app = app
@@ -61,6 +63,13 @@ class CoreRestApi:
         enabled = cors_config.pop('enabled', False)
         if enabled:
             CORS(app, **cors_config)
+
+    def load_cache_control(self) -> None:
+        max_ages = sanitized_max_ages(dict(self.config.get('cache_control', {})))
+        app.config[CACHE_CONTROL_CONFIG_KEY] = max_ages
+        if max_ages:
+            logger.info('Cache-Control enabled on %s', ', '.join(sorted(max_ages)))
+        app.after_request(add_cache_control)
 
     def run(self) -> None:
         bind_addr = (self.config['listen'], self.config['port'])

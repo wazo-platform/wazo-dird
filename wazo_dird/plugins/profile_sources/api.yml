@@ -18,6 +18,13 @@ paths:
           description: List of sources
           schema:
             $ref: '#/definitions/ProfileSourceItems'
+          headers:
+            Cache-Control:
+              type: string
+              description: "How long the response stays fresh, when
+                `rest_api.cache_control.profile_sources` is configured. A client
+                may reuse the response from its own cache for that long. The
+                header is absent when the option is not configured."
         '400':
           $ref: '#/responses/InvalidParameters'
         '404':

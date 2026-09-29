@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
 
 class SourceResource(AuthResource):
+    cache_control_key = 'profile_sources'
+
     def __init__(self, profile_service: _ProfileService) -> None:
         self._profile_service = profile_service
 
