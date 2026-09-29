@@ -15,7 +15,7 @@ from wazo_confd_client import Client as ConfdClient
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
-from wazo_dird.plugins.base_plugins import SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import http
@@ -89,7 +89,7 @@ class ConferencePlugin(BaseSourcePlugin):
         return results
 
     def search(
-        self, term: str, args: dict[str, Any] | None = None
+        self, term: str, args: LookupArgs | None = None
     ) -> builtins.list[SourceResult]:
         logger.debug('Looking for all conferences matching "%s"', term)
         clean_term = unidecode(term.lower())

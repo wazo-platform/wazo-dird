@@ -8,7 +8,11 @@ from typing import Any
 
 from hamcrest import assert_that, equal_to, has_entries
 
-from wazo_dird.plugins.base_plugins import BaseSourcePlugin, SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import (
+    BaseSourcePlugin,
+    LookupArgs,
+    SourcePluginDependencies,
+)
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 
@@ -18,9 +22,7 @@ class _MinimalSource(BaseSourcePlugin):
     def load(self, args: SourcePluginDependencies) -> None:
         pass
 
-    def search(
-        self, term: str, args: dict[str, Any] | None = None
-    ) -> list[SourceResult]:
+    def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         return []
 
     def first_match(

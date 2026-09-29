@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -13,7 +13,11 @@ from requests import RequestException
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
-from wazo_dird.plugins.base_plugins import SourceConfig, SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import (
+    LookupArgs,
+    SourceConfig,
+    SourcePluginDependencies,
+)
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import http
@@ -63,9 +67,7 @@ class CSVWSPlugin(BaseSourcePlugin):
         self._verify_certificate = source_config.get('verify_certificate', True)
         self._reader = _CSVReader(self._delimiter)
 
-    def search(
-        self, term: str, args: dict[str, Any] | None = None
-    ) -> list[SourceResult]:
+    def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         logger.debug('Searching CSV WS `%s` with `%s`', self._name, term)
         url = self._lookup_url
         params = {column: term for column in self._searched_columns}

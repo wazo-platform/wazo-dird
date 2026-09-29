@@ -6,10 +6,10 @@ from unittest import TestCase
 from unittest.mock import Mock
 from uuid import uuid4
 
-from hamcrest import assert_that, equal_to, has_item, has_property
+from hamcrest import assert_that, empty, equal_to, has_item, has_property
 
 from wazo_dird import database
-from wazo_dird.plugins.base_plugins import SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 
 from ..plugin import PersonalBackend
 
@@ -52,11 +52,27 @@ class TestPersonalBackend(TestCase):
     def test_that_search_calls_find_personal_contacts(self):
         self._search_engine.find_personal_contacts.return_value = [CONTACT_1]
 
-        self._source.search('alice', {'token': 'valid-token', 'user_uuid': SOME_UUID})
+        self._source.search(
+            'alice',
+            LookupArgs(
+                token='valid-token', user_uuid=SOME_UUID, xivo_user_uuid=SOME_UUID
+            ),
+        )
 
         self._search_engine.find_personal_contacts.assert_called_once_with(
             SOME_UUID, 'alice'
         )
+
+    def test_that_search_without_user_returns_nothing(self):
+        self._search_engine.find_personal_contacts.return_value = [CONTACT_1]
+
+        result = self._source.search(
+            'alice',
+            LookupArgs(token='valid-token', user_uuid=None, xivo_user_uuid=None),
+        )
+
+        assert_that(result, empty())
+        self._search_engine.find_personal_contacts.assert_not_called()
 
     def test_that_first_match_calls_find_first_personal_contact(self):
         self._search_engine.find_first_personal_contact.return_value = [CONTACT_1]

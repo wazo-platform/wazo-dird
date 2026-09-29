@@ -15,7 +15,7 @@ from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.exception import InvalidConfigError, SourceUnavailable
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
-from wazo_dird.plugins.base_plugins import SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 from wazo_dird.utils import is_uuid
 
@@ -93,9 +93,7 @@ class WazoUserPlugin(BaseSourcePlugin):
     def unload(self) -> None:
         registry.unregister_all()
 
-    def search(
-        self, term: str, args: dict[str, Any] | None = None
-    ) -> list[SourceResult]:
+    def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         clean_term = unidecode(term.lower())
         entries = self._fetch_entries(term)
 
