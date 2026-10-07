@@ -6,6 +6,7 @@ from hamcrest import (
     calling,
     contains_exactly,
     contains_inanyorder,
+    empty,
     has_properties,
 )
 from wazo_test_helpers.hamcrest.raises import raises
@@ -182,6 +183,9 @@ class TestList(BaseDirdIntegrationTest):
             total=3,
             filtered=3,
         )
+
+        result = self.client.sources.list(limit=0)
+        self.assert_list_result(result, empty(), total=3, filtered=3)
 
         result = self.client.sources.list(order='name', offset=2)
         self.assert_list_result(

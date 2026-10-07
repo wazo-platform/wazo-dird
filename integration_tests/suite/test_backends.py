@@ -68,6 +68,9 @@ class TestBackends(BaseDirdIntegrationTest):
         result = self.client.backends.list(limit=2)
         self._assert_matches(result, 9, 9, contains_exactly, 'conference', 'csv')
 
+        result = self.client.backends.list(limit=0)
+        self._assert_matches(result, 9, 9, contains_exactly)
+
         result = self.client.backends.list(offset=7)
         self._assert_matches(result, 9, 9, contains_exactly, 'phonebook', 'wazo')
 

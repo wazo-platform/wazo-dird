@@ -9,6 +9,7 @@ from hamcrest import (
     calling,
     contains_exactly,
     contains_inanyorder,
+    empty,
     equal_to,
     has_entries,
     has_properties,
@@ -194,6 +195,9 @@ class TestList(BaseDisplayTestCase):
 
         result = self.client.displays.list(order='name', limit=2)
         self.assert_list_result(result, contains_exactly(a, b), total=3, filtered=3)
+
+        result = self.client.displays.list(limit=0)
+        self.assert_list_result(result, empty(), total=3, filtered=3)
 
         result = self.client.displays.list(order='name', offset=2)
         self.assert_list_result(result, contains_exactly(c), total=3, filtered=3)

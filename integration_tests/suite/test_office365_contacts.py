@@ -6,6 +6,7 @@ from hamcrest import (
     calling,
     contains_exactly,
     contains_inanyorder,
+    empty,
     has_entries,
     has_item,
 )
@@ -251,6 +252,11 @@ class TestOffice365ContactList(BaseOffice365AssetTestCase):
         assert_that(
             self.list_(self.client, self.source_uuid, order='name', limit=1),
             has_entries(items=contains_exactly(aa)),
+        )
+
+        assert_that(
+            self.list_(self.client, self.source_uuid, order='name', limit=0),
+            has_entries(items=empty()),
         )
 
         assert_that(

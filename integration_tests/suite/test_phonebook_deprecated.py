@@ -68,6 +68,9 @@ class TestList(BaseDeprecatedPhonebookTestCase):
         result = self.list_phonebooks('pagination', limit=2)
         assert_matches(result, phonebook_1, phonebook_2)
 
+        result = self.list_phonebooks('pagination', limit=0)
+        assert_matches(result)
+
         result = self.list_phonebooks('pagination', offset=1)
         assert_matches(result, phonebook_2, phonebook_3)
 
@@ -418,6 +421,9 @@ class TestContactList(_BasePhonebookContactTestCase):
 
         result = self.list_phonebook_contacts(*args, order='firstname', limit=2)
         assert_matches(result, contact_1, contact_2)
+
+        result = self.list_phonebook_contacts(*args, limit=0)
+        assert_matches(result)
 
         result = self.list_phonebook_contacts(*args, order='firstname', offset=1)
         assert_matches(result, contact_2, contact_3)

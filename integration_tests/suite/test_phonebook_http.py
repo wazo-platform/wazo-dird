@@ -15,6 +15,7 @@ from hamcrest import (
     calling,
     contains_exactly,
     contains_inanyorder,
+    empty,
     equal_to,
     has_entries,
     has_item,
@@ -625,6 +626,21 @@ class TestGetContacts(BasePhonebookCRUDTestCase):
             },
             tenant_uuid=SUB_TENANT,
         ) as source:
+            body = client.backends.list_contacts_from_source(
+                backend='phonebook',
+                source_uuid=source['uuid'],
+                limit=0,
+                tenant_uuid=SUB_TENANT,
+            )
+            assert_that(
+                body,
+                has_entries(
+                    total=len(self.contacts),
+                    filtered=len(self.contacts),
+                    items=empty(),
+                ),
+            )
+
             limit = 2
             body = client.backends.list_contacts_from_source(
                 backend='phonebook',
