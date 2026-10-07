@@ -10,6 +10,7 @@ from hamcrest import (
     calling,
     contains_exactly,
     contains_inanyorder,
+    empty,
     equal_to,
     has_entries,
     has_properties,
@@ -136,6 +137,11 @@ class TestList(BasePersonalCRUDTestCase):
         assert_that(
             self.client.personal_source.list(order='name', limit=2),
             has_entries(items=contains_exactly(a, b), total=3, filtered=3),
+        )
+
+        assert_that(
+            self.client.personal_source.list(limit=0),
+            has_entries(items=empty(), total=3, filtered=3),
         )
 
         assert_that(

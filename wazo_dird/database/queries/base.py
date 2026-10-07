@@ -182,7 +182,7 @@ class BaseDAO:
         if int(parameters['offset']) < 0:
             raise ValueError('offset must be positive number')
 
-        if parameters['limit'] is not None and int(parameters['limit']) <= 0:
+        if parameters['limit'] is not None and int(parameters['limit']) < 0:
             raise ValueError('limit must be a positive number')
 
         if parameters['direction'] not in self.SORT_DIRECTIONS.keys():
