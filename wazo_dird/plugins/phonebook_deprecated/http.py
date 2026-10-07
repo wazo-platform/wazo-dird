@@ -89,7 +89,7 @@ class _ArgParser:
             params['direction'] = self._direction
         if self._order:
             params['order'] = self._order
-        if self._limit:
+        if self._limit is not None:
             params['limit'] = self._limit
         if self._offset:
             params['offset'] = self._offset
@@ -112,9 +112,11 @@ class _ArgParser:
         raise InvalidArgumentError(f'{name} should be one of {valid_values}')
 
     @staticmethod
-    def _get_positive_int(args: Mapping[str, str], name: str) -> int:
+    def _get_positive_int(args: Mapping[str, str], name: str) -> int | None:
+        if name not in args:
+            return None
         try:
-            value = int(args.get(name, 0))
+            value = int(args[name])
             if value >= 0:
                 return value
         except ValueError:

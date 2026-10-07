@@ -657,3 +657,11 @@ class TestSearchPersonal(PersonalOnlyTestCase):
                 has_entry('firstname', 'Alice'),
             ),
         )
+
+        result = self.list_personal(limit=0)
+        assert_that(result['items'], empty())
+
+    def test_that_a_negative_limit_or_offset_returns_400(self):
+        for param in ('limit', 'offset'):
+            response = self.list_personal_result(VALID_TOKEN_MAIN_TENANT, **{param: -1})
+            assert_that(response.status_code, equal_to(400), param)

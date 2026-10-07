@@ -406,8 +406,7 @@ class PhonebookContactCRUD(BaseDAO):
 
         if offset:
             query = query.offset(offset)
-        # TODO: change limit=0 behavior and uniformize with personal DAO
-        if limit:
+        if limit is not None:
             query = query.limit(limit)
 
         return [uuid for (uuid,) in query.all()]
