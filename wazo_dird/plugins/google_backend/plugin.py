@@ -99,6 +99,12 @@ class GooglePlugin(BaseSourcePlugin):
         filtered_contacts = [
             c for c in contacts if self._search_match_predicate(c, lowered_term)
         ]
+        logger.debug(
+            'Searched %d Google contacts locally for term=%s: %d matched',
+            len(contacts),
+            term,
+            len(filtered_contacts),
+        )
 
         return [self._SourceResult(c) for c in filtered_contacts]
 
