@@ -7,7 +7,7 @@ import hashlib
 import logging
 import threading
 import time
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from typing import Any
 
 import requests
@@ -31,7 +31,7 @@ def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
 class _TokenCache:
     """Thread-safe TTL cache keyed by Google access token.
 
-    Every Google source and the contacts view share the module-level instances
+    Every Google source and the contacts view share the module-level instance
     below, so all requests made with the same access token reuse one entry.
     Tokens are hashed so they are not kept as dictionary keys.
     """
@@ -81,14 +81,12 @@ class _TokenCache:
 
 
 _contacts_cache = _TokenCache()
-_search_warmups = _TokenCache()
 
 
 class GoogleService:
     USER_AGENT = 'wazo_ua/1.0'
 
     people_url = 'https://people.googleapis.com/v1/people/me/connections'
-    search_url = 'https://people.googleapis.com/v1/people:searchContacts'
     batch_url = 'https://people.googleapis.com/v1/people:batchGet'
 
     person_fields = (
@@ -115,11 +113,19 @@ class GoogleService:
     def get_contacts(
         self, google_token: str, **list_params: Any
     ) -> tuple[list[dict[str, Any]], int]:
+        contacts = self.get_all_contacts(google_token)
         term = list_params.get('search')
         if term:
-            contacts = list(self._search(google_token, term))
-        else:
-            contacts = self.get_all_contacts(google_token)
+            # Filter the cached contact list locally instead of querying Google's
+            # search endpoint on every search
+            matching_contacts = [c for c in contacts if _matches_search(c, term)]
+            logger.debug(
+                'Searched %d Google contacts locally for term=%s: %d matched',
+                len(contacts),
+                term,
+                len(matching_contacts),
+            )
+            contacts = matching_contacts
         total = len(contacts)
         sorted_contacts = sort_contacts(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
@@ -149,29 +155,6 @@ class GoogleService:
             if not next_page_token:
                 return contacts, True
             params['pageToken'] = next_page_token
-
-    def _search(self, google_token: str, term: str) -> Iterator[dict[str, Any]]:
-        headers = self.headers(google_token)
-        params: dict[str, Any] = {
-            'readMask': self.person_fields,
-            'pageSize': 30,
-        }
-
-        # empty request to 'warm' cache, recommended by Google
-        if self.contacts_cache_ttl <= 0 or not _search_warmups.get(google_token):
-            warmup = self._get_request(self.search_url, headers, dict(params))
-            if warmup and self.contacts_cache_ttl > 0:
-                _search_warmups.set(google_token, True, self.contacts_cache_ttl)
-
-        params['query'] = term
-        response = self._get_request(
-            self.search_url, headers, params, 'Searched contacts from Google'
-        )
-        if not response:
-            return
-
-        for contact in response.json().get('results', []):
-            yield self.formatter.format(contact.get('person', {}))
 
     def _get_batch_of_contacts(
         self, headers: dict[str, str], contact_ids: list[str]
@@ -233,6 +216,25 @@ class GoogleService:
             'Accept': 'application/json',
             'GData-Version': '3.0',
         }
+
+
+def _matches_search(contact: dict[str, Any], term: str) -> bool:
+    """Match the fields Google's search endpoint matched: names, emails,
+    organizations and phone numbers"""
+    lowered_term = term.lower()
+    texts = [contact['name'], contact['firstname'], contact['lastname']]
+    texts.extend(email['address'] for email in contact['emails'])
+    for organization in contact['organizations']:
+        texts.extend((organization['name'], organization['title']))
+    if any(lowered_term in (text or '').lower() for text in texts):
+        return True
+
+    number_term = term
+    for char in ContactFormatter.chars_to_remove:
+        number_term = number_term.replace(char, '')
+    return bool(number_term) and any(
+        number_term in number for number in contact['numbers']
+    )
 
 
 def get_google_access_token(

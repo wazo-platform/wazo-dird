@@ -373,13 +373,27 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_search(self, google_api):
-        self.list_(self.client, self.source_uuid, search='mario'),
+        result = self.list_(self.client, self.source_uuid, search='mario')
+
+        assert_that(
+            result,
+            has_entries(
+                items=contains_exactly(has_entries(name='Mario Bros')),
+                total=1,
+                filtered=1,
+            ),
+        )
         google_api.verify(
             {
                 'method': 'GET',
-                'path': '/v1/people:searchContacts',
+                'path': '/v1/people/me/connections',
                 'headers': {'Authorization': ['Bearer an-access-token']},
             }
+        )
+        google_api.verify(
+            {'method': 'GET', 'path': '/v1/people:searchContacts'},
+            count=0,
+            exact=True,
         )
 
     def list_(self, client, *args, **kwargs):
