@@ -228,12 +228,10 @@ class TestGoogleServiceCache(unittest.TestCase):
 
     def setUp(self):
         services._contacts_cache.clear()
-        services._search_warmups.clear()
         self.service = services.GoogleService(contacts_cache_ttl=300)
 
     def tearDown(self):
         services._contacts_cache.clear()
-        services._search_warmups.clear()
 
     def test_contacts_are_fetched_once_per_token(self, get):
         get.return_value = _response(self.contacts)
@@ -317,24 +315,33 @@ class TestGoogleServiceCache(unittest.TestCase):
             get.call_args_list[1].kwargs['params'], has_entries(pageToken='next')
         )
 
-    def test_search_warms_up_once_per_token(self, get):
-        get.return_value = _response({'results': [{'person': _person('1', 'Mario')}]})
+    def test_searches_filter_the_cached_contacts(self, get):
+        get.return_value = _response(self.contacts)
 
-        self.service.get_contacts('token', search='mar')
-        self.service.get_contacts('token', search='mari')
+        mario, mario_total = self.service.get_contacts('token', search='MAR')
+        luigi, luigi_total = self.service.get_contacts('token', search='uig')
 
-        queries = [call.kwargs['params'].get('query') for call in get.call_args_list]
-        assert_that(queries, contains_exactly(None, 'mar', 'mari'))
+        assert_that(get.call_count, equal_to(1))
+        assert_that(get.call_args.args[0], equal_to(services.GoogleService.people_url))
+        assert_that(mario, contains_exactly(has_entries(id='1')))
+        assert_that(luigi, contains_exactly(has_entries(id='2')))
+        assert_that((mario_total, luigi_total), equal_to((1, 1)))
 
-    def test_failed_search_warmup_is_retried(self, get):
-        results = _response({'results': [{'person': _person('1', 'Mario')}]})
-        get.side_effect = [_response({}, 429), results, results, results]
+    def test_search_matches_the_fields_google_searched(self, get):
+        luigi = TestGoogleContactFormatter.google_contact
+        get.return_value = _response({'connections': [_person('1', 'Mario'), luigi]})
 
-        self.service.get_contacts('token', search='mar')
-        self.service.get_contacts('token', search='mari')
+        def search(term):
+            contacts, _ = self.service.get_contacts('token', search=term)
+            return [contact['name'] for contact in contacts]
 
-        queries = [call.kwargs['params'].get('query') for call in get.call_args_list]
-        assert_that(queries, contains_exactly(None, 'mar', None, 'mari'))
+        assert_that(search('bros'), contains_exactly('Luigi Bros'))
+        assert_that(search('caramail'), contains_exactly('Luigi Bros'))
+        assert_that(search('mushroom'), contains_exactly('Luigi Bros'))
+        assert_that(search('plumber'), contains_exactly('Luigi Bros'))
+        assert_that(search('555-555-8888'), contains_exactly('Luigi Bros'))
+        assert_that(search('Old'), equal_to([]))
+        assert_that(search('-'), equal_to([]))
 
 
 class TestTokenCache(unittest.TestCase):
