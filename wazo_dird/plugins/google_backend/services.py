@@ -159,8 +159,8 @@ class GoogleService:
 
         # empty request to 'warm' cache, recommended by Google
         if self.contacts_cache_ttl <= 0 or not _search_warmups.get(google_token):
-            self._get_request(self.search_url, headers, dict(params))
-            if self.contacts_cache_ttl > 0:
+            warmup = self._get_request(self.search_url, headers, dict(params))
+            if warmup and self.contacts_cache_ttl > 0:
                 _search_warmups.set(google_token, True, self.contacts_cache_ttl)
 
         params['query'] = term
