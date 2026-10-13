@@ -106,11 +106,9 @@ class GoogleService:
                 logger.debug('Using cached contacts from Google')
                 return list(cached)
 
-        contacts = self._fetch_all(google_token)
-        if contacts is None:
-            return []
-
-        if self.contacts_cache_ttl > 0:
+        contacts, complete = self._fetch_all(google_token)
+        # A partial list would hide the missing contacts for the whole TTL
+        if complete and self.contacts_cache_ttl > 0:
             _contacts_cache.set(google_token, contacts, self.contacts_cache_ttl)
         return list(contacts)
 
@@ -127,18 +125,19 @@ class GoogleService:
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total
 
-    def _fetch_all(self, google_token: str) -> list[dict[str, Any]] | None:
+    def _fetch_all(self, google_token: str) -> tuple[list[dict[str, Any]], bool]:
+        """Return the contacts fetched and whether every page was fetched"""
         headers = self.headers(google_token)
         params: dict[str, Any] = {
             'personFields': self.person_fields,
             'pageSize': 1000,
         }
 
-        contacts = []
+        contacts: list[dict[str, Any]] = []
         while True:
             response = self._get_request(self.people_url, headers, dict(params))
             if not response:
-                return None
+                return contacts, False
 
             body = response.json()
             for contact in body.get('connections', []):
@@ -147,7 +146,7 @@ class GoogleService:
             next_page_token = body.get('nextPageToken')
             if not next_page_token:
                 logger.debug('Fetched %d contacts from Google', len(contacts))
-                return contacts
+                return contacts, True
             params['pageToken'] = next_page_token
 
     def _search(self, google_token: str, term: str) -> Iterator[dict[str, Any]]:
