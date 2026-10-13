@@ -24,8 +24,11 @@
 
 * The Google backend now caches each Google account's contacts for
   `google_backend.contacts_cache_ttl` seconds (default `300`, `0` disables it).
-  Lookups, reverse lookups and favorites reuse that list instead of querying
-  Google on every request, and lookups no longer call Google's search endpoint.
+  Lookups, reverse lookups, favorites and
+  `GET /0.1/backends/google/sources/<source_uuid>/contacts` reuse that list
+  instead of querying Google on every request. Searches no longer call Google's
+  search endpoint: the `search` parameter of the contacts endpoint now matches
+  names, emails, organizations and phone numbers within the cached list.
   Accounts with more than 1000 contacts are now fully fetched.
 
 ## 26.10
