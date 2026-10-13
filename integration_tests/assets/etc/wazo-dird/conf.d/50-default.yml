@@ -16,3 +16,7 @@ bus:
   username: guest
   password: guest
   enabled: true
+
+# Tests reuse the same Google access token with different mocked contacts
+google_backend:
+  contacts_cache_ttl: 0

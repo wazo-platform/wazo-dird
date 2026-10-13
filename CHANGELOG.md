@@ -22,6 +22,12 @@
   Before, `GET /0.1/directories/<profile>/sources` and GraphQL gave it in
   `details.uuid`.
 
+* The Google backend now caches each Google account's contacts for
+  `google_backend.contacts_cache_ttl` seconds (default `300`, `0` disables it).
+  Lookups, reverse lookups and favorites reuse that list instead of querying
+  Google on every request, and lookups no longer call Google's search endpoint.
+  Accounts with more than 1000 contacts are now fully fetched.
+
 ## 26.10
 
 * `POST /0.1/backends/wazo/sources` and

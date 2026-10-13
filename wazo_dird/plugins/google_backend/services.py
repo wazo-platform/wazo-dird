@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
-from collections.abc import Iterator
+import threading
+import time
+from collections.abc import Iterator, Mapping
 from typing import Any
 
 import requests
@@ -15,6 +18,70 @@ from wazo_dird.plugin_helpers.sorting import sort_contacts
 from .exceptions import GoogleTokenNotFoundException
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_CONTACTS_CACHE_TTL = 300
+
+
+def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
+    google_config = main_config.get('google_backend') or {}
+    ttl: int = google_config.get('contacts_cache_ttl', DEFAULT_CONTACTS_CACHE_TTL)
+    return ttl
+
+
+class _TokenCache:
+    """Thread-safe TTL cache keyed by Google access token.
+
+    Every Google source and the contacts view share the module-level instances
+    below, so all requests made with the same access token reuse one entry.
+    Tokens are hashed so they are not kept as dictionary keys.
+    """
+
+    MAX_ENTRIES = 1000
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._entries: dict[str, tuple[float, Any]] = {}
+
+    def get(self, google_token: str) -> Any | None:
+        key = self._key(google_token)
+        with self._lock:
+            entry = self._entries.get(key)
+            if entry is None:
+                return None
+            expires_at, value = entry
+            if expires_at <= time.monotonic():
+                del self._entries[key]
+                return None
+            return value
+
+    def set(self, google_token: str, value: Any, ttl: int) -> None:
+        key = self._key(google_token)
+        now = time.monotonic()
+        with self._lock:
+            self._entries.pop(key, None)
+            if len(self._entries) >= self.MAX_ENTRIES:
+                self._evict(now)
+            self._entries[key] = (now + ttl, value)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._entries.clear()
+
+    def _evict(self, now: float) -> None:
+        for key, (expires_at, _) in list(self._entries.items()):
+            if expires_at <= now:
+                del self._entries[key]
+        # Entries are kept in insertion order, oldest first
+        while len(self._entries) >= self.MAX_ENTRIES:
+            del self._entries[next(iter(self._entries))]
+
+    @staticmethod
+    def _key(google_token: str) -> str:
+        return hashlib.sha256(google_token.encode()).hexdigest()
+
+
+_contacts_cache = _TokenCache()
+_search_warmups = _TokenCache()
 
 
 class GoogleService:
@@ -28,56 +95,83 @@ class GoogleService:
         'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
     )
 
-    def __init__(self) -> None:
+    def __init__(self, contacts_cache_ttl: int = DEFAULT_CONTACTS_CACHE_TTL) -> None:
         self.formatter = ContactFormatter()
+        self.contacts_cache_ttl = contacts_cache_ttl
 
-    def get_contacts_with_term(
-        self, google_token: str, term: str
-    ) -> Iterator[dict[str, Any]]:
-        yield from self._fetch(google_token, term=term)
+    def get_all_contacts(self, google_token: str) -> list[dict[str, Any]]:
+        if self.contacts_cache_ttl > 0:
+            cached = _contacts_cache.get(google_token)
+            if cached is not None:
+                logger.debug('Using cached contacts from Google')
+                return list(cached)
+
+        contacts = self._fetch_all(google_token)
+        if contacts is None:
+            return []
+
+        if self.contacts_cache_ttl > 0:
+            _contacts_cache.set(google_token, contacts, self.contacts_cache_ttl)
+        return list(contacts)
 
     def get_contacts(
         self, google_token: str, **list_params: Any
     ) -> tuple[list[dict[str, Any]], int]:
-        contacts = list(self._fetch(google_token, term=list_params.get('search')))
+        term = list_params.get('search')
+        if term:
+            contacts = list(self._search(google_token, term))
+        else:
+            contacts = self.get_all_contacts(google_token)
         total = len(contacts)
         sorted_contacts = sort_contacts(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total
 
-    def _fetch(
-        self, google_token: str, term: str | None = None
-    ) -> Iterator[dict[str, Any]]:
+    def _fetch_all(self, google_token: str) -> list[dict[str, Any]] | None:
         headers = self.headers(google_token)
-        url = self.people_url
         params: dict[str, Any] = {
             'personFields': self.person_fields,
             'pageSize': 1000,
         }
 
-        if term:
-            url = self.search_url
-            params = {
-                'readMask': self.person_fields,
-                'pageSize': 30,
-            }
+        contacts = []
+        while True:
+            response = self._get_request(self.people_url, headers, dict(params))
+            if not response:
+                return None
 
-            # empty request to 'warm' cache, recommended by Google
-            self._get_request(url, headers, params)
-            params['query'] = term
+            body = response.json()
+            for contact in body.get('connections', []):
+                contacts.append(self.formatter.format(contact))
 
-        response = self._get_request(url, headers, params)
+            next_page_token = body.get('nextPageToken')
+            if not next_page_token:
+                logger.debug('Fetched %d contacts from Google', len(contacts))
+                return contacts
+            params['pageToken'] = next_page_token
+
+    def _search(self, google_token: str, term: str) -> Iterator[dict[str, Any]]:
+        headers = self.headers(google_token)
+        params: dict[str, Any] = {
+            'readMask': self.person_fields,
+            'pageSize': 30,
+        }
+
+        # empty request to 'warm' cache, recommended by Google
+        if self.contacts_cache_ttl <= 0 or not _search_warmups.get(google_token):
+            self._get_request(self.search_url, headers, dict(params))
+            if self.contacts_cache_ttl > 0:
+                _search_warmups.set(google_token, True, self.contacts_cache_ttl)
+
+        params['query'] = term
+        response = self._get_request(self.search_url, headers, params)
         if not response:
             return
 
-        if term:
-            raw_contacts = response.json().get('results', [])
-            contacts = [contact.get('person', {}) for contact in raw_contacts]
-        else:
-            contacts = response.json().get('connections', [])
-        logger.debug('Fetched %d contacts from Google', len(contacts))
-        for contact in contacts:
-            yield self.formatter.format(contact)
+        results = response.json().get('results', [])
+        logger.debug('Searched %d contacts from Google', len(results))
+        for contact in results:
+            yield self.formatter.format(contact.get('person', {}))
 
     def _get_batch_of_contacts(
         self, headers: dict[str, str], contact_ids: list[str]
