@@ -278,6 +278,21 @@ class TestGoogleServiceCache(unittest.TestCase):
         assert_that(self.service.get_all_contacts('token'), equal_to([]))
         assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
 
+    def test_failed_page_keeps_fetched_contacts_without_caching_them(self, get):
+        first_page = _response(
+            {'connections': [_person('1', 'Mario')], 'nextPageToken': 'next'}
+        )
+        second_page = _response({'connections': [_person('2', 'Luigi')]})
+        get.side_effect = [first_page, _response({}, 429), first_page, second_page]
+
+        partial = self.service.get_all_contacts('token')
+        complete = self.service.get_all_contacts('token')
+
+        assert_that(partial, contains_exactly(has_entries(id='1')))
+        assert_that(
+            complete, contains_exactly(has_entries(id='1'), has_entries(id='2'))
+        )
+
     def test_callers_cannot_alter_the_cached_list(self, get):
         get.return_value = _response(self.contacts)
 
