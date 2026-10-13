@@ -1,12 +1,14 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from unittest.mock import Mock, patch
 
 from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
+    equal_to,
     has_entries,
     has_items,
 )
@@ -208,3 +210,117 @@ class TestGoogleContactFormatter(unittest.TestCase):
             formatted_contact,
             has_entries(note='Notes user 02'),
         )
+
+
+def _person(id_, name):
+    return {
+        'names': [{'displayName': name, 'metadata': {'source': {'id': id_}}}],
+    }
+
+
+def _response(body, status_code=200):
+    return Mock(status_code=status_code, json=Mock(return_value=body), text='')
+
+
+@patch('wazo_dird.plugins.google_backend.services.requests.get')
+class TestGoogleServiceCache(unittest.TestCase):
+    contacts = {'connections': [_person('1', 'Mario'), _person('2', 'Luigi')]}
+
+    def setUp(self):
+        services._contacts_cache.clear()
+        services._search_warmups.clear()
+        self.service = services.GoogleService(contacts_cache_ttl=300)
+
+    def tearDown(self):
+        services._contacts_cache.clear()
+        services._search_warmups.clear()
+
+    def test_contacts_are_fetched_once_per_token(self, get):
+        get.return_value = _response(self.contacts)
+
+        first = self.service.get_all_contacts('token')
+        second = services.GoogleService(300).get_all_contacts('token')
+
+        assert_that(get.call_count, equal_to(1))
+        assert_that(second, equal_to(first))
+        assert_that(first, contains_exactly(has_entries(id='1'), has_entries(id='2')))
+
+    def test_tokens_do_not_share_contacts(self, get):
+        get.return_value = _response(self.contacts)
+
+        self.service.get_all_contacts('token-a')
+        self.service.get_all_contacts('token-b')
+
+        assert_that(get.call_count, equal_to(2))
+
+    def test_expired_contacts_are_fetched_again(self, get):
+        get.return_value = _response(self.contacts)
+
+        with patch.object(services.time, 'monotonic', return_value=1000):
+            self.service.get_all_contacts('token')
+        with patch.object(services.time, 'monotonic', return_value=1300):
+            self.service.get_all_contacts('token')
+
+        assert_that(get.call_count, equal_to(2))
+
+    def test_zero_ttl_disables_the_cache(self, get):
+        get.return_value = _response(self.contacts)
+        service = services.GoogleService(contacts_cache_ttl=0)
+
+        service.get_all_contacts('token')
+        service.get_all_contacts('token')
+
+        assert_that(get.call_count, equal_to(2))
+
+    def test_failed_fetch_is_not_cached(self, get):
+        get.side_effect = [_response({}, 429), _response(self.contacts)]
+
+        assert_that(self.service.get_all_contacts('token'), equal_to([]))
+        assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
+
+    def test_callers_cannot_alter_the_cached_list(self, get):
+        get.return_value = _response(self.contacts)
+
+        self.service.get_all_contacts('token').clear()
+
+        assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
+
+    def test_all_pages_are_fetched(self, get):
+        get.side_effect = [
+            _response(
+                {'connections': [_person('1', 'Mario')], 'nextPageToken': 'next'}
+            ),
+            _response({'connections': [_person('2', 'Luigi')]}),
+        ]
+
+        contacts = self.service.get_all_contacts('token')
+
+        assert_that(
+            contacts, contains_exactly(has_entries(id='1'), has_entries(id='2'))
+        )
+        assert_that(
+            get.call_args_list[1].kwargs['params'], has_entries(pageToken='next')
+        )
+
+    def test_search_warms_up_once_per_token(self, get):
+        get.return_value = _response({'results': [{'person': _person('1', 'Mario')}]})
+
+        self.service.get_contacts('token', search='mar')
+        self.service.get_contacts('token', search='mari')
+
+        queries = [call.kwargs['params'].get('query') for call in get.call_args_list]
+        assert_that(queries, contains_exactly(None, 'mar', 'mari'))
+
+
+class TestTokenCache(unittest.TestCase):
+    def test_oldest_entry_is_evicted_when_full(self):
+        cache = services._TokenCache()
+        cache.MAX_ENTRIES = 2
+
+        cache.set('a', 'A', 300)
+        cache.set('b', 'B', 300)
+        cache.set('c', 'C', 300)
+
+        assert_that(cache.get('a'), equal_to(None))
+        assert_that(cache.get('b'), equal_to('B'))
+        assert_that(cache.get('c'), equal_to('C'))

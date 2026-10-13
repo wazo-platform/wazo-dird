@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -52,7 +52,9 @@ class GooglePlugin(BaseSourcePlugin):
         config = dependencies['config']
         self.auth = cast('AuthConfig', dict(config)['auth'])
         self.name = config['name']
-        self.google = services.GoogleService()
+        self.google = services.GoogleService(
+            services.contacts_cache_ttl(dependencies.get('main_config') or {})
+        )
         self.unique_column = 'id'
 
         format_columns: dict[str, str] = dict(config.get('format_columns', {}))
@@ -90,7 +92,9 @@ class GooglePlugin(BaseSourcePlugin):
         except GoogleTokenNotFoundException:
             return []
 
-        contacts = self.google.get_contacts_with_term(google_token, term)
+        # Filter the cached contact list locally instead of querying Google's
+        # search endpoint on every lookup
+        contacts = self.google.get_all_contacts(google_token)
         lowered_term = term.lower()
         filtered_contacts = [
             c for c in contacts if self._search_match_predicate(c, lowered_term)
@@ -106,7 +110,7 @@ class GooglePlugin(BaseSourcePlugin):
         except GoogleTokenNotFoundException:
             return []
 
-        contacts, _ = self.google.get_contacts(google_token)
+        contacts = self.google.get_all_contacts(google_token)
         filtered_contacts = [c for c in contacts if c[self.unique_column] in unique_ids]
 
         return [self._SourceResult(contact) for contact in filtered_contacts]
@@ -127,7 +131,7 @@ class GooglePlugin(BaseSourcePlugin):
             logger.debug('could not find a matching google token, aborting first_match')
             return None
 
-        contacts, _ = self.google.get_contacts(google_token)
+        contacts = self.google.get_all_contacts(google_token)
         lowered_term = term.lower()
 
         for contact in contacts:
@@ -150,7 +154,7 @@ class GooglePlugin(BaseSourcePlugin):
             logger.debug('could not find a matching google token, aborting match_all')
             return {}
 
-        contacts, _ = self.google.get_contacts(google_token)
+        contacts = self.google.get_all_contacts(google_token)
         results: dict[str, SourceResult] = {}
         for term in terms:
             lowered_term = term.lower()
