@@ -311,6 +311,16 @@ class TestGoogleServiceCache(unittest.TestCase):
         queries = [call.kwargs['params'].get('query') for call in get.call_args_list]
         assert_that(queries, contains_exactly(None, 'mar', 'mari'))
 
+    def test_failed_search_warmup_is_retried(self, get):
+        results = _response({'results': [{'person': _person('1', 'Mario')}]})
+        get.side_effect = [_response({}, 429), results, results, results]
+
+        self.service.get_contacts('token', search='mar')
+        self.service.get_contacts('token', search='mari')
+
+        queries = [call.kwargs['params'].get('query') for call in get.call_args_list]
+        assert_that(queries, contains_exactly(None, 'mar', None, 'mari'))
+
 
 class TestTokenCache(unittest.TestCase):
     def test_oldest_entry_is_evicted_when_full(self):
