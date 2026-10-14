@@ -1,6 +1,6 @@
 # Changelog
 
-## 26.09
+## 26.10
 
 * `POST /0.1/backends/wazo/sources` and
   `PUT /0.1/backends/wazo/sources/<source_uuid>` now restrict
@@ -9,6 +9,8 @@
   error; previously it was accepted and silently matched nothing useful.
   Sources already stored are migrated: any other column is dropped from
   their `first_matched_columns`.
+
+## 26.09
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
   directory sources pointing at `localhost:9497` are migrated.
