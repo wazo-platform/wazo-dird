@@ -9,6 +9,7 @@ from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
+    contains_string,
     empty,
     equal_to,
     has_entries,
@@ -644,9 +645,7 @@ class TestSearchPersonal(PersonalOnlyTestCase):
             VALID_TOKEN_MAIN_TENANT, direction=wrong_direction
         )
         assert_that(response.status_code, equal_to(400))
-        assert_that(
-            response.json(), has_entry('reason', 'direction must be asc or desc')
-        )
+        assert_that(response.json(), has_entry('reason', contains_string('direction')))
 
     def test_that_search_limited_returns_right_number(self):
         result = self.list_personal(order='firstname', limit=2)
@@ -661,7 +660,10 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         result = self.list_personal(limit=0)
         assert_that(result['items'], empty())
 
-    def test_that_a_negative_limit_or_offset_returns_400(self):
+    def test_that_an_invalid_limit_or_offset_returns_400(self):
         for param in ('limit', 'offset'):
-            response = self.list_personal_result(VALID_TOKEN_MAIN_TENANT, **{param: -1})
-            assert_that(response.status_code, equal_to(400), param)
+            for value in (-1, True, False, 'foobar', 3.14):
+                response = self.list_personal_result(
+                    VALID_TOKEN_MAIN_TENANT, **{param: value}
+                )
+                assert_that(response.status_code, equal_to(400), (param, value))

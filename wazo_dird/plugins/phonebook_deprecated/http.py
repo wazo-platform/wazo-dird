@@ -11,6 +11,7 @@ from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict, TypeVar
 
 from flask import request
+from marshmallow import ValidationError
 from wazo_auth_client import Client as AuthClient
 from xivo.tenant_flask_helpers import Tenant
 
@@ -27,6 +28,8 @@ from wazo_dird.exception import (
     NoSuchTenant,
 )
 from wazo_dird.http import LegacyAuthResource, get_json_body
+
+from .schemas import list_schema
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
@@ -73,8 +76,13 @@ class _ArgParser:
         self._direction = self._get_string_from_valid_values(
             args, 'direction', ['asc', 'desc', None]
         )
-        self._limit = self._get_positive_int(args, 'limit')
-        self._offset = self._get_positive_int(args, 'offset')
+        try:
+            pagination = list_schema.load(args)
+        except ValidationError as e:
+            names = ', '.join(sorted(e.messages))
+            raise InvalidArgumentError(f'{names} should be a positive integer')
+        self._limit: int | None = pagination['limit']
+        self._offset: int = pagination['offset']
         self._order = self._get_string_from_valid_values(args, 'order', valid_columns)
 
     def count_params(self) -> dict[str, Any]:
@@ -110,19 +118,6 @@ class _ArgParser:
             return value
 
         raise InvalidArgumentError(f'{name} should be one of {valid_values}')
-
-    @staticmethod
-    def _get_positive_int(args: Mapping[str, str], name: str) -> int | None:
-        if name not in args:
-            return None
-        try:
-            value = int(args[name])
-            if value >= 0:
-                return value
-        except ValueError:
-            pass
-
-        raise InvalidArgumentError(f'{name} should be a positive integer')
 
 
 def _default_error_route(
