@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from typing import Any, cast
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BaseBackendView
-from wazo_dird.plugins.base_plugins import SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import http
@@ -69,9 +69,7 @@ class CSVPlugin(BaseSourcePlugin):
     def name(self) -> str:  # type: ignore[override]
         return self._name
 
-    def search(
-        self, term: str, args: dict[str, Any] | None = None
-    ) -> list_t[SourceResult]:
+    def search(self, term: str, args: LookupArgs | None = None) -> list_t[SourceResult]:
         if self.SEARCHED_COLUMNS not in self._config:
             return []
         self._load_file()

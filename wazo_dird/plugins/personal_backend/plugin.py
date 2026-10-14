@@ -13,7 +13,7 @@ from wazo_dird.database.helpers import Session
 from wazo_dird.database.queries.base import ContactInfo
 from wazo_dird.database.queries.personal import PersonalContactSearchEngine
 from wazo_dird.helpers import BaseBackendView
-from wazo_dird.plugins.base_plugins import SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import http
@@ -60,12 +60,14 @@ class PersonalBackend(BaseSourcePlugin):
         )
 
     def search(
-        self, term: str, args: dict[str, Any] | None = None
+        self, term: str, args: LookupArgs | None = None
     ) -> builtins.list[SourceResult]:
         logger.debug('Searching personal contacts with %s', term)
-        assert args is not None
-        user_uuid = args['user_uuid']
-        matching_contacts = self._search_engine.find_personal_contacts(user_uuid, term)
+        if not args or not args['user_uuid']:
+            return []
+        matching_contacts = self._search_engine.find_personal_contacts(
+            args['user_uuid'], term
+        )
         return self.format_contacts(matching_contacts)
 
     def first_match(

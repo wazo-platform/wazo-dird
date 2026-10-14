@@ -59,6 +59,13 @@ class SourcePluginDependencies(TypedDict):
     token_renewer: TokenRenewer
 
 
+class LookupArgs(TypedDict):
+    token: str | None
+    user_uuid: str | None
+    # deprecated alias of user_uuid, kept for third-party backends
+    xivo_user_uuid: str | None
+
+
 class BaseSourcePlugin(metaclass=abc.ABCMeta):
     """
     A backend plugin in wazo should implement this base class implicitly or
@@ -89,9 +96,7 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def search(
-        self, term: str, args: dict[str, Any] | None = None
-    ) -> list[SourceResult]:
+    def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         """
         The search method should return a list of dict containing the search
         results.

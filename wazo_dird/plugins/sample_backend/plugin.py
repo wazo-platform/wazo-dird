@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Any
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.plugins.base_plugins import SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 DESC = (
@@ -33,9 +33,7 @@ class SamplePlugin(BaseSourcePlugin):
         )
         self._result = result_class(SAMPLE_RESULT)
 
-    def search(
-        self, term: str, args: dict[str, Any] | None = None
-    ) -> list[SourceResult]:
+    def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         return [self._result]
 
     def first_match(

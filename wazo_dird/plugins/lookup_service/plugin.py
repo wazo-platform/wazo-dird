@@ -11,6 +11,7 @@ from typing import Any
 from wazo_dird import BaseServicePlugin, BaseSourcePlugin, helpers
 from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugin_manager import ServiceDependencies
+from wazo_dird.plugins.base_plugins import LookupArgs
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ class _LookupService(helpers.BaseService):
         self._executor.shutdown()
 
     def _async_search(
-        self, source: BaseSourcePlugin, term: str, args: dict[str, Any]
+        self, source: BaseSourcePlugin, term: str, args: LookupArgs
     ) -> Future[list[SourceResult]]:
         raise_stopper: helpers.RaiseStopper[list[SourceResult]] = helpers.RaiseStopper(
             return_on_raise=[]
@@ -76,7 +77,7 @@ class _LookupService(helpers.BaseService):
         raise_stopper: helpers.RaiseStopper[list[SourceResult]],
         source: BaseSourcePlugin,
         term: str,
-        args: dict[str, Any],
+        args: LookupArgs,
         submitted_at: float,
     ) -> list[SourceResult]:
         started_at = perf_counter()
@@ -98,17 +99,13 @@ class _LookupService(helpers.BaseService):
         tenant_uuid: str,
         term: str,
         user_uuid: str | None,
-        args: dict[str, Any] | None = None,
         token: str | None = None,
     ) -> list[SourceResult]:
-        args = args or {}
-        futures = []
-        sources = self.source_from_profile(profile_config)
-        for source in sources:
-            args['token'] = token
-            args['user_uuid'] = user_uuid
-            args['xivo_user_uuid'] = user_uuid
-            futures.append(self._async_search(source, term, args))
+        args = LookupArgs(token=token, user_uuid=user_uuid, xivo_user_uuid=user_uuid)
+        futures = [
+            self._async_search(source, term, args)
+            for source in self.source_from_profile(profile_config)
+        ]
 
         params: dict[str, Any] = {'return_when': ALL_COMPLETED}
         service_config = self.get_service_config(profile_config)

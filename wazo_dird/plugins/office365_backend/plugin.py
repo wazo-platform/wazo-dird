@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import builtins
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from wazo_dird import BaseSourcePlugin, make_result_class
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
+from wazo_dird.plugins.base_plugins import LookupArgs
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import services
@@ -75,9 +76,7 @@ class Office365Plugin(BaseSourcePlugin):
                 self.name,
             )
 
-    def search(
-        self, term: str, args: dict[str, Any] | None = None
-    ) -> list[SourceResult]:
+    def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         logger.debug('Searching term=%s', term)
         contacts = self._fetch_contacts(args)
         if not contacts:
@@ -171,7 +170,7 @@ class Office365Plugin(BaseSourcePlugin):
         return results
 
     def _fetch_contacts(
-        self, args: dict[str, Any] | None = None
+        self, args: Mapping[str, Any] | None = None
     ) -> builtins.list[dict[str, Any]] | None:
         try:
             microsoft_token = self._get_microsoft_token(**(args or {}))
