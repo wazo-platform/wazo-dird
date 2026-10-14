@@ -51,6 +51,9 @@ def handle_api_exception(
 
 
 class LegacyErrorCatchingResource(Resource):
+    # See wazo_dird.http_cache: a resource opts in to Cache-Control by naming
+    # the key its max-age is configured under.
+    cache_control_key: str | None = None
     method_decorators = [handle_api_exception] + Resource.method_decorators
 
 
@@ -61,6 +64,7 @@ class LegacyAuthResource(LegacyErrorCatchingResource):
 
 
 class ErrorCatchingResource(Resource):
+    cache_control_key: str | None = None
     method_decorators = [
         mallow_helpers.handle_validation_exception,
         rest_api_helpers.handle_api_exception,
