@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -9,6 +9,7 @@ from typing import Any, cast
 from marshmallow import exceptions, utils, validates_schema
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, Range, validate_string_dict
+from xivo.mallow_helpers import ListSchema
 from xivo.mallow_helpers import Schema as BaseSchema
 
 __all__ = [
@@ -17,6 +18,7 @@ __all__ = [
     'BaseSchema',
     'BaseSourceSchema',
     'ConfdConfigSchema',
+    'UncheckedOrderListSchema',
     'VerifyCertificateField',
 ]
 
@@ -39,6 +41,13 @@ class VerifyCertificateField(fields.Field):
             return cast('str', utils.ensure_text_type(value))
         except UnicodeDecodeError:
             self.make_error('invalid_utf8')
+
+
+class UncheckedOrderListSchema(ListSchema):
+    # accepts any order: the caller validates it once the columns are known
+    def _set_order_parameters(self, field_obj: fields.Field) -> None:
+        field_obj.load_default = None
+        field_obj.allow_none = True
 
 
 class BaseSourceSchema(BaseSchema):

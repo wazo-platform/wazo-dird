@@ -18,14 +18,15 @@ from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import get_user_uuid, required_acl
 from wazo_dird.http import LegacyAuthResource, get_json_body
-
-from .schemas import list_schema
+from wazo_dird.schemas import UncheckedOrderListSchema
 
 if TYPE_CHECKING:
     from wazo_dird.database.queries.base import ContactInfo
     from wazo_dird.plugins.personal_service.plugin import _PersonalService
 
 logger = logging.getLogger(__name__)
+
+list_schema = UncheckedOrderListSchema()
 
 CHARSET_REGEX = re.compile('.*; *charset *= *(.*)')
 
