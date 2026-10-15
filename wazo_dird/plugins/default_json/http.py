@@ -44,8 +44,10 @@ parser_reverse = reqparse.RequestParser()
 parser_reverse.add_argument('exten', type=str, required=True, location='args')
 
 
-def _error(code: int, msg: str) -> tuple[dict[str, Any], int]:
-    logger.error(msg)
+def _error(
+    code: int, msg: str, level: int = logging.ERROR
+) -> tuple[dict[str, Any], int]:
+    logger.log(level, msg)
     return {'reason': [msg], 'timestamp': [time()], 'status_code': code}, code
 
 
@@ -273,10 +275,9 @@ class FavoritesWrite(LegacyAuthResource):
                 tenant.uuid, directory, contact, get_user_uuid()
             )
             return '', 204
-        except (
-            self.favorites_service.NoSuchFavoriteException,
-            self.favorites_service.NoSuchSourceException,
-        ) as e:
+        except self.favorites_service.NoSuchFavoriteException as e:
+            return _error(404, str(e), level=logging.INFO)
+        except self.favorites_service.NoSuchSourceException as e:
             return _error(404, str(e))
 
 
