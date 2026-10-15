@@ -1,6 +1,8 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from contextlib import contextmanager
+
 from hamcrest import (
     assert_that,
     calling,
@@ -15,6 +17,7 @@ from wazo_test_helpers.hamcrest.raises import raises
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
     HTTP_404,
+    HTTP_503,
     SUB_TENANT,
     UNKNOWN_UUID,
     VALID_TOKEN_MAIN_TENANT,
@@ -402,5 +405,74 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             exact=True,
         )
 
+    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
+    def test_search_uses_the_source_searched_columns(self, google_api):
+        self.client.backends.edit_source(
+            'google',
+            self.source_uuid,
+            {
+                'name': 'google',
+                'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
+                'searched_columns': ['emails'],
+            },
+        )
+
+        by_email = self.list_(self.client, self.source_uuid, search='mario@bros')
+        by_name = self.list_(self.client, self.source_uuid, search='Mario Bros')
+
+        assert_that(
+            by_email,
+            has_entries(items=contains_exactly(has_entries(name='Mario Bros'))),
+        )
+        assert_that(by_name, has_entries(items=[], total=0))
+
+    def test_google_error_on_first_page(self):
+        for status_code in (429, 500):
+            with self.subTest(status_code=status_code):
+                with self.google_pages(GoogleError(status_code)):
+                    assert_that(
+                        calling(self.list_).with_args(self.client, self.source_uuid),
+                        raises(Exception).matching(HTTP_503),
+                    )
+
+    def test_google_error_on_later_page(self):
+        first_page = {'connections': [MARIO_INFO], 'nextPageToken': 'next'}
+        for status_code in (429, 500):
+            with self.subTest(status_code=status_code):
+                with self.google_pages(first_page, GoogleError(status_code)):
+                    assert_that(
+                        calling(self.list_).with_args(self.client, self.source_uuid),
+                        raises(Exception).matching(HTTP_503),
+                    )
+
+    @contextmanager
+    def google_pages(self, *pages):
+        """Answer each call to Google with the next page, in order"""
+        google_port = self.service_port(443, 'people.googleapis.com')
+        mock_server = fixtures.UnVerifiedMockServerClient(
+            f'https://127.0.0.1:{google_port}'
+        )
+        for page in pages:
+            if isinstance(page, GoogleError):
+                body, status_code = {
+                    'error': {'code': page.status_code}
+                }, page.status_code
+            else:
+                body, status_code = page, 200
+            mock_server.mock_any_response(
+                mock_server.create_expectation(
+                    '/v1/people/me/connections', body, status_code
+                )
+            )
+        try:
+            yield mock_server
+        finally:
+            mock_server.reset()
+
     def list_(self, client, *args, **kwargs):
         return client.backends.list_contacts_from_source('google', *args, **kwargs)
+
+
+class GoogleError:
+    def __init__(self, status_code):
+        self.status_code = status_code

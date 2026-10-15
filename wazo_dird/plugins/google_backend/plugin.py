@@ -54,7 +54,7 @@ class GooglePlugin(BaseSourcePlugin):
         self.auth = cast('AuthConfig', dict(config)['auth'])
         self.name = config['name']
         self.google = services.GoogleService(
-            services.contacts_cache_ttl(dependencies.get('main_config') or {})
+            services.shared_contacts_cache(dependencies.get('main_config') or {})
         )
         self.unique_column = 'id'
 
@@ -95,9 +95,10 @@ class GooglePlugin(BaseSourcePlugin):
         # Filter the cached contact list locally instead of querying Google's
         # search endpoint on every lookup
         contacts = self.google.get_all_contacts(google_token)
-        lowered_term = term.lower()
         filtered_contacts = [
-            c for c in contacts if self._search_match_predicate(c, lowered_term)
+            c
+            for c in contacts
+            if services.matches_search(c, term, self._searched_columns)
         ]
         logger.debug(
             'Searched %d Google contacts locally for term=%s: %d matched',
@@ -170,22 +171,11 @@ class GooglePlugin(BaseSourcePlugin):
         return results
 
     def _first_match_predicate(self, term: str, contact: dict[str, Any]) -> bool:
-        for column in self._first_matched_columns:
-            column_value = contact.get(column) or ''
-            if isinstance(column_value, (dict, list)):
-                for value in column_value:
-                    if isinstance(value, dict):
-                        for sub_value in value.values():
-                            if term == sub_value.lower():
-                                return True
-                    else:
-                        if term == value.lower():
-                            return True
-            else:
-                if term == str(column_value).lower():
-                    return True
-
-        return False
+        return any(
+            term == text.lower()
+            for column in self._first_matched_columns
+            for text in services.column_texts(contact.get(column))
+        )
 
     def _get_google_token(
         self, user_uuid: str, token: str | None = None, **ignored: Any
@@ -198,21 +188,3 @@ class GooglePlugin(BaseSourcePlugin):
         if access_token is None:
             raise GoogleTokenNotFoundException(user_uuid)
         return access_token
-
-    def _search_match_predicate(self, contact: dict[str, Any], term: str) -> bool:
-        for field in self._searched_columns:
-            column_value = contact.get(field) or ''
-            if isinstance(column_value, (dict, list)):
-                for value in column_value:
-                    if isinstance(value, dict):
-                        for sub_value in value.values():
-                            if term in sub_value.lower():
-                                return True
-                    else:
-                        if term in value.lower():
-                            return True
-            else:
-                if term in column_value.lower():
-                    return True
-
-        return False

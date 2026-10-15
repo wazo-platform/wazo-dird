@@ -19,8 +19,14 @@
   `GET /0.1/backends/google/sources/<source_uuid>/contacts` reuse that list
   instead of querying Google on every request. Searches no longer call Google's
   search endpoint: the `search` parameter of the contacts endpoint now matches
-  names, emails, organizations and phone numbers within the cached list.
+  the source's `searched_columns` (`name` when none are set) within the cached
+  list, as lookups do. Lookups match a substring of the searched columns, and no
+  longer only the contacts Google's search returned first.
   Accounts with more than 1000 contacts are now fully fetched.
+* When Google fails or does not answer within 10 seconds, the contacts endpoint
+  returns a `503` with the Google status in `details`, and lookups, reverse
+  lookups and favorites log the error instead of returning no or partial
+  results.
 
 ## 26.10
 

@@ -14,8 +14,14 @@ from wazo_dird.helpers import AuthConfig, SourceItem, SourceList
 from wazo_dird.http import AuthResource
 
 from .exceptions import GoogleTokenNotFoundException
-from .schemas import contact_list_schema, list_schema, source_list_schema, source_schema
-from .services import GoogleService, contacts_cache_ttl, get_google_access_token
+from .schemas import (
+    ContactListSchema,
+    contact_list_schema,
+    list_schema,
+    source_list_schema,
+    source_schema,
+)
+from .services import GoogleService, get_google_access_token, shared_contacts_cache
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.source_service.plugin import _SourceService
@@ -35,7 +41,7 @@ class GoogleContactList(AuthResource):
         self.auth_config = auth_config
         self.config = config
         self.source_service = source_service
-        self.google = GoogleService(contacts_cache_ttl(config))
+        self.google = GoogleService(shared_contacts_cache(config))
 
     @required_acl('dird.backends.google.sources.{source_uuid}.contacts.read')
     def get(self, source_uuid: str) -> tuple[dict[str, Any], int]:
@@ -56,7 +62,12 @@ class GoogleContactList(AuthResource):
         if google_token is None:
             raise GoogleTokenNotFoundException(user_uuid)
 
-        contacts, total = self.google.get_contacts(google_token, **list_params)
+        searched_columns = (
+            source.get('searched_columns') or ContactListSchema.searchable_columns
+        )
+        contacts, total = self.google.get_contacts(
+            google_token, searched_columns, **list_params
+        )
 
         return {'filtered': total, 'items': contacts, 'total': total}, 200
 
