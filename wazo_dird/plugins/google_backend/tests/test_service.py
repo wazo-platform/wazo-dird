@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import threading
+import time
 import unittest
 from unittest.mock import Mock, patch
 
@@ -15,6 +16,7 @@ from hamcrest import (
     has_entries,
     has_items,
     has_length,
+    instance_of,
     raises,
     same_instance,
 )
@@ -275,31 +277,76 @@ class TestGoogleServiceCache(unittest.TestCase):
         assert_that(get.call_count, equal_to(2))
 
     def test_concurrent_misses_fetch_once(self, get):
-        fetching = threading.Event()
-        release = threading.Event()
+        get.side_effect = self._slow_responses(_response(self.contacts))
 
-        def slow_get(*args, **kwargs):
-            fetching.set()
-            release.wait(5)
-            return _response(self.contacts)
-
-        get.side_effect = slow_get
-        results = []
-
-        def fetch():
-            results.append(self.service.get_all_contacts('token'))
-
-        threads = [threading.Thread(target=fetch) for _ in range(5)]
-        threads[0].start()
-        fetching.wait(5)
-        for thread in threads[1:]:
-            thread.start()
-        release.set()
-        for thread in threads:
-            thread.join(5)
+        results = self._fetch_concurrently(5)
 
         assert_that(get.call_count, equal_to(1))
         assert_that(results, contains_exactly(*[has_length(2)] * 5))
+
+    def test_concurrent_misses_share_a_failure(self, get):
+        get.side_effect = self._slow_responses(
+            _response({}, 429), _response(self.contacts)
+        )
+
+        results = self._fetch_concurrently(5)
+
+        assert_that(get.call_count, equal_to(1))
+        assert_that(
+            results, contains_exactly(*[instance_of(GoogleUnavailableException)] * 5)
+        )
+        assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
+
+    def _slow_responses(self, *responses):
+        """Hold the first response until the other requests wait on it"""
+        self._release = threading.Event()
+        remaining = list(responses)
+
+        def slow_get(*args, **kwargs):
+            if len(remaining) == len(responses):
+                self._release.wait(5)
+            return remaining.pop(0)
+
+        return slow_get
+
+    def _fetch_concurrently(self, count):
+        class WaitCountingEvent(threading.Event):
+            waiters = 0
+
+            def wait(self, timeout=None):
+                self.waiters += 1
+                return super().wait(timeout)
+
+        class RecordedFetch(services._Fetch):
+            done: WaitCountingEvent
+
+            def __init__(self):
+                super().__init__()
+                self.done = WaitCountingEvent()
+                fetches.append(self)
+
+        fetches: list[RecordedFetch] = []
+        results: list[object] = []
+
+        def fetch():
+            try:
+                results.append(self.service.get_all_contacts('token'))
+            except GoogleUnavailableException as e:
+                results.append(e)
+
+        threads = [threading.Thread(target=fetch) for _ in range(count)]
+        with patch.object(services, '_Fetch', RecordedFetch):
+            for thread in threads:
+                thread.start()
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                if fetches and fetches[0].done.waiters == count - 1:
+                    break
+                time.sleep(0.01)
+            self._release.set()
+            for thread in threads:
+                thread.join(5)
+        return results
 
     def test_failed_fetch_raises_and_is_not_cached(self, get):
         get.side_effect = [_response({}, 429), _response(self.contacts)]
