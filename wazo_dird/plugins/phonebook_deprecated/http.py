@@ -28,13 +28,14 @@ from wazo_dird.exception import (
     NoSuchTenant,
 )
 from wazo_dird.http import LegacyAuthResource, get_json_body
-
-from .schemas import list_schema
+from wazo_dird.schemas import UncheckedOrderListSchema
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.phonebook_service.plugin import _PhonebookService
 
 logger = logging.getLogger(__name__)
+
+list_schema = UncheckedOrderListSchema()
 
 R = TypeVar('R')
 
