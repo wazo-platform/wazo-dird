@@ -4,7 +4,7 @@
 import logging
 import time
 from collections import namedtuple
-from collections.abc import Callable, Sized
+from collections.abc import Callable
 from typing import Any, Generic, TypedDict, TypeVar
 
 from flask import request
@@ -68,13 +68,10 @@ class ServiceConfigOptions(TypedDict, total=False):
     timeout: float
 
 
-_SizedT = TypeVar('_SizedT', bound=Sized)
-TimedResult = tuple[_SizedT, float]
+TimedResult = tuple[T, float]
 
 
-def timed(
-    function: Callable[..., _SizedT], *args: Any, **kwargs: Any
-) -> TimedResult[_SizedT]:
+def timed(function: Callable[..., T], *args: Any, **kwargs: Any) -> TimedResult[T]:
     start = time.monotonic()
     result = function(*args, **kwargs)
     return result, time.monotonic() - start

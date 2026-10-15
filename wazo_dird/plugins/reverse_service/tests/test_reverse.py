@@ -204,11 +204,14 @@ class TestReverseTimeout(unittest.TestCase):
         match_a1, match_a2, match_b = Mock(), Mock(), Mock()
 
         first_future = Mock()
-        first_future.result.return_value = {exten_a: match_a1}
+        first_future.result.return_value = ({exten_a: match_a1}, 0.0)
         first_future.done.return_value = True
 
         second_future = Mock()
-        second_future.result.return_value = {exten_a: match_a2, exten_b: match_b}
+        second_future.result.return_value = (
+            {exten_a: match_a2, exten_b: match_b},
+            0.0,
+        )
         second_future.done.return_value = True
 
         mock_as_completed.return_value = iter([first_future, second_future])
