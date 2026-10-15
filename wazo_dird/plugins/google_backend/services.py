@@ -8,7 +8,6 @@ import logging
 import threading
 import time
 from collections.abc import Callable, Iterator, Mapping
-from contextlib import contextmanager
 from typing import Any
 
 import requests
@@ -40,12 +39,21 @@ def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
     return ttl
 
 
+class _Fetch:
+    """A download in progress, whose outcome every waiting request shares"""
+
+    def __init__(self) -> None:
+        self.done = threading.Event()
+        self.contacts: Contacts = []
+        self.error: Exception | None = None
+
+
 class ContactsCache:
     """Thread-safe TTL cache of contact lists keyed by Google access token.
 
-    Concurrent misses for the same token wait for a single download instead of
-    each fetching every page from Google. Tokens are hashed so they are not
-    kept as dictionary keys.
+    Concurrent misses for the same token share a single download, including
+    its failure, instead of each fetching every page from Google. Tokens are
+    hashed so they are not kept as dictionary keys.
     """
 
     MAX_ENTRIES = 1000
@@ -54,58 +62,66 @@ class ContactsCache:
         self.ttl = ttl
         self._lock = threading.Lock()
         self._entries: dict[str, tuple[float, Contacts]] = {}
-        self._fetch_locks: dict[str, tuple[threading.Lock, int]] = {}
+        self._fetches: dict[str, _Fetch] = {}
 
     def get_or_fetch(
         self, google_token: str, fetch: Callable[[], Contacts]
     ) -> Contacts:
         key = self._key(google_token)
-        contacts = self._get(key)
-        if contacts is None:
-            with self._fetch_lock(key):
-                # Another request may have fetched them while this one waited
-                contacts = self._get(key)
-                if contacts is None:
-                    contacts = fetch()
-                    self._set(key, contacts)
-                    return list(contacts)
-        logger.debug('Using cached contacts from Google')
-        return list(contacts)
-
-    def _get(self, key: str) -> Contacts | None:
         with self._lock:
-            entry = self._entries.get(key)
-            if entry is None:
-                return None
-            expires_at, contacts = entry
-            if expires_at <= time.monotonic():
-                del self._entries[key]
-                return None
-            return contacts
+            contacts = self._get(key)
+            if contacts is not None:
+                logger.debug('Using cached contacts from Google')
+                return list(contacts)
+            in_progress = self._fetches.get(key)
+            if in_progress is None:
+                in_progress = self._fetches[key] = _Fetch()
+                is_fetcher = True
+            else:
+                is_fetcher = False
 
-    def _set(self, key: str, contacts: Contacts) -> None:
-        now = time.monotonic()
-        with self._lock:
-            self._entries.pop(key, None)
-            if len(self._entries) >= self.MAX_ENTRIES:
-                self._evict(now)
-            self._entries[key] = (now + self.ttl, contacts)
+        if is_fetcher:
+            self._run(key, in_progress, fetch)
+        else:
+            in_progress.done.wait()
 
-    @contextmanager
-    def _fetch_lock(self, key: str) -> Iterator[None]:
-        with self._lock:
-            lock, waiters = self._fetch_locks.get(key, (threading.Lock(), 0))
-            self._fetch_locks[key] = (lock, waiters + 1)
+        # A failure is not cached: the next request downloads again
+        if in_progress.error is not None:
+            raise in_progress.error
+        return list(in_progress.contacts)
+
+    def _run(
+        self, key: str, in_progress: _Fetch, fetch: Callable[[], Contacts]
+    ) -> None:
         try:
-            with lock:
-                yield
+            in_progress.contacts = fetch()
+        except Exception as e:
+            in_progress.error = e
         finally:
             with self._lock:
-                lock, waiters = self._fetch_locks[key]
-                if waiters == 1:
-                    del self._fetch_locks[key]
-                else:
-                    self._fetch_locks[key] = (lock, waiters - 1)
+                if in_progress.error is None:
+                    self._set(key, in_progress.contacts)
+                del self._fetches[key]
+            in_progress.done.set()
+
+    def _get(self, key: str) -> Contacts | None:
+        # Called with self._lock held
+        entry = self._entries.get(key)
+        if entry is None:
+            return None
+        expires_at, contacts = entry
+        if expires_at <= time.monotonic():
+            del self._entries[key]
+            return None
+        return contacts
+
+    def _set(self, key: str, contacts: Contacts) -> None:
+        # Called with self._lock held
+        now = time.monotonic()
+        self._entries.pop(key, None)
+        if len(self._entries) >= self.MAX_ENTRIES:
+            self._evict(now)
+        self._entries[key] = (now + self.ttl, contacts)
 
     def _evict(self, now: float) -> None:
         for key, (expires_at, _) in list(self._entries.items()):
@@ -187,21 +203,27 @@ class GoogleService:
             'pageSize': 1000,
         }
 
-        contacts: Contacts = []
-        while True:
-            # A failed page aborts the whole download: a partial list would
-            # hide the missing contacts without any error
-            response = self._get_request(
-                self.people_url, headers, dict(params), 'Fetched contacts from Google'
+        # A failed page raises and aborts the whole download: a partial list
+        # would hide the missing contacts without any error
+        contacts, next_page_token = self._get_contacts_page(headers, params)
+        while next_page_token:
+            page, next_page_token = self._get_contacts_page(
+                headers, {**params, 'pageToken': next_page_token}
             )
-            body = response.json()
-            for contact in body.get('connections', []):
-                contacts.append(self.formatter.format(contact))
+            contacts.extend(page)
+        return contacts
 
-            next_page_token = body.get('nextPageToken')
-            if not next_page_token:
-                return contacts
-            params['pageToken'] = next_page_token
+    def _get_contacts_page(
+        self, headers: dict[str, str], params: dict[str, Any]
+    ) -> tuple[Contacts, str | None]:
+        """Return a page of contacts and the token of the next page, if any"""
+        response = self._get_request(
+            self.people_url, headers, params, 'Fetched contacts from Google'
+        )
+        body = response.json()
+        contacts = [self.formatter.format(c) for c in body.get('connections', [])]
+        next_page_token: str | None = body.get('nextPageToken')
+        return contacts, next_page_token
 
     def _get_batch_of_contacts(
         self, headers: dict[str, str], contact_ids: list[str]
