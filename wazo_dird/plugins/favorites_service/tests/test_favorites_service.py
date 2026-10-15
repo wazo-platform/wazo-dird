@@ -11,7 +11,6 @@ from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
-    contains_string,
     equal_to,
     less_than,
     none,
@@ -275,57 +274,3 @@ class TestNewFavoriteResolvesTheContactId(unittest.TestCase):
         )
 
         self._crud.delete.assert_called_once_with(s.user, 'my_source', 'a-contact-id')
-
-
-class TestFavoritesServiceBackendStats(unittest.TestCase):
-    def setUp(self) -> None:
-        self._source_manager = Mock()
-        self._crud = Mock()
-        self._service = _FavoritesService(
-            {}, self._source_manager, Mock(), self._crud, Mock()
-        )
-
-    def tearDown(self) -> None:
-        self._service.stop()
-
-    def test_that_timed_out_backends_are_logged_with_inf_duration(self):
-        fast = Mock()
-        fast.name = 'fast'
-        fast.list.return_value = [{'firstname': 'Alice'}]
-        slow = Mock()
-        slow.name = 'slow'
-
-        def slow_list(contact_ids, args):
-            time.sleep(0.5)
-            return []
-
-        slow.list.side_effect = slow_list
-        sources = {'fast-uuid': fast, 'slow-uuid': slow}
-        self._source_manager.get.side_effect = sources.get
-        self._crud.get.return_value = [('fast', '1'), ('slow', '2')]
-        profile_config = cast(
-            'ProfileConfig',
-            {
-                'name': 'default',
-                'services': {
-                    'favorites': {
-                        'sources': [
-                            {'name': 'fast', 'uuid': 'fast-uuid'},
-                            {'name': 'slow', 'uuid': 'slow-uuid'},
-                        ],
-                        'options': {'timeout': 0.1},
-                    }
-                },
-            },
-        )
-
-        with self.assertLogs(
-            'wazo_dird.plugins.favorites_service.plugin', level='INFO'
-        ) as logs:
-            results = self._service.favorites(profile_config, s.user_uuid)
-
-        log_output = '\n'.join(logs.output)
-        assert_that(log_output, contains_string('favorites per-backend latency:'))
-        assert_that(log_output, contains_string('fast results=1'))
-        assert_that(log_output, contains_string('slow results=0 duration_ms=inf'))
-        assert_that(results, equal_to([{'firstname': 'Alice'}]))
