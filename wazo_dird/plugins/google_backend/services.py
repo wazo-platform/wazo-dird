@@ -40,7 +40,7 @@ def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
 
 
 class _Fetch:
-    """A download in progress, whose outcome every waiting request shares"""
+    """A download in progress shared by multiple waiting requests"""
 
     def __init__(self) -> None:
         self.done = threading.Event()
