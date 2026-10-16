@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import threading
-import time
 import unittest
 from unittest.mock import Mock, patch
 
@@ -277,19 +276,15 @@ class TestGoogleServiceCache(unittest.TestCase):
         assert_that(get.call_count, equal_to(2))
 
     def test_concurrent_misses_fetch_once(self, get):
-        get.side_effect = self._slow_responses(_response(self.contacts))
-
-        results = self._fetch_concurrently(5)
+        results = self._fetch_concurrently(get, 5, _response(self.contacts))
 
         assert_that(get.call_count, equal_to(1))
         assert_that(results, contains_exactly(*[has_length(2)] * 5))
 
     def test_concurrent_misses_share_a_failure(self, get):
-        get.side_effect = self._slow_responses(
-            _response({}, 429), _response(self.contacts)
+        results = self._fetch_concurrently(
+            get, 5, _response({}, 429), _response(self.contacts)
         )
-
-        results = self._fetch_concurrently(5)
 
         assert_that(get.call_count, equal_to(1))
         assert_that(
@@ -297,35 +292,27 @@ class TestGoogleServiceCache(unittest.TestCase):
         )
         assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
 
-    def _slow_responses(self, *responses):
-        """Hold the first response until the other requests wait on it"""
-        self._release = threading.Event()
+    def _fetch_concurrently(self, get, count, *responses):
+        """Fetch from count threads; Google answers once the other threads
+        all wait on the download"""
+        release = threading.Event()
+        waiting = threading.Semaphore(0)
         remaining = list(responses)
 
         def slow_get(*args, **kwargs):
-            if len(remaining) == len(responses):
-                self._release.wait(5)
+            release.wait(5)
             return remaining.pop(0)
 
-        return slow_get
-
-    def _fetch_concurrently(self, count):
-        class WaitCountingEvent(threading.Event):
-            waiters = 0
-
+        class SignalingEvent(threading.Event):
             def wait(self, timeout=None):
-                self.waiters += 1
+                waiting.release()
                 return super().wait(timeout)
 
-        class RecordedFetch(services._Fetch):
-            done: WaitCountingEvent
-
+        class SignalingFetch(services._Fetch):
             def __init__(self):
                 super().__init__()
-                self.done = WaitCountingEvent()
-                fetches.append(self)
+                self.done = SignalingEvent()
 
-        fetches: list[RecordedFetch] = []
         results: list[object] = []
 
         def fetch():
@@ -334,16 +321,14 @@ class TestGoogleServiceCache(unittest.TestCase):
             except GoogleUnavailableException as e:
                 results.append(e)
 
+        get.side_effect = slow_get
         threads = [threading.Thread(target=fetch) for _ in range(count)]
-        with patch.object(services, '_Fetch', RecordedFetch):
+        with patch.object(services, '_Fetch', SignalingFetch):
             for thread in threads:
                 thread.start()
-            deadline = time.monotonic() + 5
-            while time.monotonic() < deadline:
-                if fetches and fetches[0].done.waiters == count - 1:
-                    break
-                time.sleep(0.01)
-            self._release.set()
+            for _ in range(count - 1):
+                waiting.acquire(timeout=5)
+            release.set()
             for thread in threads:
                 thread.join(5)
         return results
@@ -376,13 +361,11 @@ class TestGoogleServiceCache(unittest.TestCase):
     def test_google_status_is_in_the_error_details(self, get):
         get.return_value = _response({}, 403)
 
-        try:
+        with self.assertRaises(GoogleUnavailableException) as raised:
             self.service.get_all_contacts('token')
-        except GoogleUnavailableException as e:
-            assert_that(e.status_code, equal_to(503))
-            assert_that(e.details, has_entries(google_status_code=403))
-        else:
-            self.fail('GoogleUnavailableException not raised')
+
+        assert_that(raised.exception.status_code, equal_to(503))
+        assert_that(raised.exception.details, has_entries(google_status_code=403))
 
     def test_connection_error_raises_unavailable(self, get):
         get.side_effect = requests.ConnectionError()
@@ -521,6 +504,16 @@ class TestContactsCacheTTL(unittest.TestCase):
 
 
 class TestContactsCache(unittest.TestCase):
+    def test_expired_entries_are_dropped_on_write(self):
+        cache = services.ContactsCache(ttl=300)
+
+        with patch.object(services.time, 'monotonic', return_value=1000):
+            cache.get_or_fetch('a', Mock(return_value=[]))
+        with patch.object(services.time, 'monotonic', return_value=1300):
+            cache.get_or_fetch('b', Mock(return_value=[]))
+
+        assert_that(cache._entries, has_length(1))
+
     def test_oldest_entry_is_evicted_when_full(self):
         cache = services.ContactsCache(ttl=300)
         cache.MAX_ENTRIES = 2
