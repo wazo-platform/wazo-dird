@@ -376,6 +376,16 @@ class TestGoogleServiceCache(unittest.TestCase):
 
             assert_that(raised.exception.status_code, equal_to(403))
 
+    def test_body_that_is_not_an_object_raises_unavailable(self, get):
+        bodies: list[object] = [None, [], 'contacts']
+        for body in bodies:
+            get.return_value = _response(body)
+
+            assert_that(
+                calling(self.service.get_all_contacts).with_args('token'),
+                raises(GoogleUnavailableException),
+            )
+
     def test_connection_error_raises_unavailable(self, get):
         get.side_effect = requests.ConnectionError()
 
