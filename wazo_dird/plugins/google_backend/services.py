@@ -232,6 +232,9 @@ class GoogleService:
         except ValueError as e:
             logger.error('Google returned an invalid body from %s', self.people_url)
             raise GoogleUnavailableException(url=self.people_url) from e
+        if not isinstance(body, dict):
+            logger.error('Google returned an invalid body from %s', self.people_url)
+            raise GoogleUnavailableException(url=self.people_url)
         contacts = [self.formatter.format(c) for c in body.get('connections', [])]
         next_page_token: str | None = body.get('nextPageToken')
         return contacts, next_page_token
