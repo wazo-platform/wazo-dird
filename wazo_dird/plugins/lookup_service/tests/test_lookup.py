@@ -1,6 +1,7 @@
 # Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import time
 import unittest
 from concurrent.futures import ALL_COMPLETED
 from typing import cast
@@ -116,34 +117,68 @@ class TestLookupNullOptions(unittest.TestCase):
 TIMING_LOGGER = 'wazo_dird.plugins.lookup_service.plugin.timing'
 
 
-class TestLookupPerSourceTiming(unittest.TestCase):
-    def _service_with_source(self, source: Mock) -> _LookupService:
+class TestLookupPerBackendLatency(unittest.TestCase):
+    def _service_with_sources(self, *sources: Mock) -> _LookupService:
         source_manager = Mock()
-        source_manager.get.return_value = source
-        return _LookupService(
+        source_manager.get.side_effect = {s.uuid: s for s in sources}.get
+        service = _LookupService(
             config={}, source_manager=source_manager, controller=Mock()
         )
+        self.addCleanup(service.stop)
+        return service
 
-    def test_logs_queue_and_exec_time_per_source(self):
+    @staticmethod
+    def _source(name: str, results: list, delay: float = 0.0) -> Mock:
         source = Mock()
-        source.name = 'my_ldap'
-        source.backend = 'ldap'
-        source.search.return_value = [sentinel.result1, sentinel.result2]
-        service = self._service_with_source(source)
-        profile = {
-            'name': 'test',
-            'services': {'lookup': {'sources': [{'uuid': 'src-uuid'}]}},
-        }
+        source.name = name
+        source.uuid = f'{name}-uuid'
 
+        def search(term, args):
+            time.sleep(delay)
+            return results
+
+        source.search.side_effect = search
+        return source
+
+    @staticmethod
+    def _profile(*sources: Mock, **options: float) -> ProfileConfig:
+        return cast(
+            ProfileConfig,
+            {
+                'name': 'test',
+                'services': {
+                    'lookup': {
+                        'sources': [{'uuid': s.uuid} for s in sources],
+                        'options': options,
+                    }
+                },
+            },
+        )
+
+    def _lookup_logs(
+        self, service: _LookupService, profile: ProfileConfig
+    ) -> list[str]:
         with self.assertLogs(TIMING_LOGGER, level='DEBUG') as logs:
-            results = service.lookup(
-                cast(ProfileConfig, profile), 'tenant', 'alice', 'user-uuid'
-            )
+            service.lookup(profile, 'tenant', 'alice', 'user-uuid')
+        return [r.getMessage() for r in logs.records]
 
-        assert_that(results, equal_to([sentinel.result1, sentinel.result2]))
-        messages = [r.getMessage() for r in logs.records if 'my_ldap' in r.getMessage()]
+    def test_logs_status_result_count_and_queue_and_exec_time_per_source(self):
+        ldap = self._source('my_ldap', [sentinel.result1, sentinel.result2])
+        service = self._service_with_sources(ldap)
+
+        messages = self._lookup_logs(service, self._profile(ldap))
+
         assert_that(len(messages), equal_to(1))
-        assert_that(messages[0], contains_string('backend=ldap'))
+        assert_that(messages[0], contains_string('my_ldap status=done results=2'))
         assert_that(messages[0], contains_string('queue_ms='))
         assert_that(messages[0], contains_string('exec_ms='))
-        assert_that(messages[0], contains_string('results=2'))
+
+    def test_a_source_slower_than_the_timeout_is_logged_as_running(self):
+        fast = self._source('fast', [sentinel.result])
+        slow = self._source('slow', [sentinel.result], delay=0.5)
+        service = self._service_with_sources(fast, slow)
+
+        messages = self._lookup_logs(service, self._profile(fast, slow, timeout=0.1))
+
+        assert_that(messages[0], contains_string('fast status=done'))
+        assert_that(messages[0], contains_string('slow status=running'))

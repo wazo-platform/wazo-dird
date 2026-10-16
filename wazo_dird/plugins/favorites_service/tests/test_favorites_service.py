@@ -11,6 +11,7 @@ from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
+    contains_string,
     equal_to,
     less_than,
     none,
@@ -108,6 +109,7 @@ class TestFavoritesServicePlugin(unittest.TestCase):
 
 _SLOW_SOURCE_DELAY = 1.0
 _SHORT_TIMEOUT = 0.2
+TIMING_LOGGER = 'wazo_dird.plugins.favorites_service.plugin.timing'
 
 
 class TestFavoritesServiceTimeout(unittest.TestCase):
@@ -185,6 +187,16 @@ class TestFavoritesServiceTimeout(unittest.TestCase):
         results = self._service.favorites(profile_config, s.user_uuid)
 
         assert_that(results, contains_inanyorder(s.fast_result, s.slow_result))
+
+    def test_that_per_backend_latency_is_logged_with_status(self) -> None:
+        profile_config = self._profile_config(timeout=_SHORT_TIMEOUT)
+
+        with self.assertLogs(TIMING_LOGGER, level='DEBUG') as logs:
+            self._service.favorites(profile_config, s.user_uuid)
+
+        message = logs.records[0].getMessage()
+        assert_that(message, contains_string('fast status=done results=1'))
+        assert_that(message, contains_string('slow status=running'))
 
 
 class TestNewFavoriteResolvesTheContactId(unittest.TestCase):
