@@ -1,4 +1,4 @@
-# Copyright 2019-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
@@ -151,6 +151,41 @@ def google_result(contact_list, search_list=None):
                 )
                 search_expectation['times']['unlimited'] = True
                 mock_server.mock_any_response(search_expectation)
+
+            try:
+                result = decorated(self, mock_server, *args, **kwargs)
+            finally:
+                mock_server.reset()
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def google_pages(*pages):
+    """Serve each (status, body) of pages as one page of Google connections
+
+    Every page but the first one is requested with the pageToken "page-<index>".
+    """
+
+    def decorator(decorated):
+        @wraps(decorated)
+        def wrapper(self, *args, **kwargs):
+            google_port = self.service_port(443, 'people.googleapis.com')
+            mock_server = UnVerifiedMockServerClient(f'https://127.0.0.1:{google_port}')
+
+            # The first page has no pageToken constraint, so it must match last
+            for index, (status, body) in reversed(list(enumerate(pages))):
+                expectation = mock_server.create_expectation(
+                    '/v1/people/me/connections', body, status
+                )
+                expectation['times']['unlimited'] = True
+                if index:
+                    expectation['httpRequest']['queryStringParameters'] = {
+                        'pageToken': [f'page-{index}']
+                    }
+                mock_server.mock_any_response(expectation)
 
             try:
                 result = decorated(self, mock_server, *args, **kwargs)
