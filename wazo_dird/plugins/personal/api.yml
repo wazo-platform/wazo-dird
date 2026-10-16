@@ -38,7 +38,7 @@ paths:
         '204':
           description: No contacts are available (CSV format only).
         '400':
-          $ref: '#/responses/InvalidParameters'
+          $ref: '#/responses/InvalidData'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
     post:
@@ -60,7 +60,7 @@ paths:
           schema:
             $ref: '#/definitions/Contact'
         '409':
-          $ref: '#/responses/DuplicateContact'
+          $ref: '#/responses/Conflict'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
     delete:
@@ -121,7 +121,7 @@ paths:
         '404':
           $ref: '#/responses/PersonalContactIDInvalid'
         '409':
-          $ref: '#/responses/DuplicateContact'
+          $ref: '#/responses/Conflict'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
     delete:
@@ -168,14 +168,14 @@ paths:
         '400':
           description: Input could not be decoded, and no contacts were created.
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
 responses:
   PersonalContactIDInvalid:
     description: The personal contact does not exist
     schema:
-      $ref: '#/definitions/LegacyError'
+      $ref: '#/definitions/Error'
 parameters:
   PersonalContactID:
     name: contact_id
