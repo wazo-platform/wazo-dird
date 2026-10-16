@@ -69,11 +69,15 @@ class PersonalAll(LegacyAuthResource):
     ) -> tuple[dict[str, Any], int] | tuple[str, int] | Response:
         user_uuid = get_user_uuid()
         try:
-            search_params = dict(request.args) | list_schema.load(request.args)
+            search_params = list_schema.load(request.args)
             contacts = self.personal_service.list_contacts_raw(
                 user_uuid, search_params=search_params
             )
-        except (ValidationError, ValueError) as e:
+        except ValidationError as e:
+            reason = f'invalid parameters: {", ".join(sorted(e.messages))}'
+            error = {'reason': reason, 'timestamp': [time()], 'status_code': 400}
+            return error, 400
+        except ValueError as e:
             error = {'reason': str(e), 'timestamp': [time()], 'status_code': 400}
             return error, 400
 
