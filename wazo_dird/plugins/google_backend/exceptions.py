@@ -3,8 +3,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from xivo.rest_api_helpers import APIException
 
 
@@ -32,6 +30,6 @@ class GoogleTokenRejectedException(GoogleTokenException):
 class GoogleUnavailableException(APIException):
     code = 503
 
-    def __init__(self, **details: Any) -> None:
+    def __init__(self) -> None:
         message = 'Google contacts are unavailable.'
-        super().__init__(self.code, message, 'google-unavailable', details)
+        super().__init__(self.code, message, 'google-unavailable')
