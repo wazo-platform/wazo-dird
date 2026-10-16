@@ -81,7 +81,7 @@ class _ArgParser:
             pagination = list_schema.load(args)
         except ValidationError as e:
             names = ', '.join(sorted(e.messages))
-            raise InvalidArgumentError(f'{names} should be a positive integer')
+            raise InvalidArgumentError(f'{names} should be a non-negative integer')
         self._limit: int | None = pagination['limit']
         self._offset: int = pagination['offset']
         self._order = self._get_string_from_valid_values(args, 'order', valid_columns)
