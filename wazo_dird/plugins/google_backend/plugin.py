@@ -14,7 +14,7 @@ from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import services
-from .exceptions import GoogleTokenNotFoundException
+from .exceptions import GoogleTokenException, GoogleTokenNotFoundException
 from .http import GoogleContactList, GoogleItem, GoogleList
 
 logger = logging.getLogger(__name__)
@@ -91,10 +91,9 @@ class GooglePlugin(BaseSourcePlugin):
         token_args: Mapping[str, Any] = args or {}
         try:
             google_token = self._get_google_token(**token_args)
-        except GoogleTokenNotFoundException:
+            contacts = self.google.search(google_token, term, self._searched_columns)
+        except GoogleTokenException:
             return []
-
-        contacts = self.google.search(google_token, term, self._searched_columns)
         return [self._SourceResult(c) for c in contacts]
 
     def list(
@@ -102,10 +101,9 @@ class GooglePlugin(BaseSourcePlugin):
     ) -> list[SourceResult]:
         try:
             google_token = self._get_google_token(**(args or {}))
-        except GoogleTokenNotFoundException:
+            contacts = self.google.get_all_contacts(google_token)
+        except GoogleTokenException:
             return []
-
-        contacts = self.google.get_all_contacts(google_token)
         wanted_ids = set(unique_ids)
         filtered_contacts = [c for c in contacts if c[self.unique_column] in wanted_ids]
 
@@ -123,11 +121,10 @@ class GooglePlugin(BaseSourcePlugin):
 
         try:
             google_token = self._get_google_token(**(args or {}))
-        except GoogleTokenNotFoundException:
-            logger.debug('could not find a matching google token, aborting first_match')
+            contacts = self.google.get_all_contacts(google_token)
+        except GoogleTokenException:
+            logger.debug('no usable google token, aborting first_match')
             return None
-
-        contacts = self.google.get_all_contacts(google_token)
         lowered_term = term.lower()
 
         for contact in contacts:
@@ -146,11 +143,10 @@ class GooglePlugin(BaseSourcePlugin):
 
         try:
             google_token = self._get_google_token(**(args or {}))
-        except GoogleTokenNotFoundException:
-            logger.debug('could not find a matching google token, aborting match_all')
+            contacts = self.google.get_all_contacts(google_token)
+        except GoogleTokenException:
+            logger.debug('no usable google token, aborting match_all')
             return {}
-
-        contacts = self.google.get_all_contacts(google_token)
         terms_by_lowered: dict[str, builtins.list[str]] = {}
         for term in terms:
             terms_by_lowered.setdefault(term.lower(), []).append(term)

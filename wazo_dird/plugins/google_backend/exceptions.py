@@ -8,13 +8,25 @@ from typing import Any
 from xivo.rest_api_helpers import APIException
 
 
-class GoogleTokenNotFoundException(APIException):
+class GoogleTokenException(APIException):
+    """The user has no Google access token that Google accepts"""
+
+
+class GoogleTokenNotFoundException(GoogleTokenException):
     code = 404
 
     def __init__(self, user_uuid: str) -> None:
         message = 'No google token found.'
         details = {'user_uuid': user_uuid}
         super().__init__(self.code, message, 'no-token-found', details)
+
+
+class GoogleTokenRejectedException(GoogleTokenException):
+    code = 403
+
+    def __init__(self) -> None:
+        message = 'Google rejected the access token.'
+        super().__init__(self.code, message, 'google-token-rejected')
 
 
 class GoogleUnavailableException(APIException):
