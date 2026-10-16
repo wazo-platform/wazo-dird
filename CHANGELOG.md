@@ -22,14 +22,13 @@
   Before, `GET /0.1/directories/<profile>/sources` and GraphQL gave it in
   `details.uuid`.
 
-* The Google backend now caches each account's contacts for
-  `google_backend.contacts_cache_ttl` seconds (default `300`, `0` disables it).
-  Searches match the source's `searched_columns` (`name` by default) in that
-  list instead of calling Google's search endpoint, and accounts with more than
-  1000 contacts are fully fetched.
-* The Google contacts endpoint returns a `503` when Google fails or is too slow,
-  and a `403` (`google-token-rejected`) when it rejects the user's token.
-  Lookups log the failure instead of returning partial results.
+* `GET /0.1/backends/google/sources/<source_uuid>/contacts` now returns `503`
+  when Google fails and `403` (`google-token-rejected`) when Google rejects the
+  user's token. Its `search` parameter now matches the source's
+  `searched_columns` (`name` by default).
+* New configuration key `google_backend.contacts_cache_ttl`: how long each
+  Google account's contacts are cached, in seconds (default `300`, `0`
+  disables the cache).
 
 ## 26.10
 
