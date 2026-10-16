@@ -13,6 +13,10 @@
   standard format (`message`, `error_id`, `details`, `timestamp`). Before,
   they returned a `reason` field.
 
+* The `/0.1/directories` lookup, reverse, favorites, personal and headers
+  endpoints now return errors in the standard format (`message`, `error_id`,
+  `details`, `timestamp`). Before, they returned a `reason` field.
+
 ## 26.10
 
 * `POST /0.1/backends/wazo/sources` and
