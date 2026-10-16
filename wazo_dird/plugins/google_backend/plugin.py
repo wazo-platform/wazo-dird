@@ -86,6 +86,8 @@ class GooglePlugin(BaseSourcePlugin):
 
     def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         logger.debug('Searching term=%s', term)
+        if not self._searched_columns:
+            return []
         token_args: Mapping[str, Any] = args or {}
         try:
             google_token = self._get_google_token(**token_args)
