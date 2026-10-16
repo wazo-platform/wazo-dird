@@ -1,7 +1,7 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from contextlib import contextmanager
+from uuid import uuid4
 
 from hamcrest import (
     assert_that,
@@ -235,6 +235,10 @@ AA_INFO = {"names": [{"displayName": "aa bb"}]}
 BA_INFO = {"names": [{"displayName": "ba bb"}]}
 BB_INFO = {"names": [{"displayName": "BB bb"}]}
 
+FIRST_PAGE = {"connections": [AA_INFO, BA_INFO], "nextPageToken": "page-1"}
+SECOND_PAGE = {"connections": [BB_INFO]}
+GOOGLE_ERROR = {"error": {"code": 0, "message": "failure"}}
+
 GOOGLE_CONTACT_LIST_FOR_PAGINATION = {
     "connections": [AA_INFO, BA_INFO, BB_INFO],
     "totalPeople": 3,
@@ -265,8 +269,13 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
         )
         self.source_uuid = source['uuid']
 
+        # wazo-dird caches contacts by access token: a token per test keeps
+        # each test's mocked contacts from being served to the next test
+        self.access_token = f'access-token-{uuid4()}'
         auth_client_mock = AuthMock(host='127.0.0.1', port=auth_port)
-        auth_client_mock.set_external_auth(self.GOOGLE_EXTERNAL_AUTH)
+        auth_client_mock.set_external_auth(
+            {**self.GOOGLE_EXTERNAL_AUTH, 'access_token': self.access_token}
+        )
 
     def tearDown(self):
         self.client.backends.delete_source('google', self.source_uuid)
@@ -396,7 +405,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             {
                 'method': 'GET',
                 'path': '/v1/people/me/connections',
-                'headers': {'Authorization': ['Bearer an-access-token']},
+                'headers': {'Authorization': [f'Bearer {self.access_token}']},
             }
         )
         google_api.verify(
@@ -405,7 +414,7 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             exact=True,
         )
 
-    @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
+    @fixtures.google_result(GOOGLE_CONTACT_LIST)
     def test_search_uses_the_source_searched_columns(self, google_api):
         self.client.backends.edit_source(
             'google',
@@ -426,53 +435,69 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
         )
         assert_that(by_name, has_entries(items=[], total=0))
 
-    def test_google_error_on_first_page(self):
-        for status_code in (429, 500):
-            with self.subTest(status_code=status_code):
-                with self.google_pages(GoogleError(status_code)):
-                    assert_that(
-                        calling(self.list_).with_args(self.client, self.source_uuid),
-                        raises(Exception).matching(HTTP_503),
-                    )
-
-    def test_google_error_on_later_page(self):
-        first_page = {'connections': [MARIO_INFO], 'nextPageToken': 'next'}
-        for status_code in (429, 500):
-            with self.subTest(status_code=status_code):
-                with self.google_pages(first_page, GoogleError(status_code)):
-                    assert_that(
-                        calling(self.list_).with_args(self.client, self.source_uuid),
-                        raises(Exception).matching(HTTP_503),
-                    )
-
-    @contextmanager
-    def google_pages(self, *pages):
-        """Answer each call to Google with the next page, in order"""
-        google_port = self.service_port(443, 'people.googleapis.com')
-        mock_server = fixtures.UnVerifiedMockServerClient(
-            f'https://127.0.0.1:{google_port}'
+    @fixtures.google_pages((429, GOOGLE_ERROR))
+    def test_list_when_google_is_rate_limiting(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_503),
         )
-        for page in pages:
-            if isinstance(page, GoogleError):
-                body, status_code = {
-                    'error': {'code': page.status_code}
-                }, page.status_code
-            else:
-                body, status_code = page, 200
-            mock_server.mock_any_response(
-                mock_server.create_expectation(
-                    '/v1/people/me/connections', body, status_code
-                )
-            )
-        try:
-            yield mock_server
-        finally:
-            mock_server.reset()
+
+    @fixtures.google_pages((500, GOOGLE_ERROR))
+    def test_list_when_google_fails_on_the_first_page(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_503),
+        )
+
+    @fixtures.google_pages((200, FIRST_PAGE), (500, GOOGLE_ERROR))
+    def test_list_when_google_fails_on_a_later_page(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_503),
+        )
+
+    @fixtures.google_pages((200, FIRST_PAGE), (200, SECOND_PAGE))
+    def test_list_gathers_every_page(self, google_api):
+        result = self.list_(self.client, self.source_uuid)
+
+        assert_that(
+            result,
+            has_entries(
+                items=contains_exactly(
+                    has_entries(name='aa bb'),
+                    has_entries(name='ba bb'),
+                    has_entries(name='BB bb'),
+                ),
+                total=3,
+            ),
+        )
+
+    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    def test_contacts_are_fetched_once_per_access_token(self, google_api):
+        self.list_(self.client, self.source_uuid)
+        result = self.list_(self.client, self.source_uuid, search='mario')
+
+        assert_that(result, has_entries(total=1))
+        google_api.verify(
+            {'method': 'GET', 'path': '/v1/people/me/connections'},
+            count=1,
+            exact=True,
+        )
+
+    @fixtures.google_pages((500, GOOGLE_ERROR))
+    def test_failed_fetch_is_not_cached(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_503),
+        )
+
+        google_api.reset()
+        google_api.mock_simple_response(
+            '/v1/people/me/connections', GOOGLE_CONTACT_LIST, 200
+        )
+        result = self.list_(self.client, self.source_uuid)
+
+        assert_that(result, has_entries(total=2))
 
     def list_(self, client, *args, **kwargs):
         return client.backends.list_contacts_from_source('google', *args, **kwargs)
-
-
-class GoogleError:
-    def __init__(self, status_code):
-        self.status_code = status_code
