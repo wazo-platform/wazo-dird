@@ -155,7 +155,15 @@ class TestAddPersonal(PersonalOnlyTestCase):
         result = self.post_personal_result({'': 'invalid'}, VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(400))
-        assert_that(result.json(), has_entries(error_id='invalid-data'))
+        assert_that(
+            result.json(),
+            has_entries(
+                error_id='invalid-data',
+                details=has_entries(
+                    errors=contains_exactly('field names must not be empty')
+                ),
+            ),
+        )
 
     def test_that_a_non_string_field_value_returns_400(self):
         # Unlike phonebook contacts, personal contacts validate field value
@@ -166,7 +174,15 @@ class TestAddPersonal(PersonalOnlyTestCase):
         )
 
         assert_that(result.status_code, equal_to(400))
-        assert_that(result.json(), has_entries(error_id='invalid-data'))
+        assert_that(
+            result.json(),
+            has_entries(
+                error_id='invalid-data',
+                details=has_entries(
+                    errors=contains_exactly('all field values must be strings')
+                ),
+            ),
+        )
 
     def test_that_adding_duplicated_personal_returns_409(self):
         self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN_MAIN_TENANT)
