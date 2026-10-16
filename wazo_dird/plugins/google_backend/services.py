@@ -74,11 +74,9 @@ class ContactsCache:
                 logger.debug('Using cached contacts from Google')
                 return list(contacts)
             in_progress = self._fetches.get(key)
+            is_fetcher = in_progress is None
             if in_progress is None:
                 in_progress = self._fetches[key] = _Fetch()
-                is_fetcher = True
-            else:
-                is_fetcher = False
 
         if is_fetcher:
             self._run(key, in_progress, fetch)
@@ -119,17 +117,17 @@ class ContactsCache:
         # Called with self._lock held
         now = time.monotonic()
         self._entries.pop(key, None)
-        if len(self._entries) >= self.MAX_ENTRIES:
-            self._evict(now)
+        # Every entry has the same TTL and is inserted last, so the oldest
+        # entries are the first to expire
+        while self._entries and (
+            len(self._entries) >= self.MAX_ENTRIES or self._oldest_expiry() <= now
+        ):
+            del self._entries[next(iter(self._entries))]
         self._entries[key] = (now + self.ttl, contacts)
 
-    def _evict(self, now: float) -> None:
-        for key, (expires_at, _) in list(self._entries.items()):
-            if expires_at <= now:
-                del self._entries[key]
-        # Entries are kept in insertion order, oldest first
-        while len(self._entries) >= self.MAX_ENTRIES:
-            del self._entries[next(iter(self._entries))]
+    def _oldest_expiry(self) -> float:
+        expires_at, _ = next(iter(self._entries.values()))
+        return expires_at
 
     @staticmethod
     def _key(google_token: str) -> str:
@@ -155,7 +153,6 @@ class GoogleService:
     USER_AGENT = 'wazo_ua/1.0'
 
     people_url = 'https://people.googleapis.com/v1/people/me/connections'
-    batch_url = 'https://people.googleapis.com/v1/people:batchGet'
 
     person_fields = (
         'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
@@ -173,24 +170,32 @@ class GoogleService:
             google_token, lambda: self._fetch_all(google_token)
         )
 
+    def search(
+        self, google_token: str, term: str, searched_columns: list[str]
+    ) -> Contacts:
+        contacts = self.get_all_contacts(google_token)
+        # Filter the cached contact list locally instead of querying Google's
+        # search endpoint on every search
+        lowered_term = term.lower()
+        matching_contacts = [
+            c for c in contacts if matches_search(c, lowered_term, searched_columns)
+        ]
+        logger.debug(
+            'Searched %d Google contacts locally for term=%s: %d matched',
+            len(contacts),
+            term,
+            len(matching_contacts),
+        )
+        return matching_contacts
+
     def get_contacts(
         self, google_token: str, searched_columns: list[str], **list_params: Any
     ) -> tuple[Contacts, int]:
-        contacts = self.get_all_contacts(google_token)
         term = list_params.get('search')
         if term:
-            # Filter the cached contact list locally instead of querying Google's
-            # search endpoint on every search
-            matching_contacts = [
-                c for c in contacts if matches_search(c, term, searched_columns)
-            ]
-            logger.debug(
-                'Searched %d Google contacts locally for term=%s: %d matched',
-                len(contacts),
-                term,
-                len(matching_contacts),
-            )
-            contacts = matching_contacts
+            contacts = self.search(google_token, term, searched_columns)
+        else:
+            contacts = self.get_all_contacts(google_token)
         total = len(contacts)
         sorted_contacts = sort_contacts(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
@@ -217,33 +222,17 @@ class GoogleService:
         self, headers: dict[str, str], params: dict[str, Any]
     ) -> tuple[Contacts, str | None]:
         """Return a page of contacts and the token of the next page, if any"""
-        response = self._get_request(
-            self.people_url, headers, params, 'Fetched contacts from Google'
-        )
+        response = self._get_request(self.people_url, headers, params)
         body = response.json()
         contacts = [self.formatter.format(c) for c in body.get('connections', [])]
         next_page_token: str | None = body.get('nextPageToken')
         return contacts, next_page_token
 
-    def _get_batch_of_contacts(
-        self, headers: dict[str, str], contact_ids: list[str]
-    ) -> Contacts:
-        params = [('personFields', self.person_fields)]
-        for contact_id in contact_ids:
-            params.append(('resourceNames', contact_id))
-
-        response = self._get_request(
-            self.batch_url, headers, params, 'Fetched batch of contacts from Google'
-        )
-        responses: Contacts = response.json().get('responses', [])
-        return responses
-
     def _get_request(
         self,
         url: str,
         headers: dict[str, str],
-        params: dict[str, Any] | list[tuple[str, Any]],
-        debug_message: str | None = None,
+        params: dict[str, Any],
     ) -> requests.Response:
         # Requests have verify=False because the integration test mock servers do not have proper SSL
         # Find a way to selectively turn off verification during testing only
@@ -268,8 +257,10 @@ class GoogleService:
                 url=url, google_status_code=response.status_code
             )
 
-        logger.debug('Get Request Successful: %s', debug_message)
-        logger.debug('Raw data: %s', response.text)
+        logger.debug('Get Request Successful: %s', url)
+        # Decoding a page of up to 1000 contacts is wasted when debug is off
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Raw data: %s', response.text)
         return response
 
     def _paginate(
@@ -314,8 +305,10 @@ def column_texts(value: Any) -> Iterator[str]:
             yield from column_texts(sub_value)
 
 
-def matches_search(contact: dict[str, Any], term: str, columns: list[str]) -> bool:
-    lowered_term = term.lower()
+def matches_search(
+    contact: dict[str, Any], lowered_term: str, columns: list[str]
+) -> bool:
+    """lowered_term is lowered once by the caller, not once per contact"""
     return any(
         lowered_term in text.lower()
         for column in columns

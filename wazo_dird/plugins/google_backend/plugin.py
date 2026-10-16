@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import builtins
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from typing import Any, cast
 
 from wazo_dird import BaseSourcePlugin, make_result_class
@@ -54,7 +54,7 @@ class GooglePlugin(BaseSourcePlugin):
         self.auth = cast('AuthConfig', dict(config)['auth'])
         self.name = config['name']
         self.google = services.GoogleService(
-            services.shared_contacts_cache(dependencies.get('main_config') or {})
+            services.shared_contacts_cache(dependencies['main_config'])
         )
         self.unique_column = 'id'
 
@@ -92,22 +92,8 @@ class GooglePlugin(BaseSourcePlugin):
         except GoogleTokenNotFoundException:
             return []
 
-        # Filter the cached contact list locally instead of querying Google's
-        # search endpoint on every lookup
-        contacts = self.google.get_all_contacts(google_token)
-        filtered_contacts = [
-            c
-            for c in contacts
-            if services.matches_search(c, term, self._searched_columns)
-        ]
-        logger.debug(
-            'Searched %d Google contacts locally for term=%s: %d matched',
-            len(contacts),
-            term,
-            len(filtered_contacts),
-        )
-
-        return [self._SourceResult(c) for c in filtered_contacts]
+        contacts = self.google.search(google_token, term, self._searched_columns)
+        return [self._SourceResult(c) for c in contacts]
 
     def list(
         self, unique_ids: list[str], args: dict[str, Any] | None = None
@@ -118,7 +104,8 @@ class GooglePlugin(BaseSourcePlugin):
             return []
 
         contacts = self.google.get_all_contacts(google_token)
-        filtered_contacts = [c for c in contacts if c[self.unique_column] in unique_ids]
+        wanted_ids = set(unique_ids)
+        filtered_contacts = [c for c in contacts if c[self.unique_column] in wanted_ids]
 
         return [self._SourceResult(contact) for contact in filtered_contacts]
 
@@ -162,20 +149,25 @@ class GooglePlugin(BaseSourcePlugin):
             return {}
 
         contacts = self.google.get_all_contacts(google_token)
-        results: dict[str, SourceResult] = {}
+        terms_by_lowered: dict[str, builtins.list[str]] = {}
         for term in terms:
-            lowered_term = term.lower()
-            for contact in contacts:
-                if self._first_match_predicate(lowered_term, contact):
+            terms_by_lowered.setdefault(term.lower(), []).append(term)
+
+        # One pass over the contacts for all the terms; like first_match run
+        # per term, except that the last matching contact wins
+        results: dict[str, SourceResult] = {}
+        for contact in contacts:
+            for text in self._first_matched_texts(contact):
+                for term in terms_by_lowered.get(text.lower(), []):
                     results[term] = self._SourceResult(contact)
         return results
 
     def _first_match_predicate(self, term: str, contact: dict[str, Any]) -> bool:
-        return any(
-            term == text.lower()
-            for column in self._first_matched_columns
-            for text in services.column_texts(contact.get(column))
-        )
+        return any(term == text.lower() for text in self._first_matched_texts(contact))
+
+    def _first_matched_texts(self, contact: dict[str, Any]) -> Iterator[str]:
+        for column in self._first_matched_columns:
+            yield from services.column_texts(contact.get(column))
 
     def _get_google_token(
         self, user_uuid: str, token: str | None = None, **ignored: Any
