@@ -46,6 +46,19 @@ class TestListPersonal(PersonalOnlyTestCase):
 
         assert_that(result['items'], contains_exactly())
 
+    def test_that_a_token_with_no_user_uuid_returns_401(self):
+        mock_auth_client = MockAuthClient('127.0.0.1', self.service_port(9497, 'auth'))
+        invalid_token_uuid = str(uuid.uuid4())
+        invalid_token = MockUserToken.some_token(
+            token=invalid_token_uuid,
+            metadata={'uuid': None, 'tenant_uuid': MAIN_TENANT},
+        )
+        mock_auth_client.set_token(invalid_token)
+
+        result = self.list_personal_result(invalid_token_uuid)
+
+        assert_that(result.status_code, equal_to(401))
+
 
 class TestDeletedUser(BaseDirdIntegrationTest):
     asset = 'personal_only'
@@ -667,3 +680,8 @@ class TestSearchPersonal(PersonalOnlyTestCase):
                     VALID_TOKEN_MAIN_TENANT, **{param: value}
                 )
                 assert_that(response.status_code, equal_to(400), (param, value))
+                assert_that(
+                    response.json(),
+                    has_entry('reason', contains_string(param)),
+                    (param, value),
+                )
