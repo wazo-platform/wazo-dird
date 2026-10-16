@@ -23,6 +23,7 @@ class TestList(BaseDeprecatedPhonebookTestCase):
         self.set_tenants()
         result = self.list_phonebooks('invalid')
         assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='not-found'))
 
     def test_valid(self):
         self.set_tenants('valid')
@@ -89,7 +90,8 @@ class TestList(BaseDeprecatedPhonebookTestCase):
         assert_that(
             result.json(),
             has_entries(
-                reason=contains_exactly('limit should be a non-negative integer')
+                error_id='invalid-data',
+                message='limit should be a non-negative integer',
             ),
         )
 
@@ -120,6 +122,7 @@ class TestPost(BaseDeprecatedPhonebookTestCase):
 
         result = self.post_phonebook('valid', valid_body)
         assert_that(result.status_code, equal_to(409))
+        assert_that(result.json(), has_entries(error_id='conflict'))
 
     def test_invalid_bodies(self):
         self.set_tenants('invalid')
@@ -580,6 +583,13 @@ Bob,B
                 total=2,
             ),
         )
+
+    def test_duplicate_columns(self):
+        self.set_tenants(self.tenant_1)
+        body = 'firstname,firstname\nAlice,A\n'
+        result = self.import_(self.tenant_1, self.phonebook_1['id'], body)
+        assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-data'))
 
     def import_(self, tenant, phonebook_id, body):
         return self.import_phonebook_contact(tenant, phonebook_id, body)

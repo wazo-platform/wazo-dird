@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import csv
 import logging
-import time
 from collections.abc import Callable, Mapping, Sequence
 from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict, TypeVar
@@ -13,6 +12,7 @@ from typing import TYPE_CHECKING, Any, TypedDict, TypeVar
 from flask import request
 from marshmallow import ValidationError
 from wazo_auth_client import Client as AuthClient
+from xivo.rest_api_helpers import APIException
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
@@ -27,7 +27,7 @@ from wazo_dird.exception import (
     NoSuchPhonebook,
     NoSuchTenant,
 )
-from wazo_dird.http import LegacyAuthResource, get_json_body
+from wazo_dird.http import AuthResource, get_json_body
 from wazo_dird.schemas import UncheckedOrderListSchema
 
 if TYPE_CHECKING:
@@ -39,18 +39,18 @@ list_schema = UncheckedOrderListSchema()
 
 R = TypeVar('R')
 
-ErrorResponse = tuple[dict[str, Any], int]
 Response = tuple[Any, int] | dict[str, Any]
 
 
-def _make_error(reason: str, status_code: int) -> ErrorResponse:
-    return (
-        {'reason': [reason], 'timestamp': [time.time()], 'status_code': status_code},
-        status_code,
-    )
+_ERROR_IDS = {
+    400: 'invalid-data',
+    404: 'not-found',
+    409: 'conflict',
+    503: 'service-unavailable',
+}
 
 
-class _Resource(LegacyAuthResource):
+class _Resource(AuthResource):
     error_code_map: dict[type[Exception], int] = {}
 
     def __init__(
@@ -123,15 +123,15 @@ class _ArgParser:
 
 def _default_error_route(
     f: Callable[..., R],
-) -> Callable[..., R | ErrorResponse]:
+) -> Callable[..., R]:
     @wraps(f)
-    def decorator(self_: _Resource, *args: Any, **kwargs: Any) -> R | ErrorResponse:
+    def decorator(self_: _Resource, *args: Any, **kwargs: Any) -> R:
         try:
             return f(self_, *args, **kwargs)
         except tuple(self_.error_code_map.keys()) as e:
             logger.info('%s', e)
             code = self_.error_code_map[e.__class__]
-            return _make_error(str(e), code)
+            raise APIException(code, str(e), _ERROR_IDS[code]) from e
 
     return decorator
 
@@ -256,7 +256,7 @@ class DeprecatedPhonebookContactImport(_Resource):
             data = request.data.decode(charset).split('\n')
         except LookupError as e:
             if 'unknown encoding:' in str(e):
-                return _make_error(str(e), 400)
+                raise APIException(400, str(e), 'invalid-data') from e
             else:
                 raise
 
@@ -264,7 +264,7 @@ class DeprecatedPhonebookContactImport(_Resource):
         fields = next(reader)
         duplicates = list({f for f in fields if fields.count(f) > 1})
         if duplicates:
-            return _make_error(f'duplicate columns: {duplicates}', 400)
+            raise APIException(400, f'duplicate columns: {duplicates}', 'invalid-data')
 
         to_add = [c for c in csv.DictReader(data)]
         created, failed = self.phonebook_service.import_contacts(
