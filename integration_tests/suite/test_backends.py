@@ -5,9 +5,9 @@ from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
-    contains_string,
     equal_to,
     has_entries,
+    has_key,
 )
 from requests import HTTPError
 
@@ -84,7 +84,7 @@ class TestBackends(BaseDirdIntegrationTest):
         assert_that(raised.exception.response.status_code, equal_to(400))
         assert_that(
             raised.exception.response.json(),
-            has_entries(reason=contains_exactly(contains_string('limit'))),
+            has_entries(error_id='invalid-data', details=has_key('limit')),
         )
 
         result = self.client.backends.list(offset=7)
