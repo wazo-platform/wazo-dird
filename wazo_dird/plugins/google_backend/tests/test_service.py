@@ -303,15 +303,10 @@ class TestGoogleServiceCache(unittest.TestCase):
             release.wait(5)
             return remaining.pop(0)
 
-        class SignalingEvent(threading.Event):
-            def wait(self, timeout=None):
+        class SignalingFuture(services.Future):
+            def result(self, timeout=None):
                 waiting.release()
-                return super().wait(timeout)
-
-        class SignalingFetch(services._Fetch):
-            def __init__(self):
-                super().__init__()
-                self.done = SignalingEvent()
+                return super().result(timeout)
 
         results: list[object] = []
 
@@ -323,7 +318,7 @@ class TestGoogleServiceCache(unittest.TestCase):
 
         get.side_effect = slow_get
         threads = [threading.Thread(target=fetch) for _ in range(count)]
-        with patch.object(services, '_Fetch', SignalingFetch):
+        with patch.object(services, 'Future', SignalingFuture):
             for thread in threads:
                 thread.start()
             for _ in range(count - 1):
@@ -394,6 +389,52 @@ class TestGoogleServiceCache(unittest.TestCase):
             calling(self.service.get_all_contacts).with_args('token'),
             raises(GoogleUnavailableException),
         )
+
+    def test_download_stops_at_the_deadline(self, get):
+        clock = [0.0]
+        timeouts = []
+
+        def slow_google(*args, **kwargs):
+            timeouts.append(kwargs['timeout'])
+            clock[0] += 27
+            return _response({'connections': [], 'nextPageToken': 'next'})
+
+        get.side_effect = slow_google
+        with patch.object(services, 'DOWNLOAD_TIMEOUT', 60), patch.object(
+            services.time, 'monotonic', side_effect=lambda: clock[0]
+        ):
+            assert_that(
+                calling(self.service.get_all_contacts).with_args('token'),
+                raises(GoogleUnavailableException),
+            )
+
+        # 60 seconds: three pages of 27 seconds, the third one given the 6
+        # seconds left instead of the 10 of a request
+        assert_that(timeouts, contains_exactly(10, 10, 6))
+
+    def test_waiters_give_up_at_the_download_timeout(self, get):
+        cache = services.ContactsCache(ttl=300)
+        fetching = threading.Event()
+        release = threading.Event()
+
+        def slow_fetch():
+            fetching.set()
+            release.wait(5)
+            return []
+
+        fetcher = threading.Thread(target=cache.get_or_fetch, args=('a', slow_fetch))
+        try:
+            fetcher.start()
+            fetching.wait(5)
+            with patch.object(services, 'DOWNLOAD_TIMEOUT', 0.01):
+                assert_that(
+                    calling(cache.get_or_fetch).with_args('a', Mock()),
+                    raises(GoogleUnavailableException),
+                )
+            assert_that(fetcher.is_alive(), equal_to(True))
+        finally:
+            release.set()
+            fetcher.join(5)
 
     def test_requests_have_a_timeout(self, get):
         get.return_value = _response(self.contacts)
