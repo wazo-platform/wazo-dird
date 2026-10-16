@@ -1,11 +1,15 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import threading
+import time
 import unittest
 from typing import cast
 from unittest.mock import Mock, patch
 
-from wazo_dird.helpers import ProfileConfig
+from hamcrest import assert_that, contains_string
+
+from wazo_dird.helpers import ProfileConfig, Timing
 
 from ..plugin import _ReverseService
 
@@ -204,13 +208,13 @@ class TestReverseTimeout(unittest.TestCase):
         match_a1, match_a2, match_b = Mock(), Mock(), Mock()
 
         first_future = Mock()
-        first_future.result.return_value = ({exten_a: match_a1}, 0.0)
+        first_future.result.return_value = ({exten_a: match_a1}, Timing(0.0, 0.0))
         first_future.done.return_value = True
 
         second_future = Mock()
         second_future.result.return_value = (
             {exten_a: match_a2, exten_b: match_b},
-            0.0,
+            Timing(0.0, 0.0),
         )
         second_future.done.return_value = True
 
@@ -221,3 +225,95 @@ class TestReverseTimeout(unittest.TestCase):
         results = service.reverse_many(_PROFILE_WITH_SOURCE, [exten_a, exten_b], 'test')
 
         assert results == [match_a1, match_b]
+
+
+TIMING_LOGGER = 'wazo_dird.plugins.reverse_service.plugin.timing'
+_SLOW_DELAY = 0.5
+
+
+class TestReversePerBackendLatency(unittest.TestCase):
+    def setUp(self) -> None:
+        slow_started = threading.Event()
+        self.fast = self._source('fast', wait_for=slow_started)
+        self.slow = self._source('slow', delay=_SLOW_DELAY, signal=slow_started)
+        source_manager = Mock()
+        source_manager.get.side_effect = {
+            'fast-uuid': self.fast,
+            'slow-uuid': self.slow,
+        }.get
+        self.service = _ReverseService(
+            config={}, source_manager=source_manager, controller=Mock()
+        )
+        self.addCleanup(self.service.stop)
+
+    @staticmethod
+    def _source(
+        name: str,
+        delay: float = 0.0,
+        wait_for: threading.Event | None = None,
+        signal: threading.Event | None = None,
+    ) -> Mock:
+        source = Mock()
+        source.name = name
+
+        def pause() -> None:
+            if signal:
+                signal.set()
+            if wait_for:
+                wait_for.wait(timeout=1)
+            time.sleep(delay)
+
+        def first_match(exten: str, args: dict) -> Mock:
+            pause()
+            return Mock()
+
+        def match_all(extens: list[str], args: dict) -> dict[str, Mock]:
+            pause()
+            return {exten: Mock() for exten in extens}
+
+        source.first_match.side_effect = first_match
+        source.match_all.side_effect = match_all
+        return source
+
+    @staticmethod
+    def _profile(**options: float) -> ProfileConfig:
+        return cast(
+            ProfileConfig,
+            {
+                'name': 'test',
+                'services': {
+                    'reverse': {
+                        'sources': [{'uuid': 'fast-uuid'}, {'uuid': 'slow-uuid'}],
+                        'options': options,
+                    }
+                },
+            },
+        )
+
+    def test_reverse_logs_backends_still_running_after_an_early_match(self):
+        with self.assertLogs(TIMING_LOGGER, level='DEBUG') as logs:
+            self.service.reverse(self._profile(), '1234', 'test')
+
+        message = logs.records[0].getMessage()
+        assert_that(message, contains_string('reverse per-backend latency'))
+        assert_that(message, contains_string('fast status=done results=1'))
+        assert_that(message, contains_string('slow status=running'))
+
+    def test_reverse_many_logs_backends_still_running_after_all_resolved(self):
+        with self.assertLogs(TIMING_LOGGER, level='DEBUG') as logs:
+            self.service.reverse_many(self._profile(), ['1234', '5678'], 'test')
+
+        message = logs.records[0].getMessage()
+        assert_that(message, contains_string('reverse_many per-backend latency'))
+        assert_that(message, contains_string('fast status=done results=2'))
+        assert_that(message, contains_string('slow status=running'))
+
+    def test_reverse_logs_backends_that_hit_the_timeout(self):
+        self.fast.first_match.side_effect = lambda exten, args: time.sleep(_SLOW_DELAY)
+
+        with self.assertLogs(TIMING_LOGGER, level='DEBUG') as logs:
+            self.service.reverse(self._profile(timeout=0.1), '1234', 'test')
+
+        message = logs.records[0].getMessage()
+        assert_that(message, contains_string('fast status=running'))
+        assert_that(message, contains_string('slow status=running'))

@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 from collections import defaultdict, namedtuple
 from concurrent.futures import ALL_COMPLETED, Future, ThreadPoolExecutor, wait
+from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
 
 from wazo_bus.resources.directory.event import FavoriteAddedEvent, FavoriteDeletedEvent
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     from wazo_dird.source_manager import SourceManager
 
 logger = logging.getLogger(__name__)
+timing_logger = logger.getChild('timing')
 
 
 class _NoSuchProfileException(ValueError):
@@ -118,7 +120,12 @@ class _FavoritesService(helpers.BaseService):
             return_on_raise=[]
         )
         future = self._executor.submit(
-            helpers.timed, raise_stopper.execute, source.list, contact_ids, args
+            helpers.timed,
+            perf_counter(),
+            raise_stopper.execute,
+            source.list,
+            contact_ids,
+            args,
         )
         setattr(future, 'name', source.name)
         return future
@@ -170,21 +177,17 @@ class _FavoritesService(helpers.BaseService):
             )
 
         results: list[_SourceResult] = []
-        backend_stats: list[tuple[str, int, float]] = []
+        backend_stats: list[helpers.BackendStat] = []
         for future in done:
-            contacts, duration = future.result()
-            backend_stats.append((getattr(future, 'name'), len(contacts), duration))
-            for contact in contacts:
-                results.append(contact)
-        for future in not_done:
-            backend_stats.append((getattr(future, 'name'), 0, float('inf')))
-        logger.info(
-            'favorites per-backend latency: %s',
-            ', '.join(
-                f'{name} results={count} duration_ms={duration * 1000:.1f}'
-                for name, count, duration in backend_stats
-            ),
-        )
+            contacts, timing = future.result()
+            backend_stats.append(
+                helpers.BackendStat.finished(
+                    getattr(future, 'name'), len(contacts), timing
+                )
+            )
+            results.extend(contacts)
+        backend_stats.extend(helpers.BackendStat.from_future(f) for f in not_done)
+        helpers.log_backend_stats(timing_logger, 'favorites', backend_stats)
         return results
 
     def favorite_ids(self, profile_config: ProfileConfig, user_uuid: str) -> Any:

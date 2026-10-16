@@ -1,11 +1,14 @@
 # Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from __future__ import annotations
+
 import logging
-import time
 from collections import namedtuple
 from collections.abc import Callable
-from typing import Any, Generic, TypedDict, TypeVar
+from concurrent.futures import Future
+from time import perf_counter
+from typing import Any, Generic, Literal, NamedTuple, TypedDict, TypeVar
 
 from flask import request
 from flask_restful import Api
@@ -68,13 +71,67 @@ class ServiceConfigOptions(TypedDict, total=False):
     timeout: float
 
 
-TimedResult = tuple[T, float]
+class Timing(NamedTuple):
+    queue: float
+    execution: float
 
 
-def timed(function: Callable[..., T], *args: Any, **kwargs: Any) -> TimedResult[T]:
-    start = time.monotonic()
+TimedResult = tuple[T, Timing]
+
+
+def timed(
+    submitted_at: float, function: Callable[..., T], *args: Any, **kwargs: Any
+) -> TimedResult[T]:
+    started_at = perf_counter()
     result = function(*args, **kwargs)
-    return result, time.monotonic() - start
+    return result, Timing(started_at - submitted_at, perf_counter() - started_at)
+
+
+BackendStatus = Literal['done', 'queued', 'running', 'cancelled']
+
+
+class BackendStat(NamedTuple):
+    name: str
+    status: BackendStatus
+    results: int = 0
+    timing: Timing | None = None
+
+    @classmethod
+    def finished(cls, name: str, results: int, timing: Timing) -> BackendStat:
+        return cls(name, 'done', results, timing)
+
+    @classmethod
+    def from_future(cls, future: Future) -> BackendStat:
+        status: BackendStatus
+        if future.cancelled():
+            status = 'cancelled'
+        elif future.running():
+            status = 'running'
+        elif future.done():
+            status = 'done'
+        else:
+            status = 'queued'
+        return cls(getattr(future, 'name'), status)
+
+    def __str__(self) -> str:
+        if self.timing is None:
+            return f'{self.name} status={self.status}'
+        return (
+            f'{self.name} status={self.status} results={self.results} '
+            f'queue_ms={self.timing.queue * 1000:.1f} '
+            f'exec_ms={self.timing.execution * 1000:.1f}'
+        )
+
+
+def log_backend_stats(
+    log: logging.Logger, operation: str, stats: list[BackendStat]
+) -> None:
+    if log.isEnabledFor(logging.DEBUG):
+        log.debug(
+            '%s per-backend latency: %s',
+            operation,
+            ', '.join(str(stat) for stat in stats),
+        )
 
 
 class ServiceConfig(TypedDict, total=False):

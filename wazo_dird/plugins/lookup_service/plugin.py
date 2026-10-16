@@ -68,36 +68,14 @@ class _LookupService(helpers.BaseService):
         submitted_at = perf_counter()
         future = self._executor.submit(
             helpers.timed,
-            self._timed_search,
-            raise_stopper,
-            source,
+            submitted_at,
+            raise_stopper.execute,
+            source.search,
             term,
             args,
-            submitted_at,
         )
         setattr(future, 'name', source.name)
         return future
-
-    def _timed_search(
-        self,
-        raise_stopper: helpers.RaiseStopper[list[SourceResult]],
-        source: BaseSourcePlugin,
-        term: str,
-        args: LookupArgs,
-        submitted_at: float,
-    ) -> list[SourceResult]:
-        started_at = perf_counter()
-        results = raise_stopper.execute(source.search, term, args)
-        finished_at = perf_counter()
-        timing_logger.debug(
-            'lookup source=%s backend=%s queue_ms=%.1f exec_ms=%.1f results=%d',
-            source.name,
-            source.backend,
-            (started_at - submitted_at) * 1000,
-            (finished_at - started_at) * 1000,
-            len(results),
-        )
-        return results
 
     def lookup(
         self,
@@ -121,19 +99,15 @@ class _LookupService(helpers.BaseService):
 
         done, not_done = wait(futures, **params)
         results = []
-        backend_stats = []
+        backend_stats: list[helpers.BackendStat] = []
         for future in done:
-            contacts, duration = future.result()
-            backend_stats.append((getattr(future, 'name'), len(contacts), duration))
-            for contact in contacts:
-                results.append(contact)
-        for future in not_done:
-            backend_stats.append((getattr(future, 'name'), 0, float('inf')))
-        logger.info(
-            'lookup per-backend latency: %s',
-            ', '.join(
-                f'{name} results={count} duration_ms={duration * 1000:.1f}'
-                for name, count, duration in backend_stats
-            ),
-        )
+            contacts, timing = future.result()
+            backend_stats.append(
+                helpers.BackendStat.finished(
+                    getattr(future, 'name'), len(contacts), timing
+                )
+            )
+            results.extend(contacts)
+        backend_stats.extend(helpers.BackendStat.from_future(f) for f in not_done)
+        helpers.log_backend_stats(timing_logger, 'lookup', backend_stats)
         return results
