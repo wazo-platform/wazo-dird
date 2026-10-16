@@ -8,16 +8,20 @@ import io
 import logging
 import re
 from collections.abc import Callable
-from time import time
 from typing import TYPE_CHECKING, Any
 
 from flask import Response, request
 from flask_restful import reqparse
-from marshmallow import ValidationError
+from xivo.rest_api_helpers import APIException
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import get_user_uuid, required_acl
-from wazo_dird.http import LegacyAuthResource, get_json_body
+from wazo_dird.exception import (
+    DuplicatedPersonalContact,
+    InvalidPersonalContactAPIException,
+    NoSuchPersonalContact,
+)
+from wazo_dird.http import AuthResource, get_json_body
 from wazo_dird.schemas import UncheckedOrderListSchema
 
 if TYPE_CHECKING:
@@ -35,7 +39,7 @@ parser = reqparse.RequestParser()
 parser.add_argument('format', type=str, required=False, location='args')
 
 
-class PersonalAll(LegacyAuthResource):
+class PersonalAll(AuthResource):
     personal_service: _PersonalService
 
     @classmethod
@@ -53,33 +57,24 @@ class PersonalAll(LegacyAuthResource):
             )
             return created, 201
         except self.personal_service.InvalidPersonalContact as e:
-            error = {'reason': e.errors, 'timestamp': [time()], 'status_code': 400}
-            return error, 400
-        except self.personal_service.DuplicatedContactException:
-            error = {
-                'reason': ['Addind this contact would create a duplicate'],
-                'timestamp': [time()],
-                'status_code': 409,
-            }
-            return error, 409
+            raise InvalidPersonalContactAPIException(e.errors) from e
+        except self.personal_service.DuplicatedContactException as e:
+            raise DuplicatedPersonalContact(
+                'Adding this contact would create a duplicate'
+            ) from e
 
     @required_acl('dird.personal.read')
     def get(
         self,
     ) -> tuple[dict[str, Any], int] | tuple[str, int] | Response:
         user_uuid = get_user_uuid()
+        search_params = list_schema.load(request.args)
         try:
-            search_params = list_schema.load(request.args)
             contacts = self.personal_service.list_contacts_raw(
                 user_uuid, search_params=search_params
             )
-        except ValidationError as e:
-            reason = f'invalid parameters: {", ".join(sorted(e.messages))}'
-            error = {'reason': reason, 'timestamp': [time()], 'status_code': 400}
-            return error, 400
         except ValueError as e:
-            error = {'reason': str(e), 'timestamp': [time()], 'status_code': 400}
-            return error, 400
+            raise APIException(400, str(e), 'invalid-data', resource='personal') from e
 
         mimetype = request.mimetype
         if not mimetype:
@@ -144,7 +139,7 @@ class PersonalAll(LegacyAuthResource):
         return {'items': contacts}, 200
 
 
-class PersonalOne(LegacyAuthResource):
+class PersonalOne(AuthResource):
     personal_service: _PersonalService
 
     @classmethod
@@ -160,8 +155,7 @@ class PersonalOne(LegacyAuthResource):
             contact = self.personal_service.get_contact(contact_id, user_uuid)
             return contact, 200
         except self.personal_service.NoSuchContact as e:
-            error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 404}
-            return error, 404
+            raise NoSuchPersonalContact(contact_id) from e
 
     @required_acl('dird.personal.{contact_id}.update')
     def put(self, contact_id: str) -> tuple[dict[str, Any] | None, int]:
@@ -174,18 +168,13 @@ class PersonalOne(LegacyAuthResource):
             )
             return contact, 200
         except self.personal_service.NoSuchContact as e:
-            error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 404}
-            return error, 404
+            raise NoSuchPersonalContact(contact_id) from e
         except self.personal_service.InvalidPersonalContact as e:
-            error = {'reason': e.errors, 'timestamp': [time()], 'status_code': 400}
-            return error, 400
-        except self.personal_service.DuplicatedContactException:
-            error = {
-                'reason': ['Modifying this contact would create a duplicate'],
-                'timestamp': [time()],
-                'status_code': 409,
-            }
-            return error, 409
+            raise InvalidPersonalContactAPIException(e.errors) from e
+        except self.personal_service.DuplicatedContactException as e:
+            raise DuplicatedPersonalContact(
+                'Modifying this contact would create a duplicate'
+            ) from e
 
     @required_acl('dird.personal.{contact_id}.delete')
     def delete(self, contact_id: str) -> tuple[str | dict[str, Any], int]:
@@ -194,11 +183,10 @@ class PersonalOne(LegacyAuthResource):
             self.personal_service.remove_contact(contact_id, user_uuid)
             return '', 204
         except self.personal_service.NoSuchContact as e:
-            error = {'reason': [str(e)], 'timestamp': [time()], 'status_code': 404}
-            return error, 404
+            raise NoSuchPersonalContact(contact_id) from e
 
 
-class PersonalImport(LegacyAuthResource):
+class PersonalImport(AuthResource):
     personal_service: _PersonalService
 
     @classmethod
@@ -214,27 +202,18 @@ class PersonalImport(LegacyAuthResource):
         try:
             csv_document = request.data.decode(charset)
         except UnicodeDecodeError as e:
-            error: dict[str, Any] = {
-                'reason': [str(e)],
-                'timestamp': [time()],
-                'status_code': 400,
-            }
-            return error, 400
+            raise APIException(400, str(e), 'invalid-data', resource='personal') from e
 
         created, errors = self._mass_import(csv_document, user_uuid, tenant_uuid)
 
         if not created:
-            reason: list[dict[str, Any]] | list[str]
-            if errors:
-                reason = errors
-            else:
-                reason = ['No contact found']
-            error = {
-                'reason': reason,
-                'timestamp': [time()],
-                'status_code': 400,
-            }
-            return error, 400
+            raise APIException(
+                400,
+                'No contact imported' if errors else 'No contact found',
+                'invalid-data',
+                {'failed': errors},
+                'personal',
+            )
 
         result = {'created': created, 'failed': errors}
         return result, 201
