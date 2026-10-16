@@ -358,14 +358,14 @@ class TestGoogleServiceCache(unittest.TestCase):
             contains_exactly(has_entries(id='1'), has_entries(id='2')),
         )
 
-    def test_google_status_is_in_the_error_details(self, get):
+    def test_google_failure_is_unavailable_without_google_details(self, get):
         get.return_value = _response({}, 500)
 
         with self.assertRaises(GoogleUnavailableException) as raised:
             self.service.get_all_contacts('token')
 
         assert_that(raised.exception.status_code, equal_to(503))
-        assert_that(raised.exception.details, has_entries(google_status_code=500))
+        assert_that(raised.exception.details, equal_to({}))
 
     def test_rejected_token_is_not_an_outage(self, get):
         for status_code in (401, 403):
@@ -375,6 +375,7 @@ class TestGoogleServiceCache(unittest.TestCase):
                 self.service.get_all_contacts('token')
 
             assert_that(raised.exception.status_code, equal_to(403))
+            assert_that(raised.exception.details, equal_to({}))
 
     def test_body_that_is_not_an_object_raises_unavailable(self, get):
         bodies: list[object] = [None, [], 'contacts']

@@ -232,10 +232,10 @@ class GoogleService:
             body = response.json()
         except ValueError as e:
             logger.error('Google returned an invalid body from %s', self.people_url)
-            raise GoogleUnavailableException(url=self.people_url) from e
+            raise GoogleUnavailableException() from e
         if not isinstance(body, dict):
             logger.error('Google returned an invalid body from %s', self.people_url)
-            raise GoogleUnavailableException(url=self.people_url)
+            raise GoogleUnavailableException()
         contacts = [self.formatter.format(c) for c in body.get('connections', [])]
         next_page_token: str | None = body.get('nextPageToken')
         return contacts, next_page_token
@@ -258,7 +258,7 @@ class GoogleService:
             )
         except requests.RequestException as e:
             logger.error('Google request to %s failed: %s', url, e)
-            raise GoogleUnavailableException(url=url) from e
+            raise GoogleUnavailableException() from e
 
         if response.status_code in (401, 403):
             # The user's token expired, was revoked or lacks a scope: not a
@@ -275,9 +275,7 @@ class GoogleService:
                 'Google request to %s failed with status %s', url, response.status_code
             )
             logger.debug('Raw data: %s', response.text)
-            raise GoogleUnavailableException(
-                url=url, google_status_code=response.status_code
-            )
+            raise GoogleUnavailableException()
 
         return response
 
