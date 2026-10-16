@@ -9,6 +9,7 @@ from hamcrest import assert_that, calling, equal_to, not_, raises
 
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
+from ..exceptions import GoogleTokenRejectedException
 from ..plugin import GooglePlugin
 
 
@@ -61,6 +62,20 @@ class TestGooglePlugin(TestCase):
         assert_that(
             self.source._first_match_predicate(term[:-1], peach), equal_to(False)
         )
+
+    def test_rejected_token_matches_nothing(self):
+        self.source.load(cast(SourcePluginDependencies, self.DEPENDENCIES))
+        self.source._searched_columns = ['name']
+        self.source.google = Mock(
+            search=Mock(side_effect=GoogleTokenRejectedException()),
+            get_all_contacts=Mock(side_effect=GoogleTokenRejectedException()),
+        )
+
+        with patch.object(self.source, '_get_google_token', return_value='token'):
+            assert_that(self.source.search('mario'), equal_to([]))
+            assert_that(self.source.list(['1']), equal_to([]))
+            assert_that(self.source.first_match('111'), equal_to(None))
+            assert_that(self.source.match_all(['111']), equal_to({}))
 
     def test_match_all_keeps_the_last_matching_contact_per_term(self):
         self.source.load(cast(SourcePluginDependencies, self.DEPENDENCIES))

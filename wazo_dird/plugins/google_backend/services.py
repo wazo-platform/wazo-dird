@@ -15,7 +15,11 @@ from wazo_auth_client import Client as Auth
 
 from wazo_dird.plugin_helpers.sorting import sort_contacts
 
-from .exceptions import GoogleTokenNotFoundException, GoogleUnavailableException
+from .exceptions import (
+    GoogleTokenNotFoundException,
+    GoogleTokenRejectedException,
+    GoogleUnavailableException,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -251,6 +255,16 @@ class GoogleService:
         except requests.RequestException as e:
             logger.error('Google request to %s failed: %s', url, e)
             raise GoogleUnavailableException(url=url) from e
+
+        if response.status_code in (401, 403):
+            # The user's token expired, was revoked or lacks a scope: not a
+            # Google outage, and lookups retry on every keystroke
+            logger.debug(
+                'Google rejected the access token for %s with status %s',
+                url,
+                response.status_code,
+            )
+            raise GoogleTokenRejectedException()
 
         if response.status_code != 200:
             logger.error(

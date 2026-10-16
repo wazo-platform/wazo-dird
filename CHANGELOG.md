@@ -15,7 +15,10 @@
 * When Google fails or does not answer within 10 seconds, the contacts endpoint
   returns a `503` with the Google status in `details`, and lookups, reverse
   lookups and favorites log the error instead of returning no or partial
-  results.
+  results. When Google rejects the user's access token (expired, revoked or
+  missing a scope), the contacts endpoint returns a `403` with error id
+  `google-token-rejected`, and lookups, reverse lookups and favorites return
+  no result for that source.
 
 ## 26.10
 

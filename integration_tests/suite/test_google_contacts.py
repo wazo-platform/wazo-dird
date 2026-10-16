@@ -15,6 +15,7 @@ from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
+    HTTP_403,
     HTTP_404,
     HTTP_503,
     SUB_TENANT,
@@ -428,6 +429,13 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
             has_entries(items=contains_exactly(has_entries(name='Mario Bros'))),
         )
         assert_that(by_name, has_entries(items=[], total=0))
+
+    @fixtures.google_pages((401, GOOGLE_ERROR))
+    def test_list_when_google_rejects_the_token(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_403),
+        )
 
     @fixtures.google_pages((429, GOOGLE_ERROR))
     def test_list_when_google_is_rate_limiting(self, google_api):
