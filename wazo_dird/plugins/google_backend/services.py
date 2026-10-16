@@ -224,7 +224,11 @@ class GoogleService:
     ) -> tuple[Contacts, str | None]:
         """Return a page of contacts and the token of the next page, if any"""
         response = self._get_request(self.people_url, headers, params)
-        body = response.json()
+        try:
+            body = response.json()
+        except ValueError as e:
+            logger.error('Google returned an invalid body from %s', self.people_url)
+            raise GoogleUnavailableException(url=self.people_url) from e
         contacts = [self.formatter.format(c) for c in body.get('connections', [])]
         next_page_token: str | None = body.get('nextPageToken')
         return contacts, next_page_token
