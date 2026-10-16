@@ -37,6 +37,8 @@ paths:
                 $ref: '#/definitions/PhonebookContactList'
         '204':
           description: No contacts are available (CSV format only).
+        '400':
+          $ref: '#/responses/InvalidParameters'
         '503':
           $ref: '#/responses/AnotherServiceUnavailable'
     post:
