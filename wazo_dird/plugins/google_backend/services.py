@@ -3,11 +3,13 @@
 
 from __future__ import annotations
 
+import concurrent.futures
 import hashlib
 import logging
 import threading
 import time
 from collections.abc import Callable, Iterator, Mapping
+from concurrent.futures import Future
 from typing import Any
 
 import requests
@@ -25,6 +27,9 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CONTACTS_CACHE_TTL = 300
 REQUEST_TIMEOUT = 10
+# Bounds a download of every page of an account, and the requests waiting on
+# it, so that one slow account cannot hold every lookup thread
+DOWNLOAD_TIMEOUT = 60
 
 Contacts = list[dict[str, Any]]
 
@@ -43,15 +48,6 @@ def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
     return ttl
 
 
-class _Fetch:
-    """A download in progress shared by multiple waiting requests"""
-
-    def __init__(self) -> None:
-        self.done = threading.Event()
-        self.contacts: Contacts = []
-        self.error: Exception | None = None
-
-
 class ContactsCache:
     """Thread-safe TTL cache of contact lists keyed by Google access token.
 
@@ -66,7 +62,8 @@ class ContactsCache:
         self.ttl = ttl
         self._lock = threading.Lock()
         self._entries: dict[str, tuple[float, Contacts]] = {}
-        self._fetches: dict[str, _Fetch] = {}
+        # The downloads in progress, shared by the requests waiting on them
+        self._fetches: dict[str, Future[Contacts]] = {}
 
     def get_or_fetch(
         self, google_token: str, fetch: Callable[[], Contacts]
@@ -80,31 +77,34 @@ class ContactsCache:
             in_progress = self._fetches.get(key)
             is_fetcher = in_progress is None
             if in_progress is None:
-                in_progress = self._fetches[key] = _Fetch()
+                in_progress = self._fetches[key] = Future()
 
         if is_fetcher:
             self._run(key, in_progress, fetch)
-        else:
-            in_progress.done.wait()
-
-        # A failure is not cached: the next request downloads again
-        if in_progress.error is not None:
-            raise in_progress.error
-        return list(in_progress.contacts)
+        try:
+            # A failure is not cached: the next request downloads again
+            return list(in_progress.result(DOWNLOAD_TIMEOUT))
+        except concurrent.futures.TimeoutError:
+            logger.warning(
+                'Gave up waiting %d seconds for a Google contacts download',
+                DOWNLOAD_TIMEOUT,
+            )
+            raise GoogleUnavailableException()
 
     def _run(
-        self, key: str, in_progress: _Fetch, fetch: Callable[[], Contacts]
+        self, key: str, future: Future[Contacts], fetch: Callable[[], Contacts]
     ) -> None:
         try:
-            in_progress.contacts = fetch()
+            contacts = fetch()
         except Exception as e:
-            in_progress.error = e
-        finally:
             with self._lock:
-                if in_progress.error is None:
-                    self._set(key, in_progress.contacts)
                 del self._fetches[key]
-            in_progress.done.set()
+            future.set_exception(e)
+            return
+        with self._lock:
+            self._set(key, contacts)
+            del self._fetches[key]
+        future.set_result(contacts)
 
     def _get(self, key: str) -> Contacts | None:
         # Called with self._lock held
@@ -214,20 +214,31 @@ class GoogleService:
 
         # A failed page raises and aborts the whole download: a partial list
         # would hide the missing contacts without any error
-        contacts, next_page_token = self._get_contacts_page(headers, params)
+        deadline = time.monotonic() + DOWNLOAD_TIMEOUT
+        contacts, next_page_token = self._get_contacts_page(headers, params, deadline)
         while next_page_token:
             page, next_page_token = self._get_contacts_page(
-                headers, {**params, 'pageToken': next_page_token}
+                headers, {**params, 'pageToken': next_page_token}, deadline
             )
             contacts.extend(page)
         logger.debug('Fetched %d contacts from Google', len(contacts))
         return contacts
 
     def _get_contacts_page(
-        self, headers: dict[str, str], params: dict[str, Any]
+        self, headers: dict[str, str], params: dict[str, Any], deadline: float
     ) -> tuple[Contacts, str | None]:
         """Return a page of contacts and the token of the next page, if any"""
-        response = self._get_request(self.people_url, headers, params)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            logger.error(
+                'Google contacts download from %s did not complete within %d seconds',
+                self.people_url,
+                DOWNLOAD_TIMEOUT,
+            )
+            raise GoogleUnavailableException()
+        response = self._get_request(
+            self.people_url, headers, params, min(REQUEST_TIMEOUT, remaining)
+        )
         try:
             body = response.json()
         except ValueError as e:
@@ -245,6 +256,7 @@ class GoogleService:
         url: str,
         headers: dict[str, str],
         params: dict[str, Any],
+        timeout: float,
     ) -> requests.Response:
         # Requests have verify=False because the integration test mock servers do not have proper SSL
         # Find a way to selectively turn off verification during testing only
@@ -254,7 +266,7 @@ class GoogleService:
                 headers=headers,
                 params=params,
                 verify=False,
-                timeout=REQUEST_TIMEOUT,
+                timeout=timeout,
             )
         except requests.RequestException as e:
             logger.error('Google request to %s failed: %s', url, e)
