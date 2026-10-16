@@ -30,9 +30,15 @@ Standard Wazo service layout (see `wazo-backend-developer`). What's notable in d
 - [`source_manager.py`](../../../wazo_dird/source_manager.py) — instantiates one **source** plugin instance per configured source (an
   extra manager beyond the usual [`controller.py`](../../../wazo_dird/controller.py)/[`plugin_manager.py`](../../../wazo_dird/plugin_manager.py)).
 - [`plugins/base_plugins.py`](../../../wazo_dird/plugins/base_plugins.py) — `BaseSourcePlugin` adds directory methods `search` / `first_match` /
-  `match_all` / `list` on top of the generic `load()/unload()`.
-- [`database/queries/*.py`](../../../wazo_dird/database/queries/) — one DAO per entity (phonebook, personal, display, profile, source, …);
-  [`database/models.py`](../../../wazo_dird/database/models.py) includes the EAV `dird_contact_fields` (name/value/contact_uuid).
+  `match_all` / `list` on top of the generic `load()/unload()`, plus `canonical_unique_id` /
+  `translate_unique_id` (favorites id validation/normalization). `search(term, args)` takes a typed
+  `LookupArgs` (`token`, `user_uuid`, deprecated alias `xivo_user_uuid`) as its second parameter.
+- [`database/queries/*.py`](../../../wazo_dird/database/queries/) — one DAO per entity (phonebook, personal, display, profile, source, …).
+  Personal and phonebook contact search share one query shape:
+  [`contact_search.py`](../../../wazo_dird/database/queries/contact_search.py)'s `ContactSearchEngine` (subclasses only supply the owner table + scope).
+- [`database/models.py`](../../../wazo_dird/database/models.py) — the EAV `dird_contact_fields` (`name`/`value`/`normalized_value`/`contact_uuid`):
+  `value` has a btree index (reverse `=`/`IN`), `normalized_value` (= `unidecode(value)`) has a
+  `pg_trgm` GIN index (lookup `ILIKE '%term%'`) and is also the sort key for phonebook listing.
 
 ## Stevedore plugin extension points (dird-specific)
 For how stevedore + setuptools `entry_points` work in general (and `make egg-info`), see
@@ -73,6 +79,15 @@ configuring that backend's sources; distinct from the backend in `wazo_dird.back
 (lookup/reverse/favorites) fans out to that profile's configured **sources** (each a **backend**
 instance) → results are shaped by the profile's **display**.
 
+**Matching semantics (phonebook/personal backends):**
+- **Lookup** (`searched_columns`): accent- and case-insensitive substring —
+  `normalized_value ILIKE '%unidecode(term)%'`, served by the trigram index. A term that folds to
+  nothing (e.g. only symbols unidecode drops) matches **nothing**, not everything.
+- **Reverse** (`first_matched_columns`): **exact** `value = exten` (no normalization), served by the
+  btree index on `value`. The stored number must equal the exten as dialed.
+- **wazo backend** reverse: confd's exact-match filter per column, so `first_matched_columns` is
+  restricted to `exten` and `mobile_phone_number` (anything else → 400 on source create/update).
+
 ## User-facing functionality (base `/api/dird/0.1`)
 - **Lookup:** `GET /directories/lookup/<profile>?term=…`.
 - **Reverse:** `GET /directories/reverse/<profile>/<user_uuid>?exten=…`; batched via GraphQL
@@ -87,7 +102,8 @@ instance) → results are shaped by the profile's **display**.
 1. **Create the source** for its backend: `POST /backends/<backend>/sources` with the backend
    config + `searched_columns` (lookup), `first_matched_columns` (reverse), and `format_columns`
    (e.g. `{"reverse":"{firstname} {lastname}"}`). For a phonebook source, create/seed the
-   phonebook first and pass its `phonebook_uuid`.
+   phonebook first and pass its `phonebook_uuid`. For a `wazo` source, `first_matched_columns`
+   may only contain `exten` / `mobile_phone_number`.
 2. **Ensure a display** (`POST /displays`) with the columns clients should see.
 3. **Attach to a profile:** GET the target profile (often `default`), add the source `{uuid}` to
    the relevant service(s) (`lookup`/`reverse`/`favorites`), and PUT the **full** profile body
@@ -105,8 +121,15 @@ instance) → results are shaped by the profile's **display**.
 - GraphQL `me` needs a *user* token (with `pbx_user_uuid`), not just any admin token. (→ [`rest-api.md`](references/rest-api.md))
 - Reverse lookup is a **parallel fan-out with a per-request timeout** across the profile's reverse
   sources, bounded by the `reverse` service's executor pool and the DB pool (sized from
-  `rest_api.max_threads`). Exact defaults/config keys: read [`reverse_service`](../../../wazo_dird/plugins/reverse_service/) + [`config.py`](../../../wazo_dird/config.py).
+  `rest_api.min_threads`/`max_threads`). On timeout dird logs a warning naming the incomplete
+  sources — read it first. Exact defaults/config keys: read [`reverse_service`](../../../wazo_dird/plugins/reverse_service/) + [`config.py`](../../../wazo_dird/config.py).
   (→ [`reverse-lookup.md`](references/reverse-lookup.md))
+- **Favorites** are stored by the id the source's `canonical_unique_id` returns; a `wazo` source
+  identifies contacts by confd user **uuid** (the confd id is accepted but deprecated). A favorite
+  the source can't resolve is refused (400; 503 when the source is unreachable).
+- A migration needing a new Postgres **extension** (e.g. `pg_trgm`) must also be declared in
+  [`bin/wazo-dird-init-db`](../../../bin/wazo-dird-init-db), the test db image ([`contribs/docker/Dockerfile-db`](../../../contribs/docker/Dockerfile-db)) and
+  [`check-db-schema.ini`](../../../check-db-schema.ini). (→ [`dev-and-test.md`](references/dev-and-test.md))
 - Tests: `env -u FORCE_COLOR` before `tox`; the integration/explain DB schema is **baked into the
   db image** (a new migration needs `make test-setup` rebuild) while dird app code is mounted live;
   parallel integration/explain runs collide on the fixed docker-compose project name → serialize
@@ -122,5 +145,6 @@ Detailed dird-specific companions under [`references/`](references/) (general Wa
   executor/DB pools, congestion collapse (goodput vs RPS), phonebook plan-fragility + ANALYZE.
 - **[`dev-and-test.md`](references/dev-and-test.md)** — dev workflow & test harness: tox envs incl. `explain`/auto_explain,
   db-image schema baking, `flock`/FORCE_COLOR/sandbox gotchas, wdk deploy.
-- **[`tasks.md`](references/tasks.md)** — task recipes: seed a synthetic phonebook, load-test reverse lookup with `ab`,
-  A/B a change on a stack, capture a query's real SQL/plan.
+- **[`tasks.md`](references/tasks.md)** — task recipes: seed a synthetic phonebook (`contribs/scripts/`), stress-test
+  lookup/reverse/favorites with locust (`contribs/stress_tests/`) or `ab`, A/B a change on a stack,
+  capture a query's real SQL/plan.

@@ -35,16 +35,25 @@ guaranteed current. Everything here was exercised against a real stack.
   chunks. Count: `GET /phonebooks/{uuid}/contacts?limit=1` → `.total`. (Seeding recipe: [`tasks.md`](tasks.md).)
 - **Sources:** `POST /backends/<backend>/sources`; phonebook source body:
   `{"name","phonebook_uuid","searched_columns":[…],"first_matched_columns":["number","mobile"],
-  "format_columns":{"reverse":"{firstname} {lastname}"}}`. `GET /sources` lists all + their
+  "format_columns":{"reverse":"{firstname} {lastname}"}}` (`name` is read-only for phonebook
+  sources — it mirrors the phonebook's). `wazo` sources: `first_matched_columns` ⊆
+  `["exten","mobile_phone_number"]`, else 400. `GET /sources` lists all + their
   `backend` (profile entries store only source `uuid` → resolve here).
 - **Displays:** `POST /displays` `{"name","columns":[{"title","field"}]}`.
 - **Profiles:** `GET /profiles`, `GET/POST /profiles`, `PUT /profiles/{uuid}`. Body:
   `{"name","display":{"uuid":…},"services":{"lookup":{"sources":[{"uuid":…}]},"reverse":{…},"favorites":{…}}}`.
   Editing an existing profile: GET, transform `display`→`{uuid}` and each service `sources`→`[{uuid}]`,
   append/remove, PUT the FULL body (no partial PUT). POST `default` when it exists → 409.
+  Service configs are strictly validated: unknown keys/options → 400; `options.timeout` must be a
+  number `> 0`.
 - **User-facing directories:** `GET /directories/lookup/<profile>?term=…`,
   `GET /directories/reverse/<profile>/<user_uuid>?exten=…`, `/directories/favorites/...`,
   `/personal` (per-user CRUD).
+- **Favorites:** `PUT /directories/favorites/<source>/<contact_id>` — use the
+  `relations.source_entry_id` a lookup returned (GraphQL `wazoSourceEntryId`). For `wazo` sources
+  that's the confd user **uuid** (the numeric id is still accepted, deprecated, and stored as the
+  uuid). Unresolvable id → 400; source unreachable → 503. Deleting a favorite no longer validates
+  the id against the source.
 
 ## GraphQL reverse lookup
 

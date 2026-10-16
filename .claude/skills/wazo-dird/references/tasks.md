@@ -4,13 +4,37 @@ Concrete recipes for common dird testing/ops tasks. API details → [`rest-api.m
 reverse-lookup results → [`reverse-lookup.md`](reverse-lookup.md); test harness → [`dev-and-test.md`](dev-and-test.md).
 
 ## Seed a synthetic phonebook (for load/perf testing)
-Against a running stack, create a phonebook and bulk-import contacts via the CSV endpoint
+Ready-made scripts live in [`contribs/scripts/`](../../../../contribs/scripts/) (read each header for env vars):
+`create_synthetic_phonebook.sh` (N contacts, numbers from `NUMBER_BASE`/`MOBILE_BASE`),
+`create_phonebook_source.sh` (N phonebook sources + display + a new profile wiring them into
+lookup/reverse/favorites, i.e. an N-way fan-out), `add_source_to_profile.sh` (append a source to an
+existing profile such as `default`), `create_favorites.sh` (seed favorites across every source).
+Note their `BASE_URL` defaults to `https://localhost:9489/0.1`; from off-box point it at the gateway.
+
+The manual equivalent: against a running stack, create a phonebook and bulk-import contacts via the CSV endpoint
 ([`rest-api.md`](rest-api.md)), in batches (a few thousand per request). Sequential integer numbers/mobiles make
 reverse-lookup extens predictable (pick a base like `1000000000`). Make it idempotent: on create,
 treat the duplicate-name error as "reuse" (look it up in `GET /phonebooks` by name); skip import if
 the contact count is already at the target. Then wire a phonebook **source** at it and add that
 source to a profile's `reverse` service ([`SKILL.md`](../SKILL.md) workflow). After a large import,
 `ANALYZE dird_contact, dird_contact_fields` (see [`reverse-lookup.md`](reverse-lookup.md)).
+
+## Stress-test with locust (preferred)
+[`contribs/stress_tests/locustfile.py`](../../../../contribs/stress_tests/locustfile.py) has three scenarios, one per service executor pool:
+`GraphQLReverseLookupUser` (reverse), `LookupUser` (lookup), `FavoritesUser` (favorites). Run **one
+scenario at a time** to isolate a pool:
+```sh
+pip install -r contribs/stress_tests/requirements.txt
+export WAZO_LOGIN=… WAZO_PASSWORD=… WAZO_TENANT=<tenant-uuid>   # see .env.sample for the rest
+locust -f contribs/stress_tests/locustfile.py GraphQLReverseLookupUser -H https://<stack> \
+  --headless --users 50 --spawn-rate 5 --run-time 60s
+```
+It handles token creation, picks random extens within `NUMBER_BASE`/`MOBILE_BASE` +
+`PHONEBOOK_COUNT` (match these to the seeded phonebook), and exits non-zero past `P95_THRESHOLD_MS`
+/ `FAIL_RATIO_PCT`. Prerequisites: the seeding scripts above (and `create_favorites.sh` for
+`FavoritesUser`). It counts only transport errors, HTTP ≥ 400 and GraphQL `errors` as failures —
+an **all-null reverse result (the timeout) counts as a success**, so a low failure rate says
+nothing about goodput; sample responses for null nodes ([`reverse-lookup.md`](reverse-lookup.md)).
 
 ## Load-test reverse lookup with `ab`
 Build a GraphQL body file ([`rest-api.md`](rest-api.md) query) and POST it:

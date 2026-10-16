@@ -15,7 +15,12 @@ below can change — treat them as *where to look*, and confirm in [`tox.ini`](.
   reading whole). Use it to see the real ORM-emitted SQL + plan. Check `tox.ini` for the exact env
   definition and which suite/override it wires.
 - Heavier load/perf tests live under `integration_tests/performance_suite/` and are not run by the
-  default integration env.
+  default integration env; `tox -e performance` runs them without auto_explain.
+- **`tox -e check-db-schema`** — compares the SQLAlchemy models against the alembic-migrated schema
+  (config in [`check-db-schema.ini`](../../../../check-db-schema.ini): models, alembic dir, required extensions). Needs a
+  `wazo-tools` checkout as a sibling (or under `$LOCAL_GIT_REPOS`) and a Postgres reachable at
+  `CHECK_DB_SCHEMA_SERVER_URI` (default `postgresql://postgres:check-db-schema@localhost:5432`).
+  Run it when touching models or migrations.
 
 ## Gotchas that waste runs
 - **`env -u FORCE_COLOR` before `tox`** — a non-bool `FORCE_COLOR` (e.g. `3`) crashes tox's arg parser.
@@ -28,6 +33,14 @@ below can change — treat them as *where to look*, and confirm in [`tox.ini`](.
   effect after the db image is rebuilt** (`make test-setup` / the db-image build target). The dird
   **app code is bind-mounted** into the container (see the compose file), so pure-Python changes
   apply on restart without a rebuild. Verify both mechanisms in the current compose/Makefile.
+- **Assets are shared across test classes**: `wazo_test_helpers.pytest_asset` starts each asset
+  once per session ([`integration_tests/conftest.py`](../../../../integration_tests/conftest.py), [`suite/helpers/base.py`](../../../../integration_tests/suite/helpers/base.py)), so every class
+  using the same asset sees the same dird + DB. Clean up what a class creates, and in a
+  `tearDownClass` override make sure `super().tearDownClass()` still runs if your cleanup raises
+  (it releases the DB connections) — otherwise the next class inherits a dirty DB / leaked engine.
+- A migration that needs a **new Postgres extension** must add it in three places: the db image
+  (`CREATE EXTENSION` in [`contribs/docker/Dockerfile-db`](../../../../contribs/docker/Dockerfile-db)), [`bin/wazo-dird-init-db`](../../../../bin/wazo-dird-init-db) (production
+  install), and `extensions` in [`check-db-schema.ini`](../../../../check-db-schema.ini). `pg_trgm` is the precedent.
 - `make egg-info` after adding/removing plugins (regenerates stevedore entry points).
 
 ## Deploying to a real stack (wdk)

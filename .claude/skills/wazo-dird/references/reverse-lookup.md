@@ -12,11 +12,22 @@ to confirm. (Request/response shape → [`rest-api.md`](rest-api.md); load-testi
   [`wazo_dird/plugins/reverse_service/plugin.py`](../../../../wazo_dird/plugins/reverse_service/plugin.py).
 - On timeout it cancels the still-pending source tasks and returns whatever resolved (**partial /
   all-null**). So contention surfaces as *empty results* (`node: null`), not errors or merely slow
-  responses. The timeout's default and its per-profile config key are in that plugin — check it.
+  responses. It also logs a `Timeout on reverse many lookup … incomplete=[…]` warning naming the
+  sources that didn't answer — the quickest way to spot the slow source. The timeout is the
+  profile's reverse service `options.timeout` (validated `> 0`; falls back to a short default in
+  that plugin — check it).
+- It also stops early (and cancels the rest) as soon as every requested exten has a match; the
+  first source to answer an exten wins.
+- **wazo source**: `match_all` issues one confd exact-match query per `first_matched_columns` entry
+  (`exten`, `mobile_phone_number`) for all extens at once
+  ([`wazo_user_backend/plugin.py`](../../../../wazo_dird/plugins/wazo_user_backend/plugin.py)); its latency is confd's.
 
 ## Pools
-- `rest_api.max_threads` bounds WSGI request concurrency and also sizes the SQLAlchemy connection
-  pool (the DB pool is derived from it in [`database/helpers.py`](../../../../wazo_dird/database/helpers.py) / [`controller.py`](../../../../wazo_dird/controller.py)).
+- The WSGI thread pool is dynamic: `rest_api.min_threads` threads are kept ready, growing up to
+  `rest_api.max_threads` under load. The SQLAlchemy pool mirrors it in
+  [`controller.py`](../../../../wazo_dird/controller.py): `pool_size=min_threads`,
+  `max_overflow=max_threads - min_threads + DB_POOL_SPARE_CONN` (executors don't add connections:
+  HTTP threads hold none while waiting, and executors are capped at `max_threads`).
 - Each service has an `executor_workers` setting (`lookup`/`reverse`/`favorites`); unset ⇒ it falls
   back to `rest_api.max_threads`. Defaults live in [`config.py`](../../../../wazo_dird/config.py); deployments override in
   `/etc/wazo-dird/conf.d/*.yml`. Read those for actual values.
@@ -34,8 +45,12 @@ to confirm. (Request/response shape → [`rest-api.md`](rest-api.md); load-testi
   these (e.g. a phonebook-only or personal-only profile).
 
 ## Phonebook reverse query can be plan-fragile on large phonebooks
-- The phonebook backend's batched reverse query (see [`database/queries/phonebook.py`](../../../../wazo_dird/database/queries/phonebook.py)) is sensitive
-  to Postgres planner statistics. Observed failure mode: with **stale `dird_contact` statistics**
+- Current shape (shared by phonebook and personal, in
+  [`database/queries/contact_search.py`](../../../../wazo_dird/database/queries/contact_search.py) `_find_contacts_for_extens`): a subquery selects
+  the distinct `contact_uuid`s where `value IN (extens) AND name IN (first_matched_columns)` within
+  the owner scope, then one query loads all fields of those contacts. The match is exact `=`/`IN`
+  on `value` (btree `dird_contact_fields.value` index) — no `ILIKE`, no normalization.
+- That query is sensitive to Postgres planner statistics. Observed failure mode: with **stale `dird_contact` statistics**
   (e.g. right after a bulk import, before autovacuum/ANALYZE), the planner mis-estimates the
   phonebook join and materializes the whole phonebook (Sort/Hash, O(phonebook size), independent of
   exten count) instead of index-probing the matched contacts; on a warm/ANALYZEd DB the same query
@@ -49,7 +64,9 @@ to confirm. (Request/response shape → [`rest-api.md`](rest-api.md); load-testi
   In experiments the query-form changes (2)+(3) alone did not fix the multi-exten case under stale
   stats — (1) did.
 - `dird_contact_fields` stores contact attributes EAV-style (a row per field). Check
-  [`database/models.py`](../../../../wazo_dird/database/models.py) for the current columns/indexes.
+  [`database/models.py`](../../../../wazo_dird/database/models.py) for the current columns/indexes (today: btree on `value`, btree on
+  `name`, unique `(name, contact_uuid)`, `contact_uuid`, and a `pg_trgm` GIN on `normalized_value`
+  that serves **lookup**, not reverse).
 
 ## How to see the real plan
 Use `tox -e explain` (auto_explain) or capture the emitted SQL in a test and `EXPLAIN (ANALYZE,
