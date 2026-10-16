@@ -252,6 +252,7 @@ class TestWazoUserMultipleWazo(BaseDirdIntegrationTest):
         )
 
         assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-contact-id'))
 
     def test_a_favorited_contact_is_marked_in_a_lookup(self):
         # the marking compares the stored contact id with the source_entry_id

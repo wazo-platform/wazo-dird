@@ -16,17 +16,10 @@ from xivo import http_helpers, wsgi
 from xivo.http_helpers import ReverseProxied
 
 from .config import Config, RestAPIConfig
-from .http import (
-    AuthResource,
-    ErrorCatchingResource,
-    LegacyAuthResource,
-    LegacyErrorCatchingResource,
-)
+from .http import AuthResource, ErrorCatchingResource
 
 # Compatibility for old plugins < 22.03
 __all__ = [
-    'LegacyErrorCatchingResource',
-    'LegacyAuthResource',
     'ErrorCatchingResource',
     'AuthResource',
 ]

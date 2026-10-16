@@ -43,20 +43,8 @@ responses:
     description: Invalid parameters
     schema:
       $ref: '#/definitions/LegacyError'
-  ProfileInvalid:
-    description: The profile does not exist
-    schema:
-      $ref: '#/definitions/LegacyError'
   AnotherServiceUnavailable:
     description: Another service is unavailable (e.g. wazo-auth, postgresql, ...)
-    schema:
-      $ref: '#/definitions/LegacyError'
-  LimitOffsetInvalid:
-    description: The limit or offset should be positive
-    schema:
-      $ref: '#/definitions/LegacyError'
-  DuplicateFavorite:
-    description: The contact has already been favorited
     schema:
       $ref: '#/definitions/LegacyError'
   DuplicateContact:
@@ -73,6 +61,10 @@ responses:
       $ref: '#/definitions/Error'
   ServiceUnavailable:
     description: Another service is unavailable (e.g. wazo-auth, postgresql, ...)
+    schema:
+      $ref: '#/definitions/Error'
+  NotFound:
+    description: The resource does not exist
     schema:
       $ref: '#/definitions/Error'
 parameters:

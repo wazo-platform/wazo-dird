@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -152,13 +152,13 @@ class _PersonalService:
         errors: list[str] = []
 
         if any(not hasattr(key, 'encode') for key in contact_infos):
-            errors.append('all keys must be strings')
+            errors.append('all field names must be strings')
 
         if any(not hasattr(value, 'encode') for value in contact_infos.values()):
-            errors.append('all values must be strings')
+            errors.append('all field values must be strings')
 
         if '' in contact_infos:
-            errors.append('"" is a forbidden in keys')
+            errors.append('field names must not be empty')
 
         if errors:
             raise _PersonalService.InvalidPersonalContact(errors)
@@ -166,7 +166,7 @@ class _PersonalService:
         if existing_contact_uuids:
             uuid = contact_infos.get('id', contact_infos.get('uuid'))
             if uuid and uuid in existing_contact_uuids:
-                raise PersonalImportError(f'contact "{uuid}" already exist')
+                raise PersonalImportError(f'contact "{uuid}" already exists')
 
 
 class DisabledPersonalSource:
