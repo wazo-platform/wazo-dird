@@ -2,22 +2,14 @@
 
 ## 26.11
 
-* The Google backend now caches each Google account's contacts for
+* The Google backend now caches each account's contacts for
   `google_backend.contacts_cache_ttl` seconds (default `300`, `0` disables it).
-  Lookups, reverse lookups, favorites and
-  `GET /0.1/backends/google/sources/<source_uuid>/contacts` reuse that list
-  instead of querying Google on every request. Searches no longer call Google's
-  search endpoint: the `search` parameter of the contacts endpoint now matches
-  the source's `searched_columns` (`name` when none are set) within the cached
-  list, as lookups do. Lookups match a substring of the searched columns, and no
-  longer only the contacts Google's search returned first.
-  Accounts with more than 1000 contacts are now fully fetched.
-* When Google fails or does not answer within 10 seconds, the contacts endpoint
-  returns a `503`, and lookups, reverse lookups and favorites log the error
-  instead of returning no or partial results. When Google rejects the user's access token (expired, revoked or
-  missing a scope), the contacts endpoint returns a `403` with error id
-  `google-token-rejected`, and lookups, reverse lookups and favorites return
-  no result for that source.
+  Searches match the source's `searched_columns` (`name` by default) in that
+  list instead of calling Google's search endpoint, and accounts with more than
+  1000 contacts are fully fetched.
+* The Google contacts endpoint returns a `503` when Google fails or is too slow,
+  and a `403` (`google-token-rejected`) when it rejects the user's token.
+  Lookups log the failure instead of returning partial results.
 
 ## 26.10
 
