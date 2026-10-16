@@ -76,7 +76,8 @@ class PersonalContactCRUD(BaseDAO):
         contacts = sort_contacts(
             contacts, order=order, direction=direction, order_insensitive=True
         )
-        return contacts[offset : offset + limit if limit else None]
+        end = None if limit is None else offset + limit
+        return contacts[offset:end]
 
     def create_personal_contact(
         self, tenant_uuid: str, user_uuid: str, contact_info: dict[str, Any]

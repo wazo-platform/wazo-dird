@@ -1,7 +1,15 @@
 # Copyright 2018-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, contains_exactly, contains_inanyorder, has_entries
+from hamcrest import (
+    assert_that,
+    contains_exactly,
+    contains_inanyorder,
+    equal_to,
+    has_entries,
+    has_key,
+)
+from requests import HTTPError
 
 from .helpers.base import BaseDirdIntegrationTest
 
@@ -67,6 +75,17 @@ class TestBackends(BaseDirdIntegrationTest):
 
         result = self.client.backends.list(limit=2)
         self._assert_matches(result, 9, 9, contains_exactly, 'conference', 'csv')
+
+        result = self.client.backends.list(limit=0)
+        self._assert_matches(result, 9, 9, contains_exactly)
+
+        with self.assertRaises(HTTPError) as raised:
+            self.client.backends.list(limit=-1)
+        assert_that(raised.exception.response.status_code, equal_to(400))
+        assert_that(
+            raised.exception.response.json(),
+            has_entries(error_id='invalid-data', details=has_key('limit')),
+        )
 
         result = self.client.backends.list(offset=7)
         self._assert_matches(result, 9, 9, contains_exactly, 'phonebook', 'wazo')

@@ -244,6 +244,9 @@ class TestList(BaseProfileTestCase):
                 result, contains_exactly(abc, bcd), total=3, filtered=3
             )
 
+            result = self.client.profiles.list(limit=0)
+            self.assert_list_result(result, empty(), total=3, filtered=3)
+
             result = self.client.profiles.list(order='name', offset=2)
             self.assert_list_result(result, contains_exactly(cde), total=3, filtered=3)
 
@@ -795,6 +798,11 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
             response['items'],
             contains_exactly(has_entries(name='personal_main', backend='personal')),
         )
+
+    def test_given_zero_limit_when_get_then_no_sources_returned(self):
+        response = self.client.directories.list_sources('main', limit=0)
+
+        assert_that(response, has_entries(total=3, filtered=3, items=empty()))
 
     def test_given_oversized_offset_when_get_then_no_sources_returned(self):
         list_params = {'offset': '42'}

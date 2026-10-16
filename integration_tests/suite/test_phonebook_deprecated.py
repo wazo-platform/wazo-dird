@@ -23,6 +23,7 @@ class TestList(BaseDeprecatedPhonebookTestCase):
         self.set_tenants()
         result = self.list_phonebooks('invalid')
         assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='not-found'))
 
     def test_valid(self):
         self.set_tenants('valid')
@@ -68,6 +69,9 @@ class TestList(BaseDeprecatedPhonebookTestCase):
         result = self.list_phonebooks('pagination', limit=2)
         assert_matches(result, phonebook_1, phonebook_2)
 
+        result = self.list_phonebooks('pagination', limit=0)
+        assert_matches(result)
+
         result = self.list_phonebooks('pagination', offset=1)
         assert_matches(result, phonebook_2, phonebook_3)
 
@@ -81,6 +85,15 @@ class TestList(BaseDeprecatedPhonebookTestCase):
 
             result = self.list_phonebooks('pagination', offset=value)
             assert_that(result.status_code, equal_to(400), value)
+
+        result = self.list_phonebooks('pagination', limit=-1)
+        assert_that(
+            result.json(),
+            has_entries(
+                error_id='invalid-data',
+                message='limit should be a non-negative integer',
+            ),
+        )
 
         invalid_directions = [0, 'foobar', True, False, 3.14]
         for value in invalid_directions:
@@ -109,6 +122,7 @@ class TestPost(BaseDeprecatedPhonebookTestCase):
 
         result = self.post_phonebook('valid', valid_body)
         assert_that(result.status_code, equal_to(409))
+        assert_that(result.json(), has_entries(error_id='conflict'))
 
     def test_invalid_bodies(self):
         self.set_tenants('invalid')
@@ -419,6 +433,9 @@ class TestContactList(_BasePhonebookContactTestCase):
         result = self.list_phonebook_contacts(*args, order='firstname', limit=2)
         assert_matches(result, contact_1, contact_2)
 
+        result = self.list_phonebook_contacts(*args, limit=0)
+        assert_matches(result)
+
         result = self.list_phonebook_contacts(*args, order='firstname', offset=1)
         assert_matches(result, contact_2, contact_3)
 
@@ -566,6 +583,13 @@ Bob,B
                 total=2,
             ),
         )
+
+    def test_duplicate_columns(self):
+        self.set_tenants(self.tenant_1)
+        body = 'firstname,firstname\nAlice,A\n'
+        result = self.import_(self.tenant_1, self.phonebook_1['id'], body)
+        assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-data'))
 
     def import_(self, tenant, phonebook_id, body):
         return self.import_phonebook_contact(tenant, phonebook_id, body)

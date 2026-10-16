@@ -17,6 +17,8 @@ paths:
           description: A list of all active backends
           schema:
             $ref: '#/definitions/BackendItems'
+        '400':
+          $ref: '#/responses/InvalidData'
 definitions:
   Backend:
     title: Backend

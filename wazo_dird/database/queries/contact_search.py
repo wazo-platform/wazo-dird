@@ -88,7 +88,7 @@ class ContactSearchEngine(BaseDAO):
                 .join(self._owner_model)
                 .filter(criteria)
             )
-            if limit:
+            if limit is not None:
                 query = query.limit(limit)
 
             uuids = [uuid for (uuid,) in query.all()]
