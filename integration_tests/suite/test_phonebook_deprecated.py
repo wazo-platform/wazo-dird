@@ -85,6 +85,14 @@ class TestList(BaseDeprecatedPhonebookTestCase):
             result = self.list_phonebooks('pagination', offset=value)
             assert_that(result.status_code, equal_to(400), value)
 
+        result = self.list_phonebooks('pagination', limit=-1)
+        assert_that(
+            result.json(),
+            has_entries(
+                reason=contains_exactly('limit should be a non-negative integer')
+            ),
+        )
+
         invalid_directions = [0, 'foobar', True, False, 3.14]
         for value in invalid_directions:
             result = self.list_phonebooks('pagination', direction=value)
