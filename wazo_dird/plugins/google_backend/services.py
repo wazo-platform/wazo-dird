@@ -30,6 +30,8 @@ REQUEST_TIMEOUT = 10
 # Bounds a download of every page of an account, and the requests waiting on
 # it, so that one slow account cannot hold every lookup thread
 DOWNLOAD_TIMEOUT = 60
+# Leading characters of the hashed token shown in logs
+KEY_LOG_LENGTH = 12
 
 Contacts = list[dict[str, Any]]
 
@@ -72,12 +74,22 @@ class ContactsCache:
         with self._lock:
             contacts = self._get(key)
             if contacts is not None:
-                logger.debug('Using cached contacts from Google')
+                logger.debug('Google contacts cache hit: %d contacts', len(contacts))
                 return list(contacts)
             in_progress = self._fetches.get(key)
             is_fetcher = in_progress is None
             if in_progress is None:
+                logger.debug(
+                    'Google contacts cache miss for key %s: fetching from Google',
+                    key[:KEY_LOG_LENGTH],
+                )
                 in_progress = self._fetches[key] = Future()
+            else:
+                logger.debug(
+                    'Google contacts cache miss for key %s: '
+                    'waiting for the download in progress',
+                    key[:KEY_LOG_LENGTH],
+                )
 
         if is_fetcher:
             self._run(key, in_progress, fetch)
@@ -113,6 +125,9 @@ class ContactsCache:
             return None
         expires_at, contacts = entry
         if expires_at <= time.monotonic():
+            logger.debug(
+                'Google contacts cache entry expired: key %s', key[:KEY_LOG_LENGTH]
+            )
             del self._entries[key]
             return None
         return contacts
@@ -123,10 +138,23 @@ class ContactsCache:
         self._entries.pop(key, None)
         # Every entry has the same TTL and is inserted last, so the oldest
         # entries are the first to expire
-        while self._entries and (
-            len(self._entries) >= self.MAX_ENTRIES or self._oldest_expiry() <= now
-        ):
-            del self._entries[next(iter(self._entries))]
+        while self._entries:
+            oldest_key = next(iter(self._entries))
+            if self._oldest_expiry() <= now:
+                logger.debug(
+                    'Evicting expired Google contacts cache entry: key %s',
+                    oldest_key[:KEY_LOG_LENGTH],
+                )
+            elif len(self._entries) >= self.MAX_ENTRIES:
+                logger.debug(
+                    'Evicting oldest Google contacts cache entry: key %s, '
+                    'the cache is full (%d entries)',
+                    oldest_key[:KEY_LOG_LENGTH],
+                    len(self._entries),
+                )
+            else:
+                break
+            del self._entries[oldest_key]
         self._entries[key] = (now + self.ttl, contacts)
 
     def _oldest_expiry(self) -> float:
