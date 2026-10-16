@@ -110,11 +110,6 @@ class Parameters(TypedDict):
 
 
 class BaseDAO:
-    SORT_DIRECTIONS: dict[Direction, None] = {
-        'asc': None,
-        'desc': None,
-    }
-
     DEFAULTS: Parameters = {
         'search': None,
         'order': None,
@@ -178,21 +173,10 @@ class BaseDAO:
             new_params.update(parameters)
         return cast(Parameters, new_params)
 
-    def validate_parameters(self, parameters: Parameters) -> None:
-        if int(parameters['offset']) < 0:
-            raise ValueError('offset must be positive number')
-
-        if parameters['limit'] is not None and int(parameters['limit']) < 0:
-            raise ValueError('limit must be a positive number')
-
-        if parameters['direction'] not in self.SORT_DIRECTIONS.keys():
-            raise ValueError('direction must be asc or desc')
-
     def _extract_pagination_params(
         self, parameters: dict[str, Any] | None
     ) -> tuple[str | None, int | None, int, Direction]:
         _parameters = self._generate_parameters(parameters)
-        self.validate_parameters(_parameters)
 
         order = _parameters.get('order', None)
         limit = _parameters.get('limit', None)
