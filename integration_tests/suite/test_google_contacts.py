@@ -1,6 +1,8 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from uuid import uuid4
+
 from hamcrest import (
     assert_that,
     calling,
@@ -13,7 +15,9 @@ from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.constants import (
+    HTTP_403,
     HTTP_404,
+    HTTP_503,
     SUB_TENANT,
     UNKNOWN_UUID,
     VALID_TOKEN_MAIN_TENANT,
@@ -231,6 +235,10 @@ AA_INFO = {"names": [{"displayName": "aa bb"}]}
 BA_INFO = {"names": [{"displayName": "ba bb"}]}
 BB_INFO = {"names": [{"displayName": "BB bb"}]}
 
+FIRST_PAGE = {"connections": [AA_INFO, BA_INFO], "nextPageToken": "page-1"}
+SECOND_PAGE = {"connections": [BB_INFO]}
+GOOGLE_ERROR = {"error": {"code": 0, "message": "failure"}}
+
 GOOGLE_CONTACT_LIST_FOR_PAGINATION = {
     "connections": [AA_INFO, BA_INFO, BB_INFO],
     "totalPeople": 3,
@@ -261,8 +269,13 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
         )
         self.source_uuid = source['uuid']
 
+        # wazo-dird caches contacts by access token: a token per test keeps
+        # each test's mocked contacts from being served to the next test
+        self.access_token = f'access-token-{uuid4()}'
         auth_client_mock = AuthMock(host='127.0.0.1', port=auth_port)
-        auth_client_mock.set_external_auth(self.GOOGLE_EXTERNAL_AUTH)
+        auth_client_mock.set_external_auth(
+            {**self.GOOGLE_EXTERNAL_AUTH, 'access_token': self.access_token}
+        )
 
     def tearDown(self):
         self.client.backends.delete_source('google', self.source_uuid)
@@ -373,14 +386,120 @@ class TestGoogleContactList(BaseGoogleAssetTestCase):
 
     @fixtures.google_result(GOOGLE_CONTACT_LIST, GOOGLE_SEARCH_LIST)
     def test_search(self, google_api):
-        self.list_(self.client, self.source_uuid, search='mario'),
+        result = self.list_(self.client, self.source_uuid, search='mario')
+
+        assert_that(
+            result,
+            has_entries(
+                items=contains_exactly(has_entries(name='Mario Bros')),
+                total=1,
+                filtered=1,
+            ),
+        )
         google_api.verify(
             {
                 'method': 'GET',
-                'path': '/v1/people:searchContacts',
-                'headers': {'Authorization': ['Bearer an-access-token']},
+                'path': '/v1/people/me/connections',
+                'headers': {'Authorization': [f'Bearer {self.access_token}']},
             }
         )
+        google_api.verify(
+            {'method': 'GET', 'path': '/v1/people:searchContacts'},
+            count=0,
+            exact=True,
+        )
+
+    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    def test_search_uses_the_source_searched_columns(self, google_api):
+        self.client.backends.edit_source(
+            'google',
+            self.source_uuid,
+            {
+                'name': 'google',
+                'auth': {'host': 'auth', 'port': 9497, 'prefix': None, 'https': False},
+                'searched_columns': ['emails'],
+            },
+        )
+
+        by_email = self.list_(self.client, self.source_uuid, search='mario@bros')
+        by_name = self.list_(self.client, self.source_uuid, search='Mario Bros')
+
+        assert_that(
+            by_email,
+            has_entries(items=contains_exactly(has_entries(name='Mario Bros'))),
+        )
+        assert_that(by_name, has_entries(items=[], total=0))
+
+    @fixtures.google_pages((401, GOOGLE_ERROR))
+    def test_list_when_google_rejects_the_token(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_403),
+        )
+
+    @fixtures.google_pages((429, GOOGLE_ERROR))
+    def test_list_when_google_is_rate_limiting(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_503),
+        )
+
+    @fixtures.google_pages((500, GOOGLE_ERROR))
+    def test_list_when_google_fails_on_the_first_page(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_503),
+        )
+
+    @fixtures.google_pages((200, FIRST_PAGE), (500, GOOGLE_ERROR))
+    def test_list_when_google_fails_on_a_later_page(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_503),
+        )
+
+    @fixtures.google_pages((200, FIRST_PAGE), (200, SECOND_PAGE))
+    def test_list_gathers_every_page(self, google_api):
+        result = self.list_(self.client, self.source_uuid)
+
+        assert_that(
+            result,
+            has_entries(
+                items=contains_exactly(
+                    has_entries(name='aa bb'),
+                    has_entries(name='ba bb'),
+                    has_entries(name='BB bb'),
+                ),
+                total=3,
+            ),
+        )
+
+    @fixtures.google_result(GOOGLE_CONTACT_LIST)
+    def test_contacts_are_fetched_once_per_access_token(self, google_api):
+        self.list_(self.client, self.source_uuid)
+        result = self.list_(self.client, self.source_uuid, search='mario')
+
+        assert_that(result, has_entries(total=1))
+        google_api.verify(
+            {'method': 'GET', 'path': '/v1/people/me/connections'},
+            count=1,
+            exact=True,
+        )
+
+    @fixtures.google_pages((500, GOOGLE_ERROR))
+    def test_failed_fetch_is_not_cached(self, google_api):
+        assert_that(
+            calling(self.list_).with_args(self.client, self.source_uuid),
+            raises(Exception).matching(HTTP_503),
+        )
+
+        google_api.reset()
+        google_api.mock_simple_response(
+            '/v1/people/me/connections', GOOGLE_CONTACT_LIST, 200
+        )
+        result = self.list_(self.client, self.source_uuid)
+
+        assert_that(result, has_entries(total=2))
 
     def list_(self, client, *args, **kwargs):
         return client.backends.list_contacts_from_source('google', *args, **kwargs)

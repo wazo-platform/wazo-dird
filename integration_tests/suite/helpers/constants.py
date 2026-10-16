@@ -41,5 +41,7 @@ UNKNOWN_UUID = '00000000-0000-0000-0000-000000000000'
 
 HTTP_400 = has_properties(response=has_properties(status_code=400))
 HTTP_401 = has_properties(response=has_properties(status_code=401))
+HTTP_403 = has_properties(response=has_properties(status_code=403))
 HTTP_404 = has_properties(response=has_properties(status_code=404))
 HTTP_409 = has_properties(response=has_properties(status_code=409))
+HTTP_503 = has_properties(response=has_properties(status_code=503))

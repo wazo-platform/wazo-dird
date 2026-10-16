@@ -3,8 +3,13 @@
 
 from __future__ import annotations
 
+import concurrent.futures
+import hashlib
 import logging
-from collections.abc import Iterator
+import threading
+import time
+from collections.abc import Callable, Iterator, Mapping
+from concurrent.futures import Future
 from typing import Any
 
 import requests
@@ -12,113 +17,318 @@ from wazo_auth_client import Client as Auth
 
 from wazo_dird.plugin_helpers.sorting import sort_contacts
 
-from .exceptions import GoogleTokenNotFoundException
+from .exceptions import (
+    GoogleTokenNotFoundException,
+    GoogleTokenRejectedException,
+    GoogleUnavailableException,
+)
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_CONTACTS_CACHE_TTL = 300
+REQUEST_TIMEOUT = 10
+# Bounds a download of every page of an account, and the requests waiting on
+# it, so that one slow account cannot hold every lookup thread
+DOWNLOAD_TIMEOUT = 60
+# Leading characters of the hashed token shown in logs
+KEY_LOG_LENGTH = 12
+
+Contacts = list[dict[str, Any]]
+
+
+def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
+    google_config = main_config.get('google_backend') or {}
+    ttl = google_config.get('contacts_cache_ttl', DEFAULT_CONTACTS_CACHE_TTL)
+    # bool is a subclass of int
+    if isinstance(ttl, bool) or not isinstance(ttl, int) or ttl < 0:
+        logger.warning(
+            'Invalid google_backend.contacts_cache_ttl %r, using %d',
+            ttl,
+            DEFAULT_CONTACTS_CACHE_TTL,
+        )
+        return DEFAULT_CONTACTS_CACHE_TTL
+    return ttl
+
+
+class ContactsCache:
+    """Thread-safe TTL cache of contact lists keyed by Google access token.
+
+    Concurrent misses for the same token share a single download, including
+    its failure, instead of each fetching every page from Google. Tokens are
+    hashed so they are not kept as dictionary keys.
+    """
+
+    MAX_ENTRIES = 1000
+
+    def __init__(self, ttl: int) -> None:
+        self.ttl = ttl
+        self._lock = threading.Lock()
+        self._entries: dict[str, tuple[float, Contacts]] = {}
+        # The downloads in progress, shared by the requests waiting on them
+        self._fetches: dict[str, Future[Contacts]] = {}
+
+    def get_or_fetch(
+        self, google_token: str, fetch: Callable[[], Contacts]
+    ) -> Contacts:
+        key = self._key(google_token)
+        with self._lock:
+            contacts = self._get(key)
+            if contacts is not None:
+                logger.debug('Google contacts cache hit: %d contacts', len(contacts))
+                return list(contacts)
+            in_progress = self._fetches.get(key)
+            is_fetcher = in_progress is None
+            if in_progress is None:
+                logger.debug(
+                    'Google contacts cache miss for key %s: fetching from Google',
+                    key[:KEY_LOG_LENGTH],
+                )
+                in_progress = self._fetches[key] = Future()
+            else:
+                logger.debug(
+                    'Google contacts cache miss for key %s: '
+                    'waiting for the download in progress',
+                    key[:KEY_LOG_LENGTH],
+                )
+
+        if is_fetcher:
+            self._run(key, in_progress, fetch)
+        try:
+            # A failure is not cached: the next request downloads again
+            return list(in_progress.result(DOWNLOAD_TIMEOUT))
+        except concurrent.futures.TimeoutError:
+            logger.warning(
+                'Gave up waiting %d seconds for a Google contacts download',
+                DOWNLOAD_TIMEOUT,
+            )
+            raise GoogleUnavailableException()
+
+    def _run(
+        self, key: str, future: Future[Contacts], fetch: Callable[[], Contacts]
+    ) -> None:
+        try:
+            contacts = fetch()
+        except Exception as e:
+            with self._lock:
+                del self._fetches[key]
+            future.set_exception(e)
+            return
+        with self._lock:
+            self._set(key, contacts)
+            del self._fetches[key]
+        future.set_result(contacts)
+
+    def _get(self, key: str) -> Contacts | None:
+        # Called with self._lock held
+        entry = self._entries.get(key)
+        if entry is None:
+            return None
+        expires_at, contacts = entry
+        if expires_at <= time.monotonic():
+            logger.debug(
+                'Google contacts cache entry expired: key %s', key[:KEY_LOG_LENGTH]
+            )
+            del self._entries[key]
+            return None
+        return contacts
+
+    def _set(self, key: str, contacts: Contacts) -> None:
+        # Called with self._lock held
+        now = time.monotonic()
+        self._entries.pop(key, None)
+        # Every entry has the same TTL and is inserted last, so the oldest
+        # entries are the first to expire
+        while self._entries:
+            oldest_key = next(iter(self._entries))
+            if self._oldest_expiry() <= now:
+                logger.debug(
+                    'Evicting expired Google contacts cache entry: key %s',
+                    oldest_key[:KEY_LOG_LENGTH],
+                )
+            elif len(self._entries) >= self.MAX_ENTRIES:
+                logger.debug(
+                    'Evicting oldest Google contacts cache entry: key %s, '
+                    'the cache is full (%d entries)',
+                    oldest_key[:KEY_LOG_LENGTH],
+                    len(self._entries),
+                )
+            else:
+                break
+            del self._entries[oldest_key]
+        self._entries[key] = (now + self.ttl, contacts)
+
+    def _oldest_expiry(self) -> float:
+        expires_at, _ = next(iter(self._entries.values()))
+        return expires_at
+
+    @staticmethod
+    def _key(google_token: str) -> str:
+        return hashlib.sha256(google_token.encode()).hexdigest()
+
+
+_shared_caches: dict[int, ContactsCache] = {}
+_shared_caches_lock = threading.Lock()
+
+
+def shared_contacts_cache(main_config: Mapping[str, Any]) -> ContactsCache | None:
+    """Return the cache shared by every Google source and the contacts view,
+    so all requests made with the same access token reuse one entry.
+    Return None when the cache is disabled."""
+    ttl = contacts_cache_ttl(main_config)
+    if ttl == 0:
+        return None
+    with _shared_caches_lock:
+        return _shared_caches.setdefault(ttl, ContactsCache(ttl))
 
 
 class GoogleService:
     USER_AGENT = 'wazo_ua/1.0'
 
     people_url = 'https://people.googleapis.com/v1/people/me/connections'
-    search_url = 'https://people.googleapis.com/v1/people:searchContacts'
-    batch_url = 'https://people.googleapis.com/v1/people:batchGet'
 
     person_fields = (
         'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
     )
 
-    def __init__(self) -> None:
+    def __init__(self, contacts_cache: ContactsCache | None = None) -> None:
         self.formatter = ContactFormatter()
+        self.contacts_cache = contacts_cache
 
-    def get_contacts_with_term(
-        self, google_token: str, term: str
-    ) -> Iterator[dict[str, Any]]:
-        yield from self._fetch(google_token, term=term)
+    def get_all_contacts(self, google_token: str) -> Contacts:
+        """Raise GoogleUnavailableException when any page cannot be fetched"""
+        if self.contacts_cache is None:
+            return self._fetch_all(google_token)
+        return self.contacts_cache.get_or_fetch(
+            google_token, lambda: self._fetch_all(google_token)
+        )
+
+    def search(
+        self, google_token: str, term: str, searched_columns: list[str]
+    ) -> Contacts:
+        contacts = self.get_all_contacts(google_token)
+        # Filter the cached contact list locally instead of querying Google's
+        # search endpoint on every search
+        lowered_term = term.lower()
+        matching_contacts = [
+            c for c in contacts if matches_search(c, lowered_term, searched_columns)
+        ]
+        logger.debug(
+            'Searched %d Google contacts locally for term=%s: %d matched',
+            len(contacts),
+            term,
+            len(matching_contacts),
+        )
+        return matching_contacts
 
     def get_contacts(
-        self, google_token: str, **list_params: Any
-    ) -> tuple[list[dict[str, Any]], int]:
-        contacts = list(self._fetch(google_token, term=list_params.get('search')))
+        self, google_token: str, searched_columns: list[str], **list_params: Any
+    ) -> tuple[Contacts, int]:
+        term = list_params.get('search')
+        if term:
+            contacts = self.search(google_token, term, searched_columns)
+        else:
+            contacts = self.get_all_contacts(google_token)
         total = len(contacts)
         sorted_contacts = sort_contacts(contacts, **list_params)
         paginated_contacts = self._paginate(sorted_contacts, **list_params)
         return paginated_contacts, total
 
-    def _fetch(
-        self, google_token: str, term: str | None = None
-    ) -> Iterator[dict[str, Any]]:
+    def _fetch_all(self, google_token: str) -> Contacts:
         headers = self.headers(google_token)
-        url = self.people_url
         params: dict[str, Any] = {
             'personFields': self.person_fields,
             'pageSize': 1000,
         }
 
-        if term:
-            url = self.search_url
-            params = {
-                'readMask': self.person_fields,
-                'pageSize': 30,
-            }
+        # A failed page raises and aborts the whole download: a partial list
+        # would hide the missing contacts without any error
+        deadline = time.monotonic() + DOWNLOAD_TIMEOUT
+        contacts, next_page_token = self._get_contacts_page(headers, params, deadline)
+        while next_page_token:
+            page, next_page_token = self._get_contacts_page(
+                headers, {**params, 'pageToken': next_page_token}, deadline
+            )
+            contacts.extend(page)
+        return contacts
 
-            # empty request to 'warm' cache, recommended by Google
-            self._get_request(url, headers, params)
-            params['query'] = term
-
+    def _get_contacts_page(
+        self, headers: dict[str, str], params: dict[str, Any], deadline: float
+    ) -> tuple[Contacts, str | None]:
+        """Return a page of contacts and the token of the next page, if any"""
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            logger.error(
+                'Google contacts download from %s did not complete within %d seconds',
+                self.people_url,
+                DOWNLOAD_TIMEOUT,
+            )
+            raise GoogleUnavailableException()
         response = self._get_request(
-            url, headers, params, 'Fetched contacts from Google'
+            self.people_url, headers, params, min(REQUEST_TIMEOUT, remaining)
         )
-        if not response:
-            return
-
-        if term:
-            for contact in response.json().get('results', []):
-                yield self.formatter.format(contact.get('person', {}))
-        else:
-            for contact in response.json().get('connections', []):
-                yield self.formatter.format(contact)
-
-    def _get_batch_of_contacts(
-        self, headers: dict[str, str], contact_ids: list[str]
-    ) -> list[dict[str, Any]]:
-        params = [('personFields', self.person_fields)]
-        for contact_id in contact_ids:
-            params.append(('resourceNames', contact_id))
-
-        response = self._get_request(
-            self.batch_url, headers, params, 'Fetched batch of contacts from Google'
-        )
-        assert response is not None
-        responses: list[dict[str, Any]] = response.json().get('responses', [])
-        return responses
+        try:
+            body = response.json()
+        except ValueError as e:
+            logger.error('Google returned an invalid body from %s', self.people_url)
+            raise GoogleUnavailableException() from e
+        if not isinstance(body, dict):
+            logger.error('Google returned an invalid body from %s', self.people_url)
+            raise GoogleUnavailableException()
+        contacts = [self.formatter.format(c) for c in body.get('connections', [])]
+        next_page_token: str | None = body.get('nextPageToken')
+        return contacts, next_page_token
 
     def _get_request(
         self,
         url: str,
         headers: dict[str, str],
-        params: dict[str, Any] | list[tuple[str, Any]],
-        debug_message: str | None = None,
-    ) -> requests.Response | None:
+        params: dict[str, Any],
+        timeout: float,
+    ) -> requests.Response:
         # Requests have verify=False because the integration test mock servers do not have proper SSL
         # Find a way to selectively turn off verification during testing only
-        response = requests.get(url, headers=headers, params=params, verify=False)
-        if response.status_code != 200:
-            logger.debug('Get Request Unsuccessful: %s', response.status_code)
-            logger.debug('Raw data: %s', response.text)
-            return None
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                params=params,
+                verify=False,
+                timeout=timeout,
+            )
+        except requests.RequestException as e:
+            logger.error('Google request to %s failed: %s', url, e)
+            raise GoogleUnavailableException() from e
 
-        logger.debug('Get Request Successful: %s', debug_message)
-        logger.debug('Raw data: %s', response.text)
+        if response.status_code in (401, 403):
+            # The user's token expired, was revoked or lacks a scope: not a
+            # Google outage, and lookups retry on every keystroke
+            logger.debug(
+                'Google rejected the access token for %s with status %s',
+                url,
+                response.status_code,
+            )
+            raise GoogleTokenRejectedException()
+
+        if response.status_code != 200:
+            logger.error(
+                'Google request to %s failed with status %s', url, response.status_code
+            )
+            logger.debug('Raw data: %s', response.text)
+            raise GoogleUnavailableException()
+
+        logger.debug('Get Request Successful: %s', url)
+        # Decoding a page of up to 1000 contacts is wasted when debug is off
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('Raw data: %s', response.text)
         return response
 
     def _paginate(
         self,
-        contacts: list[dict[str, Any]],
+        contacts: Contacts,
         limit: int | None = None,
         offset: int | None = None,
         **_: Any,
-    ) -> list[dict[str, Any]]:
+    ) -> Contacts:
         if limit is None and offset is None:
             return contacts
 
@@ -139,6 +349,30 @@ class GoogleService:
             'Accept': 'application/json',
             'GData-Version': '3.0',
         }
+
+
+def column_texts(value: Any) -> Iterator[str]:
+    """Yield the strings of a contact column, including those nested in the
+    lists and dicts of columns such as emails or numbers_by_label"""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for sub_value in value.values():
+            yield from column_texts(sub_value)
+    elif isinstance(value, list):
+        for sub_value in value:
+            yield from column_texts(sub_value)
+
+
+def matches_search(
+    contact: dict[str, Any], lowered_term: str, columns: list[str]
+) -> bool:
+    """lowered_term is lowered once by the caller, not once per contact"""
+    return any(
+        lowered_term in text.lower()
+        for column in columns
+        for text in column_texts(contact.get(column))
+    )
 
 
 def get_google_access_token(

@@ -1,17 +1,27 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import threading
 import unittest
+from unittest.mock import Mock, patch
 
+import requests
 from hamcrest import (
     assert_that,
+    calling,
     contains_exactly,
     contains_inanyorder,
+    equal_to,
     has_entries,
     has_items,
+    has_length,
+    instance_of,
+    raises,
+    same_instance,
 )
 
 from .. import services
+from ..exceptions import GoogleTokenRejectedException, GoogleUnavailableException
 
 
 class TestGoogleContactFormatter(unittest.TestCase):
@@ -208,3 +218,373 @@ class TestGoogleContactFormatter(unittest.TestCase):
             formatted_contact,
             has_entries(note='Notes user 02'),
         )
+
+
+def _person(id_, name):
+    return {
+        'names': [{'displayName': name, 'metadata': {'source': {'id': id_}}}],
+    }
+
+
+def _response(body, status_code=200):
+    return Mock(status_code=status_code, json=Mock(return_value=body), text='')
+
+
+@patch('wazo_dird.plugins.google_backend.services.requests.get')
+class TestGoogleServiceCache(unittest.TestCase):
+    contacts = {'connections': [_person('1', 'Mario'), _person('2', 'Luigi')]}
+
+    def setUp(self):
+        self.cache = services.ContactsCache(ttl=300)
+        self.service = services.GoogleService(self.cache)
+
+    def test_contacts_are_fetched_once_per_token(self, get):
+        get.return_value = _response(self.contacts)
+
+        first = self.service.get_all_contacts('token')
+        second = services.GoogleService(self.cache).get_all_contacts('token')
+
+        assert_that(get.call_count, equal_to(1))
+        assert_that(second, equal_to(first))
+        assert_that(first, contains_exactly(has_entries(id='1'), has_entries(id='2')))
+
+    def test_tokens_do_not_share_contacts(self, get):
+        get.return_value = _response(self.contacts)
+
+        self.service.get_all_contacts('token-a')
+        self.service.get_all_contacts('token-b')
+
+        assert_that(get.call_count, equal_to(2))
+
+    def test_expired_contacts_are_fetched_again(self, get):
+        get.return_value = _response(self.contacts)
+
+        with patch.object(services.time, 'monotonic', return_value=1000):
+            self.service.get_all_contacts('token')
+        with patch.object(services.time, 'monotonic', return_value=1300):
+            self.service.get_all_contacts('token')
+
+        assert_that(get.call_count, equal_to(2))
+
+    def test_no_cache_fetches_every_time(self, get):
+        get.return_value = _response(self.contacts)
+        service = services.GoogleService()
+
+        service.get_all_contacts('token')
+        service.get_all_contacts('token')
+
+        assert_that(get.call_count, equal_to(2))
+
+    def test_concurrent_misses_fetch_once(self, get):
+        results = self._fetch_concurrently(get, 5, _response(self.contacts))
+
+        assert_that(get.call_count, equal_to(1))
+        assert_that(results, contains_exactly(*[has_length(2)] * 5))
+
+    def test_concurrent_misses_share_a_failure(self, get):
+        results = self._fetch_concurrently(
+            get, 5, _response({}, 429), _response(self.contacts)
+        )
+
+        assert_that(get.call_count, equal_to(1))
+        assert_that(
+            results, contains_exactly(*[instance_of(GoogleUnavailableException)] * 5)
+        )
+        assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
+
+    def _fetch_concurrently(self, get, count, *responses):
+        """Fetch from count threads; Google answers once the other threads
+        all wait on the download"""
+        release = threading.Event()
+        waiting = threading.Semaphore(0)
+        remaining = list(responses)
+
+        def slow_get(*args, **kwargs):
+            release.wait(5)
+            return remaining.pop(0)
+
+        class SignalingFuture(services.Future):
+            def result(self, timeout=None):
+                waiting.release()
+                return super().result(timeout)
+
+        results: list[object] = []
+
+        def fetch():
+            try:
+                results.append(self.service.get_all_contacts('token'))
+            except GoogleUnavailableException as e:
+                results.append(e)
+
+        get.side_effect = slow_get
+        threads = [threading.Thread(target=fetch) for _ in range(count)]
+        with patch.object(services, 'Future', SignalingFuture):
+            for thread in threads:
+                thread.start()
+            for _ in range(count - 1):
+                waiting.acquire(timeout=5)
+            release.set()
+            for thread in threads:
+                thread.join(5)
+        return results
+
+    def test_failed_fetch_raises_and_is_not_cached(self, get):
+        get.side_effect = [_response({}, 429), _response(self.contacts)]
+
+        assert_that(
+            calling(self.service.get_all_contacts).with_args('token'),
+            raises(GoogleUnavailableException),
+        )
+        assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
+
+    def test_failed_page_raises_and_is_not_cached(self, get):
+        first_page = _response(
+            {'connections': [_person('1', 'Mario')], 'nextPageToken': 'next'}
+        )
+        second_page = _response({'connections': [_person('2', 'Luigi')]})
+        get.side_effect = [first_page, _response({}, 500), first_page, second_page]
+
+        assert_that(
+            calling(self.service.get_all_contacts).with_args('token'),
+            raises(GoogleUnavailableException),
+        )
+        assert_that(
+            self.service.get_all_contacts('token'),
+            contains_exactly(has_entries(id='1'), has_entries(id='2')),
+        )
+
+    def test_google_failure_is_unavailable_without_google_details(self, get):
+        get.return_value = _response({}, 500)
+
+        with self.assertRaises(GoogleUnavailableException) as raised:
+            self.service.get_all_contacts('token')
+
+        assert_that(raised.exception.status_code, equal_to(503))
+        assert_that(raised.exception.details, equal_to({}))
+
+    def test_rejected_token_is_not_an_outage(self, get):
+        for status_code in (401, 403):
+            get.return_value = _response({}, status_code)
+
+            with self.assertRaises(GoogleTokenRejectedException) as raised:
+                self.service.get_all_contacts('token')
+
+            assert_that(raised.exception.status_code, equal_to(403))
+            assert_that(raised.exception.details, equal_to({}))
+
+    def test_body_that_is_not_an_object_raises_unavailable(self, get):
+        bodies: list[object] = [None, [], 'contacts']
+        for body in bodies:
+            get.return_value = _response(body)
+
+            assert_that(
+                calling(self.service.get_all_contacts).with_args('token'),
+                raises(GoogleUnavailableException),
+            )
+
+    def test_connection_error_raises_unavailable(self, get):
+        get.side_effect = requests.ConnectionError()
+
+        assert_that(
+            calling(self.service.get_all_contacts).with_args('token'),
+            raises(GoogleUnavailableException),
+        )
+
+    def test_download_stops_at_the_deadline(self, get):
+        clock = [0.0]
+        timeouts = []
+
+        def slow_google(*args, **kwargs):
+            timeouts.append(kwargs['timeout'])
+            clock[0] += 27
+            return _response({'connections': [], 'nextPageToken': 'next'})
+
+        get.side_effect = slow_google
+        with patch.object(services, 'DOWNLOAD_TIMEOUT', 60), patch.object(
+            services.time, 'monotonic', side_effect=lambda: clock[0]
+        ):
+            assert_that(
+                calling(self.service.get_all_contacts).with_args('token'),
+                raises(GoogleUnavailableException),
+            )
+
+        # 60 seconds: three pages of 27 seconds, the third one given the 6
+        # seconds left instead of the 10 of a request
+        assert_that(timeouts, contains_exactly(10, 10, 6))
+
+    def test_waiters_give_up_at_the_download_timeout(self, get):
+        cache = services.ContactsCache(ttl=300)
+        fetching = threading.Event()
+        release = threading.Event()
+
+        def slow_fetch():
+            fetching.set()
+            release.wait(5)
+            return []
+
+        fetcher = threading.Thread(target=cache.get_or_fetch, args=('a', slow_fetch))
+        try:
+            fetcher.start()
+            fetching.wait(5)
+            with patch.object(services, 'DOWNLOAD_TIMEOUT', 0.01):
+                assert_that(
+                    calling(cache.get_or_fetch).with_args('a', Mock()),
+                    raises(GoogleUnavailableException),
+                )
+            assert_that(fetcher.is_alive(), equal_to(True))
+        finally:
+            release.set()
+            fetcher.join(5)
+
+    def test_requests_have_a_timeout(self, get):
+        get.return_value = _response(self.contacts)
+
+        self.service.get_all_contacts('token')
+
+        assert_that(get.call_args.kwargs['timeout'], equal_to(services.REQUEST_TIMEOUT))
+
+    def test_callers_cannot_alter_the_cached_list(self, get):
+        get.return_value = _response(self.contacts)
+
+        self.service.get_all_contacts('token').clear()
+
+        assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
+
+    def test_all_pages_are_fetched(self, get):
+        get.side_effect = [
+            _response(
+                {'connections': [_person('1', 'Mario')], 'nextPageToken': 'next'}
+            ),
+            _response({'connections': [_person('2', 'Luigi')]}),
+        ]
+
+        contacts = self.service.get_all_contacts('token')
+
+        assert_that(
+            contacts, contains_exactly(has_entries(id='1'), has_entries(id='2'))
+        )
+        assert_that(
+            get.call_args_list[1].kwargs['params'], has_entries(pageToken='next')
+        )
+
+    def test_searches_filter_the_cached_contacts(self, get):
+        get.return_value = _response(self.contacts)
+
+        mario, mario_total = self.service.get_contacts('token', ['name'], search='MAR')
+        luigi, luigi_total = self.service.get_contacts('token', ['name'], search='uig')
+
+        assert_that(get.call_count, equal_to(1))
+        assert_that(get.call_args.args[0], equal_to(services.GoogleService.people_url))
+        assert_that(mario, contains_exactly(has_entries(id='1')))
+        assert_that(luigi, contains_exactly(has_entries(id='2')))
+        assert_that((mario_total, luigi_total), equal_to((1, 1)))
+
+    def test_search_matches_the_searched_columns(self, get):
+        luigi = TestGoogleContactFormatter.google_contact
+        get.return_value = _response({'connections': [_person('1', 'Mario'), luigi]})
+
+        def search(term, columns):
+            contacts, _ = self.service.get_contacts('token', columns, search=term)
+            return [contact['name'] for contact in contacts]
+
+        assert_that(search('caramail', ['name']), equal_to([]))
+        assert_that(search('caramail', ['emails']), contains_exactly('Luigi Bros'))
+        assert_that(
+            search('plumber', ['organizations']), contains_exactly('Luigi Bros')
+        )
+        assert_that(search('5555558888', ['numbers']), contains_exactly('Luigi Bros'))
+        assert_that(
+            search('bros', ['firstname', 'lastname']), contains_exactly('Luigi Bros')
+        )
+        assert_that(search('bros', []), equal_to([]))
+
+
+class TestMatchesSearch(unittest.TestCase):
+    def test_non_string_values_are_ignored(self):
+        contact = {
+            'name': None,
+            'note': 42,
+            'emails': [{'address': 'mario@example.com', 'label': None}],
+        }
+
+        assert_that(
+            services.matches_search(contact, 'mario', ['name', 'note', 'emails']),
+            equal_to(True),
+        )
+        assert_that(
+            services.matches_search(contact, '42', ['name', 'note', 'emails']),
+            equal_to(False),
+        )
+
+    def test_dict_columns_match_their_values(self):
+        contact = {'numbers_by_label': {'mobile': '5555551234'}}
+
+        assert_that(
+            services.matches_search(contact, '555', ['numbers_by_label']),
+            equal_to(True),
+        )
+        assert_that(
+            services.matches_search(contact, 'mobile', ['numbers_by_label']),
+            equal_to(False),
+        )
+
+
+class TestContactsCacheTTL(unittest.TestCase):
+    def test_default(self):
+        assert_that(
+            services.contacts_cache_ttl({}),
+            equal_to(services.DEFAULT_CONTACTS_CACHE_TTL),
+        )
+
+    def test_configured(self):
+        config = {'google_backend': {'contacts_cache_ttl': 60}}
+
+        assert_that(services.contacts_cache_ttl(config), equal_to(60))
+
+    def test_invalid_values_use_the_default(self):
+        for ttl in ('300', None, -1, True, 1.5):
+            config = {'google_backend': {'contacts_cache_ttl': ttl}}
+
+            assert_that(
+                services.contacts_cache_ttl(config),
+                equal_to(services.DEFAULT_CONTACTS_CACHE_TTL),
+            )
+
+    def test_zero_disables_the_shared_cache(self):
+        config = {'google_backend': {'contacts_cache_ttl': 0}}
+
+        assert_that(services.shared_contacts_cache(config), equal_to(None))
+
+    def test_sources_and_view_share_one_cache(self):
+        config = {'google_backend': {'contacts_cache_ttl': 120}}
+
+        assert_that(
+            services.shared_contacts_cache(config),
+            same_instance(services.shared_contacts_cache(dict(config))),
+        )
+
+
+class TestContactsCache(unittest.TestCase):
+    def test_expired_entries_are_dropped_on_write(self):
+        cache = services.ContactsCache(ttl=300)
+
+        with patch.object(services.time, 'monotonic', return_value=1000):
+            cache.get_or_fetch('a', Mock(return_value=[]))
+        with patch.object(services.time, 'monotonic', return_value=1300):
+            cache.get_or_fetch('b', Mock(return_value=[]))
+
+        assert_that(cache._entries, has_length(1))
+
+    def test_oldest_entry_is_evicted_when_full(self):
+        cache = services.ContactsCache(ttl=300)
+        cache.MAX_ENTRIES = 2
+
+        for token in ('a', 'b', 'c'):
+            cache.get_or_fetch(token, Mock(return_value=[{'id': token}]))
+
+        fetch = Mock(return_value=[])
+        cache.get_or_fetch('b', fetch)
+        cache.get_or_fetch('c', fetch)
+        fetch.assert_not_called()
+        cache.get_or_fetch('a', fetch)
+        fetch.assert_called_once_with()

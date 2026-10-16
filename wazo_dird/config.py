@@ -92,6 +92,10 @@ class FavoritesServiceConfig(TypedDict, total=False):
     executor_workers: int | None
 
 
+class GoogleBackendConfig(TypedDict, total=False):
+    contacts_cache_ttl: int
+
+
 class Config(TypedDict, total=False):
     uuid: str
     auth: AuthConfig
@@ -108,6 +112,7 @@ class Config(TypedDict, total=False):
     reverse_service: ReverseServiceConfig
     lookup_service: LookupServiceConfig
     favorites_service: FavoritesServiceConfig
+    google_backend: GoogleBackendConfig
     user: str
     bus: BusConfig
     consul: ConsulConfig
@@ -204,6 +209,9 @@ _DEFAULT_CONFIG: Config = {
     },
     'favorites_service': {
         'executor_workers': None,  # None: inherit rest_api.max_threads
+    },
+    'google_backend': {
+        'contacts_cache_ttl': 300,
     },
     'services': {
         'service_discovery': {

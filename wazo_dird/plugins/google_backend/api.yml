@@ -31,6 +31,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/LegacyError'
+        '403':
+          description: Google rejected the user's access token (expired, revoked or missing a scope)
+          schema:
+            $ref: '#/definitions/LegacyError'
         '404':
           description: No such source
           schema:
