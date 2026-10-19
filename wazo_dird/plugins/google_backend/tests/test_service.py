@@ -474,7 +474,7 @@ class TestGoogleServiceCache(unittest.TestCase):
         luigi, luigi_total = self.service.get_contacts('token', ['name'], search='uig')
 
         assert_that(get.call_count, equal_to(1))
-        assert_that(get.call_args.args[0], equal_to(services.GoogleService.people_url))
+        assert_that(get.call_args.args[0], equal_to(self.service.people_url))
         assert_that(mario, contains_exactly(has_entries(id='1')))
         assert_that(luigi, contains_exactly(has_entries(id='2')))
         assert_that((mario_total, luigi_total), equal_to((1, 1)))
@@ -526,6 +526,39 @@ class TestMatchesSearch(unittest.TestCase):
         assert_that(
             services.matches_search(contact, 'mobile', ['numbers_by_label']),
             equal_to(False),
+        )
+
+
+class TestPeopleApiUrl(unittest.TestCase):
+    def test_default(self):
+        assert_that(
+            services.people_api_url({}), equal_to(services.DEFAULT_PEOPLE_API_URL)
+        )
+
+    def test_configured(self):
+        config = {'google_backend': {'people_api_url': 'http://localhost:8090/'}}
+
+        assert_that(services.people_api_url(config), equal_to('http://localhost:8090'))
+
+    def test_invalid_values_use_the_default(self):
+        for url in (None, '', 8090):
+            config = {'google_backend': {'people_api_url': url}}
+
+            assert_that(
+                services.people_api_url(config),
+                equal_to(services.DEFAULT_PEOPLE_API_URL),
+            )
+
+    @patch.object(services.requests, 'get')
+    def test_the_contacts_are_fetched_from_the_configured_api(self, get):
+        get.return_value = _response({'connections': []})
+        service = services.GoogleService(people_api_url='http://localhost:8090')
+
+        service.get_all_contacts('token')
+
+        assert_that(
+            get.call_args.args[0],
+            equal_to('http://localhost:8090/v1/people/me/connections'),
         )
 
 

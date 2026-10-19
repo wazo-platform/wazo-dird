@@ -94,6 +94,7 @@ class FavoritesServiceConfig(TypedDict, total=False):
 
 class GoogleBackendConfig(TypedDict, total=False):
     contacts_cache_ttl: int
+    people_api_url: str
 
 
 class Config(TypedDict, total=False):
@@ -212,6 +213,8 @@ _DEFAULT_CONFIG: Config = {
     },
     'google_backend': {
         'contacts_cache_ttl': 300,
+        # Not in config.yml: only a Google People API mock needs it
+        'people_api_url': 'https://people.googleapis.com',
     },
     'services': {
         'service_discovery': {

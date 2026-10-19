@@ -26,6 +26,8 @@ from .exceptions import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_CONTACTS_CACHE_TTL = 300
+DEFAULT_PEOPLE_API_URL = 'https://people.googleapis.com'
+PEOPLE_CONNECTIONS_PATH = '/v1/people/me/connections'
 REQUEST_TIMEOUT = 10
 # Bounds a download of every page of an account, and the requests waiting on
 # it, so that one slow account cannot hold every lookup thread
@@ -48,6 +50,20 @@ def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
         )
         return DEFAULT_CONTACTS_CACHE_TTL
     return ttl
+
+
+def people_api_url(main_config: Mapping[str, Any]) -> str:
+    """Base URL of the Google People API: a mock of it in the load tests"""
+    google_config = main_config.get('google_backend') or {}
+    url = google_config.get('people_api_url') or DEFAULT_PEOPLE_API_URL
+    if not isinstance(url, str):
+        logger.warning(
+            'Invalid google_backend.people_api_url %r, using %s',
+            url,
+            DEFAULT_PEOPLE_API_URL,
+        )
+        return DEFAULT_PEOPLE_API_URL
+    return url.rstrip('/')
 
 
 class ContactsCache:
@@ -184,15 +200,18 @@ def shared_contacts_cache(main_config: Mapping[str, Any]) -> ContactsCache | Non
 class GoogleService:
     USER_AGENT = 'wazo_ua/1.0'
 
-    people_url = 'https://people.googleapis.com/v1/people/me/connections'
-
     person_fields = (
         'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
     )
 
-    def __init__(self, contacts_cache: ContactsCache | None = None) -> None:
+    def __init__(
+        self,
+        contacts_cache: ContactsCache | None = None,
+        people_api_url: str = DEFAULT_PEOPLE_API_URL,
+    ) -> None:
         self.formatter = ContactFormatter()
         self.contacts_cache = contacts_cache
+        self.people_url = people_api_url + PEOPLE_CONNECTIONS_PATH
 
     def get_all_contacts(self, google_token: str) -> Contacts:
         """Raise GoogleUnavailableException when any page cannot be fetched"""

@@ -53,8 +53,10 @@ class GooglePlugin(BaseSourcePlugin):
         config = dependencies['config']
         self.auth = cast('AuthConfig', dict(config)['auth'])
         self.name = config['name']
+        main_config = dependencies['main_config']
         self.google = services.GoogleService(
-            services.shared_contacts_cache(dependencies['main_config'])
+            services.shared_contacts_cache(main_config),
+            services.people_api_url(main_config),
         )
         self.unique_column = 'id'
 
