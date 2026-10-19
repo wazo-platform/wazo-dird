@@ -66,18 +66,18 @@ class GoogleService:
             self._get_request(url, headers, params)
             params['query'] = term
 
-        response = self._get_request(
-            url, headers, params, 'Fetched contacts from Google'
-        )
+        response = self._get_request(url, headers, params)
         if not response:
             return
 
         if term:
-            for contact in response.json().get('results', []):
-                yield self.formatter.format(contact.get('person', {}))
+            raw_contacts = response.json().get('results', [])
+            contacts = [contact.get('person', {}) for contact in raw_contacts]
         else:
-            for contact in response.json().get('connections', []):
-                yield self.formatter.format(contact)
+            contacts = response.json().get('connections', [])
+        logger.debug('Fetched %d contacts from Google', len(contacts))
+        for contact in contacts:
+            yield self.formatter.format(contact)
 
     def _get_batch_of_contacts(
         self, headers: dict[str, str], contact_ids: list[str]
@@ -86,11 +86,10 @@ class GoogleService:
         for contact_id in contact_ids:
             params.append(('resourceNames', contact_id))
 
-        response = self._get_request(
-            self.batch_url, headers, params, 'Fetched batch of contacts from Google'
-        )
+        response = self._get_request(self.batch_url, headers, params)
         assert response is not None
         responses: list[dict[str, Any]] = response.json().get('responses', [])
+        logger.debug('Fetched batch of %d contacts from Google', len(responses))
         return responses
 
     def _get_request(
@@ -98,7 +97,6 @@ class GoogleService:
         url: str,
         headers: dict[str, str],
         params: dict[str, Any] | list[tuple[str, Any]],
-        debug_message: str | None = None,
     ) -> requests.Response | None:
         # Requests have verify=False because the integration test mock servers do not have proper SSL
         # Find a way to selectively turn off verification during testing only
@@ -108,8 +106,6 @@ class GoogleService:
             logger.debug('Raw data: %s', response.text)
             return None
 
-        logger.debug('Get Request Successful: %s', debug_message)
-        logger.debug('Raw data: %s', response.text)
         return response
 
     def _paginate(

@@ -89,9 +89,9 @@ class LDAPPlugin(BaseSourcePlugin):
                 term = entry.fields.get(column)
                 if term in extens:
                     results[term] = entry
-                    logger.debug('Found a match: %s', entry)
-        if not results:
-            logger.debug('Found no match')
+        logger.debug(
+            'Matched %d of %d extens: %s', len(results), len(extens), list(results)
+        )
         return results
 
     def _search_and_format(self, filter_str: str | None) -> list[_SourceResult]:

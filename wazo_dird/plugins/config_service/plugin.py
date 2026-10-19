@@ -219,7 +219,12 @@ class Service:
         source_service: Any = self._controller.services.get('source')
         try:
             source = source_service.create(backend, **body)
-            logger.info('auto created %s source %s', backend, body)
+            logger.info(
+                'auto created %s source %s for tenant %s',
+                backend,
+                body.get('name'),
+                body.get('tenant_uuid'),
+            )
             return source
         except Exception as e:
             logger.info('failed to create %s source %s', backend, e)
