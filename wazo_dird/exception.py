@@ -117,6 +117,28 @@ class NoSuchContact(ValueError):
         super().__init__(message)
 
 
+class NoSuchPersonalContact(APIException):
+    def __init__(self, contact_id: Any) -> None:
+        contact_id = str(contact_id)
+        msg = f'No such personal contact: "{contact_id}"'
+        details = {'id': contact_id}
+        super().__init__(404, msg, 'unknown-contact', details, 'personal')
+
+
+class DuplicatedPersonalContact(APIException):
+    def __init__(self, msg: str) -> None:
+        details = {'contact': {'constraint_id': 'unique', 'message': msg}}
+        super().__init__(409, 'Conflict detected', 'conflict', details, 'personal')
+
+
+class InvalidPersonalContactAPIException(APIException):
+    def __init__(self, errors: list[str]) -> None:
+        details = {'errors': errors}
+        super().__init__(
+            400, 'Invalid personal contact', 'invalid-data', details, 'personal'
+        )
+
+
 class NoSuchSource(APIException):
     def __init__(self, uuid: Any) -> None:
         source_uuid = str(uuid)

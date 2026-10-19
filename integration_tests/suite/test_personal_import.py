@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import textwrap
+from unittest.mock import ANY
 
 from hamcrest import (
     assert_that,
@@ -22,6 +23,7 @@ class TestPersonalImportFail(BaseDirdIntegrationTest):
     def test_that_import_empty_returns_400(self):
         result = self.import_personal_result('', VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-data'))
 
     def test_that_import_with_only_headers_return_400(self):
         result = self.import_personal_result(
@@ -50,6 +52,10 @@ class TestPersonalImportFail(BaseDirdIntegrationTest):
         )
         result = self.import_personal_result(csv, VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(400))
+        assert_that(
+            result.json(),
+            has_entries(error_id='invalid-data', details=has_entries(failed=ANY)),
+        )
 
     def test_that_import_ignores_superfluous_fields(self):
         csv = textwrap.dedent(
@@ -74,6 +80,7 @@ class TestPersonalImportFail(BaseDirdIntegrationTest):
             csv, VALID_TOKEN_MAIN_TENANT, encoding='utf-8'
         )
         assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-data'))
 
 
 class TestPersonalImportSuccess(BaseDirdIntegrationTest):

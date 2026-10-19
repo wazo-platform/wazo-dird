@@ -93,6 +93,9 @@ class TestList(BasePhonebookTestCase):
         result = self.list_phonebooks(limit=2, tenant=pagination.uuid)
         assert_matches(result, phonebook_1, phonebook_2)
 
+        result = self.list_phonebooks(limit=0, tenant=pagination.uuid)
+        assert_matches(result)
+
         result = self.list_phonebooks(offset=1, tenant=pagination.uuid)
         assert_matches(result, phonebook_2, phonebook_3)
 
@@ -524,6 +527,11 @@ class TestContactList(_BasePhonebookContactTestCase):
             phonebook_uuid, order='firstname', limit=2, tenant=self.tenant_1.uuid
         )
         assert_matches(result, contact_1, contact_2)
+
+        result = self.list_phonebook_contacts(
+            phonebook_uuid, limit=0, tenant=self.tenant_1.uuid
+        )
+        assert_matches(result)
 
         result = self.list_phonebook_contacts(
             phonebook_uuid, order='firstname', offset=1, tenant=self.tenant_1.uuid

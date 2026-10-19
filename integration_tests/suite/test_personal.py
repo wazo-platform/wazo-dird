@@ -45,6 +45,20 @@ class TestListPersonal(PersonalOnlyTestCase):
 
         assert_that(result['items'], contains_exactly())
 
+    def test_that_a_token_with_no_user_uuid_returns_401(self):
+        mock_auth_client = MockAuthClient('127.0.0.1', self.service_port(9497, 'auth'))
+        invalid_token_uuid = str(uuid.uuid4())
+        invalid_token = MockUserToken.some_token(
+            token=invalid_token_uuid,
+            metadata={'uuid': None, 'tenant_uuid': MAIN_TENANT},
+        )
+        mock_auth_client.set_token(invalid_token)
+
+        result = self.list_personal_result(invalid_token_uuid)
+
+        assert_that(result.status_code, equal_to(401))
+        assert_that(result.json(), has_entries(error_id='invalid-token'))
+
 
 class TestDeletedUser(BaseDirdIntegrationTest):
     asset = 'personal_only'
@@ -141,6 +155,7 @@ class TestAddPersonal(PersonalOnlyTestCase):
         result = self.post_personal_result({'': 'invalid'}, VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-data'))
 
     def test_that_a_non_string_field_value_returns_400(self):
         # Unlike phonebook contacts, personal contacts validate field value
@@ -151,6 +166,7 @@ class TestAddPersonal(PersonalOnlyTestCase):
         )
 
         assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-data'))
 
     def test_that_adding_duplicated_personal_returns_409(self):
         self.post_personal_result({'firstname': 'Alice'}, VALID_TOKEN_MAIN_TENANT)
@@ -159,6 +175,7 @@ class TestAddPersonal(PersonalOnlyTestCase):
         )
 
         assert_that(result.status_code, equal_to(409))
+        assert_that(result.json(), has_entries(error_id='conflict'))
 
     def test_that_adding_personal_with_weird_attributes_is_ok(self):
         self.post_personal({'%': '%', '?': '?', '#': '#', '%': '%'})
@@ -195,6 +212,7 @@ class TestRemovePersonal(PersonalOnlyTestCase):
     def test_that_removing_unknown_personal_returns_404(self):
         result = self.delete_personal_result('unknown-id', VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='unknown-contact'))
 
     def test_that_removed_personal_are_not_listed(self):
         self.post_personal({'firstname': 'Alice'})
@@ -490,6 +508,7 @@ class TestEditPersonal(PersonalOnlyTestCase):
         result = self.put_personal_result('unknown-id', body, VALID_TOKEN_MAIN_TENANT)
 
         assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='unknown-contact'))
 
     def test_that_edit_personal_contact_replaces_attributes(self):
         contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
@@ -523,6 +542,7 @@ class TestEditPersonal(PersonalOnlyTestCase):
             VALID_TOKEN_MAIN_TENANT,
         )
         assert_that(put_result.status_code, equal_to(409))
+        assert_that(put_result.json(), has_entries(error_id='conflict'))
 
         list_result = self.list_personal()
         assert_that(
@@ -552,6 +572,7 @@ class TestEditInvalidPersonal(PersonalOnlyTestCase):
             VALID_TOKEN_MAIN_TENANT,
         )
         assert_that(result.status_code, equal_to(400))
+        assert_that(result.json(), has_entries(error_id='invalid-data'))
 
 
 class TestGetPersonal(PersonalOnlyTestCase):
@@ -571,6 +592,7 @@ class TestGetPersonal(PersonalOnlyTestCase):
     def test_that_get_inexisting_personal_contact_returns_404(self):
         result = self.get_personal_result('unknown-id', VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='unknown-contact'))
 
     def test_that_get_returns_all_attributes(self):
         contact = self.post_personal({'firstname': 'Noémie', 'lastname': 'Narvidon'})
@@ -636,7 +658,10 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         assert_that(response.status_code, equal_to(400))
         assert_that(
             response.json(),
-            has_entry('reason', f"order: column '{wrong_column}' was not found"),
+            has_entries(
+                error_id='invalid-data',
+                message=f"order: column '{wrong_column}' was not found",
+            ),
         )
 
         wrong_direction = 'invalid'
@@ -645,7 +670,8 @@ class TestSearchPersonal(PersonalOnlyTestCase):
         )
         assert_that(response.status_code, equal_to(400))
         assert_that(
-            response.json(), has_entry('reason', 'direction must be asc or desc')
+            response.json(),
+            has_entries(error_id='invalid-data', details=has_key('direction')),
         )
 
     def test_that_search_limited_returns_right_number(self):
@@ -657,3 +683,19 @@ class TestSearchPersonal(PersonalOnlyTestCase):
                 has_entry('firstname', 'Alice'),
             ),
         )
+
+        result = self.list_personal(limit=0)
+        assert_that(result['items'], empty())
+
+    def test_that_an_invalid_limit_or_offset_returns_400(self):
+        for param in ('limit', 'offset'):
+            for value in (-1, True, False, 'foobar', 3.14):
+                response = self.list_personal_result(
+                    VALID_TOKEN_MAIN_TENANT, **{param: value}
+                )
+                assert_that(response.status_code, equal_to(400), (param, value))
+                assert_that(
+                    response.json(),
+                    has_entries(error_id='invalid-data', details=has_key(param)),
+                    (param, value),
+                )

@@ -21,9 +21,9 @@ paths:
             items:
               $ref: '#/definitions/Phonebook'
         '400':
-          $ref: '#/responses/InvalidParameters'
+          $ref: '#/responses/InvalidData'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     post:
       summary: Create a new phonebook
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.create`'
@@ -45,15 +45,15 @@ paths:
           schema:
             $ref: '#/definitions/Phonebook'
         '400':
-          $ref: '#/responses/InvalidParameters'
+          $ref: '#/responses/InvalidData'
         '404':
           description: Tenant does not exist
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '409':
           $ref: '#/responses/DuplicatePhonebook'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
   /tenants/{tenant}/phonebooks/{phonebook_id}:
     get:
       summary: Get the attributes of a phonebook
@@ -74,9 +74,9 @@ paths:
         '404':
           description: Phonebook or Tenant does not exist
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     put:
       summary: Modify an existing phonebook
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.update`'
@@ -96,15 +96,15 @@ paths:
         '204':
           description: Phonebook updated
         '400':
-          $ref: '#/responses/InvalidParameters'
+          $ref: '#/responses/InvalidData'
         '404':
           description: Phonebook does not exist
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '409':
           $ref: '#/responses/DuplicatePhonebook'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     delete:
       summary: Delete an existing phonebook
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.delete`'
@@ -122,9 +122,9 @@ paths:
         '404':
           description: Phonebook does not exist
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
   /tenants/{tenant}/phonebooks/{phonebook_id}/contacts:
     get:
       summary: List all contacts for a given phonebook
@@ -146,9 +146,9 @@ paths:
           schema:
             $ref: '#/definitions/PhonebookContactList'
         '400':
-          $ref: '#/responses/InvalidParameters'
+          $ref: '#/responses/InvalidData'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     post:
       summary: Create a new contact
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.create`'
@@ -171,11 +171,11 @@ paths:
           schema:
             $ref: '#/definitions/PhonebookContact'
         '400':
-          $ref: '#/responses/InvalidParameters'
+          $ref: '#/responses/InvalidData'
         '409':
-          $ref: '#/responses/DuplicateContact'
+          $ref: '#/responses/Conflict'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
   /tenants/{tenant}/phonebooks/{phonebook_id}/contacts/import:
     post:
       summary: Import multiple contacts at once
@@ -209,9 +209,9 @@ paths:
         '400':
           description: Input could not be decoded, and no contacts were created.
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
   /tenants/{tenant}/phonebooks/{phonebook_id}/contacts/{contact_id}:
     get:
       summary: Get the attributes of a contact
@@ -231,9 +231,9 @@ paths:
         '404':
           description: The contact or the phonebook does not exist
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     put:
       summary: Modify an existing contact
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.update`'
@@ -254,15 +254,15 @@ paths:
         '204':
           description: Contact updated
         '400':
-          $ref: '#/responses/InvalidParameters'
+          $ref: '#/responses/InvalidData'
         '404':
           description: The contact or the phonebook does not exist
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '409':
-          $ref: '#/responses/DuplicateContact'
+          $ref: '#/responses/Conflict'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     delete:
       summary: Delete an existing contact
       description: '**Required ACL:** `dird.tenants.{tenant}.phonebooks.{phonebook_id}.contacts.{contact_id}.delete`'
@@ -281,18 +281,18 @@ paths:
         '404':
           description: The contact or the phonebook does not exist
           schema:
-            $ref: '#/definitions/LegacyError'
+            $ref: '#/definitions/Error'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
 responses:
   DuplicatePhonebook:
     description: This phonebook already exists
     schema:
-      $ref: '#/definitions/LegacyError'
+      $ref: '#/definitions/Error'
   InvalidTenant:
     description: The tenant is not a valid ascii alphanumeric string
     schema:
-      $ref: '#/definitions/LegacyError'
+      $ref: '#/definitions/Error'
 parameters:
   PhonebookID:
     name: phonebook_id

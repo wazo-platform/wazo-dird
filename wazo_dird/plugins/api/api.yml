@@ -63,6 +63,18 @@ responses:
     description: This contact already exists
     schema:
       $ref: '#/definitions/LegacyError'
+  InvalidData:
+    description: Invalid parameters or data
+    schema:
+      $ref: '#/definitions/Error'
+  Conflict:
+    description: The resource conflicts with an existing one
+    schema:
+      $ref: '#/definitions/Error'
+  ServiceUnavailable:
+    description: Another service is unavailable (e.g. wazo-auth, postgresql, ...)
+    schema:
+      $ref: '#/definitions/Error'
 parameters:
   ContactID:
     name: contact_id

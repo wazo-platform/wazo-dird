@@ -1,4 +1,4 @@
-# Copyright 2018-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from typing import Any
@@ -6,13 +6,13 @@ from typing import Any
 from flask import request
 
 from wazo_dird.auth import required_acl
-from wazo_dird.http import LegacyAuthResource
+from wazo_dird.http import AuthResource
 
 from .schemas import ListSchema
 from .service import BackendService
 
 
-class Backends(LegacyAuthResource):
+class Backends(AuthResource):
     def __init__(self, service: BackendService) -> None:
         self._service = service
 

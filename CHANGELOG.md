@@ -1,5 +1,18 @@
 # Changelog
 
+## 26.11
+
+* `limit=0` now returns an empty page on all list endpoints. Before,
+  `GET /0.1/phonebooks/<phonebook_uuid>/contacts`, the phonebook backend
+  contact listing and the deprecated phonebook endpoints returned all items,
+  and `GET /0.1/personal` returned a `400` error. Omit `limit` to get all
+  items.
+
+* The `/0.1/personal` endpoints, `GET /0.1/backends` and the deprecated
+  `/0.1/tenants/<tenant>/phonebooks` endpoints now return errors in the
+  standard format (`message`, `error_id`, `details`, `timestamp`). Before,
+  they returned a `reason` field.
+
 ## 26.10
 
 * `POST /0.1/backends/wazo/sources` and
