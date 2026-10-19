@@ -67,7 +67,8 @@ class Office365Service:
                 return response
             else:
                 logger.error(
-                    f'An error occured while fetching data from Microsoft {url} - {response.text}'
+                    f'An error occured while fetching data from Microsoft {url}: '
+                    f'status {response.status_code}'
                 )
                 raise UnexpectedEndpointException(
                     endpoint=url, error_code=response.status_code
@@ -149,8 +150,9 @@ def get_microsoft_access_token(
         raise MicrosoftTokenNotFoundException(user_uuid)
     except requests.exceptions.ConnectionError as e:
         logger.error(
-            'Unable to connect auth-client for the given parameters: %s, error :%s.',
-            auth_config,
+            'Unable to connect auth-client at %s:%s, error :%s.',
+            auth_config.get('host'),
+            auth_config.get('port'),
             e,
         )
         raise MicrosoftTokenNotFoundException(user_uuid)

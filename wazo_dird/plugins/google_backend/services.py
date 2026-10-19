@@ -102,8 +102,9 @@ class GoogleService:
         # Find a way to selectively turn off verification during testing only
         response = requests.get(url, headers=headers, params=params, verify=False)
         if response.status_code != 200:
-            logger.debug('Get Request Unsuccessful: %s', response.status_code)
-            logger.debug('Raw data: %s', response.text)
+            logger.debug(
+                'Google request to %s failed with status %s', url, response.status_code
+            )
             return None
 
         return response
@@ -161,8 +162,9 @@ def get_google_access_token(
         raise GoogleTokenNotFoundException(user_uuid)
     except requests.exceptions.ConnectionError as e:
         logger.error(
-            'Unable to connect auth-client for the given parameters: %s, error: %s.',
-            auth_config,
+            'Unable to connect auth-client at %s:%s, error: %s.',
+            auth_config.get('host'),
+            auth_config.get('port'),
             e,
         )
         raise GoogleTokenNotFoundException(user_uuid)

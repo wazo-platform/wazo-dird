@@ -209,9 +209,13 @@ class Service:
         self._auto_create_profile(uuid, name, display, sources)
 
     def _on_localization_edited_event(self, localization: dict[str, Any]) -> None:
-        logger.info('Localization_event received: %s', localization)
         tenant_uuid = localization['tenant_uuid']
         country = localization['country']
+        logger.info(
+            'Localization event received for tenant %s: country=%s',
+            tenant_uuid,
+            country,
+        )
         body: TenantDict = {'country': country}
         self._tenant_crud.create_or_edit(tenant_uuid, body)
 
@@ -314,7 +318,9 @@ class Service:
 
         profile_service: Any = self._controller.services.get('profile')
         try:
-            profile = profile_service.create(**body)
-            logger.info('auto created profile %s', profile)
+            profile_service.create(**body)
+            logger.info(
+                'auto created profile %s for tenant %s', body['name'], tenant_uuid
+            )
         except Exception as e:
             logger.info('auto profile creation failes %s', e)
