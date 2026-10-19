@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError, as_completed
+from time import perf_counter
 from typing import Any
 
 from wazo_dird import BaseServicePlugin, BaseSourcePlugin, helpers
@@ -13,6 +14,7 @@ from wazo_dird.plugin_manager import ServiceDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 logger = logging.getLogger(__name__)
+timing_logger = logger.getChild('timing')
 
 
 class ReverseServicePlugin(BaseServicePlugin):
@@ -76,7 +78,7 @@ class _ReverseService(helpers.BaseService):
         token: str | None = None,
     ) -> list[SourceResult | None]:
         args = args or {}
-        futures: list[Future[dict[str, SourceResult] | None]] = []
+        futures: list[Future[helpers.TimedResult[dict[str, SourceResult] | None]]] = []
         sources = self.source_from_profile(profile_config)
         logger.debug(
             'Reverse lookup for %s in sources %s',
@@ -97,10 +99,16 @@ class _ReverseService(helpers.BaseService):
 
         results: dict[str, SourceResult | None] = {exten: None for exten in extens}
         completed_sources = set()
+        backend_stats: list[helpers.BackendStat] = []
         try:
             for future in as_completed(futures, timeout=timeout):
-                completed_sources.add(getattr(future, 'name'))
-                if result := future.result():
+                name = getattr(future, 'name')
+                completed_sources.add(name)
+                result, timing = future.result()
+                backend_stats.append(
+                    helpers.BackendStat.finished(name, len(result or {}), timing)
+                )
+                if result:
                     for exten, source_result in result.items():
                         if results.get(exten) is None:
                             results[exten] = source_result
@@ -119,16 +127,28 @@ class _ReverseService(helpers.BaseService):
                 incomplete_matches,
             )
             self._cancel_pending(futures)
+        finally:
+            backend_stats.extend(
+                helpers.BackendStat.from_future(future)
+                for future in futures
+                if getattr(future, 'name') not in completed_sources
+            )
+            helpers.log_backend_stats(timing_logger, 'reverse_many', backend_stats)
         return [value for value in results.values()]
 
     def _async_reverse_many(
         self, source: BaseSourcePlugin, extens: list[str], args: dict[str, Any]
-    ) -> Future[dict[str, SourceResult] | None]:
+    ) -> Future[helpers.TimedResult[dict[str, SourceResult] | None]]:
         raise_stopper: helpers.RaiseStopper[
             dict[str, SourceResult] | None
         ] = helpers.RaiseStopper(return_on_raise=None)
         future = self._executor.submit(
-            raise_stopper.execute, source.match_all, extens, args
+            helpers.timed,
+            perf_counter(),
+            raise_stopper.execute,
+            source.match_all,
+            extens,
+            args,
         )
         setattr(future, 'name', source.name)
         return future
@@ -143,7 +163,7 @@ class _ReverseService(helpers.BaseService):
         token: str | None = None,
     ) -> SourceResult | None:
         args = args or {}
-        futures: list[Future[SourceResult | None]] = []
+        futures: list[Future[helpers.TimedResult[SourceResult | None]]] = []
         sources = self.source_from_profile(profile_config)
         logger.debug(
             'Reverse lookup for %s in sources %s',
@@ -163,10 +183,16 @@ class _ReverseService(helpers.BaseService):
         ) or 1
 
         completed_sources = set()
+        backend_stats: list[helpers.BackendStat] = []
         try:
             for future in as_completed(futures, timeout=timeout):
-                completed_sources.add(getattr(future, 'name'))
-                if result := future.result():
+                name = getattr(future, 'name')
+                completed_sources.add(name)
+                result, timing = future.result()
+                backend_stats.append(
+                    helpers.BackendStat.finished(name, 1 if result else 0, timing)
+                )
+                if result:
                     self._cancel_pending(futures)
                     return result
         except TimeoutError:
@@ -181,15 +207,27 @@ class _ReverseService(helpers.BaseService):
                 incomplete_matches,
             )
             self._cancel_pending(futures)
+        finally:
+            backend_stats.extend(
+                helpers.BackendStat.from_future(future)
+                for future in futures
+                if getattr(future, 'name') not in completed_sources
+            )
+            helpers.log_backend_stats(timing_logger, 'reverse', backend_stats)
 
     def _async_reverse(
         self, source: BaseSourcePlugin, exten: str, args: dict[str, Any]
-    ) -> Future[SourceResult | None]:
+    ) -> Future[helpers.TimedResult[SourceResult | None]]:
         raise_stopper: helpers.RaiseStopper[SourceResult | None] = helpers.RaiseStopper(
             return_on_raise=None
         )
         future = self._executor.submit(
-            raise_stopper.execute, source.first_match, exten, args
+            helpers.timed,
+            perf_counter(),
+            raise_stopper.execute,
+            source.first_match,
+            exten,
+            args,
         )
         setattr(future, 'name', source.name)
         return future
