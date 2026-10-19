@@ -36,10 +36,6 @@ class EnabledPluginsConfig(TypedDict):
     views: dict[str, bool]
 
 
-class MetricsConfig(TypedDict):
-    enabled: bool
-
-
 class ServiceDiscoveryConfig(TypedDict):
     enabled: bool
     advertise_address: Literal['auto'] | str
@@ -107,7 +103,6 @@ class Config(TypedDict, total=False):
     enabled_plugins: EnabledPluginsConfig
     log_level: str
     log_filename: str
-    metrics: MetricsConfig
     rest_api: RestAPIConfig
     services: dict[str, dict[str, Any]]
     reverse_service: ReverseServiceConfig
@@ -174,6 +169,7 @@ _DEFAULT_CONFIG: Config = {
             'graphql_view': True,
             'headers_view': True,
             'ldap_backend': True,
+            'metrics': False,
             'office365_backend': True,
             'personal_backend': True,
             'personal_view': True,
@@ -189,9 +185,6 @@ _DEFAULT_CONFIG: Config = {
     },
     'log_level': 'info',
     'log_filename': '/var/log/wazo-dird.log',
-    'metrics': {
-        'enabled': True,
-    },
     'rest_api': {
         'listen': '127.0.0.1',
         'port': _DEFAULT_HTTPS_PORT,
