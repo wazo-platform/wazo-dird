@@ -30,11 +30,9 @@
   Google account's contacts are cached, in seconds (default `300`, `0`
   disables the cache).
 
-* wazo-dird now serves Prometheus metrics itself at `GET /0.1/metrics`, on its
-  REST API port (127.0.0.1:9489). The route has no authentication and is not
-  exposed through nginx. It replaces the route added by the
-  wazo-prometheus-exporter plugin, at the same URL. Disable it with
-  `metrics.enabled: false`.
+* New endpoint `GET /0.1/metrics`: Prometheus metrics, without authentication.
+  It is served by the `metrics` view plugin, disabled by default; enable it with
+  `enabled_plugins: {views: {metrics: true}}`.
 
 ## 26.10
 

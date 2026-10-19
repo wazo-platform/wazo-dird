@@ -13,7 +13,6 @@ from flask_cors import CORS
 from flask_restful import Api
 from werkzeug.middleware.proxy_fix import ProxyFix
 from xivo import http_helpers, wsgi
-from xivo.flask.metrics import init_flask_metrics
 from xivo.http_helpers import ReverseProxied
 
 from .config import Config, RestAPIConfig
@@ -45,8 +44,6 @@ class CoreRestApi:
         app.permanent_session_lifetime = timedelta(minutes=5)
         app.config.update(global_config)
         self.load_cors()
-        if global_config['metrics']['enabled']:
-            init_flask_metrics(app, api)
         self.server: wsgi.DynamicWSGIServer | None = None
         self._stopped = threading.Event()
         self.app = app

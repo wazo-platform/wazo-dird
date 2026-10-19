@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from wazo_dird.config import Config
-from wazo_dird.http_server import CoreRestApi, api, app
+from wazo_dird.http_server import CoreRestApi
 
 
 @pytest.fixture
@@ -23,7 +23,6 @@ def rest_api():
             'private_key': None,
             'cors': {'enabled': False},
         },
-        'metrics': {'enabled': False},
     }
     return CoreRestApi(cast(Config, config))
 
@@ -48,29 +47,3 @@ def test_stop_after_run_stops_the_server(wsgi, rest_api):
     rest_api.stop()
 
     wsgi.DynamicWSGIServer.return_value.stop.assert_called_once_with()
-
-
-@patch('wazo_dird.http_server.init_flask_metrics')
-def test_metrics_enabled_instruments_the_app(init_flask_metrics):
-    config = {
-        'auth': {},
-        'rest_api': {'cors': {'enabled': False}},
-        'metrics': {'enabled': True},
-    }
-
-    CoreRestApi(cast(Config, config))
-
-    init_flask_metrics.assert_called_once_with(app, api)
-
-
-@patch('wazo_dird.http_server.init_flask_metrics')
-def test_metrics_disabled_does_not_instrument_the_app(init_flask_metrics):
-    config = {
-        'auth': {},
-        'rest_api': {'cors': {'enabled': False}},
-        'metrics': {'enabled': False},
-    }
-
-    CoreRestApi(cast(Config, config))
-
-    init_flask_metrics.assert_not_called()
