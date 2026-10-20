@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
-from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
+from wazo_dird.exception import NoSuchProfile, NoSuchProfileNameAPIException
 from wazo_dird.helpers import DisplayAwareResource, DisplayColumn
 from wazo_dird.http import AuthResource
 
@@ -35,7 +35,7 @@ class Headers(AuthResource, DisplayAwareResource):
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
             display = self.build_display(profile_config)
         except NoSuchProfile as e:
-            raise NoSuchProfileAPIException(e.profile) from e
+            raise NoSuchProfileNameAPIException(e.name) from e
         response = format_headers(display)
         return response
 

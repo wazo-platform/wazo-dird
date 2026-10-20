@@ -17,6 +17,11 @@
   endpoints now return errors in the standard format (`message`, `error_id`,
   `details`, `timestamp`). Before, they returned a `reason` field.
 
+* The `unknown-profile` error of the `/0.1/directories` endpoints and of the
+  GraphQL `contacts` field now gives the profile name in `details.name`.
+  Before, `GET /0.1/directories/<profile>/sources` and GraphQL gave it in
+  `details.uuid`.
+
 ## 26.10
 
 * `POST /0.1/backends/wazo/sources` and

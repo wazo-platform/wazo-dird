@@ -330,7 +330,11 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error,
-            has_entries(error_id='unknown-profile', message=contains_string('unknown')),
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
+            ),
         )
 
     def test_that_headers_returns_404(self):
@@ -341,7 +345,11 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error,
-            has_entries(error_id='unknown-profile', message=contains_string('unknown')),
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
+            ),
         )
 
     def test_that_favorites_returns_404(self):
@@ -352,7 +360,11 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error,
-            has_entries(error_id='unknown-profile', message=contains_string('unknown')),
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
+            ),
         )
 
     def test_that_reverse_returns_404(self):
@@ -365,7 +377,11 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error,
-            has_entries(error_id='unknown-profile', message=contains_string('unknown')),
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
+            ),
         )
 
     def test_that_personal_returns_404(self):
@@ -378,5 +394,9 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
         assert_that(result.status_code, equal_to(404))
         assert_that(
             error,
-            has_entries(error_id='unknown-profile', message=contains_string('unknown')),
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
+            ),
         )

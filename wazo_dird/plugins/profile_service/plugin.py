@@ -40,13 +40,18 @@ class _ProfileService:
             raise e
 
     def delete(self, profile_uuid: str, visible_tenants: list[str] | None) -> None:
-        self._profile_crud.delete(visible_tenants, profile_uuid)
+        try:
+            self._profile_crud.delete(visible_tenants, profile_uuid)
+        except exception.NoSuchProfile as e:
+            raise exception.NoSuchProfileAPIException(e.uuid) from e
 
     def edit(
         self, profile_uuid: str, visible_tenants: list[str] | None, **body: Any
     ) -> None:
         try:
             return self._profile_crud.edit(visible_tenants, profile_uuid, body)
+        except exception.NoSuchProfile as e:
+            raise exception.NoSuchProfileAPIException(e.uuid) from e
         except (exception.NoSuchDisplay, exception.NoSuchSource) as e:
             e.status_code = 400
             raise e
@@ -54,13 +59,16 @@ class _ProfileService:
     def get(
         self, profile_uuid: str, visible_tenants: list[str] | None
     ) -> dict[str, Any]:
-        return self._profile_crud.get(visible_tenants, profile_uuid)
+        try:
+            return self._profile_crud.get(visible_tenants, profile_uuid)
+        except exception.NoSuchProfile as e:
+            raise exception.NoSuchProfileAPIException(e.uuid) from e
 
     def get_by_name(self, tenant_uuid: str, name: str) -> dict[str, Any]:
         for profile in self._profile_crud.list_([tenant_uuid], name=name):
             return profile
 
-        raise exception.NoSuchProfile(name)
+        raise exception.NoSuchProfile(name=name)
 
     def get_sources_from_profile_name(
         self, tenant_uuid: str, profile_name: str, **list_params: Any
@@ -68,7 +76,7 @@ class _ProfileService:
         try:
             profile = self.get_by_name(tenant_uuid, profile_name)
         except exception.NoSuchProfile as e:
-            raise exception.NoSuchProfileAPIException(e.profile)
+            raise exception.NoSuchProfileNameAPIException(e.name)
         sources_by_uuid: dict[str, dict[str, Any]] = {}
         for service in profile.get('services', {}).values():
             for source in service.get('sources', []):

@@ -246,7 +246,10 @@ class TestGraphQL(BaseDirdIntegrationTest):
                     {
                         'path': ['me', 'contacts'],
                         'message': contains_string('profile'),
-                        'extensions': has_entry('error_id', 'unknown-profile'),
+                        'extensions': has_entries(
+                            error_id='unknown-profile',
+                            details=has_entries(name='wrong'),
+                        ),
                     }
                 )
             ),
@@ -278,7 +281,10 @@ class TestGraphQL(BaseDirdIntegrationTest):
                     {
                         'path': ['user', 'contacts'],
                         'message': contains_string('profile'),
-                        'extensions': has_entry('error_id', 'unknown-profile'),
+                        'extensions': has_entries(
+                            error_id='unknown-profile',
+                            details=has_entries(name='wrong'),
+                        ),
                     }
                 )
             ),

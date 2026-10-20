@@ -17,7 +17,7 @@ from wazo_dird.exception import (
     NoSuchFavoriteAPIException,
     NoSuchFavoriteSource,
     NoSuchProfile,
-    NoSuchProfileAPIException,
+    NoSuchProfileNameAPIException,
     UnconfiguredFavoritesAPIException,
 )
 from wazo_dird.helpers import DisplayAwareResource, DisplayColumn, ProfileConfig
@@ -75,7 +75,7 @@ class Lookup(AuthResource, DisplayAwareResource):
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
             display = self.build_display(profile_config)
         except NoSuchProfile as e:
-            raise NoSuchProfileAPIException(e.profile) from e
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         token = request.headers['X-Auth-Token']
         user_uuid = get_user_uuid()
@@ -125,7 +125,7 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
             profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
             display = self.build_display(profile_config)
         except NoSuchProfile as e:
-            raise NoSuchProfileAPIException(e.profile) from e
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         token = request.headers['X-Auth-Token']
 
@@ -166,7 +166,7 @@ class Reverse(AuthResource):
         try:
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
         except NoSuchProfile as e:
-            raise NoSuchProfileAPIException(e.profile) from e
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         logger.info('Reverse for %s with profile %s', exten, profile)
 
@@ -212,7 +212,7 @@ class FavoritesRead(AuthResource, DisplayAwareResource):
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
             display = self.build_display(profile_config)
         except NoSuchProfile as e:
-            raise NoSuchProfileAPIException(e.profile) from e
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         token = request.headers.get('X-Auth-Token', '')
 
@@ -299,7 +299,7 @@ class Personal(AuthResource, DisplayAwareResource):
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
             display = self.build_display(profile_config)
         except NoSuchProfile as e:
-            raise NoSuchProfileAPIException(e.profile) from e
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         user_uuid = get_user_uuid()
         raw_results = self.personal_service.list_contacts(tenant.uuid, user_uuid)

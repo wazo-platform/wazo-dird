@@ -9,7 +9,7 @@ from graphql import Undefined
 from xivo.rest_api_helpers import APIException
 
 from wazo_dird.auth import get_user_uuid
-from wazo_dird.exception import NoSuchProfile, NoSuchProfileAPIException
+from wazo_dird.exception import NoSuchProfile, NoSuchProfileNameAPIException
 
 from . import schema
 from .exceptions import graphql_error_from_api_exception
@@ -78,7 +78,7 @@ class Resolver:
         token_id = info.context['token_id']
         profile = args.get('profile')
         if profile is None or profile is Undefined:
-            raise graphql_error_from_api_exception(NoSuchProfileAPIException(None))
+            raise graphql_error_from_api_exception(NoSuchProfileNameAPIException(None))
 
         try:
             profile_config = cast(
@@ -86,7 +86,9 @@ class Resolver:
                 self.profile_service.get_by_name(tenant_uuid, profile),
             )
         except NoSuchProfile as e:
-            raise graphql_error_from_api_exception(NoSuchProfileAPIException(e.profile))
+            raise graphql_error_from_api_exception(
+                NoSuchProfileNameAPIException(e.name)
+            )
 
         extens = args.get('extens')
         if extens and extens is not Undefined:

@@ -74,8 +74,10 @@ class PhonebookContactImportAPIError(APIException):
 
 
 class NoSuchProfile(Exception):
-    def __init__(self, profile: Any) -> None:
-        self.profile = profile
+    def __init__(self, name: str | None = None, uuid: Any = None) -> None:
+        self.name = name
+        self.uuid = uuid
+        profile = name if uuid is None else uuid
         super().__init__(f'The profile `{profile}` does not exist')
 
 
@@ -84,6 +86,13 @@ class NoSuchProfileAPIException(APIException):
         profile_uuid = str(uuid)
         msg = f'No such profile: "{profile_uuid}"'
         details = {'uuid': profile_uuid}
+        super().__init__(404, msg, 'unknown-profile', details, 'profiles')
+
+
+class NoSuchProfileNameAPIException(APIException):
+    def __init__(self, name: str | None) -> None:
+        msg = f'No such profile: "{name}"'
+        details = {'name': name}
         super().__init__(404, msg, 'unknown-profile', details, 'profiles')
 
 
