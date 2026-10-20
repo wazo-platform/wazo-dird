@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from wazo_dird.http import AuthResource
 
 from .exceptions import GoogleTokenNotFoundException
 from .schemas import contact_list_schema, list_schema, source_list_schema, source_schema
-from .services import GoogleService, get_google_access_token
+from .services import GoogleService, get_google_access_token, people_api_url
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.source_service.plugin import _SourceService
@@ -35,7 +35,7 @@ class GoogleContactList(AuthResource):
         self.auth_config = auth_config
         self.config = config
         self.source_service = source_service
-        self.google = GoogleService()
+        self.google = GoogleService(people_api_url(config))
 
     @required_acl('dird.backends.google.sources.{source_uuid}.contacts.read')
     def get(self, source_uuid: str) -> tuple[dict[str, Any], int]:

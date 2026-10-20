@@ -4,32 +4,44 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from typing import Any
 
 import requests
-from wazo_auth_client import Client as Auth
 
 from wazo_dird.plugin_helpers.sorting import sort_contacts
 
-from .exceptions import GoogleTokenNotFoundException
-
 logger = logging.getLogger(__name__)
+
+DEFAULT_PEOPLE_API_URL = 'https://people.googleapis.com'
+
+
+def people_api_url(main_config: Mapping[str, Any]) -> str:
+    """Base URL of the Google People API: a mock of it in the load tests"""
+    google_config = main_config.get('google_backend') or {}
+    url = google_config.get('people_api_url') or DEFAULT_PEOPLE_API_URL
+    if not isinstance(url, str):
+        logger.warning(
+            'Invalid google_backend.people_api_url %r, using %s',
+            url,
+            DEFAULT_PEOPLE_API_URL,
+        )
+        return DEFAULT_PEOPLE_API_URL
+    return url.rstrip('/')
 
 
 class GoogleService:
     USER_AGENT = 'wazo_ua/1.0'
 
-    people_url = 'https://people.googleapis.com/v1/people/me/connections'
-    search_url = 'https://people.googleapis.com/v1/people:searchContacts'
-    batch_url = 'https://people.googleapis.com/v1/people:batchGet'
-
     person_fields = (
         'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
     )
 
-    def __init__(self) -> None:
+    def __init__(self, people_api_url: str = DEFAULT_PEOPLE_API_URL) -> None:
         self.formatter = ContactFormatter()
+        self.people_url = f'{people_api_url}/v1/people/me/connections'
+        self.search_url = f'{people_api_url}/v1/people:searchContacts'
+        self.batch_url = f'{people_api_url}/v1/people:batchGet'
 
     def get_contacts_with_term(
         self, google_token: str, term: str
@@ -140,35 +152,9 @@ class GoogleService:
 def get_google_access_token(
     user_uuid: str, wazo_token: str, **auth_config: Any
 ) -> str | None:
-    try:
-        auth = Auth(token=wazo_token, **auth_config)
-        access_token: str | None = auth.external.get('google', user_uuid).get(
-            'access_token'
-        )
-        return access_token
-    except requests.HTTPError as e:
-        if e.response.status_code == 404:
-            if 'unknown-external-auth-type' in e.response.text:
-                logger.debug('The "google" authentication type has not been configured')
-                raise GoogleTokenNotFoundException(user_uuid)
-            elif 'unknown-external-auth' in e.response.text:
-                logger.debug(
-                    'user %s has no "google" authentication configured', user_uuid
-                )
-                raise GoogleTokenNotFoundException(user_uuid)
-
-        logger.error('Google token could not be fetched from wazo-auth, error: %s', e)
-        raise GoogleTokenNotFoundException(user_uuid)
-    except requests.exceptions.ConnectionError as e:
-        logger.error(
-            'Unable to connect auth-client at %s:%s, error: %s.',
-            auth_config.get('host'),
-            auth_config.get('port'),
-            e,
-        )
-        raise GoogleTokenNotFoundException(user_uuid)
-    except requests.RequestException as e:
-        logger.error('Error occurred while connecting to wazo-auth, error: %s', e)
+    # DO NOT MERGE: the load tests give every user a Google account whose
+    # token the Google People API mock accepts, without asking wazo-auth
+    return f'load-test-{user_uuid}'
 
 
 class ContactFormatter:

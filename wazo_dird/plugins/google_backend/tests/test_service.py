@@ -1,12 +1,14 @@
-# Copyright 2019-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
+from unittest.mock import Mock, patch
 
 from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
+    equal_to,
     has_entries,
     has_items,
 )
@@ -208,3 +210,77 @@ class TestGoogleContactFormatter(unittest.TestCase):
             formatted_contact,
             has_entries(note='Notes user 02'),
         )
+
+
+class TestPeopleApiUrl(unittest.TestCase):
+    def test_default(self):
+        assert_that(
+            services.people_api_url({}), equal_to(services.DEFAULT_PEOPLE_API_URL)
+        )
+
+    def test_configured(self):
+        config = {'google_backend': {'people_api_url': 'http://localhost:8090/'}}
+
+        assert_that(services.people_api_url(config), equal_to('http://localhost:8090'))
+
+    def test_invalid_values_use_the_default(self):
+        for url in (None, '', 8090):
+            config = {'google_backend': {'people_api_url': url}}
+
+            assert_that(
+                services.people_api_url(config),
+                equal_to(services.DEFAULT_PEOPLE_API_URL),
+            )
+
+    def test_default_urls(self):
+        service = services.GoogleService()
+
+        assert_that(
+            service.people_url,
+            equal_to('https://people.googleapis.com/v1/people/me/connections'),
+        )
+        assert_that(
+            service.search_url,
+            equal_to('https://people.googleapis.com/v1/people:searchContacts'),
+        )
+        assert_that(
+            service.batch_url,
+            equal_to('https://people.googleapis.com/v1/people:batchGet'),
+        )
+
+    def test_the_urls_use_the_configured_api(self):
+        service = services.GoogleService(people_api_url='http://localhost:8090')
+
+        assert_that(
+            service.people_url,
+            equal_to('http://localhost:8090/v1/people/me/connections'),
+        )
+        assert_that(
+            service.search_url,
+            equal_to('http://localhost:8090/v1/people:searchContacts'),
+        )
+        assert_that(
+            service.batch_url, equal_to('http://localhost:8090/v1/people:batchGet')
+        )
+
+    @patch.object(services.requests, 'get')
+    def test_the_contacts_are_fetched_from_the_configured_api(self, get):
+        get.return_value = Mock(status_code=200, json=Mock(return_value={}), text='')
+        service = services.GoogleService(people_api_url='http://localhost:8090')
+
+        list(service.get_contacts_with_term('token', 'mario'))
+
+        assert_that(
+            {call.args[0] for call in get.call_args_list},
+            equal_to({'http://localhost:8090/v1/people:searchContacts'}),
+        )
+
+
+class TestLoadTestGoogleAccessToken(unittest.TestCase):
+    # DO NOT MERGE: goes with the load-test token stub of get_google_access_token
+    @patch.object(services, 'Auth', create=True)
+    def test_every_user_gets_a_token_without_asking_wazo_auth(self, auth):
+        token = services.get_google_access_token('user-uuid', 'wazo-token', host='x')
+
+        assert_that(token, equal_to('load-test-user-uuid'))
+        auth.assert_not_called()
