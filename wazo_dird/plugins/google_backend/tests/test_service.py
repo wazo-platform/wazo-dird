@@ -234,6 +234,10 @@ def _response(body, status_code=200, chunks=None):
     return response
 
 
+def _google_error(reason):
+    return {'error': {'code': 403, 'details': [{'reason': reason}]}}
+
+
 @patch('wazo_dird.plugins.google_backend.services.requests.get')
 class TestGoogleServiceCache(unittest.TestCase):
     contacts = {'connections': [_person('1', 'Mario'), _person('2', 'Luigi')]}
@@ -367,14 +371,28 @@ class TestGoogleServiceCache(unittest.TestCase):
         assert_that(raised.exception.details, equal_to({}))
 
     def test_rejected_token_is_not_an_outage(self, get):
-        for status_code in (401, 403):
-            get.return_value = _response({}, status_code)
+        responses = [
+            _response({}, 401),
+            _response(_google_error(services.TOKEN_SCOPE_REASON), 403),
+        ]
+        for response in responses:
+            get.return_value = response
 
             with self.assertRaises(GoogleTokenRejectedException) as raised:
                 self.service.get_all_contacts('token')
 
             assert_that(raised.exception.status_code, equal_to(403))
             assert_that(raised.exception.details, equal_to({}))
+
+    def test_project_errors_are_an_outage(self, get):
+        bodies: list[object] = [_google_error('SERVICE_DISABLED'), {}, None]
+        for body in bodies:
+            get.return_value = _response(body, 403)
+
+            assert_that(
+                calling(self.service.get_all_contacts).with_args('token'),
+                raises(GoogleUnavailableException),
+            )
 
     def test_body_that_is_not_an_object_raises_unavailable(self, get):
         bodies: list[object] = [None, [], 'contacts']

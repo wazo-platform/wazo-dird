@@ -34,6 +34,8 @@ DOWNLOAD_TIMEOUT = 60
 # Leading characters of the hashed token shown in logs
 KEY_LOG_LENGTH = 12
 READ_CHUNK_SIZE = 64 * 1024
+# The only 403 caused by the user's token; the others are the project's
+TOKEN_SCOPE_REASON = 'ACCESS_TOKEN_SCOPE_INSUFFICIENT'
 
 Contacts = list[dict[str, Any]]
 
@@ -308,7 +310,9 @@ class GoogleService:
         except ValueError:
             body = None
 
-        if status_code in (401, 403):
+        if status_code == 401 or (
+            status_code == 403 and _error_reasons(body) == {TOKEN_SCOPE_REASON}
+        ):
             # The user's token expired, was revoked or lacks a scope: not a
             # Google outage, and lookups retry on every keystroke
             logger.debug(
@@ -319,7 +323,12 @@ class GoogleService:
             raise GoogleTokenRejectedException()
 
         if status_code != 200:
-            logger.error('Google request to %s failed with status %s', url, status_code)
+            logger.error(
+                'Google request to %s failed with status %s, reasons: %s',
+                url,
+                status_code,
+                ', '.join(sorted(_error_reasons(body))) or 'unknown',
+            )
             raise GoogleUnavailableException()
 
         return body
@@ -367,6 +376,19 @@ class GoogleService:
             'Accept': 'application/json',
             'GData-Version': '3.0',
         }
+
+
+def _error_reasons(body: Any) -> set[str]:
+    """The reasons of a Google error body, such as SERVICE_DISABLED"""
+    error = body.get('error') if isinstance(body, dict) else None
+    details = error.get('details') if isinstance(error, dict) else None
+    if not isinstance(details, list):
+        return set()
+    return {
+        detail['reason']
+        for detail in details
+        if isinstance(detail, dict) and isinstance(detail.get('reason'), str)
+    }
 
 
 def column_texts(value: Any) -> Iterator[str]:
