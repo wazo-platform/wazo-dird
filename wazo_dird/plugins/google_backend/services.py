@@ -181,19 +181,20 @@ class ContactsCache:
         return hashlib.sha256(google_token.encode()).hexdigest()
 
 
-_shared_caches: dict[int, ContactsCache] = {}
-_shared_caches_lock = threading.Lock()
+_shared_cache: ContactsCache | None = None
+_shared_cache_lock = threading.Lock()
 
 
 def shared_contacts_cache(main_config: Mapping[str, Any]) -> ContactsCache | None:
-    """Return the cache shared by every Google source and the contacts view,
-    so all requests made with the same access token reuse one entry.
-    Return None when the cache is disabled."""
+    """The cache of every Google source and the contacts view; None if disabled"""
+    global _shared_cache
     ttl = contacts_cache_ttl(main_config)
     if ttl == 0:
         return None
-    with _shared_caches_lock:
-        return _shared_caches.setdefault(ttl, ContactsCache(ttl))
+    with _shared_cache_lock:
+        if _shared_cache is None:
+            _shared_cache = ContactsCache(ttl)
+        return _shared_cache
 
 
 class GoogleService:
