@@ -14,10 +14,17 @@ from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 from . import services
-from .exceptions import GoogleTokenException, GoogleTokenNotFoundException
+from .exceptions import (
+    GoogleTokenException,
+    GoogleTokenNotFoundException,
+    GoogleUnavailableException,
+)
 from .http import GoogleContactList, GoogleItem, GoogleList
 
 logger = logging.getLogger(__name__)
+
+# The service logs an outage: a lookup then finds no Google contact
+LOOKUP_ERRORS = (GoogleTokenException, GoogleUnavailableException)
 
 
 class GoogleViewPlugin(BaseBackendView):
@@ -92,7 +99,7 @@ class GooglePlugin(BaseSourcePlugin):
         try:
             google_token = self._get_google_token(**token_args)
             contacts = self.google.search(google_token, term, self._searched_columns)
-        except GoogleTokenException:
+        except LOOKUP_ERRORS:
             return []
         return [self._SourceResult(c) for c in contacts]
 
@@ -102,7 +109,7 @@ class GooglePlugin(BaseSourcePlugin):
         try:
             google_token = self._get_google_token(**(args or {}))
             contacts = self.google.get_all_contacts(google_token)
-        except GoogleTokenException:
+        except LOOKUP_ERRORS:
             return []
         wanted_ids = set(unique_ids)
         filtered_contacts = [c for c in contacts if c[self.unique_column] in wanted_ids]
@@ -122,8 +129,8 @@ class GooglePlugin(BaseSourcePlugin):
         try:
             google_token = self._get_google_token(**(args or {}))
             contacts = self.google.get_all_contacts(google_token)
-        except GoogleTokenException:
-            logger.debug('no usable google token, aborting first_match')
+        except LOOKUP_ERRORS:
+            logger.debug('no Google contacts, aborting first_match')
             return None
         lowered_term = term.lower()
 
@@ -144,8 +151,8 @@ class GooglePlugin(BaseSourcePlugin):
         try:
             google_token = self._get_google_token(**(args or {}))
             contacts = self.google.get_all_contacts(google_token)
-        except GoogleTokenException:
-            logger.debug('no usable google token, aborting match_all')
+        except LOOKUP_ERRORS:
+            logger.debug('no Google contacts, aborting match_all')
             return {}
         terms_by_lowered: dict[str, builtins.list[str]] = {}
         for term in terms:
