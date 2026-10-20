@@ -51,7 +51,9 @@ class CSVPlugin(BaseSourcePlugin):
 
     def load(self, args: SourcePluginDependencies) -> None:
         if 'config' not in args:
-            logger.warning('Missing config in startup arguments: %s', args)
+            logger.warning(
+                'Missing config in startup arguments (keys: %s)', sorted(args)
+            )
 
         self._config = cast('dict[str, Any]', args.get('config', {}))
         self._name = self._config.get('name', '')
@@ -125,7 +127,9 @@ class CSVPlugin(BaseSourcePlugin):
                     csvreader = csv.reader(f, delimiter=delimiter)
                     keys = [key for key in next(csvreader)]
                     self._content = [self._row_to_dict(keys, row) for row in csvreader]
-                    logger.debug('Loaded with %s', self._content)
+                    logger.debug(
+                        'Loaded %d entries from %s', len(self._content), filename
+                    )
                 self._csv_last_modification_time = tmp_csv_file_last_modification_date
             except OSError:
                 logger.exception('Could not load CSV file content')
@@ -143,7 +147,6 @@ class CSVPlugin(BaseSourcePlugin):
     def _low_case_match_entry(
         self, term: str, columns: list_t[str], entry: dict[str, Any]
     ) -> bool:
-        logger.debug('Looking for %r in %s %s', term, entry, columns)
         lowered_values = [value.lower() for value in self._entry_values(columns, entry)]
         for value in lowered_values:
             if term in value:

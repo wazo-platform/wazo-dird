@@ -149,8 +149,9 @@ def get_microsoft_access_token(
         raise MicrosoftTokenNotFoundException(user_uuid)
     except requests.exceptions.ConnectionError as e:
         logger.error(
-            'Unable to connect auth-client for the given parameters: %s, error :%s.',
-            auth_config,
+            'Unable to connect auth-client at %s:%s, error :%s.',
+            auth_config.get('host'),
+            auth_config.get('port'),
             e,
         )
         raise MicrosoftTokenNotFoundException(user_uuid)

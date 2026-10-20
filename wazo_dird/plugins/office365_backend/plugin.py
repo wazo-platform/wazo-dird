@@ -83,7 +83,6 @@ class Office365Plugin(BaseSourcePlugin):
             return []
 
         updated_contacts = self._update_contact_fields(contacts)
-        logger.debug("All contacts: %s", updated_contacts)
         lowered_term = term.lower()
 
         def match_fn(contact: dict[str, Any]) -> bool:
@@ -94,7 +93,11 @@ class Office365Plugin(BaseSourcePlugin):
             return False
 
         filtered_contacts = [c for c in updated_contacts if match_fn(c)]
-        logger.debug("Filtered contacts: %s", filtered_contacts)
+        logger.debug(
+            'Matched %d of %d Microsoft contacts',
+            len(filtered_contacts),
+            len(updated_contacts),
+        )
 
         # Note(achohra): We need to make sure that `givenName` key/value exists to avoid TypeError when sorting
 

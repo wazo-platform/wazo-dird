@@ -99,7 +99,7 @@ class PersonalBackend(BaseSourcePlugin):
     def list(
         self, source_entry_ids: builtins.list[str], args: dict[str, Any] | None
     ) -> builtins.list[SourceResult]:
-        logger.debug('Listing personal contacts: %s', source_entry_ids)
+        logger.debug('Listing %d personal contacts', len(source_entry_ids))
         assert args is not None
         user_uuid = args['user_uuid']
         matching_contacts = self._search_engine.list_personal_contacts(

@@ -95,23 +95,18 @@ class WazoUserPlugin(BaseSourcePlugin):
 
     def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         clean_term = unidecode(term.lower())
-        entries = self._fetch_entries(term)
+        entries = list(self._fetch_entries(term))
 
         def match_fn(entry: SourceResult) -> bool:
-            for column in self._searched_columns:
-                column_value = entry.fields.get(column) or ''
-                clean_column_value = unidecode(str(column_value).lower())
-                logger.debug(
-                    'entry\'s cleaned value for search column %s: %r',
-                    column,
-                    clean_column_value,
-                )
+            raw_values = map(entry.fields.get, self._searched_columns)
+            clean_values = (unidecode(str(value or '').lower()) for value in raw_values)
+            return any(clean_term in value for value in clean_values)
 
-                if clean_term in clean_column_value:
-                    return True
-            return False
-
-        return [entry for entry in entries if match_fn(entry)]
+        matches = list(filter(match_fn, entries))
+        logger.debug(
+            'Fetched %d entries, %d match the term', len(entries), len(matches)
+        )
+        return matches
 
     def first_match(
         self, term: str, args: dict[str, Any] | None = None
@@ -121,7 +116,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         for column in self._first_matched_columns:
             match_ = self._fetch_exact_matches(column, [term]).get(term)
             if match_ is not None:
-                logger.debug('Found a match: %s', match_)
+                logger.debug('Found a match for "%s" on column %s', term, column)
                 return match_
 
         logger.debug('Found no match')

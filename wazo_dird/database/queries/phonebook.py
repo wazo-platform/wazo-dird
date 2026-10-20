@@ -197,16 +197,19 @@ class PhonebookContactCRUD(BaseDAO):
                     good.append(contact)
                 except DuplicatedContactException:
                     logger.debug(
-                        'Ignoring duplicate contact entry (index=%d) in phonebook %s: %s',
+                        'Ignoring duplicate contact entry (index=%d, hash=%s) '
+                        'in phonebook %s',
                         i,
+                        compute_contact_hash(contact_body),
                         phonebook_key,
-                        contact_body,
                     )
                     continue
                 except ContactCreationError as ex:
                     logger.debug(
-                        'Failed to create contact %s in phonebook %s: %s <: %s',
-                        contact_body,
+                        'Failed to create contact (index=%d, hash=%s) '
+                        'in phonebook %s: %s',
+                        i,
+                        compute_contact_hash(contact_body),
                         phonebook_key,
                         str(ex),
                         stack_info=True,
