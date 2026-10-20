@@ -39,7 +39,8 @@ class GoogleViewPlugin(BaseBackendView):
         config = dependencies['config']
         auth_config = config['auth']
         source_service = dependencies['services']['source']
-        args = (auth_config, config, source_service)
+        google = services.GoogleService(services.shared_contacts_cache(config))
+        args = (auth_config, source_service, google)
 
         api.add_resource(
             self.contact_list_resource,

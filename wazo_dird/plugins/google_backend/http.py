@@ -21,7 +21,7 @@ from .schemas import (
     source_list_schema,
     source_schema,
 )
-from .services import GoogleService, get_google_access_token, shared_contacts_cache
+from .services import GoogleService, get_google_access_token
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.source_service.plugin import _SourceService
@@ -35,13 +35,12 @@ class GoogleContactList(AuthResource):
     def __init__(
         self,
         auth_config: AuthConfig,
-        config: dict[str, Any],
         source_service: _SourceService,
+        google: GoogleService,
     ) -> None:
         self.auth_config = auth_config
-        self.config = config
         self.source_service = source_service
-        self.google = GoogleService(shared_contacts_cache(config))
+        self.google = google
 
     @required_acl('dird.backends.google.sources.{source_uuid}.contacts.read')
     def get(self, source_uuid: str) -> tuple[dict[str, Any], int]:
