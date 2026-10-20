@@ -67,8 +67,7 @@ class Office365Service:
                 return response
             else:
                 logger.error(
-                    f'An error occured while fetching data from Microsoft {url}: '
-                    f'status {response.status_code}'
+                    f'An error occured while fetching data from Microsoft {url} - {response.text}'
                 )
                 raise UnexpectedEndpointException(
                     endpoint=url, error_code=response.status_code

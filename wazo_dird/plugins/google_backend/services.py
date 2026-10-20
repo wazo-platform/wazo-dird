@@ -102,9 +102,8 @@ class GoogleService:
         # Find a way to selectively turn off verification during testing only
         response = requests.get(url, headers=headers, params=params, verify=False)
         if response.status_code != 200:
-            logger.debug(
-                'Google request to %s failed with status %s', url, response.status_code
-            )
+            logger.debug('Get Request Unsuccessful: %s', response.status_code)
+            logger.debug('Raw data: %s', response.text)
             return None
 
         return response
