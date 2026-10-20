@@ -3,16 +3,9 @@
 
 from __future__ import annotations
 
-from time import time
 from typing import Any
 
 from xivo.rest_api_helpers import APIException
-
-
-class OldAPIException(Exception):
-    def __init__(self, status_code: int, body: dict[str, Any]) -> None:
-        self.status_code = status_code
-        self.body = body
 
 
 class DatabaseServiceUnavailable(Exception):
@@ -80,16 +73,12 @@ class PhonebookContactImportAPIError(APIException):
         )
 
 
-class NoSuchProfile(OldAPIException):
-    def __init__(self, profile: Any) -> None:
-        self.profile = profile
-        status_code = 404
-        body: dict[str, Any] = {
-            'reason': [f'The profile `{profile}` does not exist'],
-            'timestamp': [time()],
-            'status_code': status_code,
-        }
-        super().__init__(status_code, body)
+class NoSuchProfile(Exception):
+    def __init__(self, name: str | None = None, uuid: Any = None) -> None:
+        self.name = name
+        self.uuid = uuid
+        profile = name if uuid is None else uuid
+        super().__init__(f'The profile `{profile}` does not exist')
 
 
 class NoSuchProfileAPIException(APIException):
@@ -100,15 +89,11 @@ class NoSuchProfileAPIException(APIException):
         super().__init__(404, msg, 'unknown-profile', details, 'profiles')
 
 
-class NoSuchUser(OldAPIException):
-    def __init__(self, user_uuid: Any) -> None:
-        status_code = 404
-        body: dict[str, Any] = {
-            'reason': [f'The user `{user_uuid}` does not exist'],
-            'timestamp': [time()],
-            'status_code': status_code,
-        }
-        super().__init__(status_code, body)
+class NoSuchProfileNameAPIException(APIException):
+    def __init__(self, name: str | None) -> None:
+        msg = f'No such profile: "{name}"'
+        details = {'name': name}
+        super().__init__(404, msg, 'unknown-profile', details, 'profiles')
 
 
 class NoSuchContact(ValueError):
@@ -174,6 +159,34 @@ class ContactUpdateError(Exception):
 
 class DuplicatedFavoriteException(Exception):
     pass
+
+
+class DuplicatedFavoriteAPIException(APIException):
+    def __init__(self) -> None:
+        msg = 'Adding this favorite would create a duplicate'
+        details = {'favorite': {'constraint_id': 'unique', 'message': msg}}
+        super().__init__(409, 'Conflict detected', 'conflict', details, 'favorites')
+
+
+class NoSuchFavoriteAPIException(APIException):
+    def __init__(self, source_name: str, contact_id: str) -> None:
+        msg = f'No such favorite: "{source_name}/{contact_id}"'
+        details = {'source': source_name, 'contact_id': contact_id}
+        super().__init__(404, msg, 'unknown-favorite', details, 'favorites')
+
+
+class NoSuchFavoriteSource(APIException):
+    def __init__(self, source_name: str) -> None:
+        msg = f'No such source: "{source_name}"'
+        details = {'name': source_name}
+        super().__init__(404, msg, 'unknown-source', details, 'favorites')
+
+
+class UnconfiguredFavoritesAPIException(APIException):
+    def __init__(self, profile_name: str) -> None:
+        msg = f'Favorites are not configured for profile: "{profile_name}"'
+        details = {'name': profile_name}
+        super().__init__(404, msg, 'unconfigured-favorites', details, 'favorites')
 
 
 class DuplicatedPhonebookException(Exception):

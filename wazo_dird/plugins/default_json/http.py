@@ -9,23 +9,22 @@ from typing import TYPE_CHECKING, Any, cast
 
 from flask import request
 from flask_restful import reqparse
-from requests.exceptions import HTTPError
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import get_user_uuid, required_acl
 from wazo_dird.exception import (
+    DuplicatedFavoriteAPIException,
+    NoSuchFavoriteAPIException,
+    NoSuchFavoriteSource,
     NoSuchProfile,
-    NoSuchProfileAPIException,
-    NoSuchUser,
-    OldAPIException,
+    NoSuchProfileNameAPIException,
+    UnconfiguredFavoritesAPIException,
 )
 from wazo_dird.helpers import DisplayAwareResource, DisplayColumn, ProfileConfig
-from wazo_dird.http import AuthResource, LegacyAuthResource
+from wazo_dird.http import AuthResource
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 if TYPE_CHECKING:
-    from wazo_auth_client import Client as AuthClient
-
     from wazo_dird.plugins.display_service.plugin import _DisplayService
     from wazo_dird.plugins.favorites_service.plugin import _FavoritesService
     from wazo_dird.plugins.lookup_service.plugin import _LookupService
@@ -44,19 +43,12 @@ parser_reverse = reqparse.RequestParser()
 parser_reverse.add_argument('exten', type=str, required=True, location='args')
 
 
-def _error(
-    code: int, msg: str, level: int = logging.ERROR
-) -> tuple[dict[str, Any], int]:
-    logger.log(level, msg)
-    return {'reason': [msg], 'timestamp': [time()], 'status_code': code}, code
-
-
 class DisabledFavoriteService:
     def favorite_ids(self, profile: dict[str, Any], user_uuid: str) -> list[Any]:
         return []
 
 
-class Lookup(LegacyAuthResource, DisplayAwareResource):
+class Lookup(AuthResource, DisplayAwareResource):
     def __init__(
         self,
         lookup_service: _LookupService,
@@ -80,8 +72,8 @@ class Lookup(LegacyAuthResource, DisplayAwareResource):
         try:
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
             display = self.build_display(profile_config)
-        except OldAPIException as e:
-            return e.body, e.status_code
+        except NoSuchProfile as e:
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         token = request.headers['X-Auth-Token']
         user_uuid = get_user_uuid()
@@ -111,13 +103,11 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
         favorite_service: _FavoritesService,
         display_service: _DisplayService,
         profile_service: _ProfileService,
-        auth_client: AuthClient,
     ) -> None:
         self.lookup_service = lookup_service
         self.favorite_service = favorite_service
         self.display_service = display_service
         self.profile_service = profile_service
-        self.auth_client = auth_client
 
     @required_acl('dird.directories.lookup.{profile}.{user_uuid}.read')
     def get(self, profile: str, user_uuid: str) -> dict[str, Any]:
@@ -131,7 +121,7 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
             profile_config = self.profile_service.get_by_name(tenant_uuid, profile)
             display = self.build_display(profile_config)
         except NoSuchProfile as e:
-            raise NoSuchProfileAPIException(e.profile)
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         token = request.headers['X-Auth-Token']
 
@@ -152,19 +142,8 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
 
         return response
 
-    def _get_user_tenant_uuid(self, user_uuid: str) -> str:
-        try:
-            tenant_uuid: str = self.auth_client.users.get(user_uuid)['tenant_uuid']
-            return tenant_uuid
-        except HTTPError as e:
-            response = getattr(e, 'response', None)
-            status_code = getattr(response, 'status_code', None)
-            if status_code == 404:
-                raise NoSuchUser(user_uuid)
-            raise
 
-
-class Reverse(LegacyAuthResource):
+class Reverse(AuthResource):
     def __init__(
         self, reverse_service: _ReverseService, profile_service: _ProfileService
     ) -> None:
@@ -182,8 +161,8 @@ class Reverse(LegacyAuthResource):
         tenant = Tenant.autodetect()
         try:
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
-        except OldAPIException as e:
-            return e.body, e.status_code
+        except NoSuchProfile as e:
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         logger.info('Reverse for %s with profile %s', exten, profile)
 
@@ -210,7 +189,7 @@ class Reverse(LegacyAuthResource):
         return response
 
 
-class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
+class FavoritesRead(AuthResource, DisplayAwareResource):
     def __init__(
         self,
         favorites_service: _FavoritesService,
@@ -228,8 +207,8 @@ class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
         try:
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
             display = self.build_display(profile_config)
-        except OldAPIException as e:
-            return e.body, e.status_code
+        except NoSuchProfile as e:
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         token = request.headers.get('X-Auth-Token', '')
 
@@ -240,13 +219,13 @@ class FavoritesRead(LegacyAuthResource, DisplayAwareResource):
                 token,
             )
         except self.favorites_service.NoSuchProfileException as e:
-            return _error(404, str(e))
+            raise UnconfiguredFavoritesAPIException(profile) from e
 
         formatter = _FavoriteResultFormatter(display)
         return formatter.format_results(raw_results)
 
 
-class FavoritesWrite(LegacyAuthResource):
+class FavoritesWrite(AuthResource):
     def __init__(self, favorites_service: _FavoritesService) -> None:
         self.favorites_service = favorites_service
 
@@ -259,10 +238,10 @@ class FavoritesWrite(LegacyAuthResource):
             self.favorites_service.new_favorite(
                 tenant.uuid, directory, contact, get_user_uuid()
             )
-        except self.favorites_service.DuplicatedFavoriteException:
-            return _error(409, 'Adding this favorite would create a duplicate')
+        except self.favorites_service.DuplicatedFavoriteException as e:
+            raise DuplicatedFavoriteAPIException() from e
         except self.favorites_service.NoSuchSourceException as e:
-            return _error(404, str(e))
+            raise NoSuchFavoriteSource(directory) from e
         return '', 204
 
     @required_acl('dird.directories.favorites.{directory}.{contact}.delete')
@@ -275,13 +254,23 @@ class FavoritesWrite(LegacyAuthResource):
                 tenant.uuid, directory, contact, get_user_uuid()
             )
             return '', 204
-        except self.favorites_service.NoSuchFavoriteException as e:
-            return _error(404, str(e), level=logging.INFO)
+        except self.favorites_service.NoSuchFavoriteException:
+            # an expected race with stale clients: log at info, not as an error
+            error = NoSuchFavoriteAPIException(directory, contact)
+            logger.info('%s: %s', error.message, error.details)
+            body = {
+                'message': error.message,
+                'error_id': error.id_,
+                'details': error.details,
+                'timestamp': time(),
+                'resource': error.resource,
+            }
+            return body, error.status_code
         except self.favorites_service.NoSuchSourceException as e:
-            return _error(404, str(e))
+            raise NoSuchFavoriteSource(directory) from e
 
 
-class Personal(LegacyAuthResource, DisplayAwareResource):
+class Personal(AuthResource, DisplayAwareResource):
     def __init__(
         self,
         personal_service: _PersonalService,
@@ -305,18 +294,15 @@ class Personal(LegacyAuthResource, DisplayAwareResource):
         try:
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
             display = self.build_display(profile_config)
-        except OldAPIException as e:
-            return e.body, e.status_code
+        except NoSuchProfile as e:
+            raise NoSuchProfileNameAPIException(e.name) from e
 
         user_uuid = get_user_uuid()
         raw_results = self.personal_service.list_contacts(tenant.uuid, user_uuid)
 
-        try:
-            favorites = self.favorite_service.favorite_ids(
-                cast(ProfileConfig, profile_config), user_uuid
-            ).by_name
-        except self.favorite_service.NoSuchProfileException as e:
-            return _error(404, str(e))
+        favorites = self.favorite_service.favorite_ids(
+            cast(ProfileConfig, profile_config), user_uuid
+        ).by_name
         formatter = _ResultFormatter(display)
         return formatter.format_results(raw_results, favorites)
 

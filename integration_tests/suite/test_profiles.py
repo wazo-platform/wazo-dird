@@ -134,10 +134,13 @@ class TestGet(BaseProfileTestCase):
             response = self.client.profiles.get(profile['uuid'])
             assert_that(response, equal_to(profile))
 
+        with self.assertRaises(HTTPError) as raised:
+            self.client.profiles.get(UNKNOWN_UUID)
+        assert_that(raised.exception.response.status_code, equal_to(404))
         assert_that(
-            calling(self.client.profiles.get).with_args(UNKNOWN_UUID),
-            raises(Exception).matching(
-                has_properties(response=has_properties(status_code=404))
+            raised.exception.response.json(),
+            has_entries(
+                error_id='unknown-profile', details=has_entries(uuid=UNKNOWN_UUID)
             ),
         )
 
@@ -762,6 +765,18 @@ class TestGetSourcesFromProfile(BaseProfileTestCase):
             ),
             raises(HTTPError).matching(
                 has_properties(response=has_properties(status_code=401))
+            ),
+        )
+
+    def test_given_unknown_profile_when_get_then_404(self):
+        with self.assertRaises(HTTPError) as raised:
+            self.client.directories.list_sources('unknown')
+
+        assert_that(raised.exception.response.status_code, equal_to(404))
+        assert_that(
+            raised.exception.response.json(),
+            has_entries(
+                error_id='unknown-profile', details=has_entries(name='unknown')
             ),
         )
 

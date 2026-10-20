@@ -15,9 +15,9 @@ paths:
           schema:
             $ref: '#/definitions/Header'
         '404':
-          $ref: '#/responses/ProfileInvalid'
+          $ref: '#/responses/NotFound'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'

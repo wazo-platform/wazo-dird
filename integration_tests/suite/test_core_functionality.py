@@ -5,7 +5,6 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from hamcrest import (
-    all_of,
     any_of,
     assert_that,
     contains_exactly,
@@ -330,9 +329,11 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
 
         assert_that(result.status_code, equal_to(404))
         assert_that(
-            error['reason'],
-            contains_exactly(
-                all_of(contains_string('profile'), contains_string('unknown'))
+            error,
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
             ),
         )
 
@@ -343,9 +344,11 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
 
         assert_that(result.status_code, equal_to(404))
         assert_that(
-            error['reason'],
-            contains_exactly(
-                all_of(contains_string('profile'), contains_string('unknown'))
+            error,
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
             ),
         )
 
@@ -356,9 +359,28 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
 
         assert_that(result.status_code, equal_to(404))
         assert_that(
-            error['reason'],
-            contains_exactly(
-                all_of(contains_string('profile'), contains_string('unknown'))
+            error,
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
+            ),
+        )
+
+    def test_that_reverse_returns_404(self):
+        result = self.get_reverse_result(
+            '5555555555', 'unknown', VALID_UUID, token=VALID_TOKEN_MAIN_TENANT
+        )
+
+        error = result.json()
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(
+            error,
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
             ),
         )
 
@@ -371,8 +393,10 @@ class Test404WhenUnknownProfile(CSVWithMultipleDisplayTestCase):
 
         assert_that(result.status_code, equal_to(404))
         assert_that(
-            error['reason'],
-            contains_exactly(
-                all_of(contains_string('profile'), contains_string('unknown'))
+            error,
+            has_entries(
+                error_id='unknown-profile',
+                message=contains_string('unknown'),
+                details=has_entries(name='unknown'),
             ),
         )

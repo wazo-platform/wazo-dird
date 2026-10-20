@@ -40,7 +40,7 @@ paths:
         '400':
           $ref: '#/responses/InvalidData'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     post:
       summary: Create new personal contact
       description: '**Required ACL:** `dird.personal.create`'
@@ -62,7 +62,7 @@ paths:
         '409':
           $ref: '#/responses/Conflict'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     delete:
       summary: Purge personal contacts
       description: '**Required ACL:** `dird.personal.delete`'
@@ -73,7 +73,7 @@ paths:
         '204':
           description: The personal contacts was purged.
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
   /personal/{contact_id}:
     get:
       summary: Get personal contact
@@ -94,7 +94,7 @@ paths:
         '404':
           $ref: '#/responses/PersonalContactIDInvalid'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     put:
       summary: Edit personal contact
       description: '**Required ACL:** `dird.personal.{contact_id}.update`
@@ -123,7 +123,7 @@ paths:
         '409':
           $ref: '#/responses/Conflict'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
     delete:
       summary: Remove personal contact
       description: '**Required ACL:** `dird.personal.{contact_id}.delete`'
@@ -138,7 +138,7 @@ paths:
         '404':
           $ref: '#/responses/PersonalContactIDInvalid'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
   /personal/import:
     post:
       summary: Import multiple personal contacts at once
@@ -170,7 +170,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
 responses:
   PersonalContactIDInvalid:
     description: The personal contact does not exist

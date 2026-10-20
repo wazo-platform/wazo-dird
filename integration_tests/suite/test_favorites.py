@@ -87,6 +87,40 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
             ),
         )
 
+    def test_that_a_duplicated_favorite_returns_409(self):
+        with self.favorite('my_csv', '1', token=self.token_1):
+            result = self.put_favorite_result('my_csv', '1', token=self.token_1)
+
+        assert_that(result.status_code, equal_to(409))
+        assert_that(result.json(), has_entries(error_id='conflict'))
+
+    def test_that_a_favorite_of_an_unknown_source_returns_404(self):
+        result = self.put_favorite_result('unknown_source', '1', token=self.token_1)
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='unknown-source'))
+
+    def test_that_favorites_of_a_profile_without_favorites_returns_404(self):
+        result = self.get_favorites_result('no_favorites', token=self.token_1)
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='unconfigured-favorites'))
+
+    def test_that_personal_of_a_profile_without_favorites_is_listed(self):
+        result = self.get_personal_with_profile_result(
+            'no_favorites', token=self.token_1
+        )
+
+        assert_that(result.status_code, equal_to(200))
+
+    def test_that_removing_an_unknown_favorite_returns_404(self):
+        result = self.delete_favorite_result(
+            'my_csv', 'unknown_contact', token=self.token_1
+        )
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='unknown-favorite'))
+
     def test_that_favorites_are_only_visible_for_the_same_token(self):
         with self.favorite('my_csv', '1', token=self.token_1), self.favorite(
             'my_csv', '2', token=self.token_1
@@ -210,6 +244,7 @@ class TestRemovingFavoriteAlreadyInexistant(CSVWithMultipleDisplayTestCase):
         )
 
         assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='unknown-source'))
 
 
 class TestFavoritesInPersonalResults(PersonalOnlyTestCase):

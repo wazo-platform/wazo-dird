@@ -2344,19 +2344,19 @@ class TestProfileCRUD(_BaseTest):
 
         assert_that(
             calling(self.profile_crud.delete).with_args(None, unknown_uuid),
-            raises(exception.NoSuchProfileAPIException),
+            raises(exception.NoSuchProfile),
         )
 
         assert_that(
             calling(self.profile_crud.delete).with_args(
                 [unknown_uuid], profile['uuid']
             ),
-            raises(exception.NoSuchProfileAPIException),
+            raises(exception.NoSuchProfile),
         )
 
         assert_that(
             calling(self.profile_crud.delete).with_args([], profile['uuid']),
-            raises(exception.NoSuchProfileAPIException),
+            raises(exception.NoSuchProfile),
         )
 
         assert_that(

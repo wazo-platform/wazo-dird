@@ -41,7 +41,7 @@ class ProfileCRUD(BaseDAO):
             )
 
         if not nb_deleted:
-            raise exception.NoSuchProfileAPIException(profile_uuid)
+            raise exception.NoSuchProfile(uuid=profile_uuid)
 
     def edit(
         self,
@@ -55,7 +55,7 @@ class ProfileCRUD(BaseDAO):
 
             profile = s.query(Profile).filter(filter_).first()
             if not profile:
-                raise exception.NoSuchProfileAPIException(profile_uuid)
+                raise exception.NoSuchProfile(uuid=profile_uuid)
 
             profile.name = body['name']
             profile.display_uuid = body['display']['uuid']
@@ -81,7 +81,7 @@ class ProfileCRUD(BaseDAO):
         with self.new_session() as s:
             profile = s.query(Profile).filter(filter_).first()
             if not profile:
-                raise exception.NoSuchProfileAPIException(profile_uuid)
+                raise exception.NoSuchProfile(uuid=profile_uuid)
 
             result: dict[str, Any] = self._profile_schema.dump(profile)
             return result
@@ -104,7 +104,7 @@ class ProfileCRUD(BaseDAO):
         filter_ = Profile.uuid == profile_uuid
         if visible_tenants is not None:
             if not visible_tenants:
-                raise exception.NoSuchProfileAPIException(profile_uuid)
+                raise exception.NoSuchProfile(uuid=profile_uuid)
             filter_ = and_(filter_, Profile.tenant_uuid.in_(visible_tenants))
         return filter_
 

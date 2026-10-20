@@ -1,7 +1,7 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, contains_string, equal_to
+from hamcrest import assert_that, contains_string, equal_to, has_entries
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_auth_only_config
@@ -33,8 +33,11 @@ class TestAuthentication(BaseDirdIntegrationTest):
 
             assert_that(result.status_code, equal_to(503))
             assert_that(
-                result.json()['reason'][0],
-                contains_string('Authentication server unreachable'),
+                result.json(),
+                has_entries(
+                    error_id='authentication-server-unreachable',
+                    message=contains_string('Authentication server unreachable'),
+                ),
             )
 
 

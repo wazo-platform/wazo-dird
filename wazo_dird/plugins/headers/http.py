@@ -1,4 +1,4 @@
-# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING, Any
 from xivo.tenant_flask_helpers import Tenant
 
 from wazo_dird.auth import required_acl
-from wazo_dird.exception import OldAPIException
+from wazo_dird.exception import NoSuchProfile, NoSuchProfileNameAPIException
 from wazo_dird.helpers import DisplayAwareResource, DisplayColumn
-from wazo_dird.http import LegacyAuthResource
+from wazo_dird.http import AuthResource
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.display_service.plugin import _DisplayService
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Headers(LegacyAuthResource, DisplayAwareResource):
+class Headers(AuthResource, DisplayAwareResource):
     def __init__(
         self, display_service: _DisplayService, profile_service: _ProfileService
     ) -> None:
@@ -34,8 +34,8 @@ class Headers(LegacyAuthResource, DisplayAwareResource):
         try:
             profile_config = self.profile_service.get_by_name(tenant.uuid, profile)
             display = self.build_display(profile_config)
-        except OldAPIException as e:
-            return e.body, e.status_code
+        except NoSuchProfile as e:
+            raise NoSuchProfileNameAPIException(e.name) from e
         response = format_headers(display)
         return response
 

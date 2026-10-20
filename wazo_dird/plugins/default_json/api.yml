@@ -22,9 +22,9 @@ paths:
           schema:
             $ref: '#/definitions/Lookup'
         '404':
-          $ref: '#/responses/ProfileInvalid'
+          $ref: '#/responses/NotFound'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
@@ -52,9 +52,9 @@ paths:
           schema:
             $ref: '#/definitions/Lookup'
         '404':
-          $ref: '#/responses/ProfileInvalid'
+          $ref: '#/responses/NotFound'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
@@ -82,7 +82,7 @@ paths:
           schema:
             $ref: '#/definitions/Reverse'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
@@ -105,9 +105,9 @@ paths:
           schema:
             $ref: '#/definitions/ContactList'
         '404':
-          $ref: '#/responses/ProfileInvalid'
+          $ref: '#/responses/NotFound'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
@@ -125,8 +125,14 @@ paths:
       responses:
         '204':
           description: Favorite added.
+        '400':
+          $ref: '#/responses/InvalidData'
+        '404':
+          $ref: '#/responses/NotFound'
         '409':
-          $ref: '#/responses/DuplicateFavorite'
+          $ref: '#/responses/Conflict'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Directory'
@@ -145,11 +151,9 @@ paths:
         '204':
           description: Favorite removed.
         '404':
-          description: Favorite does not exist
-          schema:
-            $ref: '#/definitions/LegacyError'
+          $ref: '#/responses/NotFound'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Directory'
@@ -171,9 +175,9 @@ paths:
           schema:
             $ref: '#/definitions/PhonebookContactList'
         '404':
-          $ref: '#/responses/ProfileInvalid'
+          $ref: '#/responses/NotFound'
         '503':
-          $ref: '#/responses/AnotherServiceUnavailable'
+          $ref: '#/responses/ServiceUnavailable'
       parameters:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'

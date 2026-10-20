@@ -41,6 +41,38 @@ class TestPersonalImportFail(BaseDirdIntegrationTest):
         )
         result = self.import_personal_result(csv, VALID_TOKEN_MAIN_TENANT)
         assert_that(result.status_code, equal_to(400))
+        assert_that(
+            result.json(),
+            has_entries(
+                details=has_entries(
+                    failed=contains_exactly(
+                        has_entries(errors=['field names must not be empty'], line=2),
+                        has_entries(errors=['field names must not be empty'], line=3),
+                    )
+                )
+            ),
+        )
+
+    def test_that_import_of_an_existing_contact_returns_400(self):
+        contact = self.post_personal({'firstname': 'Alice'})
+        csv = f'id,firstname\n{contact["id"]},Alice\n'
+
+        result = self.import_personal_result(csv, VALID_TOKEN_MAIN_TENANT)
+
+        assert_that(result.status_code, equal_to(400))
+        assert_that(
+            result.json(),
+            has_entries(
+                details=has_entries(
+                    failed=contains_exactly(
+                        has_entries(
+                            errors=[f'contact "{contact["id"]}" already exists'],
+                            line=2,
+                        )
+                    )
+                )
+            ),
+        )
 
     def test_that_import_with_only_wrong_entries_return_400(self):
         csv = textwrap.dedent(
