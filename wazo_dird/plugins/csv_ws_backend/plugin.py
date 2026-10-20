@@ -46,10 +46,9 @@ class CSVWSView(BaseBackendView):
 
 class CSVWSPlugin(BaseSourcePlugin):
     def load(self, config: Dependencies) -> None:  # type: ignore[override]
-        logger.debug('Loading with %s', config)
-
         source_config = config['config']
         self._name = source_config['name']
+        logger.debug('Loading CSV WS source `%s`', self._name)
         self._list_url = source_config.get('list_url')
         self._lookup_url = source_config['lookup_url']
         self._first_matched_columns = source_config.get('first_matched_columns', [])
