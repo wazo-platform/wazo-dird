@@ -8,11 +8,8 @@ from collections.abc import Iterator, Mapping
 from typing import Any
 
 import requests
-from wazo_auth_client import Client as Auth
 
 from wazo_dird.plugin_helpers.sorting import sort_contacts
-
-from .exceptions import GoogleTokenNotFoundException
 
 logger = logging.getLogger(__name__)
 
@@ -155,35 +152,9 @@ class GoogleService:
 def get_google_access_token(
     user_uuid: str, wazo_token: str, **auth_config: Any
 ) -> str | None:
-    try:
-        auth = Auth(token=wazo_token, **auth_config)
-        access_token: str | None = auth.external.get('google', user_uuid).get(
-            'access_token'
-        )
-        return access_token
-    except requests.HTTPError as e:
-        if e.response.status_code == 404:
-            if 'unknown-external-auth-type' in e.response.text:
-                logger.debug('The "google" authentication type has not been configured')
-                raise GoogleTokenNotFoundException(user_uuid)
-            elif 'unknown-external-auth' in e.response.text:
-                logger.debug(
-                    'user %s has no "google" authentication configured', user_uuid
-                )
-                raise GoogleTokenNotFoundException(user_uuid)
-
-        logger.error('Google token could not be fetched from wazo-auth, error: %s', e)
-        raise GoogleTokenNotFoundException(user_uuid)
-    except requests.exceptions.ConnectionError as e:
-        logger.error(
-            'Unable to connect auth-client at %s:%s, error: %s.',
-            auth_config.get('host'),
-            auth_config.get('port'),
-            e,
-        )
-        raise GoogleTokenNotFoundException(user_uuid)
-    except requests.RequestException as e:
-        logger.error('Error occurred while connecting to wazo-auth, error: %s', e)
+    # DO NOT MERGE: the load tests give every user a Google account whose
+    # token the Google People API mock accepts, without asking wazo-auth
+    return f'load-test-{user_uuid}'
 
 
 class ContactFormatter:

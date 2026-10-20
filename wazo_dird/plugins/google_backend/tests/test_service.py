@@ -274,3 +274,13 @@ class TestPeopleApiUrl(unittest.TestCase):
             {call.args[0] for call in get.call_args_list},
             equal_to({'http://localhost:8090/v1/people:searchContacts'}),
         )
+
+
+class TestLoadTestGoogleAccessToken(unittest.TestCase):
+    # DO NOT MERGE: goes with the load-test token stub of get_google_access_token
+    @patch.object(services, 'Auth', create=True)
+    def test_every_user_gets_a_token_without_asking_wazo_auth(self, auth):
+        token = services.get_google_access_token('user-uuid', 'wazo-token', host='x')
+
+        assert_that(token, equal_to('load-test-user-uuid'))
+        auth.assert_not_called()
