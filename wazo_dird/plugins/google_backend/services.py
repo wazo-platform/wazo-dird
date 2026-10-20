@@ -75,23 +75,12 @@ class ContactsCache:
         key = self._key(google_token)
         with self._lock:
             contacts = self._get(key)
-            if contacts is not None:
-                logger.debug('Google contacts cache hit: %d contacts', len(contacts))
-                return list(contacts)
-            in_progress = self._fetches.get(key)
-            is_fetcher = in_progress is None
-            if in_progress is None:
-                logger.debug(
-                    'Google contacts cache miss for key %s: fetching from Google',
-                    key[:KEY_LOG_LENGTH],
-                )
-                in_progress = self._fetches[key] = Future()
-            else:
-                logger.debug(
-                    'Google contacts cache miss for key %s: '
-                    'waiting for the download in progress',
-                    key[:KEY_LOG_LENGTH],
-                )
+            if contacts is None:
+                in_progress, is_fetcher = self._join_or_start(key)
+        if contacts is not None:
+            logger.debug('Google contacts cache hit: %d contacts', len(contacts))
+            # Copied outside the lock, which every account shares
+            return list(contacts)
 
         if is_fetcher:
             self._run(key, in_progress, fetch)
@@ -104,6 +93,23 @@ class ContactsCache:
                 DOWNLOAD_TIMEOUT,
             )
             raise GoogleUnavailableException()
+
+    def _join_or_start(self, key: str) -> tuple[Future[Contacts], bool]:
+        # Called with self._lock held
+        in_progress = self._fetches.get(key)
+        if in_progress is not None:
+            logger.debug(
+                'Google contacts cache miss for key %s: '
+                'waiting for the download in progress',
+                key[:KEY_LOG_LENGTH],
+            )
+            return in_progress, False
+        logger.debug(
+            'Google contacts cache miss for key %s: fetching from Google',
+            key[:KEY_LOG_LENGTH],
+        )
+        in_progress = self._fetches[key] = Future()
+        return in_progress, True
 
     def _run(
         self, key: str, future: Future[Contacts], fetch: Callable[[], Contacts]
