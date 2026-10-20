@@ -158,14 +158,14 @@ class GooglePlugin(BaseSourcePlugin):
         for term in terms:
             terms_by_lowered.setdefault(term.lower(), []).append(term)
 
-        # One pass over the contacts for all the terms; like first_match run
-        # per term, except that the last matching contact wins
-        results: dict[str, SourceResult] = {}
+        # One pass over the contacts for all the terms; like first_match, the
+        # first matching contact wins
+        matches: dict[str, dict[str, Any]] = {}
         for contact in contacts:
             for text in self._first_matched_texts(contact):
                 for term in terms_by_lowered.get(text.lower(), []):
-                    results[term] = self._SourceResult(contact)
-        return results
+                    matches.setdefault(term, contact)
+        return {term: self._SourceResult(c) for term, c in matches.items()}
 
     def _first_match_predicate(self, term: str, contact: dict[str, Any]) -> bool:
         return any(term == text.lower() for text in self._first_matched_texts(contact))

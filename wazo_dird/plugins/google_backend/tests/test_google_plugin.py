@@ -78,7 +78,7 @@ class TestGooglePlugin(TestCase):
                 assert_that(self.source.first_match('111'), equal_to(None))
                 assert_that(self.source.match_all(['111']), equal_to({}))
 
-    def test_match_all_keeps_the_last_matching_contact_per_term(self):
+    def test_match_all_keeps_the_first_matching_contact_per_term(self):
         self.source.load(cast(SourcePluginDependencies, self.DEPENDENCIES))
         mario = {'id': '1', 'name': 'Mario', 'numbers': ['111']}
         luigi = {'id': '2', 'name': 'Luigi', 'numbers': ['222']}
@@ -92,5 +92,5 @@ class TestGooglePlugin(TestCase):
 
         assert_that(
             {term: result.fields['id'] for term, result in results.items()},
-            equal_to({'111': '1', '222': '3'}),
+            equal_to({'111': '1', '222': '2'}),
         )
