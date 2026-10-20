@@ -636,7 +636,7 @@ class TestContactsCache(unittest.TestCase):
 
     def test_oldest_entry_is_evicted_when_full(self):
         cache = services.ContactsCache(ttl=300)
-        cache.MAX_ENTRIES = 2
+        cache.MAX_CONTACTS = 2
 
         for token in ('a', 'b', 'c'):
             cache.get_or_fetch(token, Mock(return_value=[{'id': token}]))
@@ -647,3 +647,16 @@ class TestContactsCache(unittest.TestCase):
         fetch.assert_not_called()
         cache.get_or_fetch('a', fetch)
         fetch.assert_called_once_with()
+
+    def test_entries_are_evicted_until_the_contacts_fit(self):
+        cache = services.ContactsCache(ttl=300)
+        cache.MAX_CONTACTS = 3
+
+        for token in ('a', 'b', 'c'):
+            cache.get_or_fetch(token, Mock(return_value=[{'id': token}]))
+        cache.get_or_fetch('d', Mock(return_value=[{'id': 'd1'}, {'id': 'd2'}]))
+
+        assert_that(
+            list(cache._entries), contains_exactly(cache._key('c'), cache._key('d'))
+        )
+        assert_that(cache._contact_count, equal_to(3))

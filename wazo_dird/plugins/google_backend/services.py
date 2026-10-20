@@ -55,19 +55,17 @@ def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
 
 
 class ContactsCache:
-    """Thread-safe TTL cache of contact lists keyed by Google access token.
+    """Thread-safe TTL cache of contact lists keyed by hashed access token.
+    Concurrent misses for a token share one download, including its failure."""
 
-    Concurrent misses for the same token share a single download, including
-    its failure, instead of each fetching every page from Google. Tokens are
-    hashed so they are not kept as dictionary keys.
-    """
-
-    MAX_ENTRIES = 1000
+    # Bounds the memory held: one account can have tens of thousands of contacts
+    MAX_CONTACTS = 100_000
 
     def __init__(self, ttl: int) -> None:
         self.ttl = ttl
         self._lock = threading.Lock()
         self._entries: dict[str, tuple[float, Contacts]] = {}
+        self._contact_count = 0
         # The downloads in progress, shared by the requests waiting on them
         self._fetches: dict[str, Future[Contacts]] = {}
 
@@ -132,14 +130,15 @@ class ContactsCache:
             logger.debug(
                 'Google contacts cache entry expired: key %s', key[:KEY_LOG_LENGTH]
             )
-            del self._entries[key]
+            self._evict(key)
             return None
         return contacts
 
     def _set(self, key: str, contacts: Contacts) -> None:
         # Called with self._lock held
         now = time.monotonic()
-        self._entries.pop(key, None)
+        if key in self._entries:
+            self._evict(key)
         # Every entry has the same TTL and is inserted last, so the oldest
         # entries are the first to expire
         while self._entries:
@@ -149,17 +148,23 @@ class ContactsCache:
                     'Evicting expired Google contacts cache entry: key %s',
                     oldest_key[:KEY_LOG_LENGTH],
                 )
-            elif len(self._entries) >= self.MAX_ENTRIES:
+            elif self._contact_count + len(contacts) > self.MAX_CONTACTS:
                 logger.debug(
                     'Evicting oldest Google contacts cache entry: key %s, '
-                    'the cache is full (%d entries)',
+                    'the cache is full (%d contacts)',
                     oldest_key[:KEY_LOG_LENGTH],
-                    len(self._entries),
+                    self._contact_count,
                 )
             else:
                 break
-            del self._entries[oldest_key]
+            self._evict(oldest_key)
         self._entries[key] = (now + self.ttl, contacts)
+        self._contact_count += len(contacts)
+
+    def _evict(self, key: str) -> None:
+        # Called with self._lock held
+        _, contacts = self._entries.pop(key)
+        self._contact_count -= len(contacts)
 
     def _oldest_expiry(self) -> float:
         expires_at, _ = next(iter(self._entries.values()))
