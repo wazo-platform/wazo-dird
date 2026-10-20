@@ -51,7 +51,9 @@ class CSVPlugin(BaseSourcePlugin):
 
     def load(self, args: SourcePluginDependencies) -> None:
         if 'config' not in args:
-            logger.warning('Missing config in startup arguments: %s', args)
+            logger.warning(
+                'Missing config in startup arguments (keys: %s)', sorted(args)
+            )
 
         self._config = cast('dict[str, Any]', args.get('config', {}))
         self._name = self._config.get('name', '')
