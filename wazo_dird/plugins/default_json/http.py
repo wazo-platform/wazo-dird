@@ -25,8 +25,6 @@ from wazo_dird.http import AuthResource
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
 if TYPE_CHECKING:
-    from wazo_auth_client import Client as AuthClient
-
     from wazo_dird.plugins.display_service.plugin import _DisplayService
     from wazo_dird.plugins.favorites_service.plugin import _FavoritesService
     from wazo_dird.plugins.lookup_service.plugin import _LookupService
@@ -105,13 +103,11 @@ class LookupByUUID(AuthResource, DisplayAwareResource):
         favorite_service: _FavoritesService,
         display_service: _DisplayService,
         profile_service: _ProfileService,
-        auth_client: AuthClient,
     ) -> None:
         self.lookup_service = lookup_service
         self.favorite_service = favorite_service
         self.display_service = display_service
         self.profile_service = profile_service
-        self.auth_client = auth_client
 
     @required_acl('dird.directories.lookup.{profile}.{user_uuid}.read')
     def get(self, profile: str, user_uuid: str) -> dict[str, Any]:

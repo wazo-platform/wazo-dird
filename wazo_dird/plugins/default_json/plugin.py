@@ -1,4 +1,4 @@
-# Copyright 2016-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -27,7 +27,6 @@ class JsonViewPlugin(BaseViewPlugin):
         personal_service = dependencies['services'].get('personal')
         profile_service = dependencies['services'].get('profile')
         display_service = dependencies['services'].get('display')
-        auth_client = dependencies['auth_client']
 
         if lookup_service:
             api.add_resource(
@@ -48,7 +47,6 @@ class JsonViewPlugin(BaseViewPlugin):
                     favorite_service,
                     display_service,
                     profile_service,
-                    auth_client,
                 ),
             )
         else:
