@@ -173,6 +173,13 @@ class NoSuchFavoriteSource(APIException):
         super().__init__(404, msg, 'unknown-source', details, 'favorites')
 
 
+class UnconfiguredFavoritesAPIException(APIException):
+    def __init__(self, profile_name: str) -> None:
+        msg = f'Favorites are not configured for profile: "{profile_name}"'
+        details = {'name': profile_name}
+        super().__init__(404, msg, 'unconfigured-favorites', details, 'favorites')
+
+
 class DuplicatedPhonebookException(Exception):
     _msg = 'Duplicating phonebook'
 

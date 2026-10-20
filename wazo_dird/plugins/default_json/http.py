@@ -18,6 +18,7 @@ from wazo_dird.exception import (
     NoSuchFavoriteSource,
     NoSuchProfile,
     NoSuchProfileAPIException,
+    UnconfiguredFavoritesAPIException,
 )
 from wazo_dird.helpers import DisplayAwareResource, DisplayColumn, ProfileConfig
 from wazo_dird.http import AuthResource
@@ -222,7 +223,7 @@ class FavoritesRead(AuthResource, DisplayAwareResource):
                 token,
             )
         except self.favorites_service.NoSuchProfileException as e:
-            raise NoSuchProfileAPIException(profile) from e
+            raise UnconfiguredFavoritesAPIException(profile) from e
 
         formatter = _FavoriteResultFormatter(display)
         return formatter.format_results(raw_results)
@@ -303,12 +304,9 @@ class Personal(AuthResource, DisplayAwareResource):
         user_uuid = get_user_uuid()
         raw_results = self.personal_service.list_contacts(tenant.uuid, user_uuid)
 
-        try:
-            favorites = self.favorite_service.favorite_ids(
-                cast(ProfileConfig, profile_config), user_uuid
-            ).by_name
-        except self.favorite_service.NoSuchProfileException as e:
-            raise NoSuchProfileAPIException(profile) from e
+        favorites = self.favorite_service.favorite_ids(
+            cast(ProfileConfig, profile_config), user_uuid
+        ).by_name
         formatter = _ResultFormatter(display)
         return formatter.format_results(raw_results, favorites)
 

@@ -100,6 +100,19 @@ class TestFavorites(_BaseMultiTokenFavoriteTest):
         assert_that(result.status_code, equal_to(404))
         assert_that(result.json(), has_entries(error_id='unknown-source'))
 
+    def test_that_favorites_of_a_profile_without_favorites_returns_404(self):
+        result = self.get_favorites_result('no_favorites', token=self.token_1)
+
+        assert_that(result.status_code, equal_to(404))
+        assert_that(result.json(), has_entries(error_id='unconfigured-favorites'))
+
+    def test_that_personal_of_a_profile_without_favorites_is_listed(self):
+        result = self.get_personal_with_profile_result(
+            'no_favorites', token=self.token_1
+        )
+
+        assert_that(result.status_code, equal_to(200))
+
     def test_that_removing_an_unknown_favorite_returns_404(self):
         result = self.delete_favorite_result(
             'my_csv', 'unknown_contact', token=self.token_1

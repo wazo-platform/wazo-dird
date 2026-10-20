@@ -287,6 +287,11 @@ def new_csv_with_multiple_displays_config(Session):
             'favorites': {'sources': ['my_csv']},
         },
     )
+    config.with_profile(
+        name='no_favorites',
+        display='default_display',
+        services={'lookup': {'sources': ['my_csv']}},
+    )
     return config
 
 
