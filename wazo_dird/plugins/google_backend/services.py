@@ -272,11 +272,22 @@ class GoogleService:
             self.people_url, headers, params, min(REQUEST_TIMEOUT, remaining), deadline
         )
         if not isinstance(body, dict):
-            logger.error('Google returned an invalid body from %s', self.people_url)
-            raise GoogleUnavailableException()
-        contacts = [self.formatter.format(c) for c in body.get('connections', [])]
-        next_page_token: str | None = body.get('nextPageToken')
+            raise self._invalid_body()
+        connections = body.get('connections', [])
+        next_page_token = body.get('nextPageToken')
+        if not isinstance(connections, list) or not isinstance(
+            next_page_token, (str, type(None))
+        ):
+            raise self._invalid_body()
+        try:
+            contacts = [self.formatter.format(c) for c in connections]
+        except (AttributeError, KeyError, TypeError) as e:
+            raise self._invalid_body() from e
         return contacts, next_page_token
+
+    def _invalid_body(self) -> GoogleUnavailableException:
+        logger.error('Google returned an invalid body from %s', self.people_url)
+        return GoogleUnavailableException()
 
     def _get_json(
         self,

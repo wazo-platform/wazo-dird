@@ -394,8 +394,16 @@ class TestGoogleServiceCache(unittest.TestCase):
                 raises(GoogleUnavailableException),
             )
 
-    def test_body_that_is_not_an_object_raises_unavailable(self, get):
-        bodies: list[object] = [None, [], 'contacts']
+    def test_invalid_body_raises_unavailable(self, get):
+        bodies: list[object] = [
+            None,
+            [],
+            'contacts',
+            {'connections': None},
+            {'connections': ['x']},
+            {'connections': [{'names': 'x'}]},
+            {'connections': [], 'nextPageToken': 1},
+        ]
         for body in bodies:
             get.return_value = _response(body)
 
