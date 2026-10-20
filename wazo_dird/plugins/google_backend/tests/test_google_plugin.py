@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from typing import cast
@@ -24,7 +24,8 @@ class TestGooglePlugin(TestCase):
                 'phone_mobile': "{numbers_by_label[mobile]}",
                 'phone': '{numbers[0]}',
             },
-        }
+        },
+        'main_config': {},
     }
 
     def setUp(self):

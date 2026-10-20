@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from typing import Any
 
 import requests
@@ -16,20 +16,35 @@ from .exceptions import GoogleTokenNotFoundException
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_PEOPLE_API_URL = 'https://people.googleapis.com'
+
+
+def people_api_url(main_config: Mapping[str, Any]) -> str:
+    """Base URL of the Google People API: a mock of it in the load tests"""
+    google_config = main_config.get('google_backend') or {}
+    url = google_config.get('people_api_url') or DEFAULT_PEOPLE_API_URL
+    if not isinstance(url, str):
+        logger.warning(
+            'Invalid google_backend.people_api_url %r, using %s',
+            url,
+            DEFAULT_PEOPLE_API_URL,
+        )
+        return DEFAULT_PEOPLE_API_URL
+    return url.rstrip('/')
+
 
 class GoogleService:
     USER_AGENT = 'wazo_ua/1.0'
-
-    people_url = 'https://people.googleapis.com/v1/people/me/connections'
-    search_url = 'https://people.googleapis.com/v1/people:searchContacts'
-    batch_url = 'https://people.googleapis.com/v1/people:batchGet'
 
     person_fields = (
         'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
     )
 
-    def __init__(self) -> None:
+    def __init__(self, people_api_url: str = DEFAULT_PEOPLE_API_URL) -> None:
         self.formatter = ContactFormatter()
+        self.people_url = f'{people_api_url}/v1/people/me/connections'
+        self.search_url = f'{people_api_url}/v1/people:searchContacts'
+        self.batch_url = f'{people_api_url}/v1/people:batchGet'
 
     def get_contacts_with_term(
         self, google_token: str, term: str

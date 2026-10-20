@@ -53,7 +53,9 @@ class GooglePlugin(BaseSourcePlugin):
         config = dependencies['config']
         self.auth = cast('AuthConfig', dict(config)['auth'])
         self.name = config['name']
-        self.google = services.GoogleService()
+        self.google = services.GoogleService(
+            services.people_api_url(dependencies['main_config'])
+        )
         self.unique_column = 'id'
 
         format_columns: dict[str, str] = dict(config.get('format_columns', {}))
