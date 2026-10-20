@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import hashlib
+import json
 import logging
 import threading
 import time
@@ -32,6 +33,7 @@ REQUEST_TIMEOUT = 10
 DOWNLOAD_TIMEOUT = 60
 # Leading characters of the hashed token shown in logs
 KEY_LOG_LENGTH = 12
+READ_CHUNK_SIZE = 64 * 1024
 
 Contacts = list[dict[str, Any]]
 
@@ -264,14 +266,9 @@ class GoogleService:
                 DOWNLOAD_TIMEOUT,
             )
             raise GoogleUnavailableException()
-        response = self._get_request(
-            self.people_url, headers, params, min(REQUEST_TIMEOUT, remaining)
+        body = self._get_json(
+            self.people_url, headers, params, min(REQUEST_TIMEOUT, remaining), deadline
         )
-        try:
-            body = response.json()
-        except ValueError as e:
-            logger.error('Google returned an invalid body from %s', self.people_url)
-            raise GoogleUnavailableException() from e
         if not isinstance(body, dict):
             logger.error('Google returned an invalid body from %s', self.people_url)
             raise GoogleUnavailableException()
@@ -279,45 +276,69 @@ class GoogleService:
         next_page_token: str | None = body.get('nextPageToken')
         return contacts, next_page_token
 
-    def _get_request(
+    def _get_json(
         self,
         url: str,
         headers: dict[str, str],
         params: dict[str, Any],
         timeout: float,
-    ) -> requests.Response:
+        deadline: float,
+    ) -> Any:
         # Requests have verify=False because the integration test mock servers do not have proper SSL
         # Find a way to selectively turn off verification during testing only
         try:
-            response = requests.get(
+            with requests.get(
                 url,
                 headers=headers,
                 params=params,
                 verify=False,
                 timeout=timeout,
-            )
+                stream=True,
+            ) as response:
+                status_code = response.status_code
+                content = self._read_content(response, url, deadline)
         except requests.RequestException as e:
             logger.error('Google request to %s failed: %s', url, e)
             raise GoogleUnavailableException() from e
 
-        if response.status_code in (401, 403):
+        if status_code != 200:
+            logger.debug('Raw data: %s', content.decode(errors='replace'))
+        try:
+            body = json.loads(content)
+        except ValueError:
+            body = None
+
+        if status_code in (401, 403):
             # The user's token expired, was revoked or lacks a scope: not a
             # Google outage, and lookups retry on every keystroke
             logger.debug(
                 'Google rejected the access token for %s with status %s',
                 url,
-                response.status_code,
+                status_code,
             )
             raise GoogleTokenRejectedException()
 
-        if response.status_code != 200:
-            logger.error(
-                'Google request to %s failed with status %s', url, response.status_code
-            )
-            logger.debug('Raw data: %s', response.text)
+        if status_code != 200:
+            logger.error('Google request to %s failed with status %s', url, status_code)
             raise GoogleUnavailableException()
 
-        return response
+        return body
+
+    def _read_content(
+        self, response: requests.Response, url: str, deadline: float
+    ) -> bytes:
+        # The request timeout bounds each read, not a body sent a few bytes at a time
+        chunks = []
+        for chunk in response.iter_content(READ_CHUNK_SIZE):
+            if time.monotonic() > deadline:
+                logger.error(
+                    'Google contacts download from %s did not complete within %d seconds',
+                    url,
+                    DOWNLOAD_TIMEOUT,
+                )
+                raise GoogleUnavailableException()
+            chunks.append(chunk)
+        return b''.join(chunks)
 
     def _paginate(
         self,

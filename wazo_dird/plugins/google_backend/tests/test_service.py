@@ -1,9 +1,10 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import json
 import threading
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import requests
 from hamcrest import (
@@ -226,8 +227,11 @@ def _person(id_, name):
     }
 
 
-def _response(body, status_code=200):
-    return Mock(status_code=status_code, json=Mock(return_value=body), text='')
+def _response(body, status_code=200, chunks=None):
+    response = MagicMock(status_code=status_code)
+    response.__enter__.return_value = response
+    response.iter_content.return_value = chunks or [json.dumps(body).encode()]
+    return response
 
 
 @patch('wazo_dird.plugins.google_backend.services.requests.get')
@@ -381,6 +385,35 @@ class TestGoogleServiceCache(unittest.TestCase):
                 calling(self.service.get_all_contacts).with_args('token'),
                 raises(GoogleUnavailableException),
             )
+
+    def test_body_that_is_not_json_raises_unavailable(self, get):
+        get.return_value = _response(None, chunks=[b'{"conn'])
+
+        assert_that(
+            calling(self.service.get_all_contacts).with_args('token'),
+            raises(GoogleUnavailableException),
+        )
+
+    def test_slow_body_stops_at_the_deadline(self, get):
+        clock = [0.0]
+
+        def slow_chunks(*args, **kwargs):
+            for _ in range(10):
+                clock[0] += 9
+                yield b' '
+
+        response = _response({})
+        response.iter_content.side_effect = slow_chunks
+        get.return_value = response
+        with patch.object(services, 'DOWNLOAD_TIMEOUT', 60), patch.object(
+            services.time, 'monotonic', side_effect=lambda: clock[0]
+        ):
+            assert_that(
+                calling(self.service.get_all_contacts).with_args('token'),
+                raises(GoogleUnavailableException),
+            )
+
+        assert_that(clock[0], equal_to(63))
 
     def test_connection_error_raises_unavailable(self, get):
         get.side_effect = requests.ConnectionError()
