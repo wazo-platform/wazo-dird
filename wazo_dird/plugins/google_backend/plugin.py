@@ -23,7 +23,7 @@ from .http import GoogleContactList, GoogleItem, GoogleList
 
 logger = logging.getLogger(__name__)
 
-# The service logs an outage: a lookup then finds no Google contact
+# Logged by the service; a lookup then returns no Google contact
 LOOKUP_ERRORS = (GoogleTokenException, GoogleUnavailableException)
 
 
