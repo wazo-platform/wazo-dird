@@ -18,7 +18,10 @@ class TestGoogleView(TestCase):
 
     def test_when_load_then_routes_added(self):
         dependencies = {
-            'config': {'auth': Mock()},
+            'config': {
+                'auth': Mock(),
+                'google_backend': {'contacts_cache_ttl': 0},
+            },
             'http_namespace': Mock(),
             'api': self.api,
             'services': {'source': Mock()},

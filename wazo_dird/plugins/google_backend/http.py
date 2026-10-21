@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -14,7 +14,13 @@ from wazo_dird.helpers import AuthConfig, SourceItem, SourceList
 from wazo_dird.http import AuthResource
 
 from .exceptions import GoogleTokenNotFoundException
-from .schemas import contact_list_schema, list_schema, source_list_schema, source_schema
+from .schemas import (
+    ContactListSchema,
+    contact_list_schema,
+    list_schema,
+    source_list_schema,
+    source_schema,
+)
 from .services import GoogleService, get_google_access_token
 
 if TYPE_CHECKING:
@@ -29,13 +35,12 @@ class GoogleContactList(AuthResource):
     def __init__(
         self,
         auth_config: AuthConfig,
-        config: dict[str, Any],
         source_service: _SourceService,
+        google: GoogleService,
     ) -> None:
         self.auth_config = auth_config
-        self.config = config
         self.source_service = source_service
-        self.google = GoogleService()
+        self.google = google
 
     @required_acl('dird.backends.google.sources.{source_uuid}.contacts.read')
     def get(self, source_uuid: str) -> tuple[dict[str, Any], int]:
@@ -56,7 +61,12 @@ class GoogleContactList(AuthResource):
         if google_token is None:
             raise GoogleTokenNotFoundException(user_uuid)
 
-        contacts, total = self.google.get_contacts(google_token, **list_params)
+        searched_columns = (
+            source.get('searched_columns') or ContactListSchema.searchable_columns
+        )
+        contacts, total = self.google.get_contacts(
+            google_token, searched_columns, **list_params
+        )
 
         return {'filtered': total, 'items': contacts, 'total': total}, 200
 

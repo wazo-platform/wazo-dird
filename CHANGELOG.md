@@ -22,6 +22,14 @@
   Before, `GET /0.1/directories/<profile>/sources` and GraphQL gave it in
   `details.uuid`.
 
+* `GET /0.1/backends/google/sources/<source_uuid>/contacts` now returns `503`
+  when Google fails and `403` (`google-token-rejected`) when Google rejects the
+  user's token. Its `search` parameter now matches the source's
+  `searched_columns` (`name` by default).
+* New configuration key `google_backend.contacts_cache_ttl`: how long each
+  Google account's contacts are cached, in seconds (default `300`, `0`
+  disables the cache).
+
 ## 26.10
 
 * `POST /0.1/backends/wazo/sources` and

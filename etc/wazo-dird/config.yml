@@ -54,6 +54,13 @@ bus:
   port: 5672
   exchange_name: wazo-headers
 
+# Google backend settings
+google_backend:
+  # Seconds during which a Google account's contacts are reused for lookups,
+  # reverse lookups and favorites before being fetched from Google again.
+  # 0 disables the cache.
+  contacts_cache_ttl: 300
+
 # Consul connection settings
 consul:
   scheme: http
