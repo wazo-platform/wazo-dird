@@ -608,6 +608,7 @@ class TestContactsCacheTTL(unittest.TestCase):
         assert_that(services.shared_contacts_cache(config), equal_to(None))
 
     def test_sources_and_view_share_one_cache(self):
+        self.addCleanup(setattr, services, '_shared_cache', None)
         config = {'google_backend': {'contacts_cache_ttl': 120}}
 
         assert_that(
