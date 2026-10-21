@@ -116,15 +116,16 @@ class ContactsCache:
     ) -> None:
         try:
             contacts = fetch()
+            with self._lock:
+                self._set(key, contacts)
         except Exception as e:
+            future.set_exception(e)
+        else:
+            future.set_result(contacts)
+        finally:
+            # Also on BaseException: a stale entry would block every later download
             with self._lock:
                 del self._fetches[key]
-            future.set_exception(e)
-            return
-        with self._lock:
-            self._set(key, contacts)
-            del self._fetches[key]
-        future.set_result(contacts)
 
     def _get(self, key: str) -> Contacts | None:
         # Called with self._lock held

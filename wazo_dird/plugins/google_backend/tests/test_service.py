@@ -660,3 +660,17 @@ class TestContactsCache(unittest.TestCase):
             list(cache._entries), contains_exactly(cache._key('c'), cache._key('d'))
         )
         assert_that(cache._contact_count, equal_to(3))
+
+    def test_interrupted_fetch_does_not_block_later_fetches(self):
+        cache = services.ContactsCache(ttl=300)
+
+        assert_that(
+            calling(cache.get_or_fetch).with_args(
+                'a', Mock(side_effect=KeyboardInterrupt)
+            ),
+            raises(KeyboardInterrupt),
+        )
+
+        fetch = Mock(return_value=[{'id': 'a'}])
+        assert_that(cache.get_or_fetch('a', fetch), contains_exactly({'id': 'a'}))
+        fetch.assert_called_once_with()
