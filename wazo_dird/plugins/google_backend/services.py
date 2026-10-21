@@ -56,7 +56,8 @@ def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
 
 class ContactsCache:
     """Thread-safe TTL cache of contact lists keyed by hashed access token.
-    Concurrent misses for a token share one download, including its failure."""
+    Concurrent misses for a token share one download, including its failure.
+    The returned lists are shared: callers must not mutate them."""
 
     # Bounds the memory held: one account can have tens of thousands of contacts.
     # A larger account is not cached and is downloaded on every request.
@@ -76,18 +77,16 @@ class ContactsCache:
         key = self._key(google_token)
         with self._lock:
             contacts = self._get(key)
-            if contacts is None:
-                in_progress, is_fetcher = self._join_or_start(key)
-        if contacts is not None:
-            logger.debug('Google contacts cache hit: %d contacts', len(contacts))
-            # Copied outside the lock, which every account shares
-            return list(contacts)
+            if contacts is not None:
+                logger.debug('Google contacts cache hit: %d contacts', len(contacts))
+                return contacts
+            in_progress, is_fetcher = self._join_or_start(key)
 
         if is_fetcher:
             self._run(key, in_progress, fetch)
         try:
             # A failure is not cached: the next request downloads again
-            return list(in_progress.result(DOWNLOAD_TIMEOUT))
+            return in_progress.result(DOWNLOAD_TIMEOUT)
         except concurrent.futures.TimeoutError:
             logger.warning(
                 'Gave up waiting %d seconds for a Google contacts download',

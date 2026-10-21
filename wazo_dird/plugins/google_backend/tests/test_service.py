@@ -502,13 +502,6 @@ class TestGoogleServiceCache(unittest.TestCase):
 
         assert_that(get.call_args.kwargs['timeout'], equal_to(services.REQUEST_TIMEOUT))
 
-    def test_callers_cannot_alter_the_cached_list(self, get):
-        get.return_value = _response(self.contacts)
-
-        self.service.get_all_contacts('token').clear()
-
-        assert_that(len(self.service.get_all_contacts('token')), equal_to(2))
-
     def test_all_pages_are_fetched(self, get):
         get.side_effect = [
             _response(
