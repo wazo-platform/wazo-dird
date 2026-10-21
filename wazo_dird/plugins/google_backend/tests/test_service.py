@@ -661,6 +661,20 @@ class TestContactsCache(unittest.TestCase):
         )
         assert_that(cache._contact_count, equal_to(3))
 
+    def test_contacts_above_the_limit_are_not_cached(self):
+        cache = services.ContactsCache(ttl=300)
+        cache.MAX_CONTACTS = 2
+        cache.get_or_fetch('a', Mock(return_value=[{'id': 'a'}]))
+
+        contacts = [{'id': 'b1'}, {'id': 'b2'}, {'id': 'b3'}]
+        fetch = Mock(return_value=contacts)
+        assert_that(cache.get_or_fetch('b', fetch), equal_to(contacts))
+        assert_that(cache.get_or_fetch('b', fetch), equal_to(contacts))
+
+        assert_that(fetch.call_count, equal_to(2))
+        assert_that(list(cache._entries), contains_exactly(cache._key('a')))
+        assert_that(cache._contact_count, equal_to(1))
+
     def test_interrupted_fetch_does_not_block_later_fetches(self):
         cache = services.ContactsCache(ttl=300)
 

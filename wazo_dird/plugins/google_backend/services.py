@@ -58,7 +58,8 @@ class ContactsCache:
     """Thread-safe TTL cache of contact lists keyed by hashed access token.
     Concurrent misses for a token share one download, including its failure."""
 
-    # Bounds the memory held: one account can have tens of thousands of contacts
+    # Bounds the memory held: one account can have tens of thousands of contacts.
+    # A larger account is not cached and is downloaded on every request.
     MAX_CONTACTS = 100_000
 
     def __init__(self, ttl: int) -> None:
@@ -146,6 +147,15 @@ class ContactsCache:
         now = time.monotonic()
         if key in self._entries:
             self._evict(key)
+        if len(contacts) > self.MAX_CONTACTS:
+            # Caching it would evict every other account and exceed the bound
+            logger.warning(
+                'Not caching %d Google contacts for key %s: above the limit of %d',
+                len(contacts),
+                key[:KEY_LOG_LENGTH],
+                self.MAX_CONTACTS,
+            )
+            return
         # Every entry has the same TTL and is inserted last, so the oldest
         # entries are the first to expire
         while self._entries:
