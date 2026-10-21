@@ -158,8 +158,8 @@ class ContactsCache:
         # Every entry has the same TTL and is inserted last, so the oldest
         # entries are the first to expire
         while self._entries:
-            oldest_key = next(iter(self._entries))
-            if self._oldest_expiry() <= now:
+            oldest_key, (expires_at, _) = next(iter(self._entries.items()))
+            if expires_at <= now:
                 logger.debug(
                     'Evicting expired Google contacts cache entry: key %s',
                     oldest_key[:KEY_LOG_LENGTH],
@@ -181,10 +181,6 @@ class ContactsCache:
         # Called with self._lock held
         _, contacts = self._entries.pop(key)
         self._contact_count -= len(contacts)
-
-    def _oldest_expiry(self) -> float:
-        expires_at, _ = next(iter(self._entries.values()))
-        return expires_at
 
     @staticmethod
     def _key(google_token: str) -> str:
