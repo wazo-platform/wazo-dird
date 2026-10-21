@@ -26,7 +26,6 @@ from .exceptions import (
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONTACTS_CACHE_TTL = 300
 REQUEST_TIMEOUT = 10
 # Bounds a download of every page of an account, and the requests waiting on
 # it, so that one slow account cannot hold every lookup thread
@@ -38,20 +37,6 @@ READ_CHUNK_SIZE = 64 * 1024
 TOKEN_SCOPE_REASON = 'ACCESS_TOKEN_SCOPE_INSUFFICIENT'
 
 Contacts = list[dict[str, Any]]
-
-
-def contacts_cache_ttl(main_config: Mapping[str, Any]) -> int:
-    google_config = main_config.get('google_backend') or {}
-    ttl = google_config.get('contacts_cache_ttl', DEFAULT_CONTACTS_CACHE_TTL)
-    # bool is a subclass of int
-    if isinstance(ttl, bool) or not isinstance(ttl, int) or ttl < 0:
-        logger.warning(
-            'Invalid google_backend.contacts_cache_ttl %r, using %d',
-            ttl,
-            DEFAULT_CONTACTS_CACHE_TTL,
-        )
-        return DEFAULT_CONTACTS_CACHE_TTL
-    return ttl
 
 
 class ContactsCache:
@@ -194,7 +179,7 @@ _shared_cache_lock = threading.Lock()
 def shared_contacts_cache(main_config: Mapping[str, Any]) -> ContactsCache | None:
     """The cache of every Google source and the contacts view; None if disabled"""
     global _shared_cache
-    ttl = contacts_cache_ttl(main_config)
+    ttl = main_config['google_backend']['contacts_cache_ttl']
     if ttl == 0:
         return None
     with _shared_cache_lock:

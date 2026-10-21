@@ -15,7 +15,7 @@ from ..plugin import GooglePlugin
 
 class TestGooglePlugin(TestCase):
     DEPENDENCIES = {
-        'main_config': {},
+        'main_config': {'google_backend': {'contacts_cache_ttl': 0}},
         'config': {
             'auth': {'host': '9497'},
             'name': 'google',

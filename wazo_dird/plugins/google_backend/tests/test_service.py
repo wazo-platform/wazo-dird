@@ -581,27 +581,7 @@ class TestMatchesSearch(unittest.TestCase):
         )
 
 
-class TestContactsCacheTTL(unittest.TestCase):
-    def test_default(self):
-        assert_that(
-            services.contacts_cache_ttl({}),
-            equal_to(services.DEFAULT_CONTACTS_CACHE_TTL),
-        )
-
-    def test_configured(self):
-        config = {'google_backend': {'contacts_cache_ttl': 60}}
-
-        assert_that(services.contacts_cache_ttl(config), equal_to(60))
-
-    def test_invalid_values_use_the_default(self):
-        for ttl in ('300', None, -1, True, 1.5):
-            config = {'google_backend': {'contacts_cache_ttl': ttl}}
-
-            assert_that(
-                services.contacts_cache_ttl(config),
-                equal_to(services.DEFAULT_CONTACTS_CACHE_TTL),
-            )
-
+class TestSharedContactsCache(unittest.TestCase):
     def test_zero_disables_the_shared_cache(self):
         config = {'google_backend': {'contacts_cache_ttl': 0}}
 
