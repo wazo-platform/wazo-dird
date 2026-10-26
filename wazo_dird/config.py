@@ -174,6 +174,7 @@ _DEFAULT_CONFIG: Config = {
             'graphql_view': True,
             'headers_view': True,
             'ldap_backend': True,
+            'metrics': False,
             'office365_backend': True,
             'personal_backend': True,
             'personal_view': True,

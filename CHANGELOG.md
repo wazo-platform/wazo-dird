@@ -30,6 +30,10 @@
   Google account's contacts are cached, in seconds (default `300`, `0`
   disables the cache).
 
+* New endpoint `GET /0.1/metrics`: Prometheus metrics, without authentication.
+  It is served by the `metrics` view plugin, disabled by default; enable it with
+  `enabled_plugins: {views: {metrics: true}}`.
+
 ## 26.10
 
 * `POST /0.1/backends/wazo/sources` and
