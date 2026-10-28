@@ -20,7 +20,7 @@ from wazo_dird_client import Client as DirdClient
 from wazo_test_helpers import until
 from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_test_helpers.auth import AuthClient as MockAuthClient
-from wazo_test_helpers.auth import MockCredentials, MockUserToken
+from wazo_test_helpers.auth import MockUserToken
 from wazo_test_helpers.db import DBUserClient
 from wazo_test_helpers.filesystem import FileSystemClient
 
@@ -38,7 +38,6 @@ from .constants import (
     ASSET_ROOT,
     DB_URI_FMT,
     MAIN_TENANT,
-    MAIN_USER_UUID,
     SUB_TENANT,
     USER_1_UUID,
     USER_2_TOKEN,
@@ -421,16 +420,6 @@ class BaseDirdIntegrationTest(RequestUtilMixin, DBRunningTestCase):
     @classmethod
     def configure_wazo_auth(cls):
         cls.mock_auth_client = cls.make_mock_auth()
-        credentials = MockCredentials('dird-service', 'dird-password')
-        cls.mock_auth_client.set_valid_credentials(credentials, VALID_TOKEN_MAIN_TENANT)
-        cls.mock_auth_client.set_token(
-            MockUserToken(
-                VALID_TOKEN_MAIN_TENANT,
-                MAIN_USER_UUID,
-                WAZO_UUID,
-                {'tenant_uuid': MAIN_TENANT, 'uuid': MAIN_USER_UUID},
-            )
-        )
         cls.mock_auth_client.set_token(
             MockUserToken(
                 VALID_TOKEN_SUB_TENANT,

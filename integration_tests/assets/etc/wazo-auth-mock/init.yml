@@ -1,0 +1,12 @@
+tokens:
+  - token: valid-token-master-tenant
+    auth_id: 5f243438-a429-46a8-a992-baed872081e0
+    xivo_uuid: 00000000-0000-4000-8000-00003eb8004d
+    metadata:
+      uuid: 5f243438-a429-46a8-a992-baed872081e0
+      tenant_uuid: eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10
+
+valid_credentials:
+  - username: dird-service
+    password: dird-password
+    token: valid-token-master-tenant
