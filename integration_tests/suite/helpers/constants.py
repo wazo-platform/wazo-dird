@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -15,9 +15,9 @@ VALID_TOKEN = 'valid-token'
 VALID_TOKEN_1 = 'valid-token-1'
 VALID_TOKEN_2 = 'valid-token-2'
 VALID_TOKEN_NO_ACL = 'valid-token-no-acl'
-DIRD_TOKEN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'
+DIRD_TOKEN_TENANT = 'eeeeeeee-eeee-4eee-aeee-eeeeeeeeeee1'
 VALID_TOKEN_MAIN_TENANT = 'valid-token-master-tenant'
-MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
+MAIN_TENANT = 'eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10'
 MAIN_USER_UUID = '5f243438-a429-46a8-a992-baed872081e0'
 SUB_TENANT = '00000000-0000-4000-8000-000000000202'
 USER_1_UUID = '00000000-0000-4000-8000-000000000302'
@@ -36,7 +36,7 @@ DEFAULT_DISPLAYS = [
     }
 ]
 TENANT_UUID_2 = '4c3c6c6f-7dda-4561-9cc0-a2d757c725dd'
-UNKNOWN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee11'
+UNKNOWN_TENANT = 'eeeeeeee-eeee-4eee-aeee-eeeeeeeeee11'
 UNKNOWN_UUID = '00000000-0000-0000-0000-000000000000'
 
 HTTP_400 = has_properties(response=has_properties(status_code=400))

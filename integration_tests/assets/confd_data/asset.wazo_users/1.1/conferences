@@ -2,7 +2,7 @@
   "items": [
     {
       "id": 4,
-      "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+      "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
       "name": "daily scrum",
       "preprocess_subroutine": null,
       "max_users": 50,
@@ -37,7 +37,7 @@
     },
     {
       "id": 3,
-      "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+      "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
       "name": "minimal",
       "preprocess_subroutine": null,
       "max_users": 50,
@@ -83,7 +83,7 @@
     },
     {
       "id": 1,
-      "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+      "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
       "name": "test",
       "preprocess_subroutine": null,
       "max_users": 50,
@@ -141,7 +141,7 @@
     },
     {
       "id": 6,
-      "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+      "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
       "name": "accént",
       "preprocess_subroutine": null,
       "max_users": 50,

@@ -3,7 +3,7 @@
     "items": [
         {
             "id": 1,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 00",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -26,7 +26,7 @@
         },
         {
             "id": 2,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 01",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -49,7 +49,7 @@
         },
         {
             "id": 3,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 02",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -72,7 +72,7 @@
         },
         {
             "id": 4,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 03",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -95,7 +95,7 @@
         },
         {
             "id": 5,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 04",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -118,7 +118,7 @@
         },
         {
             "id": 6,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 05",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -141,7 +141,7 @@
         },
         {
             "id": 7,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 06",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -164,7 +164,7 @@
         },
         {
             "id": 8,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 07",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -187,7 +187,7 @@
         },
         {
             "id": 9,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 08",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -210,7 +210,7 @@
         },
         {
             "id": 10,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 09",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -233,7 +233,7 @@
         },
         {
             "id": 11,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 10",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -256,7 +256,7 @@
         },
         {
             "id": 12,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 11",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -279,7 +279,7 @@
         },
         {
             "id": 13,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 12",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -302,7 +302,7 @@
         },
         {
             "id": 14,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 13",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -325,7 +325,7 @@
         },
         {
             "id": 15,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 14",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -348,7 +348,7 @@
         },
         {
             "id": 16,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 15",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -371,7 +371,7 @@
         },
         {
             "id": 17,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 16",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -394,7 +394,7 @@
         },
         {
             "id": 18,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 17",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -417,7 +417,7 @@
         },
         {
             "id": 19,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 18",
             "preprocess_subroutine": null,
             "max_users": 50,
@@ -440,7 +440,7 @@
         },
         {
             "id": 20,
-            "tenant_uuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10",
+            "tenant_uuid": "eeeeeeee-eeee-4eee-aeee-eeeeeeeeee10",
             "name": "Conference 19",
             "preprocess_subroutine": null,
             "max_users": 50,

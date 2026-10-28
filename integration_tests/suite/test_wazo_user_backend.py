@@ -22,7 +22,7 @@ from .helpers.utils import BackendWrapper
 
 class TestWazoUser(DirdAssetRunningTestCase):
     asset = 'wazo_confd'
-    uuid = "6fa459ea-ee8a-3ca4-894e-db77e160355e"
+    uuid = "6fa459ea-ee8a-4ca4-894e-db77e160355e"
 
     def setUp(self):
         super().setUp()
