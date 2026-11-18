@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.12
+
+* New endpoint `GET /0.1/metrics`: Prometheus metrics, without authentication.
+  It is served by the `metrics` view plugin, disabled by default; enable it with
+  `enabled_plugins: {views: {metrics: true}}`.
+
 ## 26.11
 
 * `limit=0` now returns an empty page on all list endpoints. Before,

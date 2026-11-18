@@ -57,6 +57,7 @@ setup(
             'graphql_view = wazo_dird.plugins.graphql.plugin:GraphQLViewPlugin',
             'headers_view = wazo_dird.plugins.headers.plugin:HeadersViewPlugin',
             'ldap_backend = wazo_dird.plugins.ldap_backend.plugin:LDAPView',
+            'metrics = xivo.flask.metrics:Plugin',
             'office365_backend = wazo_dird.plugins.office365_backend.plugin:Office365View',
             'personal_view = wazo_dird.plugins.personal.plugin:PersonalViewPlugin',
             'phonebook_view = wazo_dird.plugins.phonebook.plugin:PhonebookViewPlugin',
