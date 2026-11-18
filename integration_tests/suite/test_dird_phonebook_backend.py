@@ -132,6 +132,11 @@ class TestPhonebookBackend(unittest.TestCase):
 
         assert_that(result, contains_exactly(self.hagrid))
 
+    def test_that_searching_an_empty_term_returns_every_contact(self):
+        result = self.backend.search('')
+
+        assert_that(result, contains_inanyorder(*contacts))
+
     def test_that_first_match_returns_a_contact(self):
         result = self.backend.first(self.draco['number'])
 

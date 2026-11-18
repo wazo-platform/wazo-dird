@@ -1,5 +1,12 @@
 # Changelog
 
+## 26.12
+
+* `GET /0.1/directories/lookup/<profile>` and
+  `GET /0.1/directories/lookup/<profile>/<user_uuid>` with an empty `term`
+  return the phonebook and personal contacts again, as before 26.10. Before,
+  they returned only the other sources' results.
+
 ## 26.11
 
 * `limit=0` now returns an empty page on all list endpoints. Before,

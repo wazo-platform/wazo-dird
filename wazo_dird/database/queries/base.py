@@ -62,9 +62,11 @@ def compute_normalized_value(value: Any) -> str | None:
 def search_pattern(term: str) -> str | None:
     """Fold accents like `normalized_value`; ILIKE covers the case.
 
-    `None` when the term folds away to nothing, which matches nothing rather
-    than every row.
+    An empty term matches every row with a value. `None` when the term folds
+    away to nothing, which matches nothing rather than every row.
     """
+    if not term:
+        return '%'
     folded = unidecode(term)
     return f'%{folded}%' if folded else None
 

@@ -1758,8 +1758,29 @@ class TestPhonebookContactSearchEngine(_BaseTest):
         assert_that(result, empty())
 
     def test_that_a_term_folding_to_nothing_matches_nothing(self):
-        for term in ['', '\U0001F600', '\U0001F600\U0001F389']:
+        for term in ['\U0001F600', '\U0001F600\U0001F389']:
             assert_that(self.engine.find_contacts(term), empty(), f'term {term!r}')
+
+    def test_that_an_empty_term_matches_every_contact(self):
+        self.phonebook_contact_crud.create(
+            [self.tenant_uuid],
+            database.PhonebookKey(uuid=self.phonebook_uuid),
+            {'firstname': 'Zed', 'number': '5555555555'},
+        )
+
+        result = self.engine.find_contacts('')
+
+        assert_that(
+            result,
+            contains_inanyorder(
+                self.mia,
+                self.marcellus,
+                self.vincent,
+                self.jules,
+                self.butch,
+                self.jimmie,
+            ),
+        )
 
     def test_that_a_listing_search_folding_to_nothing_matches_nothing(self):
         total = self.phonebook_contact_crud.count(
@@ -1915,12 +1936,25 @@ class TestPersonalContactSearchEngine(_BaseTest):
         )
         self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
 
-        for term in ['', '\U0001F600', '\U0001F600\U0001F389']:
+        for term in ['\U0001F600', '\U0001F600\U0001F389']:
             assert_that(
                 engine.find_personal_contacts(user_uuid, term),
                 empty(),
                 f'term {term!r}',
             )
+
+    @with_user_uuid
+    @with_user_uuid
+    def test_that_an_empty_term_matches_every_contact(self, user_uuid, other_uuid):
+        engine = database.PersonalContactSearchEngine(
+            Session, searched_columns=['lastname']
+        )
+        ids = self._insert_personal_contacts(user_uuid, self.contact_1, self.contact_2)
+        self._insert_personal_contacts(other_uuid, self.contact_3)
+
+        result = engine.find_personal_contacts(user_uuid, '')
+
+        assert_that([contact['id'] for contact in result], contains_inanyorder(*ids))
 
     @with_user_uuid
     def test_that_searching_folds_accents_and_case(self, user_uuid):
