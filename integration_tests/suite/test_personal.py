@@ -407,6 +407,16 @@ class TestLookupPersonal(PersonalOnlyTestCase):
             ),
         )
 
+    def test_that_lookup_with_an_empty_term_lists_every_personal_contact(self):
+        result = self.lookup('', 'default')
+
+        assert_that(
+            [contact['column_values'][0] for contact in result['results']],
+            contains_inanyorder(
+                'Alice', 'Bob', 'Céline', 'Etienne', 'john', 'empty-column', 'Elice'
+            ),
+        )
+
     def test_that_lookup_accepts_non_ascii_in_term(self):
         result = self.lookup('Céline', 'default')
 
