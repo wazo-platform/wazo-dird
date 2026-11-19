@@ -12,6 +12,7 @@ from hamcrest import (
     contains_inanyorder,
     empty,
     equal_to,
+    has_entries,
     has_length,
 )
 from requests.exceptions import ConnectionError
@@ -121,7 +122,7 @@ class TestUserSnapshot(unittest.TestCase):
     def make_plugin(self, main_config: dict[str, Any], **config: Any) -> WazoUserPlugin:
         dependencies = {
             'config': {**SOURCE_CONFIG, **config},
-            'main_config': main_config,
+            'main_config': {'wazo_user_cache_ttl': 60, **main_config},
             'auth_client': Mock(),
             'token_renewer': Mock(),
         }
@@ -256,3 +257,36 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
         assert_that(self.confd.paged(), empty())
         assert_that(self.confd.searched(), has_length(1))
+
+    def test_extra_search_params_do_not_stop_the_snapshot(self) -> None:
+        for extra in ({'limit': 5}, {'order': 'firstname'}, {'offset': 3}):
+            with self.subTest(extra=extra):
+                self.confd.calls.clear()
+                plugin = self.make_plugin({}, extra_search_params=extra)
+
+                assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
+                assert_that(self.confd.searched(), empty())
+                assert_that(
+                    self.confd.paged(),
+                    contains_exactly(
+                        has_entries(order='id', limit=1000, offset=0, view='directory')
+                    ),
+                )
+
+    def test_a_lookup_that_lost_the_race_does_not_reload(self) -> None:
+        # B saw the snapshot expired, A reloaded it, then B got the lock
+        plugin = self.make_plugin({})
+        real_acquire = plugin._refresh_lock.acquire
+
+        def acquire_after_a_reload(blocking: bool = True) -> bool:
+            plugin._snapshot_expires = self.now + 60
+            return real_acquire(blocking)
+
+        lock = Mock(wraps=plugin._refresh_lock)
+        lock.acquire.side_effect = acquire_after_a_reload
+        plugin._refresh_lock = lock
+
+        self.ids(plugin, 'paul')
+
+        assert_that(self.confd.paged(), empty())
+        lock.release.assert_called_once_with()

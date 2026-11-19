@@ -90,7 +90,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self.name = config['name']
         self._client = registry.get(config)
         main_config = dependencies['main_config']
-        self._snapshot_ttl = int(main_config.get('wazo_user_cache_ttl', 60))
+        self._snapshot_ttl = main_config['wazo_user_cache_ttl']
 
         self._SourceResult = make_result_class(
             'wazo', self.name, 'uuid', format_columns=config.get('format_columns')
@@ -107,34 +107,47 @@ class WazoUserPlugin(BaseSourcePlugin):
         clean_term = unidecode(term.lower())
         snapshot = self._current_snapshot()
         if snapshot is not None:
+            uuid = self._get_wazo_uuid()
             return [
-                self._source_result_from_entry(entry, self._get_wazo_uuid())
+                self._source_result_from_entry(entry, uuid)
                 for entry, folded in snapshot
                 if any(clean_term in value for value in folded)
             ]
-        entries = self._fetch_entries(term)
+        entries = list(self._fetch_entries(term))
 
         def match_fn(entry: SourceResult) -> bool:
-            raw_values = map(entry.fields.get, self._searched_columns)
-            clean_values = (unidecode(str(value or '').lower()) for value in raw_values)
+            clean_values = self._folded(entry)
             return any(clean_term in value for value in clean_values)
 
         matches = list(filter(match_fn, entries))
         logger.debug(
             'Fetched %d entries from term %s, %d match the normalized term %s',
-            len(entries), term, len(matches), clean_term
+            len(entries),
+            term,
+            len(matches),
+            clean_term,
         )
         return matches
 
+    def _folded(self, result: SourceResult) -> tuple[str, ...]:
+        return tuple(
+            unidecode(str(result.fields.get(column) or '').lower())
+            for column in self._searched_columns
+        )
+
     def _current_snapshot(self) -> Snapshot | None:
-        now = monotonic()
-        expired = now >= self._snapshot_expires
-        if self._snapshot_ttl and expired and self._refresh_lock.acquire(False):
-            # a failed load is not retried before the next ttl
-            self._snapshot_expires = now + self._snapshot_ttl
+        if (
+            self._snapshot_ttl
+            and monotonic() >= self._snapshot_expires
+            and self._refresh_lock.acquire(False)
+        ):
             try:
-                self._snapshot = self._load_snapshot()
-            except (RequestException, KeyError, TypeError, ValueError) as e:
+                # another lookup may have reloaded while this one took the lock
+                if monotonic() >= self._snapshot_expires:
+                    # a failed load is not retried before the next ttl
+                    self._snapshot_expires = monotonic() + self._snapshot_ttl
+                    self._snapshot = self._load_snapshot()
+            except (RequestException, KeyError, ValueError) as e:
                 logger.warning('%s: cannot load the users: %s', self.name, e)
             finally:
                 self._refresh_lock.release()
@@ -146,7 +159,12 @@ class WazoUserPlugin(BaseSourcePlugin):
         users: dict[str, dict[str, Any]] = {}
         while True:
             page = self._client.users.list(
-                **self._search_params, order='id', limit=1000, offset=len(users)
+                **{
+                    **self._search_params,
+                    'order': 'id',
+                    'limit': 1000,
+                    'offset': len(users),
+                }
             )
             known = len(users)
             users.update((user['uuid'], user) for user in page['items'])
@@ -156,9 +174,8 @@ class WazoUserPlugin(BaseSourcePlugin):
         snapshot: Snapshot = []
         # confd sorts a search by lastname
         for user in sorted(users.values(), key=lambda u: (u['lastname'] or '').lower()):
-            fields = self._source_result_from_entry(user, uuid).fields
-            values = [str(fields.get(c) or '') for c in self._searched_columns]
-            snapshot.append((user, tuple(unidecode(v.lower()) for v in values)))
+            result = self._source_result_from_entry(user, uuid)
+            snapshot.append((user, self._folded(result)))
         return snapshot
 
     def first_match(

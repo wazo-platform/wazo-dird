@@ -208,7 +208,7 @@ class TestWazoUserBackendLoad(_BaseTest):
         config['first_matched_columns'] = first_matched_columns
         with patch('wazo_dird.plugins.wazo_user_backend.plugin.registry'):
             self._source.load(
-                cast(SourcePluginDependencies, {'config': config}),
+                cast(SourcePluginDependencies, dict(DEFAULT_ARGS, config=config)),
             )
 
     def test_load_accepts_a_column_confd_can_match_exactly(self):

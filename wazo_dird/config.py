@@ -138,6 +138,7 @@ _DEFAULT_CONFIG: Config = {
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-dird',
     'debug': False,
     'extra_config_files': '/etc/wazo-dird/conf.d/',
+    'wazo_user_cache_ttl': 60,
     'enabled_plugins': {
         'backends': {
             'conference': True,
