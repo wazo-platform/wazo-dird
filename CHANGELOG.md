@@ -42,6 +42,10 @@
 
 ## 26.09
 
+* New `wazo_user_cache_ttl` option (seconds, default 60, `0` disables). A `wazo`
+  source answers lookups from a snapshot of all its confd users, reloaded
+  after this delay, instead of one confd request for each lookup.
+
 * Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
   directory sources pointing at `localhost:9497` are migrated.
 

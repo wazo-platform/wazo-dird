@@ -113,6 +113,7 @@ class Config(TypedDict, total=False):
     lookup_service: LookupServiceConfig
     favorites_service: FavoritesServiceConfig
     google_backend: GoogleBackendConfig
+    wazo_user_cache_ttl: int
     user: str
     bus: BusConfig
     consul: ConsulConfig
