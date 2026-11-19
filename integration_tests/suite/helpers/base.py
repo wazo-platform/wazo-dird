@@ -167,6 +167,10 @@ class WazoUsersMultipleWazoAsset(DirdAssetLaunchingTestCase):
     asset = 'wazo_users_multiple_wazo'
 
 
+class WazoUserSnapshotAsset(DirdAssetLaunchingTestCase):
+    asset = 'wazo_user_snapshot'
+
+
 class WazoUsersTwoWorkingOne404Asset(DirdAssetLaunchingTestCase):
     asset = 'wazo_users_two_working_one_404'
 
