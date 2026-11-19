@@ -122,7 +122,7 @@ class TestUserSnapshot(unittest.TestCase):
     def make_plugin(self, main_config: dict[str, Any], **config: Any) -> WazoUserPlugin:
         dependencies = {
             'config': {**SOURCE_CONFIG, **config},
-            'main_config': {'wazo_user_cache_ttl': 60, **main_config},
+            'main_config': main_config,
             'auth_client': Mock(),
             'token_renewer': Mock(),
         }
@@ -190,6 +190,17 @@ class TestUserSnapshot(unittest.TestCase):
                 }
             ),
         )
+
+    def test_a_missing_ttl_key_uses_the_default_ttl(self) -> None:
+        plugin = self.make_plugin({})
+        plugin.search('paul')
+        self.confd.users.append(make_user(5, 'Paula', 'New', '1005'))
+
+        self.now += 59
+        assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
+        self.now += 2
+        assert_that(self.ids(plugin, 'paul'), contains_inanyorder(2, 5))
+        assert_that(self.confd.searched(), has_length(0))
 
     def test_expiry_reloads_the_snapshot(self) -> None:
         plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
