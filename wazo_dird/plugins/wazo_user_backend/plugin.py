@@ -88,7 +88,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self.name = config['name']
         self._client = registry.get(config)
         main_config = dependencies['main_config']
-        self._snapshot_ttl = main_config['wazo_user_cache_ttl']
+        self._snapshot_ttl = main_config.get('wazo_user_cache_ttl', 60)
 
         self._SourceResult = make_result_class(
             'wazo', self.name, 'uuid', format_columns=config.get('format_columns')
