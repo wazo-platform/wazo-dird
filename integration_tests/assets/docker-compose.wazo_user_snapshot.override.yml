@@ -1,0 +1,20 @@
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+      - confd
+      - db
+    environment:
+      TARGETS: "confd:9486 dird:9489 auth:9497 db:5432"
+  dird:
+    volumes:
+      - "./etc/wazo-dird/conf.d/20-bus-disabled.yml:/etc/wazo-dird/conf.d/20-bus-disabled.yml"
+      - "./etc/wazo-dird/conf.d/asset.wazo_user_snapshot.yml:/etc/wazo-dird/conf.d/20-snapshot-ttl.yml"
+  confd:
+    image: python:3.11-slim-bookworm
+    volumes:
+      - "./confd_data/asset.wazo_user_snapshot:/tmp"
+    ports:
+      - "9486"
+    command: python3 /tmp/snapshot_confd.py
