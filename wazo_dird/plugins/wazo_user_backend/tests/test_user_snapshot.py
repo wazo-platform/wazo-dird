@@ -237,6 +237,19 @@ class TestUserSnapshot(unittest.TestCase):
         loader.join(5)
         assert_that(self.confd.paged(), has_length(1))
 
+    def test_a_confd_ignoring_the_offset_does_not_loop_forever(self) -> None:
+        # a page that adds no user ends the load, whatever `total` claims
+        def ignore_offset(**params: Any) -> dict[str, Any]:
+            self.confd.calls.append(params)
+            assert len(self.confd.calls) < 20, 'the load does not stop'
+            return {'items': USERS[:2], 'total': 10}
+
+        self.client.users.list.side_effect = ignore_offset
+        plugin = self.make_plugin({})
+
+        assert_that(self.ids(plugin, ''), contains_inanyorder(1, 2))
+        assert_that(self.confd.calls, has_length(2))
+
     def test_ttl_0_never_builds_a_snapshot(self) -> None:
         plugin = self.make_plugin({'wazo_user_cache_ttl': 0})
 
