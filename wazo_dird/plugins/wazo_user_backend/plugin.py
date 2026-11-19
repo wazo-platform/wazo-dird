@@ -148,8 +148,9 @@ class WazoUserPlugin(BaseSourcePlugin):
             page = self._client.users.list(
                 **self._search_params, order='id', limit=1000, offset=len(users)
             )
+            known = len(users)
             users.update((user['uuid'], user) for user in page['items'])
-            if not page['items'] or len(users) >= page['total']:
+            if len(users) == known or len(users) >= page['total']:
                 break
 
         snapshot: Snapshot = []
