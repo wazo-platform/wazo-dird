@@ -108,6 +108,7 @@ class Config(TypedDict, total=False):
     reverse_service: ReverseServiceConfig
     lookup_service: LookupServiceConfig
     favorites_service: FavoritesServiceConfig
+    wazo_user_cache_ttl: int
     user: str
     bus: BusConfig
     consul: ConsulConfig

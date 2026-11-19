@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Iterable, Iterator
+from threading import Lock
+from time import monotonic
 from typing import Any, cast
 
 from requests.exceptions import ConnectionError, RequestException
@@ -25,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 # confd documents maxItems 20 on the `uuid` filter of GET /users
 LIST_BATCH_SIZE = 20
+
+Snapshot = list[tuple[dict[str, Any], tuple[str, ...]]]  # (entry, folded columns)
 
 
 class WazoUserView(BaseBackendView):
@@ -71,6 +75,10 @@ class WazoUserPlugin(BaseSourcePlugin):
     def __init__(self) -> None:
         self._client = None
         self._uuid: str | None = None
+        self._snapshot: Snapshot | None = None
+        self._snapshot_expires = 0.0
+        self._snapshot_ttl = 0
+        self._refresh_lock = Lock()
         self._search_params: dict[str, Any] = {'view': 'directory', 'recurse': True}
 
     def load(self, dependencies: SourcePluginDependencies) -> None:
@@ -79,6 +87,8 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._first_matched_columns = config.get('first_matched_columns', [])
         self.name = config['name']
         self._client = registry.get(config)
+        main_config = dependencies['main_config']
+        self._snapshot_ttl = int(main_config.get('wazo_user_cache_ttl', 60))
 
         self._SourceResult = make_result_class(
             'wazo', self.name, 'uuid', format_columns=config.get('format_columns')
@@ -98,6 +108,13 @@ class WazoUserPlugin(BaseSourcePlugin):
         args: dict[str, Any] | None = None,
     ) -> list[SourceResult]:
         clean_term = unidecode(term.lower())
+        snapshot = self._current_snapshot()
+        if snapshot is not None:
+            return [
+                self._source_result_from_entry(entry, self._get_wazo_uuid())
+                for entry, folded in snapshot
+                if any(clean_term in value for value in folded)
+            ]
         entries = self._fetch_entries(term)
 
         def match_fn(entry: SourceResult) -> bool:
@@ -115,6 +132,40 @@ class WazoUserPlugin(BaseSourcePlugin):
             return False
 
         return [entry for entry in entries if match_fn(entry)]
+
+    def _current_snapshot(self) -> Snapshot | None:
+        now = monotonic()
+        expired = now >= self._snapshot_expires
+        if self._snapshot_ttl and expired and self._refresh_lock.acquire(False):
+            # a failed load is not retried before the next ttl
+            self._snapshot_expires = now + self._snapshot_ttl
+            try:
+                self._snapshot = self._load_snapshot()
+            except (RequestException, KeyError, TypeError, ValueError) as e:
+                logger.warning('%s: cannot load the users: %s', self.name, e)
+            finally:
+                self._refresh_lock.release()
+        return self._snapshot
+
+    def _load_snapshot(self) -> Snapshot:
+        assert self._client is not None
+        uuid = self._get_wazo_uuid()
+        users: dict[str, dict[str, Any]] = {}
+        while True:
+            page = self._client.users.list(
+                **self._search_params, order='id', limit=1000, offset=len(users)
+            )
+            users.update((user['uuid'], user) for user in page['items'])
+            if not page['items'] or len(users) >= page['total']:
+                break
+
+        snapshot: Snapshot = []
+        # confd sorts a search by lastname
+        for user in sorted(users.values(), key=lambda u: (u['lastname'] or '').lower()):
+            fields = self._source_result_from_entry(user, uuid).fields
+            values = [str(fields.get(c) or '') for c in self._searched_columns]
+            snapshot.append((user, tuple(unidecode(v.lower()) for v in values)))
+        return snapshot
 
     def first_match(
         self, term: str, args: dict[str, Any] | None = None
