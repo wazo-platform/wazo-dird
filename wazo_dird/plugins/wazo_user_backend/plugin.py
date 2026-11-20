@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+import unicodedata
 from collections.abc import Iterable, Iterator
 from threading import Lock
 from time import monotonic
@@ -14,7 +15,7 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import SourceUnavailable
+from wazo_dird.exception import SourceUnavailable, WazoConfdError
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
@@ -29,6 +30,19 @@ logger = logging.getLogger(__name__)
 LIST_BATCH_SIZE = 20
 
 Snapshot = list[tuple[dict[str, Any], tuple[str, ...]]]  # (entry, folded columns)
+
+# what a listing of the snapshot reproduces: no filter, one of these sorts, a page
+_LISTING_DEFAULTS = {'search': None, 'recurse': False, 'order_insensitive': False}
+_LISTING_PAGING = {'order', 'direction', 'offset', 'limit'}
+
+
+def _is_plain_listing(params: dict[str, Any]) -> bool:
+    return (
+        params.keys() <= _LISTING_DEFAULTS.keys() | _LISTING_PAGING
+        and params.get('order', 'lastname') in ('firstname', 'lastname')
+        and params.get('limit') != 0
+        and all(params.get(k, v) == v for k, v in _LISTING_DEFAULTS.items())
+    )
 
 
 class WazoUserView(BaseBackendView):
@@ -79,6 +93,8 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._snapshot_expires = 0.0
         self._snapshot_ttl = 0
         self._refresh_lock = Lock()
+        self._listing_checked: Snapshot | None = None
+        self._listing_complete = False
         self._search_params: dict[str, Any] = {'view': 'directory', 'recurse': True}
 
     def load(self, dependencies: SourcePluginDependencies) -> None:
@@ -170,6 +186,43 @@ class WazoUserPlugin(BaseSourcePlugin):
             result = self._source_result_from_entry(user, uuid)
             snapshot.append((user, self._folded(result)))
         return snapshot
+
+    def list_contacts(self, **params: Any) -> dict[str, Any]:
+        """The users confd lists for `params`, from the snapshot when it can."""
+        snapshot = self._current_snapshot() if _is_plain_listing(params) else None
+        if snapshot is None or not self._lists_like_confd(snapshot):
+            return self._list_confd(**params)
+
+        order = params.get('order', 'lastname')
+
+        def sort_key(entry: dict[str, Any]) -> tuple[bool, str]:
+            text = '' if entry[order] is None else str(entry[order]).casefold()
+            return (text == '', unicodedata.normalize('NFKD', text))
+
+        # the snapshot is in confd's own order by lastname, so ties agree
+        entries = [entry for entry, _ in snapshot]
+        entries.sort(key=sort_key, reverse=params.get('direction') == 'desc')
+        offset, limit = params.get('offset', 0), params.get('limit')
+        page = entries[offset : offset + limit if limit else None]
+        return {'total': len(entries), 'items': page}
+
+    def _lists_like_confd(self, snapshot: Snapshot) -> bool:
+        # a listing without `recurse` shows one tenant, the snapshot its sub-tenants
+        if self._listing_checked is not snapshot:
+            self._listing_complete = self._search_params == {
+                'view': 'directory',
+                'recurse': True,
+            } and self._list_confd(limit=1)['total'] == len(snapshot)
+            self._listing_checked = snapshot
+        return self._listing_complete
+
+    def _list_confd(self, **params: Any) -> dict[str, Any]:
+        assert self._client is not None
+        try:
+            users: dict[str, Any] = self._client.users.list(view='directory', **params)
+        except (RequestException, TypeError, ValueError) as e:
+            raise WazoConfdError(self._client, e)
+        return users
 
     def first_match(
         self, term: str, args: dict[str, Any] | None = None
