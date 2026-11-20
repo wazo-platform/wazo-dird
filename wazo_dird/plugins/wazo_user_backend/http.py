@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 from flask import request
 
 from wazo_dird.auth import required_acl
+from wazo_dird.exception import NoSuchSource
 from wazo_dird.helpers import SourceItem, SourceList
 from wazo_dird.http import AuthResource
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
@@ -65,8 +66,10 @@ class WazoContactList(AuthResource):
         list_params = contact_list_param_schema.load(request.args)
         self._source_service.get('wazo', source_uuid, visible_tenants)
 
-        source = cast('WazoUserPlugin', self._source_service.get_plugin(source_uuid))
-        response = source.list_contacts(**list_params)
+        source = self._source_service.get_plugin(source_uuid)
+        if source is None:  # deleted since the check above
+            raise NoSuchSource(source_uuid)
+        response = cast('WazoUserPlugin', source).list_contacts(**list_params)
 
         return {
             'total': response['total'],

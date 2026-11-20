@@ -71,6 +71,13 @@ class TestWazoContactList(unittest.TestCase):
 
         self.source_service.get_plugin.assert_not_called()
 
+    def test_a_source_deleted_between_the_two_calls_is_unknown(self) -> None:
+        self.source_service.get_plugin.return_value = None
+
+        assert_that(calling(self.get), raises(NoSuchSource))
+
+        self.plugin.list_contacts.assert_not_called()
+
     def test_the_query_string_gives_the_list_parameters(self) -> None:
         self.get('limit=5&offset=2&order=lastname&direction=desc')
 
