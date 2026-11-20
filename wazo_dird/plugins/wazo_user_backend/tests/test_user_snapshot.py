@@ -342,6 +342,61 @@ class TestUserSnapshot(unittest.TestCase):
 
         assert_that(self.confd.paged(), empty())
 
+    def test_a_ttl_written_as_a_number_in_text_is_read_as_a_number(self) -> None:
+        plugin = self.make_plugin({'wazo_user_cache_ttl': '30'})
+        self.ids(plugin, 'paul')
+        self.confd.calls.clear()
+
+        self.now += 29
+        self.ids(plugin, 'paul')
+        assert_that(self.confd.calls, empty())
+        self.now += 2
+        self.ids(plugin, 'paul')
+
+        assert_that(self.confd.paged(), has_length(1))
+
+    def test_a_ttl_below_a_second_is_accepted(self) -> None:
+        plugin = self.make_plugin({'wazo_user_cache_ttl': 0.5})
+        self.ids(plugin, 'paul')
+        self.confd.calls.clear()
+
+        self.now += 0.4
+        self.ids(plugin, 'paul')
+        assert_that(self.confd.calls, empty())
+        self.now += 0.2
+        self.ids(plugin, 'paul')
+
+        assert_that(self.confd.paged(), has_length(1))
+
+    def test_a_negative_or_empty_ttl_turns_the_cache_off(self) -> None:
+        for ttl in (-5, '-1', None, '', 0):
+            with self.subTest(ttl=ttl):
+                self.confd.calls.clear()
+                plugin = self.make_plugin({'wazo_user_cache_ttl': ttl})
+
+                assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
+
+                assert_that(self.confd.paged(), empty())
+                assert_that(self.confd.searched(), has_length(1))
+
+    def test_a_ttl_that_is_not_a_number_fails_once_at_load(self) -> None:
+        plugin = WazoUserPlugin()
+        dependencies = {
+            'config': SOURCE_CONFIG,
+            'main_config': {'wazo_user_cache_ttl': 'abc'},
+            'auth_client': Mock(),
+            'token_renewer': Mock(),
+        }
+        with patch('wazo_dird.plugins.wazo_user_backend.plugin.registry') as registry:
+            registry.get.return_value = self.client
+            with self.assertRaises(ValueError):
+                plugin.load(cast(SourcePluginDependencies, dependencies))
+
+        # the source manager keeps the plugin: it works, on the confd path
+        assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
+        assert_that(self.confd.paged(), empty())
+        assert_that(self.confd.searched(), has_length(1))
+
     def test_a_lookup_that_lost_the_race_does_not_reload(self) -> None:
         # B saw the snapshot expired, A reloaded it, then B got the lock
         plugin = self.make_plugin({})
