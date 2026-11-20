@@ -329,6 +329,17 @@ class TestListContacts(unittest.TestCase):
         assert_that(self.confd.snapshot_loads(), empty())
         assert_that(self.confd.listings(), has_length(1))
 
+    def test_extra_search_params_ask_confd_for_the_listing(self) -> None:
+        plugin = self.make_plugin(extra_search_params={'context': 'inside'})
+        params = listing()
+
+        plugin.list_contacts(**params)
+
+        assert_that(self.confd.snapshot_loads(), empty())
+        assert_that(
+            self.confd.listings(), contains_exactly({'view': 'directory', **params})
+        )
+
     def test_a_failed_first_load_asks_confd_and_waits_a_ttl(self) -> None:
         self.confd.snapshot_failure = ConnectionError('confd is down')
         plugin = self.make_plugin()
