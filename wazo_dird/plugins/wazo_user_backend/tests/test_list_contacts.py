@@ -52,7 +52,6 @@ class FakeConfd:
 
     def __init__(self) -> None:
         self.users = list(USERS)
-        self.sub_tenant_ids: set[int] = set()
         self.calls: list[dict[str, Any]] = []
         self.failure: Exception | None = None
         self.snapshot_failure: Exception | None = None
@@ -67,11 +66,7 @@ class FakeConfd:
         if self.snapshot_failure is not None and params.get('order') == 'id':
             raise self.snapshot_failure
 
-        rows = [
-            user
-            for user in self.users
-            if params.get('recurse') or user['id'] not in self.sub_tenant_ids
-        ]
+        rows = list(self.users)
         if params.get('search'):
             needle = params['search'].lower()
             rows = [u for u in rows if needle in f"{u['firstname']} {u['lastname']}"]
@@ -180,15 +175,15 @@ class TestListContacts(unittest.TestCase):
 
         assert_that(result['items'], contains_exactly(USERS[6]))
 
-    def test_a_fresh_snapshot_serves_the_listing_without_asking_confd(self) -> None:
+    def test_the_snapshot_load_is_the_only_request_of_the_listings(self) -> None:
         plugin = self.make_plugin()
-        plugin.list_contacts(**listing())
-        self.confd.calls.clear()
 
+        plugin.list_contacts(**listing())
         plugin.list_contacts(**listing(order='lastname'))
         plugin.list_contacts(**listing(limit='2'))
 
-        assert_that(self.confd.calls, empty())
+        assert_that(self.confd.calls, has_length(1))
+        assert_that(self.confd.snapshot_loads(), has_length(1))
 
     def test_the_listing_changes_after_the_ttl(self) -> None:
         plugin = self.make_plugin()
@@ -258,28 +253,6 @@ class TestListContacts(unittest.TestCase):
 
         assert_that(self.confd.snapshot_loads(), has_length(1))
         assert_that(self.confd.listings(), has_length(2))
-
-    def test_sub_tenant_users_keep_the_listing_on_confd(self) -> None:
-        # the snapshot has every sub-tenant, a listing without `recurse` has one
-        self.confd.sub_tenant_ids = {5, 6}
-        plugin = self.make_plugin()
-
-        result = plugin.list_contacts(**listing())
-
-        assert_that(result['total'], equal_to(5))
-        assert_that(
-            [user['id'] for user in result['items']], contains_exactly(3, 2, 7, 4, 1)
-        )
-
-    def test_extra_search_params_keep_the_listing_on_confd(self) -> None:
-        plugin = self.make_plugin(extra_search_params={'context': 'inside'})
-
-        plugin.list_contacts(**listing())
-
-        assert_that(
-            self.confd.listings(),
-            contains_exactly(has_entries(view='directory', recurse=False)),
-        )
 
     def test_a_confd_failure_is_a_wazo_confd_error(self) -> None:
         plugin = self.make_plugin(ttl=0)
