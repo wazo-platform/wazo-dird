@@ -16,11 +16,10 @@ the accents, and puts the empty values last, `desc` reverses it; `offset` and
 is a sort on the text of the id, as in confd. A mock is still a model: it is not
 the confd database, and its order of equal names is the order of the SQL step.
 
-    PUT    /_state   {"users": [...], "ignore_offset": bool, "total": int|null}
+    PUT    /_state   {"users": [...]}
     GET    /_stats   {"users_requests": n, "pages": [[limit, offset], ...]}
 
-`PUT /_state` also clears the stats. `ignore_offset` and `total` let a test
-build a confd that answers wrongly. The state is kept in a file, so a test
+`PUT /_state` also clears the stats. The state is kept in a file, so a test
 that stops and starts the container finds its users again. A client that sends
 more than MAX_USERS_REQUESTS user requests since the last state gets a 503,
 which ends a runaway load instead of flooding the container.
@@ -40,7 +39,7 @@ MAX_USERS_REQUESTS = 100
 INFOS = {'uuid': '6fa459ea-ee8a-3ca4-894e-db77e160snap'}
 
 LOCK = threading.Lock()
-STATE: dict[str, Any] = {'users': [], 'ignore_offset': False, 'total': None}
+STATE: dict[str, Any] = {'users': []}
 STATS: dict[str, Any] = {'users_requests': 0, 'pages': []}
 
 
@@ -79,10 +78,8 @@ def _users(query: dict[str, list[str]]) -> dict[str, Any]:
     STATS['users_requests'] += 1
     STATS['pages'].append([limit, offset])
 
-    start = 0 if STATE['ignore_offset'] else offset
-    items = users[start:] if not limit else users[start : start + limit]
-    total = STATE['total'] if STATE['total'] is not None else len(users)
-    return {'items': items, 'total': total}
+    items = users[offset:] if not limit else users[offset : offset + limit]
+    return {'items': items, 'total': len(users)}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -117,11 +114,7 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get('Content-Length', 0))
         state = json.loads(self.rfile.read(length))
         with LOCK:
-            STATE.update(
-                users=state['users'],
-                ignore_offset=state.get('ignore_offset', False),
-                total=state.get('total'),
-            )
+            STATE.update(users=state['users'])
             with open(STATE_PATH, 'w') as f:
                 json.dump(STATE, f)
             _reset_stats()

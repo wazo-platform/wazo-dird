@@ -166,8 +166,8 @@ class TestWazoUserSnapshot(BaseSnapshotTest):
         self.set_confd_users(users)
         self.expire_snapshot()
         first = self.contacts()
-        # the load is the only request: no other one checks the users first
-        assert_that(self.confd_stats()['pages'], contains_exactly([1000, 0]))
+        # the load is the only request: one, with no limit and no offset
+        assert_that(self.confd_stats()['pages'], contains_exactly([None, 0]))
         # a new state clears the request count of the mock
         self.set_confd_users(users)
 
@@ -240,42 +240,32 @@ class TestWazoUserSnapshot(BaseSnapshotTest):
             self.client.wazo_source.edit(self.source_uuid(), body)
 
 
-class TestWazoUserSnapshotPaging(BaseSnapshotTest):
-    def test_the_load_pages_through_all_the_users(self):
-        """The load asks 1,000 users at a time, up to `total`, with no user twice."""
+class TestWazoUserSnapshotLoad(BaseSnapshotTest):
+    def test_the_load_is_one_request_that_serves_lookups_and_listings(self):
+        """2,500 users load in one request, with no paging, then answer from memory."""
         users = [
             new_user(i, 'Filler', f'N{i:04d}', str(2000 + i)) for i in range(1, 2500)
         ]
-        users.append(new_user(2500, 'Zelda', 'Thirdpage', '9999'))
+        users.append(new_user(2500, 'Zelda', 'Lastone', '9999'))
         self.set_confd_users(users)
         self.expire_snapshot()
 
-        assert_that(self.lastnames('thirdpage'), contains_exactly('Thirdpage'))
-        assert_that(
-            self.confd_stats()['pages'],
-            contains_exactly([1000, 0], [1000, 1000], [1000, 2000]),
-        )
+        assert_that(self.lastnames('lastone'), contains_exactly('Lastone'))
+        assert_that(self.confd_stats()['pages'], contains_exactly([None, 0]))
 
         results = self.lookup('filler', 'default')['results']
         entry_ids = {result['relations']['source_entry_id'] for result in results}
         assert_that(results, has_length(2499))
         assert_that(entry_ids, has_length(2499))
-        assert_that(self.users_requests(), equal_to(3))
-
-    def test_a_confd_that_ignores_the_offset_does_not_hang_the_load(self):
-        """The load stops when a page adds no user, whatever `total` says."""
-        users = [new_user(i, 'Filler', f'N{i}', str(3000 + i)) for i in range(1, 6)]
-        self.set_confd_users(users, ignore_offset=True, total=10000)
-        self.expire_snapshot()
-
-        started = time.monotonic()
-        assert_that(self.lastnames('filler'), has_length(5))
-        assert_that(time.monotonic() - started, less_than(5))
-        loaded = self.users_requests()
-        assert_that(loaded, less_than_or_equal_to(3))
-
-        assert_that(self.lastnames('filler'), has_length(5))
-        assert_that(self.users_requests(), equal_to(loaded))
+        listing = self.contacts(limit=5, offset=0, order='lastname')
+        assert_that(listing['total'], equal_to(2500))
+        assert_that(
+            [contact['lastname'] for contact in listing['items']],
+            contains_exactly('Lastone', 'N0001', 'N0002', 'N0003', 'N0004'),
+        )
+        by_uuid = self.contacts(uuid=users[2499]['uuid'])
+        assert_that(by_uuid['total'], equal_to(1))
+        assert_that(self.users_requests(), equal_to(1))
 
 
 # accents, mixed case, ties on the first name, two names that differ by their case,
