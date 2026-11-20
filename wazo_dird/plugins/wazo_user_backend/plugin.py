@@ -161,11 +161,14 @@ class WazoUserPlugin(BaseSourcePlugin):
             try:
                 # another lookup may have reloaded while this one took the lock
                 if monotonic() >= self._snapshot_expires:
-                    # a failed load is not retried before the next ttl
-                    self._snapshot_expires = monotonic() + self._snapshot_ttl
-                    self._snapshot = self._load_snapshot()
-            except (RequestException, KeyError, ValueError) as e:
-                logger.warning('%s: cannot load the users: %s', self.name, e)
+                    try:
+                        self._snapshot = self._load_snapshot()
+                    except (RequestException, KeyError, ValueError) as e:
+                        logger.warning('%s: cannot load the users: %s', self.name, e)
+                    finally:
+                        # counted from the end of the load, so a slow or failed
+                        # load is not started again at once
+                        self._snapshot_expires = monotonic() + self._snapshot_ttl
             finally:
                 self._refresh_lock.release()
         return self._snapshot
