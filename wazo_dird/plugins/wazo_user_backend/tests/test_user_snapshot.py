@@ -309,6 +309,39 @@ class TestUserSnapshot(unittest.TestCase):
 
                 assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
 
+    def test_a_load_longer_than_the_ttl_still_leaves_a_fresh_snapshot(self) -> None:
+        plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
+        users_list = self.confd.users_list
+
+        def slow_load(**params: Any) -> dict[str, Any]:
+            self.now += 100
+            return users_list(**params)
+
+        self.client.users.list.side_effect = slow_load
+        self.ids(plugin, 'paul')
+        self.confd.calls.clear()
+
+        assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
+
+        assert_that(self.confd.calls, empty())
+
+    def test_a_failed_load_longer_than_the_ttl_is_not_retried_at_once(self) -> None:
+        plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
+
+        def slow_failure(**params: Any) -> dict[str, Any]:
+            if 'limit' in params:
+                self.now += 100
+            raise ConnectionError('confd is down')
+
+        self.client.users.list.side_effect = slow_failure
+        self.ids(plugin, 'paul')
+        self.client.users.list.side_effect = self.confd.users_list
+        self.confd.calls.clear()
+
+        self.ids(plugin, 'paul')
+
+        assert_that(self.confd.paged(), empty())
+
     def test_a_lookup_that_lost_the_race_does_not_reload(self) -> None:
         # B saw the snapshot expired, A reloaded it, then B got the lock
         plugin = self.make_plugin({})
