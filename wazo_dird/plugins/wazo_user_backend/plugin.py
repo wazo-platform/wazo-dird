@@ -32,9 +32,10 @@ LIST_BATCH_SIZE = 20
 
 Snapshot = list[tuple[dict[str, Any], tuple[str, ...]]]  # (entry, folded columns)
 
-# what a listing of the snapshot reproduces: no filter but `uuid`, a sort, a page
-_LISTING_DEFAULTS = {'search': None, 'recurse': False, 'order_insensitive': False}
-_LISTING_KEYS = {'order', 'direction', 'offset', 'limit', 'uuid'}
+# the keys of a listing that the snapshot reproduces: a `uuid` filter, a sort, a page
+_LISTING_KEYS = set(
+    'order direction offset limit uuid search recurse order_insensitive'.split()
+)
 
 
 def _collation_key(value: Any) -> tuple[bool, str]:
@@ -44,11 +45,11 @@ def _collation_key(value: Any) -> tuple[bool, str]:
 
 
 def _is_plain_listing(params: dict[str, Any]) -> bool:
+    # `order` is one of two columns: the schema of the listing refuses any other
     return (
-        params.keys() <= _LISTING_DEFAULTS.keys() | _LISTING_KEYS
-        and params.get('order', 'lastname') in ('firstname', 'lastname')
+        params.keys() <= _LISTING_KEYS
+        and not any(params.get(k) for k in ('search', 'recurse', 'order_insensitive'))
         and params.get('limit') != 0
-        and all(params.get(k, v) == v for k, v in _LISTING_DEFAULTS.items())
     )
 
 

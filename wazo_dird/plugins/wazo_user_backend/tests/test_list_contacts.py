@@ -321,6 +321,17 @@ class TestListContacts(unittest.TestCase):
             self.confd.listings(), contains_exactly({'view': 'directory', **params})
         )
 
+    def test_an_empty_search_is_a_plain_listing(self) -> None:
+        # confd takes an empty search for no search
+        live, cached = self.make_plugin(ttl=0), self.make_plugin()
+        cached.list_contacts(**listing())
+        self.confd.calls.clear()
+
+        result = cached.list_contacts(**listing(search=''))
+
+        assert_that(self.confd.calls, empty())
+        assert_that(result, equal_to(live.list_contacts(**listing(search=''))))
+
     def test_an_unknown_parameter_asks_confd(self) -> None:
         plugin = self.make_plugin()
 
