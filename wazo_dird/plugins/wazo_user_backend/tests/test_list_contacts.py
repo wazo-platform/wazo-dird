@@ -70,8 +70,9 @@ class FakeConfd:
         if params.get('search'):
             needle = params['search'].lower()
             rows = [u for u in rows if needle in f"{u['firstname']} {u['lastname']}"]
-        if params.get('uuid'):
-            rows = [u for u in rows if u['uuid'] == params['uuid']]
+        if isinstance(params.get('uuid'), str):
+            wanted = params['uuid'].split(',')
+            rows = [u for u in rows if u['uuid'] in wanted]
         for column in ('firstname', 'lastname'):
             if params.get(column):
                 rows = [u for u in rows if u[column] == params[column]]
@@ -200,7 +201,9 @@ class TestListContacts(unittest.TestCase):
         uuid = USERS[0]['uuid']
         queries: list[dict[str, str]] = [
             {'search': 'anna'},
-            {'uuid': uuid},
+            {'uuid': uuid, 'search': 'anna'},
+            {'uuid': uuid, 'recurse': 'true'},
+            {'uuid': uuid, 'firstname': 'Zoe'},
             {'firstname': 'Bob'},
             {'lastname': 'Abel'},
             {'recurse': 'true'},
@@ -217,6 +220,88 @@ class TestListContacts(unittest.TestCase):
                     self.confd.calls, contains_exactly({'view': 'directory', **params})
                 )
                 assert_that(result, equal_to(self.confd.users_list(**params)))
+
+    def test_a_batch_of_uuids_lists_those_users_sorted_as_confd_sorts(self) -> None:
+        plugin = self.make_plugin()
+        batch = ','.join(USERS[i]['uuid'] for i in (0, 2, 4, 5))
+
+        assert_that(self.ids(plugin, uuid=batch), contains_exactly(3, 6, 5, 1))
+        assert_that(
+            self.ids(plugin, uuid=batch, direction='desc'), contains_exactly(1, 5, 6, 3)
+        )
+
+    def test_unknown_uuids_match_nothing_and_a_repeated_one_gives_one_user(
+        self,
+    ) -> None:
+        plugin = self.make_plugin()
+        known = USERS[0]['uuid']
+        unknown = '00000000-0000-0000-0000-00000000ffff'
+        # confd matches the text exactly: no trimming
+        batches = [f'{unknown},{known},{known},{unknown}', f'{known} ,{unknown}']
+
+        assert_that(self.ids(plugin, uuid=batches[0]), contains_exactly(1))
+        assert_that(self.ids(plugin, uuid=batches[1]), empty())
+
+    def test_an_empty_uuid_matches_nothing_as_in_confd(self) -> None:
+        live, cached = self.make_plugin(ttl=0), self.make_plugin()
+
+        result = cached.list_contacts(**listing(uuid=''))
+
+        assert_that(result, equal_to({'total': 0, 'items': []}))
+        assert_that(result, equal_to(live.list_contacts(**listing(uuid=''))))
+
+    def test_the_page_and_the_total_follow_the_uuid_filter(self) -> None:
+        plugin = self.make_plugin()
+        batch = ','.join(user['uuid'] for user in USERS[:5])
+
+        result = plugin.list_contacts(
+            **listing(uuid=batch, limit='2', offset='1', order='lastname')
+        )
+
+        assert_that(result['total'], equal_to(5))
+        assert_that([user['id'] for user in result['items']], contains_exactly(5, 2))
+
+    def test_a_uuid_listing_is_what_confd_lists(self) -> None:
+        live, cached = self.make_plugin(ttl=0), self.make_plugin()
+        everyone = ','.join(user['uuid'] for user in USERS)
+        some = ','.join(USERS[i]['uuid'] for i in (6, 1, 3))
+        queries: list[dict[str, str]] = [
+            {'uuid': everyone},
+            {'uuid': some},
+            {'uuid': some, 'order': 'lastname'},
+            {'uuid': some, 'direction': 'desc'},
+            {'uuid': everyone, 'limit': '3', 'offset': '2'},
+            {'uuid': everyone, 'limit': '2', 'offset': '6', 'direction': 'desc'},
+            {'uuid': some, 'offset': '5'},
+            {'uuid': f'{some},{some},nope'},
+        ]
+        for query in queries:
+            with self.subTest(query=query):
+                assert_that(
+                    cached.list_contacts(**listing(**query)),
+                    equal_to(live.list_contacts(**listing(**query))),
+                )
+
+    def test_a_uuid_listing_sends_no_request_once_the_snapshot_is_loaded(self) -> None:
+        plugin = self.make_plugin()
+        plugin.list_contacts(**listing())
+        self.confd.calls.clear()
+
+        plugin.list_contacts(**listing(uuid=USERS[0]['uuid']))
+        plugin.list_contacts(**listing(uuid=f"{USERS[1]['uuid']},{USERS[2]['uuid']}"))
+
+        assert_that(self.confd.calls, empty())
+
+    def test_ttl_0_asks_confd_for_a_uuid_listing(self) -> None:
+        plugin = self.make_plugin(ttl=0)
+        params = listing(uuid=USERS[0]['uuid'])
+
+        plugin.list_contacts(**params)
+
+        assert_that(self.confd.snapshot_loads(), empty())
+        assert_that(
+            self.confd.listings(), contains_exactly({'view': 'directory', **params})
+        )
 
     def test_an_unknown_parameter_asks_confd(self) -> None:
         plugin = self.make_plugin()

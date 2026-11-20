@@ -32,14 +32,14 @@ LIST_BATCH_SIZE = 20
 
 Snapshot = list[tuple[dict[str, Any], tuple[str, ...]]]  # (entry, folded columns)
 
-# what a listing of the snapshot reproduces: no filter, one of these sorts, a page
+# what a listing of the snapshot reproduces: no filter but `uuid`, a sort, a page
 _LISTING_DEFAULTS = {'search': None, 'recurse': False, 'order_insensitive': False}
-_LISTING_PAGING = {'order', 'direction', 'offset', 'limit'}
+_LISTING_KEYS = {'order', 'direction', 'offset', 'limit', 'uuid'}
 
 
 def _is_plain_listing(params: dict[str, Any]) -> bool:
     return (
-        params.keys() <= _LISTING_DEFAULTS.keys() | _LISTING_PAGING
+        params.keys() <= _LISTING_DEFAULTS.keys() | _LISTING_KEYS
         and params.get('order', 'lastname') in ('firstname', 'lastname')
         and params.get('limit') != 0
         and all(params.get(k, v) == v for k, v in _LISTING_DEFAULTS.items())
@@ -214,8 +214,11 @@ class WazoUserPlugin(BaseSourcePlugin):
             text = '' if entry[order] is None else str(entry[order]).casefold()
             return (text == '', unicodedata.normalize('NFKD', text))
 
+        # confd splits `uuid` on commas and matches each one exactly, before sorting
+        uuid = params.get('uuid')
+        wanted = None if uuid is None else set(uuid.split(','))
         # the snapshot is in confd's own order by lastname, so ties agree
-        entries = [entry for entry, _ in snapshot]
+        entries = [e for e, _ in snapshot if wanted is None or e['uuid'] in wanted]
         entries.sort(key=sort_key, reverse=params.get('direction') == 'desc')
         offset, limit = params.get('offset', 0), params.get('limit')
         page = entries[offset : offset + limit if limit else None]
