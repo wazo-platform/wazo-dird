@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import time
+from typing import Any
 
 import requests
 from hamcrest import (
@@ -275,6 +276,81 @@ class TestWazoUserSnapshotPaging(BaseSnapshotTest):
 
         assert_that(self.lastnames('filler'), has_length(5))
         assert_that(self.users_requests(), equal_to(loaded))
+
+
+# accents, mixed case, ties on the first name, two names that differ by their case,
+# and users without a lastname, one of them tied on its first name
+ORDERING_USERS = [
+    new_user(1, 'Zoe', 'Zimmer', '1001'),
+    new_user(2, 'anna', 'Martin', '1002'),
+    new_user(3, 'Anna', 'Bernard', '1003'),
+    new_user(4, 'Émile', None, '1004'),
+    new_user(5, 'Élodie', 'Dubois', '1005'),
+    new_user(6, 'Bob', 'Éclair', '1006'),
+    new_user(7, 'Bob', 'Abel', '1007'),
+    new_user(8, 'bob', 'abel', '1008'),
+    new_user(9, 'émile', 'Zed', '1009'),
+]
+
+
+class TestWazoUserSnapshotOrdering(BaseSnapshotTest):
+    """With the snapshot the directory answers in the order confd answers.
+
+    The confd of this asset sorts like confd. It stays a model of it: this pins
+    that the snapshot and the confd path agree on the model, not on a real confd.
+    """
+
+    def sequences(self):
+        batch = ','.join(ORDERING_USERS[i]['uuid'] for i in (6, 0, 3, 1, 8))
+        listings: dict[str, dict[str, Any]] = {
+            'default': {},
+            'by lastname': {'order': 'lastname'},
+            'by firstname, descending': {'direction': 'desc'},
+            'by lastname, descending': {'order': 'lastname', 'direction': 'desc'},
+            'first page': {'limit': 4},
+            'second page': {'limit': 4, 'offset': 4},
+            'last page': {'limit': 4, 'offset': 8},
+            'beyond the end': {'offset': 100},
+            'a uuid batch': {'uuid': batch},
+            'a uuid batch by lastname, descending, paged': {
+                'uuid': batch,
+                'order': 'lastname',
+                'direction': 'desc',
+                'limit': 2,
+                'offset': 1,
+            },
+        }
+        lookups = {
+            term: [
+                tuple(result['column_values'])
+                for result in self.lookup(term, 'default')['results']
+            ]
+            for term in ('a', 'e', 'o', 'bob', 'anna', 'z')
+        }
+        contacts = {}
+        for name, params in listings.items():
+            result = self.contacts(**params)
+            names = [(user['firstname'], user['lastname']) for user in result['items']]
+            contacts[name] = (result['total'], names)
+        return {'lookups': lookups, 'listings': contacts}
+
+    def test_lookups_and_listings_have_the_same_order_with_and_without_the_cache(self):
+        self.set_confd_users(ORDERING_USERS)
+        self.expire_snapshot()
+
+        with_cache = self.sequences()
+        cache_requests = self.users_requests()
+        with self.dird_with_config({'wazo_user_cache_ttl': 0}):
+            self.wait_strategy.wait(self.dird)
+            without_cache = self.sequences()
+
+        # the first run used the snapshot: far fewer requests than lookups and listings
+        assert_that(cache_requests, less_than_or_equal_to(3))
+        assert_that(with_cache, equal_to(without_cache))
+        # sanity: no case, no accents, and the users without a lastname last
+        by_lastname = with_cache['listings']['by lastname'][1]
+        assert_that(by_lastname[0], equal_to(('Bob', 'Abel')))
+        assert_that(by_lastname[-1], equal_to(('Émile', None)))
 
 
 class TestWazoUserSnapshotDisabled(BaseSnapshotTest):
