@@ -10,6 +10,7 @@ from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
+    contains_string,
     empty,
     equal_to,
     has_entries,
@@ -17,6 +18,7 @@ from hamcrest import (
 )
 from requests.exceptions import ConnectionError
 
+from wazo_dird.exception import InvalidConfigError
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
@@ -269,20 +271,79 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.confd.paged(), empty())
         assert_that(self.confd.searched(), has_length(1))
 
-    def test_extra_search_params_do_not_stop_the_snapshot(self) -> None:
-        for extra in ({'limit': 5}, {'order': 'firstname'}, {'offset': 3}):
-            with self.subTest(extra=extra):
-                self.confd.calls.clear()
-                plugin = self.make_plugin({}, extra_search_params=extra)
+    def test_extra_search_params_refuse_to_load_with_a_ttl(self) -> None:
+        for main_config in ({}, {'wazo_user_cache_ttl': 60}):
+            with self.subTest(main_config=main_config):
+                with self.assertRaises(InvalidConfigError) as raised:
+                    self.make_plugin(
+                        main_config, extra_search_params={'context': 'inside'}
+                    )
+
+                assert_that(
+                    raised.exception.location_path,
+                    equal_to('sources/extra_search_params'),
+                )
+                assert_that(
+                    raised.exception.msg,
+                    contains_string('wazo_user_cache_ttl'),
+                )
+
+    def test_a_source_that_refused_to_load_cannot_be_used(self) -> None:
+        # the source manager keeps the plugin when load() raises; it has no
+        # confd client, so each use fails (an AssertionError) before any request
+        plugin = WazoUserPlugin()
+        dependencies = {
+            'config': {
+                **SOURCE_CONFIG,
+                'first_matched_columns': ['exten'],
+                'extra_search_params': {'context': 'inside'},
+            },
+            'main_config': {},
+            'auth_client': Mock(),
+            'token_renewer': Mock(),
+        }
+        with patch('wazo_dird.plugins.wazo_user_backend.plugin.registry') as registry:
+            registry.get.return_value = self.client
+            with self.assertRaises(InvalidConfigError):
+                plugin.load(cast(SourcePluginDependencies, dependencies))
+        uuid = USERS[0]['uuid']
+        uses = {
+            'search': lambda: plugin.search('paul'),
+            'first_match': lambda: plugin.first_match('1001'),
+            'match_all': lambda: plugin.match_all(['1001']),
+            'list': lambda: plugin.list([uuid]),
+            'canonical_unique_id': lambda: plugin.canonical_unique_id(uuid),
+            'translate_unique_id': lambda: plugin.translate_unique_id('1'),
+            'list_contacts': lambda: plugin.list_contacts(order='firstname', offset=0),
+            'list_contacts with a search': lambda: plugin.list_contacts(search='paul'),
+        }
+
+        for name, use in uses.items():
+            with self.subTest(use=name):
+                with self.assertRaises(AssertionError):
+                    use()
+
+        assert_that(self.confd.calls, empty())
+
+    def test_extra_search_params_load_with_a_ttl_of_0(self) -> None:
+        plugin = self.make_plugin(
+            {'wazo_user_cache_ttl': 0}, extra_search_params={'context': 'inside'}
+        )
+
+        assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
+        assert_that(
+            self.confd.searched(),
+            contains_exactly(has_entries(context='inside', search='paul')),
+        )
+        assert_that(self.confd.paged(), empty())
+
+    def test_no_extra_search_params_load_with_a_ttl(self) -> None:
+        configs: list[dict[str, Any]] = [{}, {'extra_search_params': {}}]
+        for config in configs:
+            with self.subTest(config=config):
+                plugin = self.make_plugin({}, **config)
 
                 assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
-                assert_that(self.confd.searched(), empty())
-                assert_that(
-                    self.confd.paged(),
-                    contains_exactly(
-                        has_entries(order='id', limit=1000, offset=0, view='directory')
-                    ),
-                )
 
     def test_a_lookup_that_lost_the_race_does_not_reload(self) -> None:
         # B saw the snapshot expired, A reloaded it, then B got the lock
