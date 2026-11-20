@@ -21,6 +21,7 @@ from .helpers.config import Config
 # the ttl of `asset.wazo_user_snapshot.yml`
 TTL = 4
 SOURCE = 'wazo_snapshot'
+UNKNOWN_UUID = '00000000-0000-4000-8000-00000000ffff'
 SOURCE_FIELDS = (
     'name',
     'auth',
@@ -128,9 +129,11 @@ class BaseSnapshotTest(BaseDirdIntegrationTest):
     def source_uuid(self):
         return self.config.created_sources[SOURCE]['uuid']
 
-    def contacts(self):
+    def contacts(self, **params):
         return self.client.backends.list_contacts_from_source(
-            backend='wazo', source_uuid=self.source_uuid(), order='firstname', offset=0
+            backend='wazo',
+            source_uuid=self.source_uuid(),
+            **{'order': 'firstname', 'offset': 0, **params},
         )
 
 
@@ -168,6 +171,15 @@ class TestWazoUserSnapshot(BaseSnapshotTest):
         self.set_confd_users(users)
 
         assert_that(self.contacts(), equal_to(first))
+        # a `uuid` batch is filtered from the snapshot too, though the mock would
+        # filter it itself: an unknown uuid matches nothing, a repeated one counts once
+        batch = f"{users[1]['uuid']},{UNKNOWN_UUID},{users[1]['uuid']}"
+        by_uuid = self.contacts(uuid=batch)
+        assert_that(by_uuid['total'], equal_to(1))
+        assert_that(
+            [contact['firstname'] for contact in by_uuid['items']],
+            contains_exactly('alice'),
+        )
         assert_that(self.users_requests(), equal_to(0))
         assert_that(first['total'], equal_to(2))
         # sorted as confd sorts: no case, so `alice` is before `Bob`
@@ -285,3 +297,6 @@ class TestWazoUserSnapshotDisabled(BaseSnapshotTest):
             for _ in range(3):
                 assert_that(self.contacts()['total'], equal_to(1))
             assert_that(self.users_requests(), equal_to(3))
+            by_uuid = self.contacts(uuid=new_user(1, '', '', '')['uuid'])
+            assert_that(by_uuid['total'], equal_to(1))
+            assert_that(self.users_requests(), equal_to(4))
