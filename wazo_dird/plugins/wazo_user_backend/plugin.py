@@ -91,7 +91,7 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._uuid: str | None = None
         self._snapshot: Snapshot | None = None
         self._snapshot_expires = 0.0
-        self._snapshot_ttl = 0
+        self._snapshot_ttl = 0.0
         self._refresh_lock = Lock()
         self._search_params: dict[str, Any] = {'view': 'directory', 'recurse': True}
 
@@ -100,11 +100,6 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._searched_columns = config.get('searched_columns', [])
         self._first_matched_columns = config.get('first_matched_columns', [])
         self.name = config['name']
-        main_config = dependencies['main_config']
-        self._snapshot_ttl = main_config.get('wazo_user_cache_ttl', 60)
-        if self._snapshot_ttl and config.get('extra_search_params'):
-            logger.warning('%s: extra_search_params disable the user cache', self.name)
-            self._snapshot_ttl = 0
         self._client = registry.get(config)
 
         self._SourceResult = make_result_class(
@@ -113,6 +108,12 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._search_params.update(
             cast('dict[str, Any]', config.get('extra_search_params', {}))
         )
+        # last, so a ttl that is not a number leaves a source that asks confd
+        ttl = dependencies['main_config'].get('wazo_user_cache_ttl', 60)
+        self._snapshot_ttl = max(float(ttl or 0), 0)
+        if self._snapshot_ttl and config.get('extra_search_params'):
+            logger.warning('%s: extra_search_params disable the user cache', self.name)
+            self._snapshot_ttl = 0
         logger.info('Wazo %s successfully loaded', config['name'])
 
     def unload(self) -> None:
