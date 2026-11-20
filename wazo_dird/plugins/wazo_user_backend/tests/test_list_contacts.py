@@ -1,7 +1,6 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import unicodedata
 import unittest
 from typing import Any, cast
 from unittest.mock import Mock, patch
@@ -21,7 +20,8 @@ from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
 from ..schemas import contact_list_param_schema
-from .test_user_snapshot import SOURCE_CONFIG, make_user
+from .confd_fake import FakeConfd, make_user
+from .test_user_snapshot import SOURCE_CONFIG
 
 
 def _user(user_id: int, firstname: str, lastname: str | None) -> dict[str, Any]:
@@ -47,60 +47,9 @@ def listing(**query: str) -> dict[str, Any]:
     return contact_list_param_schema.load(query)
 
 
-class FakeConfd:
-    """GET /users like confd: SQL order by lastname, then a Python collated sort."""
-
-    def __init__(self) -> None:
-        self.users = list(USERS)
-        self.calls: list[dict[str, Any]] = []
-        self.failure: Exception | None = None
-        self.snapshot_failure: Exception | None = None
-
-    def infos(self) -> dict[str, str]:
-        return {'uuid': 'my-xivo-uuid'}
-
-    def users_list(self, **params: Any) -> dict[str, Any]:
-        self.calls.append(params)
-        if self.failure is not None:
-            raise self.failure
-        if self.snapshot_failure is not None and params.get('order') == 'id':
-            raise self.snapshot_failure
-
-        rows = list(self.users)
-        if params.get('search'):
-            needle = params['search'].lower()
-            rows = [u for u in rows if needle in f"{u['firstname']} {u['lastname']}"]
-        if isinstance(params.get('uuid'), str):
-            wanted = params['uuid'].split(',')
-            rows = [u for u in rows if u['uuid'] in wanted]
-        for column in ('firstname', 'lastname'):
-            if params.get(column):
-                rows = [u for u in rows if u[column] == params[column]]
-
-        rows.sort(key=lambda user: (user['lastname'] or '').lower())
-        order = params.get('order') or 'lastname'
-
-        def key(user: dict[str, Any]) -> tuple[bool, str]:
-            text = '' if user[order] is None else str(user[order])
-            if order in ('firstname', 'lastname'):
-                text = text.casefold()
-            return (text == '', unicodedata.normalize('NFKD', text))
-
-        rows.sort(key=key, reverse=params.get('direction') == 'desc')
-        offset, limit = params.get('offset', 0), params.get('limit')
-        page = rows[offset:] if not limit else rows[offset : offset + limit]
-        return {'items': page, 'total': len(rows)}
-
-    def snapshot_loads(self) -> list[dict[str, Any]]:
-        return [call for call in self.calls if call.get('order') == 'id']
-
-    def listings(self) -> list[dict[str, Any]]:
-        return [call for call in self.calls if call.get('order') != 'id']
-
-
 class TestListContacts(unittest.TestCase):
     def setUp(self) -> None:
-        self.confd = FakeConfd()
+        self.confd = FakeConfd(USERS)
         self.client = Mock(host='confd', port=9486, timeout=10)
         self.client.users.list.side_effect = self.confd.users_list
         self.client.infos.side_effect = self.confd.infos
