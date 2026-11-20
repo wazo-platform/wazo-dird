@@ -2,11 +2,19 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""A confd that pages `GET /1.1/users` the way confd does, and counts the calls.
+"""A confd that sorts and pages `GET /1.1/users` the way confd does, and counts the calls.
 
 The other confd assets answer a user list with every user and ignore `limit`
 and `offset`, so the paging of the user snapshot never runs against them. This
 one is opt-in and serves the users that a test sends with `PUT /_state`.
+
+The sort is a copy of xivo-dao `search_collated`: the rows come from SQL ordered
+by lastname (an empty one first), then Python sorts them by `order` (default
+lastname) with a key that drops the case of the sorted-insensitive columns and
+the accents, and puts the empty values last, `desc` reverses it; `offset` and
+`limit` cut the page and `total` counts the users the filters left. `order=id`
+is a sort on the text of the id, as in confd. A mock is still a model: it is not
+the confd database, and its order of equal names is the order of the SQL step.
 
     PUT    /_state   {"users": [...], "ignore_offset": bool, "total": int|null}
     GET    /_stats   {"users_requests": n, "pages": [[limit, offset], ...]}
@@ -21,6 +29,7 @@ which ends a runaway load instead of flooding the container.
 import json
 import os
 import threading
+import unicodedata
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import parse_qs, urlparse
@@ -40,11 +49,30 @@ def _reset_stats() -> None:
     STATS['pages'] = []
 
 
+SORT_INSENSITIVE = ('firstname', 'lastname', 'fullname', 'description')
+
+
+def _collated(users: list[dict[str, Any]], order: str, reverse: bool) -> list[Any]:
+    def sql_order(user: dict[str, Any]) -> str:
+        return unicodedata.normalize('NFKD', (user.get('lastname') or '').casefold())
+
+    def key(user: dict[str, Any]) -> tuple[bool, str]:
+        value = user.get(order)
+        text = '' if value is None else str(value)
+        if order in SORT_INSENSITIVE:
+            text = text.casefold()
+        return (text == '', unicodedata.normalize('NFKD', text))
+
+    return sorted(sorted(users, key=sql_order), key=key, reverse=reverse)
+
+
 def _users(query: dict[str, list[str]]) -> dict[str, Any]:
     users = sorted(STATE['users'], key=lambda user: user['id'])
     if wanted := query.get('uuid'):
         keep = set(wanted[0].split(','))
         users = [user for user in users if user['uuid'] in keep]
+    order = query['order'][0] if 'order' in query else 'lastname'
+    users = _collated(users, order, query.get('direction') == ['desc'])
 
     limit = int(query['limit'][0]) if 'limit' in query else None
     offset = int(query['offset'][0]) if 'offset' in query else 0
@@ -52,7 +80,7 @@ def _users(query: dict[str, list[str]]) -> dict[str, Any]:
     STATS['pages'].append([limit, offset])
 
     start = 0 if STATE['ignore_offset'] else offset
-    items = users[start:] if limit is None else users[start : start + limit]
+    items = users[start:] if not limit else users[start : start + limit]
     total = STATE['total'] if STATE['total'] is not None else len(users)
     return {'items': items, 'total': total}
 
