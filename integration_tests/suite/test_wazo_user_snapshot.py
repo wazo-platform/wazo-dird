@@ -128,6 +128,11 @@ class BaseSnapshotTest(BaseDirdIntegrationTest):
     def source_uuid(self):
         return self.config.created_sources[SOURCE]['uuid']
 
+    def contacts(self):
+        return self.client.backends.list_contacts_from_source(
+            backend='wazo', source_uuid=self.source_uuid(), order='firstname', offset=0
+        )
+
 
 class TestWazoUserSnapshot(BaseSnapshotTest):
     def test_a_change_in_confd_shows_after_the_ttl(self):
@@ -150,6 +155,24 @@ class TestWazoUserSnapshot(BaseSnapshotTest):
             timeout=TTL * 3,
         )
         assert_that(self.users_requests(), equal_to(1))
+
+    def test_the_contacts_listing_is_served_from_the_snapshot(self):
+        """The listing of the source sends no request to confd inside the ttl."""
+        users = [new_user(1, 'Bob', 'Brown', '1002'), new_user(2, 'alice', 'A', '1001')]
+        self.set_confd_users(users)
+        self.expire_snapshot()
+        first = self.contacts()
+        # a new state clears the request count of the mock
+        self.set_confd_users(users)
+
+        assert_that(self.contacts(), equal_to(first))
+        assert_that(self.users_requests(), equal_to(0))
+        assert_that(first['total'], equal_to(2))
+        # sorted as confd sorts: no case, so `alice` is before `Bob`
+        assert_that(
+            [contact['firstname'] for contact in first['items']],
+            contains_exactly('alice', 'Bob'),
+        )
 
     def test_confd_down_keeps_the_loaded_users(self):
         """A failed reload keeps the old users, and a later one picks up the change."""
@@ -249,4 +272,14 @@ class TestWazoUserSnapshotDisabled(BaseSnapshotTest):
             self.wait_strategy.wait(self.dird)
             for _ in range(3):
                 assert_that(self.lastnames('alice'), contains_exactly('Anderson'))
+            assert_that(self.users_requests(), equal_to(3))
+
+    def test_a_ttl_of_zero_asks_confd_for_each_listing(self):
+        """With `wazo_user_cache_ttl: 0` each contacts listing sends its own request."""
+        self.set_confd_users([new_user(1, 'Alice', 'Anderson', '1001')])
+
+        with self.dird_with_config({'wazo_user_cache_ttl': 0}):
+            self.wait_strategy.wait(self.dird)
+            for _ in range(3):
+                assert_that(self.contacts()['total'], equal_to(1))
             assert_that(self.users_requests(), equal_to(3))
