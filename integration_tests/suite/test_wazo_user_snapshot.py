@@ -162,6 +162,8 @@ class TestWazoUserSnapshot(BaseSnapshotTest):
         self.set_confd_users(users)
         self.expire_snapshot()
         first = self.contacts()
+        # the load is the only request: no other one checks the users first
+        assert_that(self.confd_stats()['pages'], contains_exactly([1000, 0]))
         # a new state clears the request count of the mock
         self.set_confd_users(users)
 

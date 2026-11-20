@@ -93,8 +93,6 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._snapshot_expires = 0.0
         self._snapshot_ttl = 0
         self._refresh_lock = Lock()
-        self._listing_checked: Snapshot | None = None
-        self._listing_complete = False
         self._search_params: dict[str, Any] = {'view': 'directory', 'recurse': True}
 
     def load(self, dependencies: SourcePluginDependencies) -> None:
@@ -188,9 +186,14 @@ class WazoUserPlugin(BaseSourcePlugin):
         return snapshot
 
     def list_contacts(self, **params: Any) -> dict[str, Any]:
-        """The users confd lists for `params`, from the snapshot when it can."""
+        """The users confd lists for `params`, from the snapshot when it can.
+
+        The snapshot is the user set of the source, as a source of one tenant has
+        it: it is loaded with `recurse`, so with sub-tenants it has more users
+        than a listing without `recurse`.
+        """
         snapshot = self._current_snapshot() if _is_plain_listing(params) else None
-        if snapshot is None or not self._lists_like_confd(snapshot):
+        if snapshot is None:
             return self._list_confd(**params)
 
         order = params.get('order', 'lastname')
@@ -205,16 +208,6 @@ class WazoUserPlugin(BaseSourcePlugin):
         offset, limit = params.get('offset', 0), params.get('limit')
         page = entries[offset : offset + limit if limit else None]
         return {'total': len(entries), 'items': page}
-
-    def _lists_like_confd(self, snapshot: Snapshot) -> bool:
-        # a listing without `recurse` shows one tenant, the snapshot its sub-tenants
-        if self._listing_checked is not snapshot:
-            self._listing_complete = self._search_params == {
-                'view': 'directory',
-                'recurse': True,
-            } and self._list_confd(limit=1)['total'] == len(snapshot)
-            self._listing_checked = snapshot
-        return self._listing_complete
 
     def _list_confd(self, **params: Any) -> dict[str, Any]:
         assert self._client is not None
