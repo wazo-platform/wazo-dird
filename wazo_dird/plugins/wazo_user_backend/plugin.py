@@ -36,6 +36,12 @@ _LISTING_DEFAULTS = {'search': None, 'recurse': False, 'order_insensitive': Fals
 _LISTING_KEYS = {'order', 'direction', 'offset', 'limit', 'uuid'}
 
 
+def _collation_key(value: Any) -> tuple[bool, str]:
+    """How confd sorts a name: without case nor accents, empty ones last."""
+    text = '' if value is None else str(value).casefold()
+    return (text == '', unicodedata.normalize('NFKD', text))
+
+
 def _is_plain_listing(params: dict[str, Any]) -> bool:
     return (
         params.keys() <= _LISTING_DEFAULTS.keys() | _LISTING_KEYS
@@ -185,8 +191,8 @@ class WazoUserPlugin(BaseSourcePlugin):
                 break
 
         snapshot: Snapshot = []
-        # confd sorts a search by lastname
-        for user in sorted(users.values(), key=lambda u: (u['lastname'] or '').lower()):
+        # confd sorts a lookup by lastname
+        for user in sorted(users.values(), key=lambda u: _collation_key(u['lastname'])):
             result = self._source_result_from_entry(user, uuid)
             snapshot.append((user, self._folded(result)))
         return snapshot
@@ -203,17 +209,14 @@ class WazoUserPlugin(BaseSourcePlugin):
             return self._list_confd(**params)
 
         order = params.get('order', 'lastname')
-
-        def sort_key(entry: dict[str, Any]) -> tuple[bool, str]:
-            text = '' if entry[order] is None else str(entry[order]).casefold()
-            return (text == '', unicodedata.normalize('NFKD', text))
-
         # confd splits `uuid` on commas and matches each one exactly, before sorting
         uuid = params.get('uuid')
         wanted = None if uuid is None else set(uuid.split(','))
-        # the snapshot is in confd's own order by lastname, so ties agree
         entries = [e for e, _ in snapshot if wanted is None or e['uuid'] in wanted]
-        entries.sort(key=sort_key, reverse=params.get('direction') == 'desc')
+        entries.sort(
+            key=lambda e: _collation_key(e[order]),
+            reverse=params.get('direction') == 'desc',
+        )
         offset, limit = params.get('offset', 0), params.get('limit')
         page = entries[offset : offset + limit if limit else None]
         return {'total': len(entries), 'items': page}
