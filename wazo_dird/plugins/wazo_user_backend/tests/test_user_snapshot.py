@@ -125,22 +125,39 @@ class TestUserSnapshot(unittest.TestCase):
 
         assert_that(self.ids(plugin, 'accent'), contains_exactly(2))
 
-    def test_the_snapshot_is_loaded_in_pages_of_1000_users(self) -> None:
+    def test_the_snapshot_is_one_request_without_paging_nor_order(self) -> None:
         plugin = self.make_plugin({})
         plugin.search('paul')
 
         assert_that(
             self.confd.snapshot_loads(),
-            contains_exactly(
-                {
-                    'view': 'directory',
-                    'recurse': True,
-                    'order': 'id',
-                    'limit': 1000,
-                    'offset': 0,
-                }
-            ),
+            contains_exactly({'view': 'directory', 'recurse': True}),
         )
+        assert_that(self.confd.calls, has_length(1))
+
+    def test_the_snapshot_is_sorted_whatever_the_order_confd_answers(self) -> None:
+        users_list = self.confd.users_list
+
+        def newest_first(**params: Any) -> dict[str, Any]:
+            result = users_list(**params)
+            items = sorted(result['items'], key=lambda u: u['id'], reverse=True)
+            return {**result, 'items': items}
+
+        self.client.users.list.side_effect = newest_first
+        plugin = self.make_plugin({})
+
+        assert_that(self.ids(plugin, ''), contains_exactly(4, 2, 1, 3))
+
+    def test_thousands_of_users_load_in_one_request(self) -> None:
+        self.confd.users = [
+            make_user(i, 'First', f'Last{i:05d}', str(20000 + i)) for i in range(5000)
+        ]
+        plugin = self.make_plugin({})
+
+        assert_that(self.ids(plugin, 'last04999'), contains_exactly(4999))
+        assert_that(self.ids(plugin, 'first'), has_length(5000))
+
+        assert_that(self.confd.calls, has_length(1))
 
     def test_a_missing_ttl_key_uses_the_default_ttl(self) -> None:
         plugin = self.make_plugin({})
@@ -199,19 +216,6 @@ class TestUserSnapshot(unittest.TestCase):
         self.confd.gate.set()
         loader.join(5)
         assert_that(self.confd.snapshot_loads(), has_length(1))
-
-    def test_a_confd_ignoring_the_offset_does_not_loop_forever(self) -> None:
-        # a page that adds no user ends the load, whatever `total` claims
-        def ignore_offset(**params: Any) -> dict[str, Any]:
-            self.confd.calls.append(params)
-            assert len(self.confd.calls) < 20, 'the load does not stop'
-            return {'items': USERS[:2], 'total': 10}
-
-        self.client.users.list.side_effect = ignore_offset
-        plugin = self.make_plugin({})
-
-        assert_that(self.ids(plugin, ''), contains_inanyorder(1, 2))
-        assert_that(self.confd.calls, has_length(2))
 
     def test_ttl_0_never_builds_a_snapshot(self) -> None:
         plugin = self.make_plugin({'wazo_user_cache_ttl': 0})
@@ -280,7 +284,7 @@ class TestUserSnapshot(unittest.TestCase):
         plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
 
         def slow_failure(**params: Any) -> dict[str, Any]:
-            if 'limit' in params:
+            if 'search' not in params:
                 self.now += 100
             raise ConnectionError('confd is down')
 
