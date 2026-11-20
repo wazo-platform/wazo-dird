@@ -15,7 +15,7 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import InvalidConfigError, SourceUnavailable, WazoConfdError
+from wazo_dird.exception import SourceUnavailable, WazoConfdError
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
@@ -103,11 +103,8 @@ class WazoUserPlugin(BaseSourcePlugin):
         main_config = dependencies['main_config']
         self._snapshot_ttl = main_config.get('wazo_user_cache_ttl', 60)
         if self._snapshot_ttl and config.get('extra_search_params'):
-            raise InvalidConfigError(
-                'sources/extra_search_params',
-                'not supported while wazo_user_cache_ttl is above 0: '
-                'set wazo_user_cache_ttl to 0 or remove extra_search_params',
-            )
+            logger.warning('%s: extra_search_params disable the user cache', self.name)
+            self._snapshot_ttl = 0
         self._client = registry.get(config)
 
         self._SourceResult = make_result_class(
