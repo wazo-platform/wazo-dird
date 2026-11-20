@@ -161,6 +161,24 @@ class TestListContacts(unittest.TestCase):
             self.ids(plugin, direction='desc'), contains_exactly(1, 4, 5, 7, 6, 3, 2)
         )
 
+    def test_a_tie_with_a_user_without_lastname_keeps_confd_order(self) -> None:
+        # confd sorts by lastname in SQL first, where the empty ones come first,
+        # and the sort on the asked column keeps that order for equal values
+        self.confd.users.append(_user(8, 'émile', 'Zed'))
+        live, cached = self.make_plugin(ttl=0), self.make_plugin()
+        queries: list[dict[str, str]] = [
+            {},
+            {'direction': 'desc'},
+            {'limit': '3', 'offset': '4'},
+        ]
+
+        for query in queries:
+            with self.subTest(query=query):
+                ids = self.ids(cached, **query)
+                assert_that(ids, equal_to(self.ids(live, **query)))
+        ids = self.ids(cached)
+        assert_that(ids.index(4), equal_to(ids.index(8) - 1))
+
     def test_total_counts_every_user_whatever_the_page(self) -> None:
         plugin = self.make_plugin()
 
