@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import threading
-import unicodedata
 import unittest
 from typing import Any, cast
 from unittest.mock import Mock, patch
@@ -21,6 +20,7 @@ from requests.exceptions import ConnectionError
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
+from .confd_fake import FakeConfd, make_user
 
 SOURCE_CONFIG = {
     'uuid': 'ae086548-2d36-4367-8914-8dfcd8645ca7',
@@ -33,25 +33,6 @@ SOURCE_CONFIG = {
 }
 
 
-def make_user(
-    user_id: int, firstname: str, lastname: str, exten: str
-) -> dict[str, Any]:
-    return {
-        'id': user_id,
-        'uuid': f'00000000-0000-0000-0000-{user_id:012d}',
-        'agent_id': None,
-        'line_id': 100 + user_id,
-        'firstname': firstname,
-        'lastname': lastname,
-        'exten': exten,
-        'email': None,
-        'mobile_phone_number': None,
-        'voicemail_number': None,
-        'userfield': None,
-        'description': None,
-    }
-
-
 USERS = [
     make_user(1, 'Zoe', 'Zimmer', '1001'),
     make_user(2, 'Paul', 'àccent', '1002'),
@@ -60,58 +41,9 @@ USERS = [
 ]
 
 
-class FakeConfd:
-    """GET /users like confd: ILIKE `search`, ordered by lastname or `order`."""
-
-    def __init__(self) -> None:
-        self.users = list(USERS)
-        self.calls: list[dict[str, Any]] = []
-        self.failing = False
-        self.gate: threading.Event | None = None
-
-    def infos(self) -> dict[str, str]:
-        return {'uuid': 'my-xivo-uuid'}
-
-    def users_list(self, **params: Any) -> dict[str, Any]:
-        self.calls.append(params)
-        if 'limit' in params:
-            if self.gate is not None:
-                assert self.gate.wait(10)
-            if self.failing:
-                raise ConnectionError('confd is down')
-        items = list(self.users)
-        if params.get('search'):
-            needle = params['search'].lower()
-            items = [
-                u
-                for u in items
-                if needle in f"{u['firstname']} {u['lastname']} {u['exten']}".lower()
-            ]
-        # confd: SQL order by lastname, then a collated sort on the asked column
-        items.sort(key=lambda u: (u['lastname'] or '').lower())
-        order = params.get('order') or 'lastname'
-
-        def key(user: dict[str, Any]) -> tuple[bool, str]:
-            text = '' if user[order] is None else str(user[order])
-            if order in ('firstname', 'lastname'):
-                text = text.casefold()
-            return (text == '', unicodedata.normalize('NFKD', text))
-
-        items.sort(key=key)
-        offset = params.get('offset', 0)
-        page = items[offset : offset + params['limit']] if 'limit' in params else items
-        return {'items': page, 'total': len(items)}
-
-    def paged(self) -> list[dict[str, Any]]:
-        return [call for call in self.calls if 'limit' in call]
-
-    def searched(self) -> list[dict[str, Any]]:
-        return [call for call in self.calls if 'search' in call]
-
-
 class TestUserSnapshot(unittest.TestCase):
     def setUp(self) -> None:
-        self.confd = FakeConfd()
+        self.confd = FakeConfd(USERS)
         self.client = Mock()
         self.client.users.list.side_effect = self.confd.users_list
         self.client.infos.side_effect = self.confd.infos
@@ -198,7 +130,7 @@ class TestUserSnapshot(unittest.TestCase):
         plugin.search('paul')
 
         assert_that(
-            self.confd.paged(),
+            self.confd.snapshot_loads(),
             contains_exactly(
                 {
                     'view': 'directory',
@@ -234,19 +166,19 @@ class TestUserSnapshot(unittest.TestCase):
     def test_a_failed_reload_keeps_the_old_snapshot_until_the_next_ttl(self) -> None:
         plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
         plugin.search('paul')
-        self.confd.failing = True
+        self.confd.snapshot_failure = ConnectionError('confd is down')
         self.now += 61
 
         assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
         self.now += 30
         assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
-        assert_that(self.confd.paged(), has_length(2))
+        assert_that(self.confd.snapshot_loads(), has_length(2))
         self.now += 31
         self.ids(plugin, 'paul')
-        assert_that(self.confd.paged(), has_length(3))
+        assert_that(self.confd.snapshot_loads(), has_length(3))
 
     def test_a_failed_first_load_asks_confd(self) -> None:
-        self.confd.failing = True
+        self.confd.snapshot_failure = ConnectionError('confd is down')
         plugin = self.make_plugin({})
 
         assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
@@ -258,7 +190,7 @@ class TestUserSnapshot(unittest.TestCase):
         loader = threading.Thread(target=plugin.search, args=('paul',))
         loader.start()
         for _ in range(500):
-            if self.confd.paged():
+            if self.confd.snapshot_loads():
                 break
             loader.join(0.01)
 
@@ -266,7 +198,7 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.confd.searched(), has_length(1))
         self.confd.gate.set()
         loader.join(5)
-        assert_that(self.confd.paged(), has_length(1))
+        assert_that(self.confd.snapshot_loads(), has_length(1))
 
     def test_a_confd_ignoring_the_offset_does_not_loop_forever(self) -> None:
         # a page that adds no user ends the load, whatever `total` claims
@@ -285,7 +217,7 @@ class TestUserSnapshot(unittest.TestCase):
         plugin = self.make_plugin({'wazo_user_cache_ttl': 0})
 
         assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
-        assert_that(self.confd.paged(), empty())
+        assert_that(self.confd.snapshot_loads(), empty())
         assert_that(self.confd.searched(), has_length(1))
 
     def test_extra_search_params_turn_the_cache_off_with_a_warning(self) -> None:
@@ -306,7 +238,7 @@ class TestUserSnapshot(unittest.TestCase):
             self.confd.searched(),
             contains_exactly(has_entries(context='inside', search='paul')),
         )
-        assert_that(self.confd.paged(), empty())
+        assert_that(self.confd.snapshot_loads(), empty())
 
     def test_extra_search_params_load_with_a_ttl_of_0(self) -> None:
         plugin = self.make_plugin(
@@ -318,7 +250,7 @@ class TestUserSnapshot(unittest.TestCase):
             self.confd.searched(),
             contains_exactly(has_entries(context='inside', search='paul')),
         )
-        assert_that(self.confd.paged(), empty())
+        assert_that(self.confd.snapshot_loads(), empty())
 
     def test_no_extra_search_params_load_with_a_ttl(self) -> None:
         configs: list[dict[str, Any]] = [{}, {'extra_search_params': {}}]
@@ -359,7 +291,7 @@ class TestUserSnapshot(unittest.TestCase):
 
         self.ids(plugin, 'paul')
 
-        assert_that(self.confd.paged(), empty())
+        assert_that(self.confd.snapshot_loads(), empty())
 
     def test_a_ttl_written_as_a_number_in_text_is_read_as_a_number(self) -> None:
         plugin = self.make_plugin({'wazo_user_cache_ttl': '30'})
@@ -372,7 +304,7 @@ class TestUserSnapshot(unittest.TestCase):
         self.now += 2
         self.ids(plugin, 'paul')
 
-        assert_that(self.confd.paged(), has_length(1))
+        assert_that(self.confd.snapshot_loads(), has_length(1))
 
     def test_a_ttl_below_a_second_is_accepted(self) -> None:
         plugin = self.make_plugin({'wazo_user_cache_ttl': 0.5})
@@ -385,7 +317,7 @@ class TestUserSnapshot(unittest.TestCase):
         self.now += 0.2
         self.ids(plugin, 'paul')
 
-        assert_that(self.confd.paged(), has_length(1))
+        assert_that(self.confd.snapshot_loads(), has_length(1))
 
     def test_a_negative_or_empty_ttl_turns_the_cache_off(self) -> None:
         for ttl in (-5, '-1', None, '', 0):
@@ -395,7 +327,7 @@ class TestUserSnapshot(unittest.TestCase):
 
                 assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
 
-                assert_that(self.confd.paged(), empty())
+                assert_that(self.confd.snapshot_loads(), empty())
                 assert_that(self.confd.searched(), has_length(1))
 
     def test_a_ttl_that_is_not_a_number_fails_once_at_load(self) -> None:
@@ -413,7 +345,7 @@ class TestUserSnapshot(unittest.TestCase):
 
         # the source manager keeps the plugin: it works, on the confd path
         assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
-        assert_that(self.confd.paged(), empty())
+        assert_that(self.confd.snapshot_loads(), empty())
         assert_that(self.confd.searched(), has_length(1))
 
     def test_a_lookup_that_lost_the_race_does_not_reload(self) -> None:
@@ -431,5 +363,5 @@ class TestUserSnapshot(unittest.TestCase):
 
         self.ids(plugin, 'paul')
 
-        assert_that(self.confd.paged(), empty())
+        assert_that(self.confd.snapshot_loads(), empty())
         lock.release.assert_called_once_with()
