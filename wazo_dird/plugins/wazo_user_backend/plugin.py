@@ -15,7 +15,7 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import SourceUnavailable, WazoConfdError
+from wazo_dird.exception import InvalidConfigError, SourceUnavailable, WazoConfdError
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
@@ -100,9 +100,15 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._searched_columns = config.get('searched_columns', [])
         self._first_matched_columns = config.get('first_matched_columns', [])
         self.name = config['name']
-        self._client = registry.get(config)
         main_config = dependencies['main_config']
         self._snapshot_ttl = main_config.get('wazo_user_cache_ttl', 60)
+        if self._snapshot_ttl and config.get('extra_search_params'):
+            raise InvalidConfigError(
+                'sources/extra_search_params',
+                'not supported while wazo_user_cache_ttl is above 0: '
+                'set wazo_user_cache_ttl to 0 or remove extra_search_params',
+            )
+        self._client = registry.get(config)
 
         self._SourceResult = make_result_class(
             'wazo', self.name, 'uuid', format_columns=config.get('format_columns')
@@ -166,12 +172,11 @@ class WazoUserPlugin(BaseSourcePlugin):
         users: dict[str, dict[str, Any]] = {}
         while True:
             page = self._client.users.list(
-                **{
-                    **self._search_params,
-                    'order': 'id',
-                    'limit': 1000,
-                    'offset': len(users),
-                }
+                view='directory',
+                recurse=True,
+                order='id',
+                limit=1000,
+                offset=len(users),
             )
             known = len(users)
             users.update((user['uuid'], user) for user in page['items'])
