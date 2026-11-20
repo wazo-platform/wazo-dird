@@ -7,6 +7,7 @@ from unittest.mock import Mock, call, patch
 
 from flask import Flask
 from hamcrest import assert_that, calling, equal_to, raises
+from marshmallow import ValidationError
 
 from wazo_dird.exception import NoSuchSource
 
@@ -90,6 +91,20 @@ class TestWazoContactList(unittest.TestCase):
             limit=5,
             order_insensitive=False,
         )
+
+    def test_an_order_that_is_not_a_sort_column_is_refused_before_the_source(
+        self,
+    ) -> None:
+        # the plugin sorts on these two columns only: the schema is what guards it
+        for order in ('id', 'exten', 'unknown'):
+            with self.subTest(order=order):
+                assert_that(
+                    calling(self.get).with_args(f'order={order}'),
+                    raises(ValidationError),
+                )
+
+        self.source_service.get.assert_not_called()
+        self.source_service.get_plugin.assert_not_called()
 
     def test_the_mobile_query_gives_the_plain_list_parameters(self) -> None:
         self.get('offset=0&order=firstname')
