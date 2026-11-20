@@ -25,11 +25,15 @@ def make_user(
     }
 
 
+# the one request that loads the snapshot
+LOAD_PARAMS = {'view': 'directory', 'recurse': True}
+
+
 class FakeConfd:
     """GET /users like confd: filters, SQL order by lastname, then a collated sort.
 
-    The loads of the snapshot are the requests sorted by `id`. `snapshot_failure`
-    and `gate` act on them only; `failure` acts on every request.
+    `snapshot_failure` and `gate` act on the load of the snapshot only; `failure`
+    acts on every request.
     """
 
     def __init__(self, users: list[dict[str, Any]]) -> None:
@@ -44,7 +48,7 @@ class FakeConfd:
 
     def users_list(self, **params: Any) -> dict[str, Any]:
         self.calls.append(params)
-        loading = params.get('order') == 'id'
+        loading = params == LOAD_PARAMS
         if loading and self.gate is not None:
             assert self.gate.wait(10)
         if self.failure is not None:
@@ -83,10 +87,10 @@ class FakeConfd:
         return {'items': page, 'total': len(rows)}
 
     def snapshot_loads(self) -> list[dict[str, Any]]:
-        return [call for call in self.calls if call.get('order') == 'id']
+        return [call for call in self.calls if call == LOAD_PARAMS]
 
     def listings(self) -> list[dict[str, Any]]:
-        return [call for call in self.calls if call.get('order') != 'id']
+        return [call for call in self.calls if call != LOAD_PARAMS]
 
     def searched(self) -> list[dict[str, Any]]:
         return [call for call in self.calls if 'search' in call]

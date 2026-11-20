@@ -177,23 +177,11 @@ class WazoUserPlugin(BaseSourcePlugin):
     def _load_snapshot(self) -> Snapshot:
         assert self._client is not None
         uuid = self._get_wazo_uuid()
-        users: dict[str, dict[str, Any]] = {}
-        while True:
-            page = self._client.users.list(
-                view='directory',
-                recurse=True,
-                order='id',
-                limit=1000,
-                offset=len(users),
-            )
-            known = len(users)
-            users.update((user['uuid'], user) for user in page['items'])
-            if len(users) == known or len(users) >= page['total']:
-                break
-
+        # one request: it takes about half the time of the same users in pages
+        users = self._client.users.list(view='directory', recurse=True)['items']
         snapshot: Snapshot = []
         # confd sorts a lookup by lastname
-        for user in sorted(users.values(), key=lambda u: _collation_key(u['lastname'])):
+        for user in sorted(users, key=lambda u: _collation_key(u['lastname'])):
             result = self._source_result_from_entry(user, uuid)
             snapshot.append((user, self._folded(result)))
         return snapshot
