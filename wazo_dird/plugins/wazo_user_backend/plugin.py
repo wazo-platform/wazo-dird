@@ -213,6 +213,8 @@ class WazoUserPlugin(BaseSourcePlugin):
         uuid = params.get('uuid')
         wanted = None if uuid is None else set(uuid.split(','))
         entries = [e for e, _ in snapshot if wanted is None or e['uuid'] in wanted]
+        # confd sorts by lastname in SQL first, the empty ones first: ties keep that
+        entries.sort(key=lambda e: bool(e['lastname']))
         entries.sort(
             key=lambda e: _collation_key(e[order]),
             reverse=params.get('direction') == 'desc',
