@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import threading
+import unicodedata
 import unittest
 from typing import Any, cast
 from unittest.mock import Mock, patch
@@ -86,11 +87,17 @@ class FakeConfd:
                 for u in items
                 if needle in f"{u['firstname']} {u['lastname']} {u['exten']}".lower()
             ]
-        items.sort(
-            key=lambda u: u['id']
-            if params.get('order') == 'id'
-            else u['lastname'].lower()
-        )
+        # confd: SQL order by lastname, then a collated sort on the asked column
+        items.sort(key=lambda u: (u['lastname'] or '').lower())
+        order = params.get('order') or 'lastname'
+
+        def key(user: dict[str, Any]) -> tuple[bool, str]:
+            text = '' if user[order] is None else str(user[order])
+            if order in ('firstname', 'lastname'):
+                text = text.casefold()
+            return (text == '', unicodedata.normalize('NFKD', text))
+
+        items.sort(key=key)
         offset = params.get('offset', 0)
         page = items[offset : offset + params['limit']] if 'limit' in params else items
         return {'items': page, 'total': len(items)}
@@ -160,6 +167,18 @@ class TestUserSnapshot(unittest.TestCase):
             ]:
                 with self.subTest(columns=columns, term=term):
                     assert_that(cached.search(term), equal_to(live.search(term)))
+
+    def test_search_orders_users_as_confd_does_with_an_empty_lastname(self) -> None:
+        live = self.make_plugin({'wazo_user_cache_ttl': 0})
+        cached = self.make_plugin({})
+
+        # by lastname without case nor accents, the users without one last
+        assert_that(self.ids(cached, ''), contains_exactly(4, 2, 1, 3))
+        assert_that(self.ids(live, ''), contains_exactly(4, 2, 1, 3))
+
+        self.confd.users.append({**USERS[0], 'id': 5, 'uuid': 'u5', 'lastname': None})
+        self.now += 100
+        assert_that(self.ids(cached, '')[-2:], contains_exactly(3, 5))
 
     def test_search_does_not_ask_confd_once_loaded(self) -> None:
         plugin = self.make_plugin({})
