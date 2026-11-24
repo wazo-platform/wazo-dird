@@ -127,9 +127,7 @@ class _LookupService(helpers.BaseService):
     def _submit(
         self, source: BaseSourcePlugin, function: Callable[..., T], *args: Any
     ) -> Future[helpers.TimedResult[T]]:
-        future = self._executor.submit(
-            helpers.timed, perf_counter(), function, *args
-        )
+        future = self._executor.submit(helpers.timed, perf_counter(), function, *args)
         setattr(future, 'name', source.name)
         return future
 
@@ -180,7 +178,9 @@ class _LookupService(helpers.BaseService):
             if isinstance(outcome, Exception):
                 missing.append(source.name)
                 shared_complete = shared_complete and not source.list_cacheable
-                backend_stats.append(helpers.BackendStat.finished(source.name, 0, timing))
+                backend_stats.append(
+                    helpers.BackendStat.finished(source.name, 0, timing)
+                )
                 continue
             version, contacts = outcome
             backend_stats.append(

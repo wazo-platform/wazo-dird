@@ -6,7 +6,15 @@ import logging
 from wazo_dird import BaseViewPlugin
 from wazo_dird.plugin_manager import ViewDependencies
 
-from .http import FavoritesRead, FavoritesWrite, Lookup, LookupByUUID, Personal, Reverse
+from .http import (
+    ContactList,
+    FavoritesRead,
+    FavoritesWrite,
+    Lookup,
+    LookupByUUID,
+    Personal,
+    Reverse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +26,7 @@ class JsonViewPlugin(BaseViewPlugin):
     favorites_read_url = '/directories/favorites/<profile>'
     favorites_write_url = '/directories/favorites/<path:directory>/<contact>'
     personal_url = '/directories/personal/<profile>'
+    contacts_url = '/directories/contacts'
 
     def load(self, dependencies: ViewDependencies) -> None:
         api = dependencies['api']
@@ -49,8 +58,18 @@ class JsonViewPlugin(BaseViewPlugin):
                     profile_service,
                 ),
             )
+            api.add_resource(
+                ContactList,
+                self.contacts_url,
+                resource_class_args=(
+                    lookup_service,
+                    favorite_service,
+                    profile_service,
+                ),
+            )
         else:
             logger.error('%s disabled: no service plugin `lookup`', self.lookup_url)
+            logger.error('%s disabled: no service plugin `lookup`', self.contacts_url)
 
         if reverse_service:
             api.add_resource(

@@ -81,9 +81,7 @@ class LDAPPlugin(BaseSourcePlugin):
     def list_all(self, args: LookupArgs | None = None) -> list[_SourceResult]:
         with self._list_lock:
             if self._list_client is None:
-                self._list_client = self.ldap_factory.new_ldap_client(
-                    self._ldap_config
-                )
+                self._list_client = self.ldap_factory.new_ldap_client(self._ldap_config)
             raw_results = self._list_client.search_all(LIST_FILTER)
 
         return self._ldap_result_formatter.format(raw_results)
@@ -422,44 +420,62 @@ class _LDAPClient:
 
         Raises SourceListError on any failure, a partial list included.
         """
-        if not self._is_set_up():
-            self._set_up()
+        # A connection the server dropped since the last listing is set up again once
+        retry = self._is_set_up()
+        while True:
             if not self._is_set_up():
-                raise SourceListError(self._name, 'cannot bind')
+                self._set_up()
+                if not self._is_set_up():
+                    raise SourceListError(self._name, 'cannot bind')
+            try:
+                results = self._search_all_pages(filter_str)
+            except ldap.SERVER_DOWN as e:
+                self._drop_connection()
+                if retry:
+                    retry = False
+                    continue
+                raise SourceListError(self._name, e) from e
+            except ldap.LDAPError as e:
+                logger.error('LDAP "%s": listing error: %r', self._name, e)
+                self._drop_connection()
+                raise SourceListError(self._name, e) from e
+            logger.debug('LDAP "%s": listed %d entries', self._name, len(results))
+            return results
 
+    def _drop_connection(self) -> None:
+        # Unbinding a connection the server dropped raises too
+        try:
+            self._ldap_obj.unbind_s()
+        except ldap.LDAPError:
+            pass
+        self._ldap_obj = None
+
+    def _search_all_pages(self, filter_str: str) -> list[Any]:
         cookie: bytes | str = ''
         results: list[Any] = []
-        try:
-            while True:
-                control = SimplePagedResultsControl(
-                    True, size=LIST_PAGE_SIZE, cookie=cookie
-                )
-                msgid = self._ldap_obj.search_ext(
-                    self._base_dn,
-                    ldap.SCOPE_SUBTREE,
-                    filter_str,
-                    self._attributes,
-                    serverctrls=[control],
-                )
-                _, data, _, server_controls = self._ldap_obj.result3(msgid)
-                results.extend(data)
-                cookie = next(
-                    (
-                        c.cookie
-                        for c in server_controls
-                        if c.controlType == SimplePagedResultsControl.controlType
-                    ),
-                    None,
-                )
-                if not cookie:
-                    break
-        except ldap.LDAPError as e:
-            logger.error('LDAP "%s": listing error: %r', self._name, e)
-            self._tear_down()
-            raise SourceListError(self._name, e) from e
-
-        logger.debug('LDAP "%s": listed %d entries', self._name, len(results))
-        return results
+        while True:
+            control = SimplePagedResultsControl(
+                True, size=LIST_PAGE_SIZE, cookie=cookie
+            )
+            msgid = self._ldap_obj.search_ext(
+                self._base_dn,
+                ldap.SCOPE_SUBTREE,
+                filter_str,
+                self._attributes,
+                serverctrls=[control],
+            )
+            _, data, _, server_controls = self._ldap_obj.result3(msgid)
+            results.extend(data)
+            cookie = next(
+                (
+                    c.cookie
+                    for c in server_controls
+                    if c.controlType == SimplePagedResultsControl.controlType
+                ),
+                b'',
+            )
+            if not cookie:
+                return results
 
     def _search(self, filter_str: str | None, limit: int) -> Any:
         results = []

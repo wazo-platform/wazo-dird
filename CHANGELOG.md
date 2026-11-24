@@ -1,5 +1,14 @@
 # Changelog
 
+## 26.12
+
+* New `GET /0.1/directories/contacts`: every contact of the token's tenant,
+  from the sources of all its profiles, paginated with `limit` (default 100,
+  at most 1 000) and `offset`.
+* New configuration keys `contacts_list.timeout` (default `10`),
+  `contacts_list.cache_ttl` (default `30`) and
+  `contacts_list.cache_max_contacts` (default `100000`).
+
 ## 26.11
 
 * `limit=0` now returns an empty page on all list endpoints. Before,

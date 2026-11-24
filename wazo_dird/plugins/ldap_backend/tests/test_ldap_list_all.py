@@ -30,7 +30,7 @@ def _page_control(cookie):
     return SimplePagedResultsControl(True, size=500, cookie=cookie)
 
 
-class TestLDAPClientSearchAll(unittest.TestCase):
+class _ClientCase(unittest.TestCase):
     def setUp(self):
         self.ldap_config = Mock(_LDAPConfig)
         self.ldap_config.ldap_uri.return_value = 'ldap://example.org'
@@ -41,6 +41,8 @@ class TestLDAPClientSearchAll(unittest.TestCase):
         self.ldap_obj_factory = Mock(return_value=self.ldap_obj)
         self.client = _LDAPClient(self.ldap_config, self.ldap_obj_factory)
 
+
+class TestLDAPClientSearchAll(_ClientCase):
     def test_search_all_reads_every_page(self):
         self.ldap_obj.search_ext.side_effect = [1, 2, 3]
         self.ldap_obj.result3.side_effect = [
@@ -165,3 +167,35 @@ class TestLDAPPluginListAll(unittest.TestCase):
             release.set()
             lister.join(5)
             reverse.join(5)
+
+
+class TestLDAPClientSearchAllReconnects(_ClientCase):
+    def test_search_all_reconnects_once_on_a_dropped_connection(self):
+        self.client.set_up()
+        self.ldap_obj.search_ext.side_effect = [ldap.SERVER_DOWN('restarted'), 7]
+        self.ldap_obj.result3.return_value = (ANY, [('cn=a', {})], 7, [])
+
+        results = self.client.search_all('(objectClass=*)')
+
+        assert_that(results, equal_to([('cn=a', {})]))
+        assert_that(self.ldap_obj_factory.call_count, equal_to(2))
+
+    def test_search_all_raises_when_the_reconnection_fails_too(self):
+        self.client.set_up()
+        self.ldap_obj.search_ext.side_effect = ldap.SERVER_DOWN('down')
+
+        assert_that(
+            calling(self.client.search_all).with_args('(objectClass=*)'),
+            raises(SourceListError),
+        )
+        assert_that(self.ldap_obj.search_ext.call_count, equal_to(2))
+
+    def test_a_failing_unbind_still_raises_a_list_error(self):
+        self.client.set_up()
+        self.ldap_obj.search_ext.side_effect = ldap.SERVER_DOWN('down')
+        self.ldap_obj.unbind_s.side_effect = ldap.SERVER_DOWN('down')
+
+        assert_that(
+            calling(self.client.search_all).with_args('(objectClass=*)'),
+            raises(SourceListError),
+        )

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import abc
+import builtins
 import logging
 from typing import Any, TypedDict
 
@@ -180,7 +181,7 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         """
         return []
 
-    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+    def list_all(self, args: LookupArgs | None = None) -> builtins.list[SourceResult]:
         """
         Returns every contact of the source, from the backend's own listing
         path, never by searching an empty term.

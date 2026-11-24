@@ -26,7 +26,11 @@ class TestCSVListAll(unittest.TestCase):
         fd, self.fname = tempfile.mkstemp()
         with os.fdopen(fd, 'w') as f:
             f.write(CONTENT)
-        self.addCleanup(lambda: os.path.exists(self.fname) and os.remove(self.fname))
+        self.addCleanup(self._remove_file)
+
+    def _remove_file(self):
+        if os.path.exists(self.fname):
+            os.remove(self.fname)
 
     def _load(self, **extra):
         source = CSVPlugin()
@@ -38,7 +42,6 @@ class TestCSVListAll(unittest.TestCase):
             **extra,
         }
         source.load(cast(SourcePluginDependencies, {'config': config}))
-        source.name = 'my_csv'
         return source
 
     def test_list_all_returns_every_row(self):
@@ -72,13 +75,11 @@ class TestCSVListAll(unittest.TestCase):
                 {'config': {'file': self.fname, 'name': 'my_csv'}},
             )
         )
-        source.name = 'my_csv'
 
         assert_that(calling(source.list_all), raises(SourceListError))
 
     def test_list_all_raises_without_a_file_configured(self):
         source = CSVPlugin()
         source.load(cast(SourcePluginDependencies, {'config': {'name': 'my_csv'}}))
-        source.name = 'my_csv'
 
         assert_that(calling(source.list_all), raises(SourceListError))

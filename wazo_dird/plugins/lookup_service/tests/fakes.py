@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import threading
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugins.base_plugins import LookupArgs
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
 
@@ -72,17 +73,22 @@ class FakeSourceManager:
             callback(uuid)
 
 
-def profile(name: str, **services: list[str]) -> dict[str, Any]:
-    return {
-        'name': name,
-        'services': {
-            service: {'sources': [{'uuid': uuid, 'name': uuid} for uuid in uuids]}
-            for service, uuids in services.items()
+def profile(name: str, **services: list[str]) -> ProfileConfig:
+    return cast(
+        ProfileConfig,
+        {
+            'name': name,
+            'services': {
+                service: {'sources': [{'uuid': uuid, 'name': uuid} for uuid in uuids]}
+                for service, uuids in services.items()
+            },
         },
-    }
+    )
 
 
-def config(timeout: float = 10, cache_ttl: int = 30, max_contacts: int = 100_000):
+def config(
+    timeout: float = 10, cache_ttl: int = 30, max_contacts: int = 100_000
+) -> dict[str, Any]:
     return {
         'rest_api': {'max_threads': 10},
         'contacts_list': {

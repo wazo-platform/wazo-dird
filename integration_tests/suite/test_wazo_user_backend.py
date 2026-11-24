@@ -82,6 +82,20 @@ class TestWazoUser(DirdAssetRunningTestCase):
             },
         }
 
+    def test_list_all_returns_every_user(self):
+        results = self.backend._source.list_all()
+
+        assert_that(
+            [(r.fields['firstname'], r.fields['lastname']) for r in results],
+            contains_inanyorder(
+                ('John', 'Doe'),
+                ('Mary', 'Sue'),
+                ('Bob', 'Dylan'),
+                ('Pablo Ruiz', 'Picasso'),
+                ('Charles', 'Kenedy'),
+            ),
+        )
+
     def test_that_the_lookup_returns_the_expected_result(self):
         search_terms = ['dyl', 'dylan', 'bob', 'bob ', 'bob dyl', ' dyl']
         for term in search_terms:

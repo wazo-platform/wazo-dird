@@ -154,7 +154,9 @@ class ContactsCache(Generic[T]):
         while self._entries:
             oldest_key, (expires_at, _, _) = next(iter(self._entries.items()))
             if expires_at <= now:
-                logger.debug('Evicting expired contacts cache entry: key %s', oldest_key)
+                logger.debug(
+                    'Evicting expired contacts cache entry: key %s', oldest_key
+                )
             elif self._contact_count + len(contacts) > self.max_contacts:
                 logger.info(
                     'Evicting oldest contacts cache entry: key %s, '
@@ -174,4 +176,3 @@ class ContactsCache(Generic[T]):
         # Called with self._lock held
         _, _, contacts = self._entries.pop(key)
         self._contact_count -= len(contacts)
-

@@ -21,7 +21,7 @@ from wazo_dird.plugins.source_result import make_result_class
 
 from .. import sorted_index
 from ..plugin import _LookupService
-from ..sorted_index import build_sorted, page_by_rank, sort_key
+from ..sorted_index import TenantSortedIndex, build_sorted, page_by_rank, sort_key
 from .fakes import FakeSource, FakeSourceManager, config, contacts, profile
 
 TENANT = 'tenant-uuid'
@@ -60,10 +60,18 @@ class TestPageByRank(unittest.TestCase):
     def test_every_page_equals_the_same_slice_of_a_full_sort(self):
         rng = random.Random(290)
         for case in range(200):
-            shared = _results('s', [f'{rng.randrange(10_000):05d}' for _ in range(rng.randrange(501))])
-            shared += _results('u', [f'{rng.randrange(10_000):05d}' for _ in range(rng.randrange(50))])
-            fresh = _results('s', [f'{rng.randrange(10_000):05d}' for _ in range(rng.randrange(51))])
-            fresh += _results('p', [f'{rng.randrange(10_000):05d}' for _ in range(rng.randrange(5))])
+            shared = _results(
+                's', [f'{rng.randrange(10_000):05d}' for _ in range(rng.randrange(501))]
+            )
+            shared += _results(
+                'u', [f'{rng.randrange(10_000):05d}' for _ in range(rng.randrange(50))]
+            )
+            fresh = _results(
+                's', [f'{rng.randrange(10_000):05d}' for _ in range(rng.randrange(51))]
+            )
+            fresh += _results(
+                'p', [f'{rng.randrange(10_000):05d}' for _ in range(rng.randrange(5))]
+            )
             rng.shuffle(fresh)
             limit = rng.randint(1, 100)
             offset = rng.randint(0, 600)
@@ -98,8 +106,14 @@ class _ListingTest(unittest.TestCase):
         self.service = _LookupService(config(**conf), self.manager, Mock())
         self.profiles = [profile('p', lookup=list(sources))]
 
+    def _index(self) -> TenantSortedIndex:
+        index = self.service._sorted_index
+        assert index is not None
+        return index
+
     def _read_every_page(self, limit=100):
-        pages, offset = [], 0
+        pages: list[list] = []
+        offset = 0
         while True:
             items, total, _ = self.service.list_page(
                 self.profiles, TENANT, None, 'token', limit, offset
@@ -124,7 +138,7 @@ class TestTenantSortedList(_ListingTest):
             pages, total = self._read_every_page()
 
         assert_that(build.call_count, equal_to(1))
-        assert_that(self.service._sorted_index.builds, equal_to(1))
+        assert_that(self._index().builds, equal_to(1))
         assert_that(pages, has_length(10))
         assert_that(total, equal_to(1000))
 
@@ -156,20 +170,20 @@ class TestTenantSortedList(_ListingTest):
             }
         )
         clock = [1000.0]
-        with patch.object(contacts_cache.time, 'monotonic', side_effect=lambda: clock[0]), patch.object(
-            sorted_index.time, 'monotonic', side_effect=lambda: clock[0]
-        ):
+        with patch.object(
+            contacts_cache.time, 'monotonic', side_effect=lambda: clock[0]
+        ), patch.object(sorted_index.time, 'monotonic', side_effect=lambda: clock[0]):
             self._read_every_page()
             self._read_every_page()
-            assert_that(self.service._sorted_index.builds, equal_to(1))
+            assert_that(self._index().builds, equal_to(1))
 
             clock[0] += 30
             self._read_every_page()
-            assert_that(self.service._sorted_index.builds, equal_to(2))
+            assert_that(self._index().builds, equal_to(2))
 
             self.manager.invalidate('u-a')
             self._read_every_page()
-            assert_that(self.service._sorted_index.builds, equal_to(3))
+            assert_that(self._index().builds, equal_to(3))
 
     def test_a_failed_member_answers_but_stores_nothing(self):
         failing = FakeSource('b', contacts('b', 3))
@@ -181,7 +195,7 @@ class TestTenantSortedList(_ListingTest):
         )
 
         assert_that((total, missing), equal_to((3, ['b'])))
-        assert_that(self.service._sorted_index._entries, empty())
+        assert_that(self._index()._entries, empty())
 
 
 class TestBound(_ListingTest):
@@ -193,7 +207,10 @@ class TestBound(_ListingTest):
             pages, total = self._read_every_page(limit=7)
 
         listed = [sort_key(r) for page in pages for r in page]
-        assert_that(listed, equal_to([sort_key(r) for r in _reference(a.list_all(), b.list_all())]))
+        assert_that(
+            listed,
+            equal_to([sort_key(r) for r in _reference(a.list_all(), b.list_all())]),
+        )
         assert_that(total, equal_to(120))
         # both lists never fit: every listing, the empty last page's included,
         # stores one and evicts the other, and a race can make it two
@@ -209,11 +226,16 @@ class TestBound(_ListingTest):
             pages, total = self._read_every_page(limit=10)
 
         listed = [sort_key(r) for page in pages for r in page]
-        assert_that(listed, equal_to([sort_key(r) for r in _reference(big.list_all(), small.list_all())]))
+        assert_that(
+            listed,
+            equal_to(
+                [sort_key(r) for r in _reference(big.list_all(), small.list_all())]
+            ),
+        )
         # one call per listing, the empty last page's included, plus _reference's
         assert_that(len(big.list_calls), equal_to(len(pages) + 2))
         assert_that(len(small.list_calls), equal_to(2))
-        assert_that(self.service._sorted_index._entries, empty())
+        assert_that(self._index()._entries, empty())
 
     def test_a_failed_user_scoped_source_does_not_stop_the_shared_list(self):
         personal = FakeSource('personal', contacts('p', 1), cacheable=False)
@@ -225,4 +247,4 @@ class TestBound(_ListingTest):
         )
 
         assert_that((total, missing), equal_to((3, ['personal'])))
-        assert_that(self.service._sorted_index._entries, has_length(1))
+        assert_that(self._index()._entries, has_length(1))

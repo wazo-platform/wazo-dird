@@ -19,11 +19,7 @@ from hamcrest import (
 from requests import ConnectionError, HTTPError, RequestException
 
 from wazo_dird import make_result_class
-from wazo_dird.exception import (
-    InvalidConfigError,
-    SourceListError,
-    SourceUnavailable,
-)
+from wazo_dird.exception import InvalidConfigError, SourceListError, SourceUnavailable
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
@@ -540,9 +536,7 @@ class TestWazoUserBackendListAll(_BaseTest):
         for error in (ConnectionError(), RequestException()):
             self._confd_client.users.list.side_effect = error
 
-            assert_that(
-                calling(self._source.list_all), raises(SourceListError)
-            )
+            assert_that(calling(self._source.list_all), raises(SourceListError))
 
     def test_list_all_raises_when_the_wazo_uuid_cannot_be_read(self):
         self._source._uuid = None

@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from typing import cast
@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch
 from hamcrest import assert_that, calling, equal_to, not_, raises
 
 from wazo_dird.exception import SourceListError
-from wazo_dird.plugins.base_plugins import SourcePluginDependencies
+from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 
 from ..exceptions import (
     GoogleTokenNotFoundException,
@@ -102,15 +102,15 @@ class TestGooglePlugin(TestCase):
 
 
 class TestGooglePluginListAll(TestCase):
-    ARGS = {'token': 'wazo-token', 'user_uuid': 'user-uuid', 'xivo_user_uuid': None}
+    ARGS = LookupArgs(token='wazo-token', user_uuid='user-uuid', xivo_user_uuid=None)
 
     def setUp(self):
         self.source = GooglePlugin()
         self.source.load(cast(SourcePluginDependencies, TestGooglePlugin.DEPENDENCIES))
-        self.source.google = Mock()
+        self.google = self.source.google = Mock()
 
     def test_list_all_returns_every_contact_of_the_user(self):
-        self.source.google.get_all_contacts.return_value = [
+        self.google.get_all_contacts.return_value = [
             {'id': '1', 'name': 'Mario'},
             {'id': '2', 'name': 'Luigi'},
         ]
@@ -118,7 +118,7 @@ class TestGooglePluginListAll(TestCase):
         with patch.object(self.source, '_get_google_token', return_value='g'):
             results = self.source.list_all(self.ARGS)
 
-        self.source.google.get_all_contacts.assert_called_once_with('g')
+        self.google.get_all_contacts.assert_called_once_with('g')
         assert_that([r.fields['id'] for r in results], equal_to(['1', '2']))
 
     def test_list_all_without_a_google_token_lists_nothing(self):
@@ -132,13 +132,16 @@ class TestGooglePluginListAll(TestCase):
     def test_list_all_without_a_user_lists_nothing(self):
         assert_that(self.source.list_all(None), equal_to([]))
         assert_that(
-            self.source.list_all({'token': 't', 'user_uuid': None}), equal_to([])
+            self.source.list_all(
+                LookupArgs(token='t', user_uuid=None, xivo_user_uuid=None)
+            ),
+            equal_to([]),
         )
-        self.source.google.get_all_contacts.assert_not_called()
+        self.google.get_all_contacts.assert_not_called()
 
     def test_list_all_raises_when_google_fails(self):
         for error in (GoogleTokenRejectedException(), GoogleUnavailableException()):
-            self.source.google.get_all_contacts.side_effect = error
+            self.google.get_all_contacts.side_effect = error
 
             with patch.object(self.source, '_get_google_token', return_value='g'):
                 assert_that(

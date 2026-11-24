@@ -161,9 +161,7 @@ class TestContactsCacheVersions(unittest.TestCase):
     def test_a_list_above_the_bound_has_no_version(self):
         cache = _cache(max_contacts=1)
 
-        version, contacts = cache.get_or_fetch_versioned(
-            'a', Mock(return_value=[1, 2])
-        )
+        version, contacts = cache.get_or_fetch_versioned('a', Mock(return_value=[1, 2]))
 
         assert_that(version, none())
         assert_that(contacts, equal_to([1, 2]))
@@ -200,9 +198,7 @@ class TestContactsCacheEvict(unittest.TestCase):
             return ['stale']
 
         fetcher = threading.Thread(
-            target=lambda: results.append(
-                cache.get_or_fetch_versioned('a', slow_fetch)
-            )
+            target=lambda: results.append(cache.get_or_fetch_versioned('a', slow_fetch))
         )
         fetcher.start()
         fetching.wait(5)

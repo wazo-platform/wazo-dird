@@ -115,8 +115,11 @@ class Office365Plugin(BaseSourcePlugin):
         return [self._SourceResult(c) for c in sorted_contacts]
 
     def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+        user_uuid = args['user_uuid'] if args else None
+        if not args or not user_uuid:
+            return []
         try:
-            microsoft_token = self._get_microsoft_token(**(args or {}))
+            microsoft_token = self._get_microsoft_token(user_uuid, args['token'])
         except MicrosoftTokenNotFoundException:
             return []
         if not microsoft_token:

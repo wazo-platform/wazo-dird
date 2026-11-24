@@ -5,7 +5,14 @@ import unittest
 from typing import cast
 from unittest.mock import Mock, patch
 
-from hamcrest import assert_that, calling, contains_exactly, equal_to, has_entries, raises
+from hamcrest import (
+    assert_that,
+    calling,
+    contains_exactly,
+    equal_to,
+    has_entries,
+    raises,
+)
 from requests import ConnectionError
 
 from wazo_dird.exception import SourceListError

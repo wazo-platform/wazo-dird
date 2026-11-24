@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import builtins
 import logging
 from collections.abc import Iterable, Iterator
 from typing import Any, cast
@@ -12,11 +13,7 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import (
-    InvalidConfigError,
-    SourceListError,
-    SourceUnavailable,
-)
+from wazo_dird.exception import InvalidConfigError, SourceListError, SourceUnavailable
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
@@ -226,7 +223,7 @@ class WazoUserPlugin(BaseSourcePlugin):
             results.extend(self._fetch_entries(','.join(batch), 'uuid'))
         return results
 
-    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+    def list_all(self, args: LookupArgs | None = None) -> builtins.list[SourceResult]:
         if self._client is None:
             raise SourceListError(self.name, 'confd client not initialised')
         try:

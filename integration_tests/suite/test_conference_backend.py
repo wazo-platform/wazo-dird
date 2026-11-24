@@ -55,6 +55,14 @@ class TestConferencePlugin(DirdAssetRunningTestCase):
         self.backend.unload()
         super().tearDown()
 
+    def test_list_all_returns_every_conference(self):
+        results = self.backend._source.list_all()
+
+        assert_that(
+            [r.fields['name'] for r in results],
+            contains_inanyorder('daily scrum', 'minimal', 'test', 'accént'),
+        )
+
     def test_lookup_with_accent(self):
         result = self.backend.search('accent')
         assert_that(result, contains_exactly(has_entries(displayname='accént')))

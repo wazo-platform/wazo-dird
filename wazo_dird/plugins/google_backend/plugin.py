@@ -106,10 +106,11 @@ class GooglePlugin(BaseSourcePlugin):
         return [self._SourceResult(c) for c in contacts]
 
     def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
-        if not args or not args.get('user_uuid'):
+        user_uuid = args['user_uuid'] if args else None
+        if not args or not user_uuid:
             return []
         try:
-            google_token = self._get_google_token(**args)
+            google_token = self._get_google_token(user_uuid, args['token'])
         except GoogleTokenNotFoundException:
             return []
         try:

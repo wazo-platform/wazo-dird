@@ -1,4 +1,4 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import copy
@@ -21,6 +21,7 @@ from hamcrest import (
 )
 
 from wazo_dird.exception import SourceListError
+from wazo_dird.plugins.base_plugins import LookupArgs
 
 from ..exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
 from ..plugin import Office365Plugin
@@ -166,15 +167,15 @@ class TestOffice365Plugin(TestCase):
 
 
 class TestOffice365PluginListAll(TestCase):
-    ARGS = {'token': 'wazo-token', 'user_uuid': 'user-uuid'}
+    ARGS = LookupArgs(token='wazo-token', user_uuid='user-uuid', xivo_user_uuid=None)
 
     def setUp(self):
         self.source = Office365Plugin()
         self.source.load(copy.deepcopy(TestOffice365Plugin.DEPENDENCIES))
-        self.source.office365 = Mock()
+        self.office365 = self.source.office365 = Mock()
 
     def test_list_all_returns_every_contact_without_a_filter(self):
-        self.source.office365.get_contacts.return_value = (
+        self.office365.get_contacts.return_value = (
             [{'id': '1', 'givenName': 'Mario'}, {'id': '2'}],
             2,
         )
@@ -182,7 +183,7 @@ class TestOffice365PluginListAll(TestCase):
         with patch.object(self.source, '_get_microsoft_token', return_value='m'):
             results = self.source.list_all(self.ARGS)
 
-        self.source.office365.get_contacts.assert_called_once_with('m', 'www.bros.com')
+        self.office365.get_contacts.assert_called_once_with('m', 'www.bros.com')
         assert_that(
             [r.fields for r in results],
             contains_exactly(
@@ -197,10 +198,10 @@ class TestOffice365PluginListAll(TestCase):
                 self.source, '_get_microsoft_token', side_effect=side_effect
             ):
                 assert_that(self.source.list_all(self.ARGS), equal_to([]))
-        self.source.office365.get_contacts.assert_not_called()
+        self.office365.get_contacts.assert_not_called()
 
     def test_list_all_raises_on_an_unexpected_endpoint(self):
-        self.source.office365.get_contacts.side_effect = UnexpectedEndpointException(
+        self.office365.get_contacts.side_effect = UnexpectedEndpointException(
             endpoint='www.bros.com', error_code=500
         )
 

@@ -1,0 +1,4 @@
+contacts_list:
+  timeout: 2
+  cache_ttl: 3
+  cache_max_contacts: 300

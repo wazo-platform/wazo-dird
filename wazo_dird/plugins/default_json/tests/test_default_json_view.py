@@ -23,6 +23,7 @@ from wazo_dird.plugin_manager import ViewDependencies
 from wazo_dird.plugins.tests.base_http_view_test_case import BaseHTTPViewTestCase
 
 from ..http import (
+    ContactList,
     FavoritesRead,
     FavoritesWrite,
     Lookup,
@@ -57,6 +58,10 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
 
         assert_that(
             self.api.add_resource.call_args_list, not_(has_item(call(Lookup, ANY)))
+        )
+        assert_that(
+            self.api.add_resource.call_args_list,
+            not_(has_item(call(ContactList, ANY, resource_class_args=ANY))),
         )
 
     def test_that_load_adds_the_lookup_route(self):
@@ -95,6 +100,16 @@ class TestJsonViewPlugin(BaseHTTPViewTestCase):
                 s.lookup_service,
                 s.favorites_service,
                 s.display_service,
+                s.profile_service,
+            ),
+        )
+
+        self.api.add_resource.assert_any_call(
+            ContactList,
+            '/directories/contacts',
+            resource_class_args=(
+                s.lookup_service,
+                s.favorites_service,
                 s.profile_service,
             ),
         )

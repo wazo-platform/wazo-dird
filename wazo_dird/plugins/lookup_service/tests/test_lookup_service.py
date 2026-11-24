@@ -222,7 +222,9 @@ class TestListAllCache(unittest.TestCase):
 
     def test_user_scoped_and_written_sources_are_never_cached(self):
         sources = {
-            f'u-{backend}': FakeSource(backend, contacts(backend, 1), cacheable=False, backend=backend)
+            f'u-{backend}': FakeSource(
+                backend, contacts(backend, 1), cacheable=False, backend=backend
+            )
             for backend in ('personal', 'phonebook', 'google', 'office365')
         }
         service, _ = _service(sources)

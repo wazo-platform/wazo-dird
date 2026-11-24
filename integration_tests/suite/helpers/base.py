@@ -77,6 +77,10 @@ class AllRoutesAsset(DirdAssetLaunchingTestCase):
     asset = 'all_routes'
 
 
+class ContactsListAsset(DirdAssetLaunchingTestCase):
+    asset = 'contacts_list'
+
+
 class CsvWithPipesAsset(DirdAssetLaunchingTestCase):
     asset = 'csv_with_pipes'
 
