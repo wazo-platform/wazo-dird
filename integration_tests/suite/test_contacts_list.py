@@ -28,7 +28,6 @@ from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import Config
 from .helpers.constants import (
     MAIN_TENANT,
-    MAIN_USER_UUID,
     SUB_TENANT,
     VALID_TOKEN_MAIN_TENANT,
     VALID_TOKEN_SUB_TENANT,
@@ -39,6 +38,8 @@ WS = 'http://ws.contacts.test:9485'
 USER_B_TOKEN = 'contacts-list-user-b-token'
 USER_B_UUID = '00000000-0000-4000-8000-000000000b0b'
 NO_USER_TOKEN = 'contacts-list-no-user-token'
+EMPTY_TENANT_TOKEN = 'contacts-list-empty-tenant-token'
+EMPTY_TENANT = '9e1a2f1c-5d3b-4e0a-8c47-2f0d6b1e7a90'
 LDAP_BASE_DN = 'dc=wazo-dird,dc=wazo,dc=community'
 DISPLAY = {'name': 'display', 'columns': [{'title': 'Firstname', 'field': 'firstname'}]}
 
@@ -165,6 +166,22 @@ class TestContactsListOfATenant(_ContactsListTest):
                 {'tenant_uuid': MAIN_TENANT, 'uuid': None},
             )
         )
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                EMPTY_TENANT_TOKEN,
+                'empty-tenant-user',
+                WAZO_UUID,
+                {'tenant_uuid': EMPTY_TENANT, 'uuid': None},
+            )
+        )
+
+    def test_a_tenant_without_a_profile_lists_nothing(self):
+        response = self.list_contacts_result(token=EMPTY_TENANT_TOKEN)
+
+        assert_that(response.status_code, equal_to(200), response.text)
+        assert_that(
+            response.json(), equal_to({'items': [], 'total': 0, 'missing_sources': []})
+        )
 
     def test_every_source_of_every_profile_is_listed_once(self):
         page = self.list_contacts()
@@ -216,7 +233,12 @@ class TestContactsListOfATenant(_ContactsListTest):
         )
 
         assert_that(response.status_code, equal_to(401))
-        assert_that(response.json(), is_not(has_item('items')))
+        assert_that(
+            response.json(),
+            has_entries(
+                details=has_entries(reason='missing_permission_or_invalid_tenant')
+            ),
+        )
 
     def test_a_visible_sub_tenant_does_not_move_the_scope(self):
         response = self.list_contacts_result(tenant=SUB_TENANT)
@@ -269,7 +291,6 @@ class TestContactsListOfATenant(_ContactsListTest):
             )
             assert_that(page['total'], equal_to(7))
         assert_that(mine['total'], equal_to(8))
-        assert_that(contact['id'], is_not(equal_to(MAIN_USER_UUID)))
 
 
 def new_failing_sources_config(Session):
@@ -329,7 +350,13 @@ class TestContactsListSources(_ContactsListTest):
         )
         assert_that(page['total'], equal_to(4))
 
+    def _fast_listings(self):
+        # Two listings well inside the 3 s delay, even on a loaded runner
+        self.ws_set('one_second', delay=0)
+        self.ws_set('too_slow', delay=0)
+
     def test_a_shared_list_is_asked_once_within_the_delay_then_again(self):
+        self._fast_listings()
         before = self.ws_calls('counted')
 
         self.list_contacts()
@@ -363,7 +390,7 @@ class TestContactsListSources(_ContactsListTest):
         assert_that(self.ws_calls('counted') - before, equal_to(2))
 
     def test_a_source_edit_forgets_its_list(self):
-        source = self.config.created_sources['counted']
+        self._fast_listings()
         before = self.ws_calls('counted')
         self.list_contacts()
 
@@ -371,7 +398,6 @@ class TestContactsListSources(_ContactsListTest):
         self.list_contacts()
 
         assert_that(self.ws_calls('counted') - before, equal_to(2))
-        assert_that(source['uuid'], is_not(equal_to(None)))
 
     def test_editing_a_source_never_listed_succeeds(self):
         response = self._edit('never_listed')

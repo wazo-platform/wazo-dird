@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import logging
+import threading
 from collections.abc import Callable
 from concurrent.futures import ALL_COMPLETED, Future, ThreadPoolExecutor, wait
 from time import perf_counter
 from typing import Any, NamedTuple, TypeVar
 
 from wazo_dird import BaseServicePlugin, BaseSourcePlugin, helpers
+from wazo_dird.config import DEFAULT_CONTACTS_LIST
 from wazo_dird.contacts_cache import ContactsCache
 from wazo_dird.helpers import ProfileConfig
 from wazo_dird.plugin_manager import ServiceDependencies
@@ -26,7 +28,6 @@ T = TypeVar('T')
 
 # The services whose sources a tenant's contact list gathers
 LISTED_SERVICES = ('lookup', 'reverse', 'favorites')
-DEFAULT_CONTACTS_LIST = {'timeout': 10, 'cache_ttl': 30, 'cache_max_contacts': 100_000}
 
 
 class ContactListing(NamedTuple):
@@ -103,17 +104,34 @@ class _LookupService(helpers.BaseService):
         self._list_timeout: float = list_config['timeout']
         self._list_cache: ContactsCache[SourceResult] | None = None
         self._sorted_index: TenantSortedIndex | None = None
+        self._stopping = threading.Event()
         if list_config['cache_ttl']:
+            self._sorted_index = TenantSortedIndex(list_config['cache_ttl'])
+            # A sorted list never keeps a list the cache dropped
             self._list_cache = ContactsCache(
                 list_config['cache_ttl'],
                 list_config['cache_max_contacts'],
                 self._list_timeout,
+                on_evict=self._sorted_index.forget_source,
             )
-            self._sorted_index = TenantSortedIndex(list_config['cache_ttl'])
             self._source_manager.subscribe_invalidate(self._forget_source)
+            threading.Thread(
+                target=self._drop_expired_lists,
+                args=(list_config['cache_ttl'],),
+                name='contacts-list-expiry',
+                daemon=True,
+            ).start()
 
     def stop(self) -> None:
+        self._stopping.set()
         self._executor.shutdown()
+
+    def _drop_expired_lists(self, period: float) -> None:
+        # Without traffic, no listing would drop the expired lists
+        assert self._list_cache and self._sorted_index
+        while not self._stopping.wait(period):
+            self._list_cache.drop_expired()
+            self._sorted_index.drop_expired()
 
     def _forget_source(self, source_uuid: str) -> None:
         assert self._list_cache and self._sorted_index

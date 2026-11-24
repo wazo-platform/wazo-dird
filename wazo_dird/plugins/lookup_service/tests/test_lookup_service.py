@@ -179,7 +179,7 @@ class TestListAllCache(unittest.TestCase):
         items, total, _ = _page(service, self.profiles)
 
         assert_that(len(self.shared.list_calls), equal_to(2))
-        assert_that(total, equal_to(2))
+        assert_that((_names(items), total), equal_to((['s 0', 's 1'], 2)))
 
     def test_a_failure_is_not_cached(self):
         service, _ = _service({'u-s': self.shared})

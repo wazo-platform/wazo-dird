@@ -81,6 +81,13 @@ class _Entry(NamedTuple):
     contacts: SortedContacts
 
 
+class _BuildLock:
+    def __init__(self) -> None:
+        self.lock = threading.Lock()
+        # The threads holding or waiting for it: it lives while one does
+        self.users = 0
+
+
 class TenantSortedIndex:
     """Each tenant's merged and sorted list of its cacheable sources, kept
     while none of them changes, so that reading page after page sorts once.
@@ -94,52 +101,70 @@ class TenantSortedIndex:
         self.builds = 0
         self._lock = threading.Lock()
         self._entries: dict[tuple[str, tuple[str, ...]], _Entry] = {}
-        self._build_locks: dict[tuple[str, tuple[str, ...]], threading.Lock] = {}
+        self._build_locks: dict[tuple[str, tuple[str, ...]], _BuildLock] = {}
 
     def get(self, tenant_uuid: str, members: Mapping[str, Member]) -> SortedContacts:
         uuids = tuple(sorted(members))
         key = (tenant_uuid, uuids)
         versions = tuple(members[uuid][0] for uuid in uuids)
         with self._lock:
-            build_lock = self._build_locks.setdefault(key, threading.Lock())
-        # One build per tenant at a time: the others wait and reuse it
-        with build_lock:
+            self._drop_expired()
+            build_lock = self._build_locks.setdefault(key, _BuildLock())
+            build_lock.users += 1
+        try:
+            # One build per tenant at a time: the others wait and reuse it
+            with build_lock.lock:
+                return self._get_or_build(key, tenant_uuid, versions, members)
+        finally:
             with self._lock:
-                entry = self._valid_entry(key, versions)
-            if entry is not None:
-                return entry.contacts
-            contacts = self.build(members[uuid][1] for uuid in uuids)
-            with self._lock:
-                self._drop_expired()
-                self._entries[key] = _Entry(
-                    time.monotonic() + self.ttl, versions, contacts
-                )
-            logger.debug(
-                'sorted %d contacts of %d sources for tenant %s',
-                len(contacts.results),
-                len(uuids),
-                tenant_uuid,
-            )
-            return contacts
+                build_lock.users -= 1
+                if not build_lock.users:
+                    del self._build_locks[key]
+
+    def _get_or_build(
+        self,
+        key: tuple[str, tuple[str, ...]],
+        tenant_uuid: str,
+        versions: tuple[int, ...],
+        members: Mapping[str, Member],
+    ) -> SortedContacts:
+        # Called with the key's build lock held
+        with self._lock:
+            entry = self._valid_entry(key, versions)
+        if entry is not None:
+            return entry.contacts
+        contacts = self.build(members[uuid][1] for uuid in key[1])
+        with self._lock:
+            self._entries[key] = _Entry(time.monotonic() + self.ttl, versions, contacts)
+        logger.debug(
+            'sorted %d contacts of %d sources for tenant %s',
+            len(contacts.results),
+            len(key[1]),
+            tenant_uuid,
+        )
+        return contacts
 
     def build(self, lists: Iterable[list[SourceResult]]) -> SortedContacts:
         self.builds += 1
         return build_sorted(lists)
 
     def forget_source(self, source_uuid: str) -> None:
+        """Drop the sorted lists holding source_uuid's list, so none outlives it"""
         with self._lock:
             for key in [key for key in self._entries if source_uuid in key[1]]:
-                self._drop(key)
+                del self._entries[key]
+
+    def drop_expired(self) -> None:
+        with self._lock:
+            self._drop_expired()
 
     def _valid_entry(
         self, key: tuple[str, tuple[str, ...]], versions: tuple[int, ...]
     ) -> _Entry | None:
         # Called with self._lock held
+        # Expired entries were dropped by get
         entry = self._entries.get(key)
         if entry is None or entry.versions != versions:
-            return None
-        if entry.expires_at <= time.monotonic():
-            self._drop(key)
             return None
         return entry
 
@@ -147,9 +172,4 @@ class TenantSortedIndex:
         # Called with self._lock held
         now = time.monotonic()
         for key in [key for key, e in self._entries.items() if e.expires_at <= now]:
-            self._drop(key)
-
-    def _drop(self, key: tuple[str, tuple[str, ...]]) -> None:
-        # Called with self._lock held; a build holding the lock keeps it
-        del self._entries[key]
-        self._build_locks.pop(key, None)
+            del self._entries[key]

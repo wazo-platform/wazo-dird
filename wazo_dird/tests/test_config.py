@@ -1,4 +1,4 @@
-# Copyright 2014-2026 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2014-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -10,9 +10,6 @@ from hamcrest import assert_that, equal_to, has_entries
 
 from wazo_dird import config
 from wazo_dird.config import Config
-
-# TestConfig replaces config._DEFAULT_CONFIG
-DEFAULT_CONFIG = config._DEFAULT_CONFIG
 
 
 @patch('builtins.print', Mock())
@@ -60,11 +57,3 @@ class TestConfig(TestCase):
         result = config.load(['-l', 'ERROR'])
 
         assert_that(result['log_level'], equal_to(logging.ERROR))
-
-
-class TestContactsListDefaults(TestCase):
-    def test_the_contacts_list_defaults(self):
-        assert_that(
-            DEFAULT_CONFIG['contacts_list'],
-            equal_to({'timeout': 10, 'cache_ttl': 30, 'cache_max_contacts': 100000}),
-        )

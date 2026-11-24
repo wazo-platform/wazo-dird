@@ -102,6 +102,14 @@ class ContactsListConfig(TypedDict, total=False):
     cache_max_contacts: int
 
 
+# Also what an empty `contacts_list:` section of a configuration file means
+DEFAULT_CONTACTS_LIST: ContactsListConfig = {
+    'timeout': 10,
+    'cache_ttl': 30,
+    'cache_max_contacts': 100000,
+}
+
+
 class Config(TypedDict, total=False):
     uuid: str
     auth: AuthConfig
@@ -220,11 +228,7 @@ _DEFAULT_CONFIG: Config = {
     'google_backend': {
         'contacts_cache_ttl': 300,
     },
-    'contacts_list': {
-        'timeout': 10,
-        'cache_ttl': 30,
-        'cache_max_contacts': 100000,
-    },
+    'contacts_list': DEFAULT_CONTACTS_LIST,
     'services': {
         'service_discovery': {
             'template_path': '/etc/wazo-dird/templates.d/',

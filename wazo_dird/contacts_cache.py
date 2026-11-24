@@ -19,6 +19,13 @@ T = TypeVar('T')
 # A list not stored in the cache has no version
 Versioned = tuple['int | None', list[T]]
 
+# Keys may derive from a secret (the Google backend's hashed token)
+KEY_LOG_LENGTH = 12
+
+
+def _log_key(key: str) -> str:
+    return key[:KEY_LOG_LENGTH]
+
 
 class ContactsCacheTimeout(Exception):
     def __init__(self, key: str, timeout: float) -> None:
@@ -44,7 +51,13 @@ class ContactsCache(Generic[T]):
     must not mutate them.
     """
 
-    def __init__(self, ttl: float, max_contacts: int, download_timeout: float) -> None:
+    def __init__(
+        self,
+        ttl: float,
+        max_contacts: int,
+        download_timeout: float,
+        on_evict: Callable[[str], None] | None = None,
+    ) -> None:
         self.ttl = ttl
         self.max_contacts = max_contacts
         self.download_timeout = download_timeout
@@ -54,6 +67,8 @@ class ContactsCache(Generic[T]):
         self._fetches: dict[str, _Fetch[T]] = {}
         # One counter for every key, so a version names one stored list
         self._last_version = 0
+        # Called with self._lock held, so it must not call back into the cache
+        self._on_evict = on_evict
 
     def get_or_fetch(self, key: str, fetch: Callable[[], list[T]]) -> list[T]:
         return self.get_or_fetch_versioned(key, fetch)[1]
@@ -69,7 +84,9 @@ class ContactsCache(Generic[T]):
             if entry is not None:
                 version, contacts = entry
                 logger.debug(
-                    'contacts cache hit for key %s: %d contacts', key, len(contacts)
+                    'contacts cache hit for key %s: %d contacts',
+                    _log_key(key),
+                    len(contacts),
                 )
                 return version, contacts
             in_progress, is_fetcher = self._join_or_start(key)
@@ -79,22 +96,33 @@ class ContactsCache(Generic[T]):
         try:
             return in_progress.future.result(self.download_timeout)
         except concurrent.futures.TimeoutError:
+            if in_progress.future.done():
+                raise  # the fetch's own TimeoutError, not the wait's
             logger.warning(
                 'Gave up waiting %s seconds for the contacts of key %s',
                 self.download_timeout,
-                key,
+                _log_key(key),
             )
-            raise ContactsCacheTimeout(key, self.download_timeout)
+            raise ContactsCacheTimeout(_log_key(key), self.download_timeout)
 
     def evict(self, key: str) -> None:
-        """Forget the list of key, and keep a fetch in progress from storing it"""
+        """Forget the list of key, and keep a fetch in progress from storing it:
+        its waiters get its result, a later caller fetches again"""
         with self._lock:
             if key in self._entries:
                 self._evict(key)
-            in_progress = self._fetches.get(key)
+            in_progress = self._fetches.pop(key, None)
             if in_progress is not None:
                 in_progress.evicted = True
-            logger.debug('contacts cache evicted key %s', key)
+            logger.debug('contacts cache evicted key %s', _log_key(key))
+
+    def drop_expired(self) -> None:
+        """Evict every expired list, so none outlives its TTL without traffic"""
+        with self._lock:
+            now = time.monotonic()
+            for key in [k for k, e in self._entries.items() if e[0] <= now]:
+                logger.debug('contacts cache entry expired: key %s', _log_key(key))
+                self._evict(key)
 
     def _join_or_start(self, key: str) -> tuple[_Fetch[T], bool]:
         # Called with self._lock held
@@ -102,10 +130,10 @@ class ContactsCache(Generic[T]):
         if in_progress is not None:
             logger.debug(
                 'contacts cache miss for key %s: waiting for the fetch in progress',
-                key,
+                _log_key(key),
             )
             return in_progress, False
-        logger.debug('contacts cache miss for key %s: fetching', key)
+        logger.debug('contacts cache miss for key %s: fetching', _log_key(key))
         in_progress = self._fetches[key] = _Fetch()
         return in_progress, True
 
@@ -119,9 +147,11 @@ class ContactsCache(Generic[T]):
         else:
             fetch_.future.set_result((version, contacts))
         finally:
-            # Also on BaseException: a stale entry would block every later fetch
+            # Also on BaseException: a stale entry would block every later fetch.
+            # An evicted fetch was detached, and a later one may hold the key.
             with self._lock:
-                del self._fetches[key]
+                if self._fetches.get(key) is fetch_:
+                    del self._fetches[key]
 
     def _get(self, key: str) -> tuple[int, list[T]] | None:
         # Called with self._lock held
@@ -130,7 +160,7 @@ class ContactsCache(Generic[T]):
             return None
         expires_at, version, contacts = entry
         if expires_at <= time.monotonic():
-            logger.debug('contacts cache entry expired: key %s', key)
+            logger.debug('contacts cache entry expired: key %s', _log_key(key))
             self._evict(key)
             return None
         return version, contacts
@@ -145,7 +175,7 @@ class ContactsCache(Generic[T]):
             logger.warning(
                 'Not caching %d contacts for key %s: above the limit of %d',
                 len(contacts),
-                key,
+                _log_key(key),
                 self.max_contacts,
             )
             return None
@@ -155,13 +185,14 @@ class ContactsCache(Generic[T]):
             oldest_key, (expires_at, _, _) = next(iter(self._entries.items()))
             if expires_at <= now:
                 logger.debug(
-                    'Evicting expired contacts cache entry: key %s', oldest_key
+                    'Evicting expired contacts cache entry: key %s',
+                    _log_key(oldest_key),
                 )
             elif self._contact_count + len(contacts) > self.max_contacts:
                 logger.info(
                     'Evicting oldest contacts cache entry: key %s, '
                     'the cache is full (%d contacts)',
-                    oldest_key,
+                    _log_key(oldest_key),
                     self._contact_count,
                 )
             else:
@@ -176,3 +207,5 @@ class ContactsCache(Generic[T]):
         # Called with self._lock held
         _, _, contacts = self._entries.pop(key)
         self._contact_count -= len(contacts)
+        if self._on_evict is not None:
+            self._on_evict(key)

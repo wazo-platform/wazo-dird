@@ -87,7 +87,7 @@ def profile(name: str, **services: list[str]) -> ProfileConfig:
 
 
 def config(
-    timeout: float = 10, cache_ttl: int = 30, max_contacts: int = 100_000
+    timeout: float = 10, cache_ttl: float = 30, max_contacts: int = 100_000
 ) -> dict[str, Any]:
     return {
         'rest_api': {'max_threads': 10},

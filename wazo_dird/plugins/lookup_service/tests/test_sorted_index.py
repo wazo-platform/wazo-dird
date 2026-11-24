@@ -3,6 +3,8 @@
 
 import json
 import random
+import threading
+import time
 import unittest
 from unittest.mock import Mock, patch
 
@@ -197,6 +199,36 @@ class TestTenantSortedList(_ListingTest):
         assert_that((total, missing), equal_to((3, ['b'])))
         assert_that(self._index()._entries, empty())
 
+    def test_a_timed_out_cacheable_member_answers_but_stores_nothing(self):
+        slow = FakeSource('b', contacts('b', 3))
+        slow.gate = threading.Event()
+        self._service(
+            {'u-a': FakeSource('a', contacts('a', 3)), 'u-b': slow}, timeout=0.1
+        )
+        try:
+            _, total, missing = self.service.list_page(
+                self.profiles, TENANT, None, 'token', 100, 0
+            )
+        finally:
+            slow.gate.set()
+
+        assert_that((total, missing), equal_to((3, ['b'])))
+        assert_that(self._index()._entries, empty())
+
+    def test_expired_lists_are_dropped_without_any_listing(self):
+        self._service({'u-a': FakeSource('a', contacts('a', 3))}, cache_ttl=0.05)
+        self.service.list_page(self.profiles, TENANT, None, 'token', 100, 0)
+        assert_that(self._index()._entries, has_length(1))
+
+        deadline = time.monotonic() + 5
+        while self._index()._entries and time.monotonic() < deadline:
+            time.sleep(0.01)
+        self.service.stop()
+
+        assert_that(self._index()._entries, empty())
+        assert self.service._list_cache is not None
+        assert_that(self.service._list_cache._entries, empty())
+
 
 class TestBound(_ListingTest):
     def test_lists_past_the_bound_evict_each_other_and_pages_stay_right(self):
@@ -262,8 +294,13 @@ class TestRefetchedWhileTheSortedListLives(unittest.TestCase):
         ]
 
         service.list_page(tenant_a, 'tenant-a', None, 'token', 100, 0)
-        # b takes the room of a, whose sorted list stays stored
+        # b takes the room of a, whose sorted list goes with it
         service.list_page(tenant_b, 'tenant-b', None, 'token', 100, 0)
+        assert service._sorted_index is not None
+        assert_that(
+            list(service._sorted_index._entries),
+            contains_exactly(('tenant-b', ('u-b',))),
+        )
         a.contacts = contacts('z', 1)
         items, total, _ = service.list_page(tenant_a, 'tenant-a', None, 'token', 100, 0)
 
@@ -274,15 +311,78 @@ class TestRefetchedWhileTheSortedListLives(unittest.TestCase):
 
 
 class TestTenantSortedIndexExpiry(unittest.TestCase):
-    def test_expired_and_forgotten_entries_drop_their_build_lock(self):
+    def test_an_expired_sorted_list_is_built_again(self):
         index = TenantSortedIndex(ttl=30)
         member = {'u-a': (1, _results('a', ['1']))}
         with patch.object(sorted_index.time, 'monotonic', return_value=1000):
             index.get('t1', member)
-            index.get('t2', {'u-b': (2, _results('b', ['1']))})
-        index.forget_source('u-b')
+        with patch.object(sorted_index.time, 'monotonic', return_value=1029):
+            index.get('t1', member)
+        assert_that(index.builds, equal_to(1))
         with patch.object(sorted_index.time, 'monotonic', return_value=1030):
-            index.get('t3', {'u-c': (3, _results('c', ['1']))})
+            contacts = index.get('t1', member)
 
-        assert_that(list(index._entries), contains_exactly(('t3', ('u-c',))))
-        assert_that(list(index._build_locks), contains_exactly(('t3', ('u-c',))))
+        assert_that(index.builds, equal_to(2))
+        assert_that([r.fields['id'] for r in contacts.results], contains_exactly('1'))
+
+    def test_an_idle_tenants_expired_list_is_dropped(self):
+        index = TenantSortedIndex(ttl=30)
+        with patch.object(sorted_index.time, 'monotonic', return_value=1000):
+            index.get('idle', {'u-a': (1, _results('a', ['1']))})
+            index.get('busy', {'u-b': (2, _results('b', ['1']))})
+        with patch.object(sorted_index.time, 'monotonic', return_value=1020):
+            index.get('busy', {'u-b': (3, _results('b', ['2']))})
+        with patch.object(sorted_index.time, 'monotonic', return_value=1030):
+            index.drop_expired()
+
+        assert_that(list(index._entries), contains_exactly(('busy', ('u-b',))))
+
+    def test_a_forgotten_source_drops_its_sorted_lists(self):
+        index = TenantSortedIndex(ttl=30)
+        index.get('t1', {'u-a': (1, _results('a', ['1']))})
+        index.get('t2', {'u-b': (2, _results('b', ['1']))})
+
+        index.forget_source('u-b')
+
+        assert_that(list(index._entries), contains_exactly(('t1', ('u-a',))))
+
+
+class TestOneBuildAtATime(unittest.TestCase):
+    def test_a_second_reader_waits_for_the_build_and_reuses_it(self):
+        index = TenantSortedIndex(ttl=30)
+        building = threading.Event()
+        release = threading.Event()
+        build = index.build
+
+        def held_build(lists):
+            building.set()
+            release.wait(5)
+            return build(lists)
+
+        index.build = held_build  # type: ignore[method-assign]
+        member = {'u-a': (1, _results('a', ['1']))}
+        results = []
+        readers = [
+            threading.Thread(target=lambda: results.append(index.get('t1', member)))
+            for _ in range(2)
+        ]
+        readers[0].start()
+        building.wait(5)
+        readers[1].start()
+        # the second reader is now waiting for the first one's build lock
+        time.sleep(0.05)
+        # an expiry sweep while the build is held keeps its lock
+        with patch.object(sorted_index.time, 'monotonic', return_value=10**9):
+            index.drop_expired()
+        readers.append(
+            threading.Thread(target=lambda: results.append(index.get('t1', member)))
+        )
+        readers[2].start()
+        time.sleep(0.05)
+        release.set()
+        for reader in readers:
+            reader.join(5)
+
+        assert_that(index.builds, equal_to(1))
+        assert_that(results, has_length(3))
+        assert_that(index._build_locks, empty())

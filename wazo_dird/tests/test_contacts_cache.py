@@ -210,3 +210,83 @@ class TestContactsCacheEvict(unittest.TestCase):
         fetch = Mock(return_value=['fresh'])
         assert_that(cache.get_or_fetch('a', fetch), equal_to(['fresh']))
         fetch.assert_called_once_with()
+
+    def test_a_caller_after_evict_fetches_again_while_the_old_fetch_runs(self):
+        cache = _cache()
+        fetching = threading.Event()
+        release = threading.Event()
+        old = []
+
+        def slow_fetch():
+            fetching.set()
+            release.wait(5)
+            return ['stale']
+
+        fetcher = threading.Thread(
+            target=lambda: old.append(cache.get_or_fetch_versioned('a', slow_fetch))
+        )
+        fetcher.start()
+        try:
+            fetching.wait(5)
+            cache.evict('a')
+            fetch = Mock(return_value=['fresh'])
+            version, contacts = cache.get_or_fetch_versioned('a', fetch)
+        finally:
+            release.set()
+            fetcher.join(5)
+
+        fetch.assert_called_once_with()
+        assert_that(contacts, equal_to(['fresh']))
+        assert_that(old, contains_exactly((None, ['stale'])))
+        # the old fetch ending neither stores nor detaches the fresh one
+        assert_that(
+            cache.get_or_fetch_versioned('a', Mock()), equal_to((version, ['fresh']))
+        )
+
+
+class TestContactsCacheExpiryAndLogs(unittest.TestCase):
+    def test_drop_expired_evicts_only_the_expired_lists_and_reports_them(self):
+        evicted: list[str] = []
+        cache: ContactsCache[int] = ContactsCache(30, 100, 60, on_evict=evicted.append)
+        with patch.object(contacts_cache.time, 'monotonic', return_value=1000):
+            cache.get_or_fetch('old', Mock(return_value=[1]))
+        with patch.object(contacts_cache.time, 'monotonic', return_value=1020):
+            cache.get_or_fetch('new', Mock(return_value=[2]))
+
+        with patch.object(contacts_cache.time, 'monotonic', return_value=1030):
+            cache.drop_expired()
+
+        assert_that(evicted, contains_exactly('old'))
+        fetch = Mock(return_value=[])
+        with patch.object(contacts_cache.time, 'monotonic', return_value=1031):
+            cache.get_or_fetch('new', fetch)
+            cache.get_or_fetch('old', fetch)
+        assert_that(fetch.call_count, equal_to(1))
+
+    def test_every_eviction_is_reported(self):
+        evicted: list[str] = []
+        cache: ContactsCache[str] = ContactsCache(30, 2, 60, on_evict=evicted.append)
+        for key in ('a', 'b', 'c'):
+            cache.get_or_fetch(key, Mock(return_value=[key]))
+        cache.evict('b')
+
+        assert_that(evicted, contains_exactly('a', 'b'))
+
+    def test_a_timeout_raised_by_the_fetch_is_not_a_wait_timeout(self):
+        cache = _cache()
+        error = TimeoutError('socket timed out')
+
+        assert_that(
+            calling(cache.get_or_fetch).with_args('a', Mock(side_effect=error)),
+            raises(TimeoutError, 'socket timed out'),
+        )
+
+    def test_logs_name_a_key_by_its_prefix_only(self):
+        cache = _cache(max_contacts=1)
+        key = 'k' * 12 + 'SECRET-TAIL'
+
+        with self.assertLogs(contacts_cache.logger, 'DEBUG') as logs:
+            cache.get_or_fetch(key, Mock(return_value=[1, 2]))
+
+        assert_that(any('k' * 12 in m for m in logs.output), equal_to(True))
+        assert_that(any('SECRET-TAIL' in m for m in logs.output), equal_to(False))
