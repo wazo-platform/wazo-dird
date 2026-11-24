@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from collections.abc import Callable
 from functools import partial
 from typing import Protocol
 
@@ -49,6 +50,7 @@ class SourceManager:
         self._token_renewer = token_renewer
         self._source_service: SourceServiceProtocol | None = None
         self._source_lock = threading.Lock()
+        self._invalidate_subscribers: list[Callable[[str], None]] = []
 
     def get(self, source_uuid: str) -> BaseSourcePlugin | None:
         with self._source_lock:
@@ -61,6 +63,12 @@ class SourceManager:
     def invalidate(self, source_uuid: str) -> None:
         with self._source_lock:
             self._sources.pop(source_uuid, None)
+        for callback in self._invalidate_subscribers:
+            callback(source_uuid)
+
+    def subscribe_invalidate(self, callback: Callable[[str], None]) -> None:
+        """callback(source_uuid) is called after each invalidation"""
+        self._invalidate_subscribers.append(callback)
 
     def _load_source(self, source_uuid: str) -> BaseSourcePlugin | None:
         assert self._source_service

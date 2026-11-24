@@ -24,3 +24,17 @@ class TestSourceManager(unittest.TestCase):
 
         source_1.unload.assert_called_once_with()
         source_2.unload.assert_called_once_with()
+
+    def test_invalidate_drops_the_source_and_tells_the_subscribers(self):
+        manager = SourceManager(
+            {}, cast(Config, {'sources': {}}), s.auth_client, s.token_renewer
+        )
+        manager._sources = {'s1': Mock()}
+        evict = Mock()
+        manager.subscribe_invalidate(evict)
+
+        manager.invalidate('s1')
+        manager.invalidate('never-loaded')
+
+        self.assertNotIn('s1', manager._sources)
+        self.assertEqual(evict.call_args_list, [(('s1',),), (('never-loaded',),)])
