@@ -292,3 +292,7 @@ class TestContactsListConfig(unittest.TestCase):
         assert_that(
             service._list_cache.ttl if service._list_cache else None, equal_to(30)
         )
+        assert_that(
+            service._list_cache.max_contacts if service._list_cache else None,
+            equal_to(100000),
+        )
