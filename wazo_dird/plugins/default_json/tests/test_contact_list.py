@@ -96,5 +96,9 @@ class TestContactListFavorites(unittest.TestCase):
         OtherResult = make_result_class('csv', 'other', 'id')
         formatter = _ContactListFormatter({('other', '1')})
 
-        assert_that(formatter.format(OtherResult({'id': '1'})), has_entries(favorite=True))
-        assert_that(formatter.format(SourceResult({'id': '1'})), has_entries(favorite=False))
+        assert_that(
+            formatter.format(OtherResult({'id': '1'})), has_entries(favorite=True)
+        )
+        assert_that(
+            formatter.format(SourceResult({'id': '1'})), has_entries(favorite=False)
+        )

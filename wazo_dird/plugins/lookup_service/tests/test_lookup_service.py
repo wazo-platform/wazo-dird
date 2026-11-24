@@ -280,3 +280,15 @@ class TestListCacheableBackends(unittest.TestCase):
                 }
             ),
         )
+
+
+class TestContactsListConfig(unittest.TestCase):
+    def test_an_empty_section_takes_the_defaults(self):
+        # YAML's `contacts_list:` with nothing under it is None
+        service = _LookupService({'contacts_list': None}, FakeSourceManager({}), Mock())
+        self.addCleanup(service.stop)
+
+        assert_that(service._list_timeout, equal_to(10))
+        assert_that(
+            service._list_cache.ttl if service._list_cache else None, equal_to(30)
+        )

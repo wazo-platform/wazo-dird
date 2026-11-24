@@ -257,7 +257,9 @@ class TestRefetchedWhileTheSortedListLives(unittest.TestCase):
         service = _LookupService(
             config(max_contacts=3), FakeSourceManager({'u-a': a, 'u-b': b}), Mock()
         )
-        tenant_a, tenant_b = [profile('p', lookup=['u-a'])], [profile('p', lookup=['u-b'])]
+        tenant_a, tenant_b = [profile('p', lookup=['u-a'])], [
+            profile('p', lookup=['u-b'])
+        ]
 
         service.list_page(tenant_a, 'tenant-a', None, 'token', 100, 0)
         # b takes the room of a, whose sorted list stays stored
@@ -266,4 +268,21 @@ class TestRefetchedWhileTheSortedListLives(unittest.TestCase):
         items, total, _ = service.list_page(tenant_a, 'tenant-a', None, 'token', 100, 0)
 
         assert_that(len(a.list_calls), equal_to(2))
-        assert_that(([item.fields['name'] for item in items], total), equal_to((['z 0'], 1)))
+        assert_that(
+            ([item.fields['name'] for item in items], total), equal_to((['z 0'], 1))
+        )
+
+
+class TestTenantSortedIndexExpiry(unittest.TestCase):
+    def test_expired_and_forgotten_entries_drop_their_build_lock(self):
+        index = TenantSortedIndex(ttl=30)
+        member = {'u-a': (1, _results('a', ['1']))}
+        with patch.object(sorted_index.time, 'monotonic', return_value=1000):
+            index.get('t1', member)
+            index.get('t2', {'u-b': (2, _results('b', ['1']))})
+        index.forget_source('u-b')
+        with patch.object(sorted_index.time, 'monotonic', return_value=1030):
+            index.get('t3', {'u-c': (3, _results('c', ['1']))})
+
+        assert_that(list(index._entries), contains_exactly(('t3', ('u-c',))))
+        assert_that(list(index._build_locks), contains_exactly(('t3', ('u-c',))))

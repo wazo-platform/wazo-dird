@@ -95,7 +95,11 @@ class _LookupService(helpers.BaseService):
         logger.info('Creating Lookup service threadpool [max_workers=%d]', max_workers)
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
 
-        list_config = {**DEFAULT_CONTACTS_LIST, **self._config.get('contacts_list', {})}
+        # YAML reads an empty `contacts_list:` section as None
+        list_config = {
+            **DEFAULT_CONTACTS_LIST,
+            **(self._config.get('contacts_list') or {}),
+        }
         self._list_timeout: float = list_config['timeout']
         self._list_cache: ContactsCache[SourceResult] | None = None
         self._sorted_index: TenantSortedIndex | None = None

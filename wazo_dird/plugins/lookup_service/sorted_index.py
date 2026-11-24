@@ -129,7 +129,7 @@ class TenantSortedIndex:
     def forget_source(self, source_uuid: str) -> None:
         with self._lock:
             for key in [key for key in self._entries if source_uuid in key[1]]:
-                del self._entries[key]
+                self._drop(key)
 
     def _valid_entry(
         self, key: tuple[str, tuple[str, ...]], versions: tuple[int, ...]
@@ -139,7 +139,7 @@ class TenantSortedIndex:
         if entry is None or entry.versions != versions:
             return None
         if entry.expires_at <= time.monotonic():
-            del self._entries[key]
+            self._drop(key)
             return None
         return entry
 
@@ -147,4 +147,9 @@ class TenantSortedIndex:
         # Called with self._lock held
         now = time.monotonic()
         for key in [key for key, e in self._entries.items() if e.expires_at <= now]:
-            del self._entries[key]
+            self._drop(key)
+
+    def _drop(self, key: tuple[str, tuple[str, ...]]) -> None:
+        # Called with self._lock held; a build holding the lock keeps it
+        del self._entries[key]
+        self._build_locks.pop(key, None)
