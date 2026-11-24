@@ -12,9 +12,11 @@ from collections.abc import Callable
 from typing import Any, cast
 
 import ldap
+from ldap.controls import SimplePagedResultsControl
 from ldap.filter import escape_filter_chars
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.exception import SourceListError
 from wazo_dird.helpers import BaseBackendView
 from wazo_dird.plugins.base_plugins import (
     LookupArgs,
@@ -26,6 +28,10 @@ from wazo_dird.plugins.source_result import _SourceResult
 from . import http
 
 logger = logging.getLogger(__name__)
+
+# Entries per page of a listing, read past the server's size limit (RFC 2696)
+LIST_PAGE_SIZE = 500
+LIST_FILTER = '(objectClass=*)'
 
 
 class LDAPSourceConfig(SourceConfig, total=False):
@@ -47,10 +53,15 @@ class LDAPView(BaseBackendView):
 
 
 class LDAPPlugin(BaseSourcePlugin):
+    list_cacheable = True
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.ldap_factory = _LDAPFactory()
         self._lock = threading.Lock()
+        # A listing has its own connection, so lookups never wait for it
+        self._list_client: _LDAPClient | None = None
+        self._list_lock = threading.Lock()
 
     def load(self, args: SourcePluginDependencies) -> None:
         config = cast(LDAPSourceConfig, args['config'])
@@ -63,6 +74,19 @@ class LDAPPlugin(BaseSourcePlugin):
 
     def unload(self) -> None:
         self._ldap_client.close()
+        with self._list_lock:
+            if self._list_client is not None:
+                self._list_client.close()
+
+    def list_all(self, args: LookupArgs | None = None) -> list[_SourceResult]:
+        with self._list_lock:
+            if self._list_client is None:
+                self._list_client = self.ldap_factory.new_ldap_client(
+                    self._ldap_config
+                )
+            raw_results = self._list_client.search_all(LIST_FILTER)
+
+        return self._ldap_result_formatter.format(raw_results)
 
     def search(self, term: str, args: LookupArgs | None = None) -> list[_SourceResult]:
         filter_str = self._ldap_config.build_search_filter(term)
@@ -391,6 +415,50 @@ class _LDAPClient:
                 return []
             results = self._search(filter_str, limit)
 
+        return results
+
+    def search_all(self, filter_str: str) -> list[Any]:
+        """Every entry under the base DN matching filter_str, page by page.
+
+        Raises SourceListError on any failure, a partial list included.
+        """
+        if not self._is_set_up():
+            self._set_up()
+            if not self._is_set_up():
+                raise SourceListError(self._name, 'cannot bind')
+
+        cookie: bytes | str = ''
+        results: list[Any] = []
+        try:
+            while True:
+                control = SimplePagedResultsControl(
+                    True, size=LIST_PAGE_SIZE, cookie=cookie
+                )
+                msgid = self._ldap_obj.search_ext(
+                    self._base_dn,
+                    ldap.SCOPE_SUBTREE,
+                    filter_str,
+                    self._attributes,
+                    serverctrls=[control],
+                )
+                _, data, _, server_controls = self._ldap_obj.result3(msgid)
+                results.extend(data)
+                cookie = next(
+                    (
+                        c.cookie
+                        for c in server_controls
+                        if c.controlType == SimplePagedResultsControl.controlType
+                    ),
+                    None,
+                )
+                if not cookie:
+                    break
+        except ldap.LDAPError as e:
+            logger.error('LDAP "%s": listing error: %r', self._name, e)
+            self._tear_down()
+            raise SourceListError(self._name, e) from e
+
+        logger.debug('LDAP "%s": listed %d entries', self._name, len(results))
         return results
 
     def _search(self, filter_str: str | None, limit: int) -> Any:

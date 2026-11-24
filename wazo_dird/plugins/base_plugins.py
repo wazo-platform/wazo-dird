@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import abc
+import logging
 from typing import Any, TypedDict
 
 from wazo_auth_client import Client as AuthClient
@@ -12,6 +13,8 @@ from xivo.token_renewer import TokenRenewer
 from wazo_dird.config import Config as MainConfig
 from wazo_dird.plugin_manager import ServiceDependencies, ViewDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
+
+logger = logging.getLogger(__name__)
 
 
 class BaseServicePlugin(metaclass=abc.ABCMeta):
@@ -81,6 +84,9 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
 
     name: str
     backend: str
+    # Whether list_all's result may be shared by every caller of a tenant: True
+    # only when the list depends neither on the user nor on writes dird makes
+    list_cacheable: bool = False
 
     @abc.abstractmethod
     def load(self, args: SourcePluginDependencies) -> Any:
@@ -172,4 +178,15 @@ class BaseSourcePlugin(metaclass=abc.ABCMeta):
         results from search. Meaning that the `__unique_id` column should be
         added and display columns should be present.
         """
+        return []
+
+    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+        """
+        Returns every contact of the source, from the backend's own listing
+        path, never by searching an empty term.
+
+        Raises `SourceListError` when the backend fails: an empty list always
+        means the source has no contact. The default lists nothing.
+        """
+        logger.debug('%s lists no contact', type(self).__name__)
         return []

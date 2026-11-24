@@ -12,6 +12,7 @@ import requests
 from requests import RequestException
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.exception import SourceListError
 from wazo_dird.helpers import BaseBackendView
 from wazo_dird.plugins.base_plugins import (
     LookupArgs,
@@ -45,6 +46,8 @@ class CSVWSView(BaseBackendView):
 
 
 class CSVWSPlugin(BaseSourcePlugin):
+    list_cacheable = True
+
     def load(self, config: Dependencies) -> None:  # type: ignore[override]
         source_config = config['config']
         self._name = source_config['name']
@@ -119,6 +122,27 @@ class CSVWSPlugin(BaseSourcePlugin):
                 if term == result.get(column):
                     return self._SourceResult(result)
         return None
+
+    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+        if not self._list_url:
+            logger.debug('CSV WS `%s` has no list_url to list from', self._name)
+            return []
+
+        try:
+            response = requests.get(
+                self._list_url, timeout=self._timeout, verify=self._verify_certificate
+            )
+        except RequestException as e:
+            raise SourceListError(self._name, e) from e
+
+        if response.status_code != 200:
+            raise SourceListError(self._name, f'status {response.status_code}')
+
+        return [
+            self._SourceResult(result)
+            for result in self._reader.from_text(response.text)
+            if result
+        ]
 
     def list(
         self, source_entry_ids: list[str], args: dict[str, Any] | None = None

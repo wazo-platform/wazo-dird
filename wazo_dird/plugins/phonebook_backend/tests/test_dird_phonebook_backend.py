@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import Mock, patch
 from unittest.mock import sentinel as s
 
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, contains_exactly, equal_to
 
 from wazo_dird.exception import InvalidConfigError
 
@@ -88,3 +88,16 @@ class TestDirdPhonebook(unittest.TestCase):
         self.engine.find_contacts_for_extens.return_value = {}
 
         assert_that(self.source.match_all(['555']), equal_to({}))
+
+    def test_that_list_all_lists_every_contact_without_a_term(self):
+        self.engine.list_all_contacts.return_value = [{'id': '1'}, {'id': '2'}]
+
+        result = self.source.list_all()
+
+        self.engine.find_contacts.assert_not_called()
+        assert_that(
+            result,
+            contains_exactly(
+                self.SourceResult({'id': '1'}), self.SourceResult({'id': '2'})
+            ),
+        )

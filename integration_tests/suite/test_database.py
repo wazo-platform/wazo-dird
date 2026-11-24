@@ -1752,6 +1752,33 @@ class TestPhonebookContactSearchEngine(_BaseTest):
 
         assert_that(result, contains_inanyorder(self.mia, self.marcellus, self.jules))
 
+    def test_that_listing_all_returns_every_contact_of_the_phonebook_only(self):
+        other = self.phonebook_crud.create(self.tenant_uuid, {'name': 'other'})
+        self.addCleanup(
+            self.phonebook_crud.delete,
+            [self.tenant_uuid],
+            database.PhonebookKey(uuid=other['uuid']),
+        )
+        self.phonebook_contact_crud.create(
+            [self.tenant_uuid],
+            database.PhonebookKey(uuid=other['uuid']),
+            {'firstname': 'Zed'},
+        )
+
+        result = self.engine.list_all_contacts()
+
+        assert_that(
+            result,
+            contains_inanyorder(
+                self.mia,
+                self.marcellus,
+                self.vincent,
+                self.jules,
+                self.butch,
+                self.jimmie,
+            ),
+        )
+
     def test_that_none_matching_search_returns_an_empty_list(self):
         result = self.engine.find_contacts('mia')  # lastname search
 

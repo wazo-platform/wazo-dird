@@ -162,6 +162,9 @@ class PhonebookPlugin(BaseSourcePlugin):
         matching_contacts = self._search_engine.list_contacts(source_entry_ids)
         return self.format_contacts(matching_contacts)
 
+    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+        return self.format_contacts(self._search_engine.list_all_contacts())
+
     def format_contacts(
         self, contacts: Iterable[ContactInfo]
     ) -> builtins.list[SourceResult]:

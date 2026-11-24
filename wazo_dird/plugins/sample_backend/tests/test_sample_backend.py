@@ -60,3 +60,8 @@ class TestSampleBackend(unittest.TestCase):
         result = self.source.first_match('555')
 
         assert_that(result, equal_to(only_result))
+
+    def test_list_all_returns_the_sample_result(self):
+        self.source.load(_deps({}))
+
+        assert_that(self.source.list_all(), contains_exactly(self.source._result))

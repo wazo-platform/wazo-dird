@@ -12,7 +12,11 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import InvalidConfigError, SourceUnavailable
+from wazo_dird.exception import (
+    InvalidConfigError,
+    SourceListError,
+    SourceUnavailable,
+)
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
@@ -62,6 +66,8 @@ class WazoUserPlugin(BaseSourcePlugin):
         'mobile_phone_number',
         'voicemail_number',
     ]
+
+    list_cacheable = True
 
     _client: ConfdClient | None
     _searched_columns: list[str]
@@ -219,6 +225,16 @@ class WazoUserPlugin(BaseSourcePlugin):
             batch = unique_ids[start : start + LIST_BATCH_SIZE]
             results.extend(self._fetch_entries(','.join(batch), 'uuid'))
         return results
+
+    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+        if self._client is None:
+            raise SourceListError(self.name, 'confd client not initialised')
+        try:
+            uuid = self._get_wazo_uuid()
+            users = list(self._fetch_users(None))
+        except RequestException as e:
+            raise SourceListError(self.name, e) from e
+        return [self._source_result_from_entry(user, uuid) for user in users]
 
     def _fetch_entries(
         self, term: str | None = None, column: str = 'search'

@@ -16,10 +16,14 @@ from hamcrest import (
     none,
     raises,
 )
-from requests import HTTPError, RequestException
+from requests import ConnectionError, HTTPError, RequestException
 
 from wazo_dird import make_result_class
-from wazo_dird.exception import InvalidConfigError, SourceUnavailable
+from wazo_dird.exception import (
+    InvalidConfigError,
+    SourceListError,
+    SourceUnavailable,
+)
 from wazo_dird.plugins.base_plugins import SourcePluginDependencies
 
 from ..plugin import WazoUserPlugin
@@ -515,3 +519,38 @@ class TestWazoUserBackendSearch(_BaseTest):
         result = self._source._fetch_entries()
 
         assert_that(result, empty())
+
+
+class TestWazoUserBackendListAll(_BaseTest):
+    def setUp(self):
+        super().setUp()
+        self._confd_client.users.list.side_effect = _confd_users_list
+        self._source._SourceResult = SourceResult
+        self._source._uuid = UUID
+
+    def test_list_all_returns_every_user_without_a_search(self):
+        result = self._source.list_all()
+
+        self._confd_client.users.list.assert_called_once_with(
+            recurse=True, view='directory'
+        )
+        assert_that(result, contains_exactly(SOURCE_1, SOURCE_2, SOURCE_3))
+
+    def test_list_all_raises_when_confd_is_unreachable(self):
+        for error in (ConnectionError(), RequestException()):
+            self._confd_client.users.list.side_effect = error
+
+            assert_that(
+                calling(self._source.list_all), raises(SourceListError)
+            )
+
+    def test_list_all_raises_when_the_wazo_uuid_cannot_be_read(self):
+        self._source._uuid = None
+        self._confd_client.infos.side_effect = ConnectionError()
+
+        assert_that(calling(self._source.list_all), raises(SourceListError))
+
+    def test_list_all_raises_when_the_client_is_not_initialised(self):
+        self._source._client = None
+
+        assert_that(calling(self._source.list_all), raises(SourceListError))

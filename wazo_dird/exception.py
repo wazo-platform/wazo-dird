@@ -132,6 +132,15 @@ class NoSuchSource(APIException):
         super().__init__(404, msg, 'unknown-source', details, 'sources')
 
 
+class SourceListError(Exception):
+    def __init__(self, source_name: str, reason: object = None) -> None:
+        message = f'Source "{source_name}" could not list its contacts'
+        if reason is not None:
+            message = f'{message}: {reason}'
+        super().__init__(message)
+        self.source_name = source_name
+
+
 class NoSuchTenant(ValueError):
     def __init__(self, tenant_name: Any) -> None:
         message = f'No such tenant: {tenant_name}'
