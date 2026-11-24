@@ -248,3 +248,22 @@ class TestBound(_ListingTest):
 
         assert_that((total, missing), equal_to((3, ['personal'])))
         assert_that(self._index()._entries, has_length(1))
+
+
+class TestRefetchedWhileTheSortedListLives(unittest.TestCase):
+    def test_a_member_evicted_for_room_and_refetched_rebuilds_the_list(self):
+        a = FakeSource('a', contacts('a', 3))
+        b = FakeSource('b', contacts('b', 3))
+        service = _LookupService(
+            config(max_contacts=3), FakeSourceManager({'u-a': a, 'u-b': b}), Mock()
+        )
+        tenant_a, tenant_b = [profile('p', lookup=['u-a'])], [profile('p', lookup=['u-b'])]
+
+        service.list_page(tenant_a, 'tenant-a', None, 'token', 100, 0)
+        # b takes the room of a, whose sorted list stays stored
+        service.list_page(tenant_b, 'tenant-b', None, 'token', 100, 0)
+        a.contacts = contacts('z', 1)
+        items, total, _ = service.list_page(tenant_a, 'tenant-a', None, 'token', 100, 0)
+
+        assert_that(len(a.list_calls), equal_to(2))
+        assert_that(([item.fields['name'] for item in items], total), equal_to((['z 0'], 1)))
