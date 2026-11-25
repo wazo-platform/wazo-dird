@@ -15,7 +15,7 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import SourceUnavailable, WazoConfdError
+from wazo_dird.exception import InvalidConfigError, SourceUnavailable, WazoConfdError
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
