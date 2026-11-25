@@ -37,7 +37,8 @@ AUTH_CONFIG = {
     'password': 'bar',
 }
 CONFD_CONFIG = {'host': 'xivo.example.com', 'port': 9486, 'version': '1.1'}
-DEFAULT_ARGS = {
+DEFAULT_ARGS: dict[str, Any] = {
+    'main_config': {'wazo_user_backend': {'contacts_cache_ttl': 0}},
     'config': {
         'uuid': 'ae086548-2d36-4367-8914-8dfcd8645ca7',
         'backend': 'wazo',
@@ -46,7 +47,7 @@ DEFAULT_ARGS = {
         'auth': AUTH_CONFIG,
         'name': 'my_test_xivo',
         'searched_columns': ['firstname', 'lastname', 'full_name'],
-    }
+    },
 }
 UUID = 'my-xivo-uuid'
 
@@ -207,7 +208,7 @@ class TestWazoUserBackendLoad(_BaseTest):
         config['first_matched_columns'] = first_matched_columns
         with patch('wazo_dird.plugins.wazo_user_backend.plugin.registry'):
             self._source.load(
-                cast(SourcePluginDependencies, {'config': config}),
+                cast(SourcePluginDependencies, dict(DEFAULT_ARGS, config=config)),
             )
 
     def test_load_accepts_a_column_confd_can_match_exactly(self):

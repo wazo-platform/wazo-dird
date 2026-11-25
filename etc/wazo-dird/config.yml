@@ -57,6 +57,12 @@ bus:
   port: 5672
   exchange_name: wazo-headers
 
+# Wazo user backend settings
+wazo_user_backend:
+  # Seconds a snapshot of all wazo users answers lookups before it is reloaded.
+  # 0 asks confd for each lookup.
+  contacts_cache_ttl: 60
+
 # Google backend settings
 google_backend:
   # Seconds during which a Google account's contacts are reused for lookups,

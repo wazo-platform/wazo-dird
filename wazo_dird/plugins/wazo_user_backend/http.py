@@ -1,20 +1,19 @@
-# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from flask import request
 
 from wazo_dird.auth import required_acl
+from wazo_dird.exception import NoSuchSource
 from wazo_dird.helpers import SourceItem, SourceList
 from wazo_dird.http import AuthResource
-from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugin_helpers.tenant import get_tenant_uuids
 from wazo_dird.plugins.source_service.plugin import _SourceService
 
-from .contact import ContactLister
 from .schemas import (
     contact_list_param_schema,
     contact_list_schema,
@@ -22,6 +21,9 @@ from .schemas import (
     source_list_schema,
     source_schema,
 )
+
+if TYPE_CHECKING:
+    from .plugin import WazoUserPlugin
 
 
 class WazoList(SourceList):
@@ -62,10 +64,12 @@ class WazoContactList(AuthResource):
     def get(self, source_uuid: str) -> dict[str, Any]:
         visible_tenants = get_tenant_uuids(recurse=True)
         list_params = contact_list_param_schema.load(request.args)
-        source_config = self._source_service.get('wazo', source_uuid, visible_tenants)
+        self._source_service.get('wazo', source_uuid, visible_tenants)
 
-        lister = ContactLister(registry.get(source_config))
-        response = lister.list(**list_params)
+        source = self._source_service.get_plugin(source_uuid)
+        if source is None:  # deleted since the check above
+            raise NoSuchSource(source_uuid)
+        response = cast('WazoUserPlugin', source).list_contacts(**list_params)
 
         return {
             'total': response['total'],

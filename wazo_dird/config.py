@@ -96,6 +96,10 @@ class GoogleBackendConfig(TypedDict, total=False):
     contacts_cache_ttl: int
 
 
+class WazoUserBackendConfig(TypedDict, total=False):
+    contacts_cache_ttl: int
+
+
 class Config(TypedDict, total=False):
     uuid: str
     auth: AuthConfig
@@ -113,6 +117,7 @@ class Config(TypedDict, total=False):
     lookup_service: LookupServiceConfig
     favorites_service: FavoritesServiceConfig
     google_backend: GoogleBackendConfig
+    wazo_user_backend: WazoUserBackendConfig
     user: str
     bus: BusConfig
     consul: ConsulConfig
@@ -212,6 +217,9 @@ _DEFAULT_CONFIG: Config = {
     },
     'google_backend': {
         'contacts_cache_ttl': 300,
+    },
+    'wazo_user_backend': {
+        'contacts_cache_ttl': 60,
     },
     'services': {
         'service_discovery': {

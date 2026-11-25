@@ -4,7 +4,10 @@
 from __future__ import annotations
 
 import logging
+import unicodedata
 from collections.abc import Iterable, Iterator
+from threading import Lock
+from time import monotonic
 from typing import Any, cast
 
 from requests.exceptions import ConnectionError, RequestException
@@ -12,7 +15,7 @@ from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
-from wazo_dird.exception import InvalidConfigError, SourceUnavailable
+from wazo_dird.exception import InvalidConfigError, SourceUnavailable, WazoConfdError
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
@@ -26,6 +29,28 @@ logger = logging.getLogger(__name__)
 
 # confd documents maxItems 20 on the `uuid` filter of GET /users
 LIST_BATCH_SIZE = 20
+
+Snapshot = list[tuple[dict[str, Any], tuple[str, ...]]]  # (entry, folded columns)
+
+# the keys of a listing that the snapshot reproduces: a `uuid` filter, a sort, a page
+_LISTING_KEYS = set(
+    'order direction offset limit uuid search recurse order_insensitive'.split()
+)
+
+
+def _collation_key(value: Any) -> tuple[bool, str]:
+    """How confd sorts a name: without case nor accents, empty ones last."""
+    text = '' if value is None else str(value).casefold()
+    return (text == '', unicodedata.normalize('NFKD', text))
+
+
+def _is_plain_listing(params: dict[str, Any]) -> bool:
+    # `order` is one of two columns: the schema of the listing refuses any other
+    return (
+        params.keys() <= _LISTING_KEYS
+        and not any(params.get(k) for k in ('search', 'recurse', 'order_insensitive'))
+        and params.get('limit') != 0
+    )
 
 
 class WazoUserView(BaseBackendView):
@@ -71,6 +96,10 @@ class WazoUserPlugin(BaseSourcePlugin):
     def __init__(self) -> None:
         self._client = None
         self._uuid: str | None = None
+        self._snapshot: Snapshot | None = None
+        self._snapshot_expires = 0.0
+        self._snapshot_ttl = 0.0
+        self._refresh_lock = Lock()
         self._search_params: dict[str, Any] = {'view': 'directory', 'recurse': True}
 
     def load(self, dependencies: SourcePluginDependencies) -> None:
@@ -88,6 +117,13 @@ class WazoUserPlugin(BaseSourcePlugin):
         self._search_params.update(
             cast('dict[str, Any]', config.get('extra_search_params', {}))
         )
+        # last, so a ttl that is not a number leaves a source that asks confd
+        backend_config = dependencies['main_config'].get('wazo_user_backend', {})
+        ttl = backend_config.get('contacts_cache_ttl', 60)
+        self._snapshot_ttl = max(float(ttl or 0), 0)
+        if self._snapshot_ttl and config.get('extra_search_params'):
+            logger.warning('%s: extra_search_params disable the user cache', self.name)
+            self._snapshot_ttl = 0
         logger.info('Wazo %s successfully loaded', config['name'])
 
     def unload(self) -> None:
@@ -95,18 +131,102 @@ class WazoUserPlugin(BaseSourcePlugin):
 
     def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         clean_term = unidecode(term.lower())
+        snapshot = self._current_snapshot()
+        if snapshot is not None:
+            uuid = self._get_wazo_uuid()
+            return [
+                self._source_result_from_entry(entry, uuid)
+                for entry, folded in snapshot
+                if any(clean_term in value for value in folded)
+            ]
         entries = list(self._fetch_entries(term))
 
         def match_fn(entry: SourceResult) -> bool:
-            raw_values = map(entry.fields.get, self._searched_columns)
-            clean_values = (unidecode(str(value or '').lower()) for value in raw_values)
+            clean_values = self._folded(entry)
             return any(clean_term in value for value in clean_values)
 
         matches = list(filter(match_fn, entries))
         logger.debug(
-            'Fetched %d entries, %d match the term', len(entries), len(matches)
+            'Fetched %d entries from term %s, %d match the normalized term %s',
+            len(entries),
+            term,
+            len(matches),
+            clean_term,
         )
         return matches
+
+    def _folded(self, result: SourceResult) -> tuple[str, ...]:
+        return tuple(
+            unidecode(str(result.fields.get(column) or '').lower())
+            for column in self._searched_columns
+        )
+
+    def _current_snapshot(self) -> Snapshot | None:
+        if (
+            self._snapshot_ttl
+            and monotonic() >= self._snapshot_expires
+            and self._refresh_lock.acquire(False)
+        ):
+            try:
+                # another lookup may have reloaded while this one took the lock
+                if monotonic() >= self._snapshot_expires:
+                    try:
+                        self._snapshot = self._load_snapshot()
+                    except (RequestException, KeyError, ValueError) as e:
+                        logger.warning('%s: cannot load the users: %s', self.name, e)
+                    finally:
+                        # counted from the end of the load, so a slow or failed
+                        # load is not started again at once
+                        self._snapshot_expires = monotonic() + self._snapshot_ttl
+            finally:
+                self._refresh_lock.release()
+        return self._snapshot
+
+    def _load_snapshot(self) -> Snapshot:
+        assert self._client is not None
+        uuid = self._get_wazo_uuid()
+        # one request: it takes about half the time of the same users in pages
+        users = self._client.users.list(view='directory', recurse=True)['items']
+        snapshot: Snapshot = []
+        # confd sorts a lookup by lastname
+        for user in sorted(users, key=lambda u: _collation_key(u['lastname'])):
+            result = self._source_result_from_entry(user, uuid)
+            snapshot.append((user, self._folded(result)))
+        return snapshot
+
+    def list_contacts(self, **params: Any) -> dict[str, Any]:
+        """The users confd lists for `params`, from the snapshot when it can.
+
+        The snapshot is the user set of the source, as a source of one tenant has
+        it: it is loaded with `recurse`, so with sub-tenants it has more users
+        than a listing without `recurse`.
+        """
+        snapshot = self._current_snapshot() if _is_plain_listing(params) else None
+        if snapshot is None:
+            return self._list_confd(**params)
+
+        order = params.get('order', 'lastname')
+        # confd splits `uuid` on commas and matches each one exactly, before sorting
+        uuid = params.get('uuid')
+        wanted = None if uuid is None else set(uuid.split(','))
+        entries = [e for e, _ in snapshot if wanted is None or e['uuid'] in wanted]
+        # confd sorts by lastname in SQL first, the empty ones first: ties keep that
+        entries.sort(key=lambda e: bool(e['lastname']))
+        entries.sort(
+            key=lambda e: _collation_key(e[order]),
+            reverse=params.get('direction') == 'desc',
+        )
+        offset, limit = params.get('offset', 0), params.get('limit')
+        page = entries[offset : offset + limit if limit else None]
+        return {'total': len(entries), 'items': page}
+
+    def _list_confd(self, **params: Any) -> dict[str, Any]:
+        assert self._client is not None
+        try:
+            users: dict[str, Any] = self._client.users.list(view='directory', **params)
+        except (RequestException, TypeError, ValueError) as e:
+            raise WazoConfdError(self._client, e)
+        return users
 
     def first_match(
         self, term: str, args: dict[str, Any] | None = None

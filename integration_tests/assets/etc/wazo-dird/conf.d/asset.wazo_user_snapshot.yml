@@ -1,0 +1,2 @@
+wazo_user_backend:
+  contacts_cache_ttl: 4
