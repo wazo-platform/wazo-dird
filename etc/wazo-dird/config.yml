@@ -64,6 +64,17 @@ google_backend:
   # 0 disables the cache.
   contacts_cache_ttl: 300
 
+# GET /0.1/directories/contacts: every contact of the token's tenant
+contacts_list:
+  # Seconds a listing waits for its sources; a slower source is left out
+  # of the page and named in missing_sources.
+  timeout: 10
+  # Seconds during which a source's full list is reused, for the wazo, conference,
+  # LDAP, CSV and CSV WS backends. 0 disables the cache.
+  cache_ttl: 30
+  # Contacts held by that cache across every source; a larger list is not cached.
+  cache_max_contacts: 100000
+
 # Consul connection settings
 consul:
   scheme: http

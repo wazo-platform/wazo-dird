@@ -286,3 +286,18 @@ class TestNewFavoriteResolvesTheContactId(unittest.TestCase):
         )
 
         self._crud.delete.assert_called_once_with(s.user, 'my_source', 'a-contact-id')
+
+
+class TestFavoriteKeys(unittest.TestCase):
+    def setUp(self):
+        self._crud = Mock()
+        self._service = _FavoritesService({}, Mock(), Mock(), self._crud, Mock())
+        self.addCleanup(self._service.stop)
+
+    def test_the_source_name_and_contact_id_of_every_favorite(self):
+        self._crud.get.return_value = [('a', '1'), ('b', '2')]
+
+        keys = self._service.favorite_keys('user-uuid')
+
+        self._crud.get.assert_called_once_with('user-uuid')
+        self.assertEqual(keys, {('a', '1'), ('b', '2')})

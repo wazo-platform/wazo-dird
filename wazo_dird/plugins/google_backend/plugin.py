@@ -9,6 +9,7 @@ from collections.abc import Iterator, Mapping
 from typing import Any, cast
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.exception import SourceListError
 from wazo_dird.helpers import AuthConfig, BackendViewDependencies, BaseBackendView
 from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
@@ -102,6 +103,20 @@ class GooglePlugin(BaseSourcePlugin):
             contacts = self.google.search(google_token, term, self._searched_columns)
         except LOOKUP_ERRORS:
             return []
+        return [self._SourceResult(c) for c in contacts]
+
+    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+        user_uuid = args['user_uuid'] if args else None
+        if not args or not user_uuid:
+            return []
+        try:
+            google_token = self._get_google_token(user_uuid, args['token'])
+        except GoogleTokenNotFoundException:
+            return []
+        try:
+            contacts = self.google.get_all_contacts(google_token)
+        except LOOKUP_ERRORS as e:
+            raise SourceListError(self.name, e) from e
         return [self._SourceResult(c) for c in contacts]
 
     def list(

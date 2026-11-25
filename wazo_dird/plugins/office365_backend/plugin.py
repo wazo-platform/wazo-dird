@@ -9,6 +9,7 @@ from collections.abc import Callable, Mapping
 from typing import Any
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.exception import SourceListError
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugins.base_plugins import LookupArgs
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
@@ -112,6 +113,23 @@ class Office365Plugin(BaseSourcePlugin):
         sorted_contacts = sorted(filtered_contacts, key=get_field_or_empty('givenName'))
 
         return [self._SourceResult(c) for c in sorted_contacts]
+
+    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+        user_uuid = args['user_uuid'] if args else None
+        if not args or not user_uuid:
+            return []
+        try:
+            microsoft_token = self._get_microsoft_token(user_uuid, args['token'])
+        except MicrosoftTokenNotFoundException:
+            return []
+        if not microsoft_token:
+            return []
+
+        try:
+            contacts, _ = self.office365.get_contacts(microsoft_token, self.endpoint)
+        except UnexpectedEndpointException as e:
+            raise SourceListError(self.name, e) from e
+        return [self._SourceResult(c) for c in self._update_contact_fields(contacts)]
 
     def list(
         self, unique_ids: list[str], args: dict[str, Any] | None = None

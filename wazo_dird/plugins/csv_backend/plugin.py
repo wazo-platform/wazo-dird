@@ -12,6 +12,7 @@ from functools import partial
 from typing import Any, cast
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.exception import SourceListError
 from wazo_dird.helpers import BaseBackendView
 from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
@@ -39,6 +40,8 @@ class CSVPlugin(BaseSourcePlugin):
     The `file` is the file that should be read by the plugin
     The `searched_columns` are the columns used to search for a term
     """
+
+    list_cacheable = True
 
     def __init__(self) -> None:
         super().__init__()
@@ -109,9 +112,15 @@ class CSVPlugin(BaseSourcePlugin):
         fn = partial(self._is_in_unique_ids, unique_ids)
         return self._list_from_predicate(fn)
 
-    def _load_file(self) -> None:
+    def list_all(self, args: LookupArgs | None = None) -> list_t[SourceResult]:
+        self._load_file(raise_errors=True)
+        return self._list_from_predicate(lambda _: True)
+
+    def _load_file(self, raise_errors: bool = False) -> None:
         if 'file' not in self._config:
             logger.warning('Could not initialize missing file configuration')
+            if raise_errors:
+                raise SourceListError(self._name, 'no file configured')
             return
 
         filename = self._config['file']
@@ -131,10 +140,14 @@ class CSVPlugin(BaseSourcePlugin):
                         'Loaded %d entries from %s', len(self._content), filename
                     )
                 self._csv_last_modification_time = tmp_csv_file_last_modification_date
-            except OSError:
+            except OSError as e:
                 logger.exception('Could not load CSV file content')
-        except FileNotFoundError:
+                if raise_errors:
+                    raise SourceListError(self._name, e) from e
+        except FileNotFoundError as e:
             logger.exception('Could not locate CSV file on the system')
+            if raise_errors:
+                raise SourceListError(self._name, e) from e
 
     def _list_from_predicate(
         self, predicate: Callable[[dict[str, Any]], bool]

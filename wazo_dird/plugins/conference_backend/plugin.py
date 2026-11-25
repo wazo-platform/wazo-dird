@@ -8,11 +8,12 @@ import logging
 from collections.abc import Iterator
 from typing import Any, cast
 
-from requests import HTTPError
+from requests import HTTPError, RequestException
 from unidecode import unidecode
 from wazo_confd_client import Client as ConfdClient
 
 from wazo_dird import BaseSourcePlugin, make_result_class
+from wazo_dird.exception import SourceListError
 from wazo_dird.helpers import BackendViewDependencies, BaseBackendView
 from wazo_dird.plugin_helpers.confd_client_registry import registry
 from wazo_dird.plugins.base_plugins import LookupArgs, SourcePluginDependencies
@@ -45,6 +46,8 @@ class ConferenceViewPlugin(BaseBackendView):
 
 
 class ConferencePlugin(BaseSourcePlugin):
+    list_cacheable = True
+
     _client: ConfdClient | None
     _searched_columns: builtins.list[str]
     _first_matched_columns: builtins.list[str]
@@ -87,6 +90,10 @@ class ConferencePlugin(BaseSourcePlugin):
         results = [self._SourceResult(c) for c in matching_contacts]
         logger.debug('Found %s conferences', len(results))
         return results
+
+    def list_all(self, args: LookupArgs | None = None) -> builtins.list[SourceResult]:
+        contacts = self._fetch_contacts(raise_errors=True)
+        return [self._SourceResult(c) for c in contacts]
 
     def search(
         self, term: str, args: LookupArgs | None = None
@@ -155,16 +162,24 @@ class ConferencePlugin(BaseSourcePlugin):
 
         return False
 
-    def _fetch_contacts(self) -> Iterator[dict[str, Any]]:
+    def _fetch_contacts(self, raise_errors: bool = False) -> Iterator[dict[str, Any]]:
         if not self._client:
             logger.info('conference source not initialized properly %s', self.name)
+            if raise_errors:
+                raise SourceListError(self.name, 'confd client not initialised')
             return
 
         try:
             response = self._client.conferences.list()
         except HTTPError as e:
             logger.info('failed to fetch conferences %s', e)
+            if raise_errors:
+                raise SourceListError(self.name, e) from e
             return
+        except RequestException as e:
+            if raise_errors:
+                raise SourceListError(self.name, e) from e
+            raise
 
         for conference in response['items']:
             extensions = []

@@ -115,3 +115,18 @@ class TestPersonalBackend(TestCase):
 
         assert_that(result, equal_to({}))
         self._search_engine.find_contacts_for_extens.assert_not_called()
+
+    def test_that_list_all_lists_every_contact_of_the_user(self):
+        self._search_engine.list_personal_contacts.return_value = [CONTACT_1]
+
+        result = self._source.list_all(
+            LookupArgs(token='t', user_uuid=SOME_UUID, xivo_user_uuid=SOME_UUID)
+        )
+
+        self._search_engine.list_personal_contacts.assert_called_once_with(SOME_UUID)
+        assert_that(result, has_item(has_property('is_personal', True)))
+
+    def test_that_list_all_without_a_user_lists_nothing(self):
+        for args in (None, LookupArgs(token='t', user_uuid=None, xivo_user_uuid=None)):
+            assert_that(self._source.list_all(args), empty())
+        self._search_engine.list_personal_contacts.assert_not_called()

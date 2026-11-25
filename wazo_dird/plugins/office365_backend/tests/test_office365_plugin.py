@@ -1,12 +1,15 @@
-# Copyright 2019-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import copy
 from typing import Any
 from unittest import TestCase
+from unittest.mock import Mock, patch
 
 from hamcrest import (
     assert_that,
     calling,
+    contains_exactly,
     contains_inanyorder,
     empty,
     equal_to,
@@ -17,6 +20,10 @@ from hamcrest import (
     raises,
 )
 
+from wazo_dird.exception import SourceListError
+from wazo_dird.plugins.base_plugins import LookupArgs
+
+from ..exceptions import MicrosoftTokenNotFoundException, UnexpectedEndpointException
 from ..plugin import Office365Plugin
 
 
@@ -157,3 +164,49 @@ class TestOffice365Plugin(TestCase):
                 )
             ),
         )
+
+
+class TestOffice365PluginListAll(TestCase):
+    ARGS = LookupArgs(token='wazo-token', user_uuid='user-uuid', xivo_user_uuid=None)
+
+    def setUp(self):
+        self.source = Office365Plugin()
+        self.source.load(copy.deepcopy(TestOffice365Plugin.DEPENDENCIES))
+        self.office365 = self.source.office365 = Mock()
+
+    def test_list_all_returns_every_contact_without_a_filter(self):
+        self.office365.get_contacts.return_value = (
+            [{'id': '1', 'givenName': 'Mario'}, {'id': '2'}],
+            2,
+        )
+
+        with patch.object(self.source, '_get_microsoft_token', return_value='m'):
+            results = self.source.list_all(self.ARGS)
+
+        self.office365.get_contacts.assert_called_once_with('m', 'www.bros.com')
+        assert_that(
+            [r.fields for r in results],
+            contains_exactly(
+                has_entries(id='1', givenName='Mario'),
+                has_entries(id='2', givenName=''),
+            ),
+        )
+
+    def test_list_all_without_a_microsoft_token_lists_nothing(self):
+        for side_effect in (MicrosoftTokenNotFoundException('u'), [None]):
+            with patch.object(
+                self.source, '_get_microsoft_token', side_effect=side_effect
+            ):
+                assert_that(self.source.list_all(self.ARGS), equal_to([]))
+        self.office365.get_contacts.assert_not_called()
+
+    def test_list_all_raises_on_an_unexpected_endpoint(self):
+        self.office365.get_contacts.side_effect = UnexpectedEndpointException(
+            endpoint='www.bros.com', error_code=500
+        )
+
+        with patch.object(self.source, '_get_microsoft_token', return_value='m'):
+            assert_that(
+                calling(self.source.list_all).with_args(self.ARGS),
+                raises(SourceListError),
+            )

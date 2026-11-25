@@ -190,6 +190,10 @@ class _FavoritesService(helpers.BaseService):
         helpers.log_backend_stats(timing_logger, 'favorites', backend_stats)
         return results
 
+    def favorite_keys(self, user_uuid: str) -> set[tuple[str, str]]:
+        """The (source name, contact id) of every favorite of the user"""
+        return set(self._crud.get(user_uuid))
+
     def favorite_ids(self, profile_config: ProfileConfig, user_uuid: str) -> Any:
         favorites = self._crud.get(user_uuid)
         favorite_config = self.get_service_config(profile_config)

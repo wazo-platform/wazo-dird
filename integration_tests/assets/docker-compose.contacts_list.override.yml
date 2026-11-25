@@ -1,0 +1,36 @@
+services:
+  sync:
+    depends_on:
+      - auth
+      - dird
+      - db
+      - rabbitmq
+      - ws
+      - slapd
+    environment:
+      TARGETS: "dird:9489 auth:9497 db:5432 rabbitmq:5672 ws:9485 slapd:389"
+  ws:
+    image: wazoplatform/wazo-dird-ws-mock:local
+    ports:
+      - "9485"
+    volumes:
+      - "./scripts/asset.contacts_list.ws.py:/tmp/ws.py"
+    command: "python3 /tmp/ws.py"
+    networks:
+      default:
+        # a source's URL is validated: its host needs a domain
+        aliases:
+          - ws.contacts.test
+  slapd:
+    image: nickstenning/slapd
+    environment:
+      LDAP_DOMAIN: wazo-dird.wazo.community
+      LDAP_ORGANISATION: acme
+      LDAP_ROOTPASS: wazopassword
+    ports:
+      - "389"
+  dird:
+    volumes:
+      - "./etc/wazo-dird/conf.d/asset.contacts_list.yml:/etc/wazo-dird/conf.d/asset.contacts_list.yml"
+      - "./tmp/data/asset.contacts_list.reverse.csv:/tmp/data/reverse.csv"
+      - "./tmp/data/asset.contacts_list.sub.csv:/tmp/data/sub.csv"

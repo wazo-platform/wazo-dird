@@ -109,6 +109,9 @@ class PhonebookContactSearchEngine(ContactSearchEngine):
     def list_contacts(self, contact_uuids: list[str]) -> list[ContactInfo]:
         return self._find_contacts(self._scope(), self._list_filter(contact_uuids))
 
+    def list_all_contacts(self) -> list[ContactInfo]:
+        return self._find_contacts(self._scope())
+
 
 def contact_search_filter(search: str | None) -> bool | ColumnElement:
     if not search:

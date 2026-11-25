@@ -3,19 +3,18 @@
 
 from __future__ import annotations
 
-import concurrent.futures
 import hashlib
 import json
 import logging
 import threading
 import time
-from collections.abc import Callable, Iterator, Mapping
-from concurrent.futures import Future
+from collections.abc import Iterator, Mapping
 from typing import Any
 
 import requests
 from wazo_auth_client import Client as Auth
 
+from wazo_dird.contacts_cache import ContactsCache, ContactsCacheTimeout
 from wazo_dird.plugin_helpers.sorting import sort_contacts
 
 from .exceptions import (
@@ -30,8 +29,6 @@ REQUEST_TIMEOUT = 10
 # Bounds a download of every page of an account, and the requests waiting on
 # it, so that one slow account cannot hold every lookup thread
 DOWNLOAD_TIMEOUT = 60
-# Leading characters of the hashed token shown in logs
-KEY_LOG_LENGTH = 12
 READ_CHUNK_SIZE = 64 * 1024
 # The only 403 caused by the user's token; the others are the project's
 TOKEN_SCOPE_REASON = 'ACCESS_TOKEN_SCOPE_INSUFFICIENT'
@@ -39,144 +36,26 @@ TOKEN_SCOPE_REASON = 'ACCESS_TOKEN_SCOPE_INSUFFICIENT'
 Contacts = list[dict[str, Any]]
 
 
-class ContactsCache:
-    """Thread-safe TTL cache of contact lists keyed by hashed access token.
-    Concurrent misses for a token share one download, including its failure.
-    The returned lists are shared: callers must not mutate them."""
-
-    # Bounds the memory held: one account can have tens of thousands of contacts.
-    # A larger account is not cached and is downloaded on every request.
-    MAX_CONTACTS = 100_000
-
-    def __init__(self, ttl: int) -> None:
-        self.ttl = ttl
-        self._lock = threading.Lock()
-        self._entries: dict[str, tuple[float, Contacts]] = {}
-        self._contact_count = 0
-        # The downloads in progress, shared by the requests waiting on them
-        self._fetches: dict[str, Future[Contacts]] = {}
-
-    def get_or_fetch(
-        self, google_token: str, fetch: Callable[[], Contacts]
-    ) -> Contacts:
-        key = self._key(google_token)
-        with self._lock:
-            contacts = self._get(key)
-            if contacts is not None:
-                logger.debug('Google contacts cache hit: %d contacts', len(contacts))
-                return contacts
-            in_progress, is_fetcher = self._join_or_start(key)
-
-        if is_fetcher:
-            self._run(key, in_progress, fetch)
-        try:
-            # A failure is not cached: the next request downloads again
-            return in_progress.result(DOWNLOAD_TIMEOUT)
-        except concurrent.futures.TimeoutError:
-            logger.warning(
-                'Gave up waiting %d seconds for a Google contacts download',
-                DOWNLOAD_TIMEOUT,
-            )
-            raise GoogleUnavailableException()
-
-    def _join_or_start(self, key: str) -> tuple[Future[Contacts], bool]:
-        # Called with self._lock held
-        in_progress = self._fetches.get(key)
-        if in_progress is not None:
-            logger.debug(
-                'Google contacts cache miss for key %s: '
-                'waiting for the download in progress',
-                key[:KEY_LOG_LENGTH],
-            )
-            return in_progress, False
-        logger.debug(
-            'Google contacts cache miss for key %s: fetching from Google',
-            key[:KEY_LOG_LENGTH],
-        )
-        in_progress = self._fetches[key] = Future()
-        return in_progress, True
-
-    def _run(
-        self, key: str, future: Future[Contacts], fetch: Callable[[], Contacts]
-    ) -> None:
-        try:
-            contacts = fetch()
-            with self._lock:
-                self._set(key, contacts)
-        except Exception as e:
-            future.set_exception(e)
-        else:
-            future.set_result(contacts)
-        finally:
-            # Also on BaseException: a stale entry would block every later download
-            with self._lock:
-                del self._fetches[key]
-
-    def _get(self, key: str) -> Contacts | None:
-        # Called with self._lock held
-        entry = self._entries.get(key)
-        if entry is None:
-            return None
-        expires_at, contacts = entry
-        if expires_at <= time.monotonic():
-            logger.debug(
-                'Google contacts cache entry expired: key %s', key[:KEY_LOG_LENGTH]
-            )
-            self._evict(key)
-            return None
-        return contacts
-
-    def _set(self, key: str, contacts: Contacts) -> None:
-        # Called with self._lock held
-        now = time.monotonic()
-        if key in self._entries:
-            self._evict(key)
-        if len(contacts) > self.MAX_CONTACTS:
-            # Caching it would evict every other account and exceed the bound
-            logger.warning(
-                'Not caching %d Google contacts for key %s: above the limit of %d',
-                len(contacts),
-                key[:KEY_LOG_LENGTH],
-                self.MAX_CONTACTS,
-            )
-            return
-        # Every entry has the same TTL and is inserted last, so the oldest
-        # entries are the first to expire
-        while self._entries:
-            oldest_key, (expires_at, _) = next(iter(self._entries.items()))
-            if expires_at <= now:
-                logger.debug(
-                    'Evicting expired Google contacts cache entry: key %s',
-                    oldest_key[:KEY_LOG_LENGTH],
-                )
-            elif self._contact_count + len(contacts) > self.MAX_CONTACTS:
-                logger.debug(
-                    'Evicting oldest Google contacts cache entry: key %s, '
-                    'the cache is full (%d contacts)',
-                    oldest_key[:KEY_LOG_LENGTH],
-                    self._contact_count,
-                )
-            else:
-                break
-            self._evict(oldest_key)
-        self._entries[key] = (now + self.ttl, contacts)
-        self._contact_count += len(contacts)
-
-    def _evict(self, key: str) -> None:
-        # Called with self._lock held
-        _, contacts = self._entries.pop(key)
-        self._contact_count -= len(contacts)
-
-    @staticmethod
-    def _key(google_token: str) -> str:
-        return hashlib.sha256(google_token.encode()).hexdigest()
+# Bounds the memory held: one account can have tens of thousands of contacts.
+# A larger account is not cached and is downloaded on every request.
+MAX_CONTACTS = 100_000
 
 
-_shared_cache: ContactsCache | None = None
+def new_contacts_cache(ttl: int) -> ContactsCache[dict[str, Any]]:
+    return ContactsCache(ttl, MAX_CONTACTS, DOWNLOAD_TIMEOUT)
+
+
+def _key(google_token: str) -> str:
+    return hashlib.sha256(google_token.encode()).hexdigest()
+
+
+_shared_cache: ContactsCache[dict[str, Any]] | None = None
 _shared_cache_lock = threading.Lock()
 
 
-def shared_contacts_cache(main_config: Mapping[str, Any]) -> ContactsCache | None:
+def shared_contacts_cache(
+    main_config: Mapping[str, Any]
+) -> ContactsCache[dict[str, Any]] | None:
     """The cache of every Google source and the contacts view; None if disabled"""
     global _shared_cache
     ttl = main_config['google_backend']['contacts_cache_ttl']
@@ -184,7 +63,7 @@ def shared_contacts_cache(main_config: Mapping[str, Any]) -> ContactsCache | Non
         return None
     with _shared_cache_lock:
         if _shared_cache is None:
-            _shared_cache = ContactsCache(ttl)
+            _shared_cache = new_contacts_cache(ttl)
         return _shared_cache
 
 
@@ -197,7 +76,9 @@ class GoogleService:
         'names,emailAddresses,phoneNumbers,addresses,organizations,biographies'
     )
 
-    def __init__(self, contacts_cache: ContactsCache | None = None) -> None:
+    def __init__(
+        self, contacts_cache: ContactsCache[dict[str, Any]] | None = None
+    ) -> None:
         self.formatter = ContactFormatter()
         self.contacts_cache = contacts_cache
 
@@ -205,9 +86,12 @@ class GoogleService:
         """Raise GoogleUnavailableException when any page cannot be fetched"""
         if self.contacts_cache is None:
             return self._fetch_all(google_token)
-        return self.contacts_cache.get_or_fetch(
-            google_token, lambda: self._fetch_all(google_token)
-        )
+        try:
+            return self.contacts_cache.get_or_fetch(
+                _key(google_token), lambda: self._fetch_all(google_token)
+            )
+        except ContactsCacheTimeout:
+            raise GoogleUnavailableException()
 
     def search(
         self, google_token: str, term: str, searched_columns: list[str]

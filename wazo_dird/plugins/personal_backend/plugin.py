@@ -70,6 +70,12 @@ class PersonalBackend(BaseSourcePlugin):
         )
         return self.format_contacts(matching_contacts)
 
+    def list_all(self, args: LookupArgs | None = None) -> builtins.list[SourceResult]:
+        if not args or not args['user_uuid']:
+            return []
+        contacts = self._search_engine.list_personal_contacts(args['user_uuid'])
+        return self.format_contacts(contacts)
+
     def first_match(
         self, term: str, args: dict[str, Any] | None = None
     ) -> SourceResult | None:

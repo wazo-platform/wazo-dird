@@ -36,6 +36,9 @@ class SamplePlugin(BaseSourcePlugin):
     def search(self, term: str, args: LookupArgs | None = None) -> list[SourceResult]:
         return [self._result]
 
+    def list_all(self, args: LookupArgs | None = None) -> list[SourceResult]:
+        return [self._result]
+
     def first_match(
         self, term: str, args: dict[str, Any] | None = None
     ) -> SourceResult | None:

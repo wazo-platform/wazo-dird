@@ -2,10 +2,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains_string, equal_to, has_entries
+from wazo_test_helpers.auth import MockUserToken
 
 from .helpers.base import BaseDirdIntegrationTest
 from .helpers.config import new_auth_only_config
-from .helpers.constants import VALID_TOKEN_MAIN_TENANT, VALID_TOKEN_NO_ACL, VALID_UUID
+from .helpers.constants import (
+    MAIN_TENANT,
+    MAIN_USER_UUID,
+    VALID_TOKEN_MAIN_TENANT,
+    VALID_TOKEN_NO_ACL,
+    VALID_UUID,
+    WAZO_UUID,
+)
 
 
 class TestAuthentication(BaseDirdIntegrationTest):
@@ -57,6 +65,32 @@ class TestAuthenticationCoverage(BaseDirdIntegrationTest):
 
         assert_that(result_1.status_code, equal_to(401))
         assert_that(result_2.status_code, equal_to(401))
+
+    def test_auth_on_contacts_list(self):
+        url = self.url('directories', 'contacts')
+        self.mock_auth_client.set_token(
+            MockUserToken(
+                'contacts-list-other-acl',
+                MAIN_USER_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': MAIN_TENANT, 'uuid': MAIN_USER_UUID},
+                acl=['dird.directories.lookup.#'],
+            )
+        )
+
+        result_1 = self.get(url, token=None)
+        result_2 = self.get(url, token=VALID_TOKEN_NO_ACL)
+        result_3 = self.get(url, token='contacts-list-other-acl')
+
+        assert_that(result_1.status_code, equal_to(401))
+        assert_that(result_2.status_code, equal_to(401))
+        assert_that(result_3.status_code, equal_to(401))
+        assert_that(
+            result_3.json(),
+            has_entries(
+                details=has_entries(reason='missing_permission_or_invalid_tenant')
+            ),
+        )
 
     def test_auth_on_lookup_user(self):
         result_1 = self.get_lookup_user_result('something', 'default', VALID_UUID)

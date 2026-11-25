@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from flask import request
 from flask_restful import reqparse
-from xivo.tenant_flask_helpers import Tenant
+from xivo.tenant_flask_helpers import Tenant, token, user
 
 from wazo_dird.auth import get_user_uuid, required_acl
 from wazo_dird.exception import (
@@ -23,6 +23,8 @@ from wazo_dird.exception import (
 from wazo_dird.helpers import DisplayAwareResource, DisplayColumn, ProfileConfig
 from wazo_dird.http import AuthResource
 from wazo_dird.plugins.source_result import _SourceResult as SourceResult
+
+from .schemas import contact_list_schema
 
 if TYPE_CHECKING:
     from wazo_dird.plugins.display_service.plugin import _DisplayService
@@ -305,6 +307,63 @@ class Personal(AuthResource, DisplayAwareResource):
         ).by_name
         formatter = _ResultFormatter(display)
         return formatter.format_results(raw_results, favorites)
+
+
+class ContactList(AuthResource):
+    def __init__(
+        self,
+        lookup_service: _LookupService,
+        favorite_service: _FavoritesService | None,
+        profile_service: _ProfileService,
+    ) -> None:
+        self.lookup_service = lookup_service
+        self.favorite_service = favorite_service
+        self.profile_service = profile_service
+
+    @required_acl('dird.directories.contacts.read')
+    def get(self) -> dict[str, Any]:
+        params = contact_list_schema.load(request.args)
+        # The token's own tenant: a Wazo-Tenant header never widens the list
+        tenant = Tenant.from_token(token)
+        user_uuid = user.uuid or None
+        profiles = self.profile_service.list_([tenant.uuid])
+
+        page = self.lookup_service.list_page(
+            cast('list[ProfileConfig]', profiles),
+            tenant.uuid,
+            user_uuid,
+            token.uuid,
+            params['limit'],
+            params['offset'],
+        )
+
+        favorite_keys: set[tuple[str, str]] = set()
+        if user_uuid and self.favorite_service and page.items:
+            favorite_keys = self.favorite_service.favorite_keys(user_uuid)
+        formatter = _ContactListFormatter(favorite_keys)
+        return {
+            'items': [formatter.format(result) for result in page.items],
+            'total': page.total,
+            'missing_sources': page.missing_sources,
+        }
+
+
+class _ContactListFormatter:
+    """Builds new dicts: the results are shared by the contacts cache"""
+
+    def __init__(self, favorite_keys: set[tuple[str, str]]) -> None:
+        self._favorite_keys = favorite_keys
+
+    def format(self, result: SourceResult) -> dict[str, Any]:
+        return {
+            'source': result.source,
+            'backend': result.backend,
+            'fields': dict(result.fields),
+            'relations': dict(result.relations),
+            'favorite': (result.source, result.source_entry_id())
+            in self._favorite_keys,
+            'personal': result.is_personal,
+        }
 
 
 class _ResultFormatter:

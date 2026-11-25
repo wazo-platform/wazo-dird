@@ -1,6 +1,7 @@
 # Copyright 2019-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import hashlib
 import json
 import threading
 import unittest
@@ -20,6 +21,9 @@ from hamcrest import (
     raises,
     same_instance,
 )
+
+from wazo_dird import contacts_cache
+from wazo_dird.contacts_cache import ContactsCacheTimeout
 
 from .. import services
 from ..exceptions import GoogleTokenRejectedException, GoogleUnavailableException
@@ -243,7 +247,7 @@ class TestGoogleServiceCache(unittest.TestCase):
     contacts = {'connections': [_person('1', 'Mario'), _person('2', 'Luigi')]}
 
     def setUp(self):
-        self.cache = services.ContactsCache(ttl=300)
+        self.cache = services.new_contacts_cache(ttl=300)
         self.service = services.GoogleService(self.cache)
 
     def test_contacts_are_fetched_once_per_token(self, get):
@@ -311,7 +315,7 @@ class TestGoogleServiceCache(unittest.TestCase):
             release.wait(5)
             return remaining.pop(0)
 
-        class SignalingFuture(services.Future):
+        class SignalingFuture(contacts_cache.Future):
             def result(self, timeout=None):
                 waiting.release()
                 return super().result(timeout)
@@ -326,7 +330,7 @@ class TestGoogleServiceCache(unittest.TestCase):
 
         get.side_effect = slow_get
         threads = [threading.Thread(target=fetch) for _ in range(count)]
-        with patch.object(services, 'Future', SignalingFuture):
+        with patch.object(contacts_cache, 'Future', SignalingFuture):
             for thread in threads:
                 thread.start()
             for _ in range(count - 1):
@@ -471,29 +475,23 @@ class TestGoogleServiceCache(unittest.TestCase):
         # seconds left instead of the 10 of a request
         assert_that(timeouts, contains_exactly(10, 10, 6))
 
-    def test_waiters_give_up_at_the_download_timeout(self, get):
-        cache = services.ContactsCache(ttl=300)
-        fetching = threading.Event()
-        release = threading.Event()
+    def test_a_cache_timeout_is_a_google_outage(self, get):
+        cache = Mock(get_or_fetch=Mock(side_effect=ContactsCacheTimeout('k', 60)))
 
-        def slow_fetch():
-            fetching.set()
-            release.wait(5)
-            return []
+        assert_that(
+            calling(services.GoogleService(cache).get_all_contacts).with_args('token'),
+            raises(GoogleUnavailableException),
+        )
 
-        fetcher = threading.Thread(target=cache.get_or_fetch, args=('a', slow_fetch))
-        try:
-            fetcher.start()
-            fetching.wait(5)
-            with patch.object(services, 'DOWNLOAD_TIMEOUT', 0.01):
-                assert_that(
-                    calling(cache.get_or_fetch).with_args('a', Mock()),
-                    raises(GoogleUnavailableException),
-                )
-            assert_that(fetcher.is_alive(), equal_to(True))
-        finally:
-            release.set()
-            fetcher.join(5)
+    def test_the_cache_key_is_the_hashed_token(self, get):
+        cache = Mock(get_or_fetch=Mock(return_value=[]))
+
+        services.GoogleService(cache).get_all_contacts('token')
+
+        assert_that(
+            cache.get_or_fetch.call_args.args[0],
+            equal_to(hashlib.sha256(b'token').hexdigest()),
+        )
 
     def test_requests_have_a_timeout(self, get):
         get.return_value = _response(self.contacts)
@@ -595,70 +593,3 @@ class TestSharedContactsCache(unittest.TestCase):
             services.shared_contacts_cache(config),
             same_instance(services.shared_contacts_cache(dict(config))),
         )
-
-
-class TestContactsCache(unittest.TestCase):
-    def test_expired_entries_are_dropped_on_write(self):
-        cache = services.ContactsCache(ttl=300)
-
-        with patch.object(services.time, 'monotonic', return_value=1000):
-            cache.get_or_fetch('a', Mock(return_value=[]))
-        with patch.object(services.time, 'monotonic', return_value=1300):
-            cache.get_or_fetch('b', Mock(return_value=[]))
-
-        assert_that(cache._entries, has_length(1))
-
-    def test_oldest_entry_is_evicted_when_full(self):
-        cache = services.ContactsCache(ttl=300)
-        cache.MAX_CONTACTS = 2
-
-        for token in ('a', 'b', 'c'):
-            cache.get_or_fetch(token, Mock(return_value=[{'id': token}]))
-
-        fetch = Mock(return_value=[])
-        cache.get_or_fetch('b', fetch)
-        cache.get_or_fetch('c', fetch)
-        fetch.assert_not_called()
-        cache.get_or_fetch('a', fetch)
-        fetch.assert_called_once_with()
-
-    def test_entries_are_evicted_until_the_contacts_fit(self):
-        cache = services.ContactsCache(ttl=300)
-        cache.MAX_CONTACTS = 3
-
-        for token in ('a', 'b', 'c'):
-            cache.get_or_fetch(token, Mock(return_value=[{'id': token}]))
-        cache.get_or_fetch('d', Mock(return_value=[{'id': 'd1'}, {'id': 'd2'}]))
-
-        assert_that(
-            list(cache._entries), contains_exactly(cache._key('c'), cache._key('d'))
-        )
-        assert_that(cache._contact_count, equal_to(3))
-
-    def test_contacts_above_the_limit_are_not_cached(self):
-        cache = services.ContactsCache(ttl=300)
-        cache.MAX_CONTACTS = 2
-        cache.get_or_fetch('a', Mock(return_value=[{'id': 'a'}]))
-
-        contacts = [{'id': 'b1'}, {'id': 'b2'}, {'id': 'b3'}]
-        fetch = Mock(return_value=contacts)
-        assert_that(cache.get_or_fetch('b', fetch), equal_to(contacts))
-        assert_that(cache.get_or_fetch('b', fetch), equal_to(contacts))
-
-        assert_that(fetch.call_count, equal_to(2))
-        assert_that(list(cache._entries), contains_exactly(cache._key('a')))
-        assert_that(cache._contact_count, equal_to(1))
-
-    def test_interrupted_fetch_does_not_block_later_fetches(self):
-        cache = services.ContactsCache(ttl=300)
-
-        assert_that(
-            calling(cache.get_or_fetch).with_args(
-                'a', Mock(side_effect=KeyboardInterrupt)
-            ),
-            raises(KeyboardInterrupt),
-        )
-
-        fetch = Mock(return_value=[{'id': 'a'}])
-        assert_that(cache.get_or_fetch('a', fetch), contains_exactly({'id': 'a'}))
-        fetch.assert_called_once_with()

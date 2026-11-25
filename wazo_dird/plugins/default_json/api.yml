@@ -182,7 +182,93 @@ paths:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/Profile'
 
+  /directories/contacts:
+    get:
+      summary: List every contact of the tenant
+      description: '**Required ACL:** `dird.directories.contacts.read`
+
+
+        Every contact of the token''s tenant, from every source of the lookup,
+        reverse and favorites services of all its profiles, each source listed
+        once. The tenant is the token''s own: a `Wazo-Tenant` header does not
+        change it. With a user token, the user''s personal contacts are listed and
+        their favorites flagged.
+
+
+        Contacts are sorted by source name, then by contact id. A source that
+        fails or does not answer within the configured timeout is left out of the
+        page and named in `missing_sources`: `total` and the offsets of that page
+        can then differ from the next one''s.
+
+
+        This route is provided by the `default_json_view` plugin using the `lookup`
+        plugin.'
+      operationId: list_directory_contacts
+      tags:
+      - directories
+      parameters:
+      - name: limit
+        in: query
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 100
+        description: The number of contacts returned
+        required: false
+      - name: offset
+        in: query
+        type: integer
+        minimum: 0
+        default: 0
+        description: The number of contacts to skip
+        required: false
+      responses:
+        '200':
+          description: A page of contacts
+          schema:
+            $ref: '#/definitions/DirectoryContactList'
+        '400':
+          $ref: '#/responses/InvalidData'
+        '401':
+          description: The token is invalid, lacks the ACL or cannot see the Wazo-Tenant
+          schema:
+            $ref: '#/definitions/Error'
+        '503':
+          $ref: '#/responses/ServiceUnavailable'
+
 definitions:
+  DirectoryContactList:
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/DirectoryContact'
+      total:
+        type: integer
+        description: The number of contacts of every page
+      missing_sources:
+        type: array
+        description: The names of the sources left out of this page because they
+          failed or timed out
+        items:
+          type: string
+  DirectoryContact:
+    properties:
+      source:
+        type: string
+      backend:
+        type: string
+      fields:
+        type: object
+        description: The contact's fields as the source returns them
+      relations:
+        $ref: '#/definitions/Relation'
+      favorite:
+        type: boolean
+        description: Whether the user of the token marked this contact favorite
+      personal:
+        type: boolean
+        description: Whether this is a personal contact of the user of the token
   ContactList:
     properties:
       column_headers:

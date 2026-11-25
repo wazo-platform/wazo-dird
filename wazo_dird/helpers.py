@@ -162,16 +162,9 @@ class BaseService:
     def source_from_profile(
         self, profile_config: ProfileConfig
     ) -> list[BaseSourcePlugin]:
-        service_config = profile_config.get('services', {}).get(self._service_name, {})
-        source_configs = service_config.get('sources', [])
-
-        result = []
-        for source_config in source_configs:
-            source = self._source_manager.get(source_config['uuid'])
-            if not source:
-                continue
-
-            result.append(source)
+        result = [
+            source for _, source in self._sources_of(profile_config, self._service_name)
+        ]
 
         if not result:
             logger.warning(
@@ -180,6 +173,18 @@ class BaseService:
                 profile_config['name'],
             )
 
+        return result
+
+    def _sources_of(
+        self, profile_config: ProfileConfig, service_name: str
+    ) -> list[tuple[str, BaseSourcePlugin]]:
+        """The loaded sources of a profile's service, with their uuid"""
+        service_config = profile_config.get('services', {}).get(service_name, {})
+        result = []
+        for source_config in service_config.get('sources', []):
+            source = self._source_manager.get(source_config['uuid'])
+            if source:
+                result.append((source_config['uuid'], source))
         return result
 
     def get_service_config(self, profile_config: ProfileConfig) -> ServiceConfig:
