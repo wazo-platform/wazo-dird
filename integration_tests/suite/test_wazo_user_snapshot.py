@@ -330,7 +330,7 @@ class TestWazoUserSnapshotOrdering(BaseSnapshotTest):
 
         with_cache = self.sequences()
         cache_requests = self.users_requests()
-        with self.dird_with_config({'wazo_user_cache_ttl': 0}):
+        with self.dird_with_config({'wazo_user_backend': {'contacts_cache_ttl': 0}}):
             self.wait_strategy.wait(self.dird)
             without_cache = self.sequences()
 
@@ -345,20 +345,20 @@ class TestWazoUserSnapshotOrdering(BaseSnapshotTest):
 
 class TestWazoUserSnapshotDisabled(BaseSnapshotTest):
     def test_a_ttl_of_zero_asks_confd_for_each_lookup(self):
-        """With `wazo_user_cache_ttl: 0` each lookup sends its own request."""
+        """With `wazo_user_backend.contacts_cache_ttl: 0` each lookup sends its own request."""
         self.set_confd_users([new_user(1, 'Alice', 'Anderson', '1001')])
 
-        with self.dird_with_config({'wazo_user_cache_ttl': 0}):
+        with self.dird_with_config({'wazo_user_backend': {'contacts_cache_ttl': 0}}):
             self.wait_strategy.wait(self.dird)
             for _ in range(3):
                 assert_that(self.lastnames('alice'), contains_exactly('Anderson'))
             assert_that(self.users_requests(), equal_to(3))
 
     def test_a_ttl_of_zero_asks_confd_for_each_listing(self):
-        """With `wazo_user_cache_ttl: 0` each contacts listing sends its own request."""
+        """With `wazo_user_backend.contacts_cache_ttl: 0` each contacts listing sends its own request."""
         self.set_confd_users([new_user(1, 'Alice', 'Anderson', '1001')])
 
-        with self.dird_with_config({'wazo_user_cache_ttl': 0}):
+        with self.dird_with_config({'wazo_user_backend': {'contacts_cache_ttl': 0}}):
             self.wait_strategy.wait(self.dird)
             for _ in range(3):
                 assert_that(self.contacts()['total'], equal_to(1))

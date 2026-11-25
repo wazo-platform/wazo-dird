@@ -63,7 +63,7 @@ class TestListContacts(unittest.TestCase):
     def make_plugin(self, ttl: int = 60, **config: Any) -> WazoUserPlugin:
         dependencies = {
             'config': {**SOURCE_CONFIG, **config},
-            'main_config': {'wazo_user_cache_ttl': ttl},
+            'main_config': {'wazo_user_backend': {'contacts_cache_ttl': ttl}},
             'auth_client': Mock(),
             'token_renewer': Mock(),
         }

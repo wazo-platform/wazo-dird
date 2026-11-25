@@ -29,6 +29,10 @@
 * New configuration key `google_backend.contacts_cache_ttl`: how long each
   Google account's contacts are cached, in seconds (default `300`, `0`
   disables the cache).
+* New configuration key `wazo_user_backend.contacts_cache_ttl` (seconds, default
+  `60`, `0` disables). A `wazo` source answers lookups from a snapshot of all
+  its confd users, reloaded after this delay, instead of one confd request for
+  each lookup.
 
 ## 26.10
 
@@ -41,10 +45,6 @@
   their `first_matched_columns`.
 
 ## 26.09
-
-* New `wazo_user_cache_ttl` option (seconds, default 60, `0` disables). A `wazo`
-  source answers lookups from a snapshot of all its confd users, reloaded
-  after this delay, instead of one confd request for each lookup.
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx. Existing
   directory sources pointing at `localhost:9497` are migrated.

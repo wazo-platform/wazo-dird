@@ -96,6 +96,10 @@ class GoogleBackendConfig(TypedDict, total=False):
     contacts_cache_ttl: int
 
 
+class WazoUserBackendConfig(TypedDict, total=False):
+    contacts_cache_ttl: int
+
+
 class Config(TypedDict, total=False):
     uuid: str
     auth: AuthConfig
@@ -113,7 +117,7 @@ class Config(TypedDict, total=False):
     lookup_service: LookupServiceConfig
     favorites_service: FavoritesServiceConfig
     google_backend: GoogleBackendConfig
-    wazo_user_cache_ttl: int
+    wazo_user_backend: WazoUserBackendConfig
     user: str
     bus: BusConfig
     consul: ConsulConfig
@@ -138,7 +142,6 @@ _DEFAULT_CONFIG: Config = {
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-dird',
     'debug': False,
     'extra_config_files': '/etc/wazo-dird/conf.d/',
-    'wazo_user_cache_ttl': 60,
     'enabled_plugins': {
         'backends': {
             'conference': True,
@@ -214,6 +217,9 @@ _DEFAULT_CONFIG: Config = {
     },
     'google_backend': {
         'contacts_cache_ttl': 300,
+    },
+    'wazo_user_backend': {
+        'contacts_cache_ttl': 60,
     },
     'services': {
         'service_discovery': {

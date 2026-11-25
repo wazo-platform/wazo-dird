@@ -38,7 +38,7 @@ AUTH_CONFIG = {
 }
 CONFD_CONFIG = {'host': 'xivo.example.com', 'port': 9486, 'version': '1.1'}
 DEFAULT_ARGS: dict[str, Any] = {
-    'main_config': {'wazo_user_cache_ttl': 0},
+    'main_config': {'wazo_user_backend': {'contacts_cache_ttl': 0}},
     'config': {
         'uuid': 'ae086548-2d36-4367-8914-8dfcd8645ca7',
         'backend': 'wazo',

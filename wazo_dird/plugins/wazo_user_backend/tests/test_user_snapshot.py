@@ -81,10 +81,12 @@ class TestUserSnapshot(unittest.TestCase):
             ['exten'],
         ):
             live = self.make_plugin(
-                {'wazo_user_cache_ttl': 0}, searched_columns=columns
+                {'wazo_user_backend': {'contacts_cache_ttl': 0}},
+                searched_columns=columns,
             )
             cached = self.make_plugin(
-                {'wazo_user_cache_ttl': 60}, searched_columns=columns
+                {'wazo_user_backend': {'contacts_cache_ttl': 60}},
+                searched_columns=columns,
             )
             for term in [
                 'paul',
@@ -101,7 +103,7 @@ class TestUserSnapshot(unittest.TestCase):
                     assert_that(cached.search(term), equal_to(live.search(term)))
 
     def test_search_orders_users_as_confd_does_with_an_empty_lastname(self) -> None:
-        live = self.make_plugin({'wazo_user_cache_ttl': 0})
+        live = self.make_plugin({'wazo_user_backend': {'contacts_cache_ttl': 0}})
         cached = self.make_plugin({})
 
         # by lastname without case nor accents, the users without one last
@@ -171,7 +173,7 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.confd.searched(), has_length(0))
 
     def test_expiry_reloads_the_snapshot(self) -> None:
-        plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
+        plugin = self.make_plugin({'wazo_user_backend': {'contacts_cache_ttl': 60}})
         plugin.search('paul')
         self.confd.users.append(make_user(5, 'Paula', 'New', '1005'))
 
@@ -181,7 +183,7 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.ids(plugin, 'paul'), contains_inanyorder(2, 5))
 
     def test_a_failed_reload_keeps_the_old_snapshot_until_the_next_ttl(self) -> None:
-        plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
+        plugin = self.make_plugin({'wazo_user_backend': {'contacts_cache_ttl': 60}})
         plugin.search('paul')
         self.confd.snapshot_failure = ConnectionError('confd is down')
         self.now += 61
@@ -218,7 +220,7 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.confd.snapshot_loads(), has_length(1))
 
     def test_ttl_0_never_builds_a_snapshot(self) -> None:
-        plugin = self.make_plugin({'wazo_user_cache_ttl': 0})
+        plugin = self.make_plugin({'wazo_user_backend': {'contacts_cache_ttl': 0}})
 
         assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
         assert_that(self.confd.snapshot_loads(), empty())
@@ -246,7 +248,8 @@ class TestUserSnapshot(unittest.TestCase):
 
     def test_extra_search_params_load_with_a_ttl_of_0(self) -> None:
         plugin = self.make_plugin(
-            {'wazo_user_cache_ttl': 0}, extra_search_params={'context': 'inside'}
+            {'wazo_user_backend': {'contacts_cache_ttl': 0}},
+            extra_search_params={'context': 'inside'},
         )
 
         assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
@@ -265,7 +268,7 @@ class TestUserSnapshot(unittest.TestCase):
                 assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
 
     def test_a_load_longer_than_the_ttl_still_leaves_a_fresh_snapshot(self) -> None:
-        plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
+        plugin = self.make_plugin({'wazo_user_backend': {'contacts_cache_ttl': 60}})
         users_list = self.confd.users_list
 
         def slow_load(**params: Any) -> dict[str, Any]:
@@ -281,7 +284,7 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.confd.calls, empty())
 
     def test_a_failed_load_longer_than_the_ttl_is_not_retried_at_once(self) -> None:
-        plugin = self.make_plugin({'wazo_user_cache_ttl': 60})
+        plugin = self.make_plugin({'wazo_user_backend': {'contacts_cache_ttl': 60}})
 
         def slow_failure(**params: Any) -> dict[str, Any]:
             if 'search' not in params:
@@ -298,7 +301,7 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.confd.snapshot_loads(), empty())
 
     def test_a_ttl_written_as_a_number_in_text_is_read_as_a_number(self) -> None:
-        plugin = self.make_plugin({'wazo_user_cache_ttl': '30'})
+        plugin = self.make_plugin({'wazo_user_backend': {'contacts_cache_ttl': '30'}})
         self.ids(plugin, 'paul')
         self.confd.calls.clear()
 
@@ -311,7 +314,7 @@ class TestUserSnapshot(unittest.TestCase):
         assert_that(self.confd.snapshot_loads(), has_length(1))
 
     def test_a_ttl_below_a_second_is_accepted(self) -> None:
-        plugin = self.make_plugin({'wazo_user_cache_ttl': 0.5})
+        plugin = self.make_plugin({'wazo_user_backend': {'contacts_cache_ttl': 0.5}})
         self.ids(plugin, 'paul')
         self.confd.calls.clear()
 
@@ -327,7 +330,9 @@ class TestUserSnapshot(unittest.TestCase):
         for ttl in (-5, '-1', None, '', 0):
             with self.subTest(ttl=ttl):
                 self.confd.calls.clear()
-                plugin = self.make_plugin({'wazo_user_cache_ttl': ttl})
+                plugin = self.make_plugin(
+                    {'wazo_user_backend': {'contacts_cache_ttl': ttl}}
+                )
 
                 assert_that(self.ids(plugin, 'paul'), contains_exactly(2))
 
@@ -338,7 +343,7 @@ class TestUserSnapshot(unittest.TestCase):
         plugin = WazoUserPlugin()
         dependencies = {
             'config': SOURCE_CONFIG,
-            'main_config': {'wazo_user_cache_ttl': 'abc'},
+            'main_config': {'wazo_user_backend': {'contacts_cache_ttl': 'abc'}},
             'auth_client': Mock(),
             'token_renewer': Mock(),
         }

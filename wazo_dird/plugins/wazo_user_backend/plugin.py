@@ -118,7 +118,8 @@ class WazoUserPlugin(BaseSourcePlugin):
             cast('dict[str, Any]', config.get('extra_search_params', {}))
         )
         # last, so a ttl that is not a number leaves a source that asks confd
-        ttl = dependencies['main_config'].get('wazo_user_cache_ttl', 60)
+        backend_config = dependencies['main_config'].get('wazo_user_backend', {})
+        ttl = backend_config.get('contacts_cache_ttl', 60)
         self._snapshot_ttl = max(float(ttl or 0), 0)
         if self._snapshot_ttl and config.get('extra_search_params'):
             logger.warning('%s: extra_search_params disable the user cache', self.name)

@@ -42,10 +42,6 @@ rest_api:
   # https://wazo-platform.org/uc-doc/system/performance/
   max_threads: 100
 
-# Seconds a snapshot of all wazo users answers lookups before it is reloaded
-# (default 60). 0 asks confd for each lookup.
-# wazo_user_cache_ttl: 60
-
 # Authentication server connection settings
 auth:
   host: localhost
@@ -60,6 +56,12 @@ bus:
   host: localhost
   port: 5672
   exchange_name: wazo-headers
+
+# Wazo user backend settings
+wazo_user_backend:
+  # Seconds a snapshot of all wazo users answers lookups before it is reloaded.
+  # 0 asks confd for each lookup.
+  contacts_cache_ttl: 60
 
 # Google backend settings
 google_backend:
